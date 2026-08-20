@@ -10,7 +10,7 @@ export interface Exercise {
   name: string;
   description: string;
   category: ExerciseCategory;
-  source: string;
+  source?: string;
   location: LocationType[];
   ageGroups: string[];
   durationMinutes: number;
@@ -22,6 +22,12 @@ export interface Exercise {
   phase?: "warmup" | "main-tech" | "main-tact" | "cooldown";
   focusTags?: string[];
   coachingPoints?: string[];
+  targetKineticChain?: string[];
+  biomechanicsType?: "push" | "pull" | "hinge" | "squat" | "rotation" | "jump";
+  minPlayers?: number;
+  maxPlayers?: number;
+  isHomeFriendly?: boolean;
+  injuryPreventionFocus?: "knee" | "shoulder" | "achilles" | "lower-back";
   intensity?: 1 | 2 | 3 | 4 | 5;
   complexityLevel?: 1 | 2 | 3 | 4 | 5;
   defaultSets?: number;

@@ -65,7 +65,7 @@ export default function ExerciseFormDialog({
         setName(exercise.name);
         setDescription(exercise.description);
         setCategory(exercise.category);
-        setSource(exercise.source);
+        setSource(exercise.source ?? "");
         setLocations(exercise.location);
         setAgeGroups(exercise.ageGroups);
         setDuration(exercise.durationMinutes);

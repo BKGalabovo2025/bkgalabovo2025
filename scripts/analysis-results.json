@@ -1,0 +1,35 @@
+{
+  "total": 267,
+  "categories": {
+    "warmup": 41,
+    "physical": 106,
+    "technical": 52,
+    "tactical": 43,
+    "mental": 25
+  },
+  "kineticChains": {
+    "Ротация на ядрото": 43,
+    "Мобилност на таза": 43,
+    "Движение на китката": 76,
+    "Стабилност на глезена": 61,
+    "Спиране на рамото": 57,
+    "Ускорение на рамото": 67
+  },
+  "equipment": {
+    "other": 123,
+    "shuttles": 91,
+    "functional": 44,
+    "weights": 5,
+    "bodyweight": 3,
+    "machines": 1
+  },
+  "missingVideo": 84,
+  "missingCoachingPoints": 222,
+  "levels": {
+    "1": 52,
+    "2": 48,
+    "3": 40,
+    "4": 72,
+    "5": 55
+  }
+}

@@ -9,6 +9,7 @@ import {
   Clock,
   Info,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -33,8 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getBWFIntervals, getSkillLevel } from "@/lib/planner-utils";
-import { getAgeGroup } from "@/lib/utils";
-import { cn } from "@/lib/utils";
+import { cn, getAgeGroup } from "@/lib/utils";
 import { getAllMembers } from "@/services/member-service";
 import { plannerService } from "@/services/planner-service";
 import { getEventsForPeriod } from "@/services/schedule-service";
@@ -51,6 +51,8 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaveSuccess: () => void;
+  initialCampId?: string;
+  initialDate?: string;
 }
 
 const AGE_GROUPS = ["U9", "U11", "U13", "U15", "U17", "U19", "Мъже и Жени"];
@@ -59,6 +61,8 @@ export default function CreateSessionWizard({
   open,
   onOpenChange,
   onSaveSuccess,
+  initialCampId,
+  initialDate,
 }: Props) {
   const { activeBranch } = useAppStore();
 
@@ -73,6 +77,11 @@ export default function CreateSessionWizard({
   const [location, setLocation] = useState<LocationType>("indoor");
   const [ageGroup, setAgeGroup] = useState<string>("U13");
   const [addToSchedule, setAddToSchedule] = useState(false);
+  const [creationMode, setCreationMode] = useState<"auto" | "manual">("auto");
+  const [allExercises, setAllExercises] = useState<Exercise[]>([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isHomeFriendlyOnly, setIsHomeFriendlyOnly] = useState(false);
+  const [availableCourts, setAvailableCourts] = useState<number>(4);
 
   // Pedagogical State
   const [focus, setFocus] = useState<string>("Обща Подготовка");
@@ -90,13 +99,19 @@ export default function CreateSessionWizard({
     null
   );
   const [fallbackWarning, setFallbackWarning] = useState<boolean>(false);
+  const [campFatigueWarning, setCampFatigueWarning] = useState<boolean>(false);
 
   // Calendar Import State
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>("none");
   const [eventDuration, setEventDuration] = useState<number>(90);
   const [attendees, setAttendees] = useState<
-    { member: Member; ageGroup: string; skillLevel: string }[]
+    {
+      member: Member;
+      ageGroup: string;
+      skillLevel: string;
+      isExcluded?: boolean;
+    }[]
   >([]);
 
   // Generated Data
@@ -117,8 +132,23 @@ export default function CreateSessionWizard({
       setPeriod("preparation");
       setPedagogicalAction("new");
       setAddToSchedule(false);
+      setCreationMode("auto");
       setGroupedExercises([]);
-      setSelectedEventId("none");
+      setIsHomeFriendlyOnly(false);
+
+      if (initialCampId) {
+        setMode("camp");
+        setLocation("outdoor");
+        setSelectedEventId(initialCampId);
+      } else {
+        setSelectedEventId("none");
+        setMode("season");
+      }
+
+      if (initialDate) {
+        setDate(initialDate);
+      }
+
       setAttendees([]);
       setEventDuration(90);
       setCompetitionWarning(null);
@@ -126,13 +156,38 @@ export default function CreateSessionWizard({
 
       // Load upcoming events
       const fetchEvents = async () => {
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
-        const future = new Date();
-        future.setDate(future.getDate() + 90); // Look 3 months ahead for comps and camps
         try {
-          const fetched = await getEventsForPeriod(now, future);
-          const upcomingComps = fetched.filter((e) => e.type === "competition");
+          // get current week
+          const today = new Date();
+          const p = new Date(today);
+          p.setDate(p.getDate() + 90);
+          const res = await getEventsForPeriod(today, p);
+
+          if (initialCampId) {
+            const { getCamps } = await import("@/services/schedule-service");
+            const camps = await getCamps();
+            const camp = camps.find((c) => c.id === initialCampId);
+            if (camp && !res.some((e) => e.id === camp.id)) {
+              res.unshift(camp as unknown as ScheduleEvent);
+            }
+            if (camp) {
+              const allMembers = await getAllMembers();
+              const evtMembers = allMembers.filter((m) =>
+                camp.attendeeMemberIds.includes(m.id)
+              );
+              const mapped = evtMembers.map((m) => {
+                let group = m.dateOfBirth ? getAgeGroup(m.dateOfBirth) : "U13";
+                if (group === "Мъже/Жени") group = "Мъже и Жени";
+                if (group === "Неопределена") group = "U13";
+                const skill = getSkillLevel(m);
+                return { member: m, ageGroup: group, skillLevel: skill };
+              });
+              setAttendees(mapped);
+              setAgeGroup("Смесено (спрямо присъствия)");
+            }
+          }
+
+          const upcomingComps = res.filter((e) => e.type === "competition");
           if (upcomingComps.length > 0) {
             setCompetitionWarning(
               `Внимание: В следващите 3 седмици има състезание (${upcomingComps[0].title}). Препоръчва се 'Състезателен' период с намалена физическа интензивност.`
@@ -141,7 +196,7 @@ export default function CreateSessionWizard({
           }
 
           setEvents(
-            fetched.filter(
+            res.filter(
               (e) =>
                 e.type === "training" ||
                 e.type === "camp" ||
@@ -151,13 +206,16 @@ export default function CreateSessionWizard({
 
           const dbFocuses = await plannerService.getFocusTags(activeBranch);
           setFocusOptions(dbFocuses);
+
+          const ex = await plannerService.getExercises(activeBranch);
+          setAllExercises(ex);
         } catch (error) {
           console.error("Failed to load events", error);
         }
       };
       fetchEvents();
     }
-  }, [open, activeBranch]);
+  }, [open, activeBranch, initialCampId, initialDate]);
 
   const handleEventSelect = async (eventId: string) => {
     setSelectedEventId(eventId);
@@ -193,6 +251,7 @@ export default function CreateSessionWizard({
         return { member: m, ageGroup: group, skillLevel: skill };
       });
       setAttendees(mapped);
+      setAgeGroup("Смесено (спрямо присъствия)");
     } catch (e: unknown) {
       console.error(e);
     } finally {
@@ -218,24 +277,157 @@ export default function CreateSessionWizard({
     setIsFetching(true);
     setFallbackWarning(false);
     try {
-      const allExercises = await plannerService.getExercises(activeBranch);
+      if (creationMode === "manual") {
+        setGroupedExercises([
+          { ageGroup, skillLevel: "Смесено", exercises: [] },
+        ]);
+        setStep(2);
+        return;
+      }
 
-      let targetCombinations: { ageGroup: string; skillLevel: string }[] = [];
+      let effectiveIntensity = targetIntensity;
+      let isFatigued = false;
+      setCampFatigueWarning(false);
 
-      if (attendees.length > 0) {
+      if (mode === "camp" && selectedEventId !== "none") {
+        try {
+          const allSessions = await plannerService.getSessions(activeBranch);
+          const campSessions = allSessions.filter(
+            (s) => s.eventId === selectedEventId
+          );
+
+          const now = new Date();
+          const fortyEightHoursAgo = new Date();
+          fortyEightHoursAgo.setHours(now.getHours() - 48);
+
+          const recentSessions = campSessions.filter((s) => {
+            const sDate = new Date(s.date);
+            return sDate >= fortyEightHoursAgo && sDate <= now;
+          });
+
+          if (recentSessions.length >= 3) {
+            isFatigued = true;
+            effectiveIntensity = Math.min(effectiveIntensity, 3);
+            setCampFatigueWarning(true);
+          }
+        } catch (e) {
+          console.error("Failed to check camp fatigue", e);
+        }
+      }
+
+      const pastExerciseIds = new Set<string>();
+      if (pedagogicalAction === "consolidation") {
+        try {
+          const allSessions = await plannerService.getSessions(activeBranch);
+          const twoWeeksAgo = new Date();
+          twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+          allSessions.forEach((s) => {
+            const sDate = new Date(s.date);
+            if (sDate >= twoWeeksAgo && sDate <= new Date()) {
+              s.groupedExercises?.forEach((g) => {
+                g.exercises?.forEach((ex) => pastExerciseIds.add(ex.id));
+              });
+            }
+          });
+        } catch (e) {
+          console.error("Failed to fetch past sessions for consolidation", e);
+        }
+      }
+
+      let targetCombinations: {
+        ageGroup: string;
+        skillLevel: string;
+        clusterSize: number;
+        isRehab?: boolean;
+        injuries?: string[];
+      }[] = [];
+
+      if (ageGroup === "Смесено (спрямо присъствия)" && attendees.length > 0) {
+        const activeAttendees = attendees.filter(
+          (a) => !(a as Record<string, unknown>).isExcluded
+        );
+        const clusterMap = new Map<
+          string,
+          { count: number; isRehab: boolean; injuries: Set<string> }
+        >();
+        for (const a of activeAttendees) {
+          const hasInjuries =
+            Array.isArray(a.member?.injuries) && a.member.injuries.length > 0;
+          const key = hasInjuries
+            ? `${a.ageGroup}|${a.skillLevel}|REHAB`
+            : `${a.ageGroup}|${a.skillLevel}`;
+
+          if (!clusterMap.has(key)) {
+            clusterMap.set(key, {
+              count: 0,
+              isRehab: hasInjuries,
+              injuries: new Set(),
+            });
+          }
+
+          const cluster = clusterMap.get(key)!;
+          cluster.count += 1;
+          if (hasInjuries) {
+            a.member.injuries?.forEach((i: string) => cluster.injuries.add(i));
+          }
+        }
+        for (const [key, data] of clusterMap.entries()) {
+          const [ag, sk] = key.split("|");
+          targetCombinations.push({
+            ageGroup: ag,
+            skillLevel: sk,
+            clusterSize: data.count,
+            isRehab: data.isRehab,
+            injuries: data.isRehab ? Array.from(data.injuries) : [],
+          });
+        }
+      } else if (attendees.length > 0) {
         const uniqueComboMap = new Map<
           string,
-          { ageGroup: string; skillLevel: string }
+          {
+            ageGroup: string;
+            skillLevel: string;
+            count: number;
+            isRehab: boolean;
+            injuries: Set<string>;
+          }
         >();
         attendees.forEach((a) => {
-          uniqueComboMap.set(`${a.ageGroup}-${a.skillLevel}`, {
-            ageGroup: a.ageGroup,
-            skillLevel: a.skillLevel,
-          });
+          const hasInjuries =
+            Array.isArray(a.member?.injuries) && a.member.injuries.length > 0;
+          const key = hasInjuries
+            ? `${a.ageGroup}-${a.skillLevel}-REHAB`
+            : `${a.ageGroup}-${a.skillLevel}`;
+
+          if (!uniqueComboMap.has(key)) {
+            uniqueComboMap.set(key, {
+              ageGroup: a.ageGroup,
+              skillLevel: a.skillLevel,
+              count: 1,
+              isRehab: hasInjuries,
+              injuries: new Set(),
+            });
+          } else {
+            uniqueComboMap.get(key)!.count += 1;
+          }
+          if (hasInjuries) {
+            a.member.injuries?.forEach((i: string) =>
+              uniqueComboMap.get(key)!.injuries.add(i)
+            );
+          }
         });
-        targetCombinations = Array.from(uniqueComboMap.values());
+        targetCombinations = Array.from(uniqueComboMap.values()).map((v) => ({
+          ageGroup: v.ageGroup,
+          skillLevel: v.skillLevel,
+          clusterSize: v.count,
+          isRehab: v.isRehab,
+          injuries: v.isRehab ? Array.from(v.injuries) : [],
+        }));
       } else {
-        targetCombinations = [{ ageGroup, skillLevel: "Начинаещи" }]; // Fallback
+        targetCombinations = [
+          { ageGroup, skillLevel: "Начинаещи", clusterSize: 4 },
+        ]; // Fallback
       }
 
       const newGrouped: {
@@ -259,14 +451,92 @@ export default function CreateSessionWizard({
       }
 
       for (const group of targetCombinations) {
-        const baseFiltered = allExercises.filter(
-          (ex) =>
-            ex.ageGroups.includes(group.ageGroup) &&
-            (ex.location.includes(location) || ex.location.includes("both"))
+        let baseFiltered = allExercises.filter((ex) =>
+          ex.ageGroups?.includes(group.ageGroup)
         );
+
+        if (isHomeFriendlyOnly) {
+          baseFiltered = baseFiltered.filter((ex) => ex.isHomeFriendly);
+        } else {
+          baseFiltered = baseFiltered.filter(
+            (ex) =>
+              ex.location?.includes(location) || ex.location?.includes("both")
+          );
+        }
+
+        // Intensity filtering (±1 rule) with effective intensity
+        baseFiltered = baseFiltered.filter((ex) => {
+          if (!ex.intensity) return true; // allow if unset
+          return Math.abs(ex.intensity - effectiveIntensity) <= 1;
+        });
+
+        // Space/Court constraint for indoor exercises
+        baseFiltered = baseFiltered.filter((ex) => {
+          if (
+            ex.location?.includes("indoor") ||
+            ex.location?.includes("both")
+          ) {
+            if (ex.maxPlayers) {
+              const capacity = ex.maxPlayers * availableCourts;
+              if (capacity < group.clusterSize) {
+                return false; // Cannot fit everyone!
+              }
+            }
+          }
+          return true;
+        });
+
+        // Rehab Safety Filters
+        if (group.isRehab) {
+          baseFiltered = baseFiltered.filter((ex) => {
+            // Exclude intense tactical matches for injured players
+            if (ex.category === "tactical" && ex.intensity && ex.intensity >= 4)
+              return false;
+
+            // Knee / Achilles / Ankle injuries
+            if (
+              group.injuries?.some((i) =>
+                ["knee", "achilles", "ankle"].includes(i)
+              )
+            ) {
+              if (
+                ex.biomechanicsType === "squat" ||
+                ex.biomechanicsType === "jump"
+              )
+                return false;
+            }
+
+            // Shoulder / Wrist injuries
+            if (
+              group.injuries?.some((i) => ["shoulder", "wrist"].includes(i))
+            ) {
+              if (
+                ex.biomechanicsType === "pull" ||
+                ex.targetKineticChain?.includes("shoulder") ||
+                ex.targetKineticChain?.includes("shoulder-deceleration")
+              )
+                return false;
+            }
+
+            return true;
+          });
+        }
+
+        // Fatigue Penalty filter
+        if (isFatigued) {
+          baseFiltered = baseFiltered.filter(
+            (ex) => ex.biomechanicsType !== "jump"
+          );
+        }
+
+        if (baseFiltered.length === 0) {
+          baseFiltered = allExercises;
+        }
 
         const selected: Exercise[] = [];
         const usedIds = new Set<string>();
+        const usedKineticChains = new Set<string>();
+        const usedBiomechanics = new Set<string>();
 
         // Helper to select exercises for a phase
         const selectForPhase = (
@@ -315,12 +585,60 @@ export default function CreateSessionWizard({
           }
 
           // Shuffle
-          const shuffled = [...phasePool].sort(() => 0.5 - Math.random());
+          let shuffled = [...phasePool].sort(() => 0.5 - Math.random());
+
+          if (
+            pedagogicalAction === "consolidation" &&
+            pastExerciseIds.size > 0
+          ) {
+            shuffled = [
+              ...shuffled.filter((ex) => pastExerciseIds.has(ex.id)),
+              ...shuffled.filter((ex) => !pastExerciseIds.has(ex.id)),
+            ];
+          }
+
+          // If Rehab, prioritize prevention focus
+          if (group.isRehab && group.injuries && group.injuries.length > 0) {
+            shuffled.sort((a, b) => {
+              const aMatch = group.injuries!.includes(
+                a.injuryPreventionFocus || ""
+              )
+                ? 1
+                : 0;
+              const bMatch = group.injuries!.includes(
+                b.injuryPreventionFocus || ""
+              )
+                ? 1
+                : 0;
+              return bMatch - aMatch;
+            });
+          }
+
           let currentDur = 0;
 
-          for (const ex of shuffled) {
-            if (currentDur + ex.durationMinutes <= timeLimit + 5) {
-              // Apply BWF dynamic intervals if it's a technical/tactical drill
+          let consecutiveMisses = 0;
+
+          while (currentDur < timeLimit - 5 && shuffled.length > 0) {
+            // Find best next exercise (Load Balancing)
+            let bestIdx = 0;
+            if (consecutiveMisses < 3) {
+              // Try to find one that doesn't overlap with recent kinetic chains or biomechanics
+              const idx = shuffled.findIndex((ex) => {
+                const hasChainOverlap = ex.targetKineticChain?.some((c) =>
+                  usedKineticChains.has(c)
+                );
+                const hasBioOverlap =
+                  ex.biomechanicsType &&
+                  usedBiomechanics.has(ex.biomechanicsType);
+                return !hasChainOverlap && !hasBioOverlap;
+              });
+              if (idx !== -1) bestIdx = idx;
+            }
+
+            const ex = shuffled.splice(bestIdx, 1)[0];
+
+            if (currentDur + ex.durationMinutes <= timeLimit + 10) {
+              // allow slightly over
               if (targetPhase.includes("main")) {
                 const bwf = getBWFIntervals(group.ageGroup);
                 ex.defaultSets = bwf.sets;
@@ -330,8 +648,19 @@ export default function CreateSessionWizard({
               selected.push(ex);
               usedIds.add(ex.id);
               currentDur += ex.durationMinutes;
+
+              // Update used chains (keep history short by clearing sometimes, or just tracking last 1-2)
+              usedKineticChains.clear();
+              ex.targetKineticChain?.forEach((c) => usedKineticChains.add(c));
+
+              usedBiomechanics.clear();
+              if (ex.biomechanicsType)
+                usedBiomechanics.add(ex.biomechanicsType);
+
+              consecutiveMisses = 0;
+            } else {
+              consecutiveMisses++;
             }
-            if (currentDur >= timeLimit - 5) break;
           }
         };
 
@@ -446,253 +775,342 @@ export default function CreateSessionWizard({
             )}
 
             {/* Calendar Import Section */}
-            <div className="space-y-4 rounded-xl border border-indigo-100 bg-indigo-50 p-4">
-              <div className="space-y-2">
-                <Label className="font-bold text-indigo-900">
-                  Импорт от График
-                </Label>
-                <Select
-                  value={selectedEventId}
-                  onValueChange={handleEventSelect}
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Изберете предстоящо събитие..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">
-                      Без импорт (ръчно планиране)
-                    </SelectItem>
-                    {events
-                      .filter((e) =>
-                        mode === "camp"
-                          ? e.type === "camp"
-                          : e.type === "training" || e.type === "camp"
-                      )
-                      .map((e) => (
-                        <SelectItem key={e.id} value={e.id}>
-                          {new Date(e.startDate).toLocaleDateString("bg-BG")} -{" "}
-                          {e.title}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
-              {attendees.length > 0 && (
-                <div className="space-y-3 rounded-xl border border-indigo-100 bg-white p-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-zinc-900">
-                      Смесени Групи ({attendees.length} участници)
-                    </h4>
-                    <span className="flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-600">
-                      <Clock size={12} className="mr-1" /> {eventDuration} мин
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-zinc-500">
-                    Системата автоматично разделя децата по възраст и ниво на
-                    умения (Skill Level).
-                  </p>
-                  <div className="max-h-48 space-y-2 overflow-y-auto pr-2">
-                    {attendees.map((a) => (
-                      <div
-                        key={a.member.id}
-                        className="flex flex-col justify-between gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 transition-colors hover:bg-zinc-100 sm:flex-row sm:items-center"
-                      >
-                        <span className="text-sm font-medium text-zinc-700">
-                          {a.member.firstName} {a.member.lastName}
-                        </span>
-                        <div className="flex gap-2">
-                          <Select
-                            value={a.ageGroup}
-                            onValueChange={(val) =>
-                              updateAttendeeGroup(
-                                a.member.id,
-                                val,
-                                a.skillLevel
-                              )
-                            }
-                          >
-                            <SelectTrigger className="h-8 w-24 bg-white text-xs font-bold">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {AGE_GROUPS.map((ag) => (
-                                <SelectItem key={ag} value={ag}>
-                                  {ag}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Select
-                            value={a.skillLevel}
-                            onValueChange={(val) =>
-                              updateAttendeeGroup(a.member.id, a.ageGroup, val)
-                            }
-                          >
-                            <SelectTrigger className="h-8 w-28 bg-white text-xs font-bold">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Начинаещи">
-                                Начинаещи
-                              </SelectItem>
-                              <SelectItem value="Напреднали">
-                                Напреднали
-                              </SelectItem>
-                              <SelectItem value="Експерти">Експерти</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="flex gap-2">
+              <Button
+                variant={creationMode === "auto" ? "default" : "outline"}
+                className={cn(
+                  "flex-1",
+                  creationMode === "auto" && "bg-indigo-600"
+                )}
+                onClick={() => setCreationMode("auto")}
+              >
+                Автоматично (Съветник)
+              </Button>
+              <Button
+                variant={creationMode === "manual" ? "default" : "outline"}
+                className={cn(
+                  "flex-1",
+                  creationMode === "manual" && "bg-indigo-600"
+                )}
+                onClick={() => setCreationMode("manual")}
+              >
+                Ръчно планиране
+              </Button>
             </div>
 
-            {/* Methodological Settings */}
-            <div className="space-y-4 rounded-xl border border-zinc-200 p-4">
-              <h4 className="flex items-center gap-2 font-bold text-zinc-900">
-                <Info className="size-4 text-zinc-400" />
-                Методически Параметри
-              </h4>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {creationMode === "auto" && (
+              <div className="space-y-4 rounded-xl border border-indigo-100 bg-indigo-50 p-4">
                 <div className="space-y-2">
-                  <Label>Тема / Фокус</Label>
-                  <Select value={focus} onValueChange={setFocus}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-75 overflow-y-auto">
-                      {focusOptions.map((f) => (
-                        <SelectItem key={f} value={f}>
-                          {f}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Периодизация</Label>
+                  <Label className="font-bold text-indigo-900">
+                    Импорт от График
+                  </Label>
                   <Select
-                    value={period}
-                    onValueChange={(v) =>
-                      setPeriod(
-                        v as "preparation" | "competition" | "transition"
-                      )
-                    }
+                    value={selectedEventId}
+                    onValueChange={handleEventSelect}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Изберете предстоящо събитие..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="preparation">
-                        Подготвителен (ОФП)
+                      <SelectItem value="none">
+                        Без импорт (ръчно планиране)
                       </SelectItem>
-                      <SelectItem value="competition">
-                        Състезателен (Tapering)
-                      </SelectItem>
-                      <SelectItem value="transition">
-                        Преходен (Възстановяване)
-                      </SelectItem>
+                      {events
+                        .filter((e) =>
+                          mode === "camp"
+                            ? e.type === "camp"
+                            : e.type === "training" || e.type === "camp"
+                        )
+                        .map((e) => (
+                          <SelectItem key={e.id} value={e.id}>
+                            {new Date(e.startDate).toLocaleDateString("bg-BG")}{" "}
+                            - {e.title}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <div className="space-y-4 pt-2">
-                <div className="mb-2 flex items-center justify-between">
-                  <Label>Целева Интензивност (1-5)</Label>
-                  <span className="rounded bg-indigo-50 px-2 font-black text-indigo-600">
-                    {targetIntensity}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                  {[
-                    { val: 1, label: "Много лесна" },
-                    { val: 2, label: "Лесна" },
-                    { val: 3, label: "Средна" },
-                    { val: 4, label: "Трудна" },
-                    { val: 5, label: "Много трудна" },
-                  ].map((lvl) => (
-                    <div
-                      key={lvl.val}
-                      onClick={() => setTargetIntensity(lvl.val)}
-                      className={cn(
-                        "flex min-h-15 cursor-pointer flex-col items-center justify-center rounded-xl border p-2 text-center transition-all",
-                        targetIntensity === lvl.val
-                          ? "border-indigo-600 bg-indigo-600 text-white shadow-md"
-                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-100"
-                      )}
-                    >
-                      <span className="mb-0.5 text-xs font-bold">
-                        {lvl.val}
-                      </span>
-                      <span className="text-[10px] leading-tight opacity-90">
-                        {lvl.label}
+                {attendees.length > 0 && (
+                  <div className="space-y-3 rounded-xl border border-indigo-100 bg-white p-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold text-zinc-900">
+                        Смесени Групи ({attendees.length} участници)
+                      </h4>
+                      <span className="flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-600">
+                        <Clock size={12} className="mr-1" /> {eventDuration} мин
                       </span>
                     </div>
-                  ))}
-                </div>
-                <p className="mt-2 text-[10px] text-zinc-500">
-                  Системата ще избере упражнения, които отговарят на тази
-                  интензивност.
-                </p>
-              </div>
-
-              {attendees.length > 0 && (
-                <div className="space-y-2 pt-2">
-                  <Label>
-                    Педагогическо Действие (Спрямо минали тренировки)
-                  </Label>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={
-                        pedagogicalAction === "consolidation"
-                          ? "default"
-                          : "outline"
-                      }
-                      className={cn(
-                        "h-8 flex-1 text-xs",
-                        pedagogicalAction === "consolidation" && "bg-indigo-600"
-                      )}
-                      onClick={() => setPedagogicalAction("consolidation")}
-                    >
-                      Затвърждаване
-                    </Button>
-                    <Button
-                      variant={
-                        pedagogicalAction === "progression"
-                          ? "default"
-                          : "outline"
-                      }
-                      className={cn(
-                        "h-8 flex-1 text-xs",
-                        pedagogicalAction === "progression" && "bg-indigo-600"
-                      )}
-                      onClick={() => setPedagogicalAction("progression")}
-                    >
-                      Надграждане
-                    </Button>
-                    <Button
-                      variant={
-                        pedagogicalAction === "new" ? "default" : "outline"
-                      }
-                      className={cn(
-                        "h-8 flex-1 text-xs",
-                        pedagogicalAction === "new" && "bg-indigo-600"
-                      )}
-                      onClick={() => setPedagogicalAction("new")}
-                    >
-                      Нова Тема
-                    </Button>
+                    <p className="text-[10px] text-zinc-500">
+                      Системата автоматично разделя децата по възраст и ниво на
+                      умения (Skill Level).
+                    </p>
+                    <div className="max-h-48 space-y-2 overflow-y-auto pr-2">
+                      {attendees.map((a) => (
+                        <div
+                          key={a.member.id}
+                          className="flex flex-col justify-between gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 transition-colors hover:bg-zinc-100 sm:flex-row sm:items-center"
+                        >
+                          <span className="text-sm font-medium text-zinc-700">
+                            {a.member.firstName} {a.member.lastName}
+                          </span>
+                          <div className="flex gap-2">
+                            <Select
+                              value={a.ageGroup}
+                              onValueChange={(val) =>
+                                updateAttendeeGroup(
+                                  a.member.id,
+                                  val,
+                                  a.skillLevel
+                                )
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-24 bg-white text-xs font-bold">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {AGE_GROUPS.map((ag) => (
+                                  <SelectItem key={ag} value={ag}>
+                                    {ag}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select
+                              value={a.skillLevel}
+                              onValueChange={(val) =>
+                                updateAttendeeGroup(
+                                  a.member.id,
+                                  a.ageGroup,
+                                  val
+                                )
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-28 bg-white text-xs font-bold">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Начинаещи">
+                                  Начинаещи
+                                </SelectItem>
+                                <SelectItem value="Напреднали">
+                                  Напреднали
+                                </SelectItem>
+                                <SelectItem value="Експерти">
+                                  Експерти
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
-            {selectedEventId === "none" && (
+            {/* Methodological Settings */}
+            {creationMode === "auto" && (
+              <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+                <div
+                  className="flex cursor-pointer items-center justify-between font-bold text-zinc-900 transition-colors hover:text-indigo-600"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Info className="size-4 text-zinc-400" />
+                    Разширени Методически Настройки
+                  </div>
+                  <ChevronRight
+                    className={cn(
+                      "size-4 text-zinc-400 transition-transform",
+                      showAdvanced && "rotate-90"
+                    )}
+                  />
+                </div>
+                {showAdvanced && (
+                  <div className="mt-4 space-y-4 border-t border-zinc-100 pt-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Налични Кортове</Label>
+                        <Select
+                          value={availableCourts.toString()}
+                          onValueChange={(val) =>
+                            setAvailableCourts(parseInt(val))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 Корт</SelectItem>
+                            <SelectItem value="2">2 Корта</SelectItem>
+                            <SelectItem value="3">3 Корта</SelectItem>
+                            <SelectItem value="4">4 Корта</SelectItem>
+                            <SelectItem value="5">5+ Корта</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Тема / Фокус</Label>
+                        <Select value={focus} onValueChange={setFocus}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-75 overflow-y-auto">
+                            {focusOptions.map((f) => (
+                              <SelectItem key={f} value={f}>
+                                {f}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Периодизация</Label>
+                        <Select
+                          value={period}
+                          onValueChange={(v) =>
+                            setPeriod(
+                              v as "preparation" | "competition" | "transition"
+                            )
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="preparation">
+                              Подготвителен (ОФП)
+                            </SelectItem>
+                            <SelectItem value="competition">
+                              Състезателен (Tapering)
+                            </SelectItem>
+                            <SelectItem value="transition">
+                              Преходен (Възстановяване)
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 pt-2">
+                      <div className="mb-2 flex items-center justify-between">
+                        <Label>Целева Интензивност (1-5)</Label>
+                        <span className="rounded bg-indigo-50 px-2 font-black text-indigo-600">
+                          {targetIntensity}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                        {[
+                          { val: 1, label: "Много лесна" },
+                          { val: 2, label: "Лесна" },
+                          { val: 3, label: "Средна" },
+                          { val: 4, label: "Трудна" },
+                          { val: 5, label: "Много трудна" },
+                        ].map((lvl) => (
+                          <div
+                            key={lvl.val}
+                            onClick={() => setTargetIntensity(lvl.val)}
+                            className={cn(
+                              "flex min-h-15 cursor-pointer flex-col items-center justify-center rounded-xl border p-2 text-center transition-all",
+                              targetIntensity === lvl.val
+                                ? "border-indigo-600 bg-indigo-600 text-white shadow-md"
+                                : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-100"
+                            )}
+                          >
+                            <span className="mb-0.5 text-xs font-bold">
+                              {lvl.val}
+                            </span>
+                            <span className="text-[10px] leading-tight opacity-90">
+                              {lvl.label}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-[10px] text-zinc-500">
+                        Системата ще избере упражнения, които отговарят на тази
+                        интензивност.
+                      </p>
+                    </div>
+
+                    {attendees.length > 0 && (
+                      <div className="space-y-2 pt-2">
+                        <Label>
+                          Педагогическо Действие (Спрямо минали тренировки)
+                        </Label>
+                        <div className="flex gap-2">
+                          <Button
+                            variant={
+                              pedagogicalAction === "consolidation"
+                                ? "default"
+                                : "outline"
+                            }
+                            className={cn(
+                              "h-8 flex-1 text-xs",
+                              pedagogicalAction === "consolidation" &&
+                                "bg-indigo-600"
+                            )}
+                            onClick={() =>
+                              setPedagogicalAction("consolidation")
+                            }
+                          >
+                            Затвърждаване
+                          </Button>
+                          <Button
+                            variant={
+                              pedagogicalAction === "progression"
+                                ? "default"
+                                : "outline"
+                            }
+                            className={cn(
+                              "h-8 flex-1 text-xs",
+                              pedagogicalAction === "progression" &&
+                                "bg-indigo-600"
+                            )}
+                            onClick={() => setPedagogicalAction("progression")}
+                          >
+                            Надграждане
+                          </Button>
+                          <Button
+                            variant={
+                              pedagogicalAction === "new"
+                                ? "default"
+                                : "outline"
+                            }
+                            className={cn(
+                              "h-8 flex-1 text-xs",
+                              pedagogicalAction === "new" && "bg-indigo-600"
+                            )}
+                            onClick={() => setPedagogicalAction("new")}
+                          >
+                            Нова Тема
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center space-x-2 pt-2">
+                      <Checkbox
+                        id="home-friendly"
+                        checked={isHomeFriendlyOnly}
+                        onCheckedChange={(val) => setIsHomeFriendlyOnly(!!val)}
+                      />
+                      <Label
+                        htmlFor="home-friendly"
+                        className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Генерирай само за домашни условия (Без зала)
+                      </Label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(selectedEventId === "none" || creationMode === "manual") && (
               <div className="grid grid-cols-1 gap-4 rounded-xl border border-zinc-200 p-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Възрастова група</Label>
@@ -714,14 +1132,58 @@ export default function CreateSessionWizard({
                       </SelectItem>
                     </SelectContent>
                   </Select>
+
+                  {ageGroup === "Смесено (спрямо присъствия)" &&
+                    attendees.length > 0 && (
+                      <div className="mt-3 max-h-40 overflow-y-auto rounded-md border border-indigo-100 bg-indigo-50/50 p-3">
+                        <Label className="mb-2 block text-[10px] font-bold text-indigo-800 uppercase">
+                          Присъстващи участници:
+                        </Label>
+                        <div className="space-y-1">
+                          {attendees.map((a) => {
+                            const isExcluded = (a as Record<string, unknown>)
+                              .isExcluded;
+                            return (
+                              <label
+                                key={a.member.id}
+                                className="flex cursor-pointer items-center gap-2 rounded p-1 text-sm transition-colors hover:bg-indigo-50"
+                              >
+                                <Checkbox
+                                  checked={!isExcluded}
+                                  onCheckedChange={(c) => {
+                                    setAttendees((prev) =>
+                                      prev.map((pa) =>
+                                        pa.member.id === a.member.id
+                                          ? { ...pa, isExcluded: !c }
+                                          : pa
+                                      )
+                                    );
+                                  }}
+                                />
+                                <span
+                                  className={cn(
+                                    Boolean(isExcluded) &&
+                                      "text-zinc-400 line-through"
+                                  )}
+                                >
+                                  {a.member.firstName} {a.member.lastName}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                 </div>
                 <div className="space-y-2">
                   <Label>Продължителност (мин)</Label>
                   <Input
                     type="number"
-                    value={eventDuration}
+                    value={eventDuration || ""}
                     onChange={(e) =>
-                      setEventDuration(Number(e.target.value) || 90)
+                      setEventDuration(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
                     }
                   />
                 </div>
@@ -752,6 +1214,7 @@ export default function CreateSessionWizard({
                     <SelectContent>
                       <SelectItem value="indoor">В зала</SelectItem>
                       <SelectItem value="outdoor">На открито</SelectItem>
+                      <SelectItem value="both">Зала + Открито</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -769,7 +1232,9 @@ export default function CreateSessionWizard({
                 ) : (
                   <ChevronRight className="mr-2 size-4" />
                 )}
-                Генерирай Тренировка
+                {creationMode === "manual"
+                  ? "Продължи"
+                  : "Генерирай Тренировка"}
               </Button>
             </DialogFooter>
           </div>
@@ -777,6 +1242,18 @@ export default function CreateSessionWizard({
 
         {step === 2 && (
           <div className="space-y-6 py-4 duration-300 animate-in fade-in slide-in-from-right-4">
+            {campFatigueWarning && (
+              <Alert className="border-yellow-200 bg-yellow-50 text-yellow-800">
+                <AlertTriangle className="size-4" />
+                <AlertTitle>Засечена е натрупана умора!</AlertTitle>
+                <AlertDescription className="text-xs">
+                  Проведени са над 3 тренировки в последните 48 часа.
+                  Алгоритъмът автоматично ограничи интензивността до Ниво 3 и
+                  изключи плиометричните упражнения.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {fallbackWarning && (
               <Alert className="border-red-200 bg-red-50 text-red-800">
                 <AlertTriangle className="size-4" />
@@ -841,7 +1318,7 @@ export default function CreateSessionWizard({
                                 {idx + 1}
                               </div>
                               <div className="relative flex-1 pr-6">
-                                <div className="text-sm font-bold text-zinc-900">
+                                <div className="pr-8 text-sm font-bold text-zinc-900">
                                   {ex.name}
                                 </div>
                                 <div className="mt-0.5 flex flex-wrap gap-2 text-xs text-zinc-500">
@@ -855,6 +1332,23 @@ export default function CreateSessionWizard({
                                     </span>
                                   )}
                                 </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute top-1/2 right-6 size-6 -translate-y-1/2 text-zinc-400 hover:text-red-500"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    const newGroups = [...groupedExercises];
+                                    newGroups[gIdx].exercises = newGroups[
+                                      gIdx
+                                    ].exercises.filter(
+                                      (_, idx2) => idx2 !== idx
+                                    );
+                                    setGroupedExercises(newGroups);
+                                  }}
+                                >
+                                  <Trash2 size={14} />
+                                </Button>
                                 <ChevronRight className="absolute top-1/2 right-0 size-4 -translate-y-1/2 text-zinc-400 transition-transform group-open:rotate-90" />
                               </div>
                             </summary>
@@ -902,6 +1396,120 @@ export default function CreateSessionWizard({
                 </div>
               )}
             </div>
+
+            {creationMode === "manual" && groupedExercises.length > 0 && (
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <h4 className="font-bold text-indigo-900">
+                    Добавяне на упражнения (Ръчен режим)
+                  </h4>
+                  <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold text-indigo-700">
+                    {allExercises.length} налични
+                  </span>
+                </div>
+                <div className="h-100 overflow-y-auto rounded-xl border border-indigo-100 bg-white p-4 shadow-inner">
+                  {Object.entries(
+                    allExercises.reduce(
+                      (acc, ex) => {
+                        const cat = ex.category || "other";
+                        if (!acc[cat]) acc[cat] = [];
+                        acc[cat].push(ex);
+                        return acc;
+                      },
+                      {} as Record<string, typeof allExercises>
+                    )
+                  ).map(([category, exercises]) => (
+                    <div key={category} className="mb-6 last:mb-0">
+                      <div className="mb-3 flex items-center gap-2">
+                        <div className="h-4 w-1 rounded-full bg-indigo-500"></div>
+                        <h5 className="text-xs font-black tracking-wider text-indigo-800 uppercase">
+                          {category === "mental" && "Ментачни"}
+                          {category === "physical" && "Физически"}
+                          {category === "technical" && "Технически"}
+                          {category === "tactical" && "Тактически"}
+                          {category === "mixed" && "Смесени"}
+                          {category === "other" && "Други"}
+                          {category !== "mental" &&
+                            category !== "physical" &&
+                            category !== "technical" &&
+                            category !== "tactical" &&
+                            category !== "mixed" &&
+                            category !== "other" &&
+                            category}
+                        </h5>
+                        <span className="text-[10px] font-bold text-zinc-400">
+                          ({exercises.length})
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {exercises.map((ex) => {
+                          const isSelected =
+                            groupedExercises[0]?.exercises.some(
+                              (e) => e.id === ex.id
+                            );
+                          return (
+                            <label
+                              key={ex.id}
+                              htmlFor={`manual-ex-${ex.id}`}
+                              className={cn(
+                                "relative flex cursor-pointer flex-col justify-between rounded-xl border p-3 transition-all hover:shadow-md",
+                                isSelected
+                                  ? "border-indigo-600 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-600"
+                                  : "border-zinc-200 bg-white hover:border-indigo-300"
+                              )}
+                            >
+                              <div className="flex items-start gap-3">
+                                <Checkbox
+                                  id={`manual-ex-${ex.id}`}
+                                  checked={isSelected}
+                                  onCheckedChange={(c) => {
+                                    const newGroups = [...groupedExercises];
+                                    if (newGroups.length === 0) {
+                                      // If no group exists, create a default one
+                                      newGroups.push({
+                                        ageGroup: ageGroup,
+                                        skillLevel: "Смесено",
+                                        exercises: [],
+                                      });
+                                    }
+                                    if (c) {
+                                      newGroups[0].exercises.push({
+                                        ...ex,
+                                        durationMinutes: 10,
+                                      });
+                                    } else {
+                                      newGroups[0].exercises =
+                                        newGroups[0].exercises.filter(
+                                          (e) => e.id !== ex.id
+                                        );
+                                    }
+                                    setGroupedExercises(newGroups);
+                                  }}
+                                  className="mt-0.5"
+                                />
+                                <div className="flex-1 space-y-1">
+                                  <div className="text-sm leading-tight font-bold text-zinc-900">
+                                    {ex.name}
+                                  </div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {ex.durationMinutes && (
+                                      <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[9px] font-bold text-zinc-500">
+                                        {ex.durationMinutes} мин
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {uniqueEquipment.length > 0 && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">

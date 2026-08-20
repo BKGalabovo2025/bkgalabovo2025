@@ -231,6 +231,19 @@ export type ScheduleEvent = {
   // Camp-specific fields
   totalCampPrice?: number;
   campInsurancePrice?: number;
+  campSessions?: CampSession[];
+};
+
+export type CampSession = {
+  id: string;
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
+  title: string;
+  type: "training" | "meal" | "leisure" | "travel" | "other";
+  description?: string;
+  exercises?: string[]; // list of exercise IDs
+  absentMemberIds?: string[];
 };
 
 // =================================================================

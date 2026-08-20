@@ -77,7 +77,7 @@ const InfoRow = ({
 }: {
   icon: React.ElementType;
   label: string;
-  value: string | null | undefined;
+  value: React.ReactNode | string | null | undefined;
   isBlock?: boolean;
 }) => {
   if (value === null || value === undefined || value === "") return null;
@@ -164,7 +164,25 @@ export const MemberPersonalTab = ({
         <InfoRow
           icon={Trophy}
           label="Ниво на умения"
-          value={getSkillLevelLabel(member.skillLevel)}
+          value={
+            <div className="flex items-center gap-2">
+              <span>{getSkillLevelLabel(member.skillLevel)}</span>
+              {member.skillLevel ? (
+                <span
+                  className={cn(
+                    "rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                    member.isSkillLevelAutoCalculated
+                      ? "border-green-200 bg-green-50 text-green-700"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-600"
+                  )}
+                >
+                  {member.isSkillLevelAutoCalculated
+                    ? `Автоматично (${member.skillLevelPoints || 0} т.)`
+                    : "Ръчно"}
+                </span>
+              ) : null}
+            </div>
+          }
         />
         <div className="md:col-span-2">
           <div className="my-6 h-px bg-zinc-50" />

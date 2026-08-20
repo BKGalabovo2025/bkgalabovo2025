@@ -1,12 +1,20 @@
 "use client";
 
-import { Download, Dumbbell, Loader2, MapPin, Plus } from "lucide-react";
+import { Download, Dumbbell, Home, Loader2, MapPin, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 import { plannerService } from "@/services/planner-service";
 import { useAppStore } from "@/store/use-app-store";
@@ -23,6 +31,9 @@ export default function ExercisesClient() {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
     null
   );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [ageGroupFilter, setAgeGroupFilter] = useState("all");
 
   useEffect(() => {
     loadExercises();
@@ -61,6 +72,28 @@ export default function ExercisesClient() {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (
+      !confirm(
+        "Сигурни ли сте, че искате да изтриете всички упражнения? Това ще изчисти старата база."
+      )
+    )
+      return;
+    setIsInjecting(true);
+    try {
+      const all = await plannerService.getExercises(activeBranch);
+      for (const ex of all) {
+        await plannerService.deleteExercise(ex.id);
+      }
+      toast.success("Всички упражнения са изтрити.");
+      await loadExercises();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsInjecting(false);
+    }
+  };
+
   const handleEdit = (ex: Exercise) => {
     setSelectedExercise(ex);
     setIsDialogOpen(true);
@@ -84,6 +117,24 @@ export default function ExercisesClient() {
     );
   }
 
+  const filteredExercises = exercises.filter((ex) => {
+    if (categoryFilter !== "all" && ex.category !== categoryFilter)
+      return false;
+    if (ageGroupFilter !== "all" && !ex.ageGroups.includes(ageGroupFilter))
+      return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (
+        !ex.name.toLowerCase().includes(q) &&
+        !ex.description?.toLowerCase().includes(q) &&
+        !ex.focusTags?.some((t) => t.toLowerCase().includes(q))
+      ) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-8">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -93,10 +144,25 @@ export default function ExercisesClient() {
             База с Упражнения
           </h1>
           <p className="mt-1 font-medium text-zinc-500">
-            Официални упражнения и твои собствени методики
+            Официални упражнения и твои собствени методики (
+            {filteredExercises.length}
+            {filteredExercises.length !== exercises.length
+              ? ` от общо ${exercises.length}`
+              : ""}
+            )
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {exercises.length > 0 && (
+            <Button
+              onClick={handleDeleteAll}
+              disabled={isInjecting}
+              variant="outline"
+              className="rounded-xl border-red-200 bg-red-50 font-bold text-red-700 hover:bg-red-100"
+            >
+              Изтрий стари данни
+            </Button>
+          )}
           {exercises.length === 0 && (
             <Button
               onClick={handleInject}
@@ -137,6 +203,45 @@ export default function ExercisesClient() {
         </div>
       </div>
 
+      {exercises.length > 0 && (
+        <div className="mb-6 grid gap-4 sm:grid-cols-3">
+          <Input
+            placeholder="Търсене по име или етикет..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Всички категории" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всички категории</SelectItem>
+              <SelectItem value="warmup">Загрявка (Warmup)</SelectItem>
+              <SelectItem value="physical">Физически (Physical)</SelectItem>
+              <SelectItem value="technical">Технически (Technical)</SelectItem>
+              <SelectItem value="tactical">Тактически (Tactical)</SelectItem>
+              <SelectItem value="mental">Ментални (Mental)</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={ageGroupFilter} onValueChange={setAgeGroupFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Всички възрасти" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всички възрасти</SelectItem>
+              <SelectItem value="U9">U9</SelectItem>
+              <SelectItem value="U11">U11</SelectItem>
+              <SelectItem value="U13">U13</SelectItem>
+              <SelectItem value="U15">U15</SelectItem>
+              <SelectItem value="U17">U17</SelectItem>
+              <SelectItem value="U19">U19</SelectItem>
+              <SelectItem value="Мъже и Жени">Мъже и Жени</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {exercises.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center">
           <Dumbbell className="mx-auto mb-4 size-12 text-zinc-300" />
@@ -158,7 +263,7 @@ export default function ExercisesClient() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {exercises.map((ex) => (
+          {filteredExercises.map((ex) => (
             <Card
               key={ex.id}
               className="cursor-pointer transition-shadow hover:shadow-md"
@@ -170,7 +275,22 @@ export default function ExercisesClient() {
                     variant="secondary"
                     className="text-[10px] font-bold tracking-wider uppercase"
                   >
-                    {ex.category}
+                    {(() => {
+                      switch (ex.category) {
+                        case "physical":
+                          return "Физическо";
+                        case "technical":
+                          return "Техническо";
+                        case "tactical":
+                          return "Тактическо";
+                        case "mental":
+                          return "Ментално";
+                        case "warmup":
+                          return "Загрявка";
+                        default:
+                          return ex.category;
+                      }
+                    })()}
                   </Badge>
                   <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
                     {ex.durationMinutes} мин
@@ -195,8 +315,28 @@ export default function ExercisesClient() {
                       return "На открито";
                     })()}
                   </div>
-                  <div>{ex.ageGroups.length} групи</div>
+                  {ex.isHomeFriendly && (
+                    <div
+                      className="flex items-center gap-1 text-emerald-600"
+                      title="Подходящо за дома"
+                    >
+                      <Home className="size-3" />
+                      <span>Вкъщи</span>
+                    </div>
+                  )}
                 </div>
+                {ex.targetKineticChain && ex.targetKineticChain.length > 0 && (
+                  <div className="mt-3 flex flex-wrap items-center gap-1">
+                    {ex.targetKineticChain.map((chain) => (
+                      <span
+                        key={chain}
+                        className="rounded-sm bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-indigo-600 uppercase"
+                      >
+                        {chain}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

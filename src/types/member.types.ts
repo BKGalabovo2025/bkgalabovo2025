@@ -52,6 +52,11 @@ export const MemberSchema = z.object({
   address: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   healthConditionNotes: z.string().nullable().optional(),
+  injuries: z
+    .array(
+      z.enum(["knee", "shoulder", "lower-back", "achilles", "ankle", "wrist"])
+    )
+    .optional(),
 
   // --- ADDED: Emergency Contact ---
   emergencyContactName: z.string().nullable().optional(),
@@ -69,6 +74,8 @@ export const MemberSchema = z.object({
     .enum(["beginner", "intermediate", "advanced", "professional"])
     .nullable()
     .optional(),
+  isSkillLevelAutoCalculated: z.boolean().optional(),
+  skillLevelPoints: z.number().optional(),
   showOnPublicTeam: z.boolean().optional(),
 
   // --- Administrative & Documents ---

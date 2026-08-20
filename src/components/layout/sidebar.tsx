@@ -15,6 +15,7 @@ import {
   PanelLeft,
   Settings,
   Target,
+  Tent,
   Trophy,
   Users,
   Zap,
@@ -321,6 +322,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       <span className="text-[14px]">
                         Универсален Планировчик
                       </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith("/training/camps")}
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+                  >
+                    <Link
+                      href="/training/camps"
+                      className="flex w-full items-center gap-3"
+                      onClick={() => isMobile && setOpen(false)}
+                    >
+                      <Tent size={18} strokeWidth={1.5} />
+                      <span className="text-[14px]">Лагери</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -150,6 +150,15 @@ export const plannerService = {
       });
     });
     await batch.commit();
+
+    // Auto-evaluate skill levels asynchronously for all members in the batch
+    import("./skill-evaluation-service")
+      .then(({ evaluateMemberSkillLevel }) => {
+        attendanceData.forEach((att) => {
+          evaluateMemberSkillLevel(att.memberId).catch(console.error);
+        });
+      })
+      .catch(console.error);
   },
 
   async getMemberAttendance(

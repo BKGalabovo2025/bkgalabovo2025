@@ -31,6 +31,12 @@ export const beepTestService = {
     };
 
     await setDoc(resultRef, data);
+
+    // Auto-evaluate skill level
+    const { evaluateMemberSkillLevel } =
+      await import("./skill-evaluation-service");
+    await evaluateMemberSkillLevel(result.memberId).catch(console.error);
+
     return resultRef.id;
   },
 

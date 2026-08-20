@@ -68,7 +68,22 @@ export const docToScheduleEvent = (
     isCancelled: !!data.isCancelled,
     totalCampPrice: data.totalCampPrice,
     campInsurancePrice: data.campInsurancePrice,
+    campSessions: Array.isArray(data.campSessions) ? data.campSessions : [],
   };
+};
+
+import { doc, updateDoc } from "firebase/firestore";
+
+import { getDb } from "@/lib/firebase";
+
+export const updateCampSessions = async (
+  id: string,
+  sessions: import("@/types").CampSession[]
+): Promise<void> => {
+  const db = getDb();
+  if (!db) throw new Error("Database not initialized");
+  const eventRef = doc(db, "events", id);
+  await updateDoc(eventRef, { campSessions: sessions });
 };
 
 /**
@@ -118,4 +133,32 @@ export const getEventsByMemberId = async (
   );
 
   return events;
+};
+
+export const getCamps = async (): Promise<ScheduleEvent[]> => {
+  const q = query(getEventsQuery(), where("type", "==", "camp"));
+
+  const snapshot = await getDocs(q);
+
+  const events = snapshot.docs
+    .map(docToScheduleEvent)
+    .filter(Boolean) as ScheduleEvent[];
+
+  events.sort(
+    (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+  );
+
+  return events;
+};
+
+export const getEventById = async (
+  id: string
+): Promise<ScheduleEvent | null> => {
+  const q = query(getEventsQuery(), where("__name__", "==", id));
+
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) return null;
+
+  return docToScheduleEvent(snapshot.docs[0]);
 };

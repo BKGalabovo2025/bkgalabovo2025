@@ -51,6 +51,12 @@ export const addAssessment = async (
     >,
     dataToAdd
   );
+
+  // Auto-evaluate skill level
+  const { evaluateMemberSkillLevel } =
+    await import("./skill-evaluation-service");
+  await evaluateMemberSkillLevel(assessmentData.memberId).catch(console.error);
+
   return docRef.id;
 };
 

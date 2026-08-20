@@ -218,6 +218,16 @@ const StandardReceipt = ({
   service,
 }: ReceiptCopyProps) => {
   const { paymentDate, issueDate } = getReceiptDates(sale);
+  let clientDisplayName = "N/A";
+  if (sale?.clientName) {
+    const parts = sale.clientName.split(" ");
+    clientDisplayName =
+      parts.length > 2
+        ? `${parts[0]} ${parts[parts.length - 1]}`
+        : sale.clientName;
+  } else if (member) {
+    clientDisplayName = `${member.firstName} ${member.lastName}`;
+  }
 
   return (
     <div className="relative flex flex-1 flex-col rounded-2xl border border-zinc-200 bg-white p-6 font-sans tracking-wide text-zinc-950 shadow-sm">
@@ -250,13 +260,8 @@ const StandardReceipt = ({
               Получател на услугата
             </span>
             <span className="text-[10px] font-bold text-zinc-800 uppercase">
-              {sale?.clientName || (member ? formatFullName(member) : "N/A")}
+              {clientDisplayName}
             </span>
-            {(sale?.clientPhone || member?.phone) && (
-              <span className="mt-0.5 block text-zinc-500">
-                {sale?.clientPhone || member?.phone}
-              </span>
-            )}
           </div>
           <div className="space-y-0.5 text-center">
             <span className="mb-0.5 block font-bold tracking-widest text-zinc-400 uppercase">
@@ -398,7 +403,7 @@ const StandardReceipt = ({
           <div className="flex-1">
             <div className="h-px w-full bg-zinc-300" />
             <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
-              Получател: {member ? formatFullName(member) : ""}
+              Получател: {clientDisplayName}
             </p>
           </div>
         </div>

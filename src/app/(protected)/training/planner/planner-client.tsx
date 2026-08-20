@@ -2,7 +2,8 @@
 
 import { CalendarRange, Loader2, MapPin, Play, Plus } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,11 +14,15 @@ import { PlannerSession } from "@/types/planner.types";
 
 import CreateSessionWizard from "./create-session-wizard";
 
-export default function PlannerClient() {
+function PlannerClientContent() {
   const { activeBranch } = useAppStore();
+  const searchParams = useSearchParams();
+  const campIdParam = searchParams.get("campId");
+  const dateParam = searchParams.get("date");
+
   const [sessions, setSessions] = useState<PlannerSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(!!campIdParam);
 
   useEffect(() => {
     loadSessions();
@@ -182,7 +187,23 @@ export default function PlannerClient() {
           setIsWizardOpen(false);
           loadSessions();
         }}
+        initialCampId={campIdParam || undefined}
+        initialDate={dateParam || undefined}
       />
     </div>
+  );
+}
+
+export default function PlannerClient() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-indigo-600" />
+        </div>
+      }
+    >
+      <PlannerClientContent />
+    </Suspense>
   );
 }
