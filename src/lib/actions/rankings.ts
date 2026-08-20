@@ -2,6 +2,7 @@
 import "server-only";
 
 import { getAllMembersServer } from "@/services/member-service.server";
+import { syncRankingsToMembers } from "@/services/ranking-service";
 import { computeGlobalRankingsServer } from "@/services/ranking-service.server";
 import { Member } from "@/types/member.types";
 import { RankingEntry } from "@/types/ranking.types";
@@ -61,4 +62,20 @@ export async function refreshRankingsAction(
     rankings: enriched,
     updatedAt: new Date().toISOString(),
   };
+}
+
+export async function syncRankingsAction(): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  try {
+    await syncRankingsToMembers();
+    return {
+      success: true,
+      message: "Ранглистата беше синхронизирана с профилите.",
+    };
+  } catch (error) {
+    console.error("syncRankingsAction Error:", error);
+    return { success: false, message: "Възникна грешка при синхронизацията." };
+  }
 }

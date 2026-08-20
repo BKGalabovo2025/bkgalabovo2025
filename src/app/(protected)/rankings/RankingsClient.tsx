@@ -4,6 +4,7 @@ import {
   Award,
   Calendar,
   Loader2,
+  RefreshCw,
   Star,
   TrendingUp,
   Trophy,
@@ -11,11 +12,13 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
 import ShareStoryDialog from "@/components/rankings/ShareStoryDialog";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -32,7 +35,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { refreshRankingsAction } from "@/lib/actions/rankings";
+import {
+  refreshRankingsAction,
+  syncRankingsAction,
+} from "@/lib/actions/rankings";
 import { cn } from "@/lib/utils";
 import { RankingEntry } from "@/types/ranking.types";
 
@@ -74,6 +80,7 @@ export default function RankingsClient({
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("all");
   const [isPending, startTransition] = useTransition();
+  const [isSyncing, setIsSyncing] = useState(false);
   const [rankings, setRankings] = useState<RankingEntry[]>(initialRankings);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [secondsAgo, setSecondsAgo] = useState(0);
@@ -122,6 +129,17 @@ export default function RankingsClient({
     startTransition(() => {
       router.push(`?${params.toString()}`);
     });
+  };
+
+  const handleSyncToMembers = async () => {
+    setIsSyncing(true);
+    const result = await syncRankingsAction();
+    if (result.success) {
+      toast.success(result.message);
+    } else {
+      toast.error(result.message);
+    }
+    setIsSyncing(false);
   };
 
   const filteredRankings = (() => {
@@ -191,6 +209,19 @@ export default function RankingsClient({
               </SelectContent>
             </Select>
           </div>
+          <Button
+            variant="outline"
+            onClick={handleSyncToMembers}
+            disabled={isSyncing}
+            className="rounded-xl border-slate-200 bg-white"
+          >
+            {isSyncing ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 size-4 text-slate-500" />
+            )}
+            Синхронизирай
+          </Button>
           <ShareStoryDialog topThree={topThree} />
         </div>
       </PageHeader>
