@@ -1,4 +1,7 @@
-﻿import { getSiteConfig } from "@/config/sites";
+import { collection, getDocs, query, where } from "firebase/firestore";
+
+import { getSiteConfig } from "@/config/sites";
+import { getDb } from "@/lib/firebase";
 import { MemberAssessment } from "@/types/assessment.types";
 import { BeepTestResult } from "@/types/beep-test.types";
 import { SessionAttendance } from "@/types/planner.types";
@@ -74,25 +77,41 @@ export async function evaluateMemberSkillLevelFromData(
   }
 }
 
-// ─── Overload 2: Fetch data lazily (safe only when NOT called from those services) ──
+// ─── Overload 2: Fetch data directly using raw queries to avoid importing sibling services ──
 
 export async function evaluateMemberSkillLevel(
   memberId: string
 ): Promise<void> {
   const siteId = getSiteConfig().id;
+  const db = getDb();
 
-  // Lazy-load each service module at call-time to avoid static circular refs
-  const [plannerMod, beepMod, assessMod] = await Promise.all([
-    import("./planner-service"),
-    import("./beep-test-service"),
-    import("./assessment-service"),
+  const [attSnap, beepSnap, assessSnap] = await Promise.all([
+    getDocs(
+      query(
+        collection(db, "training_attendance"),
+        where("siteId", "==", siteId),
+        where("memberId", "==", memberId)
+      )
+    ),
+    getDocs(
+      query(
+        collection(db, "beep_test_results"),
+        where("siteId", "==", siteId),
+        where("memberId", "==", memberId)
+      )
+    ),
+    getDocs(
+      query(
+        collection(db, "member_assessments"),
+        where("siteId", "==", siteId),
+        where("memberId", "==", memberId)
+      )
+    ),
   ]);
 
-  const [attendances, beepTests, assessments] = await Promise.all([
-    plannerMod.plannerService.getMemberAttendance(siteId, memberId),
-    beepMod.beepTestService.getMemberResults(siteId, memberId),
-    assessMod.getAssessmentsByMemberId(memberId),
-  ]);
+  const attendances = attSnap.docs.map((d) => d.data() as SessionAttendance);
+  const beepTests = beepSnap.docs.map((d) => d.data() as BeepTestResult);
+  const assessments = assessSnap.docs.map((d) => d.data() as MemberAssessment);
 
   await evaluateMemberSkillLevelFromData(
     memberId,
