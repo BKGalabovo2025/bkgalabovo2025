@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { getBWFIntervals, getSkillLevel } from "@/lib/planner-utils";
 import { cn, getAgeGroup } from "@/lib/utils";
 import { getAllMembers } from "@/services/member-service";
@@ -79,6 +80,8 @@ export default function CreateSessionWizard({
   const [location, setLocation] = useState<LocationType>("indoor");
   const [ageGroup, setAgeGroup] = useState<string>("U13");
   const [addToSchedule, setAddToSchedule] = useState(false);
+  const [coachNotes, setCoachNotes] = useState("");
+  const [weatherIcon, setWeatherIcon] = useState<string>("sun");
   const [creationMode, setCreationMode] = useState<"auto" | "manual">("auto");
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -827,6 +830,8 @@ export default function CreateSessionWizard({
         targetIntensity,
         calculatedIntensity: avgIntensity,
         status: "planned",
+        coachNotes: coachNotes.trim() || undefined,
+        weatherIcon,
       };
 
       const sessionId = await plannerService.addSession(activeBranch, payload);
@@ -936,10 +941,11 @@ export default function CreateSessionWizard({
                         </div>
                       ))}
                     </div>
-                    {targetIntensity > 1 && (
+                    {targetIntensity > 3 && (
                       <div className="rounded bg-red-100 px-2 py-1 italic opacity-90">
                         ⚠️ Алгоритъмът автоматично ограничи интензивността на
-                        сесията до 1 поради наличието на медицински бележки.
+                        сесията до 3 (Умерена) поради наличието на медицински
+                        бележки.
                       </div>
                     )}
                   </AlertDescription>
@@ -1726,6 +1732,44 @@ export default function CreateSessionWizard({
                   </ul>
                 </div>
               )}
+
+              <div className="space-y-4 rounded-xl border border-zinc-100 bg-zinc-50 p-4">
+                <div className="space-y-2">
+                  <Label>Бележки за треньора (Опционално)</Label>
+                  <Textarea
+                    placeholder="Напр. Внимание при прехода между упражненията..."
+                    value={coachNotes}
+                    onChange={(e) => setCoachNotes(e.target.value)}
+                    className="min-h-20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Времето (за външни тренировки)</Label>
+                  <div className="flex gap-2">
+                    {["sun", "cloud", "rain", "snow"].map((icon) => (
+                      <Button
+                        key={icon}
+                        variant={weatherIcon === icon ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setWeatherIcon(icon)}
+                        className={cn(
+                          "px-4 capitalize",
+                          weatherIcon === icon &&
+                            "bg-indigo-600 hover:bg-indigo-700"
+                        )}
+                      >
+                        {{
+                          sun: "☀️ Слънчево",
+                          cloud: "☁️ Облачно",
+                          rain: "🌧️ Дъжд",
+                          snow: "❄️ Сняг",
+                        }[icon] || ""}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
               <div className="flex items-center space-x-2">
                 <Checkbox
