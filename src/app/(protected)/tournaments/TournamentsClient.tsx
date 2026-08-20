@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { syncRankingsAction } from "@/lib/actions/rankings";
 import { tournamentService } from "@/services/tournament-service";
 import { Tournament } from "@/types/tournament.types";
 const TournamentForm = dynamic(
@@ -95,6 +96,12 @@ export default function TournamentsClient({
         data as Partial<Tournament>
       );
       toast.success("Турнирът е обновен успешно!");
+
+      // Auto-sync rankings if it affects rankings
+      if (editingTournament.countsForRanking || data.countsForRanking) {
+        await syncRankingsAction();
+      }
+
       setEditingTournament(null);
       refreshTournaments();
     } catch (error) {
@@ -108,6 +115,11 @@ export default function TournamentsClient({
     try {
       await tournamentService.deleteTournament(id);
       toast.success("Турнирът е изтрит.");
+
+      // Auto-sync rankings (if the deleted tournament had countsForRanking=true)
+      // Since we don't have the tournament object here, we'll just safely sync
+      await syncRankingsAction();
+
       refreshTournaments();
     } catch {
       toast.error("Грешка при изтриване");

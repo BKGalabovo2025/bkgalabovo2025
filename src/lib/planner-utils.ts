@@ -10,9 +10,9 @@ export function getSkillLevel(member: Member): string {
       case "beginner":
         return "Начинаещи";
       case "intermediate":
-        return "Напреднали";
+        return "Среднонапреднали";
       case "advanced":
-        return "Експерти";
+        return "Напреднали";
       case "professional":
         return "Професионалисти";
     }

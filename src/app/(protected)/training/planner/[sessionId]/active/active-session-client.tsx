@@ -8,6 +8,7 @@ import {
   Pause,
   Play,
   Save,
+  ShieldAlert,
   SkipForward,
   Target,
   Timer,
@@ -77,6 +78,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   const [session, setSession] = useState<PlannerSession | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Interval Timer State
@@ -106,10 +108,14 @@ export default function ActiveSessionClient({ sessionId }: Props) {
 
   const loadData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const allSessions = await plannerService.getSessions(activeBranch);
       const targetSession = allSessions.find((s) => s.id === sessionId);
-      if (!targetSession) throw new Error("Session not found");
+      if (!targetSession) {
+        setError("Сесията не е намерена. Възможно е да е изтрита.");
+        return;
+      }
       setSession(targetSession);
 
       const allMembers = await getAllMembers();
@@ -119,6 +125,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       setMembers(activeMembers);
     } catch (error) {
       console.error(error);
+      setError("Възникна грешка при зареждане.");
     } finally {
       setIsLoading(false);
     }
@@ -289,10 +296,24 @@ export default function ActiveSessionClient({ sessionId }: Props) {
     }
   };
 
-  if (isLoading || !session) {
+  if (isLoading) {
     return (
       <div className="flex min-h-100 items-center justify-center">
         <Loader2 className="size-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (error || !session) {
+    return (
+      <div className="flex min-h-100 flex-col items-center justify-center gap-4 text-center">
+        <ShieldAlert className="size-12 text-red-500" />
+        <h2 className="text-xl font-bold">
+          {error || "Сесията не е намерена"}
+        </h2>
+        <Button onClick={() => router.push("/training/planner")}>
+          Обратно към Планьора
+        </Button>
       </div>
     );
   }

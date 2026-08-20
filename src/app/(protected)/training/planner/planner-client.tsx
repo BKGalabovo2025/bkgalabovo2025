@@ -1,6 +1,13 @@
 "use client";
 
-import { CalendarRange, Loader2, MapPin, Play, Plus } from "lucide-react";
+import {
+  CalendarRange,
+  Loader2,
+  MapPin,
+  Play,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -38,6 +45,19 @@ function PlannerClientContent() {
       console.error("Error loading sessions:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (
+      !window.confirm("Сигурни ли сте, че искате да изтриете тази тренировка?")
+    )
+      return;
+    try {
+      await plannerService.deleteSession(sessionId);
+      loadSessions();
+    } catch (error) {
+      console.error("Failed to delete session", error);
     }
   };
 
@@ -161,7 +181,14 @@ function PlannerClientContent() {
                         </div>
                       </div>
                     </div>
-                    <div className="hidden sm:flex">
+                    <div className="hidden sm:flex sm:gap-2">
+                      <Button
+                        variant="ghost"
+                        className="rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700"
+                        onClick={() => handleDeleteSession(session.id)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
                       <Button
                         asChild
                         className="rounded-xl bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100"

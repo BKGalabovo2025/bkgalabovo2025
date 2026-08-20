@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 // Define paths that are public and do not require authentication
 const publicPaths = ["/login", "/api"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip middleware for public paths and static assets
@@ -29,6 +29,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Apply middleware to all routes except api, _next/static, _next/image, favicon.ico
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Apply middleware to all routes except api, _next/static, _next/image, favicon.ico, manifest.json
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.json).*)"],
 };

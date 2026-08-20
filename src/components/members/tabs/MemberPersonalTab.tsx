@@ -7,18 +7,22 @@ import {
   Contact,
   FileText,
   Home,
+  Loader2,
   Mail,
   Phone,
   PhoneCall,
+  RefreshCw,
   Stethoscope,
   Trophy,
   Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { cn, formatFullName, getInitials } from "@/lib/utils";
+import { evaluateMemberSkillLevel } from "@/services/skill-evaluation-service";
 import { Member } from "@/types";
 
 interface MemberPersonalTabProps {
@@ -121,6 +125,19 @@ export const MemberPersonalTab = ({
   formatPhoneType,
 }: MemberPersonalTabProps) => {
   const router = useRouter();
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  const handleCalculateSkill = async () => {
+    setIsCalculating(true);
+    try {
+      await evaluateMemberSkillLevel(member.id);
+      router.refresh();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsCalculating(false);
+    }
+  };
 
   return (
     <div className="rounded-3xl border border-zinc-100 bg-white p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
@@ -181,6 +198,22 @@ export const MemberPersonalTab = ({
                     : "Ръчно"}
                 </span>
               ) : null}
+              {!member.isSkillLevelAutoCalculated && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 rounded-full px-2 text-[10px]"
+                  onClick={handleCalculateSkill}
+                  disabled={isCalculating}
+                >
+                  {isCalculating ? (
+                    <Loader2 className="mr-1 size-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="mr-1 size-3" />
+                  )}
+                  Изчисли
+                </Button>
+              )}
             </div>
           }
         />

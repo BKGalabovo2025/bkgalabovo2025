@@ -319,6 +319,11 @@ export default function CreateSessionWizard({
       setCampFatigueWarning(false);
       setCampDayRecoveryWarning(false);
 
+      // --- Health Warnings safeguard ---
+      if (healthWarnings.length > 0) {
+        effectiveIntensity = Math.min(effectiveIntensity, 3);
+      }
+
       // --- RPE-based intensity adjustment ---
       // If the last 2 sessions had avg RPE > 8 for active attendees, reduce intensity
       if (attendees.length > 0) {
@@ -385,7 +390,7 @@ export default function CreateSessionWizard({
 
             if (campDayIndex >= 4 && todaySessions.length >= 2) {
               isFatigued = true;
-              effectiveIntensity = Math.min(effectiveIntensity, 3);
+              effectiveIntensity = 1; // Forced recovery
               setCampDayRecoveryWarning(true);
             }
           }
@@ -552,8 +557,8 @@ export default function CreateSessionWizard({
         // --- Complexity Level filter based on Skill Level ---
         const complexityMap: Record<string, number[]> = {
           Начинаещи: [1, 2, 3],
-          Напреднали: [2, 3, 4],
-          Експерти: [3, 4, 5],
+          Среднонапреднали: [2, 3, 4],
+          Напреднали: [3, 4, 5],
           Професионалисти: [4, 5],
         };
         const allowedComplexity = complexityMap[group.skillLevel] ?? [
@@ -865,6 +870,7 @@ export default function CreateSessionWizard({
         date,
         rpe: rpeData[a.member.id]?.rpe ?? 5,
         effort: rpeData[a.member.id]?.effort ?? 3,
+        playerLoad: (rpeData[a.member.id]?.rpe ?? 5) * eventDuration,
         medicalStatus: "healthy" as const,
       }));
       await plannerService.saveAttendanceBatch(
@@ -922,12 +928,20 @@ export default function CreateSessionWizard({
                   <AlertTitle className="flex items-center gap-1">
                     ⚤️ Медицински Бележки
                   </AlertTitle>
-                  <AlertDescription className="mt-1 space-y-1 text-xs">
-                    {healthWarnings.map((w, i) => (
-                      <div key={i} className="rounded bg-red-100 px-2 py-1">
-                        <span className="font-bold">{w.name}:</span> {w.note}
+                  <AlertDescription className="mt-1 space-y-2 text-xs">
+                    <div className="space-y-1">
+                      {healthWarnings.map((w, i) => (
+                        <div key={i} className="rounded bg-red-100 px-2 py-1">
+                          <span className="font-bold">{w.name}:</span> {w.note}
+                        </div>
+                      ))}
+                    </div>
+                    {targetIntensity > 1 && (
+                      <div className="rounded bg-red-100 px-2 py-1 italic opacity-90">
+                        ⚠️ Алгоритъмът автоматично ограничи интензивността на
+                        сесията до 1 поради наличието на медицински бележки.
                       </div>
-                    ))}
+                    )}
                   </AlertDescription>
                 </Alert>
               )}
@@ -944,14 +958,15 @@ export default function CreateSessionWizard({
               )}
 
               {campDayRecoveryWarning && (
-                <Alert className="border-purple-200 bg-purple-50 text-purple-800">
-                  <Activity className="size-4" />
+                <Alert className="border-red-200 bg-red-50 text-red-800">
+                  <Activity className="size-4 text-red-600" />
                   <AlertTitle>
-                    Лагер: Ден ≥ 4, Сесия ≥ 3 — Режим Възстановяване
+                    Внимание: Риск от претоварване (Ден 4+)
                   </AlertTitle>
                   <AlertDescription className="text-xs">
-                    Автоматично наложен Recovery режим: макс интензивност 3, без
-                    плиометрични упражнения.
+                    Натрупването на умора е критично. Алгоритъмът автоматично
+                    форсира интензивността до 1 (Възстановяване), за да предпази
+                    участниците от травми.
                   </AlertDescription>
                 </Alert>
               )}
@@ -1825,6 +1840,12 @@ export default function CreateSessionWizard({
                             {d.rpe}/10
                           </span>
                         </Label>
+                        <p className="text-[10px] font-medium text-zinc-400">
+                          Player Load:{" "}
+                          <span className="font-bold text-zinc-700">
+                            {d.rpe * eventDuration}
+                          </span>
+                        </p>
                         <input
                           type="range"
                           min={1}

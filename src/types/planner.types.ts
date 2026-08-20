@@ -85,6 +85,7 @@ export interface SessionAttendance {
   date: string;
   rpe: number; // Rate of Perceived Exertion (1-10)
   effort: number; // Coach's grade for effort (1-5)
+  playerLoad?: number; // RPE * Session Duration
   medicalStatus: MedicalStatus;
   note?: string; // Specific note for this child
   createdAt: string;

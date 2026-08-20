@@ -7,10 +7,11 @@ export const metadata: Metadata = {
   description: "Активен режим за треньори.",
 };
 
-export default function ActiveSessionPage({
+export default async function ActiveSessionPage({
   params,
 }: {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }) {
-  return <ActiveSessionClient sessionId={params.sessionId} />;
+  const { sessionId } = await params;
+  return <ActiveSessionClient sessionId={sessionId} />;
 }

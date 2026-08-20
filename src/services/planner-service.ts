@@ -126,6 +126,11 @@ export const plannerService = {
     await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
   },
 
+  async deleteSession(id: string): Promise<void> {
+    const docRef = doc(db, SESSIONS_COLLECTION, id);
+    await deleteDoc(docRef);
+  },
+
   // ================= ATTENDANCE =================
   async saveAttendanceBatch(
     siteId: string,

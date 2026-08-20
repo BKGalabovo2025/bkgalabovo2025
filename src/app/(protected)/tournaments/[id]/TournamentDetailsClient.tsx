@@ -37,6 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { syncRankingsAction } from "@/lib/actions/rankings";
 import { formatDateShort } from "@/lib/date-utils";
 import { generateExcelReport, generatePdfReport } from "@/lib/export-utils";
 import { generateBergerMatches } from "@/lib/match-generator";
@@ -304,6 +305,17 @@ export default function TournamentDetailsClient({
         status: "completed",
       });
       toast.success("Турнирът е успешно приключен!");
+
+      // Auto-sync rankings
+      if (tournament.countsForRanking) {
+        const syncResult = await syncRankingsAction();
+        if (syncResult.success) {
+          toast.success("Точките за ранкинг бяха автоматично обновени!");
+        } else {
+          toast.error("Грешка при автоматичното обновяване на ранкинга.");
+        }
+      }
+
       await loadData();
     } catch {
       toast.error("Грешка при приключване");

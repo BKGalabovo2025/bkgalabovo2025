@@ -1,7 +1,7 @@
 {
-  "name": "BKGálabovo Club Management",
-  "short_name": "BKGálabovo",
-  "description": "Professional Management System for BK Gálabovo Club",
+  "name": "BK Galabovo Club Management",
+  "short_name": "BK Galabovo",
+  "description": "Professional Management System for BK Galabovo Club",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",
