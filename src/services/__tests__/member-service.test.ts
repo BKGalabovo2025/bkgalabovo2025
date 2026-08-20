@@ -101,12 +101,26 @@ describe("member-service", () => {
       expect(result?.skillLevel).toBeNull();
     });
 
-    it("should return null for invalid data", () => {
+    it("should fallback missing names and siteId to defaults", () => {
       const data = {
         status: "active",
       };
 
       const doc = mockDoc("member3", data);
+      const result = docToMember(doc);
+
+      expect(result).not.toBeNull();
+      expect(result?.firstName).toBe("Неизвестно");
+      expect(result?.siteId).toBe("bkgalabovo");
+    });
+
+    it("should return null for invalid data that cannot be recovered", () => {
+      const data = {
+        status: "active",
+        email: "not-an-email", // Invalid email triggers Zod error
+      };
+
+      const doc = mockDoc("member4", data);
       const result = docToMember(doc);
 
       expect(result).toBeNull();

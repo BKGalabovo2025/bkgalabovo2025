@@ -7,7 +7,7 @@ import {
 } from "@/mappers/tournament.mapper";
 import {
   deleteMatchesByTournamentBatch,
-  deleteTournamentDoc,
+  deleteTournamentCascading,
   deleteTournamentEntryDoc,
   fetchTournamentById,
   fetchTournamentEntries,
@@ -106,7 +106,7 @@ export const tournamentService = {
    */
   async deleteTournament(id: string): Promise<void> {
     try {
-      await deleteTournamentDoc(id);
+      await deleteTournamentCascading(id);
     } catch (error) {
       console.error("Error deleting tournament:", error);
       throw error;

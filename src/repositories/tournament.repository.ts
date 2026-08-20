@@ -64,11 +64,34 @@ export const updateTournamentDoc = async (
 };
 
 /**
- * Изтрива турнир
+ * Изтрива турнир каскадно (включително записвания и мачове)
  */
-export const deleteTournamentDoc = async (id: string): Promise<void> => {
-  const docRef = doc(getTournamentsCollection(), id);
-  await deleteDoc(docRef);
+export const deleteTournamentCascading = async (id: string): Promise<void> => {
+  const db = getDb();
+  const batch = writeBatch(db);
+
+  // 1. Delete the tournament doc
+  const tournamentRef = doc(getTournamentsCollection(), id);
+  batch.delete(tournamentRef);
+
+  // 2. Delete all matches
+  const matchesQ = query(
+    getTournamentMatchesQuery(),
+    where("tournamentId", "==", id)
+  );
+  const matchesSnap = await getDocs(matchesQ);
+  matchesSnap.docs.forEach((d) => batch.delete(d.ref));
+
+  // 3. Delete all entries
+  const entriesQ = query(
+    getTournamentEntriesQuery(),
+    where("tournamentId", "==", id)
+  );
+  const entriesSnap = await getDocs(entriesQ);
+  entriesSnap.docs.forEach((d) => batch.delete(d.ref));
+
+  // Commit batch
+  await batch.commit();
 };
 
 /**

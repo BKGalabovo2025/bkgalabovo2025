@@ -10,7 +10,7 @@ vi.mock("@/repositories/tournament.repository", () => ({
   fetchTournamentById: vi.fn(),
   insertTournament: vi.fn(),
   updateTournamentDoc: vi.fn(),
-  deleteTournamentDoc: vi.fn(),
+  deleteTournamentCascading: vi.fn(),
   fetchTournamentEntries: vi.fn(),
   insertTournamentEntry: vi.fn(),
   deleteTournamentEntryDoc: vi.fn(),
