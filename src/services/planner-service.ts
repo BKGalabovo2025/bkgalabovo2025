@@ -103,6 +103,22 @@ export const plannerService = {
     );
   },
 
+  async getSessionsByCampId(
+    siteId: string,
+    campId: string
+  ): Promise<PlannerSession[]> {
+    const q = query(
+      collection(db, SESSIONS_COLLECTION),
+      where("siteId", "==", siteId),
+      where("campId", "==", campId),
+      orderBy("date", "asc")
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() }) as PlannerSession
+    );
+  },
+
   async addSession(
     siteId: string,
     data: Omit<PlannerSession, "id" | "siteId" | "createdAt" | "updatedAt">

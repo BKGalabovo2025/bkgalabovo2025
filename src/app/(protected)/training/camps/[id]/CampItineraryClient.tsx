@@ -4,21 +4,27 @@ import { addDays, format, isSameDay } from "date-fns";
 import { bg } from "date-fns/locale";
 import {
   Bus,
+  CalendarRange,
   Clock,
   Coffee,
   Copy,
   Dumbbell,
   Edit,
+  ExternalLink,
   Map,
+  Play,
   Plus,
+  Search,
   Share2,
   Sun,
   Trash2,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -44,7 +50,7 @@ import { plannerService } from "@/services/planner-service";
 import { updateCampSessions } from "@/services/schedule-service";
 import { useAppStore } from "@/store/use-app-store";
 import { CampSession, ScheduleEvent } from "@/types";
-import { Exercise } from "@/types/planner.types";
+import { Exercise, PlannerSession } from "@/types/planner.types";
 
 const sessionTypeIcons: Record<string, React.ElementType> = {
   training: Dumbbell,
@@ -65,6 +71,8 @@ const sessionTypeLabels: Record<string, string> = {
 export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
   const { activeBranch } = useAppStore();
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
+  const [exerciseSearch, setExerciseSearch] = useState("");
+  const [plannerSessions, setPlannerSessions] = useState<PlannerSession[]>([]);
 
   useEffect(() => {
     if (activeBranch) {
@@ -72,8 +80,13 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
         .getExercises(activeBranch)
         .then(setAvailableExercises)
         .catch(console.error);
+
+      plannerService
+        .getSessionsByCampId(activeBranch, camp.id)
+        .then(setPlannerSessions)
+        .catch(console.error);
     }
-  }, [activeBranch]);
+  }, [activeBranch, camp.id]);
 
   const [sessions, setSessions] = useState<CampSession[]>(
     camp.campSessions || []
@@ -88,8 +101,6 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
   const days: { date: Date; dateStr: string; label: string }[] = [];
   let current = start;
   let dayIndex = 1;
-  // Ensure we at least have one day, and loop until end date
-  // (We use a simple loop, max 30 days to be safe)
   while ((current <= end || isSameDay(current, end)) && dayIndex < 30) {
     days.push({
       date: current,
@@ -107,6 +118,11 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
   const currentDaysSessions = sessions
     .filter((s) => s.date === selectedDateStr)
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+  // Planner sessions for the selected day
+  const currentDayPlannerSessions = plannerSessions.filter(
+    (s) => s.date === selectedDateStr
+  );
 
   // Form State
   const [formId, setFormId] = useState<string | null>(null);
@@ -132,6 +148,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       setFormEndTime("11:00");
       setFormExercises([]);
     }
+    setExerciseSearch("");
     setIsModalOpen(true);
   };
 
@@ -269,6 +286,21 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
     window.location.href = url;
   };
 
+  const filteredExercises = availableExercises.filter(
+    (ex) =>
+      exerciseSearch === "" ||
+      ex.name.toLowerCase().includes(exerciseSearch.toLowerCase()) ||
+      (ex.category ?? "").toLowerCase().includes(exerciseSearch.toLowerCase())
+  );
+
+  const selectedDayIndex = days.findIndex((d) => d.dateStr === selectedDateStr);
+  const selectedDayLabel =
+    days.find((d) => d.dateStr === selectedDateStr)?.label ?? "Ден 1";
+
+  // Combine camp sessions + planner sessions for the timeline, sorted by time
+  const hasAnyContent =
+    currentDaysSessions.length > 0 || currentDayPlannerSessions.length > 0;
+
   return (
     <div className="rounded-xl border bg-white p-6 shadow-sm dark:bg-zinc-950">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -301,7 +333,13 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
         <div className="flex gap-2">
           {days.map((day) => {
             const isSelected = selectedDateStr === day.dateStr;
-            const hasSessions = sessions.some((s) => s.date === day.dateStr);
+            const hasCampSessions = sessions.some(
+              (s) => s.date === day.dateStr
+            );
+            const hasPlannerSessions = plannerSessions.some(
+              (s) => s.date === day.dateStr
+            );
+            const hasContent = hasCampSessions || hasPlannerSessions;
 
             return (
               <button
@@ -312,7 +350,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                   isSelected
                     ? "border-primary bg-primary/5 text-primary"
                     : "border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800",
-                  hasSessions &&
+                  hasContent &&
                     !isSelected &&
                     "border-blue-200 bg-blue-50/50 dark:border-blue-900/30 dark:bg-blue-900/10"
                 )}
@@ -321,7 +359,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                 <span className="mt-1 text-xs opacity-70">
                   {format(day.date, "dd MMM yyyy", { locale: bg })}
                 </span>
-                {hasSessions && (
+                {hasContent && (
                   <div className="mt-2 size-1.5 rounded-full bg-blue-500" />
                 )}
               </button>
@@ -334,36 +372,65 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       <div className="relative rounded-xl border border-zinc-100 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/30">
         <div className="mb-6 flex items-center justify-between">
           <h3 className="font-semibold text-zinc-900 dark:text-white">
-            Програма за {days.find((d) => d.dateStr === selectedDateStr)?.label}
+            Програма за {selectedDayLabel}
           </h3>
-          {days.findIndex((d) => d.dateStr === selectedDateStr) > 0 && (
+          <div className="flex items-center gap-2">
+            {/* "Детайлно в Планировчика" — now with campId + date */}
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              onClick={handleCopyPreviousDay}
-              disabled={isSaving}
-              className="h-8 gap-1.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              className="h-8 gap-1.5 text-xs"
+              asChild
             >
-              <Copy size={14} />
-              Копирай от предходния ден
+              <Link
+                href={`/training/planner?campId=${camp.id}&date=${selectedDateStr}`}
+              >
+                <CalendarRange size={13} />
+                Планировчик за {selectedDayLabel}
+                <ExternalLink size={11} />
+              </Link>
             </Button>
-          )}
+            {selectedDayIndex > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopyPreviousDay}
+                disabled={isSaving}
+                className="h-8 gap-1.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              >
+                <Copy size={14} />
+                Копирай от предходния ден
+              </Button>
+            )}
+          </div>
         </div>
 
-        {currentDaysSessions.length === 0 ? (
+        {!hasAnyContent ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Clock className="mb-3 size-12 text-zinc-300 dark:text-zinc-700" />
             <p className="text-zinc-500">Няма добавени събития за този ден.</p>
-            <Button
-              variant="link"
-              onClick={() => handleOpenModal()}
-              className="mt-2 text-primary"
-            >
-              Създайте първата сесия
-            </Button>
+            <div className="mt-4 flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenModal()}
+              >
+                <Plus size={14} className="mr-1" />
+                Добави бърза сесия
+              </Button>
+              <Button variant="default" size="sm" asChild>
+                <Link
+                  href={`/training/planner?campId=${camp.id}&date=${selectedDateStr}`}
+                >
+                  <CalendarRange size={14} className="mr-1" />
+                  Планирай с Планировчика
+                </Link>
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Camp sessions */}
             {currentDaysSessions.map((session) => {
               const Icon = sessionTypeIcons[session.type] || Map;
               return (
@@ -428,25 +495,6 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                           </ul>
                         </div>
                       )}
-
-                      {session.type === "training" && (
-                        <div className="mt-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs"
-                            asChild
-                          >
-                            <a
-                              href="/training/planner"
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Детайлно в Планировчика &rarr;
-                            </a>
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -471,6 +519,87 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                 </div>
               );
             })}
+
+            {/* Planner sessions for the same day */}
+            {currentDayPlannerSessions.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-indigo-100 dark:bg-indigo-900/30" />
+                  <span className="text-[10px] font-bold tracking-widest text-indigo-500 uppercase">
+                    Детайлни тренировки (Планировчик)
+                  </span>
+                  <div className="h-px flex-1 bg-indigo-100 dark:bg-indigo-900/30" />
+                </div>
+                {currentDayPlannerSessions.map((ps) => (
+                  <div
+                    key={ps.id}
+                    className="group flex flex-col gap-4 rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 shadow-sm transition-all hover:border-indigo-400/50 sm:flex-row sm:items-center dark:border-indigo-900/40 dark:bg-indigo-900/10"
+                  >
+                    <div className="flex shrink-0 items-center justify-center rounded-lg bg-indigo-100 p-3 sm:w-24 dark:bg-indigo-900/30">
+                      <CalendarRange
+                        size={18}
+                        className="text-indigo-600 dark:text-indigo-400"
+                      />
+                    </div>
+                    <div className="flex flex-1 items-start gap-4">
+                      <div className="flex-1">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className="border-indigo-200 bg-indigo-100 text-[10px] text-indigo-700 uppercase dark:border-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300"
+                          >
+                            Планировчик
+                          </Badge>
+                          {ps.targetGroups?.map((g, i) => (
+                            <Badge
+                              key={i}
+                              variant="outline"
+                              className="text-[10px] uppercase"
+                            >
+                              {g}
+                            </Badge>
+                          ))}
+                        </div>
+                        <h4 className="font-bold text-zinc-900 dark:text-white">
+                          {ps.title}
+                        </h4>
+                        <div className="mt-1 flex flex-wrap gap-3 text-xs text-zinc-500">
+                          <span>
+                            {ps.location === "indoor" ? "В зала" : "На открито"}
+                          </span>
+                          {ps.calculatedIntensity && (
+                            <span>
+                              Интензивност: {ps.calculatedIntensity}/5
+                            </span>
+                          )}
+                          {ps.groupedExercises && (
+                            <span>
+                              {ps.groupedExercises.reduce(
+                                (acc, g) => acc + g.exercises.length,
+                                0
+                              )}{" "}
+                              упр.
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      <Button
+                        asChild
+                        size="sm"
+                        className="h-8 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                      >
+                        <Link href={`/training/planner/${ps.id}/active`}>
+                          <Play size={12} />
+                          Старт
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -550,9 +679,22 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                     {formExercises.length} избрани
                   </span>
                 </div>
+                {/* Search box */}
+                <div className="relative">
+                  <Search
+                    size={13}
+                    className="absolute top-1/2 left-2.5 -translate-y-1/2 text-zinc-400"
+                  />
+                  <Input
+                    placeholder="Търси упражнение..."
+                    value={exerciseSearch}
+                    onChange={(e) => setExerciseSearch(e.target.value)}
+                    className="pl-8 text-xs"
+                  />
+                </div>
                 <ScrollArea className="h-45 rounded-md border p-3">
                   <div className="space-y-3">
-                    {availableExercises.map((ex) => (
+                    {filteredExercises.map((ex) => (
                       <div
                         key={ex.id || ex.name}
                         className="flex items-start space-x-3"
@@ -590,13 +732,25 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                         </div>
                       </div>
                     ))}
-                    {availableExercises.length === 0 && (
+                    {filteredExercises.length === 0 && (
                       <div className="py-4 text-center text-xs text-zinc-500">
-                        Зареждане на упражнения...
+                        {exerciseSearch
+                          ? "Няма резултати"
+                          : "Зареждане на упражнения..."}
                       </div>
                     )}
                   </div>
                 </ScrollArea>
+                {/* Quick link to Planner */}
+                <p className="text-[11px] text-zinc-400">
+                  За детайлно планиране използвай{" "}
+                  <Link
+                    href={`/training/planner?campId=${camp.id}&date=${selectedDateStr}`}
+                    className="font-semibold text-indigo-600 underline-offset-2 hover:underline"
+                  >
+                    Универсалния Планировчик →
+                  </Link>
+                </p>
               </div>
             )}
           </div>

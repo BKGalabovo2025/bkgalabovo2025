@@ -1,6 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-duplicated-branches */
 "use client";
 
+import { format } from "date-fns";
 import {
   Activity,
   AlertTriangle,
@@ -832,6 +833,7 @@ export default function CreateSessionWizard({
         status: "planned",
         coachNotes: coachNotes.trim() || undefined,
         weatherIcon,
+        campId: initialCampId || undefined,
       };
 
       const sessionId = await plannerService.addSession(activeBranch, payload);
@@ -1429,6 +1431,47 @@ export default function CreateSessionWizard({
                   </div>
                 </div>
               )}
+
+              {/* Camp Day Selector — only when opened from a camp */}
+              {initialCampId &&
+                (() => {
+                  const campEvent = events.find((e) => e.id === initialCampId);
+                  if (!campEvent) return null;
+                  const cStart = new Date(campEvent.startDate);
+                  const cEnd = new Date(campEvent.endDate);
+                  const campDays: { dateStr: string; label: string }[] = [];
+                  let cur = cStart;
+                  let dIdx = 1;
+                  while (cur <= cEnd && dIdx < 30) {
+                    campDays.push({
+                      dateStr: format(cur, "yyyy-MM-dd"),
+                      label: `Ден ${dIdx} (${format(cur, "dd.MM")})`,
+                    });
+                    cur = new Date(cur);
+                    cur.setDate(cur.getDate() + 1);
+                    dIdx++;
+                  }
+                  if (campDays.length <= 1) return null;
+                  return (
+                    <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+                      <Label className="mb-2 block font-bold text-indigo-900">
+                        Ден от лагера
+                      </Label>
+                      <Select value={date} onValueChange={setDate}>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {campDays.map((d) => (
+                            <SelectItem key={d.dateStr} value={d.dateStr}>
+                              {d.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  );
+                })()}
 
               <DialogFooter className="border-t pt-4">
                 <Button

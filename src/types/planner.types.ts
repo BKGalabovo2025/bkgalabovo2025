@@ -63,6 +63,7 @@ export interface PlannerSession {
     exercises: Exercise[];
   }[];
   eventId?: string; // Link to public schedule
+  campId?: string; // Link to the camp this session belongs to
 
   // Methodological tracking
   focus?: string;
