@@ -76,6 +76,8 @@ export const MemberSchema = z.object({
     .optional(),
   isSkillLevelAutoCalculated: z.boolean().optional(),
   skillLevelPoints: z.number().optional(),
+  rankingPoints: z.number().optional(),
+  rankingPosition: z.number().optional(),
   showOnPublicTeam: z.boolean().optional(),
 
   // --- Administrative & Documents ---

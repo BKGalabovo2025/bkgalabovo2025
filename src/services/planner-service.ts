@@ -151,11 +151,31 @@ export const plannerService = {
     });
     await batch.commit();
 
-    // Auto-evaluate skill levels asynchronously for all members in the batch
+    // Auto-evaluate skill levels asynchronously.
+    // We pass data directly to avoid circular import chains.
     import("./skill-evaluation-service")
-      .then(({ evaluateMemberSkillLevel }) => {
-        attendanceData.forEach((att) => {
-          evaluateMemberSkillLevel(att.memberId).catch(console.error);
+      .then(({ evaluateMemberSkillLevelFromData }) => {
+        attendanceData.forEach(async (att) => {
+          try {
+            // Load beep tests and assessments for this member
+            const [beepMod, assessMod] = await Promise.all([
+              import("./beep-test-service"),
+              import("./assessment-service"),
+            ]);
+            const [allAtt, beepTests, assessments] = await Promise.all([
+              plannerService.getMemberAttendance(siteId, att.memberId),
+              beepMod.beepTestService.getMemberResults(siteId, att.memberId),
+              assessMod.getAssessmentsByMemberId(att.memberId),
+            ]);
+            await evaluateMemberSkillLevelFromData(
+              att.memberId,
+              allAtt,
+              beepTests,
+              assessments
+            );
+          } catch (err) {
+            console.error("skill-eval error for", att.memberId, err);
+          }
         });
       })
       .catch(console.error);

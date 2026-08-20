@@ -62,3 +62,32 @@ export async function computeGlobalRankings(dateFilter?: {
 
   return computeRankingsCore(tournaments, fetchTournamentData);
 }
+
+// ─────────────────────────────────────────────────────────────────
+// Синхронизация на класационни точки към Member документите
+// Извиква се след всяко изчисление на ранглистата.
+// ─────────────────────────────────────────────────────────────────
+export async function syncRankingsToMembers(): Promise<void> {
+  try {
+    const rankings = await computeGlobalRankings();
+    if (rankings.length === 0) return;
+
+    // Dynamic import to avoid potential circular deps with member-service
+    const { updateMember } = await import("./member-service");
+
+    await Promise.allSettled(
+      rankings.map((entry) =>
+        updateMember(entry.memberId, {
+          rankingPoints: entry.totalPoints,
+          rankingPosition: entry.position,
+        })
+      )
+    );
+
+    console.log(
+      `syncRankingsToMembers: Synced ${rankings.length} members' ranking points.`
+    );
+  } catch (err) {
+    console.error("syncRankingsToMembers failed:", err);
+  }
+}
