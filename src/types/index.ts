@@ -244,6 +244,11 @@ export type CampSession = {
   description?: string;
   exercises?: string[]; // list of exercise IDs
   absentMemberIds?: string[];
+  groups?: {
+    id: string;
+    name: string;
+    memberIds: string[];
+  }[];
 };
 
 // =================================================================

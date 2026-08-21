@@ -106,14 +106,26 @@ export default function TheoryClient() {
 
   // ── SEND ─────────────────────────────────────────────────────────────────
   const handleGenerateLink = async () => {
-    const member = members.find((m) => m.id === selectedMemberId);
-    if (!sendQuiz || !member) return;
+    let memberName = "";
+    let memberId = "";
+
+    if (selectedMemberId === "custom") {
+      memberName = memberSearchQuery.trim();
+      memberId = "custom-" + uuidv4();
+    } else {
+      const member = members.find((m) => m.id === selectedMemberId);
+      if (!member) return;
+      memberName = member.name;
+      memberId = member.id;
+    }
+
+    if (!sendQuiz || !memberName) return;
     try {
       const shareToken = await quizService.submitResult({
         token: uuidv4(),
         answers: {},
-        playerId: member.id,
-        playerName: member.name,
+        playerId: memberId,
+        playerName: memberName,
         quizId: sendQuiz.id,
         quizTitle: sendQuiz.title,
         siteId: activeBranch,
@@ -132,10 +144,10 @@ export default function TheoryClient() {
     toast.success("Линкът е копиран!");
   };
 
-  const openViber = (member: Member | undefined) => {
-    if (!sendQuiz || !member) return;
+  const openViber = (playerName: string) => {
+    if (!sendQuiz || !playerName) return;
     const viberUrl = quizService.generateViberLink(
-      member.name,
+      playerName,
       sendQuiz.title,
       generatedLink
     );
@@ -952,9 +964,26 @@ export default function TheoryClient() {
                       .toLowerCase()
                       .includes(memberSearchQuery.toLowerCase())
                   ).length === 0 && (
-                    <p className="p-3 text-center text-sm text-zinc-500">
-                      Няма намерени деца
-                    </p>
+                    <div className="p-3 text-center">
+                      <p className="mb-3 text-sm text-zinc-500">
+                        Няма намерени деца
+                      </p>
+                      {memberSearchQuery.trim().length > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedMemberId("custom")}
+                          className={
+                            selectedMemberId === "custom"
+                              ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+                              : ""
+                          }
+                        >
+                          Използвай &quot;{memberSearchQuery.trim()}&quot;
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               </ScrollArea>
@@ -986,9 +1015,14 @@ export default function TheoryClient() {
                 </div>
                 <Button
                   className="w-full rounded-xl bg-purple-600 hover:bg-purple-700"
-                  onClick={() =>
-                    openViber(members.find((m) => m.id === selectedMemberId))
-                  }
+                  onClick={() => {
+                    const playerName =
+                      selectedMemberId === "custom"
+                        ? memberSearchQuery.trim()
+                        : members.find((m) => m.id === selectedMemberId)
+                            ?.name || "";
+                    openViber(playerName);
+                  }}
                 >
                   <Send className="mr-2 size-4" /> Отвори Viber
                 </Button>

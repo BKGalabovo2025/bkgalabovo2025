@@ -141,6 +141,10 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
   const [formStartTime, setFormStartTime] = useState("09:00");
   const [formEndTime, setFormEndTime] = useState("11:00");
   const [formExercises, setFormExercises] = useState<string[]>([]);
+  const [formGroups, setFormGroups] = useState<
+    { id: string; name: string; memberIds: string[] }[]
+  >([]);
+  const [newGroupName, setNewGroupName] = useState("");
 
   const handleOpenModal = (session?: CampSession) => {
     if (session) {
@@ -150,6 +154,8 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       setFormStartTime(session.startTime);
       setFormEndTime(session.endTime);
       setFormExercises(session.exercises || []);
+      setFormGroups(session.groups || []);
+      setNewGroupName("");
     } else {
       setFormId(null);
       setFormType("training");
@@ -157,6 +163,8 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       setFormStartTime("09:00");
       setFormEndTime("11:00");
       setFormExercises([]);
+      setFormGroups([]);
+      setNewGroupName("");
     }
     setExerciseSearch("");
     setIsModalOpen(true);
@@ -176,6 +184,10 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       startTime: formStartTime,
       endTime: formEndTime,
       exercises: formType === "training" ? formExercises : [],
+      groups:
+        formType === "training" && formGroups.length > 0
+          ? formGroups
+          : undefined,
     };
 
     let newSessions = [...sessions];
@@ -214,6 +226,37 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const addGroup = () => {
+    if (newGroupName.trim()) {
+      setFormGroups([
+        ...formGroups,
+        { id: uuidv4(), name: newGroupName.trim(), memberIds: [] },
+      ]);
+      setNewGroupName("");
+    }
+  };
+
+  const removeGroup = (id: string) => {
+    setFormGroups(formGroups.filter((g) => g.id !== id));
+  };
+
+  const toggleParticipantInGroup = (groupId: string, participantId: string) => {
+    setFormGroups(
+      formGroups.map((g) => {
+        if (g.id === groupId) {
+          const isMember = g.memberIds.includes(participantId);
+          return {
+            ...g,
+            memberIds: isMember
+              ? g.memberIds.filter((id) => id !== participantId)
+              : [...g.memberIds, participantId],
+          };
+        }
+        return g;
+      })
+    );
   };
 
   const handleCopyPreviousDay = async () => {
@@ -505,6 +548,25 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                           </ul>
                         </div>
                       )}
+
+                      {session.groups && session.groups.length > 0 && (
+                        <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/50 p-3 dark:border-indigo-900/30 dark:bg-indigo-900/10">
+                          <div className="mb-2 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+                            Създадени групи:
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {session.groups.map((g) => (
+                              <Badge
+                                key={g.id}
+                                variant="outline"
+                                className="border-indigo-200 bg-white text-[10px] text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
+                              >
+                                {g.name} ({g.memberIds.length})
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -615,6 +677,13 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                                   мин
                                 </Badge>
                               ))}
+                            </div>
+                          )}
+                          {ps.sessionGroups && ps.sessionGroups.length > 0 && (
+                            <div className="mt-1">
+                              <Badge variant="outline" className="text-[10px]">
+                                {ps.sessionGroups.length} групи
+                              </Badge>
                             </div>
                           )}
                         </div>
@@ -787,6 +856,92 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                     Универсалния Планировчик →
                   </Link>
                 </p>
+
+                <div className="mt-2 grid gap-2 border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Управление на групи (опционално)</Label>
+                    <span className="text-[10px] text-zinc-500">
+                      {formGroups.length} групи
+                    </span>
+                  </div>
+                  <div className="mt-2 space-y-2">
+                    {formGroups.map((g) => (
+                      <div
+                        key={g.id}
+                        className="flex items-center justify-between rounded-md border bg-zinc-50 p-2"
+                      >
+                        <span className="text-sm font-medium">{g.name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeGroup(g.id)}
+                          className="size-6 p-0 text-red-500"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Нова група (напр. Група А)"
+                        value={newGroupName}
+                        onChange={(e) => setNewGroupName(e.target.value)}
+                        className="h-8 text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        className="h-8"
+                        onClick={addGroup}
+                        type="button"
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {formGroups.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="mb-2 text-sm font-semibold text-zinc-800">
+                        Разпределение на участници
+                      </h4>
+                      <ScrollArea className="h-48 rounded-md border border-zinc-200 bg-zinc-50 p-2">
+                        {(!camp.attendees || camp.attendees.length === 0) && (
+                          <p className="p-2 text-xs text-zinc-500">
+                            Няма записани участници в лагера.
+                          </p>
+                        )}
+                        {camp.attendees?.map((p) => (
+                          <div
+                            key={p.memberId}
+                            className="mb-2 flex flex-col justify-between rounded-md border border-zinc-100 bg-white p-2 shadow-sm sm:flex-row sm:items-center"
+                          >
+                            <span className="text-sm font-medium">
+                              {p.name}
+                            </span>
+                            <div className="mt-2 flex flex-wrap gap-3 sm:mt-0">
+                              {formGroups.map((g) => (
+                                <label
+                                  key={g.id}
+                                  className="flex cursor-pointer items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={g.memberIds.includes(p.memberId)}
+                                    onChange={() =>
+                                      toggleParticipantInGroup(g.id, p.memberId)
+                                    }
+                                    className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                                  />
+                                  {g.name}
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </ScrollArea>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
