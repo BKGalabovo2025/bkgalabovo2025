@@ -184,10 +184,9 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       startTime: formStartTime,
       endTime: formEndTime,
       exercises: formType === "training" ? formExercises : [],
-      groups:
-        formType === "training" && formGroups.length > 0
-          ? formGroups
-          : undefined,
+      ...(formType === "training" && formGroups.length > 0
+        ? { groups: formGroups }
+        : {}),
     };
 
     let newSessions = [...sessions];
