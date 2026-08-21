@@ -32,7 +32,7 @@ service cloud.firestore {
         'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
         'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
         'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
-        'business_trips', 'trip_expenses'
+        'business_trips', 'trip_expenses', 'annual_plans', 'training_templates'
       ] && checkResourceSiteAccess();
 
       allow create, update: if isAdmin() && hasValidSiteId() && collection in [
@@ -40,7 +40,7 @@ service cloud.firestore {
         'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
         'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
         'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
-        'business_trips', 'trip_expenses'
+        'business_trips', 'trip_expenses', 'annual_plans', 'training_templates'
       ] && hasAccessToSite(request.resource.data.siteId);
 
       allow delete: if isAdmin() && collection in [
@@ -48,7 +48,7 @@ service cloud.firestore {
         'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
         'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
         'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
-        'business_trips', 'trip_expenses'
+        'business_trips', 'trip_expenses', 'annual_plans', 'training_templates'
       ] && checkResourceSiteAccess();
 
       // 2. Колекции с достъп за четене и писане само от админи със SiteId

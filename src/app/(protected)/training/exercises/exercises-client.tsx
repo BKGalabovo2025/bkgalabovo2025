@@ -72,28 +72,6 @@ export default function ExercisesClient() {
     }
   };
 
-  const handleDeleteAll = async () => {
-    if (
-      !confirm(
-        "Сигурни ли сте, че искате да изтриете всички упражнения? Това ще изчисти старата база."
-      )
-    )
-      return;
-    setIsInjecting(true);
-    try {
-      const all = await plannerService.getExercises(activeBranch);
-      for (const ex of all) {
-        await plannerService.deleteExercise(ex.id);
-      }
-      toast.success("Всички упражнения са изтрити.");
-      await loadExercises();
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsInjecting(false);
-    }
-  };
-
   const handleEdit = (ex: Exercise) => {
     setSelectedExercise(ex);
     setIsDialogOpen(true);
@@ -135,6 +113,16 @@ export default function ExercisesClient() {
     return true;
   });
 
+  const getCategoryCount = (cat: string) => {
+    if (cat === "all") return exercises.length;
+    return exercises.filter((ex) => ex.category === cat).length;
+  };
+
+  const getAgeGroupCount = (ag: string) => {
+    if (ag === "all") return exercises.length;
+    return exercises.filter((ex) => ex.ageGroups.includes(ag)).length;
+  };
+
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-8">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -153,16 +141,6 @@ export default function ExercisesClient() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {exercises.length > 0 && (
-            <Button
-              onClick={handleDeleteAll}
-              disabled={isInjecting}
-              variant="outline"
-              className="rounded-xl border-red-200 bg-red-50 font-bold text-red-700 hover:bg-red-100"
-            >
-              Изтрий стари данни
-            </Button>
-          )}
           {exercises.length === 0 && (
             <Button
               onClick={handleInject}
@@ -216,12 +194,27 @@ export default function ExercisesClient() {
               <SelectValue placeholder="Всички категории" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Всички категории</SelectItem>
-              <SelectItem value="warmup">Загрявка (Warmup)</SelectItem>
-              <SelectItem value="physical">Физически (Physical)</SelectItem>
-              <SelectItem value="technical">Технически (Technical)</SelectItem>
-              <SelectItem value="tactical">Тактически (Tactical)</SelectItem>
-              <SelectItem value="mental">Ментални (Mental)</SelectItem>
+              <SelectItem value="all">
+                Всички категории ({getCategoryCount("all")})
+              </SelectItem>
+              <SelectItem value="warmup">
+                Загрявка ({getCategoryCount("warmup")})
+              </SelectItem>
+              <SelectItem value="technique">
+                Техника ({getCategoryCount("technique")})
+              </SelectItem>
+              <SelectItem value="tactics">
+                Тактика ({getCategoryCount("tactics")})
+              </SelectItem>
+              <SelectItem value="physical">
+                Физически ({getCategoryCount("physical")})
+              </SelectItem>
+              <SelectItem value="games">
+                Игри и Забава ({getCategoryCount("games")})
+              </SelectItem>
+              <SelectItem value="cooldown">
+                Разпускане ({getCategoryCount("cooldown")})
+              </SelectItem>
             </SelectContent>
           </Select>
           <Select value={ageGroupFilter} onValueChange={setAgeGroupFilter}>
@@ -229,14 +222,28 @@ export default function ExercisesClient() {
               <SelectValue placeholder="Всички възрасти" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Всички възрасти</SelectItem>
-              <SelectItem value="U9">U9</SelectItem>
-              <SelectItem value="U11">U11</SelectItem>
-              <SelectItem value="U13">U13</SelectItem>
-              <SelectItem value="U15">U15</SelectItem>
-              <SelectItem value="U17">U17</SelectItem>
-              <SelectItem value="U19">U19</SelectItem>
-              <SelectItem value="Мъже и Жени">Мъже и Жени</SelectItem>
+              <SelectItem value="all">
+                Всички възрасти ({getAgeGroupCount("all")})
+              </SelectItem>
+              <SelectItem value="U9">U9 ({getAgeGroupCount("U9")})</SelectItem>
+              <SelectItem value="U11">
+                U11 ({getAgeGroupCount("U11")})
+              </SelectItem>
+              <SelectItem value="U13">
+                U13 ({getAgeGroupCount("U13")})
+              </SelectItem>
+              <SelectItem value="U15">
+                U15 ({getAgeGroupCount("U15")})
+              </SelectItem>
+              <SelectItem value="U17">
+                U17 ({getAgeGroupCount("U17")})
+              </SelectItem>
+              <SelectItem value="U19">
+                U19 ({getAgeGroupCount("U19")})
+              </SelectItem>
+              <SelectItem value="Мъже и Жени">
+                Мъже и Жени ({getAgeGroupCount("Мъже и Жени")})
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -279,14 +286,16 @@ export default function ExercisesClient() {
                       switch (ex.category) {
                         case "physical":
                           return "Физическо";
-                        case "technical":
-                          return "Техническо";
-                        case "tactical":
-                          return "Тактическо";
-                        case "mental":
-                          return "Ментално";
+                        case "technique":
+                          return "Техника";
+                        case "tactics":
+                          return "Тактика";
+                        case "games":
+                          return "Игри";
                         case "warmup":
                           return "Загрявка";
+                        case "cooldown":
+                          return "Разпускане";
                         default:
                           return ex.category;
                       }
@@ -302,17 +311,19 @@ export default function ExercisesClient() {
                 <p className="mb-4 line-clamp-2 text-sm text-zinc-600">
                   {ex.description}
                 </p>
+                {ex.coachingPoints && ex.coachingPoints.length > 0 && (
+                  <div className="mb-4 line-clamp-2 rounded-lg border border-amber-100 bg-amber-50 p-2 text-xs text-amber-900">
+                    <span className="font-bold">Насоки:</span>{" "}
+                    {ex.coachingPoints[0]}
+                  </div>
+                )}
                 <div className="flex items-center gap-4 text-xs font-medium text-zinc-500">
                   <div className="flex items-center gap-1">
                     <MapPin className="size-3" />
                     {(() => {
-                      if (
-                        ex.location.includes("indoor") &&
-                        ex.location.includes("outdoor")
-                      )
-                        return "Навсякъде";
-                      if (ex.location.includes("indoor")) return "В зала";
-                      return "На открито";
+                      if (ex.location.includes("beach")) return "Плаж";
+                      if (ex.location.includes("stadium")) return "Стадион";
+                      return "В зала";
                     })()}
                   </div>
                   {ex.isHomeFriendly && (

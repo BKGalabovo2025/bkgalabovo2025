@@ -31,7 +31,10 @@ ALL_EXERCISES.forEach((ex) => {
   }
 
   // Equipment
-  const eq = ex.equipment ? ex.equipment.toLowerCase() : "none";
+  const eq =
+    ex.equipment && ex.equipment.length
+      ? ex.equipment.join(" ").toLowerCase()
+      : "none";
   if (eq.includes("собствено тегло") || eq.trim() === "") {
     stats.equipment["bodyweight"] = (stats.equipment["bodyweight"] || 0) + 1;
   } else if (eq.includes("дъмбел") || eq.includes("пудовка")) {
@@ -47,6 +50,8 @@ ALL_EXERCISES.forEach((ex) => {
   ) {
     stats.equipment["shuttles"] = (stats.equipment["shuttles"] || 0) + 1;
   } else if (
+    ex.name.toLowerCase().includes("конус") ||
+    ex.description?.toLowerCase().includes("конус") ||
     eq.includes("стълбичка") ||
     eq.includes("въже") ||
     eq.includes("ластик") ||

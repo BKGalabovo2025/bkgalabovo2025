@@ -346,6 +346,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
+                    isActive={pathname.startsWith("/training/annual-plans")}
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+                  >
+                    <Link
+                      href="/training/annual-plans"
+                      className="flex w-full items-center gap-3"
+                      onClick={() => isMobile && setOpen(false)}
+                    >
+                      <CalendarRange size={18} strokeWidth={1.5} />
+                      <span className="text-[14px]">Годишни Планове</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
                     isActive={pathname.startsWith("/training/exercises")}
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >

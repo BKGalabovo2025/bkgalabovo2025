@@ -26,10 +26,13 @@ function PlannerClientContent() {
   const searchParams = useSearchParams();
   const campIdParam = searchParams.get("campId");
   const dateParam = searchParams.get("date");
+  const importTemplateParam = searchParams.get("importTemplate");
 
   const [sessions, setSessions] = useState<PlannerSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isWizardOpen, setIsWizardOpen] = useState(!!campIdParam);
+  const [isWizardOpen, setIsWizardOpen] = useState(
+    !!campIdParam || !!importTemplateParam
+  );
 
   useEffect(() => {
     loadSessions();
@@ -68,6 +71,20 @@ function PlannerClientContent() {
       </div>
     );
   }
+
+  const getExerciseCount = (session: PlannerSession): string => {
+    const blocksCount =
+      session.blocks?.reduce((acc, b) => acc + b.items.length, 0) || 0;
+    const groupsCount =
+      session.groupedExercises?.reduce(
+        (acc, g) => acc + g.exercises.length,
+        0
+      ) || 0;
+    const flatCount = session.exercises?.length || 0;
+
+    const total = Math.max(blocksCount, groupsCount, flatCount);
+    return `${total} общо упр.`;
+  };
 
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-8">
@@ -166,19 +183,11 @@ function PlannerClientContent() {
                       <div className="flex items-center gap-4 text-xs font-medium text-zinc-500">
                         <div className="flex items-center gap-1">
                           <MapPin className="size-3" />
-                          {session.location === "indoor"
+                          {session.location === "court"
                             ? "В зала"
                             : "На открито"}
                         </div>
-                        <div>
-                          {session.groupedExercises &&
-                          session.groupedExercises.length > 0
-                            ? session.groupedExercises.reduce(
-                                (acc, g) => acc + g.exercises.length,
-                                0
-                              ) + " общо упр."
-                            : (session.exercises?.length || 0) + " упражнения"}
-                        </div>
+                        <div>{getExerciseCount(session)}</div>
                       </div>
                     </div>
                     <div className="hidden sm:flex sm:gap-2">
@@ -209,13 +218,23 @@ function PlannerClientContent() {
 
       <CreateSessionWizard
         open={isWizardOpen}
-        onOpenChange={setIsWizardOpen}
+        onOpenChange={(open) => {
+          setIsWizardOpen(open);
+          if (!open) {
+            // Remove all specific query params on close so re-opening works fresh
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete("campId");
+            newUrl.searchParams.delete("date");
+            newUrl.searchParams.delete("importTemplate");
+            window.history.replaceState({}, "", newUrl.toString());
+          }
+        }}
         onSaveSuccess={() => {
-          setIsWizardOpen(false);
           loadSessions();
         }}
         initialCampId={campIdParam || undefined}
         initialDate={dateParam || undefined}
+        initialImportTemplateId={importTemplateParam || undefined}
       />
     </div>
   );

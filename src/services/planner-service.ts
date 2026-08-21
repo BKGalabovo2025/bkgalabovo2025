@@ -14,15 +14,19 @@ import {
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 import { db } from "@/lib/firebase";
 import {
+  AnnualPlan,
   Exercise,
   PlannerSession,
   SessionAttendance,
+  TrainingTemplate,
 } from "@/types/planner.types";
 
 const EXERCISES_COLLECTION = "exercises";
 const SESSIONS_COLLECTION = "planner_sessions";
 const ATTENDANCE_COLLECTION = "training_attendance";
 const FOCUS_TAGS_COLLECTION = "focus_tags";
+const ANNUAL_PLANS_COLLECTION = "annual_plans";
+const TRAINING_TEMPLATES_COLLECTION = "training_templates";
 
 export const plannerService = {
   // ================= EXERCISES =================
@@ -215,6 +219,34 @@ export const plannerService = {
     const snapshot = await getDocs(q);
     return snapshot.docs.map(
       (doc) => ({ id: doc.id, ...doc.data() }) as SessionAttendance
+    );
+  },
+
+  // ================= ANNUAL PLANS & TEMPLATES =================
+  async getAnnualPlans(siteId: string): Promise<AnnualPlan[]> {
+    const q = query(
+      collection(db, ANNUAL_PLANS_COLLECTION),
+      where("siteId", "==", siteId)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() }) as AnnualPlan
+    );
+  },
+
+  async updateAnnualPlan(id: string, data: Partial<AnnualPlan>): Promise<void> {
+    const docRef = doc(db, ANNUAL_PLANS_COLLECTION, id);
+    await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
+  },
+
+  async getTrainingTemplates(siteId: string): Promise<TrainingTemplate[]> {
+    const q = query(
+      collection(db, TRAINING_TEMPLATES_COLLECTION),
+      where("siteId", "==", siteId)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() }) as TrainingTemplate
     );
   },
 

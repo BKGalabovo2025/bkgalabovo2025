@@ -1,6 +1,6 @@
 export type ExerciseCategory =
-  "physical" | "technical" | "tactical" | "mental" | "warmup";
-export type LocationType = "indoor" | "outdoor" | "both";
+  "warmup" | "technique" | "tactics" | "physical" | "games" | "cooldown";
+export type LocationType = "court" | "stadium" | "beach";
 export type TrainingMode = "season" | "camp";
 type MedicalStatus = "healthy" | "discomfort" | "injured";
 
@@ -14,7 +14,8 @@ export interface Exercise {
   location: LocationType[];
   ageGroups: string[];
   durationMinutes: number;
-  equipment: string;
+  equipment: string[];
+  prerequisites?: string[];
   videoUrl?: string; // YouTube/Instagram link or local path
   imageUrl?: string;
 
@@ -37,6 +38,37 @@ export interface Exercise {
   createdAt: string;
   updatedAt: string;
 }
+export interface SessionBlockItem {
+  id: string;
+  type: "exercise" | "station";
+  durationMinutes: number;
+
+  // If type === "exercise"
+  exercise?: Exercise;
+  targetGroupId?: string; // Optional: To assign a specific group (e.g. Group A) to this exercise
+
+  // If type === "station" (Rotation)
+  rotations?: {
+    groupId: string;
+    exercise: Exercise;
+  }[];
+
+  // Advanced Station Tracking
+  stationTimer?: {
+    workSeconds: number;
+    transitionSeconds: number;
+    rounds: number;
+  };
+  assignedCoach?: string;
+  isHydrationBreak?: boolean;
+}
+
+export interface SessionBlock {
+  id: string;
+  phase: "warmup" | "main" | "cooldown";
+  targetDuration: number;
+  items: SessionBlockItem[];
+}
 
 export interface PlannerSession {
   id: string;
@@ -51,6 +83,10 @@ export interface PlannerSession {
   ageGroup?: string;
   exercises?: Exercise[];
 
+  // Advanced tracking
+  totalKids?: number;
+  inventoryOverrides?: Record<string, number>;
+
   // Multi-group calendar support
   targetGroups?: string[];
   structuredTargetGroups?: {
@@ -62,6 +98,7 @@ export interface PlannerSession {
     skillLevel?: string;
     exercises: Exercise[];
   }[];
+  blocks?: SessionBlock[]; // The new Time-Budget / Station structure
   eventId?: string; // Link to public schedule
   campId?: string; // Link to the camp this session belongs to
 
@@ -89,6 +126,70 @@ export interface SessionAttendance {
   playerLoad?: number; // RPE * Session Duration
   medicalStatus: MedicalStatus;
   note?: string; // Specific note for this child
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingTemplateBlockItem {
+  exerciseId: string;
+  exerciseName: string;
+  durationMinutes: number;
+  customInstructions?: string;
+}
+
+export interface TrainingTemplateBlock {
+  id: string;
+  phase: "warmup" | "main" | "cooldown";
+  title: string;
+  durationMinutes: number;
+  description: string;
+  exercises: TrainingTemplateBlockItem[];
+}
+
+export interface TrainingTemplate {
+  id: string;
+  siteId: string;
+  name: string;
+  description: string;
+  targetAgeGroups: string[];
+  totalDurationMinutes: number;
+  blocks: TrainingTemplateBlock[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AnnualPlanSession {
+  dayOfWeek: number; // 1-7 (Monday-Sunday)
+  templateId?: string; // Reference to TrainingTemplate
+  templateReference?: TrainingTemplate; // Used for UI preview if populated
+  focus: string; // e.g. "Footwork & Скорост"
+  isCampSession?: boolean; // Flag if suitable for camps
+}
+
+export interface AnnualPlanWeek {
+  weekNumber: number; // 1-52
+  focus: string;
+  isMatchWeek?: boolean; // Flag if there is a competition
+  sessions: AnnualPlanSession[];
+}
+
+export interface AnnualPlanPhase {
+  id: string;
+  name: "Подготвителен" | "Предсъстезателен" | "Състезателен" | "Преходен";
+  description: string;
+  startWeek: number;
+  endWeek: number;
+  weeks: AnnualPlanWeek[];
+}
+
+export interface AnnualPlan {
+  id: string;
+  siteId: string;
+  name: string; // e.g. "Едногодишна програма за U13/U15"
+  description: string;
+  targetAgeGroups: string[];
+  seasonStartDate?: string; // Optional dynamic start date ISO
+  phases: AnnualPlanPhase[];
   createdAt: string;
   updatedAt: string;
 }

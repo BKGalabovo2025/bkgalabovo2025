@@ -38,6 +38,23 @@ interface Props {
 }
 
 const AGE_GROUPS = ["U9", "U11", "U13", "U15", "U17", "U19", "Мъже и Жени"];
+const POPULAR_EQUIPMENT = [
+  "Ракети",
+  "Пера",
+  "Балони",
+  "Конуси",
+  "Въже",
+  "Ластици",
+  "Стълбичка",
+];
+const POPULAR_PREREQUISITES = [
+  "Основен хват",
+  "Бекхенд хват",
+  "Правилен напад (Lunge)",
+  "Повдигане (Lift)",
+  "Шасе стъпки",
+  "Сплит стъпка",
+];
 
 export default function ExerciseFormDialog({
   exercise,
@@ -51,12 +68,16 @@ export default function ExerciseFormDialog({
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [coachingPoints, setCoachingPoints] = useState("");
   const [category, setCategory] = useState<ExerciseCategory>("physical");
   const [source, setSource] = useState("");
-  const [locations, setLocations] = useState<LocationType[]>(["indoor"]);
+  const [locations, setLocations] = useState<LocationType[]>(["court"]);
   const [ageGroups, setAgeGroups] = useState<string[]>([]);
   const [duration, setDuration] = useState(10);
-  const [equipment, setEquipment] = useState("");
+  const [equipment, setEquipment] = useState<string[]>([]);
+  const [prerequisites, setPrerequisites] = useState<string[]>([]);
+  const [customEq, setCustomEq] = useState("");
+  const [customReq, setCustomReq] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
 
   useEffect(() => {
@@ -64,23 +85,29 @@ export default function ExerciseFormDialog({
       if (exercise) {
         setName(exercise.name);
         setDescription(exercise.description);
+        setCoachingPoints(exercise.coachingPoints?.join("\n") || "");
         setCategory(exercise.category);
         setSource(exercise.source ?? "");
-        setLocations(exercise.location);
+        setLocations(exercise.location || ["court"]);
         setAgeGroups(exercise.ageGroups);
         setDuration(exercise.durationMinutes);
-        setEquipment(exercise.equipment);
+        setEquipment(exercise.equipment || []);
+        setPrerequisites(exercise.prerequisites || []);
         setVideoUrl(exercise.videoUrl || "");
       } else {
         // Reset defaults
         setName("");
         setDescription("");
+        setCoachingPoints("");
         setCategory("physical");
         setSource("");
-        setLocations(["indoor"]);
+        setLocations(["court"]);
         setAgeGroups(["U13", "U15"]);
         setDuration(10);
-        setEquipment("");
+        setEquipment([]);
+        setPrerequisites([]);
+        setCustomEq("");
+        setCustomReq("");
         setVideoUrl("");
       }
     }
@@ -99,12 +126,16 @@ export default function ExerciseFormDialog({
       const payload = {
         name,
         description,
+        coachingPoints: coachingPoints
+          .split("\n")
+          .filter((p) => p.trim() !== ""),
         category,
         source,
         location: locations,
         ageGroups,
         durationMinutes: duration,
         equipment,
+        prerequisites,
         videoUrl: videoUrl || undefined,
       };
 
@@ -166,36 +197,30 @@ export default function ExerciseFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="physical">ОФП / Физика</SelectItem>
-                  <SelectItem value="technical">Техника</SelectItem>
-                  <SelectItem value="tactical">Тактика</SelectItem>
-                  <SelectItem value="mental">Психология</SelectItem>
                   <SelectItem value="warmup">Загрявка</SelectItem>
+                  <SelectItem value="technique">Техника</SelectItem>
+                  <SelectItem value="tactics">Тактика</SelectItem>
+                  <SelectItem value="physical">ОФП / Физика</SelectItem>
+                  <SelectItem value="games">Игри и Забава</SelectItem>
+                  <SelectItem value="cooldown">Разпускане</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Локация</Label>
               <Select
-                value={
-                  locations.includes("indoor") && locations.includes("outdoor")
-                    ? "both"
-                    : locations[0]
-                }
+                value={locations[0] || "court"}
                 onValueChange={(val: string) => {
-                  if (val === "both") setLocations(["indoor", "outdoor"]);
-                  else setLocations([val as LocationType]);
+                  setLocations([val as LocationType]);
                 }}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="indoor">Само в зала (Корт)</SelectItem>
-                  <SelectItem value="outdoor">
-                    Само на открито (Стадион)
-                  </SelectItem>
-                  <SelectItem value="both">Универсално (Навсякъде)</SelectItem>
+                  <SelectItem value="court">Само в зала (Корт)</SelectItem>
+                  <SelectItem value="stadium">Стадион / Трева</SelectItem>
+                  <SelectItem value="beach">Плаж / На открито</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -227,6 +252,16 @@ export default function ExerciseFormDialog({
             />
           </div>
 
+          <div className="space-y-2">
+            <Label>Треньорски насоки (по една на ред)</Label>
+            <Textarea
+              value={coachingPoints}
+              onChange={(e) => setCoachingPoints(e.target.value)}
+              placeholder="Какво да следим? Най-чести грешки..."
+              className="h-24"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Продължителност (минути)</Label>
@@ -247,12 +282,134 @@ export default function ExerciseFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Нужна екипировка</Label>
-            <Input
-              value={equipment}
-              onChange={(e) => setEquipment(e.target.value)}
-              placeholder="Конуси, 30 пера..."
-            />
+            <Label>Нужна екипировка (Уреди)</Label>
+            <div className="mb-2 flex flex-wrap gap-2">
+              {POPULAR_EQUIPMENT.map((eq) => (
+                <Badge
+                  key={eq}
+                  variant={equipment.includes(eq) ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    setEquipment((prev) =>
+                      prev.includes(eq)
+                        ? prev.filter((e) => e !== eq)
+                        : [...prev, eq]
+                    )
+                  }
+                >
+                  {eq}
+                </Badge>
+              ))}
+              {equipment
+                .filter((eq) => !POPULAR_EQUIPMENT.includes(eq))
+                .map((eq) => (
+                  <Badge
+                    key={eq}
+                    variant="default"
+                    className="cursor-pointer bg-indigo-600 hover:bg-indigo-700"
+                    onClick={() =>
+                      setEquipment((prev) => prev.filter((e) => e !== eq))
+                    }
+                  >
+                    {eq} &times;
+                  </Badge>
+                ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={customEq}
+                onChange={(e) => setCustomEq(e.target.value)}
+                placeholder="Добави друг уред..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && customEq.trim()) {
+                    e.preventDefault();
+                    if (!equipment.includes(customEq.trim())) {
+                      setEquipment([...equipment, customEq.trim()]);
+                    }
+                    setCustomEq("");
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  if (customEq.trim() && !equipment.includes(customEq.trim())) {
+                    setEquipment([...equipment, customEq.trim()]);
+                    setCustomEq("");
+                  }
+                }}
+              >
+                Добави
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Предварителни умения (Prerequisites)</Label>
+            <div className="mb-2 flex flex-wrap gap-2">
+              {POPULAR_PREREQUISITES.map((req) => (
+                <Badge
+                  key={req}
+                  variant={prerequisites.includes(req) ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    setPrerequisites((prev) =>
+                      prev.includes(req)
+                        ? prev.filter((r) => r !== req)
+                        : [...prev, req]
+                    )
+                  }
+                >
+                  {req}
+                </Badge>
+              ))}
+              {prerequisites
+                .filter((req) => !POPULAR_PREREQUISITES.includes(req))
+                .map((req) => (
+                  <Badge
+                    key={req}
+                    variant="default"
+                    className="cursor-pointer bg-emerald-600 hover:bg-emerald-700"
+                    onClick={() =>
+                      setPrerequisites((prev) => prev.filter((r) => r !== req))
+                    }
+                  >
+                    {req} &times;
+                  </Badge>
+                ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={customReq}
+                onChange={(e) => setCustomReq(e.target.value)}
+                placeholder="Добави друго умение..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && customReq.trim()) {
+                    e.preventDefault();
+                    if (!prerequisites.includes(customReq.trim())) {
+                      setPrerequisites([...prerequisites, customReq.trim()]);
+                    }
+                    setCustomReq("");
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  if (
+                    customReq.trim() &&
+                    !prerequisites.includes(customReq.trim())
+                  ) {
+                    setPrerequisites([...prerequisites, customReq.trim()]);
+                    setCustomReq("");
+                  }
+                }}
+              >
+                Добави
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">

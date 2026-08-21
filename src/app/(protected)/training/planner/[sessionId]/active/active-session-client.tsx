@@ -31,6 +31,7 @@ import {
   Exercise,
   PlannerSession,
   SessionAttendance,
+  SessionBlockItem,
 } from "@/types/planner.types";
 
 interface Props {
@@ -82,7 +83,9 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   const [isSaving, setIsSaving] = useState(false);
 
   // Interval Timer State
-  const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
+  const [activeItem, setActiveItem] = useState<SessionBlockItem | null>(null);
+  const [activeLegacyExercise, setActiveLegacyExercise] =
+    useState<Exercise | null>(null);
   const [timerState, setTimerState] = useState<
     "idle" | "work" | "rest" | "finished"
   >("idle");
@@ -132,51 +135,68 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   };
 
   // --- Interval Timer Logic ---
-  const startExercise = (ex: Exercise) => {
+  const startItem = (item: SessionBlockItem | Exercise, isLegacy = false) => {
     if (timerRef.current) clearInterval(timerRef.current);
-    setActiveExercise(ex);
+    if (isLegacy) {
+      setActiveLegacyExercise(item as Exercise);
+      setActiveItem(null);
+    } else {
+      setActiveItem(item as SessionBlockItem);
+      setActiveLegacyExercise(null);
+    }
     setCurrentSet(1);
 
-    if (ex.defaultWorkSec) {
-      setTimerState("work");
-      setTimeRemaining(ex.defaultWorkSec);
-      playWhistle(); // Start sound
-    } else {
-      // Fallback simple timer
-      setTimerState("work");
-      setTimeRemaining(ex.durationMinutes * 60);
-    }
+    const dur = isLegacy
+      ? (item as Exercise).defaultWorkSec ||
+        (item as Exercise).durationMinutes * 60
+      : (item as SessionBlockItem).type === "exercise"
+        ? (item as SessionBlockItem).exercise?.defaultWorkSec ||
+          (item as SessionBlockItem).durationMinutes * 60
+        : (item as SessionBlockItem).durationMinutes * 60;
+
+    setTimerState("work");
+    setTimeRemaining(dur);
+    playWhistle();
   };
 
   const stopExercise = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    setActiveExercise(null);
+    setActiveItem(null);
+    setActiveLegacyExercise(null);
     setTimerState("idle");
   };
 
   const skipInterval = () => {
-    if (!activeExercise) return;
+    if (!activeItem && !activeLegacyExercise) return;
     advanceTimer();
   };
 
   const advanceTimer = () => {
-    if (!activeExercise) return;
+    if (!activeItem && !activeLegacyExercise) return;
+
+    const ex =
+      activeLegacyExercise ||
+      (activeItem?.type === "exercise" ? activeItem.exercise : null);
+    const sets = ex?.defaultSets || 1;
+    const rest = ex?.defaultRestSec || 30;
+    const work =
+      ex?.defaultWorkSec || (activeItem ? activeItem.durationMinutes * 60 : 60);
 
     if (timerState === "work") {
-      if (currentSet >= (activeExercise.defaultSets || 1)) {
+      if (currentSet >= sets) {
         setTimerState("finished");
         setTimeRemaining(0);
         playWhistle();
         setTimeout(playWhistle, 500); // Double beep for finished
       } else {
         setTimerState("rest");
-        setTimeRemaining(activeExercise.defaultRestSec || 30);
+        setTimeRemaining(rest);
         playWhistle();
       }
     } else if (timerState === "rest") {
       setCurrentSet((s) => s + 1);
       setTimerState("work");
-      setTimeRemaining(activeExercise.defaultWorkSec || 60);
+      setTimeRemaining(work);
       playWhistle();
     }
   };
@@ -200,7 +220,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       if (timerRef.current) clearInterval(timerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timerState, currentSet, activeExercise]);
+  }, [timerState, currentSet, activeItem, activeLegacyExercise]);
 
   const toggleTimerPause = () => {
     if (timerState === "idle" || timerState === "finished") return;
@@ -319,12 +339,158 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   }
 
   const presentCount = Object.keys(attendance).length;
-  // Get unique exercises across all groups to display for timing
-  const allSessionExercises =
-    session.groupedExercises?.flatMap((g) => g.exercises) || [];
-  const uniqueExercises = Array.from(
-    new Map(allSessionExercises.map((e) => [e.id, e])).values()
-  );
+
+  const renderActiveTimerView = () => {
+    const isLegacy = !!activeLegacyExercise;
+    const isStation = activeItem?.type === "station";
+    const name = isLegacy
+      ? activeLegacyExercise.name
+      : isStation
+        ? "Станционна Ротация"
+        : activeItem?.exercise?.name;
+    const cat = isLegacy
+      ? activeLegacyExercise.category
+      : isStation
+        ? "STATION"
+        : activeItem?.exercise?.category || "";
+    const sets = isLegacy
+      ? activeLegacyExercise.defaultSets
+      : isStation
+        ? 1
+        : activeItem?.exercise?.defaultSets;
+
+    return (
+      <div
+        className={cn(
+          "p-8 text-center transition-colors duration-500",
+          timerState === "work"
+            ? "bg-emerald-900/50"
+            : timerState === "rest"
+              ? "bg-amber-900/50"
+              : timerState === "finished"
+                ? "bg-indigo-900/50"
+                : "bg-zinc-900"
+        )}
+      >
+        <div className="mb-4">
+          <Badge
+            variant="outline"
+            className="mb-2 border-indigo-500/30 text-indigo-300"
+          >
+            {cat.toUpperCase()}
+          </Badge>
+          <h2 className="text-2xl font-black text-white sm:text-3xl">{name}</h2>
+
+          {isStation && activeItem?.rotations && (
+            <div className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-indigo-100">
+              {activeItem.rotations.map(
+                (
+                  r: { groupId: string; exercise: { name: string } },
+                  i: number
+                ) => (
+                  <div
+                    key={i}
+                    className="rounded-md border border-indigo-500/20 bg-indigo-950/50 px-3 py-1"
+                  >
+                    <span className="mr-2 font-bold text-amber-400">
+                      {session?.targetGroups?.find((g) =>
+                        g.includes(r.groupId)
+                      ) || "Група"}
+                    </span>
+                    {r.exercise.name}
+                  </div>
+                )
+              )}
+            </div>
+          )}
+
+          {sets && !isStation && (
+            <p className="mt-2 font-medium text-zinc-400">
+              Серия {currentSet} от {sets}
+            </p>
+          )}
+
+          {!isStation &&
+            activeItem?.exercise?.coachingPoints &&
+            activeItem.exercise.coachingPoints.length > 0 && (
+              <div className="mx-auto mt-6 max-w-xl rounded-xl border border-amber-500/30 bg-zinc-800/50 p-4 text-left">
+                <h4 className="mb-2 text-sm font-bold text-amber-400">
+                  Треньорски Насоки:
+                </h4>
+                <ul className="list-inside list-disc space-y-1 text-sm text-zinc-300">
+                  {activeItem.exercise.coachingPoints.map(
+                    (pt: string, idx: number) => (
+                      <li key={idx}>{pt}</li>
+                    )
+                  )}
+                </ul>
+              </div>
+            )}
+          {!isStation &&
+            isLegacy &&
+            activeLegacyExercise?.coachingPoints &&
+            activeLegacyExercise.coachingPoints.length > 0 && (
+              <div className="mx-auto mt-6 max-w-xl rounded-xl border border-amber-500/30 bg-zinc-800/50 p-4 text-left">
+                <h4 className="mb-2 text-sm font-bold text-amber-400">
+                  Треньорски Насоки:
+                </h4>
+                <ul className="list-inside list-disc space-y-1 text-sm text-zinc-300">
+                  {activeLegacyExercise.coachingPoints.map(
+                    (pt: string, idx: number) => (
+                      <li key={idx}>{pt}</li>
+                    )
+                  )}
+                </ul>
+              </div>
+            )}
+        </div>
+
+        <div className="mb-2 text-7xl font-black tracking-tighter tabular-nums sm:text-9xl">
+          {formatTime(timeRemaining)}
+        </div>
+
+        <div className="mb-8 text-xl font-bold tracking-widest text-white/50 uppercase">
+          {timerState === "work"
+            ? "РАБОТА"
+            : timerState === "rest"
+              ? "ПОЧИВКА"
+              : timerState === "finished"
+                ? "КРАЙ"
+                : ""}
+        </div>
+
+        <div className="flex justify-center gap-4">
+          {timerState !== "finished" && (
+            <Button
+              size="lg"
+              onClick={() => toggleTimerPause()}
+              className="min-h-14 min-w-14 bg-white text-zinc-950 hover:bg-zinc-200"
+            >
+              <Pause className="size-5" />
+            </Button>
+          )}
+          {timerState !== "finished" && (
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={skipInterval}
+              className="min-h-14 border-white/20 text-lg hover:bg-white/10"
+            >
+              <SkipForward className="mr-2 size-5" /> Пропусни
+            </Button>
+          )}
+          <Button
+            size="lg"
+            variant="destructive"
+            onClick={stopExercise}
+            className="min-h-14 text-lg"
+          >
+            Затвори
+          </Button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="mx-auto max-w-5xl p-4 pb-32 sm:p-8">
@@ -342,7 +508,11 @@ export default function ActiveSessionClient({ sessionId }: Props) {
           <h1 className="text-xl font-bold text-zinc-900">{session.title}</h1>
           <div className="text-sm text-zinc-500">
             {session.targetGroups?.join(", ") || session.ageGroup} |{" "}
-            {session.location === "indoor" ? "В зала" : "На открито"}
+            {session.location === "court"
+              ? "В зала"
+              : session.location === "stadium"
+                ? "Стадион"
+                : "Плаж"}
           </div>
         </div>
       </div>
@@ -350,80 +520,8 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       {/* Interval Timer Panel */}
       <Card className="mb-8 overflow-hidden border-indigo-100 bg-zinc-950 text-white shadow-sm">
         <CardContent className="p-0">
-          {activeExercise ? (
-            <div
-              className={cn(
-                "p-8 text-center transition-colors duration-500",
-                timerState === "work"
-                  ? "bg-emerald-900/50"
-                  : timerState === "rest"
-                    ? "bg-amber-900/50"
-                    : timerState === "finished"
-                      ? "bg-indigo-900/50"
-                      : "bg-zinc-900"
-              )}
-            >
-              <div className="mb-4">
-                <Badge
-                  variant="outline"
-                  className="mb-2 border-indigo-500/30 text-indigo-300"
-                >
-                  {activeExercise.category.toUpperCase()}
-                </Badge>
-                <h2 className="text-2xl font-black text-white sm:text-3xl">
-                  {activeExercise.name}
-                </h2>
-                {activeExercise.defaultSets && (
-                  <p className="mt-2 font-medium text-zinc-400">
-                    Серия {currentSet} от {activeExercise.defaultSets}
-                  </p>
-                )}
-              </div>
-
-              <div className="mb-2 text-7xl font-black tracking-tighter tabular-nums sm:text-9xl">
-                {formatTime(timeRemaining)}
-              </div>
-
-              <div className="mb-8 text-xl font-bold tracking-widest text-white/50 uppercase">
-                {timerState === "work"
-                  ? "РАБОТА"
-                  : timerState === "rest"
-                    ? "ПОЧИВКА"
-                    : timerState === "finished"
-                      ? "КРАЙ"
-                      : ""}
-              </div>
-
-              <div className="flex justify-center gap-4">
-                {timerState !== "finished" && (
-                  <Button
-                    size="lg"
-                    onClick={() => toggleTimerPause()}
-                    className="min-h-14 min-w-14 bg-white text-zinc-950 hover:bg-zinc-200"
-                  >
-                    <Pause className="size-5" />
-                  </Button>
-                )}
-                {timerState !== "finished" && (
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={skipInterval}
-                    className="min-h-14 border-white/20 text-lg hover:bg-white/10"
-                  >
-                    <SkipForward className="mr-2 size-5" /> Пропусни
-                  </Button>
-                )}
-                <Button
-                  size="lg"
-                  variant="destructive"
-                  onClick={stopExercise}
-                  className="min-h-14 text-lg"
-                >
-                  Затвори
-                </Button>
-              </div>
-            </div>
+          {activeItem || activeLegacyExercise ? (
+            renderActiveTimerView()
           ) : (
             <div className="bg-zinc-900 p-6">
               <div className="mb-4 flex items-center gap-2 text-zinc-400">
@@ -432,32 +530,81 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                   План на тренировката (Изберете за старт)
                 </h3>
               </div>
-              <div className="custom-scrollbar grid max-h-64 grid-cols-1 gap-3 overflow-y-auto pr-2 sm:grid-cols-2">
-                {uniqueExercises.map((ex) => (
-                  <div
-                    key={ex.id}
-                    className="flex items-center justify-between rounded-xl border border-zinc-700 bg-zinc-800 p-3"
-                  >
-                    <div>
-                      <div className="text-sm font-bold text-zinc-100">
-                        {ex.name}
-                      </div>
-                      <div className="text-xs text-zinc-400">
-                        {ex.defaultSets
-                          ? `${ex.defaultSets} серии x ${ex.defaultWorkSec}с`
-                          : `${ex.durationMinutes} мин`}
+
+              {session.blocks && session.blocks.length > 0 ? (
+                <div className="space-y-6">
+                  {session.blocks.map((block) => (
+                    <div key={block.id}>
+                      <h4 className="mb-2 border-b border-zinc-800 pb-1 text-sm font-bold tracking-widest text-zinc-500 uppercase">
+                        {block.phase === "warmup"
+                          ? "Загрявка"
+                          : block.phase === "main"
+                            ? "Основна част"
+                            : "Разпускане"}{" "}
+                        ({block.targetDuration} мин)
+                      </h4>
+                      <div className="grid max-h-64 grid-cols-1 gap-3 sm:grid-cols-2">
+                        {block.items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between rounded-xl border border-zinc-700 bg-zinc-800 p-3"
+                          >
+                            <div>
+                              <div className="text-sm font-bold text-zinc-100">
+                                {item.type === "exercise"
+                                  ? item.exercise?.name
+                                  : "🔄 Станционна Ротация"}
+                              </div>
+                              <div className="text-xs text-zinc-400">
+                                {item.type === "exercise" &&
+                                item.exercise?.defaultSets
+                                  ? `${item.exercise.defaultSets} серии x ${item.exercise.defaultWorkSec}с`
+                                  : `${item.durationMinutes} мин`}
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={() => startItem(item)}
+                              className="bg-indigo-600 hover:bg-indigo-500"
+                            >
+                              <Play className="size-4" />
+                            </Button>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      onClick={() => startExercise(ex)}
-                      className="min-h-12 bg-indigo-600 px-6 text-sm hover:bg-indigo-500"
-                    >
-                      <Play className="mr-1 size-4" /> Старт
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="custom-scrollbar grid max-h-64 grid-cols-1 gap-3 overflow-y-auto pr-2 sm:grid-cols-2">
+                  {session.groupedExercises
+                    ?.flatMap((g) => g.exercises || [])
+                    .map((ex, i) => (
+                      <div
+                        key={`${ex.id}-${i}`}
+                        className="flex items-center justify-between rounded-xl border border-zinc-700 bg-zinc-800 p-3"
+                      >
+                        <div>
+                          <div className="text-sm font-bold text-zinc-100">
+                            {ex.name}
+                          </div>
+                          <div className="text-xs text-zinc-400">
+                            {ex.defaultSets
+                              ? `${ex.defaultSets} серии x ${ex.defaultWorkSec}с`
+                              : `${ex.durationMinutes} мин`}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => startItem(ex, true)}
+                          className="bg-indigo-600 hover:bg-indigo-500"
+                        >
+                          <Play className="size-4" />
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
           )}
         </CardContent>

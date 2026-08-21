@@ -69,6 +69,16 @@ const sessionTypeLabels: Record<string, string> = {
 };
 
 export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
+  const getLocLabel = (loc: string) => {
+    if (loc === "court") return "В зала";
+    if (loc === "stadium") return "Стадион";
+    return "Плаж";
+  };
+  const getPhaseLabel = (phase: string) => {
+    if (phase === "warmup") return "Загрявка";
+    if (phase === "main") return "Основна";
+    return "Разпускане";
+  };
   const { activeBranch } = useAppStore();
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [exerciseSearch, setExerciseSearch] = useState("");
@@ -563,23 +573,49 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                         <h4 className="font-bold text-zinc-900 dark:text-white">
                           {ps.title}
                         </h4>
-                        <div className="mt-1 flex flex-wrap gap-3 text-xs text-zinc-500">
-                          <span>
-                            {ps.location === "indoor" ? "В зала" : "На открито"}
-                          </span>
-                          {ps.calculatedIntensity && (
-                            <span>
-                              Интензивност: {ps.calculatedIntensity}/5
-                            </span>
-                          )}
-                          {ps.groupedExercises && (
-                            <span>
-                              {ps.groupedExercises.reduce(
-                                (acc, g) => acc + g.exercises.length,
-                                0
-                              )}{" "}
-                              упр.
-                            </span>
+                        <div className="mt-2 flex flex-col gap-2">
+                          <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
+                            <span>{getLocLabel(ps.location)}</span>
+                            {(() => {
+                              if (ps.blocks && ps.blocks.length > 0) {
+                                return (
+                                  <span>
+                                    {ps.blocks.reduce(
+                                      (acc, b) => acc + b.items.length,
+                                      0
+                                    )}{" "}
+                                    общо упр.
+                                  </span>
+                                );
+                              }
+                              if (ps.groupedExercises) {
+                                return (
+                                  <span>
+                                    {ps.groupedExercises.reduce(
+                                      (acc, g) => acc + g.exercises.length,
+                                      0
+                                    )}{" "}
+                                    упр.
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </div>
+
+                          {ps.blocks && ps.blocks.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1.5">
+                              {ps.blocks.map((b) => (
+                                <Badge
+                                  key={b.id}
+                                  variant="secondary"
+                                  className="bg-indigo-100/50 text-[10px] text-indigo-700 transition-colors hover:bg-indigo-100/80"
+                                >
+                                  {getPhaseLabel(b.phase)}: {b.targetDuration}{" "}
+                                  мин
+                                </Badge>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </div>

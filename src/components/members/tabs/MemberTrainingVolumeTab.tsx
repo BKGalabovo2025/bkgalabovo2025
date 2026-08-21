@@ -84,16 +84,22 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
     );
   }
 
+  const getLocationLabel = (loc: string) => {
+    if (loc === "court") return "В зала";
+    if (loc === "stadium") return "Стадион";
+    return "Плаж";
+  };
+
   // Calculate Stats
-  let indoorCount = 0;
-  let outdoorCount = 0;
+  let courtCount = 0;
+  let stadiumCount = 0;
   let medicalIssues = 0;
 
   const chartData = attendances.map((att) => {
     const s = sessions[att.sessionId];
     if (s) {
-      if (s.location === "indoor") indoorCount++;
-      if (s.location === "outdoor") outdoorCount++;
+      if (s.location === "court") courtCount++;
+      if (s.location === "stadium" || s.location === "beach") stadiumCount++;
     }
     if (att.medicalStatus !== "healthy") medicalIssues++;
 
@@ -125,20 +131,20 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
         <Card className="border-zinc-200">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-black text-zinc-900">
-              {indoorCount}
+              {courtCount}
             </div>
             <div className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
-              В Зала
+              Зала (Court)
             </div>
           </CardContent>
         </Card>
         <Card className="border-zinc-200">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-black text-zinc-900">
-              {outdoorCount}
+              {stadiumCount}
             </div>
             <div className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
-              На Открито
+              Стадион/Пясък
             </div>
           </CardContent>
         </Card>
@@ -247,6 +253,10 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                 <div>
                   <div className="mb-1 flex items-center gap-2">
                     <span className="text-sm font-bold text-zinc-900">
+                      <span className="text-zinc-600">Зала: </span>
+                      <span className="font-semibold">
+                        {s.location === "court" ? "Да" : "Не"}
+                      </span>{" "}
                       {new Date(att.date).toLocaleDateString("bg-BG")}
                     </span>
                     {s.mode === "camp" && (
@@ -275,8 +285,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                     )}
                   </div>
                   <div className="text-xs font-medium text-zinc-500">
-                    {s.title} •{" "}
-                    {s.location === "indoor" ? "В зала" : "На открито"}
+                    {s.title} • {getLocationLabel(s.location)}
                   </div>
                 </div>
                 <div className="flex gap-4">
