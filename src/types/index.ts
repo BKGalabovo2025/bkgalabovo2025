@@ -4,14 +4,6 @@ export * from "./business-trip.types";
 export { type SignedDeclaration } from "./declaration.types";
 export { type Member } from "./member.types";
 export { type ClientPackage } from "./package.types";
-export {
-  type Quiz,
-  type QuizAnswerSubmission,
-  type QuizFormData,
-  type QuizQuestion,
-  type TheoryResult,
-  type TheoryResultStatus,
-} from "./quiz.types";
 export { type BlockedSlot, type Reservation } from "./reservation";
 
 export type Family = {
