@@ -2,6 +2,7 @@
 
 import {
   CalendarRange,
+  GraduationCap,
   Loader2,
   MapPin,
   Play,
@@ -98,13 +99,25 @@ function PlannerClientContent() {
             Планиране на лагери и целогодишни тренировки
           </p>
         </div>
-        <Button
-          onClick={() => setIsWizardOpen(true)}
-          className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
-        >
-          <Plus className="mr-2 size-4" />
-          Планирай тренировка
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+          >
+            <Link href="/training/theory">
+              <GraduationCap className="mr-2 size-4" />
+              Теория / Викторина
+            </Link>
+          </Button>
+          <Button
+            onClick={() => setIsWizardOpen(true)}
+            className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
+          >
+            <Plus className="mr-2 size-4" />
+            Планирай тренировка
+          </Button>
+        </div>
       </div>
 
       {sessions.length === 0 ? (
@@ -190,9 +203,10 @@ function PlannerClientContent() {
                         <div>{getExerciseCount(session)}</div>
                       </div>
                     </div>
-                    <div className="hidden sm:flex sm:gap-2">
+                    <div className="flex gap-2">
                       <Button
                         variant="ghost"
+                        size="icon"
                         className="rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700"
                         onClick={() => handleDeleteSession(session.id)}
                       >
@@ -204,7 +218,7 @@ function PlannerClientContent() {
                       >
                         <Link href={`/training/planner/${session.id}/active`}>
                           <Play className="mr-2 size-4" />
-                          Старт
+                          <span className="hidden sm:inline">Старт</span>
                         </Link>
                       </Button>
                     </div>
