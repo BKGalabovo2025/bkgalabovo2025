@@ -31,7 +31,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { inventoryService } from "@/services/inventory-service";
+import { getAllMembers } from "@/services/member-service";
 import { plannerService } from "@/services/planner-service";
+import { getEventById } from "@/services/schedule-service";
 import { useAppStore } from "@/store/use-app-store";
 import { InventoryItem } from "@/types/inventory.types";
 import {
@@ -163,10 +165,13 @@ export default function CreateSessionWizard({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  // Groups
-  const [groups, setGroups] = useState<{ id: string; name: string }[]>([
-    { id: "group-a", name: "Група А" },
-  ]);
+  // Groups & Participants
+  const [availableParticipants, setAvailableParticipants] = useState<
+    { id: string; name: string }[]
+  >([]);
+  const [groups, setGroups] = useState<
+    { id: string; name: string; memberIds: string[] }[]
+  >([{ id: "group-a", name: "Група А", memberIds: [] }]);
   const [newGroupName, setNewGroupName] = useState("");
 
   // Time-Budget Blocks
@@ -198,7 +203,7 @@ export default function CreateSessionWizard({
       setMode(initialCampId ? "camp" : "season");
       setLocation(initialCampId ? "stadium" : "court");
       setTotalDuration(60);
-      setGroups([{ id: uuidv4(), name: "Всички" }]);
+      setGroups([{ id: uuidv4(), name: "Всички", memberIds: [] }]);
       setSearchQuery("");
       setSelectedCategory("all");
 
@@ -218,6 +223,29 @@ export default function CreateSessionWizard({
             initialSessInv[i.id] = i.totalQuantity;
           });
           setSessionInventory(initialSessInv);
+
+          // Fetch participants based on mode
+          if (initialCampId) {
+            const campEvent = await getEventById(initialCampId);
+            if (campEvent && campEvent.attendees) {
+              setAvailableParticipants(
+                campEvent.attendees.map((a) => ({
+                  id: a.memberId,
+                  name: a.name,
+                }))
+              );
+            }
+          } else {
+            const allMembers = await getAllMembers();
+            setAvailableParticipants(
+              allMembers
+                .filter((m) => m.status === "active")
+                .map((m) => ({
+                  id: m.id,
+                  name: `${m.firstName} ${m.lastName}`,
+                }))
+            );
+          }
 
           // Import from template if provided
           if (initialImportTemplateId) {
@@ -302,13 +330,33 @@ export default function CreateSessionWizard({
 
   const addGroup = () => {
     if (newGroupName.trim()) {
-      setGroups([...groups, { id: uuidv4(), name: newGroupName.trim() }]);
+      setGroups([
+        ...groups,
+        { id: uuidv4(), name: newGroupName.trim(), memberIds: [] },
+      ]);
       setNewGroupName("");
     }
   };
 
   const removeGroup = (id: string) => {
     setGroups(groups.filter((g) => g.id !== id));
+  };
+
+  const toggleParticipantInGroup = (groupId: string, participantId: string) => {
+    setGroups(
+      groups.map((g) => {
+        if (g.id === groupId) {
+          const hasMember = g.memberIds.includes(participantId);
+          return {
+            ...g,
+            memberIds: hasMember
+              ? g.memberIds.filter((id) => id !== participantId)
+              : [...g.memberIds, participantId],
+          };
+        }
+        return g;
+      })
+    );
   };
 
   const addExerciseToBlock = (phase: StationPhaseType, exercise: Exercise) => {
@@ -448,6 +496,7 @@ export default function CreateSessionWizard({
         campId: initialCampId,
         blocks,
         targetGroups: groups.map((g) => g.name),
+        sessionGroups: groups,
       };
 
       // Strip undefined values to prevent Firebase errors
@@ -677,6 +726,47 @@ export default function CreateSessionWizard({
                         <Button size="sm" className="h-8" onClick={addGroup}>
                           <Plus className="size-4" />
                         </Button>
+                      </div>
+                    </div>
+                    {/* Participant Assignment UI */}
+                    <div className="mt-6">
+                      <h4 className="mb-2 text-sm font-semibold text-zinc-800">
+                        Разпределение на участници
+                      </h4>
+                      <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-2">
+                        {availableParticipants.length === 0 && (
+                          <p className="p-2 text-xs text-zinc-500">
+                            Няма намерени участници.
+                          </p>
+                        )}
+                        {availableParticipants.map((p) => (
+                          <div
+                            key={p.id}
+                            className="flex flex-col justify-between rounded-md border border-zinc-100 bg-white p-2 shadow-sm sm:flex-row sm:items-center"
+                          >
+                            <span className="text-sm font-medium">
+                              {p.name}
+                            </span>
+                            <div className="mt-2 flex flex-wrap gap-4 sm:mt-0">
+                              {groups.map((g) => (
+                                <label
+                                  key={g.id}
+                                  className="flex cursor-pointer items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={g.memberIds.includes(p.id)}
+                                    onChange={() =>
+                                      toggleParticipantInGroup(g.id, p.id)
+                                    }
+                                    className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                                  />
+                                  {g.name}
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

@@ -89,6 +89,11 @@ export interface PlannerSession {
 
   // Multi-group calendar support
   targetGroups?: string[];
+  sessionGroups?: {
+    id: string;
+    name: string;
+    memberIds: string[];
+  }[];
   structuredTargetGroups?: {
     ageGroup: string;
     skillLevel: string;
