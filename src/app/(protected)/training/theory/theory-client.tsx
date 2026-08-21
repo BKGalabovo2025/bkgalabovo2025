@@ -37,13 +37,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getAllMembers } from "@/services/member-service";
 import { quizService } from "@/services/quiz-service";
@@ -64,6 +57,7 @@ export default function TheoryClient() {
   const [sendQuiz, setSendQuiz] = useState<Quiz | null>(null);
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
+  const [memberSearchQuery, setMemberSearchQuery] = useState("");
 
   // Edit modal
   const [editQuiz, setEditQuiz] = useState<Quiz | null>(null);
@@ -727,23 +721,47 @@ export default function TheoryClient() {
             <DialogDescription>{sendQuiz?.title}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label className="mb-1 font-bold">Избери дете</Label>
-              <Select
-                value={selectedMemberId}
-                onValueChange={setSelectedMemberId}
-              >
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Избери от списъка..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-3">
+              <Label className="font-bold">Търси и избери дете</Label>
+              <Input
+                placeholder="Въведи име..."
+                value={memberSearchQuery}
+                onChange={(e) => setMemberSearchQuery(e.target.value)}
+                className="rounded-xl"
+              />
+              <ScrollArea className="h-40 rounded-xl border border-zinc-200 bg-white">
+                <div className="space-y-1 p-2">
+                  {members
+                    .filter((m) =>
+                      m.name
+                        .toLowerCase()
+                        .includes(memberSearchQuery.toLowerCase())
+                    )
+                    .map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setSelectedMemberId(m.id)}
+                        className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                          selectedMemberId === m.id
+                            ? "bg-indigo-100 font-bold text-indigo-700"
+                            : "text-zinc-700 hover:bg-zinc-100"
+                        }`}
+                      >
+                        {m.name}
+                      </button>
+                    ))}
+                  {members.filter((m) =>
+                    m.name
+                      .toLowerCase()
+                      .includes(memberSearchQuery.toLowerCase())
+                  ).length === 0 && (
+                    <p className="p-3 text-center text-sm text-zinc-500">
+                      Няма намерени деца
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
             </div>
             {!generatedLink ? (
               <Button
