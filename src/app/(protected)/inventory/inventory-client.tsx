@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Plus, Trash2, Edit } from "lucide-react";
+import { Edit, Loader2, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,8 @@ export default function InventoryClient() {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [name, setName] = useState("");
   const [totalQuantity, setTotalQuantity] = useState(1);
-  const [allocationType, setAllocationType] = useState<AllocationType>("per_child");
+  const [allocationType, setAllocationType] =
+    useState<AllocationType>("per_child");
   const [ratioValue, setRatioValue] = useState<number | "">("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -88,14 +89,18 @@ export default function InventoryClient() {
     if (!name.trim()) return;
     setIsSaving(true);
     try {
-      const payload: Omit<InventoryItem, "id" | "siteId" | "createdAt" | "updatedAt"> = {
+      const payload: Omit<
+        InventoryItem,
+        "id" | "siteId" | "createdAt" | "updatedAt"
+      > = {
         name,
         totalQuantity,
         allocationType,
       };
-      if (allocationType === "ratio" && ratioValue) {
-        payload.ratioValue = Number(ratioValue);
-      } else if (allocationType === "per_station" && ratioValue) {
+      if (
+        (allocationType === "ratio" || allocationType === "per_station") &&
+        ratioValue
+      ) {
         payload.ratioValue = Number(ratioValue);
       }
 
@@ -152,7 +157,10 @@ export default function InventoryClient() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-zinc-800">Списък с уреди</h2>
-        <Button onClick={() => handleOpenForm()} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
+        <Button
+          onClick={() => handleOpenForm()}
+          className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700"
+        >
           <Plus className="size-4" />
           Добави уред
         </Button>
@@ -163,7 +171,9 @@ export default function InventoryClient() {
           <TableHeader>
             <TableRow>
               <TableHead>Уред / Оборудване</TableHead>
-              <TableHead className="w-32 text-center">Наличност (бр.)</TableHead>
+              <TableHead className="w-32 text-center">
+                Наличност (бр.)
+              </TableHead>
               <TableHead>Правило за разпределение (в Станции)</TableHead>
               <TableHead className="w-24 text-right">Действия</TableHead>
             </TableRow>
@@ -206,7 +216,10 @@ export default function InventoryClient() {
             ))}
             {items.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-zinc-500">
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center text-zinc-500"
+                >
                   Няма добавено оборудване.
                 </TableCell>
               </TableRow>
@@ -254,25 +267,35 @@ export default function InventoryClient() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="per_child">За всяко дете (1:1)</SelectItem>
-                  <SelectItem value="per_station">Споделено на станция (1 per Station)</SelectItem>
-                  <SelectItem value="ratio">Пропорционално (Скалируемо)</SelectItem>
+                  <SelectItem value="per_station">
+                    Споделено на станция (1 per Station)
+                  </SelectItem>
+                  <SelectItem value="ratio">
+                    Пропорционално (Скалируемо)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {(allocationType === "ratio" || allocationType === "per_station" || allocationType === "per_child") && (
+            {(allocationType === "ratio" ||
+              allocationType === "per_station" ||
+              allocationType === "per_child") && (
               <div className="space-y-2">
                 <Label>Коефициент (Multiplier/Ratio)</Label>
                 <Input
                   type="number"
                   step={0.1}
                   value={ratioValue}
-                  onChange={(e) => setRatioValue(e.target.value ? Number(e.target.value) : "")}
-                  placeholder={
-                    allocationType === "per_child" ? "Напр. 2 (2 пера на дете)" :
-                    allocationType === "per_station" ? "Напр. 4 (4 конуса на станция)" :
-                    "Напр. 0.5 (1 топка на 2 деца)"
+                  onChange={(e) =>
+                    setRatioValue(e.target.value ? Number(e.target.value) : "")
                   }
+                  placeholder={(() => {
+                    if (allocationType === "per_child")
+                      return "Напр. 2 (2 пера на дете)";
+                    if (allocationType === "per_station")
+                      return "Напр. 4 (4 конуса на станция)";
+                    return "Напр. 0.5 (1 топка на 2 деца)";
+                  })()}
                 />
                 <p className="text-xs text-zinc-500">
                   Ако оставите празно, по подразбиране е 1.
@@ -290,7 +313,9 @@ export default function InventoryClient() {
               disabled={isSaving || !name.trim()}
               className="bg-indigo-600 text-white hover:bg-indigo-700"
             >
-              {isSaving ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+              {isSaving ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : null}
               Запази
             </Button>
           </DialogFooter>

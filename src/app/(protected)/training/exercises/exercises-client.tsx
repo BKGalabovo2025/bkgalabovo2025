@@ -96,38 +96,56 @@ export default function ExercisesClient() {
   }
 
   const filteredExercises = exercises.filter((ex) => {
-    if (categoryFilter !== "all") {
-      if (categoryFilter === "beach") {
-        if (!ex.location?.includes("beach")) return false;
-      } else if (categoryFilter === "circuit") {
-        if (!ex.name.toLowerCase().includes("станция")) return false;
-      } else if (categoryFilter === "tactical") {
-        if (ex.category !== "tactics" && !ex.name.toLowerCase().includes("мулти-шатъл")) return false;
-      } else {
-        if (ex.category !== categoryFilter) return false;
-      }
-    }
-    
+    // 1. Age group filter
     if (ageGroupFilter !== "all" && !ex.ageGroups.includes(ageGroupFilter))
       return false;
+
+    // 2. Category filter
+    if (categoryFilter === "beach" && !ex.location?.includes("beach"))
+      return false;
+    if (
+      categoryFilter === "circuit" &&
+      !ex.name.toLowerCase().includes("станция")
+    )
+      return false;
+    if (
+      categoryFilter === "tactical" &&
+      ex.category !== "tactics" &&
+      !ex.name.toLowerCase().includes("мулти-шатъл")
+    )
+      return false;
+    if (
+      categoryFilter !== "all" &&
+      !["beach", "circuit", "tactical"].includes(categoryFilter) &&
+      ex.category !== categoryFilter
+    )
+      return false;
+
+    // 3. Search query filter
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      if (
-        !ex.name.toLowerCase().includes(q) &&
-        !ex.description?.toLowerCase().includes(q) &&
-        !ex.focusTags?.some((t) => t.toLowerCase().includes(q))
-      ) {
-        return false;
-      }
+      const matchName = ex.name.toLowerCase().includes(q);
+      const matchDesc = ex.description?.toLowerCase().includes(q);
+      const matchTags = ex.focusTags?.some((t) => t.toLowerCase().includes(q));
+      if (!matchName && !matchDesc && !matchTags) return false;
     }
+
     return true;
   });
 
   const getCategoryCount = (cat: string) => {
     if (cat === "all") return exercises.length;
-    if (cat === "beach") return exercises.filter((ex) => ex.location?.includes("beach")).length;
-    if (cat === "circuit") return exercises.filter((ex) => ex.name.toLowerCase().includes("станция")).length;
-    if (cat === "tactical") return exercises.filter((ex) => ex.category === "tactics" || ex.name.toLowerCase().includes("мулти-шатъл")).length;
+    if (cat === "beach")
+      return exercises.filter((ex) => ex.location?.includes("beach")).length;
+    if (cat === "circuit")
+      return exercises.filter((ex) => ex.name.toLowerCase().includes("станция"))
+        .length;
+    if (cat === "tactical")
+      return exercises.filter(
+        (ex) =>
+          ex.category === "tactics" ||
+          ex.name.toLowerCase().includes("мулти-шатъл")
+      ).length;
     return exercises.filter((ex) => ex.category === cat).length;
   };
 

@@ -9,7 +9,6 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
-import { v4 as uuidv4 } from "uuid";
 
 import { db } from "@/lib/firebase";
 import { InventoryItem } from "@/types/inventory.types";
@@ -60,17 +59,45 @@ export const inventoryService = {
     const existing = await this.getInventory(siteId);
     if (existing.length > 0) return;
 
-    const defaults: Omit<InventoryItem, "id" | "siteId" | "createdAt" | "updatedAt">[] = [
+    const defaults: Omit<
+      InventoryItem,
+      "id" | "siteId" | "createdAt" | "updatedAt"
+    >[] = [
       { name: "Ракети", totalQuantity: 30, allocationType: "per_child" },
-      { name: "Пера", totalQuantity: 100, allocationType: "per_child", ratioValue: 2 }, // 2 пера на дете
+      {
+        name: "Пера",
+        totalQuantity: 100,
+        allocationType: "per_child",
+        ratioValue: 2,
+      }, // 2 пера на дете
       { name: "Балони", totalQuantity: 50, allocationType: "per_child" },
-      { name: "Конуси", totalQuantity: 40, allocationType: "per_station", ratioValue: 4 }, // 4 конуса за очертаване на станция
+      {
+        name: "Конуси",
+        totalQuantity: 40,
+        allocationType: "per_station",
+        ratioValue: 4,
+      }, // 4 конуса за очертаване на станция
       { name: "Въжета", totalQuantity: 20, allocationType: "per_child" },
       { name: "Въже", totalQuantity: 20, allocationType: "per_child" },
       { name: "Ластици", totalQuantity: 10, allocationType: "per_child" },
-      { name: "Стълбичка", totalQuantity: 2, allocationType: "per_station", ratioValue: 1 },
-      { name: "Медицинска топка", totalQuantity: 5, allocationType: "ratio", ratioValue: 0.5 }, // 1 топка на 2 деца
-      { name: "Преносими мрежи", totalQuantity: 2, allocationType: "per_station", ratioValue: 1 },
+      {
+        name: "Стълбичка",
+        totalQuantity: 2,
+        allocationType: "per_station",
+        ratioValue: 1,
+      },
+      {
+        name: "Медицинска топка",
+        totalQuantity: 5,
+        allocationType: "ratio",
+        ratioValue: 0.5,
+      }, // 1 топка на 2 деца
+      {
+        name: "Преносими мрежи",
+        totalQuantity: 2,
+        allocationType: "per_station",
+        ratioValue: 1,
+      },
       { name: "Постелки", totalQuantity: 15, allocationType: "per_child" },
     ];
 
@@ -85,5 +112,5 @@ export const inventoryService = {
       });
     });
     await batch.commit();
-  }
+  },
 };

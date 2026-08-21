@@ -30,8 +30,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { inventoryService } from "@/services/inventory-service";
 import { plannerService } from "@/services/planner-service";
 import { useAppStore } from "@/store/use-app-store";
+import { InventoryItem } from "@/types/inventory.types";
 import {
   Exercise,
   LocationType,
@@ -40,9 +42,6 @@ import {
   SessionBlockItem,
   TrainingMode,
 } from "@/types/planner.types";
-import { InventoryItem } from "@/types/inventory.types";
-import { inventoryService } from "@/services/inventory-service";
-import InventoryClient from "@/app/(protected)/inventory/inventory-client";
 
 interface Props {
   open: boolean;
@@ -52,6 +51,8 @@ interface Props {
   initialDate?: string;
   initialImportTemplateId?: string;
 }
+
+type WizardStep = 1 | 2 | 3;
 
 export default function CreateSessionWizard({
   open,
@@ -67,7 +68,7 @@ export default function CreateSessionWizard({
   const [isFetching, setIsFetching] = useState(false);
 
   // Form State
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [currentStep, setCurrentStep] = useState<WizardStep>(1);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [mode, setMode] = useState<TrainingMode>("season");
@@ -79,7 +80,9 @@ export default function CreateSessionWizard({
   const [totalKids, setTotalKids] = useState<number>(15);
   const [kidsPerStation, setKidsPerStation] = useState<number>(3);
   const [globalInventory, setGlobalInventory] = useState<InventoryItem[]>([]);
-  const [sessionInventory, setSessionInventory] = useState<Record<string, number>>({}); // id -> qty
+  const [sessionInventory, setSessionInventory] = useState<
+    Record<string, number>
+  >({}); // id -> qty
   const [isRainyDay, setIsRainyDay] = useState(false);
 
   // --- Real Logic Helpers ---
@@ -211,7 +214,7 @@ export default function CreateSessionWizard({
 
           // By default, select all global inventory for this session
           const initialSessInv: Record<string, number> = {};
-          inv.forEach(i => {
+          inv.forEach((i) => {
             initialSessInv[i.id] = i.totalQuantity;
           });
           setSessionInventory(initialSessInv);
@@ -460,21 +463,35 @@ export default function CreateSessionWizard({
   };
 
   const filteredExercises = allExercises.filter((ex) => {
-    if (selectedCategory !== "all") {
-      if (selectedCategory === "beach") {
-        if (!ex.location?.includes("beach")) return false;
-      } else if (selectedCategory === "circuit") {
-        if (!ex.name.toLowerCase().includes("станция")) return false;
-      } else if (selectedCategory === "tactical") {
-        if (ex.category !== "tactics" && !ex.name.toLowerCase().includes("мулти-шатъл")) return false;
-      } else {
-        if (ex.category !== selectedCategory) return false;
-      }
+    // 1. Category filter
+    if (selectedCategory === "beach" && !ex.location?.includes("beach"))
+      return false;
+    if (
+      selectedCategory === "circuit" &&
+      !ex.name.toLowerCase().includes("станция")
+    )
+      return false;
+    if (
+      selectedCategory === "tactical" &&
+      ex.category !== "tactics" &&
+      !ex.name.toLowerCase().includes("мулти-шатъл")
+    )
+      return false;
+    if (
+      selectedCategory !== "all" &&
+      !["beach", "circuit", "tactical"].includes(selectedCategory) &&
+      ex.category !== selectedCategory
+    )
+      return false;
+
+    // 2. Search filter
+    if (
+      searchQuery &&
+      !ex.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
+      return false;
     }
 
-    if (searchQuery) {
-      return ex.name.toLowerCase().includes(searchQuery.toLowerCase());
-    }
     return true;
   });
 
@@ -486,15 +503,24 @@ export default function CreateSessionWizard({
 
   const getCategoryCount = (cat: string) => {
     if (cat === "all") return allExercises.length;
-    if (cat === "beach") return allExercises.filter((ex) => ex.location?.includes("beach")).length;
-    if (cat === "circuit") return allExercises.filter((ex) => ex.name.toLowerCase().includes("станция")).length;
-    if (cat === "tactical") return allExercises.filter((ex) => ex.category === "tactics" || ex.name.toLowerCase().includes("мулти-шатъл")).length;
+    if (cat === "beach")
+      return allExercises.filter((ex) => ex.location?.includes("beach")).length;
+    if (cat === "circuit")
+      return allExercises.filter((ex) =>
+        ex.name.toLowerCase().includes("станция")
+      ).length;
+    if (cat === "tactical")
+      return allExercises.filter(
+        (ex) =>
+          ex.category === "tactics" ||
+          ex.name.toLowerCase().includes("мулти-шатъл")
+      ).length;
     return allExercises.filter((ex) => ex.category === cat).length;
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-7xl gap-0 overflow-hidden p-0 bg-zinc-50">
+      <DialogContent className="max-h-[90vh] max-w-7xl gap-0 overflow-hidden bg-zinc-50 p-0">
         <DialogHeader className="z-10 flex-shrink-0 border-b border-zinc-200 bg-white p-6">
           <DialogTitle className="text-xl">
             Конструктор на тренировка (Time-Budget Builder)
@@ -506,37 +532,52 @@ export default function CreateSessionWizard({
         </DialogHeader>
 
         {/* WIZARD HEADER */}
-        <div className="flex bg-white border-b border-zinc-200 p-3 justify-center gap-6 text-sm font-medium">
-          <div 
-            className={cn("px-4 py-2 rounded-full cursor-pointer transition-colors", currentStep === 1 ? "bg-indigo-600 text-white shadow" : "text-zinc-500 hover:bg-zinc-100")} 
+        <div className="flex justify-center gap-6 border-b border-zinc-200 bg-white p-3 text-sm font-medium">
+          <div
+            className={cn(
+              "cursor-pointer rounded-full px-4 py-2 transition-colors",
+              currentStep === 1
+                ? "bg-indigo-600 text-white shadow"
+                : "text-zinc-500 hover:bg-zinc-100"
+            )}
             onClick={() => setCurrentStep(1)}
           >
             1. Общи Настройки
           </div>
-          <div 
-            className={cn("px-4 py-2 rounded-full cursor-pointer transition-colors", currentStep === 2 ? "bg-indigo-600 text-white shadow" : "text-zinc-500 hover:bg-zinc-100")} 
+          <div
+            className={cn(
+              "cursor-pointer rounded-full px-4 py-2 transition-colors",
+              currentStep === 2
+                ? "bg-indigo-600 text-white shadow"
+                : "text-zinc-500 hover:bg-zinc-100"
+            )}
             onClick={() => setCurrentStep(2)}
           >
             2. Конструктор
           </div>
-          <div 
-            className={cn("px-4 py-2 rounded-full cursor-pointer transition-colors", currentStep === 3 ? "bg-indigo-600 text-white shadow" : "text-zinc-500 hover:bg-zinc-100")} 
+          <div
+            className={cn(
+              "cursor-pointer rounded-full px-4 py-2 transition-colors",
+              currentStep === 3
+                ? "bg-indigo-600 text-white shadow"
+                : "text-zinc-500 hover:bg-zinc-100"
+            )}
             onClick={() => setCurrentStep(3)}
           >
             3. Преглед & Запазване
           </div>
         </div>
 
-        <div className="flex h-[calc(90vh-210px)] w-full flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
-          
+        <div className="flex h-[calc(90vh-210px)] w-full flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
           {/* STEP 1: General Settings & Inventory */}
           {currentStep === 1 && (
-            <div className="w-full flex-shrink-0 p-6 overflow-y-auto max-w-5xl mx-auto space-y-8">
-              
+            <div className="mx-auto w-full max-w-5xl flex-shrink-0 space-y-8 overflow-y-auto p-6">
               {/* Basic Settings */}
               <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h3 className="text-lg font-bold text-zinc-800 mb-4">Основни данни</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <h3 className="mb-4 text-lg font-bold text-zinc-800">
+                  Основни данни
+                </h3>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-4">
                     <div>
                       <Label className="text-xs text-zinc-500">Заглавие</Label>
@@ -556,7 +597,9 @@ export default function CreateSessionWizard({
                         />
                       </div>
                       <div>
-                        <Label className="text-xs text-zinc-500">Време (мин)</Label>
+                        <Label className="text-xs text-zinc-500">
+                          Време (мин)
+                        </Label>
                         <Input
                           type="number"
                           min={10}
@@ -573,7 +616,9 @@ export default function CreateSessionWizard({
                         <Label className="text-xs text-zinc-500">Локация</Label>
                         <Select
                           value={location}
-                          onValueChange={(val) => setLocation(val as LocationType)}
+                          onValueChange={(val) =>
+                            setLocation(val as LocationType)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -586,7 +631,9 @@ export default function CreateSessionWizard({
                         </Select>
                       </div>
                       <div>
-                        <Label className="text-xs text-zinc-500">Общо деца</Label>
+                        <Label className="text-xs text-zinc-500">
+                          Общо деца
+                        </Label>
                         <Input
                           type="number"
                           min={1}
@@ -598,9 +645,11 @@ export default function CreateSessionWizard({
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
-                    <Label className="text-xs text-zinc-500">Управление на групи</Label>
+                    <Label className="text-xs text-zinc-500">
+                      Управление на групи
+                    </Label>
                     <div className="mt-2 space-y-2">
                       {groups.map((g) => (
                         <div
@@ -636,32 +685,47 @@ export default function CreateSessionWizard({
 
               {/* Local Inventory Selection */}
               <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-zinc-800">Налично оборудване за тренировката</h3>
-                    <p className="text-xs text-zinc-500">Изберете кои уреди взимате и в каква бройка. Планировчикът ще следи само тях!</p>
+                    <h3 className="text-lg font-bold text-zinc-800">
+                      Налично оборудване за тренировката
+                    </h3>
+                    <p className="text-xs text-zinc-500">
+                      Изберете кои уреди взимате и в каква бройка. Планировчикът
+                      ще следи само тях!
+                    </p>
                   </div>
                 </div>
-                
+
                 {isFetching ? (
                   <div className="flex h-32 items-center justify-center">
                     <Loader2 className="size-6 animate-spin text-indigo-600" />
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {globalInventory.map(item => {
-                      const isSelected = sessionInventory[item.id] !== undefined;
-                      const currentQty = sessionInventory[item.id] || item.totalQuantity;
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {globalInventory.map((item) => {
+                      const isSelected =
+                        sessionInventory[item.id] !== undefined;
+                      const currentQty =
+                        sessionInventory[item.id] || item.totalQuantity;
                       return (
-                        <div key={item.id} className={cn("flex items-center justify-between p-3 border rounded-lg transition-colors", isSelected ? "border-indigo-200 bg-indigo-50/30" : "border-zinc-200 bg-zinc-50 opacity-60")}>
-                          <label className="flex items-center gap-3 cursor-pointer flex-1">
-                            <input 
-                              type="checkbox" 
+                        <div
+                          key={item.id}
+                          className={cn(
+                            "flex items-center justify-between rounded-lg border p-3 transition-colors",
+                            isSelected
+                              ? "border-indigo-200 bg-indigo-50/30"
+                              : "border-zinc-200 bg-zinc-50 opacity-60"
+                          )}
+                        >
+                          <label className="flex flex-1 cursor-pointer items-center gap-3">
+                            <input
+                              type="checkbox"
                               className="size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
                               checked={isSelected}
                               onChange={(e) => {
                                 const checked = e.target.checked;
-                                setSessionInventory(prev => {
+                                setSessionInventory((prev) => {
                                   const next = { ...prev };
                                   if (checked) {
                                     next[item.id] = item.totalQuantity; // default to max
@@ -673,20 +737,27 @@ export default function CreateSessionWizard({
                               }}
                             />
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-zinc-900">{item.name}</span>
-                              <span className="text-[10px] text-zinc-500">Глобално: {item.totalQuantity} бр.</span>
+                              <span className="text-sm font-medium text-zinc-900">
+                                {item.name}
+                              </span>
+                              <span className="text-[10px] text-zinc-500">
+                                Глобално: {item.totalQuantity} бр.
+                              </span>
                             </div>
                           </label>
                           {isSelected && (
                             <div className="w-20 pl-2">
-                              <Input 
-                                type="number" 
-                                min={1} 
-                                className="h-8 text-xs text-center" 
+                              <Input
+                                type="number"
+                                min={1}
+                                className="h-8 text-center text-xs"
                                 value={currentQty}
                                 onChange={(e) => {
                                   const val = parseInt(e.target.value) || 1;
-                                  setSessionInventory(prev => ({ ...prev, [item.id]: val }));
+                                  setSessionInventory((prev) => ({
+                                    ...prev,
+                                    [item.id]: val,
+                                  }));
                                 }}
                               />
                             </div>
@@ -702,9 +773,9 @@ export default function CreateSessionWizard({
 
           {/* STEP 2: Constructor (DND Blocks + Library) */}
           {currentStep === 2 && (
-            <div className="flex w-full flex-col lg:flex-row h-full">
+            <div className="flex size-full flex-col lg:flex-row">
               {/* MIDDLE: Time Budget Blocks */}
-              <div className="flex w-full lg:flex-1 flex-col gap-6 p-6 overflow-y-auto min-h-[500px]">
+              <div className="flex min-h-125 w-full flex-col gap-6 overflow-y-auto p-6 lg:flex-1">
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -759,7 +830,7 @@ export default function CreateSessionWizard({
                           items={block.items.map((i) => i.id)}
                           strategy={verticalListSortingStrategy}
                         >
-                          <div className="min-h-[100px] space-y-3 p-3">
+                          <div className="min-h-25 space-y-3 p-3">
                             {block.items.map((item) => (
                               <div
                                 key={item.id}
@@ -779,7 +850,9 @@ export default function CreateSessionWizard({
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => removeItem(block.phase, item.id)}
+                                    onClick={() =>
+                                      removeItem(block.phase, item.id)
+                                    }
                                     className="absolute top-2 right-2 size-6 text-zinc-400 hover:text-red-500"
                                   >
                                     <Trash2 className="size-4" />
@@ -790,44 +863,75 @@ export default function CreateSessionWizard({
                                   <div className="mb-2 space-y-1 rounded border border-amber-100 bg-white/50 p-2 text-xs text-zinc-600">
                                     {item.rotations?.map((r, i) => {
                                       const g =
-                                        groups.find((grp) => grp.id === r.groupId)
-                                          ?.name || "Група";
+                                        groups.find(
+                                          (grp) => grp.id === r.groupId
+                                        )?.name || "Група";
 
                                       // Updated Inventory Check Logic (Using Session Inventory)
-                                      const shortages: { name: string; missing: number; isTotallyMissing?: boolean }[] = [];
+                                      const shortages: {
+                                        name: string;
+                                        missing: number;
+                                        isTotallyMissing?: boolean;
+                                      }[] = [];
 
-                                      r.exercise?.equipment?.forEach((eqName) => {
-                                        const globalItem = globalInventory.find(
-                                          (i) => i.name.toLowerCase() === eqName.toLowerCase()
-                                        );
-                                        
-                                        if (!globalItem || sessionInventory[globalItem.id] === undefined || sessionInventory[globalItem.id] === 0) {
-                                          // Missing completely from the session selection
-                                          shortages.push({
-                                            name: eqName,
-                                            missing: kidsPerStation,
-                                            isTotallyMissing: true,
-                                          });
-                                          return;
-                                        }
+                                      r.exercise?.equipment?.forEach(
+                                        (eqName) => {
+                                          const globalItem =
+                                            globalInventory.find(
+                                              (i) =>
+                                                i.name.toLowerCase() ===
+                                                eqName.toLowerCase()
+                                            );
 
-                                        let needed = 0;
-                                        if (globalItem.allocationType === "per_child") {
-                                          needed = kidsPerStation * (globalItem.ratioValue || 1);
-                                        } else if (globalItem.allocationType === "per_station") {
-                                          needed = (globalItem.ratioValue || 1);
-                                        } else if (globalItem.allocationType === "ratio") {
-                                          needed = Math.ceil(kidsPerStation * (globalItem.ratioValue || 1));
-                                        }
+                                          if (
+                                            !globalItem ||
+                                            sessionInventory[globalItem.id] ===
+                                              undefined ||
+                                            sessionInventory[globalItem.id] ===
+                                              0
+                                          ) {
+                                            // Missing completely from the session selection
+                                            shortages.push({
+                                              name: eqName,
+                                              missing: kidsPerStation,
+                                              isTotallyMissing: true,
+                                            });
+                                            return;
+                                          }
 
-                                        const availableQty = sessionInventory[globalItem.id];
-                                        if (needed > availableQty) {
-                                          shortages.push({
-                                            name: eqName,
-                                            missing: needed - availableQty,
-                                          });
+                                          let needed = 0;
+                                          if (
+                                            globalItem.allocationType ===
+                                            "per_child"
+                                          ) {
+                                            needed =
+                                              kidsPerStation *
+                                              (globalItem.ratioValue || 1);
+                                          } else if (
+                                            globalItem.allocationType ===
+                                            "per_station"
+                                          ) {
+                                            needed = globalItem.ratioValue || 1;
+                                          } else if (
+                                            globalItem.allocationType ===
+                                            "ratio"
+                                          ) {
+                                            needed = Math.ceil(
+                                              kidsPerStation *
+                                                (globalItem.ratioValue || 1)
+                                            );
+                                          }
+
+                                          const availableQty =
+                                            sessionInventory[globalItem.id];
+                                          if (needed > availableQty) {
+                                            shortages.push({
+                                              name: eqName,
+                                              missing: needed - availableQty,
+                                            });
+                                          }
                                         }
-                                      });
+                                      );
 
                                       return (
                                         <div
@@ -855,11 +959,10 @@ export default function CreateSessionWizard({
                                               <span>
                                                 Внимание:{" "}
                                                 {shortages
-                                                  .map(
-                                                    (s) =>
-                                                      s.isTotallyMissing 
-                                                        ? `нямате добавени "${s.name.toLowerCase()}" за тази тренировка` 
-                                                        : `недостиг на ${s.missing} бр. ${s.name.toLowerCase()}`
+                                                  .map((s) =>
+                                                    s.isTotallyMissing
+                                                      ? `нямате добавени "${s.name.toLowerCase()}" за тази тренировка`
+                                                      : `недостиг на ${s.missing} бр. ${s.name.toLowerCase()}`
                                                   )
                                                   .join("; ")}
                                               </span>
@@ -871,7 +974,7 @@ export default function CreateSessionWizard({
                                   </div>
                                 ) : null}
 
-                                <div className="flex items-center gap-1 rounded bg-zinc-900/5 px-2 py-1 mt-2">
+                                <div className="mt-2 flex items-center gap-1 rounded bg-zinc-900/5 px-2 py-1">
                                   <Input
                                     type="number"
                                     className="h-7 w-16 bg-white text-xs"
@@ -884,7 +987,9 @@ export default function CreateSessionWizard({
                                       )
                                     }
                                   />
-                                  <span className="text-xs text-zinc-500">мин</span>
+                                  <span className="text-xs text-zinc-500">
+                                    мин
+                                  </span>
 
                                   {item.type === "exercise" && (
                                     <Select
@@ -897,7 +1002,7 @@ export default function CreateSessionWizard({
                                         )
                                       }
                                     >
-                                      <SelectTrigger className="h-7 w-30 bg-white text-xs ml-2">
+                                      <SelectTrigger className="ml-2 h-7 w-30 bg-white text-xs">
                                         <SelectValue placeholder="За всички" />
                                       </SelectTrigger>
                                       <SelectContent>
@@ -947,7 +1052,7 @@ export default function CreateSessionWizard({
               </div>
 
               {/* RIGHT: Library */}
-              <div className="flex w-full lg:w-[400px] flex-shrink-0 flex-col gap-4 border-t lg:border-t-0 lg:border-l border-zinc-200 bg-white p-4 min-h-[500px] overflow-hidden">
+              <div className="flex min-h-125 w-full flex-shrink-0 flex-col gap-4 overflow-hidden border-t border-zinc-200 bg-white p-4 lg:w-100 lg:border-t-0 lg:border-l">
                 <h3 className="text-sm font-bold text-zinc-800">
                   Каталог Упражнения
                 </h3>
@@ -969,16 +1074,37 @@ export default function CreateSessionWizard({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Всички категории ({getCategoryCount("all")})</SelectItem>
-                      <SelectItem value="warmup">Загрявка ({getCategoryCount("warmup")})</SelectItem>
-                      <SelectItem value="technique">Техника ({getCategoryCount("technique")})</SelectItem>
-                      <SelectItem value="tactics">Тактика ({getCategoryCount("tactics")})</SelectItem>
-                      <SelectItem value="physical">Физически ({getCategoryCount("physical")})</SelectItem>
-                      <SelectItem value="games">Игри и Забава ({getCategoryCount("games")})</SelectItem>
-                      <SelectItem value="cooldown">Разпускане ({getCategoryCount("cooldown")})</SelectItem>
-                      <SelectItem value="beach">Плажни Блокове (Лагер) ({getCategoryCount("beach")})</SelectItem>
-                      <SelectItem value="circuit">Станционни Ротации (Лагер) ({getCategoryCount("circuit")})</SelectItem>
-                      <SelectItem value="tactical">Мулти-Шатъл (Лагер) ({getCategoryCount("tactical")})</SelectItem>
+                      <SelectItem value="all">
+                        Всички категории ({getCategoryCount("all")})
+                      </SelectItem>
+                      <SelectItem value="warmup">
+                        Загрявка ({getCategoryCount("warmup")})
+                      </SelectItem>
+                      <SelectItem value="technique">
+                        Техника ({getCategoryCount("technique")})
+                      </SelectItem>
+                      <SelectItem value="tactics">
+                        Тактика ({getCategoryCount("tactics")})
+                      </SelectItem>
+                      <SelectItem value="physical">
+                        Физически ({getCategoryCount("physical")})
+                      </SelectItem>
+                      <SelectItem value="games">
+                        Игри и Забава ({getCategoryCount("games")})
+                      </SelectItem>
+                      <SelectItem value="cooldown">
+                        Разпускане ({getCategoryCount("cooldown")})
+                      </SelectItem>
+                      <SelectItem value="beach">
+                        Плажни Блокове (Лагер) ({getCategoryCount("beach")})
+                      </SelectItem>
+                      <SelectItem value="circuit">
+                        Станционни Ротации (Лагер) (
+                        {getCategoryCount("circuit")})
+                      </SelectItem>
+                      <SelectItem value="tactical">
+                        Мулти-Шатъл (Лагер) ({getCategoryCount("tactical")})
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1058,11 +1184,13 @@ export default function CreateSessionWizard({
 
           {/* STEP 3: Preview & Save */}
           {currentStep === 3 && (
-            <div className="w-full flex-shrink-0 p-6 overflow-y-auto max-w-4xl mx-auto space-y-8">
+            <div className="mx-auto w-full max-w-4xl flex-shrink-0 space-y-8 overflow-y-auto p-6">
               <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h3 className="text-lg font-bold text-zinc-800 mb-4">Бележки за треньора</h3>
+                <h3 className="mb-4 text-lg font-bold text-zinc-800">
+                  Бележки за треньора
+                </h3>
                 <Textarea
-                  className="min-h-[150px] text-sm bg-zinc-50 border-zinc-200"
+                  className="min-h-[150px] border-zinc-200 bg-zinc-50 text-sm"
                   placeholder="Въведете вашите бележки и фокус на тренировката тук..."
                   value={coachNotes}
                   onChange={(e) => setCoachNotes(e.target.value)}
@@ -1070,36 +1198,58 @@ export default function CreateSessionWizard({
               </div>
 
               <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h3 className="text-lg font-bold text-zinc-800 mb-4">Преглед на графика</h3>
+                <h3 className="mb-4 text-lg font-bold text-zinc-800">
+                  Преглед на графика
+                </h3>
                 <div className="space-y-4">
-                  {blocks.map(b => {
-                    const currentTotal = b.items.reduce((s, i) => s + i.durationMinutes, 0);
+                  {blocks.map((b) => {
+                    const currentTotal = b.items.reduce(
+                      (s, i) => s + i.durationMinutes,
+                      0
+                    );
                     return (
-                      <div key={b.id} className="border-l-4 border-indigo-500 pl-4 py-2">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-semibold text-zinc-800">{getPhaseName(b.phase)}</span>
-                          <span className="text-sm font-bold text-indigo-600">{currentTotal} мин</span>
+                      <div
+                        key={b.id}
+                        className="border-l-4 border-indigo-500 py-2 pl-4"
+                      >
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="font-semibold text-zinc-800">
+                            {getPhaseName(b.phase)}
+                          </span>
+                          <span className="text-sm font-bold text-indigo-600">
+                            {currentTotal} мин
+                          </span>
                         </div>
                         {b.items.length > 0 ? (
                           <ul className="space-y-1">
-                            {b.items.map(item => (
-                              <li key={item.id} className="text-sm text-zinc-600 flex justify-between">
-                                <span>{item.type === 'exercise' ? item.exercise?.name : 'Станционна Ротация'}</span>
-                                <span className="text-xs">{item.durationMinutes} мин</span>
+                            {b.items.map((item) => (
+                              <li
+                                key={item.id}
+                                className="flex justify-between text-sm text-zinc-600"
+                              >
+                                <span>
+                                  {item.type === "exercise"
+                                    ? item.exercise?.name
+                                    : "Станционна Ротация"}
+                                </span>
+                                <span className="text-xs">
+                                  {item.durationMinutes} мин
+                                </span>
                               </li>
                             ))}
                           </ul>
                         ) : (
-                          <div className="text-sm text-zinc-400 italic">Няма упражнения</div>
+                          <div className="text-sm text-zinc-400 italic">
+                            Няма упражнения
+                          </div>
                         )}
                       </div>
-                    )
+                    );
                   })}
                 </div>
               </div>
             </div>
           )}
-
         </div>
 
         <DialogFooter className="flex flex-shrink-0 items-center justify-between border-t border-zinc-200 bg-white p-4">
@@ -1107,7 +1257,7 @@ export default function CreateSessionWizard({
             variant="outline"
             onClick={() => {
               if (currentStep > 1) {
-                setCurrentStep(prev => (prev - 1) as 1|2|3);
+                setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3);
               } else {
                 onOpenChange(false);
               }
@@ -1116,17 +1266,17 @@ export default function CreateSessionWizard({
           >
             {currentStep > 1 ? "Назад" : "Отказ"}
           </Button>
-          
+
           {currentStep < 3 ? (
             <Button
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8"
-              onClick={() => setCurrentStep(prev => (prev + 1) as 1|2|3)}
+              className="bg-indigo-600 px-8 text-white hover:bg-indigo-700"
+              onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3)}
             >
               Напред
             </Button>
           ) : (
             <Button
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8"
+              className="bg-emerald-600 px-8 text-white hover:bg-emerald-700"
               onClick={handleSave}
               disabled={isSaving || !title}
             >

@@ -136,11 +136,8 @@ export default function ExerciseFormDialog({
         durationMinutes: duration,
         equipment,
         prerequisites,
+        videoUrl: videoUrl || "",
       };
-
-      // Firestore rejects `undefined` values, so we pass null or empty string to delete it.
-      // We will pass empty string instead.
-      (payload as any).videoUrl = videoUrl || "";
 
       if (exercise) {
         await plannerService.updateExercise(exercise.id, payload);

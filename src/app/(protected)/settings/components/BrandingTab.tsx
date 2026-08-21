@@ -1,4 +1,5 @@
 import { Image as ImageIcon, Palette } from "lucide-react";
+import Image from "next/image";
 
 import { BentoCard } from "@/components/ui/bento-card";
 import { Input } from "@/components/ui/input";
@@ -38,10 +39,12 @@ export function BrandingTab() {
               />
               <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
                 {bkgData.logo ? (
-                  <img
+                  <Image
                     src={bkgData.logo}
                     alt="Logo"
-                    className="size-8 object-contain"
+                    width={32}
+                    height={32}
+                    className="object-contain"
                   />
                 ) : (
                   <ImageIcon className="size-5 text-zinc-400" />
@@ -62,10 +65,12 @@ export function BrandingTab() {
               />
               <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-900 dark:border-zinc-800">
                 {bkgData.logo ? (
-                  <img
+                  <Image
                     src={bkgData.logo}
                     alt="Logo Dark"
-                    className="size-8 object-contain"
+                    width={32}
+                    height={32}
+                    className="object-contain"
                   />
                 ) : (
                   <ImageIcon className="size-5 text-zinc-600" />
@@ -87,10 +92,12 @@ export function BrandingTab() {
               />
               <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
                 {rzData.logo ? (
-                  <img
+                  <Image
                     src={rzData.logo}
                     alt="Recovery Logo"
-                    className="size-8 object-contain"
+                    width={32}
+                    height={32}
+                    className="object-contain"
                   />
                 ) : (
                   <ImageIcon className="size-5 text-zinc-400" />

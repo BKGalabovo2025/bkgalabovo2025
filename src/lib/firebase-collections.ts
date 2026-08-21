@@ -147,6 +147,7 @@ export const getSalesCollection = () =>
 export const getClubServicesCollection = () =>
   collection(getDb(), "clubServices").withConverter(clubServiceConverter);
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getProductsCollection = () =>
   collection(getDb(), "products").withConverter(productConverter);
 
@@ -160,6 +161,7 @@ export const getTournamentEntriesCollection = () =>
 export const getTournamentMatchesCollection = () =>
   collection(getDb(), "tournament_matches").withConverter(matchConverter);
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getInventoryEventsCollection = () =>
   collection(getDb(), "inventoryEvents").withConverter(inventoryEventConverter);
 
@@ -207,10 +209,10 @@ export const getSalesQuery = () => createSiteQuery(getSalesCollection());
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getClubServicesQuery = () => createSiteQuery(getClubServicesCollection());
 
-export const getProductsQuery = () => createSiteQuery(getProductsCollection());
+// export const getProductsQuery = () => createSiteQuery(getProductsCollection());
 
-export const getInventoryEventsQuery = () =>
-  createSiteQuery(getInventoryEventsCollection());
+// export const getInventoryEventsQuery = () =>
+//   createSiteQuery(getInventoryEventsCollection());
 
 export const getEventsQuery = () => createSiteQuery(getEventsCollection());
 
