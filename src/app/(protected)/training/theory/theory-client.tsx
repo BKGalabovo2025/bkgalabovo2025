@@ -6,12 +6,14 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  Database,
   Edit,
   History,
   Loader2,
   MessageSquare,
   Plus,
   RefreshCw,
+  Search,
   Send,
   Share2,
   Sparkles,
@@ -38,6 +40,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { QUESTION_BANK, QuestionBankItem } from "@/lib/question-bank";
 import { getAllMembers } from "@/services/member-service";
 import { quizService } from "@/services/quiz-service";
 import { useAppStore } from "@/store/use-app-store";
@@ -76,6 +79,12 @@ export default function TheoryClient() {
   const [newDesc, setNewDesc] = useState("");
   const [newQuestions, setNewQuestions] = useState<QuizQuestion[]>([]);
   const [expandedReview, setExpandedReview] = useState<string | null>(null);
+
+  // Question Bank Modal
+  const [isBankOpen, setIsBankOpen] = useState(false);
+  const [bankSearch, setBankSearch] = useState("");
+  const [bankCategory, setBankCategory] = useState<string>("Всички");
+  const [selectedBankIds, setSelectedBankIds] = useState<string[]>([]);
 
   useEffect(() => {
     void load();
@@ -532,7 +541,18 @@ export default function TheoryClient() {
             </Card>
           ))}
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl border-indigo-200 bg-indigo-50/50 text-indigo-700 hover:bg-indigo-100"
+              onClick={() => {
+                setSelectedBankIds([]);
+                setIsBankOpen(true);
+              }}
+            >
+              <Database className="mr-2 size-4 text-indigo-600" />
+              📚 Банка с 100 въпроса
+            </Button>
             <Button
               variant="outline"
               className="flex-1 rounded-xl"
@@ -827,13 +847,20 @@ export default function TheoryClient() {
                 key={r.id}
                 className="overflow-hidden rounded-2xl border-zinc-200"
               >
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => {
                     if (expandedReview === r.id) setExpandedReview(null);
                     else setExpandedReview(r.id);
                   }}
-                  className="flex w-full items-center justify-between p-5 text-left transition-all hover:bg-zinc-50"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      if (expandedReview === r.id) setExpandedReview(null);
+                      else setExpandedReview(r.id);
+                    }
+                  }}
+                  className="flex w-full cursor-pointer items-center justify-between p-5 text-left transition-all hover:bg-zinc-50"
                 >
                   <div>
                     <div className="flex items-center gap-2">
@@ -886,7 +913,7 @@ export default function TheoryClient() {
                       <ChevronDown className="size-4 text-zinc-400" />
                     )}
                   </div>
-                </button>
+                </div>
                 {expandedReview === r.id && (
                   <div className="space-y-4 border-t border-zinc-100 p-5">
                     {quizzes
@@ -1204,6 +1231,199 @@ export default function TheoryClient() {
             >
               <Check className="mr-2 size-4" /> Запази
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════════ QUESTION BANK MODAL ══════════════════════════════════════ */}
+      <Dialog open={isBankOpen} onOpenChange={setIsBankOpen}>
+        <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden rounded-2xl p-0 sm:max-w-3xl">
+          <DialogHeader className="border-b p-6 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="flex items-center gap-2 text-xl font-bold text-zinc-900">
+                  <Database className="size-5 text-indigo-600" />
+                  Банка с въпроси (100 въпроса)
+                </DialogTitle>
+                <DialogDescription className="mt-1">
+                  Избери готови въпроси и ги добави наведнъж в своя тест.
+                </DialogDescription>
+              </div>
+              <Badge
+                variant="secondary"
+                className="bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700"
+              >
+                Избрани: {selectedBankIds.length}
+              </Badge>
+            </div>
+
+            {/* Search & Categories */}
+            <div className="mt-4 space-y-3">
+              <div className="relative">
+                <Search className="absolute top-2.5 left-3 size-4 text-zinc-400" />
+                <Input
+                  placeholder="Търси по дума или правило..."
+                  value={bankSearch}
+                  onChange={(e) => setBankSearch(e.target.value)}
+                  className="rounded-xl pl-9 text-sm"
+                />
+              </div>
+
+              {/* Category pills */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {[
+                  "Всички",
+                  "Правила",
+                  "Удари и Техника",
+                  "Сервис и Посрещане",
+                  "Двойки и Смесени",
+                  "Тактика и Стратегия",
+                  "Физическа подготовка",
+                  "Екипировка и Корт",
+                  "Психология и Етикет",
+                  "Тактически мисии",
+                ].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setBankCategory(cat)}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
+                      bankCategory === cat
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* List of questions */}
+          <ScrollArea className="flex-1 overflow-y-auto p-6">
+            <div className="space-y-3">
+              {QUESTION_BANK.filter((item) => {
+                const matchesCat =
+                  bankCategory === "Всички" || item.category === bankCategory;
+                const matchesSearch =
+                  !bankSearch ||
+                  item.text.toLowerCase().includes(bankSearch.toLowerCase()) ||
+                  item.options?.some((opt) =>
+                    opt.toLowerCase().includes(bankSearch.toLowerCase())
+                  );
+                return matchesCat && matchesSearch;
+              }).map((item: QuestionBankItem) => {
+                const isSelected = selectedBankIds.includes(item.id);
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setSelectedBankIds((prev) =>
+                        isSelected
+                          ? prev.filter((id) => id !== item.id)
+                          : [...prev, item.id]
+                      );
+                    }}
+                    className={`cursor-pointer rounded-xl border p-3.5 transition-all ${
+                      isSelected
+                        ? "border-indigo-500 bg-indigo-50/70 shadow-xs"
+                        : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}} // Handled by parent div
+                        className="mt-1 size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className="bg-zinc-50 text-[10px] text-zinc-600"
+                          >
+                            {item.category}
+                          </Badge>
+                          <Badge
+                            className={`text-[10px] ${
+                              item.type === "OPEN_TEXT"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}
+                          >
+                            {item.type === "OPEN_TEXT"
+                              ? "🧠 Тактическа мисия (28 т.)"
+                              : `❓ Избор (${item.points} т.)`}
+                          </Badge>
+                        </div>
+                        <p className="text-sm leading-snug font-semibold text-zinc-900">
+                          {item.text}
+                        </p>
+                        {item.options && (
+                          <ul className="mt-2 space-y-1 pl-1">
+                            {item.options.map((opt, oi) => (
+                              <li
+                                key={oi}
+                                className={`flex items-center gap-1.5 text-xs ${
+                                  item.correctAnswer === oi
+                                    ? "font-medium text-emerald-700"
+                                    : "text-zinc-500"
+                                }`}
+                              >
+                                <span className="font-mono text-[10px] text-zinc-400">
+                                  {["А", "Б", "В"][oi]}.
+                                </span>
+                                {opt}
+                                {item.correctAnswer === oi && (
+                                  <span className="ml-1 text-[10px] font-bold text-emerald-600">
+                                    (Верен)
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+
+          <DialogFooter className="flex items-center justify-between border-t bg-zinc-50 p-4 sm:justify-between">
+            <div className="text-xs text-zinc-500">
+              {selectedBankIds.length} маркирани въпроса
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setIsBankOpen(false)}
+              >
+                Отказ
+              </Button>
+              <Button
+                disabled={selectedBankIds.length === 0}
+                className="rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                onClick={() => {
+                  const toAdd = QUESTION_BANK.filter((q) =>
+                    selectedBankIds.includes(q.id)
+                  ).map((q) => ({
+                    ...q,
+                    id: uuidv4(), // Generate fresh unique IDs so they can be edited freely
+                  }));
+                  setNewQuestions((prev) => [...prev, ...toAdd]);
+                  toast.success(`Добавени са ${toAdd.length} въпроса в теста!`);
+                  setIsBankOpen(false);
+                }}
+              >
+                <Plus className="mr-1.5 size-4" /> Добави в теста (
+                {selectedBankIds.length})
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
