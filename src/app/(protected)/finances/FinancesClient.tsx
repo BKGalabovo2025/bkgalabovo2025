@@ -4,7 +4,7 @@ import { Boxes, Briefcase, History } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import InventoryClient from "@/app/(protected)/inventory/InventoryClient";
+import InventoryClient from "@/app/(protected)/inventory/inventory-client";
 import SalesClient from "@/app/(protected)/sales/SalesClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Member, Sale } from "@/types";
@@ -93,7 +93,7 @@ export default function FinancesClient({
 
           <TabsContent value="inventory" className="mt-0 outline-none">
             <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-              <InventoryClient showPageHeader={false} />
+              <InventoryClient />
             </div>
           </TabsContent>
         </Tabs>
