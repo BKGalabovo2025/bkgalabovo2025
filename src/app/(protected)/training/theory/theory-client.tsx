@@ -139,7 +139,7 @@ export default function TheoryClient() {
       sendQuiz.title,
       generatedLink
     );
-    window.open(viberUrl, "_blank");
+    window.location.href = viberUrl;
   };
 
   // ── EDIT ─────────────────────────────────────────────────────────────────
@@ -327,15 +327,16 @@ export default function TheoryClient() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="mb-6 flex gap-1 rounded-2xl bg-zinc-100 p-1">
+      <div className="mb-6 grid grid-cols-2 gap-1 rounded-2xl bg-zinc-100 p-1 sm:grid-cols-4">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setActiveTab(t.id)}
-            className={`relative flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${activeTab === t.id ? "bg-white text-indigo-700 shadow-sm" : "text-zinc-500 hover:text-zinc-700"}`}
+            className={`relative flex items-center justify-center gap-2 rounded-xl px-2 py-2.5 text-[11px] font-semibold transition-all sm:px-4 sm:text-sm ${activeTab === t.id ? "bg-white text-indigo-700 shadow-sm" : "text-zinc-500 hover:text-zinc-700"}`}
           >
-            {t.icon} {t.label}
+            {t.icon} <span className="hidden sm:inline">{t.label}</span>
+            <span className="sm:hidden">{t.label.split(" ")[0]}</span>
             {t.count != null && t.count > 0 && (
               <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white">
                 {t.count}
@@ -649,16 +650,37 @@ export default function TheoryClient() {
                           </div>
                         );
                       })}
-                    {r.tacticalAnswer && (
-                      <div className="rounded-xl bg-indigo-50 p-4">
-                        <p className="mb-1 text-xs font-bold text-indigo-700 uppercase">
-                          Тактическа мисия (отговор)
-                        </p>
-                        <p className="text-sm text-zinc-700">
-                          {r.tacticalAnswer}
-                        </p>
-                      </div>
-                    )}
+                    {(() => {
+                      const quiz = quizzes.find((q) => q.id === r.quizId);
+                      const openQ = quiz?.questions.find(
+                        (q) => q.type === "OPEN_TEXT"
+                      );
+                      if (!openQ && !r.tacticalAnswer) return null;
+                      return (
+                        <div className="rounded-xl bg-indigo-50 p-4">
+                          <p className="mb-2 text-xs font-bold text-indigo-700 uppercase">
+                            Тактическа мисия
+                          </p>
+                          {openQ && (
+                            <p className="mb-3 text-sm font-semibold text-zinc-800">
+                              {openQ.text}
+                            </p>
+                          )}
+                          <div className="rounded-lg border border-indigo-100 bg-white p-3">
+                            <p className="mb-1 text-[10px] font-bold text-zinc-400 uppercase">
+                              Отговор на детето:
+                            </p>
+                            <p className="text-sm text-zinc-700">
+                              {r.tacticalAnswer || (
+                                <span className="text-zinc-400 italic">
+                                  Няма отговор
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })()}
                     <div>
                       <Label className="mb-1 font-bold">
                         Точки за тактическа мисия (0–28)
@@ -830,16 +852,37 @@ export default function TheoryClient() {
                           </div>
                         );
                       })}
-                    {r.tacticalAnswer && (
-                      <div className="rounded-xl bg-indigo-50 p-4">
-                        <p className="mb-1 text-xs font-bold text-indigo-700 uppercase">
-                          Тактическа мисия (отговор)
-                        </p>
-                        <p className="text-sm text-zinc-700">
-                          {r.tacticalAnswer}
-                        </p>
-                      </div>
-                    )}
+                    {(() => {
+                      const quiz = quizzes.find((q) => q.id === r.quizId);
+                      const openQ = quiz?.questions.find(
+                        (q) => q.type === "OPEN_TEXT"
+                      );
+                      if (!openQ && !r.tacticalAnswer) return null;
+                      return (
+                        <div className="rounded-xl bg-indigo-50 p-4">
+                          <p className="mb-2 text-xs font-bold text-indigo-700 uppercase">
+                            Тактическа мисия
+                          </p>
+                          {openQ && (
+                            <p className="mb-3 text-sm font-semibold text-zinc-800">
+                              {openQ.text}
+                            </p>
+                          )}
+                          <div className="rounded-lg border border-indigo-100 bg-white p-3">
+                            <p className="mb-1 text-[10px] font-bold text-zinc-400 uppercase">
+                              Отговор на детето:
+                            </p>
+                            <p className="text-sm text-zinc-700">
+                              {r.tacticalAnswer || (
+                                <span className="text-zinc-400 italic">
+                                  Няма отговор
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })()}
                     {r.coachFeedback && (
                       <div className="rounded-xl bg-purple-50 p-4">
                         <p className="mb-1 text-xs font-bold text-purple-700 uppercase">

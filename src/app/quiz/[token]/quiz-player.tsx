@@ -10,13 +10,208 @@ import {
 import { useEffect, useState } from "react";
 
 import { quizService } from "@/services/quiz-service";
-import type { Quiz, TheoryResult } from "@/types/quiz.types";
+import type { Quiz, QuizQuestion, TheoryResult } from "@/types/quiz.types";
 
 interface QuizPlayerProps {
   token: string;
 }
 
 type Step = "loading" | "not-found" | "answering" | "submitting" | "done";
+
+function QuizPlayerResult({
+  result,
+  quiz,
+}: {
+  result: TheoryResult;
+  quiz: Quiz | null;
+}) {
+  const isReviewed = result.status === "REVIEWED";
+  const pct = result.totalScore;
+
+  let emoji = "📚";
+  let bgColor = "bg-gradient-to-br from-blue-400 to-indigo-500";
+  let message = "💪 Учи и опитай пак!";
+
+  if (pct >= 80) {
+    emoji = "🏆";
+    bgColor = "bg-gradient-to-br from-emerald-400 to-green-500";
+    message = "🌟 Страхотна работа!";
+  } else if (pct >= 60) {
+    emoji = "🥈";
+    bgColor = "bg-gradient-to-br from-amber-400 to-orange-400";
+    message = "👍 Добре се справи!";
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
+      <div className="mx-auto max-w-lg space-y-6 py-8">
+        <div className="text-center">
+          <div className="mb-2 text-5xl">{isReviewed ? emoji : "⏳"}</div>
+          <h1 className="text-2xl font-black text-indigo-800">
+            {result.quizTitle}
+          </h1>
+          <p className="mt-1 text-zinc-500">
+            {isReviewed ? "Твоят краен резултат" : "Резултатът се обработва"}
+          </p>
+        </div>
+        <div className="overflow-hidden rounded-3xl bg-white shadow-xl">
+          <div
+            className={`flex items-center justify-center p-8 ${
+              isReviewed
+                ? bgColor
+                : "bg-gradient-to-br from-amber-400 to-orange-400"
+            }`}
+          >
+            <div className="text-center text-white">
+              {isReviewed ? (
+                <>
+                  <div className="text-6xl font-black">{result.totalScore}</div>
+                  <div className="text-xl font-bold opacity-90">
+                    / 100 точки
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl font-black">Чакаме оценка</div>
+                  <div className="mt-2 text-sm font-bold opacity-90">
+                    за тактическата мисия
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="space-y-4 p-6">
+            {isReviewed ? (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-500">Автоматични въпроси</span>
+                  <span className="font-bold text-zinc-800">
+                    {result.autoScore} т.
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-500">
+                    Тактическа мисия (от треньора)
+                  </span>
+                  <span className="font-bold text-zinc-800">
+                    {result.manualScore} т.
+                  </span>
+                </div>
+                {result.coachFeedback && (
+                  <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
+                    <div className="mb-2 flex items-center gap-2">
+                      <MessageSquare className="size-4 text-indigo-600" />
+                      <span className="text-sm font-bold text-indigo-700">
+                        Бележка от Треньора
+                      </span>
+                    </div>
+                    <p className="text-sm text-indigo-800 italic">
+                      &quot;{result.coachFeedback}&quot;
+                    </p>
+                  </div>
+                )}
+                <div className="mt-4 mb-2 text-center text-2xl">{message}</div>
+              </>
+            ) : (
+              <div className="rounded-2xl bg-amber-50 p-4 text-center">
+                <p className="text-sm font-medium text-amber-700">
+                  Получи <strong>{result.autoScore} т.</strong> от автоматичните
+                  въпроси!
+                </p>
+                <p className="mt-1 text-xs text-amber-600">
+                  Треньорът ще провери отговора ти на отворения въпрос скоро.
+                  Тогава ще видиш крайния си резултат.
+                </p>
+              </div>
+            )}
+
+            {quiz && result.answers && (
+              <div className="mt-6 space-y-4 border-t border-zinc-100 pt-6">
+                <h3 className="mb-4 text-lg font-black text-indigo-900">
+                  Твоите отговори
+                </h3>
+                {quiz.questions.map((q: QuizQuestion, i: number) => {
+                  const isSingleChoice = q.type === "SINGLE_CHOICE";
+                  const userAnswer = result.answers?.[q.id];
+                  return (
+                    <div
+                      key={q.id}
+                      className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4"
+                    >
+                      <p className="mb-3 text-sm font-bold text-zinc-800">
+                        {i + 1}. {q.text}
+                      </p>
+                      {isSingleChoice ? (
+                        <div className="space-y-2">
+                          {q.options?.map((opt: string, optIdx: number) => {
+                            const isSelected = userAnswer === optIdx;
+                            const isActuallyCorrect =
+                              q.correctAnswer === optIdx;
+
+                            let bgClass =
+                              "bg-white border-zinc-200 text-zinc-600";
+                            let bgClassCircle = "bg-zinc-200 text-zinc-500";
+
+                            if (isActuallyCorrect) {
+                              bgClass =
+                                "bg-emerald-50 border-emerald-300 text-emerald-800 font-bold";
+                              bgClassCircle = "bg-emerald-500 text-white";
+                            } else if (isSelected) {
+                              bgClass = "bg-red-50 border-red-300 text-red-800";
+                              bgClassCircle = "bg-red-500 text-white";
+                            }
+
+                            return (
+                              <div
+                                key={optIdx}
+                                className={`flex items-center gap-3 rounded-xl border p-3 text-sm ${bgClass}`}
+                              >
+                                <div
+                                  className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${bgClassCircle}`}
+                                >
+                                  {["А", "Б", "В"][optIdx] ??
+                                    String(optIdx + 1)}
+                                </div>
+                                <span>{opt}</span>
+                                {isSelected && (
+                                  <span className="ml-auto text-xs opacity-70">
+                                    Твой отговор
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="rounded-xl border border-purple-200 bg-purple-50 p-3 text-sm text-purple-800">
+                            <span className="mb-1 block text-xs font-bold uppercase opacity-70">
+                              Твоят отговор:
+                            </span>
+                            {userAnswer || (
+                              <span className="italic opacity-50">
+                                Няма отговор
+                              </span>
+                            )}
+                          </div>
+                          {isReviewed && (
+                            <div className="text-right text-xs font-bold text-purple-600">
+                              Оценено: {result.manualScore} / {q.points} т.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function QuizPlayer({ token }: QuizPlayerProps) {
   const [step, setStep] = useState<Step>("loading");
@@ -114,171 +309,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
   }
 
   if (step === "done" && result) {
-    const pct = result.totalScore;
-    const isReviewed = result.status === "REVIEWED";
-
-    let emoji = "📚";
-    let bgColor = "bg-gradient-to-br from-blue-400 to-indigo-500";
-    let message = "💪 Учи и опитай пак!";
-
-    if (pct >= 80) {
-      emoji = "🏆";
-      bgColor = "bg-gradient-to-br from-emerald-400 to-green-500";
-      message = "🌟 Страхотна работа!";
-    } else if (pct >= 60) {
-      emoji = "🥈";
-      bgColor = "bg-gradient-to-br from-amber-400 to-orange-400";
-      message = "👍 Добре се справи!";
-    }
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
-        <div className="mx-auto max-w-lg space-y-6 py-8">
-          <div className="text-center">
-            <div className="mb-2 text-5xl">{emoji}</div>
-            <h1 className="text-2xl font-black text-indigo-800">
-              {result.quizTitle}
-            </h1>
-            <p className="mt-1 text-zinc-500">Твоят резултат</p>
-          </div>
-          <div className="overflow-hidden rounded-3xl bg-white shadow-xl">
-            <div className={`flex items-center justify-center p-8 ${bgColor}`}>
-              <div className="text-center text-white">
-                <div className="text-6xl font-black">{result.totalScore}</div>
-                <div className="text-xl font-bold opacity-90">/ 100 точки</div>
-              </div>
-            </div>
-            <div className="space-y-4 p-6">
-              {isReviewed ? (
-                <>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-500">Автоматични въпроси</span>
-                    <span className="font-bold text-zinc-800">
-                      {result.autoScore} т.
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-500">
-                      Тактическа мисия (от треньора)
-                    </span>
-                    <span className="font-bold text-zinc-800">
-                      {result.manualScore} т.
-                    </span>
-                  </div>
-                  {result.coachFeedback && (
-                    <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
-                      <div className="mb-2 flex items-center gap-2">
-                        <MessageSquare className="size-4 text-indigo-600" />
-                        <span className="text-sm font-bold text-indigo-700">
-                          Бележка от Треньора
-                        </span>
-                      </div>
-                      <p className="text-sm text-indigo-800 italic">
-                        &quot;{result.coachFeedback}&quot;
-                      </p>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="rounded-2xl bg-amber-50 p-4 text-center">
-                  <p className="text-sm font-medium text-amber-700">
-                    ⏳ Получи <strong>{result.autoScore} т.</strong> от
-                    автоматичните въпроси!
-                  </p>
-                  <p className="mt-1 text-xs text-amber-600">
-                    Треньорът ще провери тактическата ти мисия скоро.
-                  </p>
-                </div>
-              )}
-              <div className="mb-6 text-center text-3xl">{message}</div>
-
-              {quiz && result.answers && (
-                <div className="mt-6 space-y-4 border-t border-zinc-100 pt-6">
-                  <h3 className="mb-4 text-lg font-black text-indigo-900">
-                    Твоите отговори
-                  </h3>
-                  {quiz.questions.map((q, i) => {
-                    const isSingleChoice = q.type === "SINGLE_CHOICE";
-                    const userAnswer = result.answers?.[q.id];
-                    return (
-                      <div
-                        key={q.id}
-                        className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4"
-                      >
-                        <p className="mb-3 text-sm font-bold text-zinc-800">
-                          {i + 1}. {q.text}
-                        </p>
-                        {isSingleChoice ? (
-                          <div className="space-y-2">
-                            {q.options?.map((opt, optIdx) => {
-                              const isSelected = userAnswer === optIdx;
-                              const isActuallyCorrect =
-                                q.correctAnswer === optIdx;
-
-                              let bgClass =
-                                "bg-white border-zinc-200 text-zinc-600";
-                              let bgClassCircle = "bg-zinc-200 text-zinc-500";
-
-                              if (isActuallyCorrect) {
-                                bgClass =
-                                  "bg-emerald-50 border-emerald-300 text-emerald-800 font-bold";
-                                bgClassCircle = "bg-emerald-500 text-white";
-                              } else if (isSelected) {
-                                bgClass =
-                                  "bg-red-50 border-red-300 text-red-800";
-                                bgClassCircle = "bg-red-500 text-white";
-                              }
-
-                              return (
-                                <div
-                                  key={optIdx}
-                                  className={`flex items-center gap-3 rounded-xl border p-3 text-sm ${bgClass}`}
-                                >
-                                  <div
-                                    className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${bgClassCircle}`}
-                                  >
-                                    {["А", "Б", "В"][optIdx] ??
-                                      String(optIdx + 1)}
-                                  </div>
-                                  <span>{opt}</span>
-                                  {isSelected && (
-                                    <span className="ml-auto text-xs opacity-70">
-                                      Твой отговор
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            <div className="rounded-xl border border-purple-200 bg-purple-50 p-3 text-sm text-purple-800">
-                              <span className="mb-1 block text-xs font-bold uppercase opacity-70">
-                                Твоят отговор:
-                              </span>
-                              {userAnswer || (
-                                <span className="italic opacity-50">
-                                  Няма отговор
-                                </span>
-                              )}
-                            </div>
-                            {isReviewed && (
-                              <div className="text-right text-xs font-bold text-purple-600">
-                                Оценено: {result.manualScore} / {q.points} т.
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <QuizPlayerResult result={result} quiz={quiz} />;
   }
 
   if (!quiz || step !== "answering") return null;
