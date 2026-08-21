@@ -130,14 +130,14 @@ export interface SessionAttendance {
   updatedAt: string;
 }
 
-export interface TrainingTemplateBlockItem {
+interface TrainingTemplateBlockItem {
   exerciseId: string;
   exerciseName: string;
   durationMinutes: number;
   customInstructions?: string;
 }
 
-export interface TrainingTemplateBlock {
+interface TrainingTemplateBlock {
   id: string;
   phase: "warmup" | "main" | "cooldown";
   title: string;
