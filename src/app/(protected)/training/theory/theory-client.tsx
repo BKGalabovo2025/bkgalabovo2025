@@ -668,8 +668,10 @@ export default function TheoryClient() {
                         (q) => q.type === "OPEN_TEXT"
                       );
                       if (!openQ && !r.tacticalAnswer) return null;
+                      const maxPoints = openQ?.points || 28;
+
                       return (
-                        <div className="rounded-xl bg-indigo-50 p-4">
+                        <div className="mb-4 rounded-xl bg-indigo-50 p-4">
                           <p className="mb-2 text-xs font-bold text-indigo-700 uppercase">
                             Тактическа мисия
                           </p>
@@ -678,7 +680,7 @@ export default function TheoryClient() {
                               {openQ.text}
                             </p>
                           )}
-                          <div className="rounded-lg border border-indigo-100 bg-white p-3">
+                          <div className="mb-4 rounded-lg border border-indigo-100 bg-white p-3">
                             <p className="mb-1 text-[10px] font-bold text-zinc-400 uppercase">
                               Отговор на детето:
                             </p>
@@ -690,22 +692,24 @@ export default function TheoryClient() {
                               )}
                             </p>
                           </div>
+                          <div>
+                            <Label className="mb-1 font-bold text-indigo-900">
+                              Оцени отговора (0–{maxPoints} точки)
+                            </Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={maxPoints}
+                              value={manualScore}
+                              onChange={(e) =>
+                                setManualScore(Number(e.target.value))
+                              }
+                              className="rounded-xl bg-white"
+                            />
+                          </div>
                         </div>
                       );
                     })()}
-                    <div>
-                      <Label className="mb-1 font-bold">
-                        Точки за тактическа мисия (0–28)
-                      </Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={28}
-                        value={manualScore}
-                        onChange={(e) => setManualScore(Number(e.target.value))}
-                        className="rounded-xl"
-                      />
-                    </div>
                     <div>
                       <Label className="mb-1 font-bold">
                         Рецензия / Препоръка от Треньора
