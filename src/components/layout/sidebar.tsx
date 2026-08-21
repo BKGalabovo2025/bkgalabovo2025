@@ -2,6 +2,7 @@
 import {
   Activity,
   BarChart,
+  Box,
   Briefcase,
   Calendar,
   CalendarCheck,
@@ -307,6 +308,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <li className="mt-4 px-4 py-2 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
                   Тренировъчен процес
                 </li>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith("/inventory")}
+                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+                  >
+                    <Link
+                      href="/inventory"
+                      className="flex w-full items-center gap-3"
+                      onClick={() => isMobile && setOpen(false)}
+                    >
+                      <Box size={18} strokeWidth={1.5} />
+                      <span className="text-[14px]">Инвентар</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
 
                 <SidebarMenuItem>
                   <SidebarMenuButton

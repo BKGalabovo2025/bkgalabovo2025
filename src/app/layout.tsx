@@ -14,6 +14,7 @@ const fontSans = Inter({
   variable: "--font-inter",
   display: "swap",
   adjustFontFallback: false,
+  preload: false,
 });
 
 export const metadata: Metadata = {

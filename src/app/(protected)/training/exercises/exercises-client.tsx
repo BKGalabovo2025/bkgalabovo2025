@@ -96,8 +96,18 @@ export default function ExercisesClient() {
   }
 
   const filteredExercises = exercises.filter((ex) => {
-    if (categoryFilter !== "all" && ex.category !== categoryFilter)
-      return false;
+    if (categoryFilter !== "all") {
+      if (categoryFilter === "beach") {
+        if (!ex.location?.includes("beach")) return false;
+      } else if (categoryFilter === "circuit") {
+        if (!ex.name.toLowerCase().includes("станция")) return false;
+      } else if (categoryFilter === "tactical") {
+        if (ex.category !== "tactics" && !ex.name.toLowerCase().includes("мулти-шатъл")) return false;
+      } else {
+        if (ex.category !== categoryFilter) return false;
+      }
+    }
+    
     if (ageGroupFilter !== "all" && !ex.ageGroups.includes(ageGroupFilter))
       return false;
     if (searchQuery) {
@@ -115,6 +125,9 @@ export default function ExercisesClient() {
 
   const getCategoryCount = (cat: string) => {
     if (cat === "all") return exercises.length;
+    if (cat === "beach") return exercises.filter((ex) => ex.location?.includes("beach")).length;
+    if (cat === "circuit") return exercises.filter((ex) => ex.name.toLowerCase().includes("станция")).length;
+    if (cat === "tactical") return exercises.filter((ex) => ex.category === "tactics" || ex.name.toLowerCase().includes("мулти-шатъл")).length;
     return exercises.filter((ex) => ex.category === cat).length;
   };
 
@@ -214,6 +227,15 @@ export default function ExercisesClient() {
               </SelectItem>
               <SelectItem value="cooldown">
                 Разпускане ({getCategoryCount("cooldown")})
+              </SelectItem>
+              <SelectItem value="beach">
+                Плажни Блокове (Лагер) ({getCategoryCount("beach")})
+              </SelectItem>
+              <SelectItem value="circuit">
+                Станционни Ротации (Лагер) ({getCategoryCount("circuit")})
+              </SelectItem>
+              <SelectItem value="tactical">
+                Мулти-Шатъл (Лагер) ({getCategoryCount("tactical")})
               </SelectItem>
             </SelectContent>
           </Select>

@@ -75,6 +75,19 @@ const MemberTrainingVolumeTab = dynamic(
     ),
   }
 );
+const MemberTheoryTab = dynamic(
+  () =>
+    import("./tabs/MemberTheoryTab").then(
+      (mod) => mod.MemberTheoryTab
+    ),
+  {
+    loading: () => (
+      <div className="animate-pulse p-8 text-center text-slate-400">
+        Зареждане на тестове...
+      </div>
+    ),
+  }
+);
 
 interface MemberDetailsCardProps {
   member: Member;
@@ -355,6 +368,12 @@ export const MemberDetailsCard = ({
             >
               Оценяване
             </TabsTrigger>
+            <TabsTrigger
+              value="theory"
+              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+            >
+              Теория
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -399,6 +418,10 @@ export const MemberDetailsCard = ({
 
         <TabsContent value="assessments" className="focus-visible:outline-none">
           <MemberAssessmentsTab memberId={member.id} />
+        </TabsContent>
+
+        <TabsContent value="theory" className="focus-visible:outline-none">
+          <MemberTheoryTab memberId={member.id} />
         </TabsContent>
       </Tabs>
     </div>

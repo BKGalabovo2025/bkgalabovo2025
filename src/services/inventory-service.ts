@@ -1,103 +1,89 @@
-import { DocumentSnapshot, getDocs, Timestamp } from "firebase/firestore";
-
 import {
-  getInventoryEventsQuery,
-  getProductsQuery,
-} from "@/lib/firebase-collections";
-import { InventoryEvent, Product } from "@/types";
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+  writeBatch,
+} from "firebase/firestore";
+import { v4 as uuidv4 } from "uuid";
 
-export const docToProduct = (doc: DocumentSnapshot): Product | null => {
-  if (!doc.id || !doc.exists()) {
-    console.error("docToProduct: Invalid document snapshot.", { id: doc.id });
-    return null;
-  }
-  const data = doc.data() || {};
+import { db } from "@/lib/firebase";
+import { InventoryItem } from "@/types/inventory.types";
 
-  const name = data.name;
-  if (typeof name !== "string" || name.trim() === "") {
-    console.warn(
-      `docToProduct: Skipping product with invalid or missing name.`,
-      { id: doc.id }
+const INVENTORY_COLLECTION = "inventory";
+
+export const inventoryService = {
+  async getInventory(siteId: string): Promise<InventoryItem[]> {
+    const q = query(
+      collection(db, INVENTORY_COLLECTION),
+      where("siteId", "==", siteId)
     );
-    return null;
-  }
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() }) as InventoryItem
+    );
+  },
 
-  const product: Product = {
-    id: doc.id,
-    siteId: typeof data.siteId === "string" ? data.siteId : "default",
-    name: name,
-    description: typeof data.description === "string" ? data.description : "",
-    price: typeof data.price === "number" ? data.price : 0,
-    currency: "EUR", // Force EUR
-    stock: typeof data.stock === "number" ? data.stock : 0,
-    category:
-      typeof data.category === "string" ? data.category : "Без категория",
-    imageUrl: typeof data.imageUrl === "string" ? data.imageUrl : "",
-    restockThreshold:
-      typeof data.restockThreshold === "number" ? data.restockThreshold : null,
-  };
+  async addInventoryItem(
+    siteId: string,
+    data: Omit<InventoryItem, "id" | "siteId" | "createdAt" | "updatedAt">
+  ): Promise<string> {
+    const newDocRef = doc(collection(db, INVENTORY_COLLECTION));
+    const item: Omit<InventoryItem, "id"> = {
+      ...data,
+      siteId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    await setDoc(newDocRef, item);
+    return newDocRef.id;
+  },
 
-  return product;
-};
+  async updateInventoryItem(
+    id: string,
+    data: Partial<InventoryItem>
+  ): Promise<void> {
+    const docRef = doc(db, INVENTORY_COLLECTION, id);
+    await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
+  },
 
-const docToInventoryEvent = (doc: DocumentSnapshot): InventoryEvent | null => {
-  if (!doc.id || !doc.exists()) {
-    console.error("docToInventoryEvent: Invalid document snapshot.", {
-      id: doc.id,
+  async deleteInventoryItem(id: string): Promise<void> {
+    await deleteDoc(doc(db, INVENTORY_COLLECTION, id));
+  },
+
+  // Seed default inventory if empty
+  async seedDefaultInventory(siteId: string): Promise<void> {
+    const existing = await this.getInventory(siteId);
+    if (existing.length > 0) return;
+
+    const defaults: Omit<InventoryItem, "id" | "siteId" | "createdAt" | "updatedAt">[] = [
+      { name: "Ракети", totalQuantity: 30, allocationType: "per_child" },
+      { name: "Пера", totalQuantity: 100, allocationType: "per_child", ratioValue: 2 }, // 2 пера на дете
+      { name: "Балони", totalQuantity: 50, allocationType: "per_child" },
+      { name: "Конуси", totalQuantity: 40, allocationType: "per_station", ratioValue: 4 }, // 4 конуса за очертаване на станция
+      { name: "Въжета", totalQuantity: 20, allocationType: "per_child" },
+      { name: "Въже", totalQuantity: 20, allocationType: "per_child" },
+      { name: "Ластици", totalQuantity: 10, allocationType: "per_child" },
+      { name: "Стълбичка", totalQuantity: 2, allocationType: "per_station", ratioValue: 1 },
+      { name: "Медицинска топка", totalQuantity: 5, allocationType: "ratio", ratioValue: 0.5 }, // 1 топка на 2 деца
+      { name: "Преносими мрежи", totalQuantity: 2, allocationType: "per_station", ratioValue: 1 },
+      { name: "Постелки", totalQuantity: 15, allocationType: "per_child" },
+    ];
+
+    const batch = writeBatch(db);
+    defaults.forEach((item) => {
+      const docRef = doc(collection(db, INVENTORY_COLLECTION));
+      batch.set(docRef, {
+        ...item,
+        siteId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
     });
-    return null;
+    await batch.commit();
   }
-  const data = doc.data() || {};
-  const event: InventoryEvent = {
-    id: doc.id,
-    productId: typeof data.productId === "string" ? data.productId : "",
-    productName: typeof data.productName === "string" ? data.productName : "",
-    type: ["restock", "correction", "price_update", "sale", "initial"].includes(
-      data.type
-    )
-      ? data.type
-      : "correction",
-    quantityChange:
-      typeof data.quantityChange === "number" ? data.quantityChange : 0,
-    createdAt:
-      data.createdAt instanceof Timestamp
-        ? data.createdAt.toDate().toISOString()
-        : new Date().toISOString(),
-    userId: typeof data.userId === "string" ? data.userId : "",
-    userName: typeof data.userName === "string" ? data.userName : "",
-    notes: typeof data.notes === "string" ? data.notes : undefined,
-    oldPrice: typeof data.oldPrice === "number" ? data.oldPrice : undefined,
-    newPrice: typeof data.newPrice === "number" ? data.newPrice : undefined,
-    siteId: data.siteId || "default",
-  };
-  if (!event.productId || !event.userId) {
-    return null; // Core fields must exist.
-  }
-  return event;
-};
-
-export const getInventoryEvents = async (): Promise<InventoryEvent[]> => {
-  const q = getInventoryEventsQuery();
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs
-    .map(docToInventoryEvent)
-    .filter(Boolean) as InventoryEvent[];
-};
-
-const getProducts = async (): Promise<Product[]> => {
-  const q = getProductsQuery();
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToProduct).filter(Boolean) as Product[];
-};
-
-/**
- * Returns products that have stock less than or equal to their restockThreshold.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getLowStockProducts = async (): Promise<Product[]> => {
-  const products = await getProducts();
-  return products.filter(
-    (p) =>
-      typeof p.restockThreshold === "number" && p.stock <= p.restockThreshold
-  );
 };
