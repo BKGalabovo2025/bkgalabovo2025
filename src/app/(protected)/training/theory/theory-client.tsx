@@ -49,6 +49,7 @@ export default function TheoryClient() {
   const [activeTab, setActiveTab] = useState<TabId>("library");
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [pendingResults, setPendingResults] = useState<TheoryResult[]>([]);
+  const [sentResults, setSentResults] = useState<TheoryResult[]>([]);
   const [reviewedResults, setReviewedResults] = useState<TheoryResult[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,15 +86,17 @@ export default function TheoryClient() {
     setIsLoading(true);
     try {
       await quizService.seedBaseQuizzes(activeBranch);
-      const [quizData, pendingData, reviewedData, memberData] =
+      const [quizData, pendingData, sentData, reviewedData, memberData] =
         await Promise.all([
           quizService.getQuizzes(activeBranch),
           quizService.getPendingResults(activeBranch),
+          quizService.getSentResults(activeBranch),
           quizService.getReviewedResults(activeBranch),
           getAllMembers(),
         ]);
       setQuizzes(quizData);
       setPendingResults(pendingData);
+      setSentResults(sentData);
       setReviewedResults(reviewedData);
       setMembers(memberData.filter((m: Member) => !m.isCoach));
     } catch (err) {
@@ -293,7 +296,7 @@ export default function TheoryClient() {
   };
 
   // ── UI ───────────────────────────────────────────────────────────────────
-  type TabId = "library" | "builder" | "review" | "history";
+  type TabId = "library" | "builder" | "sent" | "review" | "history";
 
   const tabs: {
     id: TabId;
@@ -307,6 +310,12 @@ export default function TheoryClient() {
       icon: <BookOpen className="size-4" />,
     },
     { id: "builder", label: "Конструктор", icon: <Plus className="size-4" /> },
+    {
+      id: "sent",
+      label: "Изпратени",
+      icon: <Send className="size-4" />,
+      count: sentResults.length,
+    },
     {
       id: "review",
       label: "За Проверка",
@@ -339,7 +348,7 @@ export default function TheoryClient() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="mb-6 grid grid-cols-2 gap-1 rounded-2xl bg-zinc-100 p-1 sm:grid-cols-4">
+      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl bg-zinc-100 p-1 sm:grid-cols-5">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -545,6 +554,70 @@ export default function TheoryClient() {
           >
             <Sparkles className="mr-2 size-5" /> Запази Новия Тест
           </Button>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════ SENT ══════════════════════════════ */}
+      {activeTab === "sent" && (
+        <div className="space-y-4">
+          {sentResults.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center">
+              <Send className="mx-auto mb-4 size-10 text-zinc-300" />
+              <h3 className="font-bold text-zinc-700">
+                Няма изпратени тестове
+              </h3>
+              <p className="text-sm text-zinc-400">
+                Изпратете тест от библиотеката, за да го видите тук.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-zinc-500">
+                Тези тестове са изпратени, но детето все още не ги е отворило
+                или попълнило.
+              </p>
+              {sentResults.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex flex-col gap-3 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                      <Send className="size-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-zinc-900">{r.playerName}</p>
+                      <p className="text-sm text-zinc-500">{r.quizTitle}</p>
+                      <p className="mt-0.5 text-[10px] text-zinc-400">
+                        Изпратен:{" "}
+                        {new Date(r.submittedAt).toLocaleString("bg-BG")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="border-amber-200 bg-white text-[10px] text-amber-700"
+                    >
+                      ⏳ Чака отговор
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 rounded-xl text-zinc-400 hover:text-zinc-700"
+                      onClick={() => {
+                        const url = `${window.location.origin}/quiz/${r.shareToken}`;
+                        void navigator.clipboard.writeText(url);
+                        toast.success("Линкът е копиран!");
+                      }}
+                    >
+                      <Copy className="mr-1 size-3.5" /> Копирай линк
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

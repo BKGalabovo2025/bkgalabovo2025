@@ -130,7 +130,7 @@ export const quizService = {
       tacticalAnswer: submission.tacticalAnswer || "",
       manualScore: 0,
       totalScore: submission.autoScore,
-      status: "PENDING",
+      status: "SENT",
       shareToken,
       submittedAt: new Date().toISOString(),
     };
@@ -150,6 +150,7 @@ export const quizService = {
       totalScore: autoScore,
       tacticalAnswer,
       answers,
+      status: "PENDING",
       submittedAt: new Date().toISOString(),
     });
   },
@@ -182,6 +183,19 @@ export const quizService = {
       collection(db, THEORY_RESULTS_COLLECTION),
       where("siteId", "==", siteId),
       where("status", "==", "PENDING"),
+      orderBy("submittedAt", "desc")
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(
+      (d) => ({ id: d.id, ...d.data() }) as TheoryResult
+    );
+  },
+
+  async getSentResults(siteId: string): Promise<TheoryResult[]> {
+    const q = query(
+      collection(db, THEORY_RESULTS_COLLECTION),
+      where("siteId", "==", siteId),
+      where("status", "==", "SENT"),
       orderBy("submittedAt", "desc")
     );
     const snapshot = await getDocs(q);

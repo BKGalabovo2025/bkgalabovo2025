@@ -38,7 +38,7 @@ export type QuizFormData = Omit<
 
 // ─── Theory Result ────────────────────────────────────────────────────────────
 
-const TheoryResultStatusSchema = z.enum(["PENDING", "REVIEWED"]);
+const TheoryResultStatusSchema = z.enum(["SENT", "PENDING", "REVIEWED"]);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type TheoryResultStatus = z.infer<typeof TheoryResultStatusSchema>;
 
