@@ -38,7 +38,11 @@ export const quizService = {
     return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Quiz);
   },
 
-  async createQuiz(siteId: string, data: QuizFormData, createdById?: string): Promise<string> {
+  async createQuiz(
+    siteId: string,
+    data: QuizFormData,
+    createdById?: string
+  ): Promise<string> {
     const newRef = doc(collection(db, QUIZZES_COLLECTION));
     const quiz: Omit<Quiz, "id"> = {
       ...data,
@@ -103,15 +107,17 @@ export const quizService = {
   //  THEORY RESULTS — SUBMIT (детето предава теста)
   // ═══════════════════════════════════════════════════════
 
-  async submitResult(submission: QuizAnswerSubmission & {
-    playerId: string;
-    playerName: string;
-    quizId: string;
-    quizTitle: string;
-    siteId: string;
-    autoScore: number;
-    tacticalAnswer?: string;
-  }): Promise<string> {
+  async submitResult(
+    submission: QuizAnswerSubmission & {
+      playerId: string;
+      playerName: string;
+      quizId: string;
+      quizTitle: string;
+      siteId: string;
+      autoScore: number;
+      tacticalAnswer?: string;
+    }
+  ): Promise<string> {
     const shareToken = uuidv4();
     const newRef = doc(collection(db, THEORY_RESULTS_COLLECTION));
     const result: Omit<TheoryResult, "id"> = {
@@ -136,12 +142,14 @@ export const quizService = {
   async submitTacticalAnswer(
     resultId: string,
     autoScore: number,
-    tacticalAnswer: string
+    tacticalAnswer: string,
+    answers: Record<string, number | string>
   ): Promise<void> {
     await updateDoc(doc(db, THEORY_RESULTS_COLLECTION, resultId), {
       autoScore,
       totalScore: autoScore,
       tacticalAnswer,
+      answers,
       submittedAt: new Date().toISOString(),
     });
   },
@@ -164,7 +172,9 @@ export const quizService = {
       orderBy("submittedAt", "desc")
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as TheoryResult);
+    return snapshot.docs.map(
+      (d) => ({ id: d.id, ...d.data() }) as TheoryResult
+    );
   },
 
   async getPendingResults(siteId: string): Promise<TheoryResult[]> {
@@ -175,7 +185,9 @@ export const quizService = {
       orderBy("submittedAt", "desc")
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as TheoryResult);
+    return snapshot.docs.map(
+      (d) => ({ id: d.id, ...d.data() }) as TheoryResult
+    );
   },
 
   async getReviewedResults(siteId: string): Promise<TheoryResult[]> {
@@ -186,7 +198,9 @@ export const quizService = {
       orderBy("reviewedAt", "desc")
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as TheoryResult);
+    return snapshot.docs.map(
+      (d) => ({ id: d.id, ...d.data() }) as TheoryResult
+    );
   },
 
   async deleteResult(resultId: string): Promise<void> {
@@ -210,7 +224,11 @@ export const quizService = {
   },
 
   // Генериране на Viber линк
-  generateViberLink(playerName: string, quizTitle: string, quizUrl: string): string {
+  generateViberLink(
+    playerName: string,
+    quizTitle: string,
+    quizUrl: string
+  ): string {
     const message = `Здравей ${playerName}! 🏸 Твоят треньор те кани да попълниш тест: "${quizTitle}". Натисни линка по-долу:`;
     return `viber://send?text=${encodeURIComponent(message + "\n" + quizUrl)}`;
   },

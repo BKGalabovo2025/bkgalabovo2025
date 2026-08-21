@@ -31,7 +31,10 @@ const QuizSchema = z.object({
 });
 
 export type Quiz = z.infer<typeof QuizSchema>;
-export type QuizFormData = Omit<Quiz, "id" | "siteId" | "createdAt" | "updatedAt">;
+export type QuizFormData = Omit<
+  Quiz,
+  "id" | "siteId" | "createdAt" | "updatedAt"
+>;
 
 // ─── Theory Result ────────────────────────────────────────────────────────────
 
@@ -56,6 +59,7 @@ const TheoryResultSchema = z.object({
   shareToken: z.string().min(1),
   submittedAt: z.string().datetime(),
   reviewedAt: z.string().datetime().optional(),
+  answers: z.record(z.string(), z.union([z.number(), z.string()])).optional(),
 });
 
 export type TheoryResult = z.infer<typeof TheoryResultSchema>;

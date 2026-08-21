@@ -577,7 +577,13 @@ export default function TheoryClient() {
                     </div>
                     <p className="mt-1 text-sm text-zinc-500">
                       {r.quizTitle} •{" "}
-                      {new Date(r.submittedAt).toLocaleDateString("bg-BG")}
+                      {new Date(r.submittedAt).toLocaleString("bg-BG", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </p>
                     <p className="mt-0.5 text-xs text-zinc-400">
                       Автоматични: {r.autoScore} т.
@@ -591,6 +597,58 @@ export default function TheoryClient() {
                 </button>
                 {expandedReview === r.id && (
                   <div className="space-y-4 border-t border-zinc-100 p-5">
+                    {quizzes
+                      .find((q) => q.id === r.quizId)
+                      ?.questions.filter((q) => q.type === "SINGLE_CHOICE")
+                      .map((q, i) => {
+                        const userAnswer = r.answers?.[q.id];
+                        return (
+                          <div
+                            key={q.id}
+                            className="rounded-xl border border-zinc-200 bg-white p-3"
+                          >
+                            <p className="mb-2 text-xs font-bold text-zinc-800">
+                              {i + 1}. {q.text}
+                            </p>
+                            <div className="space-y-1">
+                              {q.options?.map((opt, optIdx) => {
+                                const isSelected = userAnswer === optIdx;
+                                const isActuallyCorrect =
+                                  q.correctAnswer === optIdx;
+                                let bgClass = "text-zinc-600";
+                                let bgClassCircle = "bg-zinc-200 text-zinc-500";
+                                if (isActuallyCorrect) {
+                                  bgClass =
+                                    "bg-emerald-50 text-emerald-800 font-bold";
+                                  bgClassCircle = "bg-emerald-500 text-white";
+                                } else if (isSelected) {
+                                  bgClass = "bg-red-50 text-red-800";
+                                  bgClassCircle = "bg-red-500 text-white";
+                                }
+                                return (
+                                  <div
+                                    key={optIdx}
+                                    className={`flex items-center gap-2 rounded-lg px-2 py-1 text-xs ${bgClass}`}
+                                  >
+                                    <div
+                                      className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${bgClassCircle}`}
+                                    >
+                                      {["А", "Б", "В"][optIdx] ??
+                                        String(optIdx + 1)}
+                                    </div>
+                                    <span>{opt}</span>
+                                    {isSelected && (
+                                      <span className="ml-auto text-[10px] opacity-70">
+                                        отговор на детето
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
                     {r.tacticalAnswer && (
                       <div className="rounded-xl bg-indigo-50 p-4">
                         <p className="mb-1 text-xs font-bold text-indigo-700 uppercase">
@@ -658,7 +716,14 @@ export default function TheoryClient() {
                 key={r.id}
                 className="overflow-hidden rounded-2xl border-zinc-200"
               >
-                <div className="flex w-full items-center justify-between p-5 text-left transition-all hover:bg-zinc-50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (expandedReview === r.id) setExpandedReview(null);
+                    else setExpandedReview(r.id);
+                  }}
+                  className="flex w-full items-center justify-between p-5 text-left transition-all hover:bg-zinc-50"
+                >
                   <div>
                     <div className="flex items-center gap-2">
                       <Users className="size-4 text-emerald-500" />
@@ -672,31 +737,119 @@ export default function TheoryClient() {
                     <p className="mt-1 text-sm text-zinc-500">
                       {r.quizTitle} •{" "}
                       {r.reviewedAt
-                        ? new Date(r.reviewedAt).toLocaleDateString("bg-BG")
-                        : new Date(r.submittedAt).toLocaleDateString("bg-BG")}
+                        ? new Date(r.reviewedAt).toLocaleString("bg-BG", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : new Date(r.submittedAt).toLocaleString("bg-BG", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                     </p>
                     <p className="mt-0.5 text-xs text-zinc-400">
                       Точки: {r.totalScore} (Авто: {r.autoScore} / Тактика:{" "}
                       {r.manualScore})
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => void handleDeleteResult(r.id)}
-                    className="text-red-400 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-                {r.coachFeedback && (
-                  <div className="border-t border-zinc-100 bg-zinc-50 p-4">
-                    <p className="mb-1 text-xs font-bold text-zinc-500 uppercase">
-                      Рецензия от треньора
-                    </p>
-                    <p className="text-sm text-zinc-700 italic">
-                      &quot;{r.coachFeedback}&quot;
-                    </p>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleDeleteResult(r.id);
+                      }}
+                      className="text-red-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                    {expandedReview === r.id ? (
+                      <ChevronUp className="size-4 text-zinc-400" />
+                    ) : (
+                      <ChevronDown className="size-4 text-zinc-400" />
+                    )}
+                  </div>
+                </button>
+                {expandedReview === r.id && (
+                  <div className="space-y-4 border-t border-zinc-100 p-5">
+                    {quizzes
+                      .find((q) => q.id === r.quizId)
+                      ?.questions.filter((q) => q.type === "SINGLE_CHOICE")
+                      .map((q, i) => {
+                        const userAnswer = r.answers?.[q.id];
+                        return (
+                          <div
+                            key={q.id}
+                            className="rounded-xl border border-zinc-200 bg-white p-3"
+                          >
+                            <p className="mb-2 text-xs font-bold text-zinc-800">
+                              {i + 1}. {q.text}
+                            </p>
+                            <div className="space-y-1">
+                              {q.options?.map((opt, optIdx) => {
+                                const isSelected = userAnswer === optIdx;
+                                const isActuallyCorrect =
+                                  q.correctAnswer === optIdx;
+                                let bgClass = "text-zinc-600";
+                                let bgClassCircle = "bg-zinc-200 text-zinc-500";
+                                if (isActuallyCorrect) {
+                                  bgClass =
+                                    "bg-emerald-50 text-emerald-800 font-bold";
+                                  bgClassCircle = "bg-emerald-500 text-white";
+                                } else if (isSelected) {
+                                  bgClass = "bg-red-50 text-red-800";
+                                  bgClassCircle = "bg-red-500 text-white";
+                                }
+                                return (
+                                  <div
+                                    key={optIdx}
+                                    className={`flex items-center gap-2 rounded-lg px-2 py-1 text-xs ${bgClass}`}
+                                  >
+                                    <div
+                                      className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${bgClassCircle}`}
+                                    >
+                                      {["А", "Б", "В"][optIdx] ??
+                                        String(optIdx + 1)}
+                                    </div>
+                                    <span>{opt}</span>
+                                    {isSelected && (
+                                      <span className="ml-auto text-[10px] opacity-70">
+                                        отговор на детето
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    {r.tacticalAnswer && (
+                      <div className="rounded-xl bg-indigo-50 p-4">
+                        <p className="mb-1 text-xs font-bold text-indigo-700 uppercase">
+                          Тактическа мисия (отговор)
+                        </p>
+                        <p className="text-sm text-zinc-700">
+                          {r.tacticalAnswer}
+                        </p>
+                      </div>
+                    )}
+                    {r.coachFeedback && (
+                      <div className="rounded-xl bg-purple-50 p-4">
+                        <p className="mb-1 text-xs font-bold text-purple-700 uppercase">
+                          Рецензия от треньора
+                        </p>
+                        <p className="text-sm text-purple-800 italic">
+                          &quot;{r.coachFeedback}&quot;
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </Card>
