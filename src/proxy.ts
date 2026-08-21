@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 // Define paths that are public and do not require authentication
-const publicPaths = ["/login", "/api"];
+const publicPaths = ["/login", "/api", "/quiz"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
