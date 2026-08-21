@@ -71,8 +71,11 @@ service cloud.firestore {
       allow read, write: if isAdmin() && collection in ['settings', 'families'];
 
       // 4. Публично четене, писане от админи със SiteId
-      allow read: if collection in ['sessions', 'tournaments'];
-      allow write: if isAdmin() && hasValidSiteId() && collection in ['sessions', 'tournaments'] && hasAccessToSite(request.resource.data.siteId);
+      allow read: if collection in ['sessions', 'tournaments', 'quizzes', 'theory_results'];
+      allow write: if isAdmin() && hasValidSiteId() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results'] && hasAccessToSite(request.resource.data.siteId);
+      
+      // 4.1. Публично обновяване на theory_results (за да могат децата да предават тестовете си)
+      allow update: if collection == 'theory_results';
 
       // 5. Публично четене, писане от админи без SiteId
       allow read: if collection == 'sites';
