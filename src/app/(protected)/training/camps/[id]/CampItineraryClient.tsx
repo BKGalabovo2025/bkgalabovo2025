@@ -51,6 +51,7 @@ import { updateCampSessions } from "@/services/schedule-service";
 import { useAppStore } from "@/store/use-app-store";
 import { CampSession, ScheduleEvent } from "@/types";
 import { Exercise, PlannerSession } from "@/types/planner.types";
+import CreateSessionWizard from "@/app/(protected)/training/planner/create-session-wizard";
 
 const sessionTypeIcons: Record<string, React.ElementType> = {
   training: Dumbbell,
@@ -103,6 +104,8 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPlannerWizardOpen, setIsPlannerWizardOpen] = useState(false);
+  const [plannerSessionToEdit, setPlannerSessionToEdit] = useState<PlannerSession | undefined>(undefined);
 
   // Generate days based on camp dates
   const start = new Date(camp.startDate);
@@ -171,6 +174,15 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
     }
     setExerciseSearch("");
     setIsModalOpen(true);
+  };
+
+  const handleOpenPlannerWizard = (session?: PlannerSession) => {
+    if (session) {
+      setPlannerSessionToEdit(session);
+    } else {
+      setPlannerSessionToEdit(undefined);
+    }
+    setIsPlannerWizardOpen(true);
   };
 
   const handleSaveSession = async () => {
@@ -344,7 +356,8 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
     currentDaysSessions.length > 0 || currentDayPlannerSessions.length > 0;
 
   return (
-    <div className="rounded-xl border bg-white p-6 shadow-sm dark:bg-zinc-950">
+    <>
+      <div className="rounded-xl border bg-white p-6 shadow-sm dark:bg-zinc-950">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
@@ -690,6 +703,15 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                     </div>
                     <div className="flex shrink-0 gap-2">
                       <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenPlannerWizard(ps)}
+                        className="h-8 gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                      >
+                        <Edit size={12} />
+                        Редактирай
+                      </Button>
+                      <Button
                         asChild
                         size="sm"
                         className="h-8 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
@@ -955,5 +977,18 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
         </DialogContent>
       </Dialog>
     </div>
+
+    <CreateSessionWizard
+      open={isPlannerWizardOpen}
+      onOpenChange={setIsPlannerWizardOpen}
+      onSaveSuccess={() => {
+        // Refresh planner sessions after save
+        plannerService.getSessionsByCampId(activeBranch, camp.id).then(setPlannerSessions);
+      }}
+      initialCampId={camp.id}
+      initialDate={selectedDateStr}
+      initialSession={plannerSessionToEdit}
+    />
+    </>
   );
 }

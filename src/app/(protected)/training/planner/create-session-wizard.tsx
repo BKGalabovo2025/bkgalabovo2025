@@ -52,6 +52,7 @@ interface Props {
   initialCampId?: string;
   initialDate?: string;
   initialImportTemplateId?: string;
+  initialSession?: PlannerSession;
 }
 
 type WizardStep = 1 | 2 | 3;
@@ -63,6 +64,7 @@ export default function CreateSessionWizard({
   initialCampId,
   initialDate,
   initialImportTemplateId,
+  initialSession,
 }: Props) {
   const { activeBranch } = useAppStore();
 
@@ -198,15 +200,6 @@ export default function CreateSessionWizard({
 
   useEffect(() => {
     if (open) {
-      setTitle("");
-      setDate(initialDate || new Date().toISOString().slice(0, 10));
-      setMode(initialCampId ? "camp" : "season");
-      setLocation(initialCampId ? "stadium" : "court");
-      setTotalDuration(60);
-      setGroups([{ id: uuidv4(), name: "Всички", memberIds: [] }]);
-      setSearchQuery("");
-      setSelectedCategory("all");
-
       const fetchInitialData = async () => {
         setIsFetching(true);
         try {
@@ -247,42 +240,89 @@ export default function CreateSessionWizard({
             );
           }
 
-          // Import from template if provided
-          if (initialImportTemplateId) {
-            const templates =
-              await plannerService.getTrainingTemplates(activeBranch);
-            const tmpl = templates.find(
-              (t) => t.id === initialImportTemplateId
+          // If editing an existing session, pre-fill all form state
+          if (initialSession) {
+            setTitle(initialSession.title);
+            setDate(initialSession.date);
+            setMode(initialSession.mode);
+            setLocation(initialSession.location);
+            setTotalDuration(
+              initialSession.blocks?.reduce(
+                (acc, b) => acc + b.targetDuration,
+                0
+              ) || 60
             );
-            if (tmpl) {
-              setTitle(tmpl.name);
-              setTotalDuration(tmpl.totalDurationMinutes);
-              // Map template blocks to session blocks, unpacking exercises by ID
-              const mappedBlocks: SessionBlock[] = tmpl.blocks.map((tb) => {
-                const items: SessionBlockItem[] = tb.exercises.map((te) => {
-                  const resolvedExercise = ex.find(
-                    (e) => e.id === te.exerciseId
-                  );
-                  return {
-                    id: uuidv4(),
-                    type: "exercise",
-                    durationMinutes: te.durationMinutes,
-                    exercise: resolvedExercise, // full exercise object reference
-                    targetGroupId: undefined, // Applies to all by default
-                  };
-                });
+            setCoachNotes(initialSession.coachNotes || "");
+            setGroups(
+              initialSession.sessionGroups?.map((g) => ({
+                id: g.id,
+                name: g.name,
+                memberIds: g.memberIds || [],
+              })) || [{ id: uuidv4(), name: "Всички", memberIds: [] }]
+            );
+            setSearchQuery("");
+            setSelectedCategory("all");
 
-                return {
-                  id: tb.phase,
-                  phase: tb.phase,
-                  targetDuration: tb.durationMinutes,
-                  items,
-                };
-              });
+            // Map planner session blocks to wizard blocks
+            if (initialSession.blocks && initialSession.blocks.length > 0) {
+              const mappedBlocks: SessionBlock[] = initialSession.blocks.map(
+                (b) => ({
+                  ...b,
+                  items: b.items.map((item) => ({
+                    ...item,
+                    exercise: item.exercise
+                      ? { ...item.exercise }
+                      : undefined,
+                  }))
+                })
+              );
+              setBlocks(mappedBlocks);
+            } else if (
+              initialSession.groupedExercises &&
+              initialSession.groupedExercises.length > 0
+            ) {
+              // Convert legacy groupedExercises to blocks
+              const mappedBlocks: SessionBlock[] = [
+                "warmup",
+                "main",
+                "cooldown",
+              ].map((phase) => ({
+                id: phase,
+                phase: phase as "warmup" | "main" | "cooldown",
+                targetDuration: 0,
+                items:
+                  initialSession.groupedExercises
+                    ?.find((g) => g.ageGroup === "all")?.exercises.map((ex) => ({
+                      id: uuidv4(),
+                      type: "exercise",
+                      durationMinutes: ex.durationMinutes || 5,
+                      exercise: ex,
+                      targetGroupId: undefined,
+                    })) || [],
+              }));
               setBlocks(mappedBlocks);
             }
+
+            // Calculate total duration from blocks
+            const calculatedDuration =
+              initialSession.blocks?.reduce(
+                (acc, b) => acc + b.targetDuration,
+                0
+              ) || 60;
+            setTotalDuration(calculatedDuration);
+            setCoachNotes(initialSession.coachNotes || "");
+          } else {
+            // Reset to defaults for new session
+            setTitle("");
+            setDate(initialDate || new Date().toISOString().slice(0, 10));
+            setMode(initialCampId ? "camp" : "season");
+            setLocation(initialCampId ? "stadium" : "court");
+            setTotalDuration(60);
+            setGroups([{ id: uuidv4(), name: "Всички", memberIds: [] }]);
+            setSearchQuery("");
+            setSelectedCategory("all");
           }
-        } catch (error) {
+          } catch (error) {
           console.error("Failed to load exercises or template", error);
         } finally {
           setIsFetching(false);
@@ -501,7 +541,14 @@ export default function CreateSessionWizard({
 
       // Strip undefined values to prevent Firebase errors
       const cleanSessionData = JSON.parse(JSON.stringify(sessionData));
-      await plannerService.addSession(activeBranch, cleanSessionData);
+
+      if (initialSession) {
+        // Editing existing session
+        await plannerService.updateSession(initialSession.id, cleanSessionData);
+      } else {
+        // Creating new session
+        await plannerService.addSession(activeBranch, cleanSessionData);
+      }
       onSaveSuccess();
     } catch (error) {
       console.error("Failed to save session", error);
@@ -572,11 +619,14 @@ export default function CreateSessionWizard({
       <DialogContent className="max-h-[90vh] max-w-7xl gap-0 overflow-hidden bg-zinc-50 p-0">
         <DialogHeader className="z-10 flex-shrink-0 border-b border-zinc-200 bg-white p-6">
           <DialogTitle className="text-xl">
-            Конструктор на тренировка (Time-Budget Builder)
+            {initialSession
+              ? "Редактиране на тренировка"
+              : "Конструктор на тренировка (Time-Budget Builder)"}
           </DialogTitle>
           <DialogDescription>
-            Разпределете упражненията и станциите за вашите групи. Времето се
-            разпределя автоматично (10% - 80% - 10%).
+            {initialSession
+              ? `Редактирайте тренировката: ${initialSession.title}`
+              : "Разпределете упражненията и станциите за вашите групи. Времето се разпределя автоматично (10% - 80% - 10%)."}
           </DialogDescription>
         </DialogHeader>
 
