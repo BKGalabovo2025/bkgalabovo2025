@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getSiteConfig } from "@/config/sites";
 import { getAuthUser } from "@/lib/auth-utils";
 import { getAdminStorage } from "@/lib/firebase-admin";
 
@@ -31,6 +32,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: "Missing file or path" },
         { status: 400 }
+      );
+    }
+
+    // Validate that the path belongs to the user's site
+    const adminAuth = (await import("@/lib/firebase-admin")).getAdminAuth();
+    const decodedToken = await adminAuth.verifyIdToken(token);
+    const userSiteId =
+      (decodedToken as { siteId?: string; allowedSites?: string[] }).siteId ||
+      getSiteConfig().id;
+
+    // Allow uploads to avatars/{userId} or sites/{siteId}/ paths
+    const allowedPaths = [
+      `avatars/${decodedToken.uid}`,
+      `sites/${userSiteId}/`,
+    ];
+
+    const isAllowedPath = allowedPaths.some((allowed) =>
+      path.startsWith(allowed)
+    );
+    if (!isAllowedPath) {
+      return NextResponse.json(
+        { success: false, error: "Invalid path for your site" },
+        { status: 403 }
       );
     }
 
@@ -102,6 +126,29 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: "Missing path" },
         { status: 400 }
+      );
+    }
+
+    // Validate that the path belongs to the user's site
+    const adminAuth = (await import("@/lib/firebase-admin")).getAdminAuth();
+    const decodedToken = await adminAuth.verifyIdToken(token);
+    const userSiteId =
+      (decodedToken as { siteId?: string; allowedSites?: string[] }).siteId ||
+      getSiteConfig().id;
+
+    // Allow deletes from avatars/{userId} or sites/{siteId}/ paths
+    const allowedPaths = [
+      `avatars/${decodedToken.uid}`,
+      `sites/${userSiteId}/`,
+    ];
+
+    const isAllowedPath = allowedPaths.some((allowed) =>
+      path.startsWith(allowed)
+    );
+    if (!isAllowedPath) {
+      return NextResponse.json(
+        { success: false, error: "Invalid path for your site" },
+        { status: 403 }
       );
     }
 

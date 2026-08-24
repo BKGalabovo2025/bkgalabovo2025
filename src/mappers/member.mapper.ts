@@ -36,7 +36,7 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
   const dataToParse = {
     ...data,
     id: docSnap.id,
-    siteId: data.siteId || "bkgalabovo", // Fallback for old documents
+    siteId: data.siteId,
     firstName: data.firstName || data.name?.split(" ")[0] || "Неизвестно",
     lastName:
       data.lastName || data.name?.split(" ").slice(1).join(" ") || "Неизвестно",

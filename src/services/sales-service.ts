@@ -50,7 +50,7 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
 
     return {
       id: doc.id,
-      siteId: data.siteId || "default",
+      siteId: data.siteId,
       memberId: data.memberId,
       saleDate: saleDate.toISOString(),
       items: data.items || [],
@@ -178,10 +178,12 @@ export const updateSale = async (
     dataToUpdate.saleDate = Timestamp.fromDate(new Date(data.saleDate));
   }
 
-  // Добавяме siteId към ъпдейта, за да минем през Firestore Security Rules,
-  // в случай че старият документ няма такъв.
-  const activeSiteId = getSiteConfig().id;
-  dataToUpdate.siteId = activeSiteId;
+  // Only set siteId if not already present in the update data
+  // This preserves the original siteId of the sale document
+  if (!dataToUpdate.siteId) {
+    const activeSiteId = getSiteConfig().id;
+    dataToUpdate.siteId = activeSiteId;
+  }
 
   await updateDoc(saleRef, dataToUpdate);
 };

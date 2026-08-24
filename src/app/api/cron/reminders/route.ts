@@ -12,72 +12,91 @@ export async function GET(request: Request) {
   try {
     const adminDb = getAdminDb();
     const now = new Date();
-    // Get all trips that are not completed
-    const tripsSnapshot = await adminDb
-      .collection("business_trips")
-      .where("status", "in", ["draft", "approved"])
-      .get();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tripsToRemind: any[] = [];
+    // Process each site separately for proper tenant isolation
+    const sites = ["bkgalabovo", "recoveryzone"];
+    let totalEmailsSent = 0;
 
-    // Check if the end date has passed
-    for (const doc of tripsSnapshot.docs) {
-      const data = doc.data();
-      if (data.endDate && new Date(data.endDate) < now) {
-        tripsToRemind.push({ id: doc.id, ...data });
-      }
-    }
+    for (const siteId of sites) {
+      console.log(`Processing trip reminders for site: ${siteId}`);
 
-    if (tripsToRemind.length === 0) {
-      return NextResponse.json({ message: "No reminders needed." });
-    }
-
-    const host = request.headers.get("host");
-    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
-    const baseUrl = `${protocol}://${host}`;
-
-    let emailsSent = 0;
-
-    for (const trip of tripsToRemind) {
-      // Get the coach
-      const coachDoc = await adminDb
-        .collection("members")
-        .doc(trip.coachId)
+      // Get all trips that are not completed, filtered by siteId
+      const tripsSnapshot = await adminDb
+        .collection("business_trips")
+        .where("status", "in", ["draft", "approved"])
+        .where("siteId", "==", siteId)
         .get();
-      if (!coachDoc.exists) continue;
 
-      const coachData = coachDoc.data();
-      const email = coachData?.email;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const tripsToRemind: any[] = [];
 
-      if (!email) continue;
-
-      // Call our own /api/send-email endpoint using CRON_SECRET
-      const response = await fetch(`${baseUrl}/api/send-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.CRON_SECRET}`,
-        },
-        body: JSON.stringify({
-          to: email,
-          subject: `Напомняне: Неотчетена командировка "${trip.title}"`,
-          template: "marketing", // Re-using marketing template for custom message
-          data: {
-            memberName: trip.coachName || coachData.name,
-            messageText: `Здравейте, ${trip.coachName || coachData.name}.\n\nНапомняме Ви, че командировката "${trip.title}" до ${trip.destination} е приключила на ${new Date(trip.endDate).toLocaleDateString("bg-BG")}, но все още не е отчетена.\n\nМоля, влезте в системата и качете необходимите документи и разходи, за да приключите командировката.`,
-          },
-        }),
-      });
-
-      if (response.ok) {
-        emailsSent++;
-      } else {
-        console.error("Failed to send email to", email, await response.text());
+      // Check if the end date has passed
+      for (const doc of tripsSnapshot.docs) {
+        const data = doc.data();
+        if (data.endDate && new Date(data.endDate) < now) {
+          tripsToRemind.push({ id: doc.id, ...data });
+        }
       }
+
+      if (tripsToRemind.length === 0) {
+        console.log(`No trip reminders needed for site: ${siteId}`);
+        continue;
+      }
+
+      const host = request.headers.get("host");
+      const protocol =
+        process.env.NODE_ENV === "development" ? "http" : "https";
+      const baseUrl = `${protocol}://${host}`;
+
+      let emailsSent = 0;
+
+      for (const trip of tripsToRemind) {
+        // Get the coach
+        const coachDoc = await adminDb
+          .collection("members")
+          .doc(trip.coachId)
+          .get();
+        if (!coachDoc.exists) continue;
+
+        const coachData = coachDoc.data();
+        const email = coachData?.email;
+
+        if (!email) continue;
+
+        // Call our own /api/send-email endpoint using CRON_SECRET
+        const response = await fetch(`${baseUrl}/api/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.CRON_SECRET}`,
+          },
+          body: JSON.stringify({
+            to: email,
+            subject: `Напомняне: Неотчетена командировка "${trip.title}"`,
+            template: "marketing", // Re-using marketing template for custom message
+            data: {
+              memberName: trip.coachName || coachData.name,
+              messageText: `Здравейте, ${trip.coachName || coachData.name}.\n\nНапомняме Ви, че командировката "${trip.title}" до ${trip.destination} е приключила на ${new Date(trip.endDate).toLocaleDateString("bg-BG")}, но все още не е отчетена.\n\nМоля, влезте в системата и качете необходимите документи и разходи, за да приключите командировката.`,
+            },
+          }),
+        });
+
+        if (response.ok) {
+          emailsSent++;
+        } else {
+          console.error(
+            "Failed to send email to",
+            email,
+            await response.text()
+          );
+        }
+      }
+
+      totalEmailsSent += emailsSent;
+      console.log(`Site ${siteId}: ${emailsSent} trip reminder emails sent`);
     }
 
-    return NextResponse.json({ message: `Reminders sent: ${emailsSent}` });
+    return NextResponse.json({ message: `Reminders sent: ${totalEmailsSent}` });
   } catch (error) {
     console.error("Cron reminders error:", error);
     return NextResponse.json(

@@ -154,20 +154,41 @@ export async function GET(request: Request) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const membersSnap = await adminDb.collection("members").get();
+    // Process each site separately for proper tenant isolation
+    const sites = ["bkgalabovo", "recoveryzone"];
+    let totalProcessedCount = 0;
+    let totalDeactivatedCount = 0;
+    let totalActivatedCount = 0;
 
-    const { deactivatedCount, activatedCount } = await processMembersBatch(
-      adminDb,
-      membersSnap.docs as FirebaseFirestore.QueryDocumentSnapshot[],
-      thirtyDaysAgo,
-      formatDateTime
-    );
+    for (const siteId of sites) {
+      console.log(`Processing member status check for site: ${siteId}`);
+
+      const membersSnap = await adminDb
+        .collection("members")
+        .where("siteId", "==", siteId)
+        .get();
+
+      const { deactivatedCount, activatedCount } = await processMembersBatch(
+        adminDb,
+        membersSnap.docs as FirebaseFirestore.QueryDocumentSnapshot[],
+        thirtyDaysAgo,
+        formatDateTime
+      );
+
+      totalProcessedCount += membersSnap.size;
+      totalDeactivatedCount += deactivatedCount;
+      totalActivatedCount += activatedCount;
+
+      console.log(
+        `Site ${siteId}: ${membersSnap.size} processed, ${deactivatedCount} deactivated, ${activatedCount} activated`
+      );
+    }
 
     return NextResponse.json({
       message: "Автоматичната проверка завърши успешно.",
-      processedCount: membersSnap.size,
-      deactivatedCount,
-      activatedCount,
+      processedCount: totalProcessedCount,
+      deactivatedCount: totalDeactivatedCount,
+      activatedCount: totalActivatedCount,
     });
   } catch (error: unknown) {
     console.error("Cron Error:", error);

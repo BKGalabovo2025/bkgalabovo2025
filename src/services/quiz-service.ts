@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 
+import { getSiteConfig } from "@/config/sites";
 import { db } from "@/lib/firebase";
 import { DEFAULT_QUIZZES } from "@/lib/quizzes-data";
 import type {
@@ -156,9 +157,11 @@ export const quizService = {
   },
 
   async getResultByToken(token: string): Promise<TheoryResult | null> {
+    const siteId = getSiteConfig().id;
     const q = query(
       collection(db, THEORY_RESULTS_COLLECTION),
-      where("shareToken", "==", token)
+      where("shareToken", "==", token),
+      where("siteId", "==", siteId)
     );
     const snapshot = await getDocs(q);
     if (snapshot.empty) return null;

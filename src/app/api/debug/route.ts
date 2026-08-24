@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 interface DebugReservation {
@@ -11,8 +12,23 @@ interface DebugReservation {
   packageGroupId?: string;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Require admin authorization
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const token = authHeader.substring(7);
+    try {
+      await ensureAdmin(token);
+    } catch {
+      return NextResponse.json(
+        { error: "Forbidden: Admin access required" },
+        { status: 403 }
+      );
+    }
+
     const db = getAdminDb();
     const snap = await db.collection("reservations").get();
     const res = snap.docs

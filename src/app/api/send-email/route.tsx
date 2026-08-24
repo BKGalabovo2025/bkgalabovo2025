@@ -31,6 +31,46 @@ type EmailTemplateData = {
   marketing: MarketingEmailProps;
 };
 
+// Define Zod schemas for each template's data
+const ReminderEmailDataSchema = z.object({
+  memberName: z.string().optional(),
+});
+
+const ReservationConfirmationEmailDataSchema = z.object({
+  clientName: z.string().min(1),
+  startTime: z.string().datetime(),
+  endTime: z.string().datetime(),
+  courtId: z.string().min(1),
+  baseUrl: z.string().url().optional(),
+  isRecoveryZone: z.boolean().optional(),
+});
+
+const DeactivatedEmailDataSchema = z.object({
+  memberName: z.string().optional(),
+});
+
+const MarketingEmailDataSchema = z.object({
+  memberName: z.string().optional(),
+  messageText: z.string().min(1),
+});
+
+// Discriminated union for template-specific data validation
+const EmailDataSchema = z.discriminatedUnion("template", [
+  z.object({ template: z.literal("reminder"), data: ReminderEmailDataSchema }),
+  z.object({
+    template: z.literal("reservationConfirmation"),
+    data: ReservationConfirmationEmailDataSchema,
+  }),
+  z.object({
+    template: z.literal("deactivated"),
+    data: DeactivatedEmailDataSchema,
+  }),
+  z.object({
+    template: z.literal("marketing"),
+    data: MarketingEmailDataSchema,
+  }),
+]);
+
 // A mapping of template names to their components and text generators
 const templates = {
   reminder: {
@@ -87,7 +127,7 @@ const EmailSchema = z.object({
     "deactivated",
     "marketing",
   ]),
-  data: z.record(z.string(), z.any()), // Keep z.any() here for validation flexibility, but we will use the typed data below
+  data: z.record(z.string(), z.any()), // Validated separately via EmailDataSchema
   attachments: z
     .array(
       z.object({
@@ -123,7 +163,8 @@ async function renderEmailTemplate<T extends keyof EmailTemplateData>(
     html = await render(<MarketingEmail {...props} />);
     text = templates.marketing.getText(props);
   } else {
-    throw new Error(`Unknown email template: ${template}`);
+    const _exhaustive: never = template;
+    throw new Error(`Unknown email template: ${String(_exhaustive)}`);
   }
 
   return { html, text };
@@ -145,16 +186,37 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const result = EmailSchema.safeParse(body);
 
-    if (!result.success) {
+    // First validate the base schema
+    const baseResult = EmailSchema.safeParse(body);
+
+    if (!baseResult.success) {
       return NextResponse.json(
-        { error: "Невалидни данни за имейл", details: result.error.flatten() },
+        {
+          error: "Невалидни данни за имейл",
+          details: baseResult.error.flatten(),
+        },
         { status: 400 }
       );
     }
 
-    const { to, subject, template, data, attachments } = result.data;
+    // Then validate template-specific data using discriminated union
+    const dataResult = EmailDataSchema.safeParse({
+      template: baseResult.data.template,
+      data: baseResult.data.data,
+    });
+
+    if (!dataResult.success) {
+      return NextResponse.json(
+        {
+          error: "Невалидни данни за шаблона на имейла",
+          details: dataResult.error.flatten(),
+        },
+        { status: 400 }
+      );
+    }
+
+    const { to, subject, template, data, attachments } = baseResult.data;
 
     console.log(
       `[send-email] Received request for: ${to}, template: ${template}`

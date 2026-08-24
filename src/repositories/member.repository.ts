@@ -9,6 +9,7 @@ import {
   orderBy,
   query,
   updateDoc,
+  where,
 } from "firebase/firestore";
 
 import {
@@ -29,9 +30,18 @@ export const fetchMemberById = async (id: string): Promise<Member | null> => {
 
 /**
  * Fetches all members from Firestore, sorted by lastName.
+ * @param siteId - Optional siteId to filter by (uses active site config if not provided)
  */
-export const fetchAllMembers = async (): Promise<Member[]> => {
-  const q = query(getMembersQuery(), orderBy("lastName", "asc"), limit(1000));
+export const fetchAllMembers = async (siteId?: string): Promise<Member[]> => {
+  const membersCollection = getMembersCollection();
+  const q = siteId
+    ? query(
+        membersCollection,
+        where("siteId", "==", siteId),
+        orderBy("lastName", "asc"),
+        limit(1000)
+      )
+    : query(getMembersQuery(), orderBy("lastName", "asc"), limit(1000));
 
   const querySnapshot = await getDocs(q);
 

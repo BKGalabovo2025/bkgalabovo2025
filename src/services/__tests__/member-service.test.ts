@@ -101,7 +101,7 @@ describe("member-service", () => {
       expect(result?.skillLevel).toBeNull();
     });
 
-    it("should fallback missing names and siteId to defaults", () => {
+    it("should return null for member without siteId (enforced by schema)", () => {
       const data = {
         status: "active",
       };
@@ -109,9 +109,8 @@ describe("member-service", () => {
       const doc = mockDoc("member3", data);
       const result = docToMember(doc);
 
-      expect(result).not.toBeNull();
-      expect(result?.firstName).toBe("Неизвестно");
-      expect(result?.siteId).toBe("bkgalabovo");
+      // Without siteId, Zod validation fails and returns null
+      expect(result).toBeNull();
     });
 
     it("should return null for invalid data that cannot be recovered", () => {

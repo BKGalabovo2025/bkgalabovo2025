@@ -18,135 +18,124 @@ export async function POST(request: Request) {
   }
 
   try {
-    console.log("STEP 1: Fetching overdue members...");
-    const overdueMembers = await getOverdueMembers();
+    // Process reminders for both sites
+    const sites = ["bkgalabovo", "recoveryzone"];
+    let totalSentCount = 0;
+    let totalFailedCount = 0;
 
-    console.log(`STEP 2: Found ${overdueMembers.length} overdue members.`);
-    if (overdueMembers.length > 0) {
+    for (const siteId of sites) {
+      console.log(`Processing reminders for site: ${siteId}`);
+      const overdueMembers = await getOverdueMembers(siteId);
+
       console.log(
-        "Overdue members list:",
-        JSON.stringify(
-          overdueMembers.map((m) => ({
-            id: m.id,
-            name: `${m.firstName} ${m.lastName}`,
-            email: m.email,
-          })),
-          null,
-          2
-        )
+        `Found ${overdueMembers.length} overdue members for ${siteId}.`
       );
-    }
 
-    if (overdueMembers.length === 0) {
-      console.log(
-        "EXITING: No overdue members found. Process finished successfully."
-      );
-      return NextResponse.json(
-        { message: "Няма членове с просрочени задължения." },
-        { status: 200 }
-      );
-    }
-
-    console.log(
-      `STEP 3: Proceeding to dispatch email requests for ${overdueMembers.length} members.`
-    );
-
-    const host = request.headers.get("host");
-    const protocol = request.headers.get("x-forwarded-proto") || "http";
-    const baseUrl = `${protocol}://${host}`;
-
-    let sentCount = 0;
-    let failedCount = 0;
-
-    const dispatchEmail = async (
-      member: {
-        id: string;
-        email?: string | null;
-        firstName?: string;
-        lastName?: string;
-      },
-      memberName: string
-    ) => {
-      if (!member.email) {
-        console.log(
-          `SKIPPING: Member ${memberName} (ID: ${member.id}) has no email address.`
-        );
-        return;
+      if (overdueMembers.length === 0) {
+        continue;
       }
 
-      try {
-        console.log(
-          `Attempting to dispatch email request for ${memberName} (${member.email}) via internal API...`
-        );
+      const host = request.headers.get("host");
+      const protocol = request.headers.get("x-forwarded-proto") || "http";
+      const baseUrl = `${protocol}://${host}`;
 
-        const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.CRON_SECRET}`,
-          },
-          body: JSON.stringify({
-            to: member.email,
-            subject: "Напомняне за просрочено плащане",
-            template: "reminder",
-            data: { memberName },
-          }),
-        });
+      let sentCount = 0;
+      let failedCount = 0;
 
-        if (!emailResponse.ok) {
-          const errorBody = await emailResponse.json().catch(() => ({
-            error: "Could not parse error response from /api/send-email",
-          }));
-          const errorMessage =
-            errorBody.error ||
-            `Internal API /api/send-email failed with status ${emailResponse.status}`;
-          throw new Error(errorMessage);
+      const dispatchEmail = async (
+        member: {
+          id: string;
+          email?: string | null;
+          firstName?: string;
+          lastName?: string;
+        },
+        memberName: string
+      ) => {
+        if (!member.email) {
+          console.log(
+            `SKIPPING: Member ${memberName} (ID: ${member.id}) has no email address.`
+          );
+          return;
         }
 
-        console.log(
-          `SUCCESS: Email request for ${memberName} (${member.email}) was accepted by the email API.`
-        );
-        sentCount++;
-      } catch (emailError) {
-        if (emailError instanceof Error) {
-          console.error(
-            "FAILURE: Failed to dispatch email for %s. Reason:",
-            memberName,
-            emailError.message
+        try {
+          console.log(
+            `Attempting to dispatch email request for ${memberName} (${member.email}) via internal API...`
           );
-        } else {
-          console.error(
-            "FAILURE: An unknown error occurred while dispatching email for %s.",
-            memberName
+
+          const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.CRON_SECRET}`,
+            },
+            body: JSON.stringify({
+              to: member.email,
+              subject: "Напомняне за просрочено плащане",
+              template: "reminder",
+              data: { memberName },
+            }),
+          });
+
+          if (!emailResponse.ok) {
+            const errorBody = await emailResponse.json().catch(() => ({
+              error: "Could not parse error response from /api/send-email",
+            }));
+            const errorMessage =
+              errorBody.error ||
+              `Internal API /api/send-email failed with status ${emailResponse.status}`;
+            throw new Error(errorMessage);
+          }
+
+          console.log(
+            `SUCCESS: Email request for ${memberName} (${member.email}) was accepted by the email API.`
           );
+          sentCount++;
+        } catch (emailError) {
+          if (emailError instanceof Error) {
+            console.error(
+              "FAILURE: Failed to dispatch email for %s. Reason:",
+              memberName,
+              emailError.message
+            );
+          } else {
+            console.error(
+              "FAILURE: An unknown error occurred while dispatching email for %s.",
+              memberName
+            );
+          }
+          failedCount++;
         }
-        failedCount++;
+      };
+
+      for (const member of overdueMembers) {
+        const memberName = `${member.firstName} ${member.lastName}`.trim();
+        await dispatchEmail(member, memberName);
       }
-    };
 
-    for (const member of overdueMembers) {
-      const memberName = `${member.firstName} ${member.lastName}`.trim();
-      await dispatchEmail(member, memberName);
+      totalSentCount += sentCount;
+      totalFailedCount += failedCount;
+      console.log(`Site ${siteId}: ${sentCount} sent, ${failedCount} failed`);
     }
 
     console.log("--- API /api/send-reminders FINISHED. ---");
     console.log(
-      `Summary: ${sentCount} email requests accepted, ${failedCount} failed.`
+      `Total: ${totalSentCount} email requests accepted, ${totalFailedCount} failed.`
     );
 
-    if (failedCount > 0) {
+    if (totalFailedCount > 0) {
       return NextResponse.json(
         {
-          message: `Процесът завърши. Успешни заявки: ${sentCount}, Неуспешни: ${failedCount}. Проверете логовете на сървъра за повече детайли.`,
-          sentCount: sentCount,
-          failedCount: failedCount,
+          message: `Процесът завърши. Успешни заявки: ${totalSentCount}, Неуспешни: ${totalFailedCount}. Проверете логовете на сървъра за повече детайли.`,
+          sentCount: totalSentCount,
+          failedCount: totalFailedCount,
         },
         { status: 207 }
       ); // 207 Multi-Status
     } else {
       return NextResponse.json(
         {
-          message: `Заявките за напомнящи имейли бяха изпратени успешно за ${sentCount} членове.`,
+          message: `Заявките за напомнящи имейли бяха изпратени успешно за ${totalSentCount} членове.`,
         },
         { status: 200 }
       );

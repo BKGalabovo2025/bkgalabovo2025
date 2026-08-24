@@ -34,12 +34,15 @@ export const getMemberById = async (id: string): Promise<Member | null> => {
 
 /**
  * Fetches all members with a simple in-memory cache.
+ * @param forceRefetch - Force refetch from database
+ * @param siteId - Optional siteId to use instead of active branch (for SSR/server contexts)
  */
 export const getAllMembers = async (
-  forceRefetch = false
+  forceRefetch = false,
+  siteId?: string
 ): Promise<Member[]> => {
   const now = Date.now();
-  const currentSiteId = getSiteConfig().id;
+  const currentSiteId = siteId || getSiteConfig().id;
 
   // Return cached data if available, not expired, and matches the current site
   if (
@@ -51,7 +54,7 @@ export const getAllMembers = async (
     return membersCache;
   }
 
-  const members = await fetchAllMembers();
+  const members = await fetchAllMembers(currentSiteId);
 
   // Update cache
   membersCache = members;

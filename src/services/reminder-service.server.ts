@@ -11,9 +11,10 @@ import { Member, Sale } from "@/types";
 /**
  * Finds members with overdue payments (unpaid sales) by fetching fresh data from the database.
  * THIS FUNCTION IS FOR SERVER-SIDE USE ONLY.
+ * @param siteId - The site ID to filter members by (required for multi-tenant isolation)
  * @returns A promise that resolves to an array of members with overdue payments.
  */
-export const getOverdueMembers = async (): Promise<Member[]> => {
+export const getOverdueMembers = async (siteId: string): Promise<Member[]> => {
   try {
     const adminDb = getAdminDb();
     const membersCollectionRef = adminDb.collection(
@@ -22,8 +23,11 @@ export const getOverdueMembers = async (): Promise<Member[]> => {
     const salesCollectionRef = adminDb.collection(getSalesCollection().path);
 
     const [membersSnapshot, salesSnapshot] = await Promise.all([
-      membersCollectionRef.where("status", "==", "active").get(),
-      salesCollectionRef.get(),
+      membersCollectionRef
+        .where("status", "==", "active")
+        .where("siteId", "==", siteId)
+        .get(),
+      salesCollectionRef.where("siteId", "==", siteId).get(),
     ]);
 
     const activeMembers = membersSnapshot.docs.map((doc) => ({
