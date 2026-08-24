@@ -100,10 +100,9 @@ export default function CampPublicClient({
     dayIndex++;
   }
 
-  const defaultDate =
-    initialDate && days.find((d) => d.dateStr === initialDate)
-      ? initialDate
-      : days[0]?.dateStr || format(new Date(), "yyyy-MM-dd");
+  const defaultDate = initialDate
+    ? initialDate
+    : days[0]?.dateStr || format(new Date(), "yyyy-MM-dd");
 
   const [selectedDateStr, setSelectedDateStr] = useState<string>(defaultDate);
 
