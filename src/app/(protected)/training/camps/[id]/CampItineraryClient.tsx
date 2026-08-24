@@ -24,34 +24,21 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import CreateSessionWizard from "@/app/(protected)/training/planner/create-session-wizard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { plannerService } from "@/services/planner-service";
 import { updateCampSessions } from "@/services/schedule-service";
 import { useAppStore } from "@/store/use-app-store";
 import { CampSession, ScheduleEvent } from "@/types";
 import { Exercise, PlannerSession } from "@/types/planner.types";
-import CreateSessionWizard from "@/app/(protected)/training/planner/create-session-wizard";
 
 const sessionTypeIcons: Record<string, React.ElementType> = {
   training: Dumbbell,
@@ -706,7 +693,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleOpenPlannerWizard(ps)}
-                        className="h-8 gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                        className="h-8 gap-1.5 text-xs text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
                       >
                         <Edit size={12} />
                         Редактирай

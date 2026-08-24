@@ -6,7 +6,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { AlertTriangle, Loader2, Plus, Search, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback,useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +56,7 @@ interface Props {
 }
 
 type WizardStep = 1 | 2 | 3;
+type SessionPhase = "warmup" | "main" | "cooldown";
 
 export default function CreateSessionWizard({
   open,
@@ -128,7 +129,7 @@ export default function CreateSessionWizard({
       block.items = newItems;
     });
     setBlocks(newBlocks);
-  };
+  }
 
   const toggleRainyDay = () => {
     const nextState = !isRainyDay;
@@ -151,7 +152,7 @@ export default function CreateSessionWizard({
                 ...item.exercise,
                 name: "🌧️ (Резерва) Вътрешна ОФП / Мобилност",
                 location: ["court"],
-              };
+              }
             }
           }
         });
@@ -159,7 +160,7 @@ export default function CreateSessionWizard({
       setBlocks(newBlocks);
       setLocation("court");
     }
-  };
+  }
   // --------------------------
 
   // Library
@@ -198,139 +199,176 @@ export default function CreateSessionWizard({
     }
   }, [totalKids, stationRotations.length]);
 
-  useEffect(() => {
-    if (open) {
-      const fetchInitialData = async () => {
-        setIsFetching(true);
-        try {
-          const [ex, inv] = await Promise.all([
-            plannerService.getExercises(activeBranch),
-            inventoryService.getInventory(activeBranch),
-          ]);
-          setAllExercises(ex);
-          setGlobalInventory(inv);
+  // Helper: Load exercises and inventory
+  const loadParticipants = async () => {
+    const [ex, inv] = await Promise.all([
+      plannerService.getExercises(activeBranch),
+      inventoryService.getInventory(activeBranch),
+    ]);
+    setAllExercises(ex);
+    setGlobalInventory(inv);
 
-          // By default, select all global inventory for this session
-          const initialSessInv: Record<string, number> = {};
-          inv.forEach((i) => {
-            initialSessInv[i.id] = i.totalQuantity;
-          });
-          setSessionInventory(initialSessInv);
+    // By default, select all global inventory for this session
+    const initialSessInv: Record<string, number> = {};
+    inv.forEach((i) => {
+      initialSessInv[i.id] = i.totalQuantity;
+    });
+    setSessionInventory(initialSessInv);
+  };
 
-          // Fetch participants based on mode
-          if (initialCampId) {
-            const campEvent = await getEventById(initialCampId);
-            if (campEvent && campEvent.attendees) {
-              setAvailableParticipants(
-                campEvent.attendees.map((a) => ({
-                  id: a.memberId,
-                  name: a.name,
-                }))
-              );
-            }
-          } else {
-            const allMembers = await getAllMembers();
-            setAvailableParticipants(
-              allMembers
-                .filter((m) => m.status === "active")
-                .map((m) => ({
-                  id: m.id,
-                  name: `${m.firstName} ${m.lastName}`,
-                }))
-            );
-          }
-
-          // If editing an existing session, pre-fill all form state
-          if (initialSession) {
-            setTitle(initialSession.title);
-            setDate(initialSession.date);
-            setMode(initialSession.mode);
-            setLocation(initialSession.location);
-            setTotalDuration(
-              initialSession.blocks?.reduce(
-                (acc, b) => acc + b.targetDuration,
-                0
-              ) || 60
-            );
-            setCoachNotes(initialSession.coachNotes || "");
-            setGroups(
-              initialSession.sessionGroups?.map((g) => ({
-                id: g.id,
-                name: g.name,
-                memberIds: g.memberIds || [],
-              })) || [{ id: uuidv4(), name: "Всички", memberIds: [] }]
-            );
-            setSearchQuery("");
-            setSelectedCategory("all");
-
-            // Map planner session blocks to wizard blocks
-            if (initialSession.blocks && initialSession.blocks.length > 0) {
-              const mappedBlocks: SessionBlock[] = initialSession.blocks.map(
-                (b) => ({
-                  ...b,
-                  items: b.items.map((item) => ({
-                    ...item,
-                    exercise: item.exercise
-                      ? { ...item.exercise }
-                      : undefined,
-                  }))
-                })
-              );
-              setBlocks(mappedBlocks);
-            } else if (
-              initialSession.groupedExercises &&
-              initialSession.groupedExercises.length > 0
-            ) {
-              // Convert legacy groupedExercises to blocks
-              const mappedBlocks: SessionBlock[] = [
-                "warmup",
-                "main",
-                "cooldown",
-              ].map((phase) => ({
-                id: phase,
-                phase: phase as "warmup" | "main" | "cooldown",
-                targetDuration: 0,
-                items:
-                  initialSession.groupedExercises
-                    ?.find((g) => g.ageGroup === "all")?.exercises.map((ex) => ({
-                      id: uuidv4(),
-                      type: "exercise",
-                      durationMinutes: ex.durationMinutes || 5,
-                      exercise: ex,
-                      targetGroupId: undefined,
-                    })) || [],
-              }));
-              setBlocks(mappedBlocks);
-            }
-
-            // Calculate total duration from blocks
-            const calculatedDuration =
-              initialSession.blocks?.reduce(
-                (acc, b) => acc + b.targetDuration,
-                0
-              ) || 60;
-            setTotalDuration(calculatedDuration);
-            setCoachNotes(initialSession.coachNotes || "");
-          } else {
-            // Reset to defaults for new session
-            setTitle("");
-            setDate(initialDate || new Date().toISOString().slice(0, 10));
-            setMode(initialCampId ? "camp" : "season");
-            setLocation(initialCampId ? "stadium" : "court");
-            setTotalDuration(60);
-            setGroups([{ id: uuidv4(), name: "Всички", memberIds: [] }]);
-            setSearchQuery("");
-            setSelectedCategory("all");
-          }
-          } catch (error) {
-          console.error("Failed to load exercises or template", error);
-        } finally {
-          setIsFetching(false);
-        }
-      };
-      fetchInitialData();
+  // Helper: Load participants based on mode
+  const loadExercisesAndInventory = async () => {
+    if (initialCampId) {
+      const campEvent = await getEventById(initialCampId);
+      if (campEvent && campEvent.attendees) {
+        setAvailableParticipants(
+          campEvent.attendees.map((a) => ({
+            id: a.memberId,
+            name: a.name,
+          }))
+        );
+      }
+    } else {
+      const allMembers = await getAllMembers();
+      setAvailableParticipants(
+        allMembers
+          .filter((m) => m.status === "active")
+          .map((m) => ({
+            id: m.id,
+            name: `${m.firstName} ${m.lastName}`,
+          }))
+      );
     }
-  }, [open, activeBranch, initialCampId, initialDate, initialImportTemplateId]);
+  };
+
+  // Helper: Pre-fill form from initialSession
+  const prefillFromSession = useCallback(
+    (session: PlannerSession) => {
+      setTitle(session.title);
+      setDate(session.date);
+      setMode(session.mode);
+      setLocation(session.location);
+      setTotalDuration(
+        session.blocks?.reduce((acc, b) => acc + b.targetDuration, 0) || 60
+      );
+      setCoachNotes(session.coachNotes || "");
+      setGroups(
+        session.sessionGroups?.map((g) => ({
+          id: g.id,
+          name: g.name,
+          memberIds: g.memberIds || [],
+        })) || [{ id: uuidv4(), name: "Всички", memberIds: [] }]
+      );
+      setSearchQuery("");
+      setSelectedCategory("all");
+
+      // Map planner session blocks to wizard blocks
+      if (session.blocks && session.blocks.length > 0) {
+        const mappedBlocks: SessionBlock[] = session.blocks.map((b) => ({
+          ...b,
+          items: b.items.map((item) => ({
+            ...item,
+            exercise: item.exercise ? { ...item.exercise } : undefined,
+          }))
+        }));
+        setBlocks(mappedBlocks);
+      } else if (session.groupedExercises && session.groupedExercises.length > 0) {
+        // Convert legacy groupedExercises to blocks
+        const mappedBlocks: SessionBlock[] = [
+          "warmup",
+          "main",
+          "cooldown",
+        ].map((phase) => ({
+          id: phase,
+          phase: phase as SessionPhase,
+          targetDuration: 0,
+          items:
+            session.groupedExercises
+              ?.find((g) => g.ageGroup === "all")?.exercises.map((ex) => ({
+                id: uuidv4(),
+                type: "exercise",
+                durationMinutes: ex.durationMinutes || 5,
+                exercise: ex,
+                targetGroupId: undefined,
+              })) || [],
+        }));
+        setBlocks(mappedBlocks);
+      }
+
+      // Calculate total duration from blocks
+      const calculatedDuration =
+        session.blocks?.reduce((acc, b) => acc + b.targetDuration, 0) || 60;
+      setTotalDuration(calculatedDuration);
+      setCoachNotes(session.coachNotes || "");
+    },
+    []
+  );
+
+  // Helper: Reset form to defaults
+  const resetForm = () => {
+    setTitle("");
+    setDate(initialDate || new Date().toISOString().slice(0, 10));
+    setMode(initialCampId ? "camp" : "season");
+    setLocation(initialCampId ? "stadium" : "court");
+    setTotalDuration(60);
+    setGroups([{ id: uuidv4(), name: "Всички", memberIds: [] }]);
+    setSearchQuery("");
+setSelectedCategory("all");
+  };
+
+  // Initialize session data when dialog opens
+  useEffect(() => {
+    if (!open) return;
+
+    const initialize = async () => {
+      setIsFetching(true);
+      try {
+        await loadExercisesAndInventory();
+        await loadParticipants();
+
+        if (initialImportTemplateId) {
+          const templates = await plannerService.getTrainingTemplates(activeBranch);
+          const tmpl = templates.find((t) => t.id === initialImportTemplateId);
+          if (tmpl) {
+            setTitle(tmpl.name);
+            setTotalDuration(tmpl.totalDurationMinutes);
+
+            const mappedBlocks: SessionBlock[] = tmpl.blocks.map((tb) => {
+              const items: SessionBlockItem[] = tb.exercises.map((te) => {
+                const resolvedExercise = allExercises.find((e) => e.id === te.exerciseId);
+                return {
+                  id: uuidv4(),
+                  type: "exercise",
+                  durationMinutes: te.durationMinutes,
+                  exercise: resolvedExercise,
+                  targetGroupId: undefined,
+                }
+              });
+
+              return {
+                id: tb.phase,
+                phase: tb.phase,
+                targetDuration: tb.durationMinutes,
+                items,
+              }
+            });
+            setBlocks(mappedBlocks);
+          }
+        }
+
+        if (initialSession) {
+          prefillFromSession(initialSession);
+        } else {
+          resetForm();
+        }
+      } catch (error) {
+        console.error("Failed to load exercises or template", error);
+      } finally {
+        setIsFetching(false);
+      }
+    }
+    initialize();
+  }, [open, activeBranch, initialCampId, initialDate, initialImportTemplateId, initialSession, loadExercisesAndInventory, loadParticipants, prefillFromSession, resetForm, allExercises]);
 
   // Recalculate block target durations when total duration changes
   useEffect(() => {
@@ -376,11 +414,11 @@ export default function CreateSessionWizard({
       ]);
       setNewGroupName("");
     }
-  };
+  }
 
   const removeGroup = (id: string) => {
     setGroups(groups.filter((g) => g.id !== id));
-  };
+  }
 
   const toggleParticipantInGroup = (groupId: string, participantId: string) => {
     setGroups(
@@ -392,12 +430,12 @@ export default function CreateSessionWizard({
             memberIds: hasMember
               ? g.memberIds.filter((id) => id !== participantId)
               : [...g.memberIds, participantId],
-          };
+          }
         }
         return g;
       })
     );
-  };
+  }
 
   const addExerciseToBlock = (phase: StationPhaseType, exercise: Exercise) => {
     setBlocks((prev) =>
@@ -415,12 +453,12 @@ export default function CreateSessionWizard({
                 targetGroupId: groups.length === 1 ? groups[0].id : undefined, // Assign to first if only one
               },
             ],
-          };
+          }
         }
         return block;
       })
     );
-  };
+  }
 
   const removeItem = (phase: StationPhaseType, itemId: string) => {
     setBlocks((prev) =>
@@ -429,12 +467,12 @@ export default function CreateSessionWizard({
           return {
             ...block,
             items: block.items.filter((item) => item.id !== itemId),
-          };
+          }
         }
         return block;
       })
     );
-  };
+  }
 
   const updateItemDuration = (
     phase: "warmup" | "main" | "cooldown",
@@ -451,12 +489,12 @@ export default function CreateSessionWizard({
                 ? { ...item, durationMinutes: newDuration }
                 : item
             ),
-          };
+          }
         }
         return block;
       })
     );
-  };
+  }
 
   const updateItemTargetGroup = (
     phase: "warmup" | "main" | "cooldown",
@@ -476,12 +514,12 @@ export default function CreateSessionWizard({
                   }
                 : item
             ),
-          };
+          }
         }
         return block;
       })
     );
-  };
+  }
 
   const saveStation = () => {
     if (stationRotations.length === 0) return;
@@ -493,7 +531,7 @@ export default function CreateSessionWizard({
         return {
           groupId: r.groupId,
           exercise: ex!,
-        };
+        }
       })
       .filter((r) => r.exercise !== undefined);
 
@@ -502,7 +540,7 @@ export default function CreateSessionWizard({
       type: "station",
       durationMinutes: stationDuration,
       rotations,
-    };
+    }
 
     setBlocks((prev) =>
       prev.map((b) => {
@@ -513,7 +551,7 @@ export default function CreateSessionWizard({
       })
     );
     setShowStationModal(false);
-  };
+  }
 
   const handleSave = async () => {
     if (!title) {
@@ -537,7 +575,7 @@ export default function CreateSessionWizard({
         blocks,
         targetGroups: groups.map((g) => g.name),
         sessionGroups: groups,
-      };
+      }
 
       // Strip undefined values to prevent Firebase errors
       const cleanSessionData = JSON.parse(JSON.stringify(sessionData));
@@ -556,7 +594,7 @@ export default function CreateSessionWizard({
     } finally {
       setIsSaving(false);
     }
-  };
+  }
 
   const filteredExercises = allExercises.filter((ex) => {
     // 1. Category filter
@@ -595,7 +633,7 @@ export default function CreateSessionWizard({
     if (phase === "warmup") return "Загрявка";
     if (phase === "main") return "Основна част";
     return "Разпускане (Cooldown)";
-  };
+  }
 
   const getCategoryCount = (cat: string) => {
     if (cat === "all") return allExercises.length;
@@ -612,7 +650,7 @@ export default function CreateSessionWizard({
           ex.name.toLowerCase().includes("мулти-шатъл")
       ).length;
     return allExercises.filter((ex) => ex.category === cat).length;
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
