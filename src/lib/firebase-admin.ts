@@ -161,4 +161,19 @@ const getAdminStorage = () => {
   return adminStorage;
 };
 
+export const getSiteIdForCamp = async (
+  campId: string
+): Promise<string | null> => {
+  try {
+    const adminDb = getAdminDb();
+    const doc = await adminDb.collection("events").doc(campId).get();
+    if (!doc.exists) return null;
+    const data = doc.data() || {};
+    return typeof data.siteId === "string" ? data.siteId : null;
+  } catch (err) {
+    console.warn("Failed to get siteId for camp:", err);
+    return null;
+  }
+};
+
 export { getAdminAuth, getAdminDb, getAdminStorage };

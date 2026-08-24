@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { getSiteIdForCamp } from "@/lib/firebase-admin";
 import { CampSession } from "@/types";
 
 import CampPublicClient from "./CampPublicClient";
@@ -128,6 +129,61 @@ export default async function CampPublicPage({
       return String(val);
     };
 
+    // Convert planner sessions to CampSession format
+    const convertPlannerSession = (
+      ps: Record<string, unknown>
+    ): CampSession => {
+      const blocks = Array.isArray(ps.blocks) ? ps.blocks : [];
+      const sessionGroups = Array.isArray(ps.sessionGroups)
+        ? ps.sessionGroups
+        : [];
+      return {
+        id: typeof ps.id === "string" ? ps.id : "",
+        date: normalizeDate(ps.date),
+        type: (["training", "meal", "leisure", "travel", "other"].includes(
+          ps.type as string
+        )
+          ? ps.type
+          : "training") as CampSession["type"],
+        title: typeof ps.title === "string" ? ps.title : "",
+        startTime:
+          blocks.length > 0 && typeof blocks[0].startTime === "string"
+            ? blocks[0].startTime
+            : "09:00",
+        endTime:
+          blocks.length > 0 &&
+          typeof blocks[blocks.length - 1].endTime === "string"
+            ? blocks[blocks.length - 1].endTime
+            : "11:00",
+        exercises: [],
+        groups: sessionGroups.map((g: Record<string, unknown>) => ({
+          id: typeof g.id === "string" ? g.id : "",
+          name: typeof g.name === "string" ? g.name : "",
+          memberIds: Array.isArray(g.memberIds) ? g.memberIds : [],
+        })),
+        description:
+          typeof ps.description === "string" ? ps.description : undefined,
+      };
+    };
+
+    // Fetch planner sessions for this camp
+    let plannerSessions: CampSession[] = [];
+    try {
+      const siteId = await getSiteIdForCamp(id);
+      if (siteId) {
+        const plannerSnap = await adminDb
+          .collection("planner_sessions")
+          .where("siteId", "==", siteId)
+          .where("campId", "==", id)
+          .get();
+        plannerSessions = plannerSnap.docs.map((doc) =>
+          convertPlannerSession({ ...doc.data(), id: doc.id })
+        );
+      }
+    } catch (err) {
+      console.warn("Failed to fetch planner sessions for camp:", err);
+    }
+
     const campSessions: CampSession[] = rawSessions.map(
       (s: Record<string, unknown>) => ({
         id: typeof s.id === "string" ? s.id : "",
@@ -161,13 +217,16 @@ export default async function CampPublicPage({
       })
     );
 
+    // Merge camp sessions with planner sessions
+    const allSessions = [...campSessions, ...plannerSessions];
+
     campData = {
       id: doc.id,
       title: typeof data.title === "string" ? data.title : "Лагер",
       location: typeof data.location === "string" ? data.location : "",
       startDate,
       endDate,
-      campSessions,
+      campSessions: allSessions,
     };
   } catch (err) {
     console.error("Failed to load camp for public page:", err);
