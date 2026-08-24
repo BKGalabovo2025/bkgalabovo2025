@@ -136,6 +136,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
 
   // Form State
   const [formId, setFormId] = useState<string | null>(null);
+  const [formDate, setFormDate] = useState<string>(""); // Track original session date when editing
   const [formType, setFormType] = useState<CampSession["type"]>("training");
   const [formTitle, setFormTitle] = useState("");
   const [formStartTime, setFormStartTime] = useState("09:00");
@@ -149,6 +150,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
   const handleOpenModal = (session?: CampSession) => {
     if (session) {
       setFormId(session.id);
+      setFormDate(session.date); // Preserve original session date
       setFormType(session.type);
       setFormTitle(session.title);
       setFormStartTime(session.startTime);
@@ -158,6 +160,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       setNewGroupName("");
     } else {
       setFormId(null);
+      setFormDate(""); // Clear form date for new session
       setFormType("training");
       setFormTitle("");
       setFormStartTime("09:00");
@@ -178,7 +181,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
 
     const newSession: CampSession = {
       id: formId || uuidv4(),
-      date: selectedDateStr,
+      date: formId ? formDate : selectedDateStr, // Preserve original date when editing
       type: formType,
       title: formTitle,
       startTime: formStartTime,
