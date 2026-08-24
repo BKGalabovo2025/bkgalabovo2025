@@ -72,6 +72,7 @@ export const docToScheduleEvent = (
   };
 };
 
+import { format } from "date-fns";
 import { doc, updateDoc } from "firebase/firestore";
 
 import { getDb } from "@/lib/firebase";
@@ -83,10 +84,11 @@ export const updateCampSessions = async (
   const db = getDb();
   if (!db) throw new Error("Database not initialized");
   const eventRef = doc(db, "events", id);
-  // Firestore rejects `undefined` values — strip them by serialising through JSON
-  const sanitized = JSON.parse(
-    JSON.stringify(sessions)
-  ) as import("@/types").CampSession[];
+  // Normalize date to yyyy-MM-dd and strip undefined values via JSON serialization
+  const sanitized = sessions.map((s) => ({
+    ...s,
+    date: s.date ? format(new Date(s.date), "yyyy-MM-dd") : "",
+  }));
   await updateDoc(eventRef, { campSessions: sanitized });
 };
 

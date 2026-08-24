@@ -103,16 +103,35 @@ export default async function CampPublicPage({
       serializeTimestamp(data.startDate) || new Date().toISOString();
     const endDate =
       serializeTimestamp(data.endDate) || new Date().toISOString();
-
     const rawSessions = Array.isArray(data.campSessions)
       ? data.campSessions
       : [];
 
-    // Sanitize sessions to plain objects
+    // Normalize date to yyyy-MM-dd format for consistent filtering
+    const normalizeDate = (val: unknown): string => {
+      if (!val) return "";
+      if (typeof val === "string") return val;
+      if (typeof val === "object" && val !== null) {
+        if (
+          "toDate" in (val as object) &&
+          typeof (val as { toDate: () => Date }).toDate === "function"
+        ) {
+          return format((val as { toDate: () => Date }).toDate(), "yyyy-MM-dd");
+        }
+        if ("_seconds" in (val as object)) {
+          return format(
+            new Date((val as { _seconds: number })._seconds * 1000),
+            "yyyy-MM-dd"
+          );
+        }
+      }
+      return String(val);
+    };
+
     const campSessions: CampSession[] = rawSessions.map(
       (s: Record<string, unknown>) => ({
         id: typeof s.id === "string" ? s.id : "",
-        date: typeof s.date === "string" ? s.date : "",
+        date: normalizeDate(s.date),
         startTime: typeof s.startTime === "string" ? s.startTime : "",
         endTime: typeof s.endTime === "string" ? s.endTime : "",
         title: typeof s.title === "string" ? s.title : "",
