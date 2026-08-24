@@ -301,41 +301,28 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
     }
   };
 
-  const generateShareText = () => {
-    let text = `📅 Програма за лагер: ${camp.title}\n`;
-    text += `📍 Локация: ${camp.location || "Не е посочена"}\n\n`;
-
-    days.forEach((day) => {
-      const daySessions = sessions
-        .filter((s) => s.date === day.dateStr)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-      if (daySessions.length > 0) {
-        text += `🔹 ${day.label} (${format(day.date, "dd.MM", { locale: bg })})\n`;
-        daySessions.forEach((s) => {
-          let emoji = "🔹";
-          if (s.type === "training") emoji = "🏸";
-          if (s.type === "meal") emoji = "🍽️";
-          if (s.type === "leisure") emoji = "🏖️";
-          if (s.type === "travel") emoji = "🚌";
-
-          text += `  ${s.startTime}-${s.endTime} | ${emoji} ${s.title}\n`;
-        });
-        text += "\n";
-      }
-    });
-
-    return text.trim();
+  const buildShareUrl = () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    return `${origin}/club/camps/${camp.id}?date=${selectedDateStr}`;
   };
 
   const handleShareViber = () => {
-    const text = generateShareText();
-    if (!text) {
-      toast.error("Няма програма за споделяне");
-      return;
-    }
-    const url = `viber://forward?text=${encodeURIComponent(text)}`;
-    window.location.href = url;
+    const shareUrl = buildShareUrl();
+    const dayLabel =
+      days.find((d) => d.dateStr === selectedDateStr)?.label ?? "Ден 1";
+    const shortText = `📅 ${camp.title} — ${dayLabel}\n🔗 ${shareUrl}`;
+    window.location.href = `viber://forward?text=${encodeURIComponent(shortText)}`;
+    // Also copy the direct link to clipboard as a fallback
+    navigator.clipboard?.writeText(shareUrl).catch(() => {});
+    toast.success("Линкът е копиран в клипборда!");
+  };
+
+  const handleCopyLink = () => {
+    const shareUrl = buildShareUrl();
+    navigator.clipboard
+      ?.writeText(shareUrl)
+      .then(() => toast.success("Линкът е копиран!"))
+      .catch(() => toast.error("Грешка при копиране"));
   };
 
   const filteredExercises = availableExercises.filter(
@@ -366,12 +353,22 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
         </div>
         <div className="flex items-center gap-2">
           <Button
+            onClick={handleCopyLink}
+            variant="outline"
+            size="sm"
+            className="gap-2 text-xs"
+            title="Копирай линк за споделяне"
+          >
+            <Copy size={14} className="text-zinc-500" />
+            Копирай линк
+          </Button>
+          <Button
             onClick={handleShareViber}
             variant="outline"
             className="gap-2"
           >
             <Share2 size={16} className="text-purple-600" />
-            Сподели (Viber)
+            Сподели
           </Button>
           <Button onClick={() => handleOpenModal()} className="gap-2">
             <Plus size={16} />
