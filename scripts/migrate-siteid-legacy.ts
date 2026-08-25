@@ -195,7 +195,7 @@ async function main() {
         );
         results[`${siteId}/${collectionName}`] = result;
       } catch (error) {
-        console.error(`  ERROR on ${collectionName}:`, error);
+        console.error("  ERROR on collection:", collectionName, error);
         results[`${siteId}/${collectionName}`] = { updated: 0, skipped: 0 };
       }
     }
