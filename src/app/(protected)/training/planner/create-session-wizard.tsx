@@ -833,17 +833,26 @@ export default function CreateSessionWizard({
                       {groups.map((g) => (
                         <div
                           key={g.id}
-                          className="flex items-center justify-between rounded-md border bg-zinc-50 p-2"
+                          className="flex items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900"
                         >
-                          <span className="text-sm font-medium">{g.name}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeGroup(g.id)}
-                            className="size-6 p-0 text-red-500"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold">
+                              {g.name}
+                            </span>
+                            <Badge variant="outline" className="text-[10px]">
+                              {g.memberIds.length} деца
+                            </Badge>
+                          </div>
+                          {groups.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeGroup(g.id)}
+                              className="size-6 p-0 text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          )}
                         </div>
                       ))}
                       <div className="flex gap-2">
@@ -860,17 +869,17 @@ export default function CreateSessionWizard({
                     </div>
                     {/* Participant Assignment UI */}
                     <div className="mt-6">
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <h4 className="text-sm font-semibold text-zinc-800">
                           Разпределение на участници (
                           {availableParticipants.length} общо)
                         </h4>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
-                            className="h-7 text-xs"
+                            className="h-7 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
                             onClick={() => {
                               if (
                                 groups.length === 0 ||
@@ -894,7 +903,21 @@ export default function CreateSessionWizard({
                               setGroups(updatedGroups);
                             }}
                           >
-                            Автоматично разпредели (А/Б)
+                            ⚡ Разпредели по равно между {groups.length} групи (
+                            {groups.map((g) => g.name).join("/")})
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs text-zinc-500 hover:text-zinc-800"
+                            onClick={() => {
+                              setGroups(
+                                groups.map((g) => ({ ...g, memberIds: [] }))
+                              );
+                            }}
+                          >
+                            Изчисти
                           </Button>
                         </div>
                       </div>
