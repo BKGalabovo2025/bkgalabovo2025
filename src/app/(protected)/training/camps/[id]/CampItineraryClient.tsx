@@ -11,10 +11,12 @@ import {
   Dumbbell,
   Edit,
   Map,
+  Moon,
   Play,
   Plus,
   Search,
   Sun,
+  Ticket,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -54,7 +56,9 @@ import { Exercise, PlannerSession } from "@/types/planner.types";
 const sessionTypeIcons: Record<string, React.ElementType> = {
   training: Dumbbell,
   meal: Coffee,
+  quiet_hour: Moon,
   leisure: Sun,
+  attraction: Ticket,
   travel: Bus,
   other: Map,
 };
@@ -62,9 +66,44 @@ const sessionTypeIcons: Record<string, React.ElementType> = {
 const sessionTypeLabels: Record<string, string> = {
   training: "Тренировка",
   meal: "Хранене",
+  quiet_hour: "Тих час / Почивка",
   leisure: "Свободно време",
+  attraction: "Атракция / Събитие",
   travel: "Пътуване",
   other: "Друго",
+};
+
+const getTimeOfDayBadge = (startTime: string) => {
+  const [startHour = 9] = startTime.split(":").map(Number);
+  if (startHour < 11) {
+    return {
+      label: "Сутрин",
+      emoji: "🌅",
+      color:
+        "text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300",
+    };
+  }
+  if (startHour < 15) {
+    return {
+      label: "Обяд",
+      emoji: "☀️",
+      color:
+        "text-orange-600 bg-orange-50 dark:bg-orange-950/40 dark:text-orange-300",
+    };
+  }
+  if (startHour < 19) {
+    return {
+      label: "Следобед",
+      emoji: "🌇",
+      color:
+        "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 dark:text-indigo-300",
+    };
+  }
+  return {
+    label: "Вечер",
+    emoji: "🌙",
+    color: "text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-300",
+  };
 };
 
 export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
@@ -461,10 +500,6 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
               <Copy size={14} className="text-zinc-500" />
               Копирай линк
             </Button>
-            <Button onClick={() => handleOpenModal()} className="gap-2">
-              <Plus size={16} />
-              Добави сесия
-            </Button>
           </div>
         </div>
 
@@ -575,82 +610,12 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Clean Visual Daily Timeline Bar (06:00 - 23:00) */}
-              <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="mb-2 flex items-center justify-between text-xs font-semibold text-zinc-500">
-                  <span>🌅 06:00</span>
-                  <span>☀️ 12:00</span>
-                  <span>🌇 17:00</span>
-                  <span>🌙 23:00</span>
-                </div>
-                {/* Visual Timeline Bar */}
-                <div className="relative h-7 w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                  {currentDaysSessions.map((session) => {
-                    const [sh = "6", sm = "0"] = session.startTime.split(":");
-                    const [eh = "7", em = "0"] = session.endTime.split(":");
-                    const startMin = Math.max(
-                      0,
-                      parseInt(sh, 10) * 60 + parseInt(sm, 10) - 6 * 60
-                    );
-                    const endMin = Math.min(
-                      17 * 60,
-                      parseInt(eh, 10) * 60 + parseInt(em, 10) - 6 * 60
-                    );
-                    const totalDayMinutes = 17 * 60; // 06:00 to 23:00 = 17 hours (1020 mins)
-                    const leftPct = Math.max(
-                      0,
-                      Math.min(100, (startMin / totalDayMinutes) * 100)
-                    );
-                    const widthPct = Math.max(
-                      4,
-                      Math.min(
-                        100 - leftPct,
-                        ((endMin - startMin) / totalDayMinutes) * 100
-                      )
-                    );
-
-                    const getBgColor = (type: string) => {
-                      switch (type) {
-                        case "training":
-                          return "bg-orange-500 text-white";
-                        case "meal":
-                          return "bg-emerald-500 text-white";
-                        case "leisure":
-                          return "bg-sky-500 text-white";
-                        case "travel":
-                          return "bg-purple-500 text-white";
-                        default:
-                          return "bg-indigo-500 text-white";
-                      }
-                    };
-
-                    const sessionStyle: React.CSSProperties = {
-                      left: `${leftPct}%`,
-                      width: `${widthPct}%`,
-                    };
-
-                    return (
-                      <div
-                        key={session.id}
-                        /* eslint-disable-next-line react/forbid-dom-props */
-                        style={sessionStyle}
-                        className={cn(
-                          "absolute top-0 flex h-full items-center justify-center truncate px-1 text-[10px] font-bold shadow-xs transition-all hover:brightness-110",
-                          getBgColor(session.type)
-                        )}
-                        title={`${session.startTime} - ${session.endTime}: ${session.title}`}
-                      >
-                        <span className="truncate">{session.title}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
               {/* Session Cards List */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {currentDaysSessions.map((session) => {
                   const Icon = sessionTypeIcons[session.type] || Map;
+                  const timeOfDayBadge = getTimeOfDayBadge(session.startTime);
+
                   return (
                     <div
                       key={session.id}
@@ -659,17 +624,28 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                       onDragOver={handleDragOver}
                       onDrop={(e) => void handleDropSession(e, session.id)}
                       className={cn(
-                        "group flex cursor-grab flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs transition-all hover:border-primary/30 active:cursor-grabbing sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-950",
+                        "group flex cursor-grab flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs transition-all hover:border-primary/30 active:cursor-grabbing sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-950",
                         draggedSessionId === session.id &&
                           "border-dashed border-primary opacity-50"
                       )}
                     >
-                      <div className="flex shrink-0 flex-col items-center justify-center rounded-lg bg-zinc-100 p-3 sm:w-28 dark:bg-zinc-900">
-                        <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                          {session.startTime}
-                        </span>
-                        <span className="text-xs text-zinc-500">
-                          до {session.endTime}
+                      <div className="flex shrink-0 items-center justify-between gap-2 rounded-lg bg-zinc-100 p-2.5 sm:w-32 sm:flex-col sm:justify-center dark:bg-zinc-900">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-black text-zinc-900 dark:text-zinc-100">
+                            {session.startTime}
+                          </span>
+                          <span className="text-xs text-zinc-500">
+                            - {session.endTime}
+                          </span>
+                        </div>
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
+                            timeOfDayBadge.color
+                          )}
+                        >
+                          <span>{timeOfDayBadge.emoji}</span>
+                          <span>{timeOfDayBadge.label}</span>
                         </span>
                       </div>
 
@@ -920,17 +896,24 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="training">
-                      Тренировка (Сутрешна/Следобедна)
+                    <SelectItem value="quiet_hour">
+                      😴 ТИХ ЧАС / Почивка
                     </SelectItem>
-                    <SelectItem value="meal">
-                      Хранене (Закуска/Обяд/Вечеря)
+                    <SelectItem value="attraction">
+                      🎡 Атракция / Събитие
                     </SelectItem>
                     <SelectItem value="leisure">
-                      Свободно време / Почивка
+                      🏖️ Свободно време (Плаж/Разходка)
                     </SelectItem>
-                    <SelectItem value="travel">Пътуване</SelectItem>
-                    <SelectItem value="other">Друго</SelectItem>
+                    <SelectItem value="meal">
+                      🍽️ Хранене (Закуска/Обяд/Вечеря)
+                    </SelectItem>
+                    <SelectItem value="travel">
+                      🚌 Пътуване / Транспорт
+                    </SelectItem>
+                    <SelectItem value="other">
+                      📌 Друго организационно събитие
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

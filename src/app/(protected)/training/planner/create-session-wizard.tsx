@@ -620,8 +620,16 @@ export default function CreateSessionWizard({
     )
       return false;
     if (
+      selectedCategory === "quiz" &&
+      !ex.category?.toLowerCase().includes("quiz") &&
+      !ex.name.toLowerCase().includes("викторина") &&
+      !ex.name.toLowerCase().includes("тест") &&
+      !ex.name.toLowerCase().includes("правилник")
+    )
+      return false;
+    if (
       selectedCategory !== "all" &&
-      !["beach", "circuit", "tactical"].includes(selectedCategory) &&
+      !["beach", "circuit", "tactical", "quiz"].includes(selectedCategory) &&
       ex.category !== selectedCategory
     )
       return false;
@@ -656,6 +664,14 @@ export default function CreateSessionWizard({
         (ex) =>
           ex.category === "tactics" ||
           ex.name.toLowerCase().includes("мулти-шатъл")
+      ).length;
+    if (cat === "quiz")
+      return allExercises.filter(
+        (ex) =>
+          ex.category?.toLowerCase().includes("quiz") ||
+          ex.name.toLowerCase().includes("викторина") ||
+          ex.name.toLowerCase().includes("тест") ||
+          ex.name.toLowerCase().includes("правилник")
       ).length;
     return allExercises.filter((ex) => ex.category === cat).length;
   };
@@ -1395,6 +1411,9 @@ export default function CreateSessionWizard({
                       </SelectItem>
                       <SelectItem value="tactical">
                         Мулти-Шатъл (Лагер) ({getCategoryCount("tactical")})
+                      </SelectItem>
+                      <SelectItem value="quiz">
+                        🧠 Викторини & Тестове ({getCategoryCount("quiz")})
                       </SelectItem>
                     </SelectContent>
                   </Select>
