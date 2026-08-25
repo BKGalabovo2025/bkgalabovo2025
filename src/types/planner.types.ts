@@ -1,5 +1,11 @@
 export type ExerciseCategory =
-  "warmup" | "technique" | "tactics" | "physical" | "games" | "cooldown";
+  | "warmup"
+  | "technique"
+  | "tactics"
+  | "physical"
+  | "games"
+  | "cooldown"
+  | "quiz";
 export type LocationType = "court" | "stadium" | "beach";
 export type TrainingMode = "season" | "camp";
 type MedicalStatus = "healthy" | "discomfort" | "injured";
