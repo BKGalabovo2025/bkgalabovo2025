@@ -77,6 +77,8 @@ export interface PlannerSession {
   mode: TrainingMode;
   location: LocationType;
   title: string;
+  startTime?: string; // HH:mm format (e.g., '09:00')
+  endTime?: string; // HH:mm format (e.g., '10:30')
   coachNotes?: string;
 
   // Legacy single-group support

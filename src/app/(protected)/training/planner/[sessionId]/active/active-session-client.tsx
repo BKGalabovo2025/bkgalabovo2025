@@ -122,10 +122,32 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       setSession(targetSession);
 
       const allMembers = await getAllMembers();
-      const activeMembers = allMembers.filter(
-        (m: Member) => m.status === "active"
-      );
-      setMembers(activeMembers);
+      if (targetSession.campId) {
+        const { getEventById } = await import("@/services/schedule-service");
+        const campEvent = await getEventById(targetSession.campId);
+        if (
+          campEvent &&
+          campEvent.attendees &&
+          campEvent.attendees.length > 0
+        ) {
+          const attendeeIds = new Set(
+            campEvent.attendees.map((a) => a.memberId)
+          );
+          const campMembers = allMembers.filter((m) => attendeeIds.has(m.id));
+          setMembers(
+            campMembers.length > 0
+              ? campMembers
+              : allMembers.filter((m: Member) => m.status === "active")
+          );
+        } else {
+          setMembers(allMembers.filter((m: Member) => m.status === "active"));
+        }
+      } else {
+        const activeMembers = allMembers.filter(
+          (m: Member) => m.status === "active"
+        );
+        setMembers(activeMembers);
+      }
     } catch (error) {
       console.error(error);
       setError("Възникна грешка при зареждане.");
@@ -774,6 +796,22 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                         <span>Слабо</span>
                         <span>Перфектно</span>
                       </div>
+                    </div>
+
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label className="text-xs text-zinc-500">
+                        Лична бележка за състезателя (напр. забележки по
+                        техниката, оплаквания):
+                      </Label>
+                      <input
+                        type="text"
+                        placeholder="Напр. Отлично темпо при кроса, затруднение при втория сет"
+                        value={att.note || ""}
+                        onChange={(e) =>
+                          updateAttendance(member.id, "note", e.target.value)
+                        }
+                        className="w-full rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-xs text-zinc-900 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                      />
                     </div>
                   </div>
                 )}

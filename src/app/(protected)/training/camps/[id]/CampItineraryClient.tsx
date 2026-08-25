@@ -571,34 +571,34 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Clean Visual Daily Timeline Bar (07:00 - 22:00) */}
+              {/* Clean Visual Daily Timeline Bar (06:00 - 23:00) */}
               <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
                 <div className="mb-2 flex items-center justify-between text-xs font-semibold text-zinc-500">
-                  <span>🌅 07:00</span>
+                  <span>🌅 06:00</span>
                   <span>☀️ 12:00</span>
                   <span>🌇 17:00</span>
-                  <span>🌙 22:00</span>
+                  <span>🌙 23:00</span>
                 </div>
                 {/* Visual Timeline Bar */}
-                <div className="relative h-6 w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <div className="relative h-7 w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
                   {currentDaysSessions.map((session) => {
-                    const [sh = "7", sm = "0"] = session.startTime.split(":");
-                    const [eh = "8", em = "0"] = session.endTime.split(":");
+                    const [sh = "6", sm = "0"] = session.startTime.split(":");
+                    const [eh = "7", em = "0"] = session.endTime.split(":");
                     const startMin = Math.max(
                       0,
-                      parseInt(sh, 10) * 60 + parseInt(sm, 10) - 7 * 60
+                      parseInt(sh, 10) * 60 + parseInt(sm, 10) - 6 * 60
                     );
                     const endMin = Math.min(
-                      15 * 60,
-                      parseInt(eh, 10) * 60 + parseInt(em, 10) - 7 * 60
+                      17 * 60,
+                      parseInt(eh, 10) * 60 + parseInt(em, 10) - 6 * 60
                     );
-                    const totalDayMinutes = 15 * 60; // 07:00 to 22:00 = 15 hours
+                    const totalDayMinutes = 17 * 60; // 06:00 to 23:00 = 17 hours (1020 mins)
                     const leftPct = Math.max(
                       0,
                       Math.min(100, (startMin / totalDayMinutes) * 100)
                     );
                     const widthPct = Math.max(
-                      2,
+                      4,
                       Math.min(
                         100 - leftPct,
                         ((endMin - startMin) / totalDayMinutes) * 100

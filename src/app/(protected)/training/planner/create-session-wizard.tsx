@@ -6,7 +6,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { AlertTriangle, Loader2, Plus, Search, Trash2 } from "lucide-react";
-import { useCallback,useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +76,8 @@ export default function CreateSessionWizard({
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("10:30");
   const [mode, setMode] = useState<TrainingMode>("season");
   const [location, setLocation] = useState<LocationType>("court");
   const [totalDuration, setTotalDuration] = useState<number>(60);
@@ -129,7 +131,7 @@ export default function CreateSessionWizard({
       block.items = newItems;
     });
     setBlocks(newBlocks);
-  }
+  };
 
   const toggleRainyDay = () => {
     const nextState = !isRainyDay;
@@ -152,7 +154,7 @@ export default function CreateSessionWizard({
                 ...item.exercise,
                 name: "🌧️ (Резерва) Вътрешна ОФП / Мобилност",
                 location: ["court"],
-              }
+              };
             }
           }
         });
@@ -160,7 +162,7 @@ export default function CreateSessionWizard({
       setBlocks(newBlocks);
       setLocation("court");
     }
-  }
+  };
   // --------------------------
 
   // Library
@@ -199,53 +201,31 @@ export default function CreateSessionWizard({
     }
   }, [totalKids, stationRotations.length]);
 
-  // Helper: Load exercises and inventory
-  const loadParticipants = async () => {
-    const [ex, inv] = await Promise.all([
-      plannerService.getExercises(activeBranch),
-      inventoryService.getInventory(activeBranch),
-    ]);
-    setAllExercises(ex);
-    setGlobalInventory(inv);
+  // Initialize session data when dialog opens
+  useEffect(() => {
+    if (!open) return;
 
-    // By default, select all global inventory for this session
-    const initialSessInv: Record<string, number> = {};
-    inv.forEach((i) => {
-      initialSessInv[i.id] = i.totalQuantity;
-    });
-    setSessionInventory(initialSessInv);
-  };
+    const resetForm = () => {
+      setTitle("");
+      setDate(initialDate || new Date().toISOString().slice(0, 10));
+      setStartTime("09:00");
+      setEndTime("10:30");
+      setMode(initialCampId ? "camp" : "season");
+      setLocation(initialCampId ? "stadium" : "court");
+      setTotalDuration(90);
+      setGroups([
+        { id: uuidv4(), name: "Група А", memberIds: [] },
+        { id: uuidv4(), name: "Група Б", memberIds: [] },
+      ]);
+      setSearchQuery("");
+      setSelectedCategory("all");
+    };
 
-  // Helper: Load participants based on mode
-  const loadExercisesAndInventory = async () => {
-    if (initialCampId) {
-      const campEvent = await getEventById(initialCampId);
-      if (campEvent && campEvent.attendees) {
-        setAvailableParticipants(
-          campEvent.attendees.map((a) => ({
-            id: a.memberId,
-            name: a.name,
-          }))
-        );
-      }
-    } else {
-      const allMembers = await getAllMembers();
-      setAvailableParticipants(
-        allMembers
-          .filter((m) => m.status === "active")
-          .map((m) => ({
-            id: m.id,
-            name: `${m.firstName} ${m.lastName}`,
-          }))
-      );
-    }
-  };
-
-  // Helper: Pre-fill form from initialSession
-  const prefillFromSession = useCallback(
-    (session: PlannerSession) => {
+    const prefillFromSession = (session: PlannerSession) => {
       setTitle(session.title);
       setDate(session.date);
+      setStartTime(session.startTime || "09:00");
+      setEndTime(session.endTime || "10:30");
       setMode(session.mode);
       setLocation(session.location);
       setTotalDuration(
@@ -257,77 +237,94 @@ export default function CreateSessionWizard({
           id: g.id,
           name: g.name,
           memberIds: g.memberIds || [],
-        })) || [{ id: uuidv4(), name: "Всички", memberIds: [] }]
+        })) || [
+          { id: uuidv4(), name: "Група А", memberIds: [] },
+          { id: uuidv4(), name: "Група Б", memberIds: [] },
+        ]
       );
       setSearchQuery("");
       setSelectedCategory("all");
 
-      // Map planner session blocks to wizard blocks
       if (session.blocks && session.blocks.length > 0) {
         const mappedBlocks: SessionBlock[] = session.blocks.map((b) => ({
           ...b,
           items: b.items.map((item) => ({
             ...item,
             exercise: item.exercise ? { ...item.exercise } : undefined,
-          }))
+          })),
         }));
         setBlocks(mappedBlocks);
-      } else if (session.groupedExercises && session.groupedExercises.length > 0) {
-        // Convert legacy groupedExercises to blocks
-        const mappedBlocks: SessionBlock[] = [
-          "warmup",
-          "main",
-          "cooldown",
-        ].map((phase) => ({
-          id: phase,
-          phase: phase as SessionPhase,
-          targetDuration: 0,
-          items:
-            session.groupedExercises
-              ?.find((g) => g.ageGroup === "all")?.exercises.map((ex) => ({
-                id: uuidv4(),
-                type: "exercise",
-                durationMinutes: ex.durationMinutes || 5,
-                exercise: ex,
-                targetGroupId: undefined,
-              })) || [],
-        }));
+      } else if (
+        session.groupedExercises &&
+        session.groupedExercises.length > 0
+      ) {
+        const mappedBlocks: SessionBlock[] = ["warmup", "main", "cooldown"].map(
+          (phase) => ({
+            id: phase,
+            phase: phase as SessionPhase,
+            targetDuration: 0,
+            items:
+              session.groupedExercises
+                ?.find((g) => g.ageGroup === "all")
+                ?.exercises.map((ex) => ({
+                  id: uuidv4(),
+                  type: "exercise",
+                  durationMinutes: ex.durationMinutes || 5,
+                  exercise: ex,
+                  targetGroupId: undefined,
+                })) || [],
+          })
+        );
         setBlocks(mappedBlocks);
       }
 
-      // Calculate total duration from blocks
       const calculatedDuration =
         session.blocks?.reduce((acc, b) => acc + b.targetDuration, 0) || 60;
       setTotalDuration(calculatedDuration);
       setCoachNotes(session.coachNotes || "");
-    },
-    []
-  );
-
-  // Helper: Reset form to defaults
-  const resetForm = () => {
-    setTitle("");
-    setDate(initialDate || new Date().toISOString().slice(0, 10));
-    setMode(initialCampId ? "camp" : "season");
-    setLocation(initialCampId ? "stadium" : "court");
-    setTotalDuration(60);
-    setGroups([{ id: uuidv4(), name: "Всички", memberIds: [] }]);
-    setSearchQuery("");
-setSelectedCategory("all");
-  };
-
-  // Initialize session data when dialog opens
-  useEffect(() => {
-    if (!open) return;
+    };
 
     const initialize = async () => {
       setIsFetching(true);
       try {
-        await loadExercisesAndInventory();
-        await loadParticipants();
+        const [ex, inv] = await Promise.all([
+          plannerService.getExercises(activeBranch),
+          inventoryService.getInventory(activeBranch),
+        ]);
+        setAllExercises(ex);
+        setGlobalInventory(inv);
+
+        const initialSessInv: Record<string, number> = {};
+        inv.forEach((i) => {
+          initialSessInv[i.id] = i.totalQuantity;
+        });
+        setSessionInventory(initialSessInv);
+
+        let participantsList: { id: string; name: string }[] = [];
+        if (initialCampId) {
+          const campEvent = await getEventById(initialCampId);
+          if (campEvent && campEvent.attendees) {
+            participantsList = campEvent.attendees.map((a) => ({
+              id: a.memberId,
+              name: a.name,
+            }));
+            setTotalKids(participantsList.length);
+          }
+        } else {
+          const allMembers = await getAllMembers();
+          participantsList = allMembers
+            .filter((m) => m.status === "active")
+            .map((m) => ({
+              id: m.id,
+              name: `${m.firstName} ${m.lastName}`,
+            }));
+          setTotalKids(participantsList.length);
+        }
+        setAvailableParticipants(participantsList);
 
         if (initialImportTemplateId) {
-          const templates = await plannerService.getTrainingTemplates(activeBranch);
+          const templates =
+            await plannerService.getTrainingTemplates(activeBranch);
           const tmpl = templates.find((t) => t.id === initialImportTemplateId);
           if (tmpl) {
             setTitle(tmpl.name);
@@ -335,14 +332,14 @@ setSelectedCategory("all");
 
             const mappedBlocks: SessionBlock[] = tmpl.blocks.map((tb) => {
               const items: SessionBlockItem[] = tb.exercises.map((te) => {
-                const resolvedExercise = allExercises.find((e) => e.id === te.exerciseId);
+                const resolvedExercise = ex.find((e) => e.id === te.exerciseId);
                 return {
                   id: uuidv4(),
                   type: "exercise",
                   durationMinutes: te.durationMinutes,
                   exercise: resolvedExercise,
                   targetGroupId: undefined,
-                }
+                };
               });
 
               return {
@@ -350,7 +347,7 @@ setSelectedCategory("all");
                 phase: tb.phase,
                 targetDuration: tb.durationMinutes,
                 items,
-              }
+              };
             });
             setBlocks(mappedBlocks);
           }
@@ -366,9 +363,17 @@ setSelectedCategory("all");
       } finally {
         setIsFetching(false);
       }
-    }
+    };
+
     initialize();
-  }, [open, activeBranch, initialCampId, initialDate, initialImportTemplateId, initialSession, loadExercisesAndInventory, loadParticipants, prefillFromSession, resetForm, allExercises]);
+  }, [
+    open,
+    activeBranch,
+    initialCampId,
+    initialDate,
+    initialImportTemplateId,
+    initialSession,
+  ]);
 
   // Recalculate block target durations when total duration changes
   useEffect(() => {
@@ -414,11 +419,11 @@ setSelectedCategory("all");
       ]);
       setNewGroupName("");
     }
-  }
+  };
 
   const removeGroup = (id: string) => {
     setGroups(groups.filter((g) => g.id !== id));
-  }
+  };
 
   const toggleParticipantInGroup = (groupId: string, participantId: string) => {
     setGroups(
@@ -430,12 +435,12 @@ setSelectedCategory("all");
             memberIds: hasMember
               ? g.memberIds.filter((id) => id !== participantId)
               : [...g.memberIds, participantId],
-          }
+          };
         }
         return g;
       })
     );
-  }
+  };
 
   const addExerciseToBlock = (phase: StationPhaseType, exercise: Exercise) => {
     setBlocks((prev) =>
@@ -453,12 +458,12 @@ setSelectedCategory("all");
                 targetGroupId: groups.length === 1 ? groups[0].id : undefined, // Assign to first if only one
               },
             ],
-          }
+          };
         }
         return block;
       })
     );
-  }
+  };
 
   const removeItem = (phase: StationPhaseType, itemId: string) => {
     setBlocks((prev) =>
@@ -467,12 +472,12 @@ setSelectedCategory("all");
           return {
             ...block,
             items: block.items.filter((item) => item.id !== itemId),
-          }
+          };
         }
         return block;
       })
     );
-  }
+  };
 
   const updateItemDuration = (
     phase: "warmup" | "main" | "cooldown",
@@ -489,12 +494,12 @@ setSelectedCategory("all");
                 ? { ...item, durationMinutes: newDuration }
                 : item
             ),
-          }
+          };
         }
         return block;
       })
     );
-  }
+  };
 
   const updateItemTargetGroup = (
     phase: "warmup" | "main" | "cooldown",
@@ -514,12 +519,12 @@ setSelectedCategory("all");
                   }
                 : item
             ),
-          }
+          };
         }
         return block;
       })
     );
-  }
+  };
 
   const saveStation = () => {
     if (stationRotations.length === 0) return;
@@ -531,7 +536,7 @@ setSelectedCategory("all");
         return {
           groupId: r.groupId,
           exercise: ex!,
-        }
+        };
       })
       .filter((r) => r.exercise !== undefined);
 
@@ -540,7 +545,7 @@ setSelectedCategory("all");
       type: "station",
       durationMinutes: stationDuration,
       rotations,
-    }
+    };
 
     setBlocks((prev) =>
       prev.map((b) => {
@@ -551,7 +556,7 @@ setSelectedCategory("all");
       })
     );
     setShowStationModal(false);
-  }
+  };
 
   const handleSave = async () => {
     if (!title) {
@@ -566,6 +571,8 @@ setSelectedCategory("all");
         "id" | "siteId" | "createdAt" | "updatedAt"
       > = {
         date,
+        startTime,
+        endTime,
         mode,
         location,
         title,
@@ -573,9 +580,10 @@ setSelectedCategory("all");
         status: "planned",
         campId: initialCampId,
         blocks,
+        totalKids,
         targetGroups: groups.map((g) => g.name),
         sessionGroups: groups,
-      }
+      };
 
       // Strip undefined values to prevent Firebase errors
       const cleanSessionData = JSON.parse(JSON.stringify(sessionData));
@@ -594,7 +602,7 @@ setSelectedCategory("all");
     } finally {
       setIsSaving(false);
     }
-  }
+  };
 
   const filteredExercises = allExercises.filter((ex) => {
     // 1. Category filter
@@ -633,7 +641,7 @@ setSelectedCategory("all");
     if (phase === "warmup") return "Загрявка";
     if (phase === "main") return "Основна част";
     return "Разпускане (Cooldown)";
-  }
+  };
 
   const getCategoryCount = (cat: string) => {
     if (cat === "all") return allExercises.length;
@@ -650,7 +658,7 @@ setSelectedCategory("all");
           ex.name.toLowerCase().includes("мулти-шатъл")
       ).length;
     return allExercises.filter((ex) => ex.category === cat).length;
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -734,22 +742,6 @@ setSelectedCategory("all");
                         />
                       </div>
                       <div>
-                        <Label className="text-xs text-zinc-500">
-                          Време (мин)
-                        </Label>
-                        <Input
-                          type="number"
-                          min={10}
-                          max={240}
-                          value={totalDuration}
-                          onChange={(e) =>
-                            setTotalDuration(parseInt(e.target.value) || 60)
-                          }
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
                         <Label className="text-xs text-zinc-500">Локация</Label>
                         <Select
                           value={location}
@@ -767,17 +759,67 @@ setSelectedCategory("all");
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
                       <div>
                         <Label className="text-xs text-zinc-500">
-                          Общо деца
+                          Начален час
+                        </Label>
+                        <Input
+                          type="time"
+                          value={startTime}
+                          onChange={(e) => {
+                            const newStart = e.target.value;
+                            setStartTime(newStart);
+                            // Auto-calculate end time if valid
+                            if (newStart) {
+                              const [sh = "9", sm = "0"] = newStart.split(":");
+                              const totalMinutes =
+                                parseInt(sh, 10) * 60 +
+                                parseInt(sm, 10) +
+                                totalDuration;
+                              const endH = Math.floor(totalMinutes / 60) % 24;
+                              const endM = totalMinutes % 60;
+                              setEndTime(
+                                `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`
+                              );
+                            }
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-zinc-500">
+                          Краен час
+                        </Label>
+                        <Input
+                          type="time"
+                          value={endTime}
+                          onChange={(e) => setEndTime(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-zinc-500">
+                          Време (мин)
                         </Label>
                         <Input
                           type="number"
-                          min={1}
-                          value={totalKids}
-                          onChange={(e) =>
-                            setTotalKids(parseInt(e.target.value) || 15)
-                          }
+                          min={10}
+                          max={240}
+                          value={totalDuration}
+                          onChange={(e) => {
+                            const dur = parseInt(e.target.value) || 60;
+                            setTotalDuration(dur);
+                            if (startTime) {
+                              const [sh = "9", sm = "0"] = startTime.split(":");
+                              const totalMinutes =
+                                parseInt(sh, 10) * 60 + parseInt(sm, 10) + dur;
+                              const endH = Math.floor(totalMinutes / 60) % 24;
+                              const endM = totalMinutes % 60;
+                              setEndTime(
+                                `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`
+                              );
+                            }
+                          }}
                         />
                       </div>
                     </div>
@@ -818,9 +860,44 @@ setSelectedCategory("all");
                     </div>
                     {/* Participant Assignment UI */}
                     <div className="mt-6">
-                      <h4 className="mb-2 text-sm font-semibold text-zinc-800">
-                        Разпределение на участници
-                      </h4>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="text-sm font-semibold text-zinc-800">
+                          Разпределение на участници (
+                          {availableParticipants.length} общо)
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              if (
+                                groups.length === 0 ||
+                                availableParticipants.length === 0
+                              )
+                                return;
+                              const numGroups = groups.length;
+                              const groupSize = Math.ceil(
+                                availableParticipants.length / numGroups
+                              );
+                              const updatedGroups = groups.map((g, i) => {
+                                const slice = availableParticipants.slice(
+                                  i * groupSize,
+                                  (i + 1) * groupSize
+                                );
+                                return {
+                                  ...g,
+                                  memberIds: slice.map((p) => p.id),
+                                };
+                              });
+                              setGroups(updatedGroups);
+                            }}
+                          >
+                            Автоматично разпредели (А/Б)
+                          </Button>
+                        </div>
+                      </div>
                       <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-2">
                         {availableParticipants.length === 0 && (
                           <p className="p-2 text-xs text-zinc-500">
@@ -875,76 +952,89 @@ setSelectedCategory("all");
                   </div>
                 </div>
 
-                {isFetching ? (
-                  <div className="flex h-32 items-center justify-center">
-                    <Loader2 className="size-6 animate-spin text-indigo-600" />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {globalInventory.map((item) => {
-                      const isSelected =
-                        sessionInventory[item.id] !== undefined;
-                      const currentQty =
-                        sessionInventory[item.id] || item.totalQuantity;
-                      return (
-                        <div
-                          key={item.id}
-                          className={cn(
-                            "flex items-center justify-between rounded-lg border p-3 transition-colors",
-                            isSelected
-                              ? "border-indigo-200 bg-indigo-50/30"
-                              : "border-zinc-200 bg-zinc-50 opacity-60"
-                          )}
-                        >
-                          <label className="flex flex-1 cursor-pointer items-center gap-3">
-                            <input
-                              type="checkbox"
-                              className="size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
-                              checked={isSelected}
-                              onChange={(e) => {
-                                const checked = e.target.checked;
-                                setSessionInventory((prev) => {
-                                  const next = { ...prev };
-                                  if (checked) {
-                                    next[item.id] = item.totalQuantity; // default to max
-                                  } else {
-                                    delete next[item.id];
-                                  }
-                                  return next;
-                                });
-                              }}
-                            />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-zinc-900">
-                                {item.name}
-                              </span>
-                              <span className="text-[10px] text-zinc-500">
-                                Глобално: {item.totalQuantity} бр.
-                              </span>
-                            </div>
-                          </label>
-                          {isSelected && (
-                            <div className="w-20 pl-2">
-                              <Input
-                                type="number"
-                                min={1}
-                                className="h-8 text-center text-xs"
-                                value={currentQty}
+                {(() => {
+                  if (isFetching) {
+                    return (
+                      <div className="flex h-32 items-center justify-center">
+                        <Loader2 className="size-6 animate-spin text-indigo-600" />
+                      </div>
+                    );
+                  }
+                  if (globalInventory.length === 0) {
+                    return (
+                      <div className="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-xs text-zinc-500">
+                        Няма въведено оборудване в модул Инвентар за този клон.
+                        Тренировката ще използва стандартните клубни уреди.
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {globalInventory.map((item) => {
+                        const isSelected =
+                          sessionInventory[item.id] !== undefined;
+                        const currentQty =
+                          sessionInventory[item.id] || item.totalQuantity;
+                        return (
+                          <div
+                            key={item.id}
+                            className={cn(
+                              "flex items-center justify-between rounded-lg border p-3 transition-colors",
+                              isSelected
+                                ? "border-indigo-200 bg-indigo-50/30"
+                                : "border-zinc-200 bg-zinc-50 opacity-60"
+                            )}
+                          >
+                            <label className="flex flex-1 cursor-pointer items-center gap-3">
+                              <input
+                                type="checkbox"
+                                className="size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                                checked={isSelected}
                                 onChange={(e) => {
-                                  const val = parseInt(e.target.value) || 1;
-                                  setSessionInventory((prev) => ({
-                                    ...prev,
-                                    [item.id]: val,
-                                  }));
+                                  const checked = e.target.checked;
+                                  setSessionInventory((prev) => {
+                                    const next = { ...prev };
+                                    if (checked) {
+                                      next[item.id] = item.totalQuantity; // default to max
+                                    } else {
+                                      delete next[item.id];
+                                    }
+                                    return next;
+                                  });
                                 }}
                               />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-zinc-900">
+                                  {item.name}
+                                </span>
+                                <span className="text-[10px] text-zinc-500">
+                                  Глобално: {item.totalQuantity} бр.
+                                </span>
+                              </div>
+                            </label>
+                            {isSelected && (
+                              <div className="w-20 pl-2">
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  className="h-8 text-center text-xs"
+                                  value={currentQty}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value) || 1;
+                                    setSessionInventory((prev) => ({
+                                      ...prev,
+                                      [item.id]: val,
+                                    }));
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}
