@@ -6,7 +6,8 @@ export type ExerciseCategory =
   | "games"
   | "cooldown"
   | "quiz";
-export type LocationType = "court" | "stadium" | "beach";
+export type LocationType =
+  "court" | "stadium" | "beach" | "other" | (string & {});
 export type TrainingMode = "season" | "camp";
 type MedicalStatus = "healthy" | "discomfort" | "injured";
 

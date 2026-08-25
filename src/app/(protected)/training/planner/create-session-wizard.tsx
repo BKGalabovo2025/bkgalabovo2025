@@ -5,7 +5,14 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { AlertTriangle, Loader2, Plus, Search, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Loader2,
+  Plus,
+  Search,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -80,6 +87,8 @@ export default function CreateSessionWizard({
   const [endTime, setEndTime] = useState("10:30");
   const [mode, setMode] = useState<TrainingMode>("season");
   const [location, setLocation] = useState<LocationType>("court");
+  const [customLocation, setCustomLocation] = useState("");
+  const [isAllGroupMode, setIsAllGroupMode] = useState(false);
   const [totalDuration, setTotalDuration] = useState<number>(60);
   const [coachNotes, setCoachNotes] = useState("");
 
@@ -212,6 +221,8 @@ export default function CreateSessionWizard({
       setEndTime("10:30");
       setMode(initialCampId ? "camp" : "season");
       setLocation(initialCampId ? "stadium" : "court");
+      setCustomLocation("");
+      setIsAllGroupMode(false);
       setTotalDuration(90);
       setGroups([
         { id: uuidv4(), name: "Група А", memberIds: [] },
@@ -227,7 +238,21 @@ export default function CreateSessionWizard({
       setStartTime(session.startTime || "09:00");
       setEndTime(session.endTime || "10:30");
       setMode(session.mode);
-      setLocation(session.location);
+      if (
+        session.location === "court" ||
+        session.location === "stadium" ||
+        session.location === "beach"
+      ) {
+        setLocation(session.location);
+        setCustomLocation("");
+      } else {
+        setLocation("other");
+        setCustomLocation(session.location || "");
+      }
+      const isAll =
+        session.sessionGroups?.length === 1 &&
+        session.sessionGroups[0].name === "Всички";
+      setIsAllGroupMode(isAll);
       setTotalDuration(
         session.blocks?.reduce((acc, b) => acc + b.targetDuration, 0) || 60
       );
@@ -566,6 +591,21 @@ export default function CreateSessionWizard({
 
     setIsSaving(true);
     try {
+      const resolvedLocation: LocationType =
+        location === "other" && customLocation.trim()
+          ? (customLocation.trim() as LocationType)
+          : location;
+
+      const resolvedGroups = isAllGroupMode
+        ? [
+            {
+              id: "all",
+              name: "Всички",
+              memberIds: availableParticipants.map((p) => p.id),
+            },
+          ]
+        : groups;
+
       const sessionData: Omit<
         PlannerSession,
         "id" | "siteId" | "createdAt" | "updatedAt"
@@ -574,15 +614,15 @@ export default function CreateSessionWizard({
         startTime,
         endTime,
         mode,
-        location,
+        location: resolvedLocation,
         title,
         coachNotes,
         status: "planned",
         campId: initialCampId,
         blocks,
         totalKids,
-        targetGroups: groups.map((g) => g.name),
-        sessionGroups: groups,
+        targetGroups: resolvedGroups.map((g) => g.name),
+        sessionGroups: resolvedGroups,
       };
 
       // Strip undefined values to prevent Firebase errors
@@ -772,10 +812,28 @@ export default function CreateSessionWizard({
                             <SelectItem value="court">В зала (Корт)</SelectItem>
                             <SelectItem value="stadium">Стадион</SelectItem>
                             <SelectItem value="beach">Плаж</SelectItem>
+                            <SelectItem value="other">
+                              ✍️ Друго (попълни ръчно)
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
+
+                    {location === "other" && (
+                      <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-2.5 dark:border-indigo-900/50 dark:bg-indigo-950/30">
+                        <Label className="text-xs font-semibold text-indigo-900 dark:text-indigo-300">
+                          Име / адрес на локацията (ръчно):
+                        </Label>
+                        <Input
+                          value={customLocation}
+                          onChange={(e) => setCustomLocation(e.target.value)}
+                          placeholder="Напр. Парк, Фитнес зала, Басейн, Спортен комплекс..."
+                          className="mt-1 bg-white text-xs dark:bg-zinc-900"
+                        />
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <Label className="text-xs text-zinc-500">
@@ -842,137 +900,200 @@ export default function CreateSessionWizard({
                   </div>
 
                   <div>
-                    <Label className="text-xs text-zinc-500">
-                      Управление на групи
-                    </Label>
-                    <div className="mt-2 space-y-2">
-                      {groups.map((g) => (
-                        <div
-                          key={g.id}
-                          className="flex items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold">
-                              {g.name}
-                            </span>
-                            <Badge variant="outline" className="text-[10px]">
-                              {g.memberIds.length} деца
-                            </Badge>
-                          </div>
-                          {groups.length > 1 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeGroup(g.id)}
-                              className="size-6 p-0 text-red-500 hover:text-red-700"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Нова група (напр. Група Б)"
-                          value={newGroupName}
-                          onChange={(e) => setNewGroupName(e.target.value)}
-                          className="h-8 text-sm"
-                        />
-                        <Button size="sm" className="h-8" onClick={addGroup}>
-                          <Plus className="size-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    {/* Participant Assignment UI */}
-                    <div className="mt-6">
-                      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <h4 className="text-sm font-semibold text-zinc-800">
-                          Разпределение на участници (
-                          {availableParticipants.length} общо)
-                        </h4>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            className="h-7 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
-                            onClick={() => {
-                              if (
-                                groups.length === 0 ||
-                                availableParticipants.length === 0
-                              )
-                                return;
-                              const numGroups = groups.length;
-                              const groupSize = Math.ceil(
-                                availableParticipants.length / numGroups
-                              );
-                              const updatedGroups = groups.map((g, i) => {
-                                const slice = availableParticipants.slice(
-                                  i * groupSize,
-                                  (i + 1) * groupSize
-                                );
-                                return {
-                                  ...g,
-                                  memberIds: slice.map((p) => p.id),
-                                };
-                              });
-                              setGroups(updatedGroups);
-                            }}
-                          >
-                            ⚡ Разпредели по равно между {groups.length} групи (
-                            {groups.map((g) => g.name).join("/")})
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 text-xs text-zinc-500 hover:text-zinc-800"
-                            onClick={() => {
-                              setGroups(
-                                groups.map((g) => ({ ...g, memberIds: [] }))
-                              );
-                            }}
-                          >
-                            Изчисти
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-2">
-                        {availableParticipants.length === 0 && (
-                          <p className="p-2 text-xs text-zinc-500">
-                            Няма намерени участници.
-                          </p>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                        Управление на групи
+                      </Label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextMode = !isAllGroupMode;
+                          setIsAllGroupMode(nextMode);
+                          if (nextMode) {
+                            setGroups([
+                              {
+                                id: "all",
+                                name: "Всички",
+                                memberIds: availableParticipants.map(
+                                  (p) => p.id
+                                ),
+                              },
+                            ]);
+                          } else {
+                            setGroups([
+                              { id: uuidv4(), name: "Група А", memberIds: [] },
+                              { id: uuidv4(), name: "Група Б", memberIds: [] },
+                            ]);
+                          }
+                        }}
+                        className={cn(
+                          "rounded-full px-2.5 py-0.5 text-xs font-bold transition-all",
+                          isAllGroupMode
+                            ? "bg-indigo-600 text-white shadow-xs"
+                            : "border border-zinc-300 bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                         )}
-                        {availableParticipants.map((p) => (
-                          <div
-                            key={p.id}
-                            className="flex flex-col justify-between rounded-md border border-zinc-100 bg-white p-2 shadow-sm sm:flex-row sm:items-center"
-                          >
-                            <span className="text-sm font-medium">
-                              {p.name}
-                            </span>
-                            <div className="mt-2 flex flex-wrap gap-4 sm:mt-0">
-                              {groups.map((g) => (
-                                <label
-                                  key={g.id}
-                                  className="flex cursor-pointer items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={g.memberIds.includes(p.id)}
-                                    onChange={() =>
-                                      toggleParticipantInGroup(g.id, p.id)
-                                    }
-                                    className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
-                                  />
+                      >
+                        {isAllGroupMode
+                          ? "✓ Всички заедно (Обща група)"
+                          : "👥 Раздели по отделни групи"}
+                      </button>
+                    </div>
+
+                    {isAllGroupMode ? (
+                      <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/40 p-4 text-center dark:border-indigo-900/50 dark:bg-indigo-950/20">
+                        <div className="mx-auto flex size-9 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+                          <Users className="size-5" />
+                        </div>
+                        <h4 className="mt-2 text-sm font-bold text-indigo-950 dark:text-white">
+                          Всички състезатели тренират заедно (
+                          {availableParticipants.length} деца)
+                        </h4>
+                        <p className="mt-1 text-xs text-zinc-500">
+                          Не е необходимо индивидуално разпределение по
+                          подгрупи. Всички упражнения се изпълняват
+                          едновременно.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="mt-2 space-y-2">
+                          {groups.map((g) => (
+                            <div
+                              key={g.id}
+                              className="flex items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold">
                                   {g.name}
-                                </label>
-                              ))}
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px]"
+                                >
+                                  {g.memberIds.length} деца
+                                </Badge>
+                              </div>
+                              {groups.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeGroup(g.id)}
+                                  className="size-6 p-0 text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Нова група (напр. Група В)"
+                              value={newGroupName}
+                              onChange={(e) => setNewGroupName(e.target.value)}
+                              className="h-8 text-sm"
+                            />
+                            <Button
+                              size="sm"
+                              className="h-8"
+                              onClick={addGroup}
+                            >
+                              <Plus className="size-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Participant Assignment UI */}
+                        <div className="mt-6">
+                          <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                              Разпределение на участници (
+                              {availableParticipants.length} общо)
+                            </h4>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="h-7 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300"
+                                onClick={() => {
+                                  if (
+                                    groups.length === 0 ||
+                                    availableParticipants.length === 0
+                                  )
+                                    return;
+                                  const numGroups = groups.length;
+                                  const groupSize = Math.ceil(
+                                    availableParticipants.length / numGroups
+                                  );
+                                  const updatedGroups = groups.map((g, i) => {
+                                    const slice = availableParticipants.slice(
+                                      i * groupSize,
+                                      (i + 1) * groupSize
+                                    );
+                                    return {
+                                      ...g,
+                                      memberIds: slice.map((p) => p.id),
+                                    };
+                                  });
+                                  setGroups(updatedGroups);
+                                }}
+                              >
+                                ⚡ Разпредели по равно (
+                                {groups.map((g) => g.name).join("/")})
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-white"
+                                onClick={() => {
+                                  setGroups(
+                                    groups.map((g) => ({ ...g, memberIds: [] }))
+                                  );
+                                }}
+                              >
+                                Изчисти
+                              </Button>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                          <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900/60">
+                            {availableParticipants.length === 0 && (
+                              <p className="p-2 text-xs text-zinc-500">
+                                Няма намерени участници.
+                              </p>
+                            )}
+                            {availableParticipants.map((p) => (
+                              <div
+                                key={p.id}
+                                className="flex flex-col justify-between rounded-md border border-zinc-100 bg-white p-2 shadow-xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900"
+                              >
+                                <span className="text-sm font-medium">
+                                  {p.name}
+                                </span>
+                                <div className="mt-2 flex flex-wrap gap-4 sm:mt-0">
+                                  {groups.map((g) => (
+                                    <label
+                                      key={g.id}
+                                      className="flex cursor-pointer items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={g.memberIds.includes(p.id)}
+                                        onChange={() =>
+                                          toggleParticipantInGroup(g.id, p.id)
+                                        }
+                                        className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                                      />
+                                      {g.name}
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
