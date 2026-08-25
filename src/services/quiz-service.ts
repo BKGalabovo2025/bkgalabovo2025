@@ -230,15 +230,20 @@ export const quizService = {
     resultId: string,
     manualScore: number,
     autoScore: number,
-    coachFeedback: string
+    coachFeedback: string,
+    aiExplanations?: Record<string, string>
   ): Promise<void> {
-    await updateDoc(doc(db, THEORY_RESULTS_COLLECTION, resultId), {
+    const updateData: Record<string, unknown> = {
       manualScore,
       totalScore: autoScore + manualScore,
       coachFeedback,
       status: "REVIEWED",
       reviewedAt: new Date().toISOString(),
-    });
+    };
+    if (aiExplanations !== undefined) {
+      updateData.aiExplanations = aiExplanations;
+    }
+    await updateDoc(doc(db, THEORY_RESULTS_COLLECTION, resultId), updateData);
   },
 
   // Генериране на Viber линк

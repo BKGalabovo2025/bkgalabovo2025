@@ -1,7 +1,7 @@
 "use client";
 
 import { Edit, Loader2, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -47,11 +47,7 @@ export default function InventoryClient() {
   const [ratioValue, setRatioValue] = useState<number | "">("");
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    fetchInventory();
-  }, [activeBranch]);
-
-  const fetchInventory = async () => {
+  const fetchInventory = useCallback(async () => {
     setIsFetching(true);
     try {
       // Auto seed if empty
@@ -66,7 +62,11 @@ export default function InventoryClient() {
     } finally {
       setIsFetching(false);
     }
-  };
+  }, [activeBranch]);
+
+  useEffect(() => {
+    void fetchInventory();
+  }, [fetchInventory]);
 
   const handleOpenForm = (item?: InventoryItem) => {
     if (item) {

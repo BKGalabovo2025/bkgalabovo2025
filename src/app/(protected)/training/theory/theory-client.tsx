@@ -41,6 +41,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { QUESTION_BANK, QuestionBankItem } from "@/lib/question-bank";
+import { evaluateTacticalAnswer } from "@/lib/tactical-evaluator";
 import { getAllMembers } from "@/services/member-service";
 import { quizService } from "@/services/quiz-service";
 import { useAppStore } from "@/store/use-app-store";
@@ -73,6 +74,9 @@ export default function TheoryClient() {
   const [reviewResult, setReviewResult] = useState<TheoryResult | null>(null);
   const [manualScore, setManualScore] = useState(0);
   const [coachFeedback, setCoachFeedback] = useState("");
+  const [coachExplanations, setCoachExplanations] = useState<
+    Record<string, string>
+  >({});
 
   // Builder
   const [newTitle, setNewTitle] = useState("");
@@ -262,11 +266,82 @@ export default function TheoryClient() {
     }
   };
 
+  function buildInitialExplanations(
+    quiz?: Quiz,
+    r?: TheoryResult
+  ): Record<string, string> {
+    const explanations: Record<string, string> = {
+      ...(r?.aiExplanations || {}),
+    };
+    if (!quiz || !r?.answers) return explanations;
+
+    quiz.questions.forEach((q) => {
+      if (q.type === "SINGLE_CHOICE") {
+        const uAns = r.answers?.[q.id];
+        if (
+          typeof uAns === "number" &&
+          uAns !== q.correctAnswer &&
+          !explanations[q.id]
+        ) {
+          const correctOpt = q.options?.[q.correctAnswer ?? 0] || "";
+          explanations[q.id] =
+            q.explanation ||
+            `Според официалните правила на BWF верният отговор е "${correctOpt}".`;
+        }
+      }
+    });
+    return explanations;
+  }
+
+  function buildDefaultFeedback(
+    quiz: Quiz | undefined,
+    r: TheoryResult,
+    tacticalFeedback: string
+  ): string {
+    let feedback = r.coachFeedback || r.proposedCoachFeedback || "";
+    if (tacticalFeedback && !feedback.includes("Тактическа мисия")) {
+      if (feedback) feedback += "\n\n";
+      feedback += `[AI Анализ - Тактическа мисия]:\n${tacticalFeedback}`;
+    }
+    if (feedback || !quiz) return feedback;
+
+    const maxAuto = quiz.questions
+      .filter((q) => q.type === "SINGLE_CHOICE")
+      .reduce((acc, q) => acc + q.points, 0);
+    const score = r.autoScore || 0;
+    const pct = maxAuto > 0 ? Math.round((score / maxAuto) * 100) : 100;
+
+    if (pct >= 80) {
+      return `${r.playerName}, отлично представяне на теста! Демонстрираш стабилни теоретични знания по правилата на бадминтона.`;
+    }
+    if (pct >= 50) {
+      return `${r.playerName}, добър опит на теста! Имаш добра база, но обърни внимание на сбърканите въпроси по правилата.`;
+    }
+    return `${r.playerName}, препоръчвам ти да преговориш основните правила на BWF, за да си по-уверен/а на корта.`;
+  }
+
   // ── REVIEW ───────────────────────────────────────────────────────────────
   const openReview = (r: TheoryResult) => {
     setReviewResult(r);
-    setManualScore(r.manualScore ?? 0);
-    setCoachFeedback(r.coachFeedback ?? "");
+    const quiz = quizzes.find((q) => q.id === r.quizId);
+    setCoachExplanations(buildInitialExplanations(quiz, r));
+
+    const openQ = quiz?.questions.find((q) => q.type === "OPEN_TEXT");
+    const maxPoints = openQ?.points || 28;
+    let initialManualScore = r.manualScore ?? 0;
+    let tacticalFeedback = "";
+
+    if (!initialManualScore && r.tacticalAnswer) {
+      const evalRes = evaluateTacticalAnswer(
+        openQ?.text || "",
+        r.tacticalAnswer,
+        maxPoints
+      );
+      initialManualScore = r.aiScore || evalRes.suggestedScore;
+      tacticalFeedback = evalRes.feedback;
+    }
+    setManualScore(initialManualScore);
+    setCoachFeedback(buildDefaultFeedback(quiz, r, tacticalFeedback));
   };
 
   const submitReview = async () => {
@@ -276,7 +351,8 @@ export default function TheoryClient() {
         reviewResult.id,
         manualScore,
         reviewResult.autoScore,
-        coachFeedback
+        coachFeedback,
+        coachExplanations
       );
       toast.success("Рецензията е записана! 🎉");
       setReviewResult(null);
@@ -752,6 +828,25 @@ export default function TheoryClient() {
                                 );
                               })}
                             </div>
+                            {typeof userAnswer === "number" &&
+                              userAnswer !== q.correctAnswer && (
+                                <div className="mt-3 rounded-lg bg-orange-50 p-3">
+                                  <Label className="mb-1 text-[10px] font-bold text-orange-800 uppercase">
+                                    AI Анализ на грешката (Редактируем)
+                                  </Label>
+                                  <Textarea
+                                    value={coachExplanations[q.id] || ""}
+                                    onChange={(e) =>
+                                      setCoachExplanations((prev) => ({
+                                        ...prev,
+                                        [q.id]: e.target.value,
+                                      }))
+                                    }
+                                    className="h-16 resize-none rounded-md border-orange-200 bg-white text-xs text-orange-900 placeholder:text-orange-300"
+                                    placeholder="Въведи обяснение за грешния отговор..."
+                                  />
+                                </div>
+                              )}
                           </div>
                         );
                       })}
@@ -965,6 +1060,19 @@ export default function TheoryClient() {
                                 );
                               })}
                             </div>
+                            {typeof userAnswer === "number" &&
+                              userAnswer !== q.correctAnswer && (
+                                <div className="mt-3 rounded-lg bg-orange-50 p-3">
+                                  <Label className="mb-1 text-[10px] font-bold text-orange-800 uppercase">
+                                    AI Анализ на грешката
+                                  </Label>
+                                  <p className="text-xs text-orange-900">
+                                    {r.aiExplanations?.[q.id] ||
+                                      q.explanation ||
+                                      `Според официалните правила на BWF верният отговор е "${q.options?.[q.correctAnswer ?? 0]}".`}
+                                  </p>
+                                </div>
+                              )}
                           </div>
                         );
                       })}

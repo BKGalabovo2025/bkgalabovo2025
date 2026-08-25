@@ -78,7 +78,9 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
   const getLocLabel = (loc: string) => {
     if (loc === "court") return "В зала";
     if (loc === "stadium") return "Стадион";
-    return "Плаж";
+    if (loc === "beach") return "Плаж";
+    // Custom / manual location — show as-is
+    return loc || "Плаж";
   };
   const getPhaseLabel = (phase: string) => {
     if (phase === "warmup") return "Загрявка";
@@ -688,21 +690,52 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                             )}
 
                           {session.groups && session.groups.length > 0 && (
-                            <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/50 p-3 dark:border-indigo-900/30 dark:bg-indigo-900/10">
-                              <div className="mb-2 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
-                                Създадени групи:
+                            <div className="mt-3 flex flex-col gap-1.5 rounded-md border border-zinc-100 bg-zinc-50/50 p-2 dark:border-zinc-800 dark:bg-zinc-900/30">
+                              <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                Групи:
                               </div>
-                              <div className="flex flex-wrap gap-2">
-                                {session.groups.map((g) => (
-                                  <Badge
-                                    key={g.id}
-                                    variant="outline"
-                                    className="border-indigo-200 bg-white text-[10px] text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
+                              {session.groups.map((sg) => {
+                                const groupAttendees =
+                                  camp.attendees?.filter((a) =>
+                                    sg.memberIds.includes(a.memberId)
+                                  ) || [];
+                                return (
+                                  <div
+                                    key={sg.id}
+                                    className="text-xs text-zinc-500"
                                   >
-                                    {g.name} ({g.memberIds.length})
-                                  </Badge>
-                                ))}
-                              </div>
+                                    <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                                      {sg.name}
+                                    </span>{" "}
+                                    · {sg.memberIds.length} участници
+                                    {groupAttendees.length > 0 && (
+                                      <details className="group/group-details mt-1 [&_summary::-webkit-details-marker]:hidden">
+                                        <summary className="cursor-pointer text-[10px] font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                                          Виж участниците
+                                        </summary>
+                                        <ul className="mt-1.5 space-y-1 border-l border-zinc-200 pl-2 dark:border-zinc-700">
+                                          {groupAttendees.map((a) => (
+                                            <li
+                                              key={a.memberId}
+                                              className="text-[11px] leading-tight text-zinc-500 dark:text-zinc-400"
+                                            >
+                                              • {a.name}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </details>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {session.description && (
+                            <div className="mt-3 border-l-2 border-amber-500/50 pl-2 text-xs text-zinc-600 dark:text-zinc-400">
+                              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                                Бележки:{" "}
+                              </span>
+                              {session.description}
                             </div>
                           )}
                         </div>
@@ -741,172 +774,243 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                     </span>
                     <div className="h-px flex-1 bg-indigo-100 dark:bg-indigo-900/30" />
                   </div>
-                  {currentDayPlannerSessions.map((ps) => (
-                    <div
-                      key={ps.id}
-                      className="group flex flex-col gap-4 rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 shadow-sm transition-all hover:border-indigo-400/50 sm:flex-row sm:items-center dark:border-indigo-900/40 dark:bg-indigo-900/10"
-                    >
-                      <div className="flex shrink-0 items-center justify-center rounded-lg bg-indigo-100 p-3 sm:w-24 dark:bg-indigo-900/30">
-                        <CalendarRange
-                          size={18}
-                          className="text-indigo-600 dark:text-indigo-400"
-                        />
-                      </div>
-                      <div className="flex flex-1 items-start gap-4">
-                        <div className="flex-1">
-                          <div className="mb-1 flex flex-wrap items-center gap-2">
-                            <Badge
-                              variant="outline"
-                              className="border-indigo-200 bg-indigo-100 text-[10px] text-indigo-700 uppercase dark:border-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300"
-                            >
-                              Планировчик
-                            </Badge>
-                            {ps.targetGroups?.map((g, i) => (
-                              <Badge
-                                key={i}
-                                variant="outline"
-                                className="text-[10px] uppercase"
-                              >
-                                {g}
-                              </Badge>
-                            ))}
-                          </div>
-                          <h4 className="font-bold text-zinc-900 dark:text-white">
-                            {ps.title}
-                          </h4>
-                          <div className="mt-2 flex flex-col gap-2">
-                            <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
-                              <span>{getLocLabel(ps.location)}</span>
-                              {(() => {
-                                if (ps.blocks && ps.blocks.length > 0) {
-                                  return (
-                                    <span>
-                                      {ps.blocks.reduce(
-                                        (acc, b) => acc + b.items.length,
-                                        0
-                                      )}{" "}
-                                      общо упр.
-                                    </span>
-                                  );
-                                }
-                                if (ps.groupedExercises) {
-                                  return (
-                                    <span>
-                                      {ps.groupedExercises.reduce(
-                                        (acc, g) => acc + g.exercises.length,
-                                        0
-                                      )}{" "}
-                                      упр.
-                                    </span>
-                                  );
-                                }
-                                return null;
-                              })()}
-                            </div>
+                  {currentDayPlannerSessions.map((ps) => {
+                    const weather = getEstimatedWeather(
+                      camp.location,
+                      selectedDateStr,
+                      ps.startTime || ""
+                    );
 
-                            {ps.blocks && ps.blocks.length > 0 && (
-                              <div className="mt-1 flex flex-wrap gap-1.5">
-                                {ps.blocks
-                                  .filter((b) => {
-                                    const actualMinutes = b.items.reduce(
-                                      (acc, i) => acc + i.durationMinutes,
-                                      0
-                                    );
-                                    return (
-                                      actualMinutes > 0 ||
-                                      (b.targetDuration > 0 &&
-                                        b.items.length > 0)
-                                    );
-                                  })
-                                  .map((b) => {
-                                    const totalPhaseMinutes =
-                                      b.items.reduce(
-                                        (acc, i) => acc + i.durationMinutes,
-                                        0
-                                      ) || b.targetDuration;
-                                    const isQuizBlock = b.items.some(
-                                      (i) => i.exercise?.category === "quiz"
-                                    );
-                                    return (
-                                      <Badge
-                                        key={b.id}
-                                        variant="secondary"
-                                        className="bg-indigo-100/50 text-[10px] text-indigo-700 transition-colors hover:bg-indigo-100/80"
-                                      >
-                                        {isQuizBlock
-                                          ? "🧠 Викторина"
-                                          : getPhaseLabel(b.phase)}
-                                        : {totalPhaseMinutes} мин
-                                      </Badge>
-                                    );
-                                  })}
-                              </div>
-                            )}
-                            {ps.sessionGroups &&
-                              ps.sessionGroups.length > 0 && (
-                                <div className="mt-1">
-                                  <Badge
-                                    variant="outline"
-                                    className="text-[10px]"
-                                  >
-                                    {ps.sessionGroups.length} групи
-                                  </Badge>
-                                </div>
+                    return (
+                      <div
+                        key={ps.id}
+                        className="group flex flex-col gap-4 rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 shadow-sm transition-all hover:border-indigo-400/50 sm:flex-row sm:items-center dark:border-indigo-900/40 dark:bg-indigo-900/10"
+                      >
+                        <div className="flex shrink-0 items-center justify-between gap-1.5 rounded-lg bg-indigo-100 p-2 sm:w-36 sm:flex-col sm:justify-center dark:bg-indigo-900/30">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-black text-indigo-900 dark:text-indigo-100">
+                              {ps.startTime || "--:--"}
+                            </span>
+                            <span className="text-xs text-indigo-600 dark:text-indigo-400">
+                              - {ps.endTime || "--:--"}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-center gap-1">
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-0.5 rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300"
                               )}
+                              title={`Въздух: ${weather.airTemp}°C (${weather.conditionText})`}
+                            >
+                              <span>{weather.iconEmoji}</span>
+                              <span>{weather.airTemp}°C</span>
+                            </span>
+                            {weather.waterTemp !== undefined && (
+                              <span
+                                className="inline-flex items-center gap-0.5 rounded-full border border-cyan-200 bg-cyan-50 px-1.5 py-0.5 text-[9px] font-bold text-cyan-700 dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-300"
+                                title={`Вода: ${weather.waterTemp}°C`}
+                              >
+                                <span>🌊</span>
+                                <span>{weather.waterTemp}°C</span>
+                              </span>
+                            )}
                           </div>
                         </div>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleOpenPlannerWizard(ps)}
-                          className="h-8 gap-1.5 text-xs text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
-                        >
-                          <Edit size={12} />
-                          Редактирай
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={async () => {
-                            if (
-                              confirm(
-                                `Сигурни ли сте, че искате да изтриете "${ps.title}"?`
-                              )
-                            ) {
-                              try {
-                                await plannerService.deleteSession(ps.id);
-                                setPlannerSessions((prev) =>
-                                  prev.filter((s) => s.id !== ps.id)
-                                );
-                                toast.success("Тренировката е изтрита");
-                              } catch (err) {
-                                console.error(err);
-                                toast.error(
-                                  "Грешка при изтриване на тренировката"
-                                );
+                        <div className="flex flex-1 items-start gap-4">
+                          <div className="flex-1">
+                            <div className="mb-1 flex flex-wrap items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className="border-indigo-200 bg-indigo-100 text-[10px] text-indigo-700 uppercase dark:border-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300"
+                              >
+                                Планировчик
+                              </Badge>
+                              {ps.targetGroups?.map((g, i) => (
+                                <Badge
+                                  key={i}
+                                  variant="outline"
+                                  className="text-[10px] uppercase"
+                                >
+                                  {g}
+                                </Badge>
+                              ))}
+                            </div>
+                            <h4 className="font-bold text-zinc-900 dark:text-white">
+                              {ps.title}
+                            </h4>
+                            <div className="mt-2 flex flex-col gap-2">
+                              <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
+                                <span>{getLocLabel(ps.location)}</span>
+                                {(() => {
+                                  if (ps.blocks && ps.blocks.length > 0) {
+                                    return (
+                                      <span>
+                                        {ps.blocks.reduce(
+                                          (acc, b) => acc + b.items.length,
+                                          0
+                                        )}{" "}
+                                        общо упр.
+                                      </span>
+                                    );
+                                  }
+                                  if (ps.groupedExercises) {
+                                    return (
+                                      <span>
+                                        {ps.groupedExercises.reduce(
+                                          (acc, g) => acc + g.exercises.length,
+                                          0
+                                        )}{" "}
+                                        упр.
+                                      </span>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </div>
+
+                              {ps.blocks && ps.blocks.length > 0 && (
+                                <div className="mt-1 flex flex-wrap gap-1.5">
+                                  {ps.blocks
+                                    .filter((b) => {
+                                      const actualMinutes = b.items.reduce(
+                                        (acc, i) => acc + i.durationMinutes,
+                                        0
+                                      );
+                                      return (
+                                        actualMinutes > 0 ||
+                                        (b.targetDuration > 0 &&
+                                          b.items.length > 0)
+                                      );
+                                    })
+                                    .map((b) => {
+                                      const totalPhaseMinutes =
+                                        b.items.reduce(
+                                          (acc, i) => acc + i.durationMinutes,
+                                          0
+                                        ) || b.targetDuration;
+                                      const isQuizBlock = b.items.some(
+                                        (i) => i.exercise?.category === "quiz"
+                                      );
+                                      return (
+                                        <Badge
+                                          key={b.id}
+                                          variant="secondary"
+                                          className="bg-indigo-100/50 text-[10px] text-indigo-700 transition-colors hover:bg-indigo-100/80"
+                                        >
+                                          {isQuizBlock
+                                            ? "🧠 Викторина"
+                                            : getPhaseLabel(b.phase)}
+                                          : {totalPhaseMinutes} мин
+                                        </Badge>
+                                      );
+                                    })}
+                                </div>
+                              )}
+                              {ps.sessionGroups &&
+                                ps.sessionGroups.length > 0 && (
+                                  <div className="mt-2 flex flex-col gap-1.5 rounded-md border border-zinc-100 bg-zinc-50/50 p-2 dark:border-zinc-800 dark:bg-zinc-900/30">
+                                    <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                      Групи:
+                                    </div>
+                                    {ps.sessionGroups.map((sg) => {
+                                      const groupAttendees =
+                                        camp.attendees?.filter((a) =>
+                                          sg.memberIds.includes(a.memberId)
+                                        ) || [];
+                                      return (
+                                        <div
+                                          key={sg.id}
+                                          className="text-xs text-zinc-500"
+                                        >
+                                          <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                                            {sg.name}
+                                          </span>{" "}
+                                          · {sg.memberIds.length} участници
+                                          {groupAttendees.length > 0 && (
+                                            <details className="group/group-details mt-1 [&_summary::-webkit-details-marker]:hidden">
+                                              <summary className="cursor-pointer text-[10px] font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                                                Виж участниците
+                                              </summary>
+                                              <ul className="mt-1.5 space-y-1 border-l border-zinc-200 pl-2 dark:border-zinc-700">
+                                                {groupAttendees.map((a) => (
+                                                  <li
+                                                    key={a.memberId}
+                                                    className="text-[11px] leading-tight text-zinc-500 dark:text-zinc-400"
+                                                  >
+                                                    • {a.name}
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            </details>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              {ps.coachNotes && (
+                                <div className="mt-3 border-l-2 border-amber-500/50 pl-2 text-xs text-zinc-600 dark:text-zinc-400">
+                                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                                    Бележки:{" "}
+                                  </span>
+                                  {ps.coachNotes}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenPlannerWizard(ps)}
+                            className="h-8 gap-1.5 text-xs text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
+                          >
+                            <Edit size={12} />
+                            Редактирай
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={async () => {
+                              if (
+                                confirm(
+                                  `Сигурни ли сте, че искате да изтриете "${ps.title}"?`
+                                )
+                              ) {
+                                try {
+                                  await plannerService.deleteSession(ps.id);
+                                  setPlannerSessions((prev) =>
+                                    prev.filter((s) => s.id !== ps.id)
+                                  );
+                                  toast.success("Тренировката е изтрита");
+                                } catch (err) {
+                                  console.error(err);
+                                  toast.error(
+                                    "Грешка при изтриване на тренировката"
+                                  );
+                                }
                               }
-                            }
-                          }}
-                          className="size-8 text-zinc-400 hover:text-red-600"
-                          title="Изтрий тренировка"
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                        <Button
-                          asChild
-                          size="sm"
-                          className="h-8 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
-                        >
-                          <Link href={`/training/planner/${ps.id}/active`}>
-                            <Play size={12} />
-                            Старт
-                          </Link>
-                        </Button>
+                            }}
+                            className="size-8 text-zinc-400 hover:text-red-600"
+                            title="Изтрий тренировка"
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                          <Button
+                            asChild
+                            size="sm"
+                            className="h-8 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                          >
+                            <Link href={`/training/planner/${ps.id}/active`}>
+                              <Play size={12} />
+                              Старт
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

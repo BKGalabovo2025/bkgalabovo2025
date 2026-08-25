@@ -8,6 +8,7 @@ import {
   Coffee,
   Dumbbell,
   Map,
+  MapPin,
   Moon,
   Sun,
   Ticket,
@@ -18,6 +19,14 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { getEstimatedWeather } from "@/services/weather-service";
 import { CampSession } from "@/types";
+
+const getLocationLabel = (loc: string) => {
+  if (loc === "court") return "Спортна зала";
+  if (loc === "stadium") return "Стадион";
+  if (loc === "beach") return "Плаж";
+  if (loc === "other") return "Друго";
+  return loc;
+};
 
 interface PublicCampDay {
   date: Date;
@@ -32,6 +41,7 @@ interface CampPublicData {
   startDate: string;
   endDate: string;
   campSessions: CampSession[];
+  attendees?: { memberId: string; name: string }[];
 }
 
 interface CampPublicClientProps {
@@ -297,25 +307,60 @@ export default function CampPublicClient({
                       {session.title}
                     </h3>
 
-                    {session.description && (
-                      <p className="mt-1 text-xs leading-relaxed text-zinc-400">
-                        {session.description}
-                      </p>
+                    {session.location && (
+                      <div className="mt-1 flex items-center gap-1 text-[11px] font-medium text-zinc-400">
+                        <MapPin size={12} className="text-zinc-500" />
+                        {getLocationLabel(session.location)}
+                      </div>
                     )}
 
                     {session.groups && session.groups.length > 0 && (
-                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                      <div className="mt-2.5 flex flex-col gap-1.5 rounded-md border border-zinc-800/60 bg-zinc-900/40 p-2.5">
                         <span className="flex items-center gap-1 text-[11px] font-semibold text-zinc-400">
                           <Users size={12} className="text-zinc-500" /> Групи:
                         </span>
-                        {session.groups.map((g) => (
-                          <span
-                            key={g.id}
-                            className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-semibold text-indigo-300"
-                          >
-                            {g.name} · {g.memberIds.length} участници
-                          </span>
-                        ))}
+                        {session.groups.map((sg) => {
+                          const groupAttendees =
+                            camp.attendees?.filter((a) =>
+                              sg.memberIds.includes(a.memberId)
+                            ) || [];
+                          return (
+                            <div
+                              key={sg.id}
+                              className="text-[11px] text-zinc-500"
+                            >
+                              <span className="font-semibold text-zinc-300">
+                                {sg.name}
+                              </span>{" "}
+                              · {sg.memberIds.length} участници
+                              {groupAttendees.length > 0 && (
+                                <details className="group/group-details mt-1 [&_summary::-webkit-details-marker]:hidden">
+                                  <summary className="cursor-pointer text-[10px] font-semibold text-indigo-400 hover:text-indigo-300">
+                                    Виж участниците
+                                  </summary>
+                                  <ul className="mt-1.5 space-y-1 border-l border-zinc-700 pl-2">
+                                    {groupAttendees.map((a) => (
+                                      <li
+                                        key={a.memberId}
+                                        className="text-[11px] leading-tight text-zinc-400"
+                                      >
+                                        • {a.name}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </details>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {session.description && (
+                      <div className="mt-3 border-l-2 border-amber-500/50 pl-2 text-[11px] text-zinc-400">
+                        <span className="font-semibold text-zinc-300">
+                          Бележки:{" "}
+                        </span>
+                        {session.description}
                       </div>
                     )}
                   </div>

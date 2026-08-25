@@ -927,11 +927,12 @@ const DedicatedQuizModule = ({
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <span className="text-3xl">📝</span>
               <p className="mt-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                Няма добавени викторини
+                Няма предварително зададени викторини
               </p>
-              <p className="text-xs text-zinc-500">
-                Изберете модул от списъка &quot;Каталог Упражнения&quot; вдясно
-                с бутона &quot;+ Добави във викторина&quot;.
+              <p className="mx-auto mt-1 max-w-md text-xs text-zinc-500">
+                Можете да изберете конкретни тестове от каталога вдясно или да
+                оставите списъка празен — така треньорът ще подбере подходящ
+                тест за всеки участник на място.
               </p>
             </div>
           ) : (
@@ -1072,7 +1073,20 @@ const GroupsManagementSection = ({
                 className="flex items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold">{g.name}</span>
+                  <Input
+                    value={g.name}
+                    onChange={(e) => {
+                      const newName = e.target.value;
+                      setGroups((prev) =>
+                        prev.map((group) =>
+                          group.id === g.id
+                            ? { ...group, name: newName }
+                            : group
+                        )
+                      );
+                    }}
+                    className="h-7 w-32 border-transparent bg-transparent px-2 text-sm font-semibold transition-colors hover:border-zinc-300 focus:border-indigo-500 focus:bg-white dark:focus:bg-zinc-950"
+                  />
                   <Badge variant="outline" className="text-[10px]">
                     {g.memberIds.length} деца
                   </Badge>
@@ -2112,50 +2126,65 @@ export default function CreateSessionWizard({
                   Преглед на графика
                 </h3>
                 <div className="space-y-4">
-                  {blocks.map((b) => {
-                    const currentTotal = b.items.reduce(
-                      (s, i) => s + i.durationMinutes,
-                      0
-                    );
-                    return (
-                      <div
-                        key={b.id}
-                        className="border-l-4 border-indigo-500 py-2 pl-4"
-                      >
-                        <div className="mb-2 flex items-center justify-between">
-                          <span className="font-semibold text-zinc-800">
-                            {getPhaseName(b.phase)}
-                          </span>
-                          <span className="text-sm font-bold text-indigo-600">
-                            {currentTotal} мин
-                          </span>
-                        </div>
-                        {b.items.length > 0 ? (
-                          <ul className="space-y-1">
-                            {b.items.map((item) => (
-                              <li
-                                key={item.id}
-                                className="flex justify-between text-sm text-zinc-600"
-                              >
-                                <span>
-                                  {item.type === "exercise"
-                                    ? item.exercise?.name
-                                    : "Станционна Ротация"}
-                                </span>
-                                <span className="text-xs">
-                                  {item.durationMinutes} мин
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <div className="text-sm text-zinc-400 italic">
-                            Няма упражнения
+                  {blocks
+                    .filter(
+                      (b) =>
+                        !(
+                          selectedCategory === "quiz" &&
+                          (b.phase === "warmup" || b.phase === "cooldown")
+                        )
+                    )
+                    .map((b) => {
+                      let currentTotal = 0;
+                      if (b.items.length > 0) {
+                        currentTotal = b.items.reduce(
+                          (s, i) => s + i.durationMinutes,
+                          0
+                        );
+                      } else if (selectedCategory === "quiz") {
+                        currentTotal = totalDuration;
+                      }
+                      return (
+                        <div
+                          key={b.id}
+                          className="border-l-4 border-indigo-500 py-2 pl-4"
+                        >
+                          <div className="mb-2 flex items-center justify-between">
+                            <span className="font-semibold text-zinc-800">
+                              {getPhaseName(b.phase)}
+                            </span>
+                            <span className="text-sm font-bold text-indigo-600">
+                              {currentTotal} мин
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          {b.items.length > 0 ? (
+                            <ul className="space-y-1">
+                              {b.items.map((item) => (
+                                <li
+                                  key={item.id}
+                                  className="flex justify-between text-sm text-zinc-600"
+                                >
+                                  <span>
+                                    {item.type === "exercise"
+                                      ? item.exercise?.name
+                                      : "Станционна Ротация"}
+                                  </span>
+                                  <span className="text-xs">
+                                    {item.durationMinutes} мин
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="text-sm text-zinc-400 italic">
+                              {selectedCategory === "quiz"
+                                ? "Треньорът ще подбере тест на място"
+                                : "Няма упражнения"}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             </div>

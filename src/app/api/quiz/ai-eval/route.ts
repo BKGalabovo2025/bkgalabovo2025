@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     const finalResult = geminiResult || fallback;
 
     const adminDb = getAdminDb();
-    const docRef = adminDb.collection("theory_results").doc(resultId);
+    const docRef = adminDb.collection("theoryResults").doc(resultId);
     await docRef.update({
       aiScore: finalResult.aiScore,
       aiFeedback: finalResult.aiFeedback,

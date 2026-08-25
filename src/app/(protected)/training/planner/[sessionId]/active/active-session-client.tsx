@@ -4,12 +4,14 @@
 import {
   Activity,
   ArrowLeft,
+  CheckSquare,
   Loader2,
   Pause,
   Play,
   Save,
   ShieldAlert,
   SkipForward,
+  Square,
   Target,
   Timer,
 } from "lucide-react";
@@ -122,7 +124,22 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       setSession(targetSession);
 
       const allMembers = await getAllMembers();
-      if (targetSession.campId) {
+
+      let initialMembers: Member[] = [];
+
+      if (
+        targetSession.sessionGroups &&
+        targetSession.sessionGroups.length > 0
+      ) {
+        // Only load members from the assigned groups
+        const allowedMemberIds = new Set<string>();
+        targetSession.sessionGroups.forEach((group) => {
+          if (group.memberIds) {
+            group.memberIds.forEach((id) => allowedMemberIds.add(id));
+          }
+        });
+        initialMembers = allMembers.filter((m) => allowedMemberIds.has(m.id));
+      } else if (targetSession.campId) {
         const { getEventById } = await import("@/services/schedule-service");
         const campEvent = await getEventById(targetSession.campId);
         if (
@@ -134,20 +151,22 @@ export default function ActiveSessionClient({ sessionId }: Props) {
             campEvent.attendees.map((a) => a.memberId)
           );
           const campMembers = allMembers.filter((m) => attendeeIds.has(m.id));
-          setMembers(
+          initialMembers =
             campMembers.length > 0
               ? campMembers
-              : allMembers.filter((m: Member) => m.status === "active")
-          );
+              : allMembers.filter((m: Member) => m.status === "active");
         } else {
-          setMembers(allMembers.filter((m: Member) => m.status === "active"));
+          initialMembers = allMembers.filter(
+            (m: Member) => m.status === "active"
+          );
         }
       } else {
-        const activeMembers = allMembers.filter(
+        initialMembers = allMembers.filter(
           (m: Member) => m.status === "active"
         );
-        setMembers(activeMembers);
       }
+
+      setMembers(initialMembers);
     } catch (error) {
       console.error(error);
       setError("Възникна грешка при зареждане.");
@@ -178,6 +197,48 @@ export default function ActiveSessionClient({ sessionId }: Props) {
 
     setTimerState("work");
     setTimeRemaining(dur);
+    playWhistle();
+  };
+
+  const startGlobalTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setActiveItem(null);
+
+    // Calculate total duration in seconds from startTime and endTime
+    let totalSecs = 60 * 60; // default 1 hour
+    if (session?.startTime && session?.endTime) {
+      const sParts = session.startTime.split(":");
+      const eParts = session.endTime.split(":");
+      const startMins = parseInt(sParts[0]) * 60 + parseInt(sParts[1]);
+      const endMins = parseInt(eParts[0]) * 60 + parseInt(eParts[1]);
+      if (endMins > startMins) {
+        totalSecs = (endMins - startMins) * 60;
+      }
+    }
+    // Check if session has its own coachNotes
+    const notes = session?.coachNotes
+      ? [session.coachNotes]
+      : ["Треньорът определя натоварването и тестовете на място."];
+
+    setActiveLegacyExercise({
+      id: "global",
+      siteId: activeBranch,
+      name: session?.title || "Свободна тренировка",
+      description: "Свободна тренировка",
+      category: "GENERAL",
+      location: [],
+      ageGroups: [],
+      durationMinutes: Math.floor(totalSecs / 60),
+      equipment: [],
+      coachingPoints: notes,
+      defaultWorkSec: totalSecs,
+      defaultRestSec: 0,
+      defaultSets: 1,
+    } as unknown as Exercise);
+
+    setCurrentSet(1);
+    setTimerState("work");
+    setTimeRemaining(totalSecs);
     playWhistle();
   };
 
@@ -274,6 +335,33 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   };
 
   // --- Attendance Handlers ---
+  const markAllAsAttended = () => {
+    setAttendance((prev) => {
+      const next = { ...prev };
+      members.forEach((m) => {
+        if (!next[m.id]) {
+          next[m.id] = {
+            id: "",
+            siteId: activeBranch,
+            sessionId,
+            memberId: m.id,
+            date: session?.date || new Date().toISOString(),
+            rpe: 5,
+            effort: 3,
+            medicalStatus: "healthy",
+            createdAt: "",
+            updatedAt: "",
+          };
+        }
+      });
+      return next;
+    });
+  };
+
+  const unmarkAllAsAttended = () => {
+    setAttendance({});
+  };
+
   const toggleAttendance = (memberId: string) => {
     setAttendance((prev) => {
       const next = { ...prev };
@@ -395,12 +483,14 @@ export default function ActiveSessionClient({ sessionId }: Props) {
         )}
       >
         <div className="mb-4">
-          <Badge
-            variant="outline"
-            className="mb-2 border-indigo-500/30 text-indigo-300"
-          >
-            {cat.toUpperCase()}
-          </Badge>
+          {cat && activeLegacyExercise?.id !== "global" && (
+            <Badge
+              variant="outline"
+              className="mb-2 border-indigo-500/30 text-indigo-300"
+            >
+              {cat.toUpperCase()}
+            </Badge>
+          )}
           <h2 className="text-2xl font-black text-white sm:text-3xl">{name}</h2>
 
           {isStation && activeItem?.rotations && (
@@ -426,7 +516,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
             </div>
           )}
 
-          {sets && !isStation && (
+          {sets && !isStation && activeLegacyExercise?.id !== "global" && (
             <p className="mt-2 font-medium text-zinc-400">
               Серия {currentSet} от {sets}
             </p>
@@ -553,80 +643,117 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                 </h3>
               </div>
 
-              {session.blocks && session.blocks.length > 0 ? (
-                <div className="space-y-6">
-                  {session.blocks.map((block) => (
-                    <div key={block.id}>
-                      <h4 className="mb-2 border-b border-zinc-800 pb-1 text-sm font-bold tracking-widest text-zinc-500 uppercase">
-                        {block.phase === "warmup"
-                          ? "Загрявка"
-                          : block.phase === "main"
-                            ? "Основна част"
-                            : "Разпускане"}{" "}
-                        ({block.targetDuration} мин)
-                      </h4>
-                      <div className="grid max-h-64 grid-cols-1 gap-3 sm:grid-cols-2">
-                        {block.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between rounded-xl border border-zinc-700 bg-zinc-800 p-3"
-                          >
-                            <div>
-                              <div className="text-sm font-bold text-zinc-100">
-                                {item.type === "exercise"
-                                  ? item.exercise?.name
-                                  : "🔄 Станционна Ротация"}
-                              </div>
-                              <div className="text-xs text-zinc-400">
-                                {item.type === "exercise" &&
-                                item.exercise?.defaultSets
-                                  ? `${item.exercise.defaultSets} серии x ${item.exercise.defaultWorkSec}с`
-                                  : `${item.durationMinutes} мин`}
+              {(() => {
+                const hasBlocksWithItems = session.blocks?.some(
+                  (b) => b.items && b.items.length > 0
+                );
+                const hasLegacyItems = session.groupedExercises?.some(
+                  (g) => g.exercises && g.exercises.length > 0
+                );
+                const hasAnyItems = hasBlocksWithItems || hasLegacyItems;
+
+                if (!hasAnyItems) {
+                  return (
+                    <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-center text-zinc-400">
+                      <p className="mb-4">
+                        Няма зададени конкретни тестове или упражнения в плана.
+                      </p>
+                      <p className="text-sm">
+                        Треньорът ще подбере подходящ тест на място.
+                      </p>
+                      <Button
+                        onClick={startGlobalTimer}
+                        className="mt-4 bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        <Play className="mr-2 size-4" /> Започни сесията
+                      </Button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <>
+                    {hasBlocksWithItems ? (
+                      <div className="space-y-6">
+                        {session
+                          .blocks!.filter(
+                            (block) => block.items && block.items.length > 0
+                          )
+                          .map((block) => (
+                            <div key={block.id}>
+                              <h4 className="mb-2 border-b border-zinc-800 pb-1 text-sm font-bold tracking-widest text-zinc-500 uppercase">
+                                {block.phase === "warmup"
+                                  ? "Загрявка"
+                                  : block.phase === "main"
+                                    ? "Основна част"
+                                    : "Разпускане"}{" "}
+                                ({block.targetDuration} мин)
+                              </h4>
+                              <div className="grid max-h-64 grid-cols-1 gap-3 sm:grid-cols-2">
+                                {block.items.map((item) => (
+                                  <div
+                                    key={item.id}
+                                    className="flex items-center justify-between rounded-xl border border-zinc-700 bg-zinc-800 p-3"
+                                  >
+                                    <div>
+                                      <div className="text-sm font-bold text-zinc-100">
+                                        {item.type === "exercise"
+                                          ? item.exercise?.name
+                                          : "🔄 Станционна Ротация"}
+                                      </div>
+                                      <div className="text-xs text-zinc-400">
+                                        {item.type === "exercise" &&
+                                        item.exercise?.defaultSets
+                                          ? `${item.exercise.defaultSets} серии x ${item.exercise.defaultWorkSec}с`
+                                          : `${item.durationMinutes} мин`}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => startItem(item)}
+                                      className="bg-indigo-600 hover:bg-indigo-500"
+                                    >
+                                      <Play className="size-4" />
+                                    </Button>
+                                  </div>
+                                ))}
                               </div>
                             </div>
-                            <Button
-                              size="sm"
-                              onClick={() => startItem(item)}
-                              className="bg-indigo-600 hover:bg-indigo-500"
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="custom-scrollbar grid max-h-64 grid-cols-1 gap-3 overflow-y-auto pr-2 sm:grid-cols-2">
+                        {session.groupedExercises
+                          ?.flatMap((g) => g.exercises || [])
+                          .map((ex, i) => (
+                            <div
+                              key={`${ex.id}-${i}`}
+                              className="flex items-center justify-between rounded-xl border border-zinc-700 bg-zinc-800 p-3"
                             >
-                              <Play className="size-4" />
-                            </Button>
-                          </div>
-                        ))}
+                              <div>
+                                <div className="text-sm font-bold text-zinc-100">
+                                  {ex.name}
+                                </div>
+                                <div className="text-xs text-zinc-400">
+                                  {ex.defaultSets
+                                    ? `${ex.defaultSets} серии x ${ex.defaultWorkSec}с`
+                                    : `${ex.durationMinutes} мин`}
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => startItem(ex, true)}
+                                className="bg-indigo-600 hover:bg-indigo-500"
+                              >
+                                <Play className="size-4" />
+                              </Button>
+                            </div>
+                          ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="custom-scrollbar grid max-h-64 grid-cols-1 gap-3 overflow-y-auto pr-2 sm:grid-cols-2">
-                  {session.groupedExercises
-                    ?.flatMap((g) => g.exercises || [])
-                    .map((ex, i) => (
-                      <div
-                        key={`${ex.id}-${i}`}
-                        className="flex items-center justify-between rounded-xl border border-zinc-700 bg-zinc-800 p-3"
-                      >
-                        <div>
-                          <div className="text-sm font-bold text-zinc-100">
-                            {ex.name}
-                          </div>
-                          <div className="text-xs text-zinc-400">
-                            {ex.defaultSets
-                              ? `${ex.defaultSets} серии x ${ex.defaultWorkSec}с`
-                              : `${ex.durationMinutes} мин`}
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => startItem(ex, true)}
-                          className="bg-indigo-600 hover:bg-indigo-500"
-                        >
-                          <Play className="size-4" />
-                        </Button>
-                      </div>
-                    ))}
-                </div>
-              )}
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
         </CardContent>
@@ -638,9 +765,29 @@ export default function ActiveSessionClient({ sessionId }: Props) {
           <h2 className="flex items-center gap-2 text-lg font-bold text-zinc-900">
             Присъствия и Натоварване
           </h2>
-          <Badge variant="secondary" className="text-sm">
-            {presentCount} / {members.length} присъстват
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={markAllAsAttended}
+              className="text-xs text-emerald-600 hover:text-emerald-700"
+            >
+              <CheckSquare className="mr-1.5 size-4" />
+              Всички
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={unmarkAllAsAttended}
+              className="text-xs text-zinc-500 hover:text-zinc-700"
+            >
+              <Square className="mr-1.5 size-4" />
+              Изчисти
+            </Button>
+            <Badge variant="secondary" className="text-sm">
+              {presentCount} / {members.length} присъстват
+            </Badge>
+          </div>
         </div>
 
         <div className="space-y-4">

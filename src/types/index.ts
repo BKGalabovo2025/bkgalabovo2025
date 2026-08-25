@@ -241,6 +241,7 @@ export type CampSession = {
   endTime: string; // HH:mm
   title: string;
   type: "training" | "meal" | "leisure" | "travel" | "other";
+  location?: string;
   description?: string;
   exercises?: string[]; // list of exercise IDs
   absentMemberIds?: string[];

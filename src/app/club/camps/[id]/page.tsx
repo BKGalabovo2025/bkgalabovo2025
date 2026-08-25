@@ -89,6 +89,7 @@ export default async function CampPublicPage({
     startDate: string;
     endDate: string;
     campSessions: CampSession[];
+    attendees?: { memberId: string; name: string }[];
   } | null = null;
 
   try {
@@ -129,46 +130,77 @@ export default async function CampPublicPage({
       return String(val);
     };
 
+    const resolveSessionType = (type: unknown): CampSession["type"] => {
+      const allowed = [
+        "training",
+        "meal",
+        "quiet_hour",
+        "leisure",
+        "attraction",
+        "travel",
+        "other",
+      ];
+      return (
+        typeof type === "string" && allowed.includes(type) ? type : "training"
+      ) as CampSession["type"];
+    };
+
+    const resolveStartTime = (
+      ps: Record<string, unknown>,
+      blocks: Record<string, unknown>[]
+    ): string => {
+      if (typeof ps.startTime === "string" && ps.startTime) return ps.startTime;
+      if (blocks.length > 0 && typeof blocks[0].startTime === "string")
+        return blocks[0].startTime;
+      return "09:00";
+    };
+
+    const resolveEndTime = (
+      ps: Record<string, unknown>,
+      blocks: Record<string, unknown>[]
+    ): string => {
+      if (typeof ps.endTime === "string" && ps.endTime) return ps.endTime;
+      if (blocks.length > 0) {
+        const last = blocks[blocks.length - 1];
+        if (typeof last.endTime === "string") return last.endTime;
+      }
+      return "11:00";
+    };
+
+    const resolveDescription = (
+      ps: Record<string, unknown>
+    ): string | undefined => {
+      if (typeof ps.coachNotes === "string") return ps.coachNotes;
+      if (typeof ps.description === "string") return ps.description;
+      return undefined;
+    };
+
     // Convert planner sessions to CampSession format
     const convertPlannerSession = (
       ps: Record<string, unknown>
     ): CampSession => {
-      const blocks = Array.isArray(ps.blocks) ? ps.blocks : [];
+      const blocks = (Array.isArray(ps.blocks) ? ps.blocks : []) as Record<
+        string,
+        unknown
+      >[];
       const sessionGroups = Array.isArray(ps.sessionGroups)
         ? ps.sessionGroups
         : [];
       return {
         id: typeof ps.id === "string" ? ps.id : "",
         date: normalizeDate(ps.date),
-        type: ([
-          "training",
-          "meal",
-          "quiet_hour",
-          "leisure",
-          "attraction",
-          "travel",
-          "other",
-        ].includes(ps.type as string)
-          ? ps.type
-          : "training") as CampSession["type"],
+        type: resolveSessionType(ps.type),
         title: typeof ps.title === "string" ? ps.title : "",
-        startTime:
-          blocks.length > 0 && typeof blocks[0].startTime === "string"
-            ? blocks[0].startTime
-            : "09:00",
-        endTime:
-          blocks.length > 0 &&
-          typeof blocks[blocks.length - 1].endTime === "string"
-            ? blocks[blocks.length - 1].endTime
-            : "11:00",
+        location: typeof ps.location === "string" ? ps.location : undefined,
+        startTime: resolveStartTime(ps, blocks),
+        endTime: resolveEndTime(ps, blocks),
         exercises: [],
         groups: sessionGroups.map((g: Record<string, unknown>) => ({
           id: typeof g.id === "string" ? g.id : "",
           name: typeof g.name === "string" ? g.name : "",
           memberIds: Array.isArray(g.memberIds) ? g.memberIds : [],
         })),
-        description:
-          typeof ps.description === "string" ? ps.description : undefined,
+        description: resolveDescription(ps),
       };
     };
 
@@ -239,6 +271,12 @@ export default async function CampPublicPage({
       startDate,
       endDate,
       campSessions: allSessions,
+      attendees: Array.isArray(data.attendees)
+        ? data.attendees.map((a: Record<string, unknown>) => ({
+            memberId: typeof a.memberId === "string" ? a.memberId : "",
+            name: typeof a.name === "string" ? a.name : "",
+          }))
+        : [],
     };
   } catch (err) {
     console.error("Failed to load camp for public page:", err);

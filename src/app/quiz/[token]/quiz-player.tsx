@@ -181,6 +181,18 @@ function QuizPlayerResult({
                               </div>
                             );
                           })}
+                          {isReviewed &&
+                            typeof userAnswer === "number" &&
+                            userAnswer !== q.correctAnswer && (
+                              <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900">
+                                <span className="mb-1 block font-bold text-amber-800">
+                                  🤖 Обяснение според официалните правила:
+                                </span>
+                                {result.aiExplanations?.[q.id] ||
+                                  q.explanation ||
+                                  `Според официалните правила на BWF верният отговор е "${q.options?.[q.correctAnswer ?? 0]}".`}
+                              </div>
+                            )}
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -199,7 +211,7 @@ function QuizPlayerResult({
                               Оценено: {result.manualScore} / {q.points} т.
                             </div>
                           )}
-                          {result.aiFeedback && (
+                          {isReviewed && result.aiFeedback && (
                             <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 text-xs text-indigo-900">
                               <span className="mb-1 block font-bold text-indigo-700">
                                 🤖 AI Тактически анализ:
@@ -210,14 +222,16 @@ function QuizPlayerResult({
                         </div>
                       )}
 
-                      {q.explanation && (
-                        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-xs text-emerald-900">
-                          <span className="mb-1 block font-bold text-emerald-800">
-                            💡 Обяснение от треньора:
-                          </span>
-                          {q.explanation}
-                        </div>
-                      )}
+                      {isReviewed &&
+                        q.explanation &&
+                        userAnswer === q.correctAnswer && (
+                          <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-xs text-emerald-900">
+                            <span className="mb-1 block font-bold text-emerald-800">
+                              💡 Обяснение от треньора:
+                            </span>
+                            {q.explanation}
+                          </div>
+                        )}
 
                       {q.mediaUrl && (
                         <div className="mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
@@ -229,6 +243,7 @@ function QuizPlayerResult({
                               className="max-h-48 w-full object-cover"
                             />
                           ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={q.mediaUrl}
                               alt="Тактическа схема"
@@ -295,22 +310,66 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
     setStep("submitting");
     try {
       let autoScore = 0;
+      let maxAutoScore = 0;
       for (const q of quiz.questions) {
-        if (q.type === "SINGLE_CHOICE" && answers[q.id] === q.correctAnswer) {
-          autoScore += q.points;
+        if (q.type === "SINGLE_CHOICE") {
+          maxAutoScore += q.points;
+          if (answers[q.id] === q.correctAnswer) {
+            autoScore += q.points;
+          }
         }
       }
       const openQ = quiz.questions.find((q) => q.type === "OPEN_TEXT");
       const tacticalAnswer = openQ ? String(answers[openQ.id] ?? "") : "";
+
+      // Submit initially
       await quizService.submitTacticalAnswer(
         result.id,
         autoScore,
         tacticalAnswer,
         answers
       );
-      setResult((prev) =>
-        prev ? { ...prev, autoScore, totalScore: autoScore, answers } : prev
-      );
+
+      // Request AI feedback for wrong answers and coach review
+      try {
+        const res = await fetch("/api/quiz/ai-feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resultId: result.id,
+            quizTitle: quiz.title,
+            questions: quiz.questions,
+            userAnswers: answers,
+            autoScore,
+            maxAutoScore,
+          }),
+        });
+
+        if (res.ok) {
+          const aiData = await res.json();
+          setResult((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  autoScore,
+                  totalScore: autoScore,
+                  answers,
+                  aiExplanations: aiData.aiExplanations,
+                  proposedCoachFeedback: aiData.proposedCoachFeedback,
+                }
+              : prev
+          );
+        } else {
+          setResult((prev) =>
+            prev ? { ...prev, autoScore, totalScore: autoScore, answers } : prev
+          );
+        }
+      } catch {
+        setResult((prev) =>
+          prev ? { ...prev, autoScore, totalScore: autoScore, answers } : prev
+        );
+      }
+
       setStep("done");
     } catch {
       setStep("answering");
@@ -323,7 +382,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
         <Loader2 className="size-12 animate-spin text-indigo-500" />
         <p className="text-lg font-semibold text-indigo-700">
           {step === "submitting"
-            ? "Записваме отговорите ти... ✍️"
+            ? "Анализират се отговорите ти...  "
             : "Зареждане на теста..."}
         </p>
       </div>
