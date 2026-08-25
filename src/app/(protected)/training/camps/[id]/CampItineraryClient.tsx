@@ -387,9 +387,11 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       date: selectedDateStr,
     }));
 
-    // Only copy camp sessions - planner sessions have different structure
-    // and would need separate handling. For now, copy only the camp sessions.
-    const mergedSessions = [...copiedCampSessions];
+    // Keep sessions from other dates and replace/add for current date
+    const otherDateSessions = sessions.filter(
+      (s) => s.date !== selectedDateStr
+    );
+    const mergedSessions = [...otherDateSessions, ...copiedCampSessions];
 
     try {
       setIsSaving(true);
