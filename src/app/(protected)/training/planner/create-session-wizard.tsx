@@ -662,14 +662,14 @@ export default function CreateSessionWizard({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-7xl gap-0 overflow-hidden bg-zinc-50 p-0">
-        <DialogHeader className="z-10 flex-shrink-0 border-b border-zinc-200 bg-white p-6">
-          <DialogTitle className="text-xl">
+      <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-full max-w-7xl flex-col gap-0 overflow-hidden rounded-none bg-zinc-50 p-0 sm:h-[90vh] sm:max-h-[90vh] sm:rounded-2xl">
+        <DialogHeader className="z-10 flex-shrink-0 border-b border-zinc-200 bg-white p-4 sm:p-6">
+          <DialogTitle className="text-lg sm:text-xl">
             {initialSession
               ? "Редактиране на тренировка"
               : "Конструктор на тренировка (Time-Budget Builder)"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             {initialSession
               ? `Редактирайте тренировката: ${initialSession.title}`
               : "Разпределете упражненията и станциите за вашите групи. Времето се разпределя автоматично (10% - 80% - 10%)."}
@@ -677,21 +677,21 @@ export default function CreateSessionWizard({
         </DialogHeader>
 
         {/* WIZARD HEADER */}
-        <div className="flex justify-center gap-6 border-b border-zinc-200 bg-white p-3 text-sm font-medium">
+        <div className="flex flex-shrink-0 justify-center gap-2 border-b border-zinc-200 bg-white p-2 text-xs font-medium sm:gap-6 sm:p-3 sm:text-sm">
           <div
             className={cn(
-              "cursor-pointer rounded-full px-4 py-2 transition-colors",
+              "cursor-pointer rounded-full px-3 py-1.5 transition-colors sm:px-4 sm:py-2",
               currentStep === 1
                 ? "bg-indigo-600 text-white shadow"
                 : "text-zinc-500 hover:bg-zinc-100"
             )}
             onClick={() => setCurrentStep(1)}
           >
-            1. Общи Настройки
+            1. Настройки
           </div>
           <div
             className={cn(
-              "cursor-pointer rounded-full px-4 py-2 transition-colors",
+              "cursor-pointer rounded-full px-3 py-1.5 transition-colors sm:px-4 sm:py-2",
               currentStep === 2
                 ? "bg-indigo-600 text-white shadow"
                 : "text-zinc-500 hover:bg-zinc-100"
@@ -702,21 +702,21 @@ export default function CreateSessionWizard({
           </div>
           <div
             className={cn(
-              "cursor-pointer rounded-full px-4 py-2 transition-colors",
+              "cursor-pointer rounded-full px-3 py-1.5 transition-colors sm:px-4 sm:py-2",
               currentStep === 3
                 ? "bg-indigo-600 text-white shadow"
                 : "text-zinc-500 hover:bg-zinc-100"
             )}
             onClick={() => setCurrentStep(3)}
           >
-            3. Преглед & Запазване
+            3. Запазване
           </div>
         </div>
 
-        <div className="flex h-[calc(90vh-210px)] w-full flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {/* STEP 1: General Settings & Inventory */}
           {currentStep === 1 && (
-            <div className="mx-auto w-full max-w-5xl flex-shrink-0 space-y-8 overflow-y-auto p-6">
+            <div className="mx-auto w-full max-w-5xl space-y-6 p-4 pb-12 sm:p-6">
               {/* Basic Settings */}
               <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
                 <h3 className="mb-4 text-lg font-bold text-zinc-800">

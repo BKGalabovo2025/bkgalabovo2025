@@ -150,10 +150,39 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
   >([]);
   const [newGroupName, setNewGroupName] = useState("");
 
-  const handleOpenModal = (session?: CampSession) => {
+  const defaultEventConfigs: Record<
+    string,
+    { title: string; startTime: string; endTime: string }
+  > = {
+    meal: {
+      title: "Закуска / Обяд / Вечеря",
+      startTime: "08:00",
+      endTime: "09:00",
+    },
+    leisure: {
+      title: "Свободно време / Почивка",
+      startTime: "14:00",
+      endTime: "16:00",
+    },
+    travel: {
+      title: "Пътуване / Транспорт",
+      startTime: "10:00",
+      endTime: "11:30",
+    },
+    other: {
+      title: "Атракцион / Събитие",
+      startTime: "17:00",
+      endTime: "19:00",
+    },
+  };
+
+  const handleOpenModal = (
+    session?: CampSession,
+    defaultType: CampSession["type"] = "meal"
+  ) => {
     if (session) {
       setFormId(session.id);
-      setFormDate(session.date); // Preserve original session date
+      setFormDate(session.date);
       setFormType(session.type);
       setFormTitle(session.title);
       setFormStartTime(session.startTime);
@@ -162,45 +191,20 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       setFormGroups(session.groups || []);
       setNewGroupName("");
     } else {
+      const config = defaultEventConfigs[defaultType] || {
+        title: "",
+        startTime: "09:00",
+        endTime: "10:00",
+      };
       setFormId(null);
-      setFormDate(""); // Clear form date for new session
-      setFormType("training");
-      setFormTitle("");
-      setFormStartTime("09:00");
-      setFormEndTime("11:00");
+      setFormDate("");
+      setFormType(defaultType);
+      setFormTitle(config.title);
+      setFormStartTime(config.startTime);
+      setFormEndTime(config.endTime);
       setFormExercises([]);
       setFormGroups([]);
       setNewGroupName("");
-      // Auto-distribute attendees into groups A, B, C for training sessions
-      if (
-        camp.attendees &&
-        camp.attendees.length > 0 &&
-        formType === "training"
-      ) {
-        const attendees = camp.attendees;
-        const numGroups = 3; // A, B, C
-        const groupSize = Math.ceil(attendees.length / numGroups);
-        const groups = [];
-        for (let i = 0; i < numGroups; i++) {
-          const groupMembers = attendees.slice(
-            i * groupSize,
-            (i + 1) * groupSize
-          );
-          groups.push({
-            id: uuidv4(),
-            name: `Група ${String.fromCharCode(65 + i)}`, // A, B, C
-            memberIds: groupMembers.map((a) => a.memberId),
-          });
-        }
-        setFormGroups(groups);
-      }
-    }
-
-    // If training type, open the Universal Planner Wizard instead of simple modal
-    if (formType === "training") {
-      setIsModalOpen(false);
-      handleOpenPlannerWizard();
-      return;
     }
 
     setExerciseSearch("");
