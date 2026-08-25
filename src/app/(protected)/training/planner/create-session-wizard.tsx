@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 import { Badge } from "@/components/ui/badge";
@@ -1267,8 +1268,20 @@ const loadWizardResources = async (
     inventoryService.getInventory(activeBranch),
   ]);
 
-  const finalExercises =
-    ex.length > 0
+  // Combine Firestore exercises with any missing initial/quiz exercises
+  const existingNames = new Set(ex.map((e) => e.name.toLowerCase()));
+  const missingQuizzes = INITIAL_BWF_EXERCISES.filter(
+    (e) => e.category === "quiz" && !existingNames.has(e.name.toLowerCase())
+  ).map((e, idx) => ({
+    ...e,
+    id: `quiz-seed-${idx}`,
+    siteId: activeBranch,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  })) as Exercise[];
+
+  const finalExercises: Exercise[] = [
+    ...(ex.length > 0
       ? ex
       : (INITIAL_BWF_EXERCISES.map((e, idx) => ({
           ...e,
@@ -1276,7 +1289,9 @@ const loadWizardResources = async (
           siteId: activeBranch,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        })) as Exercise[]);
+        })) as Exercise[])),
+    ...missingQuizzes,
+  ];
 
   const initialSessInv: Record<string, number> = {};
   inv.forEach((i) => {
@@ -1436,9 +1451,11 @@ export default function CreateSessionWizard({
         setSessionInventory(res.sessionInventory);
         setTotalKids(res.participantsList.length);
         setAvailableParticipants(res.participantsList);
-        if (res.templateName) setTitle(res.templateName);
-        if (res.templateDuration) setTotalDuration(res.templateDuration);
-        if (res.templateBlocks) setBlocks(res.templateBlocks);
+        if (!initialSession) {
+          if (res.templateName) setTitle(res.templateName);
+          if (res.templateDuration) setTotalDuration(res.templateDuration);
+          if (res.templateBlocks) setBlocks(res.templateBlocks);
+        }
       } catch (err) {
         console.error("Error loading wizard resources", err);
       } finally {
@@ -1450,7 +1467,13 @@ export default function CreateSessionWizard({
     return () => {
       isMounted = false;
     };
-  }, [open, activeBranch, initialCampId, initialImportTemplateId]);
+  }, [
+    open,
+    activeBranch,
+    initialCampId,
+    initialImportTemplateId,
+    initialSession,
+  ]);
 
   // Recalculate block target durations when total duration changes
   useEffect(() => {
@@ -1560,14 +1583,17 @@ export default function CreateSessionWizard({
       if (initialSession) {
         // Editing existing session
         await plannerService.updateSession(initialSession.id, cleanSessionData);
+        toast.success("Тренировката е обновена успешно!");
       } else {
         // Creating new session
         await plannerService.addSession(activeBranch, cleanSessionData);
+        toast.success("Тренировката е записана успешно!");
       }
+      onOpenChange(false);
       onSaveSuccess();
     } catch (error) {
       console.error("Failed to save session", error);
-      alert("Възникна грешка при запис на тренировката.");
+      toast.error("Възникна грешка при запис на тренировката.");
     } finally {
       setIsSaving(false);
     }

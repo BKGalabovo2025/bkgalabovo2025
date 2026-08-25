@@ -832,7 +832,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                           </div>
                         </div>
                       </div>
-                      <div className="flex shrink-0 gap-2">
+                      <div className="flex shrink-0 items-center gap-1.5">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -841,6 +841,34 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                         >
                           <Edit size={12} />
                           Редактирай
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={async () => {
+                            if (
+                              confirm(
+                                `Сигурни ли сте, че искате да изтриете "${ps.title}"?`
+                              )
+                            ) {
+                              try {
+                                await plannerService.deleteSession(ps.id);
+                                setPlannerSessions((prev) =>
+                                  prev.filter((s) => s.id !== ps.id)
+                                );
+                                toast.success("Тренировката е изтрита");
+                              } catch (err) {
+                                console.error(err);
+                                toast.error(
+                                  "Грешка при изтриване на тренировката"
+                                );
+                              }
+                            }
+                          }}
+                          className="size-8 text-zinc-400 hover:text-red-600"
+                          title="Изтрий тренировка"
+                        >
+                          <Trash2 size={14} />
                         </Button>
                         <Button
                           asChild
