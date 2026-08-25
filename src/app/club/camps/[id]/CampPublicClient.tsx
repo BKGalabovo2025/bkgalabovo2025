@@ -16,6 +16,7 @@ import {
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { getEstimatedWeather } from "@/services/weather-service";
 import { CampSession } from "@/types";
 
 interface PublicCampDay {
@@ -111,36 +112,6 @@ const sessionTypeColors: Record<
     badge: "bg-zinc-800 text-zinc-300 border-zinc-700",
     accent: "bg-zinc-500",
   },
-};
-
-const getTimeOfDayBadge = (startTime: string) => {
-  const [startHour = 9] = startTime.split(":").map(Number);
-  if (startHour < 11) {
-    return {
-      label: "Сутрин",
-      emoji: "🌅",
-      color: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-    };
-  }
-  if (startHour < 15) {
-    return {
-      label: "Обяд",
-      emoji: "☀️",
-      color: "text-orange-400 bg-orange-500/10 border-orange-500/20",
-    };
-  }
-  if (startHour < 19) {
-    return {
-      label: "Следобед",
-      emoji: "🌇",
-      color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
-    };
-  }
-  return {
-    label: "Вечер",
-    emoji: "🌙",
-    color: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-  };
 };
 
 export default function CampPublicClient({
@@ -264,7 +235,11 @@ export default function CampPublicClient({
               const Icon = sessionTypeIcons[session.type] || Map;
               const colors =
                 sessionTypeColors[session.type] || sessionTypeColors.other;
-              const timeBadge = getTimeOfDayBadge(session.startTime);
+              const weather = getEstimatedWeather(
+                camp.location,
+                selectedDateStr,
+                session.startTime
+              );
 
               return (
                 <div
@@ -276,7 +251,7 @@ export default function CampPublicClient({
                   )}
                 >
                   {/* Timeline Time Box */}
-                  <div className="relative z-10 flex w-20 shrink-0 flex-col items-center justify-center rounded-xl border border-zinc-700/80 bg-zinc-950 p-2 text-center shadow-md sm:w-22 sm:py-2.5">
+                  <div className="relative z-10 flex w-20 shrink-0 flex-col items-center justify-center rounded-xl border border-zinc-700/80 bg-zinc-950 p-2 text-center shadow-md sm:w-24 sm:py-2.5">
                     <span className="text-xs font-black tracking-tight text-white sm:text-sm">
                       {session.startTime}
                     </span>
@@ -284,6 +259,24 @@ export default function CampPublicClient({
                     <span className="text-[11px] font-medium text-zinc-400">
                       {session.endTime}
                     </span>
+                    <div className="mt-1.5 flex flex-wrap items-center justify-center gap-1 border-t border-zinc-800/80 pt-1">
+                      <span
+                        className="inline-flex items-center gap-0.5 rounded-full border border-amber-800/50 bg-amber-950/60 px-1.5 py-0.5 text-[9px] font-bold text-amber-300"
+                        title={`Въздух: ${weather.airTemp}°C (${weather.conditionText})`}
+                      >
+                        <span>{weather.iconEmoji}</span>
+                        <span>{weather.airTemp}°</span>
+                      </span>
+                      {weather.waterTemp !== undefined && (
+                        <span
+                          className="inline-flex items-center gap-0.5 rounded-full border border-cyan-800/50 bg-cyan-950/60 px-1.5 py-0.5 text-[9px] font-bold text-cyan-300"
+                          title={`Вода: ${weather.waterTemp}°C`}
+                        >
+                          <span>🌊</span>
+                          <span>{weather.waterTemp}°</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Content card */}
@@ -297,15 +290,6 @@ export default function CampPublicClient({
                       >
                         <Icon size={12} className={colors.icon} />
                         {sessionTypeLabels[session.type] || session.type}
-                      </span>
-
-                      <span
-                        className={cn(
-                          "rounded-md border px-1.5 py-0.5 text-[10px] font-bold",
-                          timeBadge.color
-                        )}
-                      >
-                        {timeBadge.emoji} {timeBadge.label}
                       </span>
                     </div>
 

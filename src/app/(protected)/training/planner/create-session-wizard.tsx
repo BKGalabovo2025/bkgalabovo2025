@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 import { cn } from "@/lib/utils";
 import { inventoryService } from "@/services/inventory-service";
 import { getAllMembers } from "@/services/member-service";
@@ -64,6 +65,1250 @@ interface Props {
 
 type WizardStep = 1 | 2 | 3;
 type SessionPhase = "warmup" | "main" | "cooldown";
+type StationPhaseType = "warmup" | "main" | "cooldown";
+
+const matchesCategoryFilter = (ex: Exercise, selectedCategory: string) => {
+  if (selectedCategory === "all") return true;
+  if (selectedCategory === "beach")
+    return Boolean(ex.location?.includes("beach"));
+  if (selectedCategory === "circuit")
+    return ex.name.toLowerCase().includes("станция");
+  if (selectedCategory === "tactical")
+    return (
+      ex.category === "tactics" || ex.name.toLowerCase().includes("мулти-шатъл")
+    );
+  if (selectedCategory === "quiz")
+    return (
+      Boolean(ex.category?.toLowerCase().includes("quiz")) ||
+      ex.name.toLowerCase().includes("викторина") ||
+      ex.name.toLowerCase().includes("тест") ||
+      ex.name.toLowerCase().includes("правилник")
+    );
+  return ex.category === selectedCategory;
+};
+
+const getPhaseName = (phase: string) => {
+  if (phase === "warmup") return "Загрявка";
+  if (phase === "main") return "Основна част";
+  return "Разпускане (Cooldown)";
+};
+
+const getCategoryCount = (allExercises: Exercise[], cat: string) => {
+  if (cat === "all") return allExercises.length;
+  if (cat === "beach")
+    return allExercises.filter((ex) => ex.location?.includes("beach")).length;
+  if (cat === "circuit")
+    return allExercises.filter((ex) =>
+      ex.name.toLowerCase().includes("станция")
+    ).length;
+  if (cat === "tactical")
+    return allExercises.filter(
+      (ex) =>
+        ex.category === "tactics" ||
+        ex.name.toLowerCase().includes("мулти-шатъл")
+    ).length;
+  if (cat === "quiz")
+    return allExercises.filter(
+      (ex) =>
+        Boolean(ex.category?.toLowerCase().includes("quiz")) ||
+        ex.name.toLowerCase().includes("викторина") ||
+        ex.name.toLowerCase().includes("тест") ||
+        ex.name.toLowerCase().includes("правилник")
+    ).length;
+  return allExercises.filter((ex) => ex.category === cat).length;
+};
+
+const computeTargetBlocks = (
+  prev: SessionBlock[],
+  totalDuration: number
+): SessionBlock[] => {
+  const warmupTarget = Math.round(totalDuration * 0.1);
+  const cooldownTarget = Math.round(totalDuration * 0.1);
+  const mainTarget = totalDuration - warmupTarget - cooldownTarget;
+
+  if (prev.length === 0) {
+    return [
+      {
+        id: "warmup",
+        phase: "warmup",
+        targetDuration: warmupTarget,
+        items: [],
+      },
+      { id: "main", phase: "main", targetDuration: mainTarget, items: [] },
+      {
+        id: "cooldown",
+        phase: "cooldown",
+        targetDuration: cooldownTarget,
+        items: [],
+      },
+    ];
+  }
+  return prev.map((b) => {
+    if (b.phase === "warmup") return { ...b, targetDuration: warmupTarget };
+    if (b.phase === "main") return { ...b, targetDuration: mainTarget };
+    if (b.phase === "cooldown") return { ...b, targetDuration: cooldownTarget };
+    return b;
+  });
+};
+
+const applyHydrationBreaks = (blocks: SessionBlock[]): SessionBlock[] => {
+  return blocks.map((block) => {
+    let cumulative = 0;
+    const newItems: SessionBlockItem[] = [];
+    block.items.forEach((item) => {
+      newItems.push(item);
+      cumulative += item.durationMinutes;
+      if (cumulative >= 20 && !item.isHydrationBreak) {
+        newItems.push({
+          id: uuidv4(),
+          type: "exercise",
+          durationMinutes: 5,
+          isHydrationBreak: true,
+          exercise: {
+            id: "hydration-" + uuidv4(),
+            name: "💧 Пауза за хидратация",
+            category: "cooldown",
+            description: "5 минути почивка за вода и нормализиране на пулса.",
+            durationMinutes: 5,
+            coachingPoints: [],
+            location: [],
+            ageGroups: [],
+            equipment: [],
+            prerequisites: [],
+            intensity: 1,
+            complexityLevel: 1,
+            siteId: "bkgalabovo",
+            createdAt: "",
+            updatedAt: "",
+          },
+        });
+        cumulative = 0;
+      }
+    });
+    return { ...block, items: newItems };
+  });
+};
+
+const applyRainyDay = (blocks: SessionBlock[]): SessionBlock[] => {
+  return blocks.map((block) => ({
+    ...block,
+    items: block.items.map((item) => {
+      if (
+        item.type === "exercise" &&
+        item.exercise &&
+        item.exercise.location &&
+        !item.exercise.location.includes("court") &&
+        (item.exercise.location.includes("beach") ||
+          item.exercise.location.includes("stadium"))
+      ) {
+        return {
+          ...item,
+          exercise: {
+            ...item.exercise,
+            name: "🌧️ (Резерва) Вътрешна ОФП / Мобилност",
+            location: ["court"],
+          },
+        };
+      }
+      return item;
+    }),
+  }));
+};
+
+const extractBlocksFromSession = (session: PlannerSession): SessionBlock[] => {
+  if (session.blocks && session.blocks.length > 0) {
+    return session.blocks.map((b) => ({
+      ...b,
+      items: b.items.map((item) => ({
+        ...item,
+        exercise: item.exercise ? { ...item.exercise } : undefined,
+      })),
+    }));
+  }
+  if (session.groupedExercises && session.groupedExercises.length > 0) {
+    return ["warmup", "main", "cooldown"].map((phase) => ({
+      id: phase,
+      phase: phase as SessionPhase,
+      targetDuration: 0,
+      items:
+        session.groupedExercises
+          ?.find((g) => g.ageGroup === "all")
+          ?.exercises.map((ex) => ({
+            id: uuidv4(),
+            type: "exercise",
+            durationMinutes: ex.durationMinutes || 5,
+            exercise: ex,
+            targetGroupId: undefined,
+          })) || [],
+    }));
+  }
+  return [];
+};
+
+const fetchAvailableParticipants = async (
+  initialCampId?: string
+): Promise<{ id: string; name: string }[]> => {
+  if (initialCampId) {
+    const campEvent = await getEventById(initialCampId);
+    if (campEvent?.attendees) {
+      return campEvent.attendees.map((a) => ({
+        id: a.memberId,
+        name: a.name,
+      }));
+    }
+    return [];
+  }
+  const allMembers = await getAllMembers();
+  return allMembers
+    .filter((m) => m.status === "active")
+    .map((m) => ({
+      id: m.id,
+      name: `${m.firstName} ${m.lastName}`,
+    }));
+};
+
+const mapTemplateToBlocks = (
+  tmplBlocks: {
+    phase: string;
+    durationMinutes: number;
+    exercises: { exerciseId: string; durationMinutes: number }[];
+  }[],
+  allExercises: Exercise[]
+): SessionBlock[] => {
+  return tmplBlocks.map((tb) => {
+    const items: SessionBlockItem[] = tb.exercises.map((te) => {
+      const resolvedExercise = allExercises.find((e) => e.id === te.exerciseId);
+      return {
+        id: uuidv4(),
+        type: "exercise",
+        durationMinutes: te.durationMinutes,
+        exercise: resolvedExercise,
+        targetGroupId: undefined,
+      };
+    });
+    return {
+      id: tb.phase,
+      phase: tb.phase as SessionPhase,
+      targetDuration: tb.durationMinutes,
+      items,
+    };
+  });
+};
+
+const buildSessionPayload = (params: {
+  date: string;
+  startTime: string;
+  endTime: string;
+  mode: TrainingMode;
+  location: LocationType;
+  customLocation: string;
+  title: string;
+  coachNotes: string;
+  campId?: string;
+  blocks: SessionBlock[];
+  totalKids: number;
+  isAllGroupMode: boolean;
+  availableParticipants: { id: string; name: string }[];
+  groups: { id: string; name: string; memberIds: string[] }[];
+}): Omit<PlannerSession, "id" | "siteId" | "createdAt" | "updatedAt"> => {
+  const resolvedLocation: LocationType =
+    params.location === "other" && params.customLocation.trim()
+      ? (params.customLocation.trim() as LocationType)
+      : params.location;
+
+  const resolvedGroups = params.isAllGroupMode
+    ? [
+        {
+          id: "all",
+          name: "Всички",
+          memberIds: params.availableParticipants.map((p) => p.id),
+        },
+      ]
+    : params.groups;
+
+  return {
+    date: params.date,
+    startTime: params.startTime,
+    endTime: params.endTime,
+    mode: params.mode,
+    location: resolvedLocation,
+    title: params.title,
+    coachNotes: params.coachNotes,
+    status: "planned",
+    campId: params.campId,
+    blocks: params.blocks,
+    totalKids: params.totalKids,
+    targetGroups: resolvedGroups.map((g) => g.name),
+    sessionGroups: resolvedGroups,
+  };
+};
+
+const buildPrefillState = (
+  session: PlannerSession,
+  initialDate?: string,
+  initialCampId?: string
+) => {
+  if (session) {
+    const isStandardLoc =
+      session.location === "court" ||
+      session.location === "stadium" ||
+      session.location === "beach";
+    const isAll =
+      session.sessionGroups?.length === 1 &&
+      session.sessionGroups[0].name === "Всички";
+    return {
+      title: session.title,
+      date: session.date,
+      startTime: session.startTime || "09:00",
+      endTime: session.endTime || "10:30",
+      mode: session.mode,
+      location: isStandardLoc
+        ? (session.location as LocationType)
+        : ("other" as LocationType),
+      customLocation: isStandardLoc ? "" : session.location || "",
+      isAllGroupMode: isAll,
+      totalDuration:
+        session.blocks?.reduce((acc, b) => acc + b.targetDuration, 0) || 60,
+      coachNotes: session.coachNotes || "",
+      groups: session.sessionGroups?.map((g) => ({
+        id: g.id,
+        name: g.name,
+        memberIds: g.memberIds || [],
+      })) || [
+        { id: uuidv4(), name: "Група А", memberIds: [] },
+        { id: uuidv4(), name: "Група Б", memberIds: [] },
+      ],
+      blocks: extractBlocksFromSession(session),
+    };
+  }
+  return {
+    title: "",
+    date: initialDate || new Date().toISOString().slice(0, 10),
+    startTime: "09:00",
+    endTime: "10:30",
+    mode: initialCampId ? ("camp" as TrainingMode) : ("season" as TrainingMode),
+    location: initialCampId
+      ? ("stadium" as LocationType)
+      : ("court" as LocationType),
+    customLocation: "",
+    isAllGroupMode: false,
+    totalDuration: 90,
+    coachNotes: "",
+    groups: [
+      { id: uuidv4(), name: "Група А", memberIds: [] },
+      { id: uuidv4(), name: "Група Б", memberIds: [] },
+    ],
+    blocks: [],
+  };
+};
+
+const appendExerciseToBlocks = (
+  blocks: SessionBlock[],
+  phase: StationPhaseType,
+  exercise: Exercise,
+  firstGroupId?: string
+): SessionBlock[] => {
+  return blocks.map((block) => {
+    if (block.phase === phase) {
+      return {
+        ...block,
+        items: [
+          ...block.items,
+          {
+            id: uuidv4(),
+            type: "exercise",
+            durationMinutes: exercise.durationMinutes || 5,
+            exercise,
+            targetGroupId: firstGroupId,
+          },
+        ],
+      };
+    }
+    return block;
+  });
+};
+
+const removeItemFromBlocks = (
+  blocks: SessionBlock[],
+  phase: StationPhaseType,
+  itemId: string
+): SessionBlock[] => {
+  return blocks.map((block) => {
+    if (block.phase === phase) {
+      return {
+        ...block,
+        items: block.items.filter((item) => item.id !== itemId),
+      };
+    }
+    return block;
+  });
+};
+
+const updateDurationInBlocks = (
+  blocks: SessionBlock[],
+  phase: StationPhaseType,
+  itemId: string,
+  newDuration: number
+): SessionBlock[] => {
+  return blocks.map((block) => {
+    if (block.phase === phase) {
+      return {
+        ...block,
+        items: block.items.map((item) =>
+          item.id === itemId ? { ...item, durationMinutes: newDuration } : item
+        ),
+      };
+    }
+    return block;
+  });
+};
+
+const updateTargetGroupInBlocks = (
+  blocks: SessionBlock[],
+  phase: StationPhaseType,
+  itemId: string,
+  groupId: string
+): SessionBlock[] => {
+  return blocks.map((block) => {
+    if (block.phase === phase) {
+      return {
+        ...block,
+        items: block.items.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                targetGroupId: groupId === "none" ? undefined : groupId,
+              }
+            : item
+        ),
+      };
+    }
+    return block;
+  });
+};
+
+const toggleMemberInGroupList = (
+  groups: { id: string; name: string; memberIds: string[] }[],
+  groupId: string,
+  participantId: string
+) => {
+  return groups.map((g) => {
+    if (g.id === groupId) {
+      const hasMember = g.memberIds.includes(participantId);
+      return {
+        ...g,
+        memberIds: hasMember
+          ? g.memberIds.filter((id) => id !== participantId)
+          : [...g.memberIds, participantId],
+      };
+    }
+    return g;
+  });
+};
+
+interface ExerciseItemCardProps {
+  exercise: Exercise;
+  selectedCategory: string;
+  onAddToBlock: (phase: StationPhaseType, exercise: Exercise) => void;
+}
+
+const ExerciseItemCard = ({
+  exercise,
+  selectedCategory,
+  onAddToBlock,
+}: ExerciseItemCardProps) => {
+  return (
+    <div className="group rounded-lg border border-zinc-200 bg-zinc-50 p-2 transition-colors hover:border-indigo-300">
+      <div className="flex items-start justify-between">
+        <div className="w-full">
+          <h4 className="text-xs leading-tight font-semibold text-zinc-800">
+            {exercise.name}
+          </h4>
+          <div className="mt-1 flex flex-wrap items-center gap-1">
+            <Badge
+              variant="outline"
+              className="bg-white px-1 text-[9px] text-zinc-500"
+            >
+              {exercise.durationMinutes} мин
+            </Badge>
+            <Badge variant="secondary" className="bg-white px-1 text-[9px]">
+              {exercise.category}
+            </Badge>
+          </div>
+        </div>
+      </div>
+      {selectedCategory === "quiz" ? (
+        <div className="mt-2">
+          <Button
+            size="sm"
+            className="h-7 w-full bg-indigo-600 px-2 text-xs font-bold text-white shadow-xs hover:bg-indigo-700"
+            onClick={() => onAddToBlock("main", exercise)}
+          >
+            <Plus className="mr-1 size-3.5" /> + Добави във викторина
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-2 hidden flex-col gap-1 group-hover:flex">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 w-full justify-start px-2 text-[10px] text-zinc-600 hover:text-indigo-600 dark:border-zinc-700 dark:text-zinc-300"
+            onClick={() => onAddToBlock("warmup", exercise)}
+          >
+            <Plus className="mr-1 size-3" /> В Загрявка
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 w-full justify-start px-2 text-[10px] text-zinc-600 hover:text-indigo-600 dark:border-zinc-700 dark:text-zinc-300"
+            onClick={() => onAddToBlock("main", exercise)}
+          >
+            <Plus className="mr-1 size-3" /> В Основна част
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 w-full justify-start px-2 text-[10px] text-zinc-600 hover:text-indigo-600 dark:border-zinc-700 dark:text-zinc-300"
+            onClick={() => onAddToBlock("cooldown", exercise)}
+          >
+            <Plus className="mr-1 size-3" /> В Разпускане
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface SessionBlockItemCardProps {
+  item: SessionBlockItem;
+  phase: StationPhaseType;
+  groups: { id: string; name: string }[];
+  globalInventory: InventoryItem[];
+  sessionInventory: Record<string, number>;
+  kidsPerStation: number;
+  onRemove: (phase: StationPhaseType, itemId: string) => void;
+  onUpdateDuration: (
+    phase: StationPhaseType,
+    itemId: string,
+    newDuration: number
+  ) => void;
+  onUpdateTargetGroup: (
+    phase: StationPhaseType,
+    itemId: string,
+    groupId: string
+  ) => void;
+}
+
+const SessionBlockItemCard = ({
+  item,
+  phase,
+  groups,
+  globalInventory,
+  sessionInventory,
+  kidsPerStation,
+  onRemove,
+  onUpdateDuration,
+  onUpdateTargetGroup,
+}: SessionBlockItemCardProps) => {
+  return (
+    <div
+      className={cn(
+        "group relative rounded-lg border bg-white p-3 shadow-sm transition-colors hover:border-indigo-300",
+        item.type === "station"
+          ? "border-amber-200 bg-amber-50"
+          : "border-zinc-200"
+      )}
+    >
+      <div className="mb-2 flex items-start justify-between">
+        <div className="pr-6 text-sm font-medium text-zinc-900">
+          {item.type === "exercise"
+            ? item.exercise?.name
+            : "🔄 Станционна Ротация (Успоредно изпълнение)"}
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onRemove(phase, item.id)}
+          className="absolute top-2 right-2 size-6 text-zinc-400 hover:text-red-500"
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+
+      {item.type === "station" && (
+        <div className="mb-2 space-y-1 rounded border border-amber-100 bg-white/50 p-2 text-xs text-zinc-600">
+          {item.rotations?.map((r, i) => {
+            const g =
+              groups.find((grp) => grp.id === r.groupId)?.name || "Група";
+            const shortages = calculateStationShortages(
+              r.exercise?.equipment,
+              globalInventory,
+              sessionInventory,
+              kidsPerStation
+            );
+
+            return (
+              <div key={i} className="mb-2 flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="border-amber-200 bg-white text-[10px] text-amber-700"
+                  >
+                    {g}
+                  </Badge>
+                  <span className="font-semibold">{r.exercise?.name}</span>
+                  <span className="text-[10px] text-zinc-400">
+                    ({kidsPerStation} деца)
+                  </span>
+                </div>
+
+                {shortages.length > 0 && (
+                  <div className="flex items-center gap-1 rounded border border-red-100 bg-red-50 p-1 text-[10px] text-red-600">
+                    <AlertTriangle className="size-3 flex-shrink-0" />
+                    <span>
+                      Внимание:{" "}
+                      {shortages
+                        .map((s) =>
+                          s.isTotallyMissing
+                            ? `нямате добавени "${s.name.toLowerCase()}" за тази тренировка`
+                            : `недостиг на ${s.missing} бр. ${s.name.toLowerCase()}`
+                        )
+                        .join("; ")}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="mt-2 flex items-center gap-1 rounded bg-zinc-900/5 px-2 py-1">
+        <Input
+          type="number"
+          className="h-7 w-16 bg-white text-xs"
+          value={item.durationMinutes}
+          onChange={(e) =>
+            onUpdateDuration(phase, item.id, parseInt(e.target.value) || 0)
+          }
+        />
+        <span className="text-xs text-zinc-500">мин</span>
+
+        {item.type === "exercise" && (
+          <Select
+            value={item.targetGroupId || "none"}
+            onValueChange={(v) => onUpdateTargetGroup(phase, item.id, v)}
+          >
+            <SelectTrigger className="ml-2 h-7 w-30 bg-white text-xs">
+              <SelectValue placeholder="За всички" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">За всички групи</SelectItem>
+              {groups.map((g) => (
+                <SelectItem key={g.id} value={g.id}>
+                  {g.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface InventorySelectionSectionProps {
+  isFetching: boolean;
+  globalInventory: InventoryItem[];
+  sessionInventory: Record<string, number>;
+  setSessionInventory: React.Dispatch<
+    React.SetStateAction<Record<string, number>>
+  >;
+}
+
+const InventorySelectionSection = ({
+  isFetching,
+  globalInventory,
+  sessionInventory,
+  setSessionInventory,
+}: InventorySelectionSectionProps) => {
+  const handleSelectAll = () => {
+    const allInv: Record<string, number> = {};
+    globalInventory.forEach((item) => {
+      allInv[item.id] = item.totalQuantity;
+    });
+    setSessionInventory(allInv);
+  };
+
+  const handleClearAll = () => {
+    setSessionInventory({});
+  };
+
+  if (isFetching) {
+    return (
+      <div className="flex h-32 items-center justify-center">
+        <Loader2 className="size-6 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (globalInventory.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-xs text-zinc-500">
+        Няма въведено оборудване в модул Инвентар за този клон. Тренировката ще
+        използва стандартните клубни уреди.
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3">
+        <div className="text-xs text-zinc-500">
+          Избрани:{" "}
+          <span className="font-bold text-indigo-600">
+            {Object.keys(sessionInventory).length}
+          </span>{" "}
+          от {globalInventory.length} уреда
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleSelectAll}
+            className="h-7 border-indigo-200 bg-indigo-50/50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+          >
+            ✓ Маркирай всичко ({globalInventory.length} бр.)
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClearAll}
+            className="h-7 text-xs text-zinc-500 hover:text-zinc-800"
+          >
+            Размаркирай всичко
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {globalInventory.map((item) => {
+          const isSelected = sessionInventory[item.id] !== undefined;
+          const currentQty = sessionInventory[item.id] || item.totalQuantity;
+          return (
+            <div
+              key={item.id}
+              className={cn(
+                "flex items-center justify-between rounded-lg border p-3 transition-colors",
+                isSelected
+                  ? "border-indigo-200 bg-indigo-50/30"
+                  : "border-zinc-200 bg-zinc-50 opacity-60"
+              )}
+            >
+              <label className="flex flex-1 cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  className="size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                  checked={isSelected}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setSessionInventory((prev) => {
+                      const next = { ...prev };
+                      if (checked) {
+                        next[item.id] = item.totalQuantity;
+                      } else {
+                        delete next[item.id];
+                      }
+                      return next;
+                    });
+                  }}
+                />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-zinc-900">
+                    {item.name}
+                  </span>
+                  <span className="text-[10px] text-zinc-500">
+                    Глобално: {item.totalQuantity} бр.
+                  </span>
+                </div>
+              </label>
+              {isSelected && (
+                <div className="w-20 pl-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    className="h-8 text-center text-xs"
+                    value={currentQty}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 1;
+                      setSessionInventory((prev) => ({
+                        ...prev,
+                        [item.id]: val,
+                      }));
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+interface DedicatedQuizModuleProps {
+  blocks: SessionBlock[];
+  totalDuration: number;
+  onRemoveItem: (phase: StationPhaseType, itemId: string) => void;
+}
+
+const DedicatedQuizModule = ({
+  blocks,
+  totalDuration,
+  onRemoveItem,
+}: DedicatedQuizModuleProps) => {
+  const allItems = blocks.flatMap((b) => b.items);
+  const totalQuizMinutes = allItems.reduce(
+    (acc, i) => acc + i.durationMinutes,
+    0
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-indigo-200 bg-linear-to-r from-indigo-50 to-blue-50 p-5 shadow-xs dark:border-indigo-900/50 dark:from-indigo-950/40 dark:to-blue-950/20">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-indigo-600 text-xl text-white shadow-md">
+            🧠
+          </div>
+          <div>
+            <h3 className="text-base font-black text-indigo-950 dark:text-white">
+              Теоретичен модул & Викторина
+            </h3>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+              В режим Викторина тренировъчните фази
+              (Загрявка/Основна/Разпускане) са скрити. Изберете теоретични
+              тестове и викторини от каталога вдясно.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex items-center justify-between border-b bg-zinc-50 p-3.5 dark:border-zinc-800 dark:bg-zinc-950">
+          <span className="font-bold text-zinc-900 dark:text-white">
+            Включени викторини и въпросници ({allItems.length})
+          </span>
+          <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-bold text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300">
+            Общо: {totalQuizMinutes} мин от {totalDuration} мин
+          </span>
+        </div>
+
+        <div className="min-h-32 space-y-3 p-4">
+          {allItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <span className="text-3xl">📝</span>
+              <p className="mt-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                Няма добавени викторини
+              </p>
+              <p className="text-xs text-zinc-500">
+                Изберете модул от списъка &quot;Каталог Упражнения&quot; вдясно
+                с бутона &quot;+ Добави във викторина&quot;.
+              </p>
+            </div>
+          ) : (
+            blocks.map((block) =>
+              block.items.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-start justify-between rounded-xl border border-indigo-100 bg-indigo-50/40 p-3.5 transition-all dark:border-indigo-900/40 dark:bg-indigo-950/30"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-indigo-600 text-white">
+                        {item.durationMinutes} мин
+                      </Badge>
+                      <h4 className="text-sm font-bold text-zinc-900 dark:text-white">
+                        {item.exercise?.name}
+                      </h4>
+                    </div>
+                    {item.exercise?.description && (
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                        {item.exercise.description}
+                      </p>
+                    )}
+                    {item.exercise?.coachingPoints &&
+                      item.exercise.coachingPoints.length > 0 && (
+                        <div className="mt-2 text-[11px] text-zinc-500">
+                          <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                            Насоки за дискусия:
+                          </span>{" "}
+                          {item.exercise.coachingPoints.join(" · ")}
+                        </div>
+                      )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemoveItem(block.phase, item.id)}
+                    className="size-7 text-zinc-400 hover:text-red-500"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface GroupsManagementSectionProps {
+  isAllGroupMode: boolean;
+  setIsAllGroupMode: (val: boolean) => void;
+  groups: { id: string; name: string; memberIds: string[] }[];
+  setGroups: React.Dispatch<
+    React.SetStateAction<{ id: string; name: string; memberIds: string[] }[]>
+  >;
+  availableParticipants: { id: string; name: string }[];
+  newGroupName: string;
+  setNewGroupName: (val: string) => void;
+  onAddGroup: () => void;
+  onRemoveGroup: (id: string) => void;
+  onToggleParticipant: (groupId: string, participantId: string) => void;
+}
+
+const GroupsManagementSection = ({
+  isAllGroupMode,
+  setIsAllGroupMode,
+  groups,
+  setGroups,
+  availableParticipants,
+  newGroupName,
+  setNewGroupName,
+  onAddGroup,
+  onRemoveGroup,
+  onToggleParticipant,
+}: GroupsManagementSectionProps) => {
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+          Управление на групи
+        </Label>
+        <button
+          type="button"
+          onClick={() => {
+            const nextMode = !isAllGroupMode;
+            setIsAllGroupMode(nextMode);
+            if (nextMode) {
+              setGroups([
+                {
+                  id: "all",
+                  name: "Всички",
+                  memberIds: availableParticipants.map((p) => p.id),
+                },
+              ]);
+            } else {
+              setGroups([
+                { id: uuidv4(), name: "Група А", memberIds: [] },
+                { id: uuidv4(), name: "Група Б", memberIds: [] },
+              ]);
+            }
+          }}
+          className={cn(
+            "rounded-full px-2.5 py-0.5 text-xs font-bold transition-all",
+            isAllGroupMode
+              ? "bg-indigo-600 text-white shadow-xs"
+              : "border border-zinc-300 bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+          )}
+        >
+          {isAllGroupMode
+            ? "✓ Всички заедно (Обща група)"
+            : "👥 Раздели по отделни групи"}
+        </button>
+      </div>
+
+      {isAllGroupMode ? (
+        <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/40 p-4 text-center dark:border-indigo-900/50 dark:bg-indigo-950/20">
+          <div className="mx-auto flex size-9 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+            <Users className="size-5" />
+          </div>
+          <h4 className="mt-2 text-sm font-bold text-indigo-950 dark:text-white">
+            Всички състезатели тренират заедно ({availableParticipants.length}{" "}
+            деца)
+          </h4>
+          <p className="mt-1 text-xs text-zinc-500">
+            Не е необходимо индивидуално разпределение по подгрупи. Всички
+            упражнения се изпълняват едновременно.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="mt-2 space-y-2">
+            {groups.map((g) => (
+              <div
+                key={g.id}
+                className="flex items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">{g.name}</span>
+                  <Badge variant="outline" className="text-[10px]">
+                    {g.memberIds.length} деца
+                  </Badge>
+                </div>
+                {groups.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRemoveGroup(g.id)}
+                    className="size-6 p-0 text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Нова група (напр. Група В)"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                className="h-8 text-sm"
+              />
+              <Button size="sm" className="h-8" onClick={onAddGroup}>
+                <Plus className="size-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                Разпределение на участници ({availableParticipants.length} общо)
+              </h4>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="h-7 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300"
+                  onClick={() => {
+                    setGroups((prev) =>
+                      distributeParticipantsEqually(prev, availableParticipants)
+                    );
+                  }}
+                >
+                  ⚡ Разпредели по равно ({groups.map((g) => g.name).join("/")})
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-white"
+                  onClick={() => {
+                    setGroups(groups.map((g) => ({ ...g, memberIds: [] })));
+                  }}
+                >
+                  Изчисти
+                </Button>
+              </div>
+            </div>
+            <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900/60">
+              {availableParticipants.length === 0 && (
+                <p className="p-2 text-xs text-zinc-500">
+                  Няма намерени участници.
+                </p>
+              )}
+              {availableParticipants.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex flex-col justify-between rounded-md border border-zinc-100 bg-white p-2 shadow-xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900"
+                >
+                  <span className="text-sm font-medium">{p.name}</span>
+                  <div className="mt-2 flex flex-wrap gap-4 sm:mt-0">
+                    {groups.map((g) => (
+                      <label
+                        key={g.id}
+                        className="flex cursor-pointer items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={g.memberIds.includes(p.id)}
+                          onChange={() => onToggleParticipant(g.id, p.id)}
+                          className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                        />
+                        {g.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const calculateEndTimeFromStart = (
+  startTime: string,
+  durationMinutes: number
+): string => {
+  if (!startTime) return "10:30";
+  const [sh = "9", sm = "0"] = startTime.split(":");
+  const totalMinutes =
+    parseInt(sh, 10) * 60 + parseInt(sm, 10) + durationMinutes;
+  const endH = Math.floor(totalMinutes / 60) % 24;
+  const endM = totalMinutes % 60;
+  return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+};
+
+const distributeParticipantsEqually = (
+  groups: { id: string; name: string; memberIds: string[] }[],
+  availableParticipants: { id: string; name: string }[]
+) => {
+  if (groups.length === 0 || availableParticipants.length === 0) return groups;
+  const numGroups = groups.length;
+  const groupSize = Math.ceil(availableParticipants.length / numGroups);
+  return groups.map((g, i) => {
+    const slice = availableParticipants.slice(
+      i * groupSize,
+      (i + 1) * groupSize
+    );
+    return {
+      ...g,
+      memberIds: slice.map((p) => p.id),
+    };
+  });
+};
+
+const calculateStationShortages = (
+  equipmentNames: string[] | undefined,
+  globalInventory: InventoryItem[],
+  sessionInventory: Record<string, number>,
+  kidsPerStation: number
+) => {
+  const shortages: {
+    name: string;
+    missing: number;
+    isTotallyMissing?: boolean;
+  }[] = [];
+  equipmentNames?.forEach((eqName) => {
+    const globalItem = globalInventory.find(
+      (inv) => inv.name.toLowerCase() === eqName.toLowerCase()
+    );
+
+    if (!globalItem || !sessionInventory[globalItem.id]) {
+      shortages.push({
+        name: eqName,
+        missing: kidsPerStation,
+        isTotallyMissing: true,
+      });
+      return;
+    }
+
+    let needed = 0;
+    if (globalItem.allocationType === "per_child") {
+      needed = kidsPerStation * (globalItem.ratioValue || 1);
+    } else if (globalItem.allocationType === "per_station") {
+      needed = globalItem.ratioValue || 1;
+    } else if (globalItem.allocationType === "ratio") {
+      needed = Math.ceil(kidsPerStation * (globalItem.ratioValue || 1));
+    }
+
+    const availableQty = sessionInventory[globalItem.id] || 0;
+    if (needed > availableQty) {
+      shortages.push({
+        name: eqName,
+        missing: needed - availableQty,
+      });
+    }
+  });
+  return shortages;
+};
+
+const buildStationBlockItem = (
+  stationRotations: { groupId: string; exerciseId: string }[],
+  allExercises: Exercise[],
+  stationDuration: number
+): SessionBlockItem | null => {
+  if (stationRotations.length === 0) return null;
+  const rotations = stationRotations
+    .map((r) => {
+      const ex = allExercises.find((e) => e.id === r.exerciseId);
+      return {
+        groupId: r.groupId,
+        exercise: ex!,
+      };
+    })
+    .filter((r) => r.exercise !== undefined);
+
+  return {
+    id: uuidv4(),
+    type: "station",
+    durationMinutes: stationDuration,
+    rotations,
+  };
+};
+
+const loadWizardResources = async (
+  activeBranch: string,
+  initialCampId?: string,
+  initialImportTemplateId?: string
+) => {
+  const [ex, inv] = await Promise.all([
+    plannerService.getExercises(activeBranch),
+    inventoryService.getInventory(activeBranch),
+  ]);
+
+  const finalExercises =
+    ex.length > 0
+      ? ex
+      : (INITIAL_BWF_EXERCISES.map((e, idx) => ({
+          ...e,
+          id: `seed-${idx}`,
+          siteId: activeBranch,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })) as Exercise[]);
+
+  const initialSessInv: Record<string, number> = {};
+  inv.forEach((i) => {
+    initialSessInv[i.id] = i.totalQuantity;
+  });
+
+  const participantsList = await fetchAvailableParticipants(initialCampId);
+
+  let templateBlocks: SessionBlock[] | null = null;
+  let templateName: string | null = null;
+  let templateDuration: number | null = null;
+
+  if (initialImportTemplateId) {
+    const templates = await plannerService.getTrainingTemplates(activeBranch);
+    const tmpl = templates.find((t) => t.id === initialImportTemplateId);
+    if (tmpl) {
+      templateName = tmpl.name;
+      templateDuration = tmpl.totalDurationMinutes;
+      templateBlocks = mapTemplateToBlocks(tmpl.blocks, finalExercises);
+    }
+  }
+
+  return {
+    finalExercises,
+    globalInventory: inv,
+    sessionInventory: initialSessInv,
+    participantsList,
+    templateName,
+    templateDuration,
+    templateBlocks,
+  };
+};
 
 export default function CreateSessionWizard({
   open,
@@ -101,78 +1346,18 @@ export default function CreateSessionWizard({
   >({}); // id -> qty
   const [isRainyDay, setIsRainyDay] = useState(false);
 
-  // --- Real Logic Helpers ---
   const injectHydrationBreaks = () => {
-    const newBlocks = [...blocks];
-    newBlocks.forEach((block) => {
-      let cumulative = 0;
-      const newItems: SessionBlockItem[] = [];
-      block.items.forEach((item) => {
-        newItems.push(item);
-        cumulative += item.durationMinutes;
-        if (cumulative >= 20 && !item.isHydrationBreak) {
-          newItems.push({
-            id: uuidv4(),
-            type: "exercise",
-            durationMinutes: 5,
-            isHydrationBreak: true,
-            exercise: {
-              id: "hydration-" + uuidv4(),
-              name: "💧 Пауза за хидратация",
-              category: "cooldown",
-              description: "5 минути почивка за вода и нормализиране на пулса.",
-              durationMinutes: 5,
-              coachingPoints: [],
-              location: [],
-              ageGroups: [],
-              equipment: [],
-              prerequisites: [],
-              intensity: 1,
-              complexityLevel: 1,
-              siteId: "bkgalabovo",
-              createdAt: "",
-              updatedAt: "",
-            },
-          });
-          cumulative = 0; // reset after break
-        }
-      });
-      block.items = newItems;
-    });
-    setBlocks(newBlocks);
+    setBlocks((prev) => applyHydrationBreaks(prev));
   };
 
   const toggleRainyDay = () => {
     const nextState = !isRainyDay;
     setIsRainyDay(nextState);
-
     if (nextState) {
-      // Swap outdoor with indoor
-      const newBlocks = [...blocks];
-      newBlocks.forEach((block) => {
-        block.items.forEach((item) => {
-          if (item.type === "exercise" && item.exercise) {
-            const loc = item.exercise.location;
-            if (
-              loc &&
-              !loc.includes("court") &&
-              (loc.includes("beach") || loc.includes("stadium"))
-            ) {
-              // Swap with a generic indoor exercise
-              item.exercise = {
-                ...item.exercise,
-                name: "🌧️ (Резерва) Вътрешна ОФП / Мобилност",
-                location: ["court"],
-              };
-            }
-          }
-        });
-      });
-      setBlocks(newBlocks);
+      setBlocks((prev) => applyRainyDay(prev));
       setLocation("court");
     }
   };
-  // --------------------------
 
   // Library
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
@@ -193,7 +1378,6 @@ export default function CreateSessionWizard({
 
   // Station Builder Modal
   const [showStationModal, setShowStationModal] = useState(false);
-  type StationPhaseType = "warmup" | "main" | "cooldown";
   const [stationPhase, setStationPhase] = useState<StationPhaseType>("main");
   const [stationDuration, setStationDuration] = useState<number>(10);
   const [stationRotations, setStationRotations] = useState<
@@ -213,227 +1397,64 @@ export default function CreateSessionWizard({
   // Initialize session data when dialog opens
   useEffect(() => {
     if (!open) return;
+    const s = buildPrefillState(
+      initialSession as PlannerSession,
+      initialDate,
+      initialCampId
+    );
+    setTitle(s.title);
+    setDate(s.date);
+    setStartTime(s.startTime);
+    setEndTime(s.endTime);
+    setMode(s.mode);
+    setLocation(s.location);
+    setCustomLocation(s.customLocation);
+    setIsAllGroupMode(s.isAllGroupMode);
+    setTotalDuration(s.totalDuration);
+    setCoachNotes(s.coachNotes);
+    setGroups(s.groups);
+    setBlocks(s.blocks);
+    setSearchQuery("");
+    setSelectedCategory("all");
+  }, [open, initialSession, initialCampId, initialDate]);
 
-    const resetForm = () => {
-      setTitle("");
-      setDate(initialDate || new Date().toISOString().slice(0, 10));
-      setStartTime("09:00");
-      setEndTime("10:30");
-      setMode(initialCampId ? "camp" : "season");
-      setLocation(initialCampId ? "stadium" : "court");
-      setCustomLocation("");
-      setIsAllGroupMode(false);
-      setTotalDuration(90);
-      setGroups([
-        { id: uuidv4(), name: "Група А", memberIds: [] },
-        { id: uuidv4(), name: "Група Б", memberIds: [] },
-      ]);
-      setSearchQuery("");
-      setSelectedCategory("all");
-    };
+  useEffect(() => {
+    if (!open) return;
 
-    const prefillFromSession = (session: PlannerSession) => {
-      setTitle(session.title);
-      setDate(session.date);
-      setStartTime(session.startTime || "09:00");
-      setEndTime(session.endTime || "10:30");
-      setMode(session.mode);
-      if (
-        session.location === "court" ||
-        session.location === "stadium" ||
-        session.location === "beach"
-      ) {
-        setLocation(session.location);
-        setCustomLocation("");
-      } else {
-        setLocation("other");
-        setCustomLocation(session.location || "");
-      }
-      const isAll =
-        session.sessionGroups?.length === 1 &&
-        session.sessionGroups[0].name === "Всички";
-      setIsAllGroupMode(isAll);
-      setTotalDuration(
-        session.blocks?.reduce((acc, b) => acc + b.targetDuration, 0) || 60
-      );
-      setCoachNotes(session.coachNotes || "");
-      setGroups(
-        session.sessionGroups?.map((g) => ({
-          id: g.id,
-          name: g.name,
-          memberIds: g.memberIds || [],
-        })) || [
-          { id: uuidv4(), name: "Група А", memberIds: [] },
-          { id: uuidv4(), name: "Група Б", memberIds: [] },
-        ]
-      );
-      setSearchQuery("");
-      setSelectedCategory("all");
-
-      if (session.blocks && session.blocks.length > 0) {
-        const mappedBlocks: SessionBlock[] = session.blocks.map((b) => ({
-          ...b,
-          items: b.items.map((item) => ({
-            ...item,
-            exercise: item.exercise ? { ...item.exercise } : undefined,
-          })),
-        }));
-        setBlocks(mappedBlocks);
-      } else if (
-        session.groupedExercises &&
-        session.groupedExercises.length > 0
-      ) {
-        const mappedBlocks: SessionBlock[] = ["warmup", "main", "cooldown"].map(
-          (phase) => ({
-            id: phase,
-            phase: phase as SessionPhase,
-            targetDuration: 0,
-            items:
-              session.groupedExercises
-                ?.find((g) => g.ageGroup === "all")
-                ?.exercises.map((ex) => ({
-                  id: uuidv4(),
-                  type: "exercise",
-                  durationMinutes: ex.durationMinutes || 5,
-                  exercise: ex,
-                  targetGroupId: undefined,
-                })) || [],
-          })
-        );
-        setBlocks(mappedBlocks);
-      }
-
-      const calculatedDuration =
-        session.blocks?.reduce((acc, b) => acc + b.targetDuration, 0) || 60;
-      setTotalDuration(calculatedDuration);
-      setCoachNotes(session.coachNotes || "");
-    };
-
-    const initialize = async () => {
+    let isMounted = true;
+    const loadResources = async () => {
       setIsFetching(true);
       try {
-        const [ex, inv] = await Promise.all([
-          plannerService.getExercises(activeBranch),
-          inventoryService.getInventory(activeBranch),
-        ]);
-        setAllExercises(ex);
-        setGlobalInventory(inv);
-
-        const initialSessInv: Record<string, number> = {};
-        inv.forEach((i) => {
-          initialSessInv[i.id] = i.totalQuantity;
-        });
-        setSessionInventory(initialSessInv);
-
-        let participantsList: { id: string; name: string }[] = [];
-        if (initialCampId) {
-          const campEvent = await getEventById(initialCampId);
-          if (campEvent && campEvent.attendees) {
-            participantsList = campEvent.attendees.map((a) => ({
-              id: a.memberId,
-              name: a.name,
-            }));
-            setTotalKids(participantsList.length);
-          }
-        } else {
-          const allMembers = await getAllMembers();
-          participantsList = allMembers
-            .filter((m) => m.status === "active")
-            .map((m) => ({
-              id: m.id,
-              name: `${m.firstName} ${m.lastName}`,
-            }));
-          setTotalKids(participantsList.length);
-        }
-        setAvailableParticipants(participantsList);
-
-        if (initialImportTemplateId) {
-          const templates =
-            await plannerService.getTrainingTemplates(activeBranch);
-          const tmpl = templates.find((t) => t.id === initialImportTemplateId);
-          if (tmpl) {
-            setTitle(tmpl.name);
-            setTotalDuration(tmpl.totalDurationMinutes);
-
-            const mappedBlocks: SessionBlock[] = tmpl.blocks.map((tb) => {
-              const items: SessionBlockItem[] = tb.exercises.map((te) => {
-                const resolvedExercise = ex.find((e) => e.id === te.exerciseId);
-                return {
-                  id: uuidv4(),
-                  type: "exercise",
-                  durationMinutes: te.durationMinutes,
-                  exercise: resolvedExercise,
-                  targetGroupId: undefined,
-                };
-              });
-
-              return {
-                id: tb.phase,
-                phase: tb.phase,
-                targetDuration: tb.durationMinutes,
-                items,
-              };
-            });
-            setBlocks(mappedBlocks);
-          }
-        }
-
-        if (initialSession) {
-          prefillFromSession(initialSession);
-        } else {
-          resetForm();
-        }
-      } catch (error) {
-        console.error("Failed to load exercises or template", error);
+        const res = await loadWizardResources(
+          activeBranch,
+          initialCampId,
+          initialImportTemplateId
+        );
+        if (!isMounted) return;
+        setAllExercises(res.finalExercises);
+        setGlobalInventory(res.globalInventory);
+        setSessionInventory(res.sessionInventory);
+        setTotalKids(res.participantsList.length);
+        setAvailableParticipants(res.participantsList);
+        if (res.templateName) setTitle(res.templateName);
+        if (res.templateDuration) setTotalDuration(res.templateDuration);
+        if (res.templateBlocks) setBlocks(res.templateBlocks);
+      } catch (err) {
+        console.error("Error loading wizard resources", err);
       } finally {
-        setIsFetching(false);
+        if (isMounted) setIsFetching(false);
       }
     };
 
-    initialize();
-  }, [
-    open,
-    activeBranch,
-    initialCampId,
-    initialDate,
-    initialImportTemplateId,
-    initialSession,
-  ]);
+    loadResources();
+    return () => {
+      isMounted = false;
+    };
+  }, [open, activeBranch, initialCampId, initialImportTemplateId]);
 
   // Recalculate block target durations when total duration changes
   useEffect(() => {
-    const warmupTarget = Math.round(totalDuration * 0.1);
-    const cooldownTarget = Math.round(totalDuration * 0.1);
-    const mainTarget = totalDuration - warmupTarget - cooldownTarget;
-
-    setBlocks((prev) => {
-      // If we don't have blocks yet, create them
-      if (prev.length === 0) {
-        return [
-          {
-            id: "warmup",
-            phase: "warmup",
-            targetDuration: warmupTarget,
-            items: [],
-          },
-          { id: "main", phase: "main", targetDuration: mainTarget, items: [] },
-          {
-            id: "cooldown",
-            phase: "cooldown",
-            targetDuration: cooldownTarget,
-            items: [],
-          },
-        ];
-      }
-      // Otherwise just update targets
-      return prev.map((b) => {
-        if (b.phase === "warmup") return { ...b, targetDuration: warmupTarget };
-        if (b.phase === "main") return { ...b, targetDuration: mainTarget };
-        if (b.phase === "cooldown")
-          return { ...b, targetDuration: cooldownTarget };
-        return b;
-      });
-    });
+    setBlocks((prev) => computeTargetBlocks(prev, totalDuration));
   }, [totalDuration]);
 
   const addGroup = () => {
@@ -451,126 +1472,51 @@ export default function CreateSessionWizard({
   };
 
   const toggleParticipantInGroup = (groupId: string, participantId: string) => {
-    setGroups(
-      groups.map((g) => {
-        if (g.id === groupId) {
-          const hasMember = g.memberIds.includes(participantId);
-          return {
-            ...g,
-            memberIds: hasMember
-              ? g.memberIds.filter((id) => id !== participantId)
-              : [...g.memberIds, participantId],
-          };
-        }
-        return g;
-      })
-    );
+    setGroups((prev) => toggleMemberInGroupList(prev, groupId, participantId));
   };
 
   const addExerciseToBlock = (phase: StationPhaseType, exercise: Exercise) => {
     setBlocks((prev) =>
-      prev.map((block) => {
-        if (block.phase === phase) {
-          return {
-            ...block,
-            items: [
-              ...block.items,
-              {
-                id: uuidv4(),
-                type: "exercise",
-                durationMinutes: exercise.durationMinutes || 5,
-                exercise,
-                targetGroupId: groups.length === 1 ? groups[0].id : undefined, // Assign to first if only one
-              },
-            ],
-          };
-        }
-        return block;
-      })
+      appendExerciseToBlocks(
+        prev,
+        phase,
+        exercise,
+        groups.length === 1 ? groups[0].id : undefined
+      )
     );
   };
 
   const removeItem = (phase: StationPhaseType, itemId: string) => {
-    setBlocks((prev) =>
-      prev.map((block) => {
-        if (block.phase === phase) {
-          return {
-            ...block,
-            items: block.items.filter((item) => item.id !== itemId),
-          };
-        }
-        return block;
-      })
-    );
+    setBlocks((prev) => removeItemFromBlocks(prev, phase, itemId));
   };
 
   const updateItemDuration = (
-    phase: "warmup" | "main" | "cooldown",
+    phase: StationPhaseType,
     itemId: string,
     newDuration: number
   ) => {
     setBlocks((prev) =>
-      prev.map((block) => {
-        if (block.phase === phase) {
-          return {
-            ...block,
-            items: block.items.map((item) =>
-              item.id === itemId
-                ? { ...item, durationMinutes: newDuration }
-                : item
-            ),
-          };
-        }
-        return block;
-      })
+      updateDurationInBlocks(prev, phase, itemId, newDuration)
     );
   };
 
   const updateItemTargetGroup = (
-    phase: "warmup" | "main" | "cooldown",
+    phase: StationPhaseType,
     itemId: string,
     groupId: string
   ) => {
     setBlocks((prev) =>
-      prev.map((block) => {
-        if (block.phase === phase) {
-          return {
-            ...block,
-            items: block.items.map((item) =>
-              item.id === itemId
-                ? {
-                    ...item,
-                    targetGroupId: groupId === "none" ? undefined : groupId,
-                  }
-                : item
-            ),
-          };
-        }
-        return block;
-      })
+      updateTargetGroupInBlocks(prev, phase, itemId, groupId)
     );
   };
 
   const saveStation = () => {
-    if (stationRotations.length === 0) return;
-
-    // Resolve exercises
-    const rotations = stationRotations
-      .map((r) => {
-        const ex = allExercises.find((e) => e.id === r.exerciseId);
-        return {
-          groupId: r.groupId,
-          exercise: ex!,
-        };
-      })
-      .filter((r) => r.exercise !== undefined);
-
-    const newStation: SessionBlockItem = {
-      id: uuidv4(),
-      type: "station",
-      durationMinutes: stationDuration,
-      rotations,
-    };
+    const newStation = buildStationBlockItem(
+      stationRotations,
+      allExercises,
+      stationDuration
+    );
+    if (!newStation) return;
 
     setBlocks((prev) =>
       prev.map((b) => {
@@ -591,39 +1537,22 @@ export default function CreateSessionWizard({
 
     setIsSaving(true);
     try {
-      const resolvedLocation: LocationType =
-        location === "other" && customLocation.trim()
-          ? (customLocation.trim() as LocationType)
-          : location;
-
-      const resolvedGroups = isAllGroupMode
-        ? [
-            {
-              id: "all",
-              name: "Всички",
-              memberIds: availableParticipants.map((p) => p.id),
-            },
-          ]
-        : groups;
-
-      const sessionData: Omit<
-        PlannerSession,
-        "id" | "siteId" | "createdAt" | "updatedAt"
-      > = {
+      const sessionData = buildSessionPayload({
         date,
         startTime,
         endTime,
         mode,
-        location: resolvedLocation,
+        location,
+        customLocation,
         title,
         coachNotes,
-        status: "planned",
         campId: initialCampId,
         blocks,
         totalKids,
-        targetGroups: resolvedGroups.map((g) => g.name),
-        sessionGroups: resolvedGroups,
-      };
+        isAllGroupMode,
+        availableParticipants,
+        groups,
+      });
 
       // Strip undefined values to prevent Firebase errors
       const cleanSessionData = JSON.parse(JSON.stringify(sessionData));
@@ -645,76 +1574,15 @@ export default function CreateSessionWizard({
   };
 
   const filteredExercises = allExercises.filter((ex) => {
-    // 1. Category filter
-    if (selectedCategory === "beach" && !ex.location?.includes("beach"))
-      return false;
-    if (
-      selectedCategory === "circuit" &&
-      !ex.name.toLowerCase().includes("станция")
-    )
-      return false;
-    if (
-      selectedCategory === "tactical" &&
-      ex.category !== "tactics" &&
-      !ex.name.toLowerCase().includes("мулти-шатъл")
-    )
-      return false;
-    if (
-      selectedCategory === "quiz" &&
-      !ex.category?.toLowerCase().includes("quiz") &&
-      !ex.name.toLowerCase().includes("викторина") &&
-      !ex.name.toLowerCase().includes("тест") &&
-      !ex.name.toLowerCase().includes("правилник")
-    )
-      return false;
-    if (
-      selectedCategory !== "all" &&
-      !["beach", "circuit", "tactical", "quiz"].includes(selectedCategory) &&
-      ex.category !== selectedCategory
-    )
-      return false;
-
-    // 2. Search filter
+    if (!matchesCategoryFilter(ex, selectedCategory)) return false;
     if (
       searchQuery &&
       !ex.name.toLowerCase().includes(searchQuery.toLowerCase())
     ) {
       return false;
     }
-
     return true;
   });
-
-  const getPhaseName = (phase: string) => {
-    if (phase === "warmup") return "Загрявка";
-    if (phase === "main") return "Основна част";
-    return "Разпускане (Cooldown)";
-  };
-
-  const getCategoryCount = (cat: string) => {
-    if (cat === "all") return allExercises.length;
-    if (cat === "beach")
-      return allExercises.filter((ex) => ex.location?.includes("beach")).length;
-    if (cat === "circuit")
-      return allExercises.filter((ex) =>
-        ex.name.toLowerCase().includes("станция")
-      ).length;
-    if (cat === "tactical")
-      return allExercises.filter(
-        (ex) =>
-          ex.category === "tactics" ||
-          ex.name.toLowerCase().includes("мулти-шатъл")
-      ).length;
-    if (cat === "quiz")
-      return allExercises.filter(
-        (ex) =>
-          ex.category?.toLowerCase().includes("quiz") ||
-          ex.name.toLowerCase().includes("викторина") ||
-          ex.name.toLowerCase().includes("тест") ||
-          ex.name.toLowerCase().includes("правилник")
-      ).length;
-    return allExercises.filter((ex) => ex.category === cat).length;
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -845,19 +1713,9 @@ export default function CreateSessionWizard({
                           onChange={(e) => {
                             const newStart = e.target.value;
                             setStartTime(newStart);
-                            // Auto-calculate end time if valid
-                            if (newStart) {
-                              const [sh = "9", sm = "0"] = newStart.split(":");
-                              const totalMinutes =
-                                parseInt(sh, 10) * 60 +
-                                parseInt(sm, 10) +
-                                totalDuration;
-                              const endH = Math.floor(totalMinutes / 60) % 24;
-                              const endM = totalMinutes % 60;
-                              setEndTime(
-                                `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`
-                              );
-                            }
+                            setEndTime(
+                              calculateEndTimeFromStart(newStart, totalDuration)
+                            );
                           }}
                         />
                       </div>
@@ -899,202 +1757,18 @@ export default function CreateSessionWizard({
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                        Управление на групи
-                      </Label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const nextMode = !isAllGroupMode;
-                          setIsAllGroupMode(nextMode);
-                          if (nextMode) {
-                            setGroups([
-                              {
-                                id: "all",
-                                name: "Всички",
-                                memberIds: availableParticipants.map(
-                                  (p) => p.id
-                                ),
-                              },
-                            ]);
-                          } else {
-                            setGroups([
-                              { id: uuidv4(), name: "Група А", memberIds: [] },
-                              { id: uuidv4(), name: "Група Б", memberIds: [] },
-                            ]);
-                          }
-                        }}
-                        className={cn(
-                          "rounded-full px-2.5 py-0.5 text-xs font-bold transition-all",
-                          isAllGroupMode
-                            ? "bg-indigo-600 text-white shadow-xs"
-                            : "border border-zinc-300 bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                        )}
-                      >
-                        {isAllGroupMode
-                          ? "✓ Всички заедно (Обща група)"
-                          : "👥 Раздели по отделни групи"}
-                      </button>
-                    </div>
-
-                    {isAllGroupMode ? (
-                      <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/40 p-4 text-center dark:border-indigo-900/50 dark:bg-indigo-950/20">
-                        <div className="mx-auto flex size-9 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
-                          <Users className="size-5" />
-                        </div>
-                        <h4 className="mt-2 text-sm font-bold text-indigo-950 dark:text-white">
-                          Всички състезатели тренират заедно (
-                          {availableParticipants.length} деца)
-                        </h4>
-                        <p className="mt-1 text-xs text-zinc-500">
-                          Не е необходимо индивидуално разпределение по
-                          подгрупи. Всички упражнения се изпълняват
-                          едновременно.
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="mt-2 space-y-2">
-                          {groups.map((g) => (
-                            <div
-                              key={g.id}
-                              className="flex items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold">
-                                  {g.name}
-                                </span>
-                                <Badge
-                                  variant="outline"
-                                  className="text-[10px]"
-                                >
-                                  {g.memberIds.length} деца
-                                </Badge>
-                              </div>
-                              {groups.length > 1 && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeGroup(g.id)}
-                                  className="size-6 p-0 text-red-500 hover:text-red-700"
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              )}
-                            </div>
-                          ))}
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="Нова група (напр. Група В)"
-                              value={newGroupName}
-                              onChange={(e) => setNewGroupName(e.target.value)}
-                              className="h-8 text-sm"
-                            />
-                            <Button
-                              size="sm"
-                              className="h-8"
-                              onClick={addGroup}
-                            >
-                              <Plus className="size-4" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Participant Assignment UI */}
-                        <div className="mt-6">
-                          <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <h4 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                              Разпределение на участници (
-                              {availableParticipants.length} общо)
-                            </h4>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Button
-                                type="button"
-                                variant="secondary"
-                                size="sm"
-                                className="h-7 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300"
-                                onClick={() => {
-                                  if (
-                                    groups.length === 0 ||
-                                    availableParticipants.length === 0
-                                  )
-                                    return;
-                                  const numGroups = groups.length;
-                                  const groupSize = Math.ceil(
-                                    availableParticipants.length / numGroups
-                                  );
-                                  const updatedGroups = groups.map((g, i) => {
-                                    const slice = availableParticipants.slice(
-                                      i * groupSize,
-                                      (i + 1) * groupSize
-                                    );
-                                    return {
-                                      ...g,
-                                      memberIds: slice.map((p) => p.id),
-                                    };
-                                  });
-                                  setGroups(updatedGroups);
-                                }}
-                              >
-                                ⚡ Разпредели по равно (
-                                {groups.map((g) => g.name).join("/")})
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-white"
-                                onClick={() => {
-                                  setGroups(
-                                    groups.map((g) => ({ ...g, memberIds: [] }))
-                                  );
-                                }}
-                              >
-                                Изчисти
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900/60">
-                            {availableParticipants.length === 0 && (
-                              <p className="p-2 text-xs text-zinc-500">
-                                Няма намерени участници.
-                              </p>
-                            )}
-                            {availableParticipants.map((p) => (
-                              <div
-                                key={p.id}
-                                className="flex flex-col justify-between rounded-md border border-zinc-100 bg-white p-2 shadow-xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900"
-                              >
-                                <span className="text-sm font-medium">
-                                  {p.name}
-                                </span>
-                                <div className="mt-2 flex flex-wrap gap-4 sm:mt-0">
-                                  {groups.map((g) => (
-                                    <label
-                                      key={g.id}
-                                      className="flex cursor-pointer items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={g.memberIds.includes(p.id)}
-                                        onChange={() =>
-                                          toggleParticipantInGroup(g.id, p.id)
-                                        }
-                                        className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
-                                      />
-                                      {g.name}
-                                    </label>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  <GroupsManagementSection
+                    isAllGroupMode={isAllGroupMode}
+                    setIsAllGroupMode={setIsAllGroupMode}
+                    groups={groups}
+                    setGroups={setGroups}
+                    availableParticipants={availableParticipants}
+                    newGroupName={newGroupName}
+                    setNewGroupName={setNewGroupName}
+                    onAddGroup={addGroup}
+                    onRemoveGroup={removeGroup}
+                    onToggleParticipant={toggleParticipantInGroup}
+                  />
                 </div>
               </div>
 
@@ -1112,89 +1786,12 @@ export default function CreateSessionWizard({
                   </div>
                 </div>
 
-                {(() => {
-                  if (isFetching) {
-                    return (
-                      <div className="flex h-32 items-center justify-center">
-                        <Loader2 className="size-6 animate-spin text-indigo-600" />
-                      </div>
-                    );
-                  }
-                  if (globalInventory.length === 0) {
-                    return (
-                      <div className="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-xs text-zinc-500">
-                        Няма въведено оборудване в модул Инвентар за този клон.
-                        Тренировката ще използва стандартните клубни уреди.
-                      </div>
-                    );
-                  }
-                  return (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      {globalInventory.map((item) => {
-                        const isSelected =
-                          sessionInventory[item.id] !== undefined;
-                        const currentQty =
-                          sessionInventory[item.id] || item.totalQuantity;
-                        return (
-                          <div
-                            key={item.id}
-                            className={cn(
-                              "flex items-center justify-between rounded-lg border p-3 transition-colors",
-                              isSelected
-                                ? "border-indigo-200 bg-indigo-50/30"
-                                : "border-zinc-200 bg-zinc-50 opacity-60"
-                            )}
-                          >
-                            <label className="flex flex-1 cursor-pointer items-center gap-3">
-                              <input
-                                type="checkbox"
-                                className="size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  const checked = e.target.checked;
-                                  setSessionInventory((prev) => {
-                                    const next = { ...prev };
-                                    if (checked) {
-                                      next[item.id] = item.totalQuantity; // default to max
-                                    } else {
-                                      delete next[item.id];
-                                    }
-                                    return next;
-                                  });
-                                }}
-                              />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium text-zinc-900">
-                                  {item.name}
-                                </span>
-                                <span className="text-[10px] text-zinc-500">
-                                  Глобално: {item.totalQuantity} бр.
-                                </span>
-                              </div>
-                            </label>
-                            {isSelected && (
-                              <div className="w-20 pl-2">
-                                <Input
-                                  type="number"
-                                  min={1}
-                                  className="h-8 text-center text-xs"
-                                  value={currentQty}
-                                  onChange={(e) => {
-                                    const val = parseInt(e.target.value) || 1;
-                                    setSessionInventory((prev) => ({
-                                      ...prev,
-                                      [item.id]: val,
-                                    }));
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
+                <InventorySelectionSection
+                  isFetching={isFetching}
+                  globalInventory={globalInventory}
+                  sessionInventory={sessionInventory}
+                  setSessionInventory={setSessionInventory}
+                />
               </div>
             </div>
           )}
@@ -1202,281 +1799,116 @@ export default function CreateSessionWizard({
           {/* STEP 2: Constructor (DND Blocks + Library) */}
           {currentStep === 2 && (
             <div className="flex size-full flex-col lg:flex-row">
-              {/* MIDDLE: Time Budget Blocks */}
+              {/* MIDDLE: Time Budget Blocks OR Dedicated Quiz Module */}
               <div className="flex min-h-125 w-full flex-col gap-6 overflow-y-auto p-6 lg:flex-1">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-blue-200 bg-blue-50 text-[10px] text-blue-600"
-                    onClick={injectHydrationBreaks}
-                  >
-                    + Хидратация
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-slate-200 bg-slate-50 text-[10px] text-slate-600"
-                    onClick={toggleRainyDay}
-                  >
-                    {isRainyDay ? "Върни Външни" : "План 'Дъжд'"}
-                  </Button>
-                </div>
-                {blocks.map((block) => {
-                  const currentTotal = block.items.reduce(
-                    (sum, item) => sum + item.durationMinutes,
-                    0
-                  );
-                  const remaining = block.targetDuration - currentTotal;
-                  const isOver = remaining < 0;
-
-                  return (
-                    <div
-                      key={block.id}
-                      className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm"
-                    >
-                      <div className="flex items-center justify-between border-b bg-zinc-100 p-3">
-                        <h3 className="font-bold text-zinc-800">
-                          {getPhaseName(block.phase)}
-                        </h3>
-                        <div
-                          className={cn(
-                            "rounded-full px-3 py-1 text-xs font-bold shadow-sm",
-                            isOver
-                              ? "bg-red-100 text-red-700"
-                              : "bg-emerald-100 text-emerald-700"
-                          )}
-                        >
-                          {isOver
-                            ? `Надвишено с ${Math.abs(remaining)} мин (Бюджет: ${block.targetDuration})`
-                            : `Остават ${remaining} мин от ${block.targetDuration}`}
-                        </div>
-                      </div>
-
-                      <DndContext collisionDetection={closestCenter}>
-                        <SortableContext
-                          items={block.items.map((i) => i.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          <div className="min-h-25 space-y-3 p-3">
-                            {block.items.map((item) => (
-                              <div
-                                key={item.id}
-                                className={cn(
-                                  "group relative rounded-lg border bg-white p-3 shadow-sm transition-colors hover:border-indigo-300",
-                                  item.type === "station"
-                                    ? "border-amber-200 bg-amber-50"
-                                    : "border-zinc-200"
-                                )}
-                              >
-                                <div className="mb-2 flex items-start justify-between">
-                                  <div className="pr-6 text-sm font-medium text-zinc-900">
-                                    {item.type === "exercise"
-                                      ? item.exercise?.name
-                                      : "🔄 Станционна Ротация (Успоредно изпълнение)"}
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      removeItem(block.phase, item.id)
-                                    }
-                                    className="absolute top-2 right-2 size-6 text-zinc-400 hover:text-red-500"
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </Button>
-                                </div>
-
-                                {item.type === "station" ? (
-                                  <div className="mb-2 space-y-1 rounded border border-amber-100 bg-white/50 p-2 text-xs text-zinc-600">
-                                    {item.rotations?.map((r, i) => {
-                                      const g =
-                                        groups.find(
-                                          (grp) => grp.id === r.groupId
-                                        )?.name || "Група";
-
-                                      // Updated Inventory Check Logic (Using Session Inventory)
-                                      const shortages: {
-                                        name: string;
-                                        missing: number;
-                                        isTotallyMissing?: boolean;
-                                      }[] = [];
-
-                                      r.exercise?.equipment?.forEach(
-                                        (eqName) => {
-                                          const globalItem =
-                                            globalInventory.find(
-                                              (i) =>
-                                                i.name.toLowerCase() ===
-                                                eqName.toLowerCase()
-                                            );
-
-                                          if (
-                                            !globalItem ||
-                                            sessionInventory[globalItem.id] ===
-                                              undefined ||
-                                            sessionInventory[globalItem.id] ===
-                                              0
-                                          ) {
-                                            // Missing completely from the session selection
-                                            shortages.push({
-                                              name: eqName,
-                                              missing: kidsPerStation,
-                                              isTotallyMissing: true,
-                                            });
-                                            return;
-                                          }
-
-                                          let needed = 0;
-                                          if (
-                                            globalItem.allocationType ===
-                                            "per_child"
-                                          ) {
-                                            needed =
-                                              kidsPerStation *
-                                              (globalItem.ratioValue || 1);
-                                          } else if (
-                                            globalItem.allocationType ===
-                                            "per_station"
-                                          ) {
-                                            needed = globalItem.ratioValue || 1;
-                                          } else if (
-                                            globalItem.allocationType ===
-                                            "ratio"
-                                          ) {
-                                            needed = Math.ceil(
-                                              kidsPerStation *
-                                                (globalItem.ratioValue || 1)
-                                            );
-                                          }
-
-                                          const availableQty =
-                                            sessionInventory[globalItem.id];
-                                          if (needed > availableQty) {
-                                            shortages.push({
-                                              name: eqName,
-                                              missing: needed - availableQty,
-                                            });
-                                          }
-                                        }
-                                      );
-
-                                      return (
-                                        <div
-                                          key={i}
-                                          className="mb-2 flex flex-col gap-1"
-                                        >
-                                          <div className="flex items-center gap-2">
-                                            <Badge
-                                              variant="outline"
-                                              className="border-amber-200 bg-white text-[10px] text-amber-700"
-                                            >
-                                              {g}
-                                            </Badge>
-                                            <span className="font-semibold">
-                                              {r.exercise?.name}
-                                            </span>
-                                            <span className="text-[10px] text-zinc-400">
-                                              ({kidsPerStation} деца)
-                                            </span>
-                                          </div>
-
-                                          {shortages.length > 0 && (
-                                            <div className="flex items-center gap-1 rounded border border-red-100 bg-red-50 p-1 text-[10px] text-red-600">
-                                              <AlertTriangle className="size-3 flex-shrink-0" />
-                                              <span>
-                                                Внимание:{" "}
-                                                {shortages
-                                                  .map((s) =>
-                                                    s.isTotallyMissing
-                                                      ? `нямате добавени "${s.name.toLowerCase()}" за тази тренировка`
-                                                      : `недостиг на ${s.missing} бр. ${s.name.toLowerCase()}`
-                                                  )
-                                                  .join("; ")}
-                                              </span>
-                                            </div>
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                ) : null}
-
-                                <div className="mt-2 flex items-center gap-1 rounded bg-zinc-900/5 px-2 py-1">
-                                  <Input
-                                    type="number"
-                                    className="h-7 w-16 bg-white text-xs"
-                                    value={item.durationMinutes}
-                                    onChange={(e) =>
-                                      updateItemDuration(
-                                        block.phase,
-                                        item.id,
-                                        parseInt(e.target.value) || 0
-                                      )
-                                    }
-                                  />
-                                  <span className="text-xs text-zinc-500">
-                                    мин
-                                  </span>
-
-                                  {item.type === "exercise" && (
-                                    <Select
-                                      value={item.targetGroupId || "none"}
-                                      onValueChange={(v) =>
-                                        updateItemTargetGroup(
-                                          block.phase,
-                                          item.id,
-                                          v
-                                        )
-                                      }
-                                    >
-                                      <SelectTrigger className="ml-2 h-7 w-30 bg-white text-xs">
-                                        <SelectValue placeholder="За всички" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="none">
-                                          За всички групи
-                                        </SelectItem>
-                                        {groups.map((g) => (
-                                          <SelectItem key={g.id} value={g.id}>
-                                            {g.name}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-
-                            {block.items.length === 0 && (
-                              <div className="rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-6 text-center text-sm text-zinc-400">
-                                Добави упражнения от каталога вдясно
-                              </div>
-                            )}
-                          </div>
-                        </SortableContext>
-                      </DndContext>
-
-                      {block.phase === "main" && (
-                        <div className="border-t bg-zinc-50 p-2 text-center">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full border-amber-200 text-xs text-amber-600 hover:bg-amber-50 hover:text-amber-700"
-                            onClick={() => {
-                              setStationPhase(block.phase);
-                              setStationRotations([]);
-                              setShowStationModal(true);
-                            }}
-                          >
-                            + Създай Станционна Ротация
-                          </Button>
-                        </div>
-                      )}
+                {selectedCategory === "quiz" ? (
+                  <DedicatedQuizModule
+                    blocks={blocks}
+                    totalDuration={totalDuration}
+                    onRemoveItem={removeItem}
+                  />
+                ) : (
+                  <>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-200 bg-blue-50 text-[10px] text-blue-600 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300"
+                        onClick={injectHydrationBreaks}
+                      >
+                        + Хидратация
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-slate-200 bg-slate-50 text-[10px] text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                        onClick={toggleRainyDay}
+                      >
+                        {isRainyDay ? "Върни Външни" : "План 'Дъжд'"}
+                      </Button>
                     </div>
-                  );
-                })}
+                    {blocks.map((block) => {
+                      const currentTotal = block.items.reduce(
+                        (sum, item) => sum + item.durationMinutes,
+                        0
+                      );
+                      const remaining = block.targetDuration - currentTotal;
+                      const isOver = remaining < 0;
+
+                      return (
+                        <div
+                          key={block.id}
+                          className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm"
+                        >
+                          <div className="flex items-center justify-between border-b bg-zinc-100 p-3">
+                            <h3 className="font-bold text-zinc-800">
+                              {getPhaseName(block.phase)}
+                            </h3>
+                            <div
+                              className={cn(
+                                "rounded-full px-3 py-1 text-xs font-bold shadow-sm",
+                                isOver
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-emerald-100 text-emerald-700"
+                              )}
+                            >
+                              {isOver
+                                ? `Надвишено с ${Math.abs(remaining)} мин (Бюджет: ${block.targetDuration})`
+                                : `Остават ${remaining} мин от ${block.targetDuration}`}
+                            </div>
+                          </div>
+
+                          <DndContext collisionDetection={closestCenter}>
+                            <SortableContext
+                              items={block.items.map((i) => i.id)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              <div className="min-h-25 space-y-3 p-3">
+                                {block.items.map((item) => (
+                                  <SessionBlockItemCard
+                                    key={item.id}
+                                    item={item}
+                                    phase={block.phase}
+                                    groups={groups}
+                                    globalInventory={globalInventory}
+                                    sessionInventory={sessionInventory}
+                                    kidsPerStation={kidsPerStation}
+                                    onRemove={removeItem}
+                                    onUpdateDuration={updateItemDuration}
+                                    onUpdateTargetGroup={updateItemTargetGroup}
+                                  />
+                                ))}
+
+                                {block.items.length === 0 && (
+                                  <div className="rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-6 text-center text-sm text-zinc-400">
+                                    Добави упражнения от каталога вдясно
+                                  </div>
+                                )}
+                              </div>
+                            </SortableContext>
+                          </DndContext>
+
+                          {block.phase === "main" && (
+                            <div className="border-t bg-zinc-50 p-2 text-center">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full border-amber-200 text-xs text-amber-600 hover:bg-amber-50 hover:text-amber-700"
+                                onClick={() => {
+                                  setStationPhase(block.phase);
+                                  setStationRotations([]);
+                                  setShowStationModal(true);
+                                }}
+                              >
+                                + Създай Станционна Ротация
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
               </div>
 
               {/* RIGHT: Library */}
@@ -1493,6 +1925,35 @@ export default function CreateSessionWizard({
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
+                {/* Quick Mode Filters */}
+                <div className="flex flex-wrap gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory("all")}
+                    className={cn(
+                      "rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
+                      selectedCategory === "all"
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
+                    )}
+                  >
+                    Всички
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory("quiz")}
+                    className={cn(
+                      "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all",
+                      selectedCategory === "quiz"
+                        ? "bg-amber-500 text-white shadow-xs"
+                        : "border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-300"
+                    )}
+                  >
+                    🧠 Теория & Викторина (
+                    {getCategoryCount(allExercises, "quiz")})
+                  </button>
+                </div>
+
                 <div>
                   <Select
                     value={selectedCategory}
@@ -1503,38 +1964,44 @@ export default function CreateSessionWizard({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">
-                        Всички категории ({getCategoryCount("all")})
+                        Всички категории (
+                        {getCategoryCount(allExercises, "all")})
                       </SelectItem>
                       <SelectItem value="warmup">
-                        Загрявка ({getCategoryCount("warmup")})
+                        Загрявка ({getCategoryCount(allExercises, "warmup")})
                       </SelectItem>
                       <SelectItem value="technique">
-                        Техника ({getCategoryCount("technique")})
+                        Техника ({getCategoryCount(allExercises, "technique")})
                       </SelectItem>
                       <SelectItem value="tactics">
-                        Тактика ({getCategoryCount("tactics")})
+                        Тактика ({getCategoryCount(allExercises, "tactics")})
                       </SelectItem>
                       <SelectItem value="physical">
-                        Физически ({getCategoryCount("physical")})
+                        Физически ({getCategoryCount(allExercises, "physical")})
                       </SelectItem>
                       <SelectItem value="games">
-                        Игри и Забава ({getCategoryCount("games")})
+                        Игри и Забава ({getCategoryCount(allExercises, "games")}
+                        )
                       </SelectItem>
                       <SelectItem value="cooldown">
-                        Разпускане ({getCategoryCount("cooldown")})
+                        Разпускане ({getCategoryCount(allExercises, "cooldown")}
+                        )
                       </SelectItem>
                       <SelectItem value="beach">
-                        Плажни Блокове (Лагер) ({getCategoryCount("beach")})
+                        Плажни Блокове (Лагер) (
+                        {getCategoryCount(allExercises, "beach")})
                       </SelectItem>
                       <SelectItem value="circuit">
                         Станционни Ротации (Лагер) (
-                        {getCategoryCount("circuit")})
+                        {getCategoryCount(allExercises, "circuit")})
                       </SelectItem>
                       <SelectItem value="tactical">
-                        Мулти-Шатъл (Лагер) ({getCategoryCount("tactical")})
+                        Мулти-Шатъл (Лагер) (
+                        {getCategoryCount(allExercises, "tactical")})
                       </SelectItem>
                       <SelectItem value="quiz">
-                        🧠 Викторини & Тестове ({getCategoryCount("quiz")})
+                        🧠 Викторини & Тестове (
+                        {getCategoryCount(allExercises, "quiz")})
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -1548,58 +2015,12 @@ export default function CreateSessionWizard({
                   ) : (
                     <>
                       {filteredExercises.map((ex) => (
-                        <div
+                        <ExerciseItemCard
                           key={ex.id}
-                          className="group rounded-lg border border-zinc-200 bg-zinc-50 p-2 transition-colors hover:border-indigo-300"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="w-full">
-                              <h4 className="text-xs leading-tight font-semibold text-zinc-800">
-                                {ex.name}
-                              </h4>
-                              <div className="mt-1 flex flex-wrap items-center gap-1">
-                                <Badge
-                                  variant="outline"
-                                  className="bg-white px-1 text-[9px] text-zinc-500"
-                                >
-                                  {ex.durationMinutes} мин
-                                </Badge>
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-white px-1 text-[9px]"
-                                >
-                                  {ex.category}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-2 hidden flex-col gap-1 group-hover:flex">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-6 w-full justify-start px-2 text-[10px] text-zinc-600 hover:text-indigo-600"
-                              onClick={() => addExerciseToBlock("warmup", ex)}
-                            >
-                              <Plus className="mr-1 size-3" /> В Загрявка
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-6 w-full justify-start px-2 text-[10px] text-zinc-600 hover:text-indigo-600"
-                              onClick={() => addExerciseToBlock("main", ex)}
-                            >
-                              <Plus className="mr-1 size-3" /> В Основна част
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-6 w-full justify-start px-2 text-[10px] text-zinc-600 hover:text-indigo-600"
-                              onClick={() => addExerciseToBlock("cooldown", ex)}
-                            >
-                              <Plus className="mr-1 size-3" /> В Разпускане
-                            </Button>
-                          </div>
-                        </div>
+                          exercise={ex}
+                          selectedCategory={selectedCategory}
+                          onAddToBlock={addExerciseToBlock}
+                        />
                       ))}
                       {filteredExercises.length === 0 && (
                         <div className="py-4 text-center text-xs text-zinc-500">

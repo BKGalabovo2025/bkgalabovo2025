@@ -33,6 +33,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatEventDateRange } from "@/lib/date-utils";
 import { getEventById } from "@/services/schedule-service";
+import { getEstimatedWeather } from "@/services/weather-service";
 import { ScheduleEvent } from "@/types";
 
 import { CampItineraryClient } from "./CampItineraryClient";
@@ -165,6 +166,51 @@ export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
                 </div>
               </div>
             )}
+
+            {(() => {
+              const overviewWeather = getEstimatedWeather(
+                camp.location,
+                camp.startDate
+                  ? camp.startDate.split("T")[0]
+                  : new Date().toISOString().split("T")[0],
+                "14:00"
+              );
+
+              return (
+                <div className="rounded-xl border border-amber-200/80 bg-linear-to-br from-amber-50/60 to-cyan-50/50 p-3.5 dark:border-amber-900/40 dark:from-amber-950/20 dark:to-cyan-950/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                      Климатични условия
+                    </span>
+                    <span className="text-[10px] text-zinc-500">
+                      (Сезонна прогноза)
+                    </span>
+                  </div>
+                  <div className="mt-2.5 flex items-center justify-around gap-2">
+                    <div className="flex flex-col items-center">
+                      <span className="text-xl">
+                        {overviewWeather.iconEmoji}
+                      </span>
+                      <span className="text-sm font-black text-amber-900 dark:text-amber-200">
+                        {overviewWeather.airTemp}°C
+                      </span>
+                      <span className="text-[10px] text-zinc-500">Въздух</span>
+                    </div>
+                    {overviewWeather.waterTemp !== undefined && (
+                      <div className="flex flex-col items-center">
+                        <span className="text-xl">🌊</span>
+                        <span className="text-sm font-black text-cyan-900 dark:text-cyan-200">
+                          {overviewWeather.waterTemp}°C
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          Морска вода
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 

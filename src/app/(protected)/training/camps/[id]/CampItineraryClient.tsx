@@ -49,6 +49,7 @@ import {
 import { cn } from "@/lib/utils";
 import { plannerService } from "@/services/planner-service";
 import { updateCampSessions } from "@/services/schedule-service";
+import { getEstimatedWeather } from "@/services/weather-service";
 import { useAppStore } from "@/store/use-app-store";
 import { CampSession, ScheduleEvent } from "@/types";
 import { Exercise, PlannerSession } from "@/types/planner.types";
@@ -71,39 +72,6 @@ const sessionTypeLabels: Record<string, string> = {
   attraction: "Атракция / Събитие",
   travel: "Пътуване",
   other: "Друго",
-};
-
-const getTimeOfDayBadge = (startTime: string) => {
-  const [startHour = 9] = startTime.split(":").map(Number);
-  if (startHour < 11) {
-    return {
-      label: "Сутрин",
-      emoji: "🌅",
-      color:
-        "text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300",
-    };
-  }
-  if (startHour < 15) {
-    return {
-      label: "Обяд",
-      emoji: "☀️",
-      color:
-        "text-orange-600 bg-orange-50 dark:bg-orange-950/40 dark:text-orange-300",
-    };
-  }
-  if (startHour < 19) {
-    return {
-      label: "Следобед",
-      emoji: "🌇",
-      color:
-        "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 dark:text-indigo-300",
-    };
-  }
-  return {
-    label: "Вечер",
-    emoji: "🌙",
-    color: "text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-300",
-  };
 };
 
 export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
@@ -619,7 +587,11 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
               <div className="space-y-3">
                 {currentDaysSessions.map((session) => {
                   const Icon = sessionTypeIcons[session.type] || Map;
-                  const timeOfDayBadge = getTimeOfDayBadge(session.startTime);
+                  const weather = getEstimatedWeather(
+                    camp.location,
+                    selectedDateStr,
+                    session.startTime
+                  );
 
                   return (
                     <div
@@ -634,7 +606,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                           "border-dashed border-primary opacity-50"
                       )}
                     >
-                      <div className="flex shrink-0 items-center justify-between gap-2 rounded-lg bg-zinc-100 p-2.5 sm:w-32 sm:flex-col sm:justify-center dark:bg-zinc-900">
+                      <div className="flex shrink-0 items-center justify-between gap-1.5 rounded-lg bg-zinc-100 p-2 sm:w-36 sm:flex-col sm:justify-center dark:bg-zinc-900">
                         <div className="flex items-center gap-1.5">
                           <span className="font-black text-zinc-900 dark:text-zinc-100">
                             {session.startTime}
@@ -643,15 +615,26 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                             - {session.endTime}
                           </span>
                         </div>
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
-                            timeOfDayBadge.color
+                        <div className="flex flex-wrap items-center justify-center gap-1">
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-0.5 rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300"
+                            )}
+                            title={`Въздух: ${weather.airTemp}°C (${weather.conditionText})`}
+                          >
+                            <span>{weather.iconEmoji}</span>
+                            <span>{weather.airTemp}°C</span>
+                          </span>
+                          {weather.waterTemp !== undefined && (
+                            <span
+                              className="inline-flex items-center gap-0.5 rounded-full border border-cyan-200 bg-cyan-50 px-1.5 py-0.5 text-[9px] font-bold text-cyan-700 dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-300"
+                              title={`Вода: ${weather.waterTemp}°C`}
+                            >
+                              <span>🌊</span>
+                              <span>{weather.waterTemp}°C</span>
+                            </span>
                           )}
-                        >
-                          <span>{timeOfDayBadge.emoji}</span>
-                          <span>{timeOfDayBadge.label}</span>
-                        </span>
+                        </div>
                       </div>
 
                       <div className="flex flex-1 items-start gap-4">
