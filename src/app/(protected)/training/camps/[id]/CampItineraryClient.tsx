@@ -505,17 +505,17 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
         </div>
 
         {/* Timeline View */}
-        <div className="relative rounded-xl border border-zinc-100 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/30">
-          <div className="mb-6 flex items-center justify-between">
-            <h3 className="font-semibold text-zinc-900 dark:text-white">
+        <div className="relative rounded-xl border border-zinc-100 bg-zinc-50 p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900/30">
+          <div className="mb-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
               Програма за {selectedDayLabel}
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Quick action buttons */}
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1.5 text-xs"
+                className="h-9 gap-1.5 text-xs sm:h-8"
                 onClick={() => handleOpenModal()}
               >
                 <Plus size={14} />
@@ -523,7 +523,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
               </Button>
               <Button
                 size="sm"
-                className="h-8 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                className="h-9 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700 sm:h-8"
                 onClick={() => handleOpenPlannerWizard()}
               >
                 <CalendarRange size={14} />
@@ -535,7 +535,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                   size="sm"
                   onClick={handleCopyPreviousDay}
                   disabled={isSaving}
-                  className="h-8 gap-1.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                  className="h-9 gap-1.5 text-xs text-blue-600 hover:text-blue-700 sm:h-8 dark:text-blue-400"
                 >
                   <Copy size={14} />
                   Копирай от предходния ден
@@ -571,116 +571,79 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid h-16 grid-cols-24 gap-1 rounded-lg bg-zinc-200 p-1 dark:bg-zinc-800">
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  6:00
+              {/* Clean Visual Daily Timeline Bar (07:00 - 22:00) */}
+              <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="mb-2 flex items-center justify-between text-xs font-semibold text-zinc-500">
+                  <span>🌅 07:00</span>
+                  <span>☀️ 12:00</span>
+                  <span>🌇 17:00</span>
+                  <span>🌙 22:00</span>
                 </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  7:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  8:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  9:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  10:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  11:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  12:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  13:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  14:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  15:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  16:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  17:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  18:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  19:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  20:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  21:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  22:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  23:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  24:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  25:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  26:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  27:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  28:00
-                </div>
-                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
-                  29:00
+                {/* Visual Timeline Bar */}
+                <div className="relative h-6 w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                  {currentDaysSessions.map((session) => {
+                    const [sh = "7", sm = "0"] = session.startTime.split(":");
+                    const [eh = "8", em = "0"] = session.endTime.split(":");
+                    const startMin = Math.max(
+                      0,
+                      parseInt(sh, 10) * 60 + parseInt(sm, 10) - 7 * 60
+                    );
+                    const endMin = Math.min(
+                      15 * 60,
+                      parseInt(eh, 10) * 60 + parseInt(em, 10) - 7 * 60
+                    );
+                    const totalDayMinutes = 15 * 60; // 07:00 to 22:00 = 15 hours
+                    const leftPct = Math.max(
+                      0,
+                      Math.min(100, (startMin / totalDayMinutes) * 100)
+                    );
+                    const widthPct = Math.max(
+                      2,
+                      Math.min(
+                        100 - leftPct,
+                        ((endMin - startMin) / totalDayMinutes) * 100
+                      )
+                    );
+
+                    const getBgColor = (type: string) => {
+                      switch (type) {
+                        case "training":
+                          return "bg-orange-500 text-white";
+                        case "meal":
+                          return "bg-emerald-500 text-white";
+                        case "leisure":
+                          return "bg-sky-500 text-white";
+                        case "travel":
+                          return "bg-purple-500 text-white";
+                        default:
+                          return "bg-indigo-500 text-white";
+                      }
+                    };
+
+                    const sessionStyle: React.CSSProperties = {
+                      left: `${leftPct}%`,
+                      width: `${widthPct}%`,
+                    };
+
+                    return (
+                      <div
+                        key={session.id}
+                        /* eslint-disable-next-line react/forbid-dom-props */
+                        style={sessionStyle}
+                        className={cn(
+                          "absolute top-0 flex h-full items-center justify-center truncate px-1 text-[10px] font-bold shadow-xs transition-all hover:brightness-110",
+                          getBgColor(session.type)
+                        )}
+                        title={`${session.startTime} - ${session.endTime}: ${session.title}`}
+                      >
+                        <span className="truncate">{session.title}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4">
-                {currentDaysSessions.map((session) => {
-                  const startHour = parseInt(session.startTime);
-                  const endHour = parseInt(session.endTime);
-                  const startCol = startHour - 6;
-                  const endCol = endHour - 6;
-                  const colSpan = Math.max(1, endCol - startCol);
-                  const getBgColor = (type: string) => {
-                    switch (type) {
-                      case "training":
-                        return "bg-orange-500/60";
-                      case "meal":
-                        return "bg-green-500/60";
-                      case "leisure":
-                        return "bg-sky-500/60";
-                      case "travel":
-                        return "bg-purple-500/60";
-                      default:
-                        return "bg-zinc-500/60";
-                    }
-                  };
-                  const bgColor = getBgColor(session.type);
-                  return (
-                    <div
-                      key={session.id}
-                      className={cn(
-                        "rounded-b transition-colors hover:opacity-80",
-                        `grid-row: span ${colSpan}`,
-                        `grid-column: ${startCol + 1}`,
-                        bgColor
-                      )}
-                      aria-label={session.title}
-                    />
-                  );
-                })}
-              </div>
+
+              {/* Session Cards List */}
               <div className="space-y-4">
                 {currentDaysSessions.map((session) => {
                   const Icon = sessionTypeIcons[session.type] || Map;
@@ -692,14 +655,17 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                       onDragOver={handleDragOver}
                       onDrop={(e) => void handleDropSession(e, session.id)}
                       className={cn(
-                        "group flex cursor-grab flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-primary/30 active:cursor-grabbing sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-950",
+                        "group flex cursor-grab flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs transition-all hover:border-primary/30 active:cursor-grabbing sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-950",
                         draggedSessionId === session.id &&
                           "border-dashed border-primary opacity-50"
                       )}
                     >
-                      <div className="flex shrink-0 items-center justify-center rounded-lg bg-zinc-100 p-3 sm:w-24 dark:bg-zinc-900">
-                        <span className="font-bold text-zinc-700 dark:text-zinc-300">
+                      <div className="flex shrink-0 flex-col items-center justify-center rounded-lg bg-zinc-100 p-3 sm:w-28 dark:bg-zinc-900">
+                        <span className="font-bold text-zinc-900 dark:text-zinc-100">
                           {session.startTime}
+                        </span>
+                        <span className="text-xs text-zinc-500">
+                          до {session.endTime}
                         </span>
                       </div>
 
@@ -719,15 +685,12 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                           <Icon size={16} />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-bold text-zinc-900 dark:text-white">
-                            {session.title}
-                          </h4>
-                          <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-500">
-                            <span className="rounded-md bg-zinc-100 px-2 py-0.5 dark:bg-zinc-800">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="font-bold text-zinc-900 dark:text-white">
+                              {session.title}
+                            </h4>
+                            <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                               {sessionTypeLabels[session.type]}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              До: {session.endTime}
                             </span>
                           </div>
 
