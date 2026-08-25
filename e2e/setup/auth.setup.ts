@@ -84,7 +84,7 @@ setup("authenticate as admin", async ({ page }) => {
   await page.click('button[type="submit"]');
 
   // Wait until the dashboard loads (which indicates successful login)
-  await expect(page).toHaveURL(/.*\/dashboard/);
+  await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 15000 });
 
   // 5. Save the state
   await page.context().storageState({ path: authFile });

@@ -7,13 +7,16 @@ import { getAdminAuth } from "@/lib/firebase-admin";
 
 export async function loginAction(email: string, password: string) {
   try {
-    const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    const useEmulator =
+      process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true" ||
+      Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
+    const apiKey =
+      process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
+      (useEmulator ? "fake-api-key" : "");
     if (!apiKey) {
       return { success: false, error: "Firebase API Key липсва на сървъра." };
     }
 
-    const useEmulator =
-      process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true";
     const authHost =
       process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
     const baseUrl = useEmulator

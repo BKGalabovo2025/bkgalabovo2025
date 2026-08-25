@@ -113,10 +113,10 @@ if (
   process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true"
 ) {
   const authEmulatorHost =
-    process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || "localhost:9099";
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
   const firestoreEmulatorHost =
     process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST ||
-    "localhost:8081";
+    "127.0.0.1:8081";
 
   // Using a global variable to ensure we only connect once during HMR
   const g = window as unknown as { _firebaseEmulatorsConnected?: boolean };
