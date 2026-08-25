@@ -503,8 +503,8 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
           </div>
         </div>
 
-        {/* Day Selector - Compact Responsive Grid without horizontal scroll */}
-        <div className="mb-6 grid grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-2">
+        {/* Day Selector - Ultra-Compact Grid without horizontal scroll */}
+        <div className="mb-4 grid grid-cols-3 gap-1 sm:grid-cols-6 sm:gap-1.5">
           {days.map((day) => {
             const isSelected = selectedDateStr === day.dateStr;
             const hasCampSessions = sessions.some(
@@ -520,26 +520,28 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                 key={day.dateStr}
                 onClick={() => setSelectedDateStr(day.dateStr)}
                 className={cn(
-                  "flex flex-col items-center justify-center rounded-lg border px-1.5 py-1.5 text-center transition-all sm:rounded-xl sm:p-2.5",
+                  "flex flex-col items-center justify-center rounded-lg border p-1 text-center transition-all",
                   isSelected
-                    ? "border-indigo-600 bg-indigo-50 font-bold text-indigo-950 shadow-xs ring-2 ring-indigo-500/20 dark:border-indigo-500 dark:bg-indigo-950/50 dark:text-white"
-                    : "border-zinc-200 bg-zinc-50/70 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:bg-zinc-800",
+                    ? "border-indigo-600 bg-indigo-50/90 font-bold text-indigo-950 shadow-2xs ring-1 ring-indigo-500/30 dark:border-indigo-500 dark:bg-indigo-950/60 dark:text-white"
+                    : "border-zinc-200 bg-zinc-50/60 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-800",
                   hasContent &&
                     !isSelected &&
-                    "border-indigo-200/60 bg-indigo-50/30 dark:border-indigo-900/30 dark:bg-indigo-950/20"
+                    "border-indigo-200/50 bg-indigo-50/20 dark:border-indigo-900/20"
                 )}
               >
-                <span className="text-xs font-black sm:text-sm">
+                <span className="text-[11px] leading-tight font-black sm:text-xs">
                   {day.label}
                 </span>
-                <span className="text-[10px] font-semibold text-zinc-700 sm:text-xs dark:text-zinc-300">
-                  {format(day.date, "dd MMM", { locale: bg })}
-                </span>
-                <span className="text-[9px] font-bold text-indigo-600/80 uppercase sm:text-[10px] dark:text-indigo-400">
-                  {format(day.date, "EEE", { locale: bg })}
-                </span>
+                <div className="flex items-center gap-1 leading-none">
+                  <span className="text-[9px] font-medium text-zinc-600 dark:text-zinc-400">
+                    {format(day.date, "dd MMM", { locale: bg })}
+                  </span>
+                  <span className="text-[8px] font-black text-indigo-600 uppercase dark:text-indigo-400">
+                    {format(day.date, "EEE", { locale: bg })}
+                  </span>
+                </div>
                 {hasContent && (
-                  <div className="mt-1 size-1 rounded-full bg-indigo-600 sm:size-1.5 dark:bg-indigo-400" />
+                  <div className="mt-0.5 size-1 rounded-full bg-indigo-600 dark:bg-indigo-400" />
                 )}
               </button>
             );
