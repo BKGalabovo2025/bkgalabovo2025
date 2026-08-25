@@ -43,8 +43,24 @@ export async function getAuthUserFromSessionCookie() {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function ensureAdminFromSession() {
+export async function ensureAdminWithSite(
+  idToken: string,
+  requiredSiteId?: string
+) {
+  const user = await ensureAdmin(idToken);
+  const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+  if (
+    requiredSiteId &&
+    allowedSites &&
+    allowedSites.length > 0 &&
+    !allowedSites.includes(requiredSiteId)
+  ) {
+    throw new Error("Нямате достъп до този клон.");
+  }
+  return user;
+}
+
+export async function ensureAdminFromSession() {
   const user = await getAuthUserFromSessionCookie();
   if (!user) {
     throw new Error("Невалидна сесия. Моля, влезте отново.");

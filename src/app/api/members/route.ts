@@ -59,6 +59,22 @@ export async function POST(request: Request) {
     };
     const newMemberId = await addMember(memberData);
 
+    try {
+      const { getAdminDb } = await import("@/lib/firebase-admin");
+      const adminDb = getAdminDb();
+      await adminDb.collection("audit_logs").add({
+        userId: "admin",
+        action: "CREATE",
+        targetCollection: "members",
+        targetId: newMemberId,
+        details: { email, name: `${firstName} ${lastName}` },
+        siteId,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (auditErr) {
+      console.error("Failed to write audit log in /api/members:", auditErr);
+    }
+
     // 3. Construct and return the final response object
     const responsePayload = {
       id: newMemberId,

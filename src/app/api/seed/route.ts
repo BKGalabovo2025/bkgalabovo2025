@@ -1,12 +1,27 @@
 import { collection, doc, writeBatch } from "firebase/firestore";
 import { NextResponse } from "next/server";
 
+import { ensureAdmin } from "@/lib/auth-utils";
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 import { db } from "@/lib/firebase";
 import { plannerService } from "@/services/planner-service";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const token = authHeader.substring(7);
+    try {
+      await ensureAdmin(token);
+    } catch {
+      return NextResponse.json(
+        { error: "Forbidden: Admin access required" },
+        { status: 403 }
+      );
+    }
+
     const siteId = "bkgalabovo";
     // 1. Get existing
     const existing = await plannerService.getExercises(siteId);

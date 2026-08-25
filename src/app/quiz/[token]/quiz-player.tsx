@@ -199,6 +199,42 @@ function QuizPlayerResult({
                               Оценено: {result.manualScore} / {q.points} т.
                             </div>
                           )}
+                          {result.aiFeedback && (
+                            <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 text-xs text-indigo-900">
+                              <span className="mb-1 block font-bold text-indigo-700">
+                                🤖 AI Тактически анализ:
+                              </span>
+                              {result.aiFeedback}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {q.explanation && (
+                        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-xs text-emerald-900">
+                          <span className="mb-1 block font-bold text-emerald-800">
+                            💡 Обяснение от треньора:
+                          </span>
+                          {q.explanation}
+                        </div>
+                      )}
+
+                      {q.mediaUrl && (
+                        <div className="mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
+                          {q.mediaUrl.endsWith(".mp4") ||
+                          q.mediaUrl.includes("video") ? (
+                            <video
+                              src={q.mediaUrl}
+                              controls
+                              className="max-h-48 w-full object-cover"
+                            />
+                          ) : (
+                            <img
+                              src={q.mediaUrl}
+                              alt="Тактическа схема"
+                              className="max-h-48 w-full object-contain"
+                            />
+                          )}
                         </div>
                       )}
                     </div>

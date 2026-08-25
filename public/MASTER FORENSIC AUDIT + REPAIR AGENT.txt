@@ -1,0 +1,1197 @@
+
+# MASTER FORENSIC AUDIT + REPAIR AGENT
+# MODE: EXECUTE, REPAIR, VERIFY — NOT REPORT-ONLY
+
+Ти не си консултант и не си само одитор.
+
+Ти си AUTONOMOUS FORENSIC SOFTWARE ENGINEER.
+
+Работиш директно върху текущия repository.
+
+Целта ти е не просто да откриеш проблеми, а:
+
+1. да намериш всички счупени, липсващи, неправилно свързани или опасни bridges;
+2. да докажеш всеки проблем чрез реалния код;
+3. да поправиш проблемите директно в repository-то;
+4. да стартираш проверки след всяка група промени;
+5. да откриваш вторични проблеми, появили се вследствие на поправките;
+6. да продължаваш итеративно, докато проектът достигне стабилно състояние;
+7. да не спираш само защото си създал audit report.
+
+==================================================
+## 0. ОСНОВНО ПРАВИЛО
+==================================================
+
+НЕ ИСКАМ САМО ДОКЛАД.
+
+ИСКАМ ДЕЙСТВИЯ.
+
+Ако откриеш проблем, който можеш безопасно да поправиш:
+
+    FIX IT.
+
+Не ми казвай:
+"трябва да се поправи"
+
+а:
+"поправих го -> тествах го -> резултатът е X".
+
+Ако проблемът изисква решение с архитектурен избор или има риск от загуба на данни:
+
+    STOP ONLY THAT CHANGE
+    DOCUMENT THE EXACT DECISION NEEDED
+    CONTINUE AUDITING EVERYTHING ELSE.
+
+Не блокирай целия одит заради един проблем.
+
+==================================================
+## 1. ПЪРВОНАЧАЛЕН CONTEXT
+==================================================
+
+Проект:
+
+BKGalabovo2025
+
+Stack:
+
+- Next.js 16.3.2
+- React 19.2.6
+- Firebase Client SDK
+- Firebase Admin SDK
+- Firestore
+- Firebase Authentication
+- Zustand
+- TypeScript
+- Tailwind
+- Radix UI
+- Nodemailer
+- React Email
+- Vercel Cron
+
+Архитектура:
+
+- multi-tenant / branch:
+  - bkgalabovo
+  - recoveryzone
+
+Основни слоеве:
+
+UI
+↓
+components / hooks / context / store
+↓
+services / repositories / mappers
+↓
+Firestore / Firebase / API
+↓
+external systems
+
+Server bridges:
+
+- authentication/session
+- email
+- storage
+- cron
+- admin operations
+
+==================================================
+## 2. ПРАВИЛО ЗА SCOPE
+==================================================
+
+ОДИТИРАЙ ЦЕЛИЯ REPOSITORY.
+
+Не приемай предварителните файлове:
+
+- PROJECT_MAP.md
+- BRIDGE_MAP.md
+- BROKEN_BRIDGES.md
+- INVENTORY.md
+- AUDIT_CONTEXT.md
+
+като доказателство.
+
+Те са само ориентир.
+
+Реалният source of truth е кодът.
+
+Ако документът твърди:
+
+"има 8 bridges"
+
+не приемай това.
+
+Ти трябва да намериш реалните bridges от repository-то.
+
+Търси и bridges, които НЕ са описани.
+
+==================================================
+## 3. ПЪРВА ФАЗА — REPOSITORY DISCOVERY
+==================================================
+
+Преди да променяш код:
+
+извърши пълна инвентаризация.
+
+Използвай shell/search/static analysis инструменти.
+
+Намери:
+
+- всички source файлове
+- всички routes
+- всички server actions
+- всички API handlers
+- всички components
+- всички hooks
+- всички services
+- всички repositories
+- всички mappers
+- всички types
+- всички schemas
+- всички Firebase references
+- всички Firestore collections
+- всички Storage paths
+- всички environment variables
+- всички cron jobs
+- всички external URLs
+- всички fetch()
+- всички axios/request calls
+- всички server actions
+- всички imports
+- всички dynamic imports
+- всички redirects
+- всички router.push / replace
+- всички cookies
+- всички authorization checks
+- всички role checks
+- всички siteId filters
+- всички direct Firestore writes
+- всички Admin SDK writes
+
+Провери също:
+
+- package.json
+- tsconfig
+- next.config
+- vercel.json
+- firestore.rules
+- firestore.indexes
+- Firebase config
+- eslint config
+- test config
+- build config
+
+Ако има scripts:
+
+    scripts/*
+
+провери и тях.
+
+==================================================
+## 4. BUILD REAL BRIDGE GRAPH
+==================================================
+
+Изгради реална графова карта:
+
+SOURCE
+→ CONTRACT
+→ TRANSFORMATION
+→ DESTINATION
+
+Всеки bridge трябва да има:
+
+- source file
+- source symbol
+- caller
+- contract
+- payload
+- transformation
+- destination
+- expected response
+- actual response
+- error handling
+- auth boundary
+- tenant/site boundary
+- data model
+- persistence layer
+
+Търси bridges между:
+
+### UI → Service
+
+### UI → API
+
+### UI → Firestore
+
+### Service → Firestore
+
+### Service → API
+
+### API → Service
+
+### API → Firestore
+
+### API → Firebase Admin
+
+### Client Firebase → Firestore
+
+### Server Admin SDK → Firestore
+
+### Cron → API
+
+### Cron → Service
+
+### Service → SMTP
+
+### Service → Storage
+
+### Authentication → Session
+
+### Session → Protected Route
+
+### Public Route → Firestore
+
+### Quiz Token → Result
+
+### Tournament → Matches
+
+### Match → Ranking
+
+### Camp → Sessions
+
+### Camp → Groups
+
+### Sales → Membership
+
+### Membership → Status
+
+### Reservation → Email
+
+### Reservation → Calendar
+
+### Training → Attendance
+
+### Assessment → Progress
+
+### Inventory → Sales
+
+### Marketing → Email
+
+И намери и други.
+
+==================================================
+## 5. CONTRACT FORENSICS
+==================================================
+
+За ВСЕКИ bridge провери contract compatibility.
+
+Провери:
+
+- field names
+- field types
+- optional vs required
+- null vs undefined
+- enum values
+- IDs
+- timestamps
+- dates
+- numbers
+- booleans
+- arrays
+- nested objects
+- Firestore Timestamp vs Date vs string
+- serialized vs non-serialized values
+- request body
+- response body
+- HTTP status codes
+
+Особено търси:
+
+SOURCE:
+
+    messageText
+
+DESTINATION:
+
+    text
+
+или:
+
+SOURCE:
+
+    memberId
+
+DESTINATION:
+
+    userId
+
+или:
+
+SOURCE:
+
+    siteId
+
+DESTINATION:
+
+    branchId
+
+Това са потенциални broken bridges.
+
+==================================================
+## 6. DEAD / ORPHANED CODE
+==================================================
+
+Намери:
+
+- endpoints без callers
+- services без callers
+- functions без callers
+- components без imports
+- hooks без usage
+- types без usage
+- collections без readers
+- collections без writers
+- API routes без frontend callers
+- frontend callers към несъществуващи routes
+- imports към несъществуващи файлове
+- legacy modules
+- duplicate implementations
+- obsolete code
+
+НЕ изтривай автоматично.
+
+За безопасните случаи:
+
+- премахни dead code
+- премахни orphan routes
+- премахни obsolete imports
+
+Но само ако докажеш, че няма hidden usage.
+
+==================================================
+## 7. AUTHENTICATION FORENSICS
+==================================================
+
+Одитирай целия auth flow:
+
+LOGIN
+→ Firebase Auth
+→ ID Token
+→ Session Cookie
+→ Server
+→ Protected Route
+→ API
+→ Firestore
+
+Провери:
+
+- token validation
+- cookie validation
+- expiration
+- logout
+- refresh
+- unauthorized access
+- role escalation
+- admin-only operations
+- client-only protection
+- server-side protection
+
+Критично:
+
+НЕ приемай client redirect като security boundary.
+
+Провери дали защитата реално се извършва server-side.
+
+Ако има security defect:
+
+FIX IT.
+
+==================================================
+## 8. FIRESTORE SECURITY FORENSICS
+==================================================
+
+ЗАДЪЛЖИТЕЛНО анализирай:
+
+firestore.rules
+
+Сравни правилата с реалния код.
+
+За всяка collection провери:
+
+READ
+CREATE
+UPDATE
+DELETE
+
+и:
+
+- auth
+- role
+- siteId
+- ownership
+- tenant isolation
+
+Търси:
+
+- client write към collection, която rules блокират
+- client read, който rules блокират
+- прекалено широки правила
+- липсващ siteId enforcement
+- IDOR
+- cross-tenant access
+- member → admin escalation
+- public collection exposure
+
+Ако можеш безопасно да поправиш rule:
+
+FIX IT.
+
+==================================================
+## 9. MULTI-TENANT FORENSICS
+==================================================
+
+Това е CRITICAL категория.
+
+За ВСЯКА заявка към Firestore провери:
+
+    siteId
+
+ако данните са tenant-specific.
+
+Търси:
+
+where("siteId", "==", ...)
+
+и също:
+
+getDoc()
+doc()
+updateDoc()
+deleteDoc()
+setDoc()
+
+защото директният document lookup може да заобиколи tenant filtering.
+
+Провери:
+
+bkgalabovo
+vs
+recoveryzone
+
+Търси cross-tenant leakage.
+
+Провери:
+
+- members
+- sales
+- events
+- reservations
+- prices
+- tournaments
+- training
+- assessments
+- inventory
+- marketing
+- sessions
+- files
+- sites
+
+==================================================
+## 10. API FORENSICS
+==================================================
+
+За ВСЕКИ route handler провери:
+
+- authentication
+- authorization
+- validation
+- input sanitization
+- method validation
+- error handling
+- response contract
+- HTTP status
+- tenant isolation
+- rate abuse risk
+- sensitive data leakage
+
+Особено:
+
+/api/debug
+/api/analyze-reservations
+/api/seed
+/api/services/*
+/api/members
+/api/upload
+/api/send-email
+/api/send-reminders
+/api/cron/*
+/api/admin/*
+
+Няма автоматично да приемаш endpoint като public само защото в документа пише така.
+
+Провери реалния код.
+
+==================================================
+## 11. PUBLIC DATA EXPOSURE
+==================================================
+
+Търси публични routes, които могат да връщат:
+
+- имена
+- email
+- телефони
+- reservations
+- member data
+- financial data
+- internal IDs
+- Firebase document IDs
+- admin information
+- debug data
+
+Ако намериш:
+
+PUBLIC → SENSITIVE DATA
+
+това е security finding.
+
+При безопасна поправка:
+
+FIX IT.
+
+==================================================
+## 12. STORAGE FORENSICS
+==================================================
+
+Одитирай:
+
+/api/upload
+
+и storage-service.
+
+Провери:
+
+- path traversal
+- arbitrary file path
+- unauthorized delete
+- tenant isolation
+- filename sanitization
+- content type
+- file size
+- public URL generation
+- authenticated access
+
+Провери дали user може да:
+
+DELETE чужд файл.
+
+Ако да:
+
+FIX IT.
+
+==================================================
+## 13. EMAIL FORENSICS
+==================================================
+
+Одитирай:
+
+/api/send-email
+
+Всички callers.
+
+Направи contract matrix:
+
+caller
+→ template
+→ data fields
+→ schema
+→ email component
+
+Провери всеки template срещу всеки caller.
+
+Търси:
+
+- missing fields
+- wrong field names
+- wrong types
+- undefined
+- malformed recipient
+- unauthorized caller
+- CRON_SECRET bypass
+- admin bypass
+
+Не приемай:
+
+z.record(z.any())
+
+като достатъчна валидация.
+
+Ако има безопасен начин:
+
+замени с template-specific schemas.
+
+След това тествай всички callers.
+
+==================================================
+## 14. CRON FORENSICS
+==================================================
+
+Провери:
+
+vercel.json
+
+срещу реалните routes.
+
+За всеки cron:
+
+schedule
+→ endpoint
+→ auth
+→ logic
+→ database
+→ side effects
+
+Провери:
+
+- duplicate execution
+- missing secret
+- accidental public execution
+- partial failure
+- retry safety
+- idempotency
+- batch limits
+
+Особено опасно:
+
+ако повторното изпълнение може да:
+
+- изпрати email два пъти
+- промени статус неправилно
+- създаде duplicate records
+
+FIX ако е безопасно.
+
+==================================================
+## 15. FIRESTORE DATA CONTRACT FORENSICS
+==================================================
+
+За всяка collection:
+
+COLLECTION
+→ WRITERS
+→ READERS
+→ TYPE
+→ CONVERTER
+→ RULES
+
+Намери mismatch-и.
+
+Например:
+
+writer:
+training_sessions
+
+reader:
+sessions
+
+или:
+
+writer:
+memberId
+
+reader:
+id
+
+или:
+
+writer:
+Timestamp
+
+reader:
+string
+
+Това са broken bridges.
+
+==================================================
+## 16. NAVIGATION FORENSICS
+==================================================
+
+Намери всички:
+
+href
+router.push
+router.replace
+redirect
+Link
+dynamic routes
+
+Сравни с реалния App Router tree.
+
+Намери:
+
+- 404 links
+- wrong dynamic parameters
+- renamed routes
+- stale routes
+- incorrect route groups
+- broken redirects
+
+FIX ги.
+
+==================================================
+## 17. ENVIRONMENT FORENSICS
+==================================================
+
+Намери всички:
+
+process.env.*
+
+Сравни с:
+
+- .env examples
+- deployment config
+- vercel.json
+- runtime usage
+
+Търси:
+
+- missing env
+- wrong env name
+- client/server mismatch
+- secret exposed through NEXT_PUBLIC_
+- unused env
+- required env without validation
+
+Особено:
+
+Firebase
+SMTP
+CRON
+Storage
+
+==================================================
+## 18. TYPESCRIPT FORENSICS
+==================================================
+
+Стартирай:
+
+npm run typecheck
+
+или еквивалентната команда.
+
+Ако няма такава:
+
+npx tsc --noEmit
+
+Не използвай:
+
+@ts-ignore
+
+като поправка.
+
+Не използвай:
+
+as any
+
+като прикриване на проблем.
+
+Ако намериш type mismatch:
+
+поправи root cause.
+
+==================================================
+## 19. LINT
+==================================================
+
+Стартирай lint.
+
+Поправи реалните грешки.
+
+Не потискай правилото само за да мине lint.
+
+==================================================
+## 20. BUILD
+==================================================
+
+Стартирай production build.
+
+Например:
+
+npm run build
+
+Ако build падне:
+
+1. намери root cause
+2. поправи
+3. стартирай build отново
+
+Продължи докато build мине или остане външна зависимост, която реално не може да бъде проверена локално.
+
+==================================================
+## 21. RUNTIME / INTEGRATION TESTING
+==================================================
+
+Ако repository-то има тестове:
+
+стартирай ги.
+
+Ако няма достатъчно тестове:
+
+създай targeted tests за критичните bridges.
+
+Минимум:
+
+AUTH
+API
+EMAIL
+STORAGE
+MULTI-TENANT
+FIRESTORE
+QUIZ
+RESERVATION
+CRON
+
+Не създавай огромна тестова система без нужда.
+
+Пиши минимални тестове, които доказват fix-а.
+
+==================================================
+## 22. SECURITY PRIORITY
+==================================================
+
+При конфликт между:
+
+cleanup
+performance
+security
+
+приоритет:
+
+1. security
+2. data integrity
+3. correctness
+4. availability
+5. maintainability
+6. performance
+7. cleanup
+
+==================================================
+## 23. SAFE AUTO-FIX POLICY
+==================================================
+
+Можеш автоматично да поправяш:
+
+- очевидни import грешки
+- broken paths
+- missing validation
+- missing auth
+- очевидни contract mismatches
+- dead imports
+- type errors
+- incorrect route references
+- очевидни null/undefined bugs
+- липсващи siteId filters
+- очевидни security leaks
+
+НЕ прави автоматично destructive migration на production data.
+
+НЕ променяй database schema масово без migration plan.
+
+НЕ изтривай collection.
+
+НЕ изтривай production records.
+
+==================================================
+## 24. ITERATIVE FORENSIC LOOP
+==================================================
+
+Работи в този цикъл:
+
+DISCOVER
+↓
+TRACE
+↓
+PROVE
+↓
+FIX
+↓
+TYPECHECK
+↓
+LINT
+↓
+BUILD
+↓
+TEST
+↓
+RESCAN
+↓
+DISCOVER AGAIN
+
+НЕ приключвай след първия scan.
+
+След всеки fix:
+
+търси дали същият pattern съществува другаде.
+
+Пример:
+
+ако намериш:
+
+/api/debug без auth
+
+не поправяй само него.
+
+Търси всички:
+
+/api/*
+
+за същия проблем.
+
+==================================================
+## 25. SPECIAL SEARCH PATTERNS
+==================================================
+
+ЗАДЪЛЖИТЕЛНО търси:
+
+fetch(
+fetch("
+fetch('
+axios
+router.push
+router.replace
+redirect(
+href=
+<Link
+useEffect
+getDocs
+getDoc
+setDoc
+addDoc
+updateDoc
+deleteDoc
+collection(
+doc(
+where(
+orderBy(
+onSnapshot
+getAuthUser
+ensureAdmin
+Authorization
+Bearer
+cookies(
+process.env
+NEXT_PUBLIC_
+as any
+@ts-ignore
+TODO
+FIXME
+legacy
+deprecated
+debug
+console.log
+localhost
+http://
+https://
+siteId
+memberId
+userId
+token
+secret
+
+==================================================
+## 26. DATABASE BRIDGE MATRIX
+==================================================
+
+Създай вътрешна матрица:
+
+Collection
+| Reader | Writer | Type | Rules | siteId | Server/Client
+
+За всяка collection.
+
+Няма collection без поне един от:
+
+reader
+writer
+intentional seed/migration
+
+ако има:
+
+orphan collection
+
+документирай я.
+
+==================================================
+## 27. API BRIDGE MATRIX
+==================================================
+
+Създай:
+
+Endpoint
+| Caller
+| Auth
+| Input schema
+| Output
+| DB
+| External system
+| Status
+
+Намери:
+
+CALLER → 404
+
+CALLER → wrong contract
+
+PUBLIC → sensitive data
+
+AUTH → insufficient
+
+API → wrong collection
+
+==================================================
+## 28. DO NOT TRUST EXISTING AUDIT
+==================================================
+
+BROKEN_BRIDGES.md съдържа само вече открити проблеми.
+
+Ти трябва да го използваш като regression checklist.
+
+Провери:
+
+- дали всеки стар проблем още съществува;
+- ако е поправен — потвърди;
+- ако не е поправен — поправи;
+- ако описанието е грешно — актуализирай.
+
+==================================================
+## 29. REQUIRED ACTIONS ON KNOWN FINDINGS
+==================================================
+
+Минимум провери и предприеми действие за:
+
+1. /api/debug
+2. /api/analyze-reservations
+3. /api/analyze-db
+4. /api/services/[serviceId]
+5. /api/members
+6. proxy.ts
+7. sessions vs training_sessions
+8. send-email contract
+9. Firestore rules
+10. siteId enforcement
+
+Не приемай предварително, че severity е правилна.
+
+Преоцени я.
+
+==================================================
+## 30. FINAL ACCEPTANCE CRITERIA
+==================================================
+
+Считай одита за завършен само когато:
+
+[ ] няма известни broken bridges
+[ ] няма необезопасени debug endpoints
+[ ] няма очевидни public sensitive-data endpoints
+[ ] auth boundary е проверена
+[ ] Firestore rules са проверени
+[ ] multi-tenant isolation е проверена
+[ ] API contracts са проверени
+[ ] email contracts са проверени
+[ ] storage contracts са проверени
+[ ] cron contracts са проверени
+[ ] navigation routes са проверени
+[ ] env variables са проверени
+[ ] TypeScript минава
+[ ] lint минава
+[ ] build минава
+[ ] тестовете минават
+[ ] след последния fix е направен нов scan
+[ ] няма регресии от направените промени
+
+==================================================
+## 31. REQUIRED OUTPUT
+==================================================
+
+В края НЕ ми давай само текстов доклад.
+
+Покажи:
+
+### CHANGED FILES
+
+списък на реално променените файлове.
+
+### FIXES EXECUTED
+
+за всеки:
+
+PROBLEM
+→ ROOT CAUSE
+→ FIX
+→ FILES
+→ VERIFICATION
+
+### REMAINING RISKS
+
+само проблеми, които реално не си могъл да поправиш.
+
+### VERIFICATION
+
+покажи резултата от:
+
+typecheck
+lint
+build
+tests
+
+### FINAL STATUS
+
+едно от:
+
+GREEN
+YELLOW
+RED
+
+Но най-важното:
+
+АКО МОЖЕШ ДА ПОПРАВИШ ПРОБЛЕМА БЕЗОПАСНО —
+НЕ МИ ГО ПРЕДЛАГАЙ.
+
+ПОПРАВИ ГО.
+
+АКО МОЖЕШ ДА ГО ПРОВЕРИШ —
+НЕ МИ КАЗВАЙ "вероятно".
+
+ПРОВЕРИ ГО.
+
+АКО МОЖЕШ ДА ГО ТЕСТВАШ —
+ТЕСТВАЙ ГО.
+
+АКО СЛЕД FIX ИМА НОВ ПРОБЛЕМ —
+ПРОДЪЛЖИ.
+
+НЕ СПИРАЙ НА НИВО "AUDIT REPORT".
+
+РАБОТИ ДО НИВО:
+
+AUDIT → FIX → VERIFY → RESCAN → FIX → VERIFY.
+
+==================================================
+## 32. START NOW
+==================================================
+
+Започни веднага.
+
+Първо направи repository discovery.
+
+След това започни forensic bridge graph.
+
+След това започни с CRITICAL / HIGH security и data-integrity проблемите.
+
+След това премини към MEDIUM / LOW.
+
+Не чакай допълнително потвърждение за безопасни промени.
+
+Не ме карай да ти давам отделни инструкции за всеки намерен проблем.
+
+ТИ СИ EXECUTION AGENT.
+
+ТВОЯТА ЗАДАЧА Е ДА ПРОМЕНИШ КОДА, ДА ГО ТЕСТВАШ И ДА ГО ОСТАВИШ В ПО-ДОБРО СЪСТОЯНИЕ.

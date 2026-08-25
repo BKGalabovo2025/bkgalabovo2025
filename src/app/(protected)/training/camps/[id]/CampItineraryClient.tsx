@@ -10,7 +10,6 @@ import {
   Copy,
   Dumbbell,
   Edit,
-  ExternalLink,
   Map,
   Play,
   Plus,
@@ -172,7 +171,38 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
       setFormExercises([]);
       setFormGroups([]);
       setNewGroupName("");
+      // Auto-distribute attendees into groups A, B, C for training sessions
+      if (
+        camp.attendees &&
+        camp.attendees.length > 0 &&
+        formType === "training"
+      ) {
+        const attendees = camp.attendees;
+        const numGroups = 3; // A, B, C
+        const groupSize = Math.ceil(attendees.length / numGroups);
+        const groups = [];
+        for (let i = 0; i < numGroups; i++) {
+          const groupMembers = attendees.slice(
+            i * groupSize,
+            (i + 1) * groupSize
+          );
+          groups.push({
+            id: uuidv4(),
+            name: `Група ${String.fromCharCode(65 + i)}`, // A, B, C
+            memberIds: groupMembers.map((a) => a.memberId),
+          });
+        }
+        setFormGroups(groups);
+      }
     }
+
+    // If training type, open the Universal Planner Wizard instead of simple modal
+    if (formType === "training") {
+      setIsModalOpen(false);
+      handleOpenPlannerWizard();
+      return;
+    }
+
     setExerciseSearch("");
     setIsModalOpen(true);
   };
@@ -243,6 +273,57 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
     }
   };
 
+  const [draggedSessionId, setDraggedSessionId] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedSessionId(id);
+    e.dataTransfer.setData("text/plain", id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDropSession = async (
+    e: React.DragEvent,
+    targetSessionId: string
+  ) => {
+    e.preventDefault();
+    if (!draggedSessionId || draggedSessionId === targetSessionId) return;
+
+    const currentDayList = [...currentDaysSessions];
+    const sourceIndex = currentDayList.findIndex(
+      (s) => s.id === draggedSessionId
+    );
+    const targetIndex = currentDayList.findIndex(
+      (s) => s.id === targetSessionId
+    );
+
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const [moved] = currentDayList.splice(sourceIndex, 1);
+    currentDayList.splice(targetIndex, 0, moved);
+
+    // Merge reordered day sessions with all other sessions
+    const otherSessions = sessions.filter((s) => s.date !== selectedDateStr);
+    const updatedSessions = [...otherSessions, ...currentDayList];
+
+    try {
+      setIsSaving(true);
+      await updateCampSessions(camp.id, updatedSessions);
+      setSessions(updatedSessions);
+      toast.success("Графикът е пренареден успешно");
+    } catch (err) {
+      console.error("Error reordering sessions:", err);
+      toast.error("Грешка при пренареждане");
+    } finally {
+      setDraggedSessionId(null);
+      setIsSaving(false);
+    }
+  };
+
   const addGroup = () => {
     if (newGroupName.trim()) {
       setFormGroups([
@@ -283,8 +364,11 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
 
     const previousDateStr = days[currentIndex - 1].dateStr;
     const previousSessions = sessions.filter((s) => s.date === previousDateStr);
+    const previousPlannerSessions = plannerSessions.filter(
+      (s) => s.date === previousDateStr
+    );
 
-    if (previousSessions.length === 0) {
+    if (previousSessions.length === 0 && previousPlannerSessions.length === 0) {
       toast.error("Предходният ден е празен");
       return;
     }
@@ -296,22 +380,25 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
     )
       return;
 
-    const newCopiedSessions = previousSessions.map((s) => ({
+    // Copy camp sessions preserving their type structure
+    const copiedCampSessions = previousSessions.map((s) => ({
       ...s,
       id: uuidv4(),
       date: selectedDateStr,
     }));
 
-    const mergedSessions = [...sessions, ...newCopiedSessions];
+    // Only copy camp sessions - planner sessions have different structure
+    // and would need separate handling. For now, copy only the camp sessions.
+    const mergedSessions = [...copiedCampSessions];
 
     try {
       setIsSaving(true);
       await updateCampSessions(camp.id, mergedSessions);
       setSessions(mergedSessions);
-      toast.success("Програмата е копирана успешно!");
+      toast.success("Програмата от предходния ден е копирана!");
     } catch (error) {
       console.error(error);
-      toast.error("Грешка при копиране");
+      toast.error("Грешка при копиране на програмата");
     } finally {
       setIsSaving(false);
     }
@@ -422,20 +509,23 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
               Програма за {selectedDayLabel}
             </h3>
             <div className="flex items-center gap-2">
-              {/* "Детайлно в Планировчика" — now with campId + date */}
+              {/* Quick action buttons */}
               <Button
                 variant="outline"
                 size="sm"
                 className="h-8 gap-1.5 text-xs"
-                asChild
+                onClick={() => handleOpenModal()}
               >
-                <Link
-                  href={`/training/planner?campId=${camp.id}&date=${selectedDateStr}`}
-                >
-                  <CalendarRange size={13} />
-                  Планировчик за {selectedDayLabel}
-                  <ExternalLink size={11} />
-                </Link>
+                <Plus size={14} />
+                Добави събитие (Закуска/Почивка)
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                onClick={() => handleOpenPlannerWizard()}
+              >
+                <CalendarRange size={14} />
+                Планирай тренировка (Планировчик)
               </Button>
               {selectedDayIndex > 0 && (
                 <Button
@@ -458,135 +548,255 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
               <p className="text-zinc-500">
                 Няма добавени събития за този ден.
               </p>
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleOpenModal()}
                 >
                   <Plus size={14} className="mr-1" />
-                  Добави бърза сесия
+                  Добави събитие / Хранене
                 </Button>
-                <Button variant="default" size="sm" asChild>
-                  <Link
-                    href={`/training/planner?campId=${camp.id}&date=${selectedDateStr}`}
-                  >
-                    <CalendarRange size={14} className="mr-1" />
-                    Планирай с Планировчика
-                  </Link>
+                <Button
+                  size="sm"
+                  className="bg-indigo-600 text-white hover:bg-indigo-700"
+                  onClick={() => handleOpenPlannerWizard()}
+                >
+                  <CalendarRange size={14} className="mr-1" />
+                  Планирай тренировка
                 </Button>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Camp sessions */}
-              {currentDaysSessions.map((session) => {
-                const Icon = sessionTypeIcons[session.type] || Map;
-                return (
-                  <div
-                    key={session.id}
-                    className="group flex flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-primary/30 sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-950"
-                  >
-                    <div className="flex shrink-0 items-center justify-center rounded-lg bg-zinc-100 p-3 sm:w-24 dark:bg-zinc-900">
-                      <span className="font-bold text-zinc-700 dark:text-zinc-300">
-                        {session.startTime}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-1 items-start gap-4">
-                      <div
-                        className={cn(
-                          "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full",
-                          session.type === "training" &&
-                            "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
-                          session.type === "meal" &&
-                            "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
-                          session.type !== "training" &&
-                            session.type !== "meal" &&
-                            "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                        )}
-                      >
-                        <Icon size={16} />
+              <div className="grid h-16 grid-cols-24 gap-1 rounded-lg bg-zinc-200 p-1 dark:bg-zinc-800">
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  6:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  7:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  8:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  9:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  10:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  11:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  12:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  13:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  14:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  15:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  16:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  17:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  18:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  19:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  20:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  21:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  22:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  23:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  24:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  25:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  26:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  27:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  28:00
+                </div>
+                <div className="size-full text-[10px] text-zinc-500 capitalize dark:text-zinc-400">
+                  29:00
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                {currentDaysSessions.map((session) => {
+                  const startHour = parseInt(session.startTime);
+                  const endHour = parseInt(session.endTime);
+                  const startCol = startHour - 6;
+                  const endCol = endHour - 6;
+                  const colSpan = Math.max(1, endCol - startCol);
+                  const getBgColor = (type: string) => {
+                    switch (type) {
+                      case "training":
+                        return "bg-orange-500/60";
+                      case "meal":
+                        return "bg-green-500/60";
+                      case "leisure":
+                        return "bg-sky-500/60";
+                      case "travel":
+                        return "bg-purple-500/60";
+                      default:
+                        return "bg-zinc-500/60";
+                    }
+                  };
+                  const bgColor = getBgColor(session.type);
+                  return (
+                    <div
+                      key={session.id}
+                      className={cn(
+                        "rounded-b transition-colors hover:opacity-80",
+                        `grid-row: span ${colSpan}`,
+                        `grid-column: ${startCol + 1}`,
+                        bgColor
+                      )}
+                      aria-label={session.title}
+                    />
+                  );
+                })}
+              </div>
+              <div className="space-y-4">
+                {currentDaysSessions.map((session) => {
+                  const Icon = sessionTypeIcons[session.type] || Map;
+                  return (
+                    <div
+                      key={session.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, session.id)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => void handleDropSession(e, session.id)}
+                      className={cn(
+                        "group flex cursor-grab flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-primary/30 active:cursor-grabbing sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-950",
+                        draggedSessionId === session.id &&
+                          "border-dashed border-primary opacity-50"
+                      )}
+                    >
+                      <div className="flex shrink-0 items-center justify-center rounded-lg bg-zinc-100 p-3 sm:w-24 dark:bg-zinc-900">
+                        <span className="font-bold text-zinc-700 dark:text-zinc-300">
+                          {session.startTime}
+                        </span>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-zinc-900 dark:text-white">
-                          {session.title}
-                        </h4>
-                        <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-500">
-                          <span className="rounded-md bg-zinc-100 px-2 py-0.5 dark:bg-zinc-800">
-                            {sessionTypeLabels[session.type]}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            До: {session.endTime}
-                          </span>
+
+                      <div className="flex flex-1 items-start gap-4">
+                        <div
+                          className={cn(
+                            "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full",
+                            session.type === "training" &&
+                              "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
+                            session.type === "meal" &&
+                              "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+                            session.type !== "training" &&
+                              session.type !== "meal" &&
+                              "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                          )}
+                        >
+                          <Icon size={16} />
                         </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-zinc-900 dark:text-white">
+                            {session.title}
+                          </h4>
+                          <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-500">
+                            <span className="rounded-md bg-zinc-100 px-2 py-0.5 dark:bg-zinc-800">
+                              {sessionTypeLabels[session.type]}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              До: {session.endTime}
+                            </span>
+                          </div>
 
-                        {session.exercises && session.exercises.length > 0 && (
-                          <div className="mt-3 rounded-lg border border-zinc-100 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-                            <div className="mb-2 text-xs font-semibold text-zinc-500">
-                              Избрани упражнения:
-                            </div>
-                            <ul className="space-y-1.5 text-xs text-zinc-700 dark:text-zinc-300">
-                              {session.exercises.map((exId) => {
-                                const ex = availableExercises.find(
-                                  (e) => (e.id || e.name) === exId
-                                );
-                                return (
-                                  <li
-                                    key={exId}
-                                    className="flex items-start gap-2"
+                          {session.exercises &&
+                            session.exercises.length > 0 && (
+                              <div className="mt-3 rounded-lg border border-zinc-100 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                                <div className="mb-2 text-xs font-semibold text-zinc-500">
+                                  Избрани упражнения:
+                                </div>
+                                <ul className="space-y-1.5 text-xs text-zinc-700 dark:text-zinc-300">
+                                  {session.exercises.map((exId) => {
+                                    const ex = availableExercises.find(
+                                      (e) => (e.id || e.name) === exId
+                                    );
+                                    return (
+                                      <li
+                                        key={exId}
+                                        className="flex items-start gap-2"
+                                      >
+                                        <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-blue-400" />
+                                        <span>{ex ? ex.name : exId}</span>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            )}
+
+                          {session.groups && session.groups.length > 0 && (
+                            <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/50 p-3 dark:border-indigo-900/30 dark:bg-indigo-900/10">
+                              <div className="mb-2 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+                                Създадени групи:
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {session.groups.map((g) => (
+                                  <Badge
+                                    key={g.id}
+                                    variant="outline"
+                                    className="border-indigo-200 bg-white text-[10px] text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
                                   >
-                                    <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-blue-400" />
-                                    <span>{ex ? ex.name : exId}</span>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </div>
-                        )}
+                                    {g.name} ({g.memberIds.length})
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
-                        {session.groups && session.groups.length > 0 && (
-                          <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/50 p-3 dark:border-indigo-900/30 dark:bg-indigo-900/10">
-                            <div className="mb-2 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
-                              Създадени групи:
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {session.groups.map((g) => (
-                                <Badge
-                                  key={g.id}
-                                  variant="outline"
-                                  className="border-indigo-200 bg-white text-[10px] text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
-                                >
-                                  {g.name} ({g.memberIds.length})
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                      <div className="flex shrink-0 gap-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenModal(session)}
+                          className="size-8 text-zinc-500 hover:text-blue-600"
+                        >
+                          <Edit size={14} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteSession(session.id)}
+                          className="size-8 text-zinc-500 hover:text-red-600"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="flex shrink-0 gap-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenModal(session)}
-                        className="size-8 text-zinc-500 hover:text-blue-600"
-                      >
-                        <Edit size={14} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteSession(session.id)}
-                        className="size-8 text-zinc-500 hover:text-red-600"
-                      >
-                        <Trash2 size={14} />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
 
               {/* Planner sessions for the same day */}
               {currentDayPlannerSessions.length > 0 && (
@@ -856,15 +1066,28 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                     </div>
                   </ScrollArea>
                   {/* Quick link to Planner */}
-                  <p className="text-[11px] text-zinc-400">
-                    За детайлно планиране използвай{" "}
-                    <Link
-                      href={`/training/planner?campId=${camp.id}&date=${selectedDateStr}`}
-                      className="font-semibold text-indigo-600 underline-offset-2 hover:underline"
+                  <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-3 text-xs text-indigo-900 dark:border-indigo-900/40 dark:bg-indigo-950/30 dark:text-indigo-200">
+                    <p className="font-medium">
+                      Искате ли детайлен план на тренировката?
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-indigo-600 dark:text-indigo-400">
+                      За планиране по фази (загрявка, основни упражнения,
+                      интензитет, оборудване и таймери), използвайте подобрения
+                      Универсален Планировчик.
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="mt-2.5 h-7 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        handleOpenPlannerWizard();
+                      }}
                     >
-                      Универсалния Планировчик →
-                    </Link>
-                  </p>
+                      <CalendarRange size={13} className="mr-1.5" />
+                      Отвори Универсалния Планировчик за лагер
+                    </Button>
+                  </div>
 
                   <div className="mt-2 grid gap-2 border-t pt-4">
                     <div className="flex items-center justify-between">

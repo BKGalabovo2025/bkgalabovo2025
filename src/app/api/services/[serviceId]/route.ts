@@ -23,10 +23,22 @@ async function getService(id: string) {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ serviceId: string }> }
 ) {
   try {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const token = authHeader.substring(7);
+    try {
+      const { getAuthUser } = await import("@/lib/auth-utils");
+      await getAuthUser(token);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { serviceId } = await context.params;
     const service = await getService(serviceId);
 

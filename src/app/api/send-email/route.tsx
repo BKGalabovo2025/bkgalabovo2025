@@ -20,6 +20,7 @@ import {
   ReservationConfirmationEmailProps,
 } from "@/components/emails/reservation-confirmation-email";
 import { ensureAdmin } from "@/lib/auth-utils";
+import { getAdminDb } from "@/lib/firebase-admin";
 
 // Define the data types for each email template
 type EmailTemplateData = {
@@ -268,6 +269,23 @@ export async function POST(request: Request) {
     await transporter.sendMail(mailOptions);
     console.log(`[send-email] Successfully sent email to ${to}`);
 
+    try {
+      const adminDb = getAdminDb();
+      await adminDb.collection("email_logs").add({
+        recipient: to,
+        subject,
+        template,
+        status: "delivered",
+        siteId:
+          (data as { siteId?: string })?.siteId ||
+          process.env.NEXT_PUBLIC_SITE_ID ||
+          "bkgalabovo",
+        sentAt: new Date().toISOString(),
+      });
+    } catch (logErr) {
+      console.error("[send-email] Failed to record email_log:", logErr);
+    }
+
     return NextResponse.json(
       { message: "Email sent successfully" },
       { status: 200 }
@@ -278,6 +296,21 @@ export async function POST(request: Request) {
       "[send-email] CRITICAL: Failed to process and send email. Full Error:",
       JSON.stringify(e, null, 2)
     );
+
+    try {
+      const adminDb = getAdminDb();
+      await adminDb.collection("email_logs").add({
+        recipient: "unknown",
+        status: "failed",
+        error: e.message || "Unknown email dispatch failure",
+        sentAt: new Date().toISOString(),
+      });
+    } catch (logErr) {
+      console.error(
+        "[send-email] Failed to record error in email_log:",
+        logErr
+      );
+    }
 
     let errorMessage = "Възникна грешка при изпращането на имейла.";
     if (e.code === "EAUTH") {

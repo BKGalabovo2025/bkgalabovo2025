@@ -9,6 +9,8 @@ const QuizQuestionSchema = z.object({
   options: z.array(z.string()).optional(),
   correctAnswer: z.number().int().min(0).optional(),
   points: z.number().int().min(1).default(8),
+  explanation: z.string().optional(),
+  mediaUrl: z.string().optional(),
 });
 
 export type QuizQuestion = z.infer<typeof QuizQuestionSchema>;
@@ -56,6 +58,8 @@ const TheoryResultSchema = z.object({
   totalScore: z.number().int().min(0),
   status: TheoryResultStatusSchema.default("PENDING"),
   coachFeedback: z.string().optional(),
+  aiScore: z.number().optional(),
+  aiFeedback: z.string().optional(),
   shareToken: z.string().min(1),
   submittedAt: z.string().datetime(),
   reviewedAt: z.string().datetime().optional(),

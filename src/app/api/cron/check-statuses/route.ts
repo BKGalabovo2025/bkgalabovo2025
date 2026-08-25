@@ -138,13 +138,20 @@ const processMembersBatch = async (
 export async function GET(request: Request) {
   console.log("--- API /api/cron/check-statuses HIT! ---");
 
-  // Verify Cron secret if configured, but allow local/manual invocation if no secret is set
   const authHeader = request.headers.get("authorization");
-  if (
+  const isCronSecretValid =
     process.env.CRON_SECRET &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+  if (!isCronSecretValid) {
+    try {
+      const token = authHeader?.split("Bearer ")[1];
+      if (!token) throw new Error("No token provided");
+      const { ensureAdmin } = await import("@/lib/auth-utils");
+      await ensureAdmin(token);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
   try {
