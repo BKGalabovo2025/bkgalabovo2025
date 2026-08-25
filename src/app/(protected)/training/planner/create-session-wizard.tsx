@@ -124,6 +124,20 @@ const computeTargetBlocks = (
   prev: SessionBlock[],
   totalDuration: number
 ): SessionBlock[] => {
+  const isDedicatedQuiz = prev.some((b) =>
+    b.items.some((i) => i.exercise?.category === "quiz")
+  );
+
+  if (isDedicatedQuiz) {
+    return prev.map((b) => {
+      if (b.phase === "main") {
+        const quizMins = b.items.reduce((acc, i) => acc + i.durationMinutes, 0);
+        return { ...b, targetDuration: quizMins || totalDuration };
+      }
+      return { ...b, targetDuration: 0 };
+    });
+  }
+
   const warmupTarget = Math.round(totalDuration * 0.1);
   const cooldownTarget = Math.round(totalDuration * 0.1);
   const mainTarget = totalDuration - warmupTarget - cooldownTarget;
