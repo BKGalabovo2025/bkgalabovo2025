@@ -140,9 +140,15 @@ export default async function CampPublicPage({
       return {
         id: typeof ps.id === "string" ? ps.id : "",
         date: normalizeDate(ps.date),
-        type: (["training", "meal", "leisure", "travel", "other"].includes(
-          ps.type as string
-        )
+        type: ([
+          "training",
+          "meal",
+          "quiet_hour",
+          "leisure",
+          "attraction",
+          "travel",
+          "other",
+        ].includes(ps.type as string)
           ? ps.type
           : "training") as CampSession["type"],
         title: typeof ps.title === "string" ? ps.title : "",
@@ -191,9 +197,15 @@ export default async function CampPublicPage({
         startTime: typeof s.startTime === "string" ? s.startTime : "",
         endTime: typeof s.endTime === "string" ? s.endTime : "",
         title: typeof s.title === "string" ? s.title : "",
-        type: (["training", "meal", "leisure", "travel", "other"].includes(
-          s.type as string
-        )
+        type: ([
+          "training",
+          "meal",
+          "quiet_hour",
+          "leisure",
+          "attraction",
+          "travel",
+          "other",
+        ].includes(s.type as string)
           ? s.type
           : "other") as CampSession["type"],
         description:
