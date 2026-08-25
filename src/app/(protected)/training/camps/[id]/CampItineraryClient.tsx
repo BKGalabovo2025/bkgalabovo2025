@@ -503,44 +503,47 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
           </div>
         </div>
 
-        {/* Day Selector */}
-        <div className="mb-8 flex scrollbar-thin overflow-x-auto pb-2">
-          <div className="flex gap-2">
-            {days.map((day) => {
-              const isSelected = selectedDateStr === day.dateStr;
-              const hasCampSessions = sessions.some(
-                (s) => s.date === day.dateStr
-              );
-              const hasPlannerSessions = plannerSessions.some(
-                (s) => s.date === day.dateStr
-              );
-              const hasContent = hasCampSessions || hasPlannerSessions;
+        {/* Day Selector - Compact Responsive Grid without horizontal scroll */}
+        <div className="mb-6 grid grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-2">
+          {days.map((day) => {
+            const isSelected = selectedDateStr === day.dateStr;
+            const hasCampSessions = sessions.some(
+              (s) => s.date === day.dateStr
+            );
+            const hasPlannerSessions = plannerSessions.some(
+              (s) => s.date === day.dateStr
+            );
+            const hasContent = hasCampSessions || hasPlannerSessions;
 
-              return (
-                <button
-                  key={day.dateStr}
-                  onClick={() => setSelectedDateStr(day.dateStr)}
-                  className={cn(
-                    "flex min-w-30 flex-col items-center justify-center rounded-xl border p-3 text-sm transition-colors",
-                    isSelected
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800",
-                    hasContent &&
-                      !isSelected &&
-                      "border-blue-200 bg-blue-50/50 dark:border-blue-900/30 dark:bg-blue-900/10"
-                  )}
-                >
-                  <span className="font-bold">{day.label}</span>
-                  <span className="mt-1 text-xs opacity-70">
-                    {format(day.date, "dd MMM yyyy", { locale: bg })}
-                  </span>
-                  {hasContent && (
-                    <div className="mt-2 size-1.5 rounded-full bg-blue-500" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+            return (
+              <button
+                key={day.dateStr}
+                onClick={() => setSelectedDateStr(day.dateStr)}
+                className={cn(
+                  "flex flex-col items-center justify-center rounded-lg border px-1.5 py-1.5 text-center transition-all sm:rounded-xl sm:p-2.5",
+                  isSelected
+                    ? "border-indigo-600 bg-indigo-50 font-bold text-indigo-950 shadow-xs ring-2 ring-indigo-500/20 dark:border-indigo-500 dark:bg-indigo-950/50 dark:text-white"
+                    : "border-zinc-200 bg-zinc-50/70 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:bg-zinc-800",
+                  hasContent &&
+                    !isSelected &&
+                    "border-indigo-200/60 bg-indigo-50/30 dark:border-indigo-900/30 dark:bg-indigo-950/20"
+                )}
+              >
+                <span className="text-xs font-black sm:text-sm">
+                  {day.label}
+                </span>
+                <span className="text-[10px] font-semibold text-zinc-700 sm:text-xs dark:text-zinc-300">
+                  {format(day.date, "dd MMM", { locale: bg })}
+                </span>
+                <span className="text-[9px] font-bold text-indigo-600/80 uppercase sm:text-[10px] dark:text-indigo-400">
+                  {format(day.date, "EEE", { locale: bg })}
+                </span>
+                {hasContent && (
+                  <div className="mt-1 size-1 rounded-full bg-indigo-600 sm:size-1.5 dark:bg-indigo-400" />
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Timeline View */}
