@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { inventoryService } from "@/services/inventory-service";
 import { getAllMembers } from "@/services/member-service";
 import { plannerService } from "@/services/planner-service";
+import { quizService } from "@/services/quiz-service";
 import { getEventById } from "@/services/schedule-service";
 import { useAppStore } from "@/store/use-app-store";
 import { InventoryItem } from "@/types/inventory.types";
@@ -1263,22 +1264,39 @@ const loadWizardResources = async (
   initialCampId?: string,
   initialImportTemplateId?: string
 ) => {
-  const [ex, inv] = await Promise.all([
+  const [ex, inv, branchQuizzes] = await Promise.all([
     plannerService.getExercises(activeBranch),
     inventoryService.getInventory(activeBranch),
+    quizService.getQuizzes(activeBranch).catch(() => []),
   ]);
 
-  // Combine Firestore exercises with any missing initial/quiz exercises
-  const existingNames = new Set(ex.map((e) => e.name.toLowerCase()));
-  const missingQuizzes = INITIAL_BWF_EXERCISES.filter(
-    (e) => e.category === "quiz" && !existingNames.has(e.name.toLowerCase())
-  ).map((e, idx) => ({
-    ...e,
-    id: `quiz-seed-${idx}`,
+  // Map all real theory tests/quizzes into Exercise format
+  const mappedQuizzes: Exercise[] = branchQuizzes.map((q, idx) => ({
+    id: q.id || `quiz-${idx}`,
+    name: q.title,
+    category: "quiz",
+    description:
+      q.description || `${q.questions?.length || 0} въпроса според BWF`,
+    durationMinutes: 15,
+    coachingPoints: [
+      `Въпроси: ${q.questions?.length || 0} бр.`,
+      `Макс. точки: ${q.questions?.reduce((acc, qu) => acc + (qu.points || 0), 0) || 100} т.`,
+    ],
+    location: ["court", "stadium"],
+    ageGroups: ["U9", "U11", "U13", "U15", "U17", "U19", "Мъже и Жени"],
+    equipment: ["Мобилен телефон / Таблет / Тест"],
+    intensity: 1,
+    complexityLevel: 1,
     siteId: activeBranch,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  })) as Exercise[];
+    createdAt: q.createdAt || new Date().toISOString(),
+    updatedAt: q.updatedAt || new Date().toISOString(),
+  }));
+
+  // Combine Firestore exercises with mapped quizzes
+  const existingNames = new Set(ex.map((e) => e.name.toLowerCase()));
+  const missingQuizzes = mappedQuizzes.filter(
+    (q) => !existingNames.has(q.name.toLowerCase())
+  );
 
   const finalExercises: Exercise[] = [
     ...(ex.length > 0

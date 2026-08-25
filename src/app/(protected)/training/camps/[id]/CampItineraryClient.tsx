@@ -806,16 +806,40 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
 
                             {ps.blocks && ps.blocks.length > 0 && (
                               <div className="mt-1 flex flex-wrap gap-1.5">
-                                {ps.blocks.map((b) => (
-                                  <Badge
-                                    key={b.id}
-                                    variant="secondary"
-                                    className="bg-indigo-100/50 text-[10px] text-indigo-700 transition-colors hover:bg-indigo-100/80"
-                                  >
-                                    {getPhaseLabel(b.phase)}: {b.targetDuration}{" "}
-                                    мин
-                                  </Badge>
-                                ))}
+                                {ps.blocks
+                                  .filter((b) => {
+                                    const actualMinutes = b.items.reduce(
+                                      (acc, i) => acc + i.durationMinutes,
+                                      0
+                                    );
+                                    return (
+                                      actualMinutes > 0 ||
+                                      (b.targetDuration > 0 &&
+                                        b.items.length > 0)
+                                    );
+                                  })
+                                  .map((b) => {
+                                    const totalPhaseMinutes =
+                                      b.items.reduce(
+                                        (acc, i) => acc + i.durationMinutes,
+                                        0
+                                      ) || b.targetDuration;
+                                    const isQuizBlock = b.items.some(
+                                      (i) => i.exercise?.category === "quiz"
+                                    );
+                                    return (
+                                      <Badge
+                                        key={b.id}
+                                        variant="secondary"
+                                        className="bg-indigo-100/50 text-[10px] text-indigo-700 transition-colors hover:bg-indigo-100/80"
+                                      >
+                                        {isQuizBlock
+                                          ? "🧠 Викторина"
+                                          : getPhaseLabel(b.phase)}
+                                        : {totalPhaseMinutes} мин
+                                      </Badge>
+                                    );
+                                  })}
                               </div>
                             )}
                             {ps.sessionGroups &&
