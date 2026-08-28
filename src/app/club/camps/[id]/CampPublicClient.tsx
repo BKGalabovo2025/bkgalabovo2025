@@ -1,9 +1,10 @@
 "use client";
 
-import { addDays, format, isSameDay } from "date-fns";
+import { addDays, format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { bg } from "date-fns/locale";
 import {
   Bus,
+  Check,
   Clock,
   Coffee,
   Dumbbell,
@@ -128,6 +129,33 @@ const sessionTypeColors: Record<
   },
 };
 
+const getPublicDayButtonClass = (
+  isSelected: boolean,
+  isCurrentDay: boolean,
+  isPast: boolean,
+  hasSessions: boolean
+) => {
+  if (isSelected) {
+    return "border-blue-500 bg-blue-500/20 text-white shadow-lg ring-2 shadow-blue-500/10 ring-blue-500/40";
+  }
+  if (isCurrentDay) {
+    return "border-amber-400 bg-amber-500/15 text-amber-200 ring-1 ring-amber-400/40 hover:bg-amber-500/25";
+  }
+  if (isPast) {
+    return "border-emerald-800/40 bg-emerald-950/20 text-zinc-300 hover:border-emerald-700/60 hover:bg-emerald-950/30";
+  }
+  if (hasSessions) {
+    return "border-blue-500/30 bg-blue-500/5 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800/80 hover:text-zinc-200";
+  }
+  return "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800/80 hover:text-zinc-200";
+};
+
+const getPublicDotClass = (isCurrentDay: boolean, isSelected: boolean) => {
+  if (isCurrentDay) return "bg-amber-400";
+  if (isSelected) return "bg-blue-400";
+  return "bg-blue-500/60";
+};
+
 export default function CampPublicClient({
   camp,
   initialDate,
@@ -148,11 +176,19 @@ export default function CampPublicClient({
     dayIndex++;
   }
 
-  const defaultDate = initialDate
-    ? initialDate
-    : days[0]?.dateStr || format(new Date(), "yyyy-MM-dd");
+  const todayDate = startOfDay(new Date());
+  const todayStr = format(todayDate, "yyyy-MM-dd");
 
-  const [selectedDateStr, setSelectedDateStr] = useState<string>(defaultDate);
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
+    if (initialDate) return initialDate;
+    const todayMatch = days.find((d) => d.dateStr === todayStr);
+    if (todayMatch) return todayMatch.dateStr;
+    const lastDay = days[days.length - 1];
+    if (lastDay && isBefore(startOfDay(lastDay.date), todayDate)) {
+      return lastDay.dateStr;
+    }
+    return days[0]?.dateStr || todayStr;
+  });
   const [liveWeatherMap, setLiveWeatherMap] = useState<
     Record<string, LocationWeatherForecast>
   >({});
@@ -178,7 +214,10 @@ export default function CampPublicClient({
       {/* Ultra-compact responsive day grid */}
       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-2">
         {days.map((day) => {
+          const dayStart = startOfDay(day.date);
           const isSelected = day.dateStr === selectedDateStr;
+          const isPast = isBefore(dayStart, todayDate);
+          const isCurrentDay = isSameDay(dayStart, todayDate);
           const hasSessions = camp.campSessions?.some(
             (s) => s.date === day.dateStr
           );
@@ -187,21 +226,47 @@ export default function CampPublicClient({
               key={day.dateStr}
               onClick={() => setSelectedDateStr(day.dateStr)}
               className={cn(
-                "flex flex-col items-center justify-center rounded-xl border p-1.5 text-center transition-all sm:p-2",
-                isSelected
-                  ? "border-blue-500 bg-blue-500/20 text-white shadow-lg ring-2 shadow-blue-500/10 ring-blue-500/40"
-                  : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800/80 hover:text-zinc-200",
-                hasSessions && !isSelected && "border-blue-500/30 bg-blue-500/5"
+                "group relative flex flex-col items-center justify-center rounded-xl border p-1.5 text-center transition-all sm:p-2",
+                getPublicDayButtonClass(
+                  isSelected,
+                  isCurrentDay,
+                  isPast,
+                  Boolean(hasSessions)
+                )
               )}
             >
-              <span className="text-[11px] font-black sm:text-xs">
-                {day.label}
-              </span>
-              <div className="flex items-center gap-1 leading-none">
+              <div className="flex w-full items-center justify-between px-0.5">
+                <span className="text-[11px] font-black sm:text-xs">
+                  {day.label}
+                </span>
+                {isPast && (
+                  <span
+                    className="inline-flex items-center rounded-full bg-emerald-500/20 p-0.5 text-emerald-400"
+                    title="Отминал ден (Завършил)"
+                  >
+                    <Check size={10} strokeWidth={3} />
+                  </span>
+                )}
+                {isCurrentDay && (
+                  <span
+                    className="inline-flex items-center rounded-xs bg-amber-500 px-1 py-0.5 text-[8px] font-black text-white uppercase"
+                    title="Текущ ден (Днес)"
+                  >
+                    Днес
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-0.5 flex items-center gap-1 leading-none">
                 <span className="text-[9px] font-medium text-zinc-400">
                   {format(day.date, "dd MMM", { locale: bg })}
                 </span>
-                <span className="text-[8px] font-black text-blue-400 uppercase">
+                <span
+                  className={cn(
+                    "text-[8px] font-black uppercase",
+                    isCurrentDay ? "text-amber-400" : "text-blue-400"
+                  )}
+                >
                   {format(day.date, "EEE", { locale: bg })}
                 </span>
               </div>
@@ -209,7 +274,7 @@ export default function CampPublicClient({
                 <div
                   className={cn(
                     "mt-1 size-1 rounded-full",
-                    isSelected ? "bg-blue-400" : "bg-blue-500/60"
+                    getPublicDotClass(isCurrentDay, isSelected)
                   )}
                 />
               )}
@@ -341,13 +406,21 @@ export default function CampPublicClient({
                   key={session.id}
                   className={cn(
                     "relative flex items-start gap-3.5 rounded-xl border p-3.5 transition-all sm:gap-4 sm:p-4",
-                    colors.border,
-                    colors.bg
+                    session.isCancelled
+                      ? "border-rose-950/40 bg-rose-950/15 opacity-75"
+                      : cn(colors.border, colors.bg)
                   )}
                 >
                   {/* Timeline Time Box */}
                   <div className="relative z-10 flex w-24 shrink-0 flex-col items-center justify-center rounded-xl border border-zinc-700/80 bg-zinc-950 p-2 text-center shadow-md sm:w-28 sm:py-2.5">
-                    <span className="text-xs font-black tracking-tight text-white sm:text-sm">
+                    <span
+                      className={cn(
+                        "text-xs font-black tracking-tight sm:text-sm",
+                        session.isCancelled
+                          ? "text-zinc-500 line-through"
+                          : "text-white"
+                      )}
+                    >
                       {session.startTime}
                     </span>
                     <div className="my-1 h-px w-full bg-zinc-800" />
@@ -402,9 +475,21 @@ export default function CampPublicClient({
                         <Icon size={12} className={colors.icon} />
                         {sessionTypeLabels[session.type] || session.type}
                       </span>
+                      {session.isCancelled && (
+                        <span className="flex items-center gap-1 rounded-md border border-rose-500/40 bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold tracking-wide text-rose-300 uppercase">
+                          🚫 Отменено от треньора
+                        </span>
+                      )}
                     </div>
 
-                    <h3 className="text-sm font-bold text-white sm:text-base">
+                    <h3
+                      className={cn(
+                        "text-sm font-bold sm:text-base",
+                        session.isCancelled
+                          ? "text-zinc-400 line-through"
+                          : "text-white"
+                      )}
+                    >
                       {session.title}
                     </h3>
 

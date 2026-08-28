@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   CloudRain,
   Coins,
+  ExternalLink,
   HeartPulse,
   MapPin,
   RefreshCw,
@@ -160,13 +161,54 @@ export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 text-zinc-400" size={18} />
-              <div>
-                <p className="text-sm font-medium">Локация</p>
-                <p className="text-sm text-zinc-500">
-                  {camp.location || "Не е посочена"}
-                </p>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 text-rose-500" size={18} />
+                  <div>
+                    <p className="text-sm font-medium">Локация</p>
+                    <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                      {camp.location || "ММЦ Приморско"}
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(camp.location || "ММЦ Приморско")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700 shadow-2xs hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  title="Отвори в Google Maps"
+                >
+                  <ExternalLink size={11} />
+                  <span>Карта</span>
+                </a>
+              </div>
+
+              {/* Interactive Mini-Map Preview */}
+              <div className="group relative mt-1 h-36 w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                <iframe
+                  title="Мини карта на локацията"
+                  width="100%"
+                  height="100%"
+                  className="size-full border-0"
+                  loading="lazy"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(camp.location || "ММЦ Приморско")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between bg-linear-to-t from-black/80 via-black/40 to-transparent p-2 text-white">
+                  <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-200">
+                    <MapPin size={11} className="text-rose-400" />
+                    {camp.location || "ММЦ Приморско"}
+                  </span>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(camp.location || "ММЦ Приморско")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="pointer-events-auto inline-flex items-center gap-1 rounded-md bg-white/90 px-2 py-0.5 text-[9px] font-bold text-zinc-900 shadow-xs hover:bg-white"
+                  >
+                    <span>Навигация</span>
+                    <ExternalLink size={8} />
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -197,12 +239,20 @@ export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
             )}
 
             {(() => {
-              const startDateStr = camp.startDate
+              const todayStr = new Date().toISOString().split("T")[0];
+              const campStartStr = camp.startDate
                 ? camp.startDate.split("T")[0]
-                : new Date().toISOString().split("T")[0];
+                : todayStr;
+              const campEndStr = camp.endDate
+                ? camp.endDate.split("T")[0]
+                : todayStr;
+              const isOngoingToday =
+                todayStr >= campStartStr && todayStr <= campEndStr;
+              const targetDate = isOngoingToday ? todayStr : campStartStr;
+
               const overviewWeather = getEstimatedWeather(
                 camp.location,
-                startDateStr,
+                targetDate,
                 "14:00",
                 liveWeatherMap
               );
@@ -212,7 +262,7 @@ export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
                   <div className="flex items-center justify-between border-b border-sky-100/80 pb-2.5 dark:border-sky-900/40">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                        Климатични условия
+                        Климатични условия {isOngoingToday && "(Днес)"}
                       </span>
                       {overviewWeather.isLive ? (
                         <Badge
@@ -315,10 +365,10 @@ export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
         </Card>
 
         <div className="md:col-span-2">
-          <Tabs defaultValue="attendees" className="w-full">
+          <Tabs defaultValue="itinerary" className="w-full">
             <TabsList className="mb-4 grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="attendees">Списък с участници</TabsTrigger>
               <TabsTrigger value="itinerary">Дневен график</TabsTrigger>
+              <TabsTrigger value="attendees">Списък с участници</TabsTrigger>
             </TabsList>
 
             <TabsContent

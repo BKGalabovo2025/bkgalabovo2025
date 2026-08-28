@@ -1,10 +1,12 @@
 "use client";
 
-import { addDays, format, isSameDay } from "date-fns";
+import { addDays, format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { bg } from "date-fns/locale";
 import {
+  Ban,
   Bus,
   CalendarRange,
+  Check,
   Clock,
   Coffee,
   Copy,
@@ -14,6 +16,7 @@ import {
   Moon,
   Play,
   Plus,
+  RotateCcw,
   Search,
   Sun,
   Ticket,
@@ -56,6 +59,27 @@ import {
 import { useAppStore } from "@/store/use-app-store";
 import { CampSession, ScheduleEvent } from "@/types";
 import { Exercise, PlannerSession } from "@/types/planner.types";
+
+const getDayButtonClass = (
+  isSelected: boolean,
+  isCurrentDay: boolean,
+  isPast: boolean,
+  hasContent: boolean
+) => {
+  if (isSelected) {
+    return "border-indigo-600 bg-indigo-50/95 font-bold text-indigo-950 shadow-xs ring-2 ring-indigo-500/40 dark:border-indigo-500 dark:bg-indigo-950/70 dark:text-white";
+  }
+  if (isCurrentDay) {
+    return "border-amber-400 bg-amber-50/80 text-amber-950 ring-2 ring-amber-400/50 hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-950/50 dark:text-amber-100";
+  }
+  if (isPast) {
+    return "border-emerald-200/80 bg-emerald-50/40 text-zinc-600 hover:border-emerald-300 hover:bg-emerald-50 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-zinc-400";
+  }
+  if (hasContent) {
+    return "border-indigo-200/50 bg-indigo-50/20 hover:bg-zinc-100 dark:border-indigo-900/20 dark:bg-zinc-900/40 dark:hover:bg-zinc-800";
+  }
+  return "border-zinc-200 bg-zinc-50/60 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-800";
+};
 
 const sessionTypeIcons: Record<string, React.ElementType> = {
   training: Dumbbell,
@@ -142,9 +166,18 @@ export function CampItineraryClient({
     dayIndex++;
   }
 
-  const [selectedDateStr, setSelectedDateStr] = useState<string>(
-    days[0]?.dateStr || format(new Date(), "yyyy-MM-dd")
-  );
+  const todayDate = startOfDay(new Date());
+  const todayStr = format(todayDate, "yyyy-MM-dd");
+
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
+    const todayMatch = days.find((d) => d.dateStr === todayStr);
+    if (todayMatch) return todayMatch.dateStr;
+    const lastDay = days[days.length - 1];
+    if (lastDay && isBefore(startOfDay(lastDay.date), todayDate)) {
+      return lastDay.dateStr;
+    }
+    return days[0]?.dateStr || todayStr;
+  });
 
   const currentDaysSessions = sessions
     .filter((s) => s.date === selectedDateStr)
@@ -255,6 +288,12 @@ export function CampItineraryClient({
       ...(formType === "training" && formGroups.length > 0
         ? { groups: formGroups }
         : {}),
+      isCancelled: formId
+        ? sessions.find((s) => s.id === formId)?.isCancelled
+        : false,
+      cancelledReason: formId
+        ? sessions.find((s) => s.id === formId)?.cancelledReason
+        : undefined,
     };
 
     let newSessions = [...sessions];
@@ -273,6 +312,37 @@ export function CampItineraryClient({
     } catch (error) {
       console.error(error);
       toast.error("Грешка при запазване на сесията");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleToggleCancelSession = async (session: CampSession) => {
+    const isNowCancelled = !session.isCancelled;
+    const newSessions = sessions.map((s) =>
+      s.id === session.id
+        ? {
+            ...s,
+            isCancelled: isNowCancelled,
+            cancelledReason: isNowCancelled
+              ? "Отменено от треньора"
+              : undefined,
+          }
+        : s
+    );
+
+    try {
+      setIsSaving(true);
+      await updateCampSessions(camp.id, newSessions);
+      setSessions(newSessions);
+      toast.success(
+        isNowCancelled
+          ? `Събитието "${session.title}" е отбелязано като отменено.`
+          : `Събитието "${session.title}" е възстановено.`
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Грешка при промяна статуса на събитието");
     } finally {
       setIsSaving(false);
     }
@@ -485,7 +555,10 @@ export function CampItineraryClient({
         {/* Day Selector - Ultra-Compact Grid without horizontal scroll */}
         <div className="mb-4 grid grid-cols-3 gap-1 sm:grid-cols-6 sm:gap-1.5">
           {days.map((day) => {
+            const dayStart = startOfDay(day.date);
             const isSelected = selectedDateStr === day.dateStr;
+            const isPast = isBefore(dayStart, todayDate);
+            const isCurrentDay = isSameDay(dayStart, todayDate);
             const hasCampSessions = sessions.some(
               (s) => s.date === day.dateStr
             );
@@ -499,28 +572,61 @@ export function CampItineraryClient({
                 key={day.dateStr}
                 onClick={() => setSelectedDateStr(day.dateStr)}
                 className={cn(
-                  "flex flex-col items-center justify-center rounded-lg border p-1 text-center transition-all",
-                  isSelected
-                    ? "border-indigo-600 bg-indigo-50/90 font-bold text-indigo-950 shadow-2xs ring-1 ring-indigo-500/30 dark:border-indigo-500 dark:bg-indigo-950/60 dark:text-white"
-                    : "border-zinc-200 bg-zinc-50/60 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-800",
-                  hasContent &&
-                    !isSelected &&
-                    "border-indigo-200/50 bg-indigo-50/20 dark:border-indigo-900/20"
+                  "group relative flex flex-col items-center justify-center rounded-xl border p-1.5 text-center transition-all",
+                  getDayButtonClass(
+                    isSelected,
+                    isCurrentDay,
+                    isPast,
+                    hasContent
+                  )
                 )}
               >
-                <span className="text-[11px] leading-tight font-black sm:text-xs">
-                  {day.label}
-                </span>
-                <div className="flex items-center gap-1 leading-none">
+                <div className="flex w-full items-center justify-between px-0.5">
+                  <span className="text-[11px] leading-tight font-black sm:text-xs">
+                    {day.label}
+                  </span>
+                  {isPast && (
+                    <span
+                      className="inline-flex items-center rounded-full bg-emerald-100/90 p-0.5 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
+                      title="Отминал ден (Завършил)"
+                    >
+                      <Check size={10} strokeWidth={3} />
+                    </span>
+                  )}
+                  {isCurrentDay && (
+                    <span
+                      className="inline-flex items-center rounded-xs bg-amber-500 px-1 py-0.5 text-[8px] font-black text-white uppercase"
+                      title="Текущ ден (Днес)"
+                    >
+                      Днес
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-0.5 flex items-center gap-1 leading-none">
                   <span className="text-[9px] font-medium text-zinc-600 dark:text-zinc-400">
                     {format(day.date, "dd MMM", { locale: bg })}
                   </span>
-                  <span className="text-[8px] font-black text-indigo-600 uppercase dark:text-indigo-400">
+                  <span
+                    className={cn(
+                      "text-[8px] font-black uppercase",
+                      isCurrentDay
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-indigo-600 dark:text-indigo-400"
+                    )}
+                  >
                     {format(day.date, "EEE", { locale: bg })}
                   </span>
                 </div>
                 {hasContent && (
-                  <div className="mt-0.5 size-1 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+                  <div
+                    className={cn(
+                      "mt-1 size-1 rounded-full",
+                      isCurrentDay
+                        ? "bg-amber-500"
+                        : "bg-indigo-600 dark:bg-indigo-400"
+                    )}
+                  />
                 )}
               </button>
             );
@@ -685,14 +791,24 @@ export function CampItineraryClient({
                       onDragOver={handleDragOver}
                       onDrop={(e) => void handleDropSession(e, session.id)}
                       className={cn(
-                        "group flex cursor-grab flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs transition-all hover:border-primary/30 active:cursor-grabbing sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-950",
+                        "group flex cursor-grab flex-col gap-3 rounded-xl border p-4 shadow-xs transition-all active:cursor-grabbing sm:flex-row sm:items-center",
+                        session.isCancelled
+                          ? "border-rose-200/80 bg-rose-50/20 opacity-80 dark:border-rose-900/30 dark:bg-rose-950/10"
+                          : "border-zinc-200 bg-white hover:border-primary/30 dark:border-zinc-800 dark:bg-zinc-950",
                         draggedSessionId === session.id &&
                           "border-dashed border-primary opacity-50"
                       )}
                     >
                       <div className="flex shrink-0 items-center justify-between gap-1.5 rounded-lg bg-zinc-100 p-2 sm:w-40 sm:flex-col sm:justify-center dark:bg-zinc-900">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-black text-zinc-900 dark:text-zinc-100">
+                          <span
+                            className={cn(
+                              "font-black",
+                              session.isCancelled
+                                ? "text-zinc-400 line-through dark:text-zinc-500"
+                                : "text-zinc-900 dark:text-zinc-100"
+                            )}
+                          >
                             {session.startTime}
                           </span>
                           <span className="text-xs text-zinc-500">
@@ -741,11 +857,16 @@ export function CampItineraryClient({
                         <div
                           className={cn(
                             "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full",
-                            session.type === "training" &&
+                            session.isCancelled &&
+                              "bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400",
+                            !session.isCancelled &&
+                              session.type === "training" &&
                               "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
-                            session.type === "meal" &&
+                            !session.isCancelled &&
+                              session.type === "meal" &&
                               "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
-                            session.type !== "training" &&
+                            !session.isCancelled &&
+                              session.type !== "training" &&
                               session.type !== "meal" &&
                               "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                           )}
@@ -754,12 +875,27 @@ export function CampItineraryClient({
                         </div>
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="font-bold text-zinc-900 dark:text-white">
+                            <h4
+                              className={cn(
+                                "font-bold",
+                                session.isCancelled
+                                  ? "text-zinc-500 line-through dark:text-zinc-400"
+                                  : "text-zinc-900 dark:text-white"
+                              )}
+                            >
                               {session.title}
                             </h4>
                             <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                               {sessionTypeLabels[session.type]}
                             </span>
+                            {session.isCancelled && (
+                              <Badge
+                                variant="outline"
+                                className="border-rose-300 bg-rose-50 text-[10px] font-bold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/50 dark:text-rose-300"
+                              >
+                                🚫 Отменено от треньора
+                              </Badge>
+                            )}
                           </div>
 
                           {session.exercises &&
@@ -839,20 +975,46 @@ export function CampItineraryClient({
                         </div>
                       </div>
 
-                      <div className="flex shrink-0 gap-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                      <div className="flex shrink-0 gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            void handleToggleCancelSession(session)
+                          }
+                          className={cn(
+                            "size-8",
+                            session.isCancelled
+                              ? "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:text-emerald-400"
+                              : "text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400"
+                          )}
+                          title={
+                            session.isCancelled
+                              ? "Възстанови събитието"
+                              : "Отмени събитието (остава в графика с отметка)"
+                          }
+                        >
+                          {session.isCancelled ? (
+                            <RotateCcw size={14} />
+                          ) : (
+                            <Ban size={14} />
+                          )}
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleOpenModal(session)}
                           className="size-8 text-zinc-500 hover:text-blue-600"
+                          title="Редактирай"
                         >
                           <Edit size={14} />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteSession(session.id)}
+                          onClick={() => void handleDeleteSession(session.id)}
                           className="size-8 text-zinc-500 hover:text-red-600"
+                          title="Изтрий напълно"
                         >
                           <Trash2 size={14} />
                         </Button>
@@ -958,26 +1120,19 @@ export function CampItineraryClient({
                                 <span>{getLocLabel(ps.location)}</span>
                                 {(() => {
                                   if (ps.blocks && ps.blocks.length > 0) {
-                                    return (
-                                      <span>
-                                        {ps.blocks.reduce(
-                                          (acc, b) => acc + b.items.length,
-                                          0
-                                        )}{" "}
-                                        общо упр.
-                                      </span>
+                                    const totalItems = ps.blocks.reduce(
+                                      (acc, b) => acc + b.items.length,
+                                      0
                                     );
+                                    return <span>{totalItems} общо упр.</span>;
                                   }
                                   if (ps.groupedExercises) {
-                                    return (
-                                      <span>
-                                        {ps.groupedExercises.reduce(
-                                          (acc, g) => acc + g.exercises.length,
-                                          0
-                                        )}{" "}
-                                        упр.
-                                      </span>
-                                    );
+                                    const totalExercises =
+                                      ps.groupedExercises.reduce(
+                                        (acc, g) => acc + g.exercises.length,
+                                        0
+                                      );
+                                    return <span>{totalExercises} упр.</span>;
                                   }
                                   return null;
                                 })()}
@@ -1063,6 +1218,7 @@ export function CampItineraryClient({
                                     })}
                                   </div>
                                 )}
+
                               {ps.coachNotes && (
                                 <div className="mt-3 border-l-2 border-amber-500/50 pl-2 text-xs text-zinc-600 dark:text-zinc-400">
                                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
