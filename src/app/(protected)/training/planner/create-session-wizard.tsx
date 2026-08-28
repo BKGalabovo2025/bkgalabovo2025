@@ -1881,24 +1881,85 @@ export default function CreateSessionWizard({
                   />
                 ) : (
                   <>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-200 bg-blue-50 text-[10px] text-blue-600 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300"
-                        onClick={injectHydrationBreaks}
-                      >
-                        + Хидратация
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-slate-200 bg-slate-50 text-[10px] text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-                        onClick={toggleRainyDay}
-                      >
-                        {isRainyDay ? "Върни Външни" : "План 'Дъжд'"}
-                      </Button>
+                    {/* Sticky Quick-Jump Phase Navigation Bar */}
+                    <div className="sticky top-0 z-20 -mx-2 -mt-2 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200/90 bg-white/95 p-2 shadow-xs backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] font-black text-zinc-400 uppercase">
+                          Части:
+                        </span>
+                        {blocks.map((b) => {
+                          const phaseTotal = b.items.reduce(
+                            (sum, item) => sum + item.durationMinutes,
+                            0
+                          );
+                          const isPhaseOver = phaseTotal > b.targetDuration;
+                          return (
+                            <button
+                              key={b.id}
+                              type="button"
+                              onClick={() => {
+                                const el = document.getElementById(
+                                  `phase-block-${b.id}`
+                                );
+                                el?.scrollIntoView({
+                                  behavior: "smooth",
+                                  block: "start",
+                                });
+                              }}
+                              className={cn(
+                                "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all hover:scale-102 active:scale-98",
+                                b.phase === "warmup" &&
+                                  "border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-900/40 dark:bg-orange-950/40 dark:text-orange-300",
+                                b.phase === "main" &&
+                                  "border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300",
+                                b.phase !== "warmup" &&
+                                  b.phase !== "main" &&
+                                  "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300"
+                              )}
+                            >
+                              <span>
+                                {b.phase === "warmup" && "🔥 "}
+                                {b.phase === "main" && "🏸 "}
+                                {b.phase !== "warmup" &&
+                                  b.phase !== "main" &&
+                                  "🧘 "}
+                                {getPhaseName(b.phase)}
+                              </span>
+                              <span
+                                className={cn(
+                                  "py-0.2 rounded-full px-1.5 text-[10px] font-bold",
+                                  isPhaseOver
+                                    ? "bg-red-200 text-red-800 dark:bg-red-900/60 dark:text-red-200"
+                                    : "bg-black/10 text-inherit dark:bg-white/10"
+                                )}
+                              >
+                                {b.items.length} упр. ({phaseTotal}м)
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 border-blue-200 bg-blue-50 text-[10px] text-blue-600 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300"
+                          onClick={injectHydrationBreaks}
+                        >
+                          + Хидратация
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 border-slate-200 bg-slate-50 text-[10px] text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                          onClick={toggleRainyDay}
+                        >
+                          {isRainyDay ? "Върни Външни" : "План 'Дъжд'"}
+                        </Button>
+                      </div>
                     </div>
+
                     {blocks.map((block) => {
                       const currentTotal = block.items.reduce(
                         (sum, item) => sum + item.durationMinutes,
@@ -1910,18 +1971,19 @@ export default function CreateSessionWizard({
                       return (
                         <div
                           key={block.id}
-                          className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm"
+                          id={`phase-block-${block.id}`}
+                          className="scroll-mt-16 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
                         >
-                          <div className="flex items-center justify-between border-b bg-zinc-100 p-3">
-                            <h3 className="font-bold text-zinc-800">
+                          <div className="flex items-center justify-between border-b bg-zinc-100 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                            <h3 className="font-bold text-zinc-800 dark:text-zinc-100">
                               {getPhaseName(block.phase)}
                             </h3>
                             <div
                               className={cn(
                                 "rounded-full px-3 py-1 text-xs font-bold shadow-sm",
                                 isOver
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-emerald-100 text-emerald-700"
+                                  ? "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"
+                                  : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
                               )}
                             >
                               {isOver
@@ -1935,7 +1997,7 @@ export default function CreateSessionWizard({
                               items={block.items.map((i) => i.id)}
                               strategy={verticalListSortingStrategy}
                             >
-                              <div className="min-h-25 space-y-3 p-3">
+                              <div className="max-h-96 min-h-25 scrollbar-thin space-y-3 overflow-y-auto p-3 pr-2">
                                 {block.items.map((item) => (
                                   <SessionBlockItemCard
                                     key={item.id}
@@ -1952,7 +2014,7 @@ export default function CreateSessionWizard({
                                 ))}
 
                                 {block.items.length === 0 && (
-                                  <div className="rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-6 text-center text-sm text-zinc-400">
+                                  <div className="rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-6 text-center text-sm text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-500">
                                     Добави упражнения от каталога вдясно
                                   </div>
                                 )}
@@ -1961,11 +2023,11 @@ export default function CreateSessionWizard({
                           </DndContext>
 
                           {block.phase === "main" && (
-                            <div className="border-t bg-zinc-50 p-2 text-center">
+                            <div className="border-t bg-zinc-50 p-2 text-center dark:border-zinc-800 dark:bg-zinc-950">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full border-amber-200 text-xs text-amber-600 hover:bg-amber-50 hover:text-amber-700"
+                                className="w-full border-amber-200 text-xs text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-900/40 dark:text-amber-400"
                                 onClick={() => {
                                   setStationPhase(block.phase);
                                   setStationRotations([]);
