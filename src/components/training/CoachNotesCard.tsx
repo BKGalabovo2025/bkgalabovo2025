@@ -12,6 +12,15 @@ interface CoachNotesCardProps {
   variant?: "default" | "compact" | "highlight";
 }
 
+interface ParsedSection {
+  type: "header_with_items" | "tag" | "text";
+  title?: string;
+  items?: string[];
+  tagLabel?: string;
+  tagValue?: string;
+  text?: string;
+}
+
 const isTagLabel = (line: string): boolean => {
   if (!line.includes(":")) return false;
   const lower = line.toLowerCase();
@@ -71,95 +80,143 @@ const isSectionHeader = (line: string): boolean => {
   return line.endsWith(":") && !line.includes(" ");
 };
 
-const renderNoteLine = (line: string, idx: number) => {
-  if (isTagLabel(line)) {
-    const [label, ...rest] = line.split(":");
-    const value = rest.join(":").trim();
-    return (
-      <div
-        key={idx}
-        className="flex flex-col gap-0.5 rounded-lg border border-amber-500/40 bg-zinc-950/80 p-2 sm:flex-row sm:items-baseline sm:gap-2"
-      >
-        <span className="shrink-0 font-bold text-amber-300">{label}:</span>
-        <span className="font-semibold text-zinc-100">{value}</span>
-      </div>
-    );
+const createTagSection = (line: string): ParsedSection => {
+  const [label, ...rest] = line.split(":");
+  return {
+    type: "tag",
+    tagLabel: label.trim(),
+    tagValue: rest.join(":").trim(),
+  };
+};
+
+const parseCoachNotes = (notes: string): ParsedSection[] => {
+  const lines = notes
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const sections: ParsedSection[] = [];
+  let currentGroup: { title: string; items: string[] } | null = null;
+
+  const flushGroup = () => {
+    if (currentGroup) {
+      sections.push({ type: "header_with_items", ...currentGroup });
+      currentGroup = null;
+    }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (isTagLabel(line)) {
+      flushGroup();
+      sections.push(createTagSection(line));
+      continue;
+    }
+
+    if (isSectionHeader(line)) {
+      flushGroup();
+      currentGroup = { title: line, items: [] };
+      continue;
+    }
+
+    if (isBulletLine(line)) {
+      const clean = cleanBulletLine(line);
+      if (!currentGroup) {
+        currentGroup = { title: "", items: [] };
+      }
+      currentGroup.items.push(clean);
+      continue;
+    }
+
+    const nextLine = lines[i + 1];
+    if (nextLine && isBulletLine(nextLine)) {
+      flushGroup();
+      currentGroup = { title: line, items: [] };
+      continue;
+    }
+
+    flushGroup();
+    sections.push({ type: "text", text: line });
   }
 
-  if (isBulletLine(line)) {
-    const cleanContent = cleanBulletLine(line);
-    return (
-      <div key={idx} className="flex items-start gap-2 pl-2">
-        <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-400 ring-2 ring-amber-400/30" />
-        <span className="flex-1 font-medium text-zinc-100">{cleanContent}</span>
-      </div>
-    );
-  }
-
-  if (isSectionHeader(line)) {
-    return (
-      <div
-        key={idx}
-        className="pt-2 text-xs font-bold tracking-tight text-amber-300 sm:text-sm"
-      >
-        {line}
-      </div>
-    );
-  }
-
-  return (
-    <p key={idx} className="font-medium whitespace-pre-wrap text-zinc-200">
-      {line}
-    </p>
-  );
+  flushGroup();
+  return sections;
 };
 
 export function CoachNotesCard({
   notes,
   className,
-  title = "Бележки от треньора",
+  title = "Бележки от треньора:",
   variant = "default",
 }: CoachNotesCardProps) {
   if (!notes || !notes.trim()) return null;
 
-  const rawLines = notes
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
+  const sections = parseCoachNotes(notes);
 
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border border-amber-500/40 bg-zinc-900/95 p-3.5 shadow-lg shadow-black/30 transition-all",
-        variant === "compact" && "p-2.5 text-xs",
+        "mt-2.5 flex flex-col gap-2 rounded-lg border border-zinc-700/80 bg-zinc-950/80 p-2.5 text-xs text-zinc-200 transition-all",
+        variant === "compact" && "p-2 text-[11px]",
         variant === "highlight" &&
-          "border-indigo-500/40 bg-zinc-900/95 shadow-indigo-950/20",
+          "border-indigo-500/40 bg-zinc-950/90 shadow-indigo-950/20",
         className
       )}
     >
-      {/* Header */}
-      <div className="mb-2.5 flex items-center gap-2 border-b border-zinc-800/80 pb-2">
-        <div
-          className={cn(
-            "flex size-5 shrink-0 items-center justify-center rounded-md bg-amber-400/20 text-amber-300",
-            variant === "highlight" && "bg-indigo-400/20 text-indigo-300"
-          )}
-        >
-          <ClipboardList className="size-3.5" />
-        </div>
-        <span
-          className={cn(
-            "text-xs font-black tracking-wider text-amber-300 uppercase",
-            variant === "highlight" && "text-indigo-300"
-          )}
-        >
-          {title}
-        </span>
-      </div>
+      {/* Header with icon matching Grouping header */}
+      <span className="flex items-center gap-1.5 text-xs font-bold text-zinc-200">
+        <ClipboardList size={13} className="shrink-0 text-amber-400" />
+        <span>{title}</span>
+      </span>
 
-      {/* Content */}
-      <div className="space-y-1.5 text-xs leading-relaxed text-zinc-100 sm:text-sm">
-        {rawLines.map((line, idx) => renderNoteLine(line, idx))}
+      {/* Sections structured like Grouping details */}
+      <div className="space-y-2">
+        {sections.map((sec, idx) => {
+          if (sec.type === "header_with_items") {
+            return (
+              <div key={idx} className="text-xs text-zinc-300">
+                {sec.title && (
+                  <span className="font-bold text-white">{sec.title}</span>
+                )}
+                {sec.items && sec.items.length > 0 && (
+                  <ul className="mt-1 space-y-1 border-l-2 border-indigo-500/40 pl-2.5">
+                    {sec.items.map((item, itemIdx) => (
+                      <li
+                        key={itemIdx}
+                        className="text-xs font-medium text-zinc-200"
+                      >
+                        • {item}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          }
+
+          if (sec.type === "tag") {
+            return (
+              <div key={idx} className="text-xs text-zinc-300">
+                <span className="font-bold text-amber-300">
+                  {sec.tagLabel}:
+                </span>{" "}
+                <span className="font-medium text-zinc-200">
+                  {sec.tagValue}
+                </span>
+              </div>
+            );
+          }
+
+          return (
+            <p
+              key={idx}
+              className="text-xs font-medium whitespace-pre-wrap text-zinc-200"
+            >
+              {sec.text}
+            </p>
+          );
+        })}
       </div>
     </div>
   );
