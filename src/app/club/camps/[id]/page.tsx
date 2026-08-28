@@ -194,6 +194,11 @@ export default async function CampPublicPage({
         location: typeof ps.location === "string" ? ps.location : undefined,
         startTime: resolveStartTime(ps, blocks),
         endTime: resolveEndTime(ps, blocks),
+        isCancelled: Boolean(ps.isCancelled),
+        cancelledReason:
+          typeof ps.cancelledReason === "string"
+            ? ps.cancelledReason
+            : undefined,
         exercises: [],
         groups: sessionGroups.map((g: Record<string, unknown>) => ({
           id: typeof g.id === "string" ? g.id : "",
@@ -240,6 +245,9 @@ export default async function CampPublicPage({
         ].includes(s.type as string)
           ? s.type
           : "other") as CampSession["type"],
+        isCancelled: Boolean(s.isCancelled),
+        cancelledReason:
+          typeof s.cancelledReason === "string" ? s.cancelledReason : undefined,
         description:
           typeof s.description === "string" ? s.description : undefined,
         exercises: Array.isArray(s.exercises)
