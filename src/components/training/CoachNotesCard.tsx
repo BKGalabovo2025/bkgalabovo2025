@@ -10,6 +10,7 @@ interface CoachNotesCardProps {
   className?: string;
   title?: string;
   variant?: "default" | "compact" | "highlight";
+  defaultOpen?: boolean;
 }
 
 interface ParsedSection {
@@ -149,47 +150,77 @@ export function CoachNotesCard({
   className,
   title = "Бележки от треньора:",
   variant = "default",
+  defaultOpen = true,
 }: CoachNotesCardProps) {
   if (!notes || !notes.trim()) return null;
 
   const sections = parseCoachNotes(notes);
 
   return (
-    <div
+    <details
       className={cn(
-        "mt-2.5 flex flex-col gap-2 rounded-lg border border-zinc-700/80 bg-zinc-950/80 p-2.5 text-xs text-zinc-200 transition-all",
+        "group/coach-notes mt-2.5 flex flex-col rounded-lg border border-zinc-700/80 bg-zinc-950/80 p-2.5 text-xs text-zinc-200 transition-all [&_summary::-webkit-details-marker]:hidden",
         variant === "compact" && "p-2 text-[11px]",
         variant === "highlight" &&
           "border-indigo-500/40 bg-zinc-950/90 shadow-indigo-950/20",
         className
       )}
+      open={defaultOpen}
     >
-      {/* Header with icon matching Grouping header */}
-      <span className="flex items-center gap-1.5 text-xs font-bold text-zinc-200">
-        <ClipboardList size={13} className="shrink-0 text-amber-400" />
-        <span>{title}</span>
-      </span>
+      {/* Header with expand/collapse control matching Grouping */}
+      <summary className="flex cursor-pointer items-center justify-between gap-1.5 text-xs font-bold text-zinc-200 select-none hover:text-white">
+        <span className="flex items-center gap-1.5">
+          <ClipboardList size={13} className="shrink-0 text-amber-400" />
+          <span>{title}</span>
+        </span>
+        <span className="text-[11px] font-semibold text-indigo-300 hover:text-indigo-200">
+          <span className="group-open/coach-notes:hidden">▶ Разгъни</span>
+          <span className="hidden group-open/coach-notes:inline">▼ Свий</span>
+        </span>
+      </summary>
 
       {/* Sections structured like Grouping details */}
-      <div className="space-y-2">
+      <div className="mt-2.5 space-y-2 border-t border-zinc-800/80 pt-2">
         {sections.map((sec, idx) => {
           if (sec.type === "header_with_items") {
+            const hasItems = sec.items && sec.items.length > 0;
             return (
               <div key={idx} className="text-xs text-zinc-300">
                 {sec.title && (
-                  <span className="font-bold text-white">{sec.title}</span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-bold text-white">{sec.title}</span>
+                    {hasItems && (
+                      <span className="text-[11px] text-zinc-400">
+                        · {sec.items!.length}{" "}
+                        {sec.items!.length === 1 ? "участник" : "участници"}
+                      </span>
+                    )}
+                  </div>
                 )}
-                {sec.items && sec.items.length > 0 && (
-                  <ul className="mt-1 space-y-1 border-l-2 border-indigo-500/40 pl-2.5">
-                    {sec.items.map((item, itemIdx) => (
-                      <li
-                        key={itemIdx}
-                        className="text-xs font-medium text-zinc-200"
-                      >
-                        • {item}
-                      </li>
-                    ))}
-                  </ul>
+                {hasItems && (
+                  <details
+                    className="group/group-details mt-1 [&_summary::-webkit-details-marker]:hidden"
+                    open
+                  >
+                    <summary className="cursor-pointer text-xs font-semibold text-indigo-300 underline decoration-indigo-500/40 select-none hover:text-indigo-200">
+                      <span className="group-open/group-details:hidden">
+                        ▶ Виж участниците ({sec.items!.length})
+                      </span>
+                      <span className="hidden group-open/group-details:inline">
+                        ▼ Скрий участниците
+                      </span>
+                    </summary>
+                    <ul className="mt-1.5 space-y-1 border-l-2 border-indigo-500/40 pl-2.5">
+                      {sec.items!.map((item, itemIdx) => (
+                        <li
+                          key={itemIdx}
+                          className="text-xs font-medium text-zinc-200"
+                        >
+                          • {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                 )}
               </div>
             );
@@ -218,6 +249,6 @@ export function CoachNotesCard({
           );
         })}
       </div>
-    </div>
+    </details>
   );
 }
