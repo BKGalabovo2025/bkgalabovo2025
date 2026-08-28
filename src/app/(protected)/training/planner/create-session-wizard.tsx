@@ -7,6 +7,8 @@ import {
 } from "@dnd-kit/sortable";
 import {
   AlertTriangle,
+  ChevronDown,
+  ChevronUp,
   Loader2,
   Plus,
   Search,
@@ -557,38 +559,35 @@ const ExerciseItemCard = ({
         <div className="mt-2">
           <Button
             size="sm"
-            className="h-7 w-full bg-indigo-600 px-2 text-xs font-bold text-white shadow-xs hover:bg-indigo-700"
+            className="h-8 w-full bg-indigo-600 px-2 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 active:scale-98"
             onClick={() => onAddToBlock("main", exercise)}
           >
             <Plus className="mr-1 size-3.5" /> + Добави във викторина
           </Button>
         </div>
       ) : (
-        <div className="mt-2 hidden flex-col gap-1 group-hover:flex">
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-6 w-full justify-start px-2 text-[10px] text-zinc-600 hover:text-indigo-600 dark:border-zinc-700 dark:text-zinc-300"
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            className="flex items-center gap-1 rounded-md border border-orange-200 bg-orange-50 px-2 py-1 text-[11px] font-bold text-orange-700 transition-transform hover:bg-orange-100 active:scale-95 dark:border-orange-900/40 dark:bg-orange-950/40 dark:text-orange-300"
             onClick={() => onAddToBlock("warmup", exercise)}
           >
-            <Plus className="mr-1 size-3" /> В Загрявка
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-6 w-full justify-start px-2 text-[10px] text-zinc-600 hover:text-indigo-600 dark:border-zinc-700 dark:text-zinc-300"
+            <Plus className="size-3" /> Загрявка
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700 transition-transform hover:bg-indigo-100 active:scale-95 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300"
             onClick={() => onAddToBlock("main", exercise)}
           >
-            <Plus className="mr-1 size-3" /> В Основна част
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-6 w-full justify-start px-2 text-[10px] text-zinc-600 hover:text-indigo-600 dark:border-zinc-700 dark:text-zinc-300"
+            <Plus className="size-3" /> Основна
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-700 transition-transform hover:bg-emerald-100 active:scale-95 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300"
             onClick={() => onAddToBlock("cooldown", exercise)}
           >
-            <Plus className="mr-1 size-3" /> В Разпускане
-          </Button>
+            <Plus className="size-3" /> Разпускане
+          </button>
         </div>
       )}
     </div>
@@ -1371,6 +1370,772 @@ const loadWizardResources = async (
   };
 };
 
+function SessionStep3ScheduleBlock({
+  block,
+  selectedCategory,
+  totalDuration,
+}: {
+  block: SessionBlock;
+  selectedCategory: string;
+  totalDuration: number;
+}) {
+  let currentTotal = 0;
+  if (block.items.length > 0) {
+    currentTotal = block.items.reduce((s, i) => s + i.durationMinutes, 0);
+  } else if (selectedCategory === "quiz") {
+    currentTotal = totalDuration;
+  }
+
+  return (
+    <div className="border-l-4 border-indigo-500 py-2 pl-4">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-semibold text-zinc-800">
+          {getPhaseName(block.phase)}
+        </span>
+        <span className="text-sm font-bold text-indigo-600">
+          {currentTotal} мин
+        </span>
+      </div>
+      {block.items.length > 0 ? (
+        <ul className="space-y-1">
+          {block.items.map((item) => (
+            <li
+              key={item.id}
+              className="flex justify-between text-sm text-zinc-600"
+            >
+              <span>
+                {item.type === "exercise"
+                  ? item.exercise?.name
+                  : "Станционна Ротация"}
+              </span>
+              <span className="text-xs">{item.durationMinutes} мин</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="text-sm text-zinc-400 italic">
+          {selectedCategory === "quiz"
+            ? "Треньорът ще подбере тест на място"
+            : "Няма упражнения"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SessionStep3Summary({
+  coachNotes,
+  setCoachNotes,
+  blocks,
+  selectedCategory,
+  totalDuration,
+}: {
+  coachNotes: string;
+  setCoachNotes: (notes: string) => void;
+  blocks: SessionBlock[];
+  selectedCategory: string;
+  totalDuration: number;
+}) {
+  return (
+    <div className="mx-auto w-full max-w-4xl flex-shrink-0 space-y-8 overflow-y-auto p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-lg font-bold text-zinc-800">
+          Бележки за треньора
+        </h3>
+        <Textarea
+          placeholder="Специфични указания за кондиция, фокус, почивки или задачи по групи..."
+          value={coachNotes}
+          onChange={(e) => setCoachNotes(e.target.value)}
+          rows={4}
+        />
+      </div>
+
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-lg font-bold text-zinc-800">
+          Преглед на графика
+        </h3>
+        <div className="space-y-4">
+          {blocks
+            .filter(
+              (b) =>
+                !(
+                  selectedCategory === "quiz" &&
+                  (b.phase === "warmup" || b.phase === "cooldown")
+                )
+            )
+            .map((b) => (
+              <SessionStep3ScheduleBlock
+                key={b.id}
+                block={b}
+                selectedCategory={selectedCategory}
+                totalDuration={totalDuration}
+              />
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface PhaseAccordionCardProps {
+  block: SessionBlock;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  groups: { id: string; name: string; memberIds: string[] }[];
+  globalInventory: InventoryItem[];
+  sessionInventory: Record<string, number>;
+  kidsPerStation: number;
+  onRemoveItem: (phase: StationPhaseType, itemId: string) => void;
+  onUpdateDuration: (
+    phase: StationPhaseType,
+    itemId: string,
+    newDuration: number
+  ) => void;
+  onUpdateTargetGroup: (
+    phase: StationPhaseType,
+    itemId: string,
+    groupId: string
+  ) => void;
+  onCreateStation: (phase: StationPhaseType) => void;
+}
+
+function PhaseAccordionCard({
+  block,
+  isExpanded,
+  onToggleExpand,
+  groups,
+  globalInventory,
+  sessionInventory,
+  kidsPerStation,
+  onRemoveItem,
+  onUpdateDuration,
+  onUpdateTargetGroup,
+  onCreateStation,
+}: PhaseAccordionCardProps) {
+  const currentTotal = block.items.reduce(
+    (sum, item) => sum + item.durationMinutes,
+    0
+  );
+  const remaining = block.targetDuration - currentTotal;
+  const isOver = remaining < 0;
+
+  return (
+    <div
+      id={`phase-block-${block.id}`}
+      className={cn(
+        "scroll-mt-16 overflow-hidden rounded-xl border shadow-xs transition-all",
+        isExpanded
+          ? "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+          : "border-zinc-200 bg-zinc-50/80 hover:border-zinc-300 hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/50"
+      )}
+    >
+      {/* Clickable Header */}
+      <div
+        onClick={onToggleExpand}
+        className="flex cursor-pointer items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-100/90 p-3.5 transition-colors select-none hover:bg-zinc-200/70 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white shadow-xs dark:bg-zinc-800">
+            {isExpanded ? (
+              <ChevronDown className="size-4 text-zinc-600 dark:text-zinc-300" />
+            ) : (
+              <ChevronUp className="size-4 rotate-90 text-zinc-400" />
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-100">
+              {block.phase === "warmup" && "🔥 "}
+              {block.phase === "main" && "🏸 "}
+              {block.phase !== "warmup" && block.phase !== "main" && "🧘 "}
+              {getPhaseName(block.phase)}
+            </h3>
+            <span className="rounded-full bg-zinc-200/80 px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+              {block.items.length} упр. ({currentTotal} мин)
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "rounded-full px-2.5 py-0.5 text-xs font-bold shadow-xs",
+              isOver
+                ? "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"
+                : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
+            )}
+          >
+            {isOver
+              ? `+${Math.abs(remaining)} мин (Бюджет: ${block.targetDuration})`
+              : `Остават ${remaining} мин от ${block.targetDuration}`}
+          </div>
+
+          <button
+            type="button"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-200/60 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          >
+            <span>{isExpanded ? "Свий" : "Разгъни"}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Collapsible Content */}
+      {isExpanded && (
+        <div>
+          <DndContext collisionDetection={closestCenter}>
+            <SortableContext
+              items={block.items.map((i) => i.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="max-h-96 min-h-25 scrollbar-thin space-y-3 overflow-y-auto p-3 pr-2">
+                {block.items.map((item) => (
+                  <SessionBlockItemCard
+                    key={item.id}
+                    item={item}
+                    phase={block.phase}
+                    groups={groups}
+                    globalInventory={globalInventory}
+                    sessionInventory={sessionInventory}
+                    kidsPerStation={kidsPerStation}
+                    onRemove={onRemoveItem}
+                    onUpdateDuration={onUpdateDuration}
+                    onUpdateTargetGroup={onUpdateTargetGroup}
+                  />
+                ))}
+
+                {block.items.length === 0 && (
+                  <div className="rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-6 text-center text-sm text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-500">
+                    Добави упражнения от каталога вдясно
+                  </div>
+                )}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          {block.phase === "main" && (
+            <div className="border-t bg-zinc-50 p-2 text-center dark:border-zinc-800 dark:bg-zinc-950">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full border-amber-200 text-xs text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-900/40 dark:text-amber-400"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCreateStation(block.phase);
+                }}
+              >
+                + Създай Станционна Ротация
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface SessionStep1SettingsProps {
+  title: string;
+  setTitle: (val: string) => void;
+  date: string;
+  setDate: (val: string) => void;
+  location: LocationType;
+  setLocation: (val: LocationType) => void;
+  customLocation: string;
+  setCustomLocation: (val: string) => void;
+  startTime: string;
+  setStartTime: (val: string) => void;
+  endTime: string;
+  setEndTime: (val: string) => void;
+  totalDuration: number;
+  setTotalDuration: (val: number) => void;
+  isAllGroupMode: boolean;
+  setIsAllGroupMode: (val: boolean) => void;
+  groups: { id: string; name: string; memberIds: string[] }[];
+  setGroups: React.Dispatch<
+    React.SetStateAction<{ id: string; name: string; memberIds: string[] }[]>
+  >;
+  availableParticipants: { id: string; name: string }[];
+  newGroupName: string;
+  setNewGroupName: (val: string) => void;
+  onAddGroup: () => void;
+  onRemoveGroup: (id: string) => void;
+  onToggleParticipant: (groupId: string, participantId: string) => void;
+  isFetching: boolean;
+  globalInventory: InventoryItem[];
+  sessionInventory: Record<string, number>;
+  setSessionInventory: React.Dispatch<
+    React.SetStateAction<Record<string, number>>
+  >;
+}
+
+function SessionStep1Settings({
+  title,
+  setTitle,
+  date,
+  setDate,
+  location,
+  setLocation,
+  customLocation,
+  setCustomLocation,
+  startTime,
+  setStartTime,
+  endTime,
+  setEndTime,
+  totalDuration,
+  setTotalDuration,
+  isAllGroupMode,
+  setIsAllGroupMode,
+  groups,
+  setGroups,
+  availableParticipants,
+  newGroupName,
+  setNewGroupName,
+  onAddGroup,
+  onRemoveGroup,
+  onToggleParticipant,
+  isFetching,
+  globalInventory,
+  sessionInventory,
+  setSessionInventory,
+}: SessionStep1SettingsProps) {
+  return (
+    <div className="mx-auto w-full max-w-5xl space-y-6 p-3 pb-12 sm:p-6">
+      {/* Basic Settings */}
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <h3 className="mb-4 text-base font-bold text-zinc-800 sm:text-lg dark:text-zinc-100">
+          Основни данни
+        </h3>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs text-zinc-500">Заглавие</Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Напр. Издръжливост и бързина"
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div>
+                <Label className="text-xs text-zinc-500">Дата</Label>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-zinc-500">Локация</Label>
+                <Select
+                  value={location}
+                  onValueChange={(val) => setLocation(val as LocationType)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="court">В зала (Корт)</SelectItem>
+                    <SelectItem value="stadium">Стадион</SelectItem>
+                    <SelectItem value="beach">Плаж</SelectItem>
+                    <SelectItem value="other">
+                      ✍️ Друго (попълни ръчно)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {location === "other" && (
+              <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-2.5 dark:border-indigo-900/50 dark:bg-indigo-950/30">
+                <Label className="text-xs font-semibold text-indigo-900 dark:text-indigo-300">
+                  Име / адрес на локацията (ръчно):
+                </Label>
+                <Input
+                  value={customLocation}
+                  onChange={(e) => setCustomLocation(e.target.value)}
+                  placeholder="Напр. Парк, Фитнес зала, Басейн, Спортен комплекс..."
+                  className="mt-1 bg-white text-xs dark:bg-zinc-900"
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Label className="text-xs text-zinc-500">Начален час</Label>
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => {
+                    const newStart = e.target.value;
+                    setStartTime(newStart);
+                    setEndTime(
+                      calculateEndTimeFromStart(newStart, totalDuration)
+                    );
+                  }}
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-zinc-500">Краен час</Label>
+                <Input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-zinc-500">Време (мин)</Label>
+                <Input
+                  type="number"
+                  min={10}
+                  max={240}
+                  value={totalDuration}
+                  onChange={(e) => {
+                    const dur = parseInt(e.target.value) || 60;
+                    setTotalDuration(dur);
+                    if (startTime) {
+                      const [sh = "9", sm = "0"] = startTime.split(":");
+                      const totalMinutes =
+                        parseInt(sh, 10) * 60 + parseInt(sm, 10) + dur;
+                      const endH = Math.floor(totalMinutes / 60) % 24;
+                      const endM = totalMinutes % 60;
+                      setEndTime(
+                        `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`
+                      );
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <GroupsManagementSection
+            isAllGroupMode={isAllGroupMode}
+            setIsAllGroupMode={setIsAllGroupMode}
+            groups={groups}
+            setGroups={setGroups}
+            availableParticipants={availableParticipants}
+            newGroupName={newGroupName}
+            setNewGroupName={setNewGroupName}
+            onAddGroup={onAddGroup}
+            onRemoveGroup={onRemoveGroup}
+            onToggleParticipant={onToggleParticipant}
+          />
+        </div>
+      </div>
+
+      {/* Local Inventory Selection */}
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-bold text-zinc-800 sm:text-lg dark:text-zinc-100">
+              Налично оборудване за тренировката
+            </h3>
+            <p className="text-xs text-zinc-500">
+              Изберете кои уреди взимате и в каква бройка. Планировчикът ще
+              следи само тях!
+            </p>
+          </div>
+        </div>
+
+        <InventorySelectionSection
+          isFetching={isFetching}
+          globalInventory={globalInventory}
+          sessionInventory={sessionInventory}
+          setSessionInventory={setSessionInventory}
+        />
+      </div>
+    </div>
+  );
+}
+
+interface SessionStep2ToolbarProps {
+  blocks: SessionBlock[];
+  activePhaseTab: StationPhaseType | "all";
+  setActivePhaseTab: (phase: StationPhaseType | "all") => void;
+  onExpandPhase: (phase: StationPhaseType) => void;
+  onSetAllPhasesExpanded: (expanded: boolean) => void;
+  onInjectHydration: () => void;
+  onToggleRainyDay: () => void;
+  isRainyDay: boolean;
+}
+
+function SessionStep2Toolbar({
+  blocks,
+  activePhaseTab,
+  setActivePhaseTab,
+  onExpandPhase,
+  onSetAllPhasesExpanded,
+  onInjectHydration,
+  onToggleRainyDay,
+  isRainyDay,
+}: SessionStep2ToolbarProps) {
+  return (
+    <div className="sticky top-0 z-20 mb-2 flex flex-col gap-2 rounded-xl border border-zinc-200/90 bg-white/95 p-3 shadow-md backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {/* Phase Filter Tabs */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setActivePhaseTab("all")}
+            className={cn(
+              "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all",
+              activePhaseTab === "all"
+                ? "bg-zinc-900 text-white shadow-xs dark:bg-zinc-100 dark:text-zinc-900"
+                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
+            )}
+          >
+            📋 Всички части
+          </button>
+
+          {blocks.map((b) => {
+            const phaseTotal = b.items.reduce(
+              (sum, item) => sum + item.durationMinutes,
+              0
+            );
+            const isSelected = activePhaseTab === b.phase;
+            return (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => {
+                  setActivePhaseTab(b.phase);
+                  onExpandPhase(b.phase);
+                  const el = document.getElementById(`phase-block-${b.id}`);
+                  el?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-all hover:scale-102 active:scale-98",
+                  b.phase === "warmup" &&
+                    (isSelected
+                      ? "bg-orange-600 text-white shadow-xs"
+                      : "border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-900/40 dark:bg-orange-950/40 dark:text-orange-300"),
+                  b.phase === "main" &&
+                    (isSelected
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300"),
+                  b.phase !== "warmup" &&
+                    b.phase !== "main" &&
+                    (isSelected
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300")
+                )}
+              >
+                <span>
+                  {b.phase === "warmup" && "🔥 "}
+                  {b.phase === "main" && "🏸 "}
+                  {b.phase !== "warmup" && b.phase !== "main" && "🧘 "}
+                  {getPhaseName(b.phase)}
+                </span>
+                <span
+                  className={cn(
+                    "py-0.2 rounded-full px-1.5 text-[10px] font-bold",
+                    isSelected
+                      ? "bg-white/20 text-white"
+                      : "bg-black/10 text-inherit dark:bg-white/10"
+                  )}
+                >
+                  {b.items.length} ({phaseTotal}м)
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Expand / Collapse All & Quick Actions */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-[11px] font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            onClick={() => onSetAllPhasesExpanded(true)}
+            title="Разгъни всички части за преглед на упражненията"
+          >
+            <ChevronDown className="mr-1 size-3.5 text-zinc-500" />
+            Разгъни всички
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-[11px] font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            onClick={() => onSetAllPhasesExpanded(false)}
+            title="Свий всички части в компактен списък"
+          >
+            <ChevronUp className="mr-1 size-3.5 text-zinc-500" />
+            Свий всички
+          </Button>
+          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 border-blue-200 bg-blue-50 text-[10px] text-blue-600 hover:bg-blue-100 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300"
+            onClick={onInjectHydration}
+          >
+            + Хидратация
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 border-slate-200 bg-slate-50 text-[10px] text-slate-600 hover:bg-slate-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+            onClick={onToggleRainyDay}
+          >
+            {isRainyDay ? "Върни Външни" : "План 'Дъжд'"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface SessionStep2LibraryProps {
+  mobileStep2Tab: "plan" | "library";
+  allExercises: Exercise[];
+  filteredExercises: Exercise[];
+  searchQuery: string;
+  setSearchQuery: (val: string) => void;
+  selectedCategory: string;
+  setSelectedCategory: (val: string) => void;
+  isFetching: boolean;
+  onAddExerciseToBlock: (phase: StationPhaseType, exercise: Exercise) => void;
+}
+
+function SessionStep2Library({
+  mobileStep2Tab,
+  allExercises,
+  filteredExercises,
+  searchQuery,
+  setSearchQuery,
+  selectedCategory,
+  setSelectedCategory,
+  isFetching,
+  onAddExerciseToBlock,
+}: SessionStep2LibraryProps) {
+  return (
+    <div
+      className={cn(
+        "size-full min-h-0 flex-col gap-3 overflow-hidden border-t border-zinc-200 bg-white p-3 sm:p-4 lg:w-96 lg:flex-shrink-0 lg:border-t-0 lg:border-l dark:border-zinc-800 dark:bg-zinc-900",
+        mobileStep2Tab === "library" ? "flex flex-1" : "hidden lg:flex"
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-100">
+          Каталог Упражнения
+        </h3>
+        <span className="text-xs text-zinc-400">
+          {filteredExercises.length} налични
+        </span>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute top-2.5 left-2 size-4 text-zinc-400" />
+        <Input
+          placeholder="Търси упражнение..."
+          className="h-9 bg-zinc-50 pl-8 text-xs sm:text-sm"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {/* Quick Mode Filters */}
+      <div className="flex flex-wrap gap-1">
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("all")}
+          className={cn(
+            "rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
+            selectedCategory === "all"
+              ? "bg-indigo-600 text-white shadow-xs"
+              : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
+          )}
+        >
+          Всички
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("quiz")}
+          className={cn(
+            "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all",
+            selectedCategory === "quiz"
+              ? "bg-amber-500 text-white shadow-xs"
+              : "border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-300"
+          )}
+        >
+          🧠 Теория & Викторина ({getCategoryCount(allExercises, "quiz")})
+        </button>
+      </div>
+
+      <div>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">
+              Всички категории ({getCategoryCount(allExercises, "all")})
+            </SelectItem>
+            <SelectItem value="warmup">
+              Загрявка ({getCategoryCount(allExercises, "warmup")})
+            </SelectItem>
+            <SelectItem value="technique">
+              Техника ({getCategoryCount(allExercises, "technique")})
+            </SelectItem>
+            <SelectItem value="tactics">
+              Тактика ({getCategoryCount(allExercises, "tactics")})
+            </SelectItem>
+            <SelectItem value="physical">
+              Физически ({getCategoryCount(allExercises, "physical")})
+            </SelectItem>
+            <SelectItem value="games">
+              Игри и Забава ({getCategoryCount(allExercises, "games")})
+            </SelectItem>
+            <SelectItem value="cooldown">
+              Разпускане ({getCategoryCount(allExercises, "cooldown")})
+            </SelectItem>
+            <SelectItem value="beach">
+              Плажни Блокове (Лагер) ({getCategoryCount(allExercises, "beach")})
+            </SelectItem>
+            <SelectItem value="circuit">
+              Станционни Ротации (Лагер) (
+              {getCategoryCount(allExercises, "circuit")})
+            </SelectItem>
+            <SelectItem value="tactical">
+              Мулти-Шатъл (Лагер) ({getCategoryCount(allExercises, "tactical")})
+            </SelectItem>
+            <SelectItem value="quiz">
+              🧠 Викторини & Тестове ({getCategoryCount(allExercises, "quiz")})
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex-1 scrollbar-thin space-y-2 overflow-y-auto pr-1 pb-4">
+        {isFetching ? (
+          <div className="flex justify-center p-4">
+            <Loader2 className="size-6 animate-spin text-indigo-600" />
+          </div>
+        ) : (
+          <>
+            {filteredExercises.map((ex) => (
+              <ExerciseItemCard
+                key={ex.id}
+                exercise={ex}
+                selectedCategory={selectedCategory}
+                onAddToBlock={onAddExerciseToBlock}
+              />
+            ))}
+            {filteredExercises.length === 0 && (
+              <div className="py-4 text-center text-xs text-zinc-500">
+                Няма намерени упражнения
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function CreateSessionWizard({
   open,
   onOpenChange,
@@ -1436,6 +2201,31 @@ export default function CreateSessionWizard({
 
   // Time-Budget Blocks
   const [blocks, setBlocks] = useState<SessionBlock[]>([]);
+  const [activePhaseTab, setActivePhaseTab] = useState<
+    "all" | StationPhaseType
+  >("all");
+  const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>(
+    {
+      warmup: true,
+      main: true,
+      cooldown: true,
+    }
+  );
+
+  const togglePhaseExpanded = (phase: string) => {
+    setExpandedPhases((prev) => ({
+      ...prev,
+      [phase]: prev[phase] !== undefined ? !prev[phase] : false,
+    }));
+  };
+
+  const setAllPhasesExpanded = (expanded: boolean) => {
+    setExpandedPhases({
+      warmup: expanded,
+      main: expanded,
+      cooldown: expanded,
+    });
+  };
 
   // Station Builder Modal
   const [showStationModal, setShowStationModal] = useState(false);
@@ -1553,6 +2343,7 @@ export default function CreateSessionWizard({
         groups.length === 1 ? groups[0].id : undefined
       )
     );
+    toast.success(`Добавено в ${getPhaseName(phase)}!`);
   };
 
   const removeItem = (phase: StationPhaseType, itemId: string) => {
@@ -1656,11 +2447,15 @@ export default function CreateSessionWizard({
     return true;
   });
 
+  const [mobileStep2Tab, setMobileStep2Tab] = useState<"plan" | "library">(
+    "plan"
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-full max-w-7xl flex-col gap-0 overflow-hidden rounded-none bg-zinc-50 p-0 sm:h-[90vh] sm:max-h-[90vh] sm:rounded-2xl">
-        <DialogHeader className="z-10 flex-shrink-0 border-b border-zinc-200 bg-white p-4 sm:p-6">
-          <DialogTitle className="text-lg sm:text-xl">
+        <DialogHeader className="z-10 flex-shrink-0 border-b border-zinc-200 bg-white p-3 sm:p-6 dark:border-zinc-800 dark:bg-zinc-950">
+          <DialogTitle className="text-base sm:text-xl">
             {initialSession
               ? "Редактиране на тренировка"
               : "Конструктор на тренировка (Time-Budget Builder)"}
@@ -1673,13 +2468,13 @@ export default function CreateSessionWizard({
         </DialogHeader>
 
         {/* WIZARD HEADER */}
-        <div className="flex flex-shrink-0 justify-center gap-2 border-b border-zinc-200 bg-white p-2 text-xs font-medium sm:gap-6 sm:p-3 sm:text-sm">
+        <div className="flex flex-shrink-0 justify-center gap-1.5 border-b border-zinc-200 bg-white p-2 text-xs font-medium sm:gap-6 sm:p-3 sm:text-sm dark:border-zinc-800 dark:bg-zinc-950">
           <div
             className={cn(
               "cursor-pointer rounded-full px-3 py-1.5 transition-colors sm:px-4 sm:py-2",
               currentStep === 1
                 ? "bg-indigo-600 text-white shadow"
-                : "text-zinc-500 hover:bg-zinc-100"
+                : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
             )}
             onClick={() => setCurrentStep(1)}
           >
@@ -1690,7 +2485,7 @@ export default function CreateSessionWizard({
               "cursor-pointer rounded-full px-3 py-1.5 transition-colors sm:px-4 sm:py-2",
               currentStep === 2
                 ? "bg-indigo-600 text-white shadow"
-                : "text-zinc-500 hover:bg-zinc-100"
+                : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
             )}
             onClick={() => setCurrentStep(2)}
           >
@@ -1701,7 +2496,7 @@ export default function CreateSessionWizard({
               "cursor-pointer rounded-full px-3 py-1.5 transition-colors sm:px-4 sm:py-2",
               currentStep === 3
                 ? "bg-indigo-600 text-white shadow"
-                : "text-zinc-500 hover:bg-zinc-100"
+                : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
             )}
             onClick={() => setCurrentStep(3)}
           >
@@ -1709,547 +2504,174 @@ export default function CreateSessionWizard({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          className={cn(
+            "min-h-0 flex-1",
+            currentStep === 2
+              ? "flex flex-col overflow-hidden"
+              : "overflow-y-auto"
+          )}
+        >
           {/* STEP 1: General Settings & Inventory */}
           {currentStep === 1 && (
-            <div className="mx-auto w-full max-w-5xl space-y-6 p-4 pb-12 sm:p-6">
-              {/* Basic Settings */}
-              <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h3 className="mb-4 text-lg font-bold text-zinc-800">
-                  Основни данни
-                </h3>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-xs text-zinc-500">Заглавие</Label>
-                      <Input
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Напр. Издръжливост и бързина"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label className="text-xs text-zinc-500">Дата</Label>
-                        <Input
-                          type="date"
-                          value={date}
-                          onChange={(e) => setDate(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-zinc-500">Локация</Label>
-                        <Select
-                          value={location}
-                          onValueChange={(val) =>
-                            setLocation(val as LocationType)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="court">В зала (Корт)</SelectItem>
-                            <SelectItem value="stadium">Стадион</SelectItem>
-                            <SelectItem value="beach">Плаж</SelectItem>
-                            <SelectItem value="other">
-                              ✍️ Друго (попълни ръчно)
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {location === "other" && (
-                      <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-2.5 dark:border-indigo-900/50 dark:bg-indigo-950/30">
-                        <Label className="text-xs font-semibold text-indigo-900 dark:text-indigo-300">
-                          Име / адрес на локацията (ръчно):
-                        </Label>
-                        <Input
-                          value={customLocation}
-                          onChange={(e) => setCustomLocation(e.target.value)}
-                          placeholder="Напр. Парк, Фитнес зала, Басейн, Спортен комплекс..."
-                          className="mt-1 bg-white text-xs dark:bg-zinc-900"
-                        />
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <Label className="text-xs text-zinc-500">
-                          Начален час
-                        </Label>
-                        <Input
-                          type="time"
-                          value={startTime}
-                          onChange={(e) => {
-                            const newStart = e.target.value;
-                            setStartTime(newStart);
-                            setEndTime(
-                              calculateEndTimeFromStart(newStart, totalDuration)
-                            );
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-zinc-500">
-                          Краен час
-                        </Label>
-                        <Input
-                          type="time"
-                          value={endTime}
-                          onChange={(e) => setEndTime(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-zinc-500">
-                          Време (мин)
-                        </Label>
-                        <Input
-                          type="number"
-                          min={10}
-                          max={240}
-                          value={totalDuration}
-                          onChange={(e) => {
-                            const dur = parseInt(e.target.value) || 60;
-                            setTotalDuration(dur);
-                            if (startTime) {
-                              const [sh = "9", sm = "0"] = startTime.split(":");
-                              const totalMinutes =
-                                parseInt(sh, 10) * 60 + parseInt(sm, 10) + dur;
-                              const endH = Math.floor(totalMinutes / 60) % 24;
-                              const endM = totalMinutes % 60;
-                              setEndTime(
-                                `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`
-                              );
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <GroupsManagementSection
-                    isAllGroupMode={isAllGroupMode}
-                    setIsAllGroupMode={setIsAllGroupMode}
-                    groups={groups}
-                    setGroups={setGroups}
-                    availableParticipants={availableParticipants}
-                    newGroupName={newGroupName}
-                    setNewGroupName={setNewGroupName}
-                    onAddGroup={addGroup}
-                    onRemoveGroup={removeGroup}
-                    onToggleParticipant={toggleParticipantInGroup}
-                  />
-                </div>
-              </div>
-
-              {/* Local Inventory Selection */}
-              <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold text-zinc-800">
-                      Налично оборудване за тренировката
-                    </h3>
-                    <p className="text-xs text-zinc-500">
-                      Изберете кои уреди взимате и в каква бройка. Планировчикът
-                      ще следи само тях!
-                    </p>
-                  </div>
-                </div>
-
-                <InventorySelectionSection
-                  isFetching={isFetching}
-                  globalInventory={globalInventory}
-                  sessionInventory={sessionInventory}
-                  setSessionInventory={setSessionInventory}
-                />
-              </div>
-            </div>
+            <SessionStep1Settings
+              title={title}
+              setTitle={setTitle}
+              date={date}
+              setDate={setDate}
+              location={location}
+              setLocation={setLocation}
+              customLocation={customLocation}
+              setCustomLocation={setCustomLocation}
+              startTime={startTime}
+              setStartTime={setStartTime}
+              endTime={endTime}
+              setEndTime={setEndTime}
+              totalDuration={totalDuration}
+              setTotalDuration={setTotalDuration}
+              isAllGroupMode={isAllGroupMode}
+              setIsAllGroupMode={setIsAllGroupMode}
+              groups={groups}
+              setGroups={setGroups}
+              availableParticipants={availableParticipants}
+              newGroupName={newGroupName}
+              setNewGroupName={setNewGroupName}
+              onAddGroup={addGroup}
+              onRemoveGroup={removeGroup}
+              onToggleParticipant={toggleParticipantInGroup}
+              isFetching={isFetching}
+              globalInventory={globalInventory}
+              sessionInventory={sessionInventory}
+              setSessionInventory={setSessionInventory}
+            />
           )}
 
           {/* STEP 2: Constructor (DND Blocks + Library) */}
           {currentStep === 2 && (
-            <div className="flex size-full flex-col lg:flex-row">
-              {/* MIDDLE: Time Budget Blocks OR Dedicated Quiz Module */}
-              <div className="flex min-h-125 w-full flex-col gap-6 overflow-y-auto p-6 lg:flex-1">
-                {selectedCategory === "quiz" ? (
-                  <DedicatedQuizModule
-                    blocks={blocks}
-                    totalDuration={totalDuration}
-                    onRemoveItem={removeItem}
-                  />
-                ) : (
-                  <>
-                    {/* Sticky Quick-Jump Phase Navigation Bar */}
-                    <div className="sticky top-0 z-20 -mx-2 -mt-2 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200/90 bg-white/95 p-2 shadow-xs backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[10px] font-black text-zinc-400 uppercase">
-                          Части:
-                        </span>
-                        {blocks.map((b) => {
-                          const phaseTotal = b.items.reduce(
-                            (sum, item) => sum + item.durationMinutes,
-                            0
-                          );
-                          const isPhaseOver = phaseTotal > b.targetDuration;
-                          return (
-                            <button
-                              key={b.id}
-                              type="button"
-                              onClick={() => {
-                                const el = document.getElementById(
-                                  `phase-block-${b.id}`
-                                );
-                                el?.scrollIntoView({
-                                  behavior: "smooth",
-                                  block: "start",
-                                });
-                              }}
-                              className={cn(
-                                "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all hover:scale-102 active:scale-98",
-                                b.phase === "warmup" &&
-                                  "border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-900/40 dark:bg-orange-950/40 dark:text-orange-300",
-                                b.phase === "main" &&
-                                  "border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300",
-                                b.phase !== "warmup" &&
-                                  b.phase !== "main" &&
-                                  "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300"
-                              )}
-                            >
-                              <span>
-                                {b.phase === "warmup" && "🔥 "}
-                                {b.phase === "main" && "🏸 "}
-                                {b.phase !== "warmup" &&
-                                  b.phase !== "main" &&
-                                  "🧘 "}
-                                {getPhaseName(b.phase)}
-                              </span>
-                              <span
-                                className={cn(
-                                  "py-0.2 rounded-full px-1.5 text-[10px] font-bold",
-                                  isPhaseOver
-                                    ? "bg-red-200 text-red-800 dark:bg-red-900/60 dark:text-red-200"
-                                    : "bg-black/10 text-inherit dark:bg-white/10"
-                                )}
-                              >
-                                {b.items.length} упр. ({phaseTotal}м)
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 border-blue-200 bg-blue-50 text-[10px] text-blue-600 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300"
-                          onClick={injectHydrationBreaks}
-                        >
-                          + Хидратация
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 border-slate-200 bg-slate-50 text-[10px] text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-                          onClick={toggleRainyDay}
-                        >
-                          {isRainyDay ? "Върни Външни" : "План 'Дъжд'"}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {blocks.map((block) => {
-                      const currentTotal = block.items.reduce(
-                        (sum, item) => sum + item.durationMinutes,
-                        0
-                      );
-                      const remaining = block.targetDuration - currentTotal;
-                      const isOver = remaining < 0;
-
-                      return (
-                        <div
-                          key={block.id}
-                          id={`phase-block-${block.id}`}
-                          className="scroll-mt-16 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-                        >
-                          <div className="flex items-center justify-between border-b bg-zinc-100 p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                            <h3 className="font-bold text-zinc-800 dark:text-zinc-100">
-                              {getPhaseName(block.phase)}
-                            </h3>
-                            <div
-                              className={cn(
-                                "rounded-full px-3 py-1 text-xs font-bold shadow-sm",
-                                isOver
-                                  ? "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"
-                                  : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
-                              )}
-                            >
-                              {isOver
-                                ? `Надвишено с ${Math.abs(remaining)} мин (Бюджет: ${block.targetDuration})`
-                                : `Остават ${remaining} мин от ${block.targetDuration}`}
-                            </div>
-                          </div>
-
-                          <DndContext collisionDetection={closestCenter}>
-                            <SortableContext
-                              items={block.items.map((i) => i.id)}
-                              strategy={verticalListSortingStrategy}
-                            >
-                              <div className="max-h-96 min-h-25 scrollbar-thin space-y-3 overflow-y-auto p-3 pr-2">
-                                {block.items.map((item) => (
-                                  <SessionBlockItemCard
-                                    key={item.id}
-                                    item={item}
-                                    phase={block.phase}
-                                    groups={groups}
-                                    globalInventory={globalInventory}
-                                    sessionInventory={sessionInventory}
-                                    kidsPerStation={kidsPerStation}
-                                    onRemove={removeItem}
-                                    onUpdateDuration={updateItemDuration}
-                                    onUpdateTargetGroup={updateItemTargetGroup}
-                                  />
-                                ))}
-
-                                {block.items.length === 0 && (
-                                  <div className="rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50/50 py-6 text-center text-sm text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-500">
-                                    Добави упражнения от каталога вдясно
-                                  </div>
-                                )}
-                              </div>
-                            </SortableContext>
-                          </DndContext>
-
-                          {block.phase === "main" && (
-                            <div className="border-t bg-zinc-50 p-2 text-center dark:border-zinc-800 dark:bg-zinc-950">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full border-amber-200 text-xs text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-900/40 dark:text-amber-400"
-                                onClick={() => {
-                                  setStationPhase(block.phase);
-                                  setStationRotations([]);
-                                  setShowStationModal(true);
-                                }}
-                              >
-                                + Създай Станционна Ротация
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
+            <div className="flex size-full min-h-0 flex-1 flex-col overflow-hidden">
+              {/* Mobile Sub-Header Switcher for Phone/Tablet screens (< lg) */}
+              <div className="flex shrink-0 border-b border-zinc-200 bg-zinc-100 p-1.5 lg:hidden dark:border-zinc-800 dark:bg-zinc-950">
+                <button
+                  type="button"
+                  onClick={() => setMobileStep2Tab("plan")}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all",
+                    mobileStep2Tab === "plan"
+                      ? "bg-white text-indigo-600 shadow-xs dark:bg-zinc-800 dark:text-white"
+                      : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400"
+                  )}
+                >
+                  <span>📋 График & Части</span>
+                  <span className="py-0.2 rounded-full bg-indigo-50 px-1.5 text-[10px] text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                    {blocks.reduce((sum, b) => sum + b.items.length, 0)}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileStep2Tab("library")}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all",
+                    mobileStep2Tab === "library"
+                      ? "bg-white text-indigo-600 shadow-xs dark:bg-zinc-800 dark:text-white"
+                      : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400"
+                  )}
+                >
+                  <span>📚 Каталог Упражнения</span>
+                  <span className="py-0.2 rounded-full bg-indigo-50 px-1.5 text-[10px] text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                    {filteredExercises.length}
+                  </span>
+                </button>
               </div>
 
-              {/* RIGHT: Library */}
-              <div className="flex min-h-125 w-full flex-shrink-0 flex-col gap-4 overflow-hidden border-t border-zinc-200 bg-white p-4 lg:w-100 lg:border-t-0 lg:border-l">
-                <h3 className="text-sm font-bold text-zinc-800">
-                  Каталог Упражнения
-                </h3>
-                <div className="relative">
-                  <Search className="absolute top-2.5 left-2 size-4 text-zinc-400" />
-                  <Input
-                    placeholder="Търси..."
-                    className="h-9 bg-zinc-50 pl-8 text-sm"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                {/* Quick Mode Filters */}
-                <div className="flex flex-wrap gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCategory("all")}
-                    className={cn(
-                      "rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
-                      selectedCategory === "all"
-                        ? "bg-indigo-600 text-white shadow-xs"
-                        : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
-                    )}
-                  >
-                    Всички
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCategory("quiz")}
-                    className={cn(
-                      "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all",
-                      selectedCategory === "quiz"
-                        ? "bg-amber-500 text-white shadow-xs"
-                        : "border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-300"
-                    )}
-                  >
-                    🧠 Теория & Викторина (
-                    {getCategoryCount(allExercises, "quiz")})
-                  </button>
-                </div>
-
-                <div>
-                  <Select
-                    value={selectedCategory}
-                    onValueChange={setSelectedCategory}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        Всички категории (
-                        {getCategoryCount(allExercises, "all")})
-                      </SelectItem>
-                      <SelectItem value="warmup">
-                        Загрявка ({getCategoryCount(allExercises, "warmup")})
-                      </SelectItem>
-                      <SelectItem value="technique">
-                        Техника ({getCategoryCount(allExercises, "technique")})
-                      </SelectItem>
-                      <SelectItem value="tactics">
-                        Тактика ({getCategoryCount(allExercises, "tactics")})
-                      </SelectItem>
-                      <SelectItem value="physical">
-                        Физически ({getCategoryCount(allExercises, "physical")})
-                      </SelectItem>
-                      <SelectItem value="games">
-                        Игри и Забава ({getCategoryCount(allExercises, "games")}
-                        )
-                      </SelectItem>
-                      <SelectItem value="cooldown">
-                        Разпускане ({getCategoryCount(allExercises, "cooldown")}
-                        )
-                      </SelectItem>
-                      <SelectItem value="beach">
-                        Плажни Блокове (Лагер) (
-                        {getCategoryCount(allExercises, "beach")})
-                      </SelectItem>
-                      <SelectItem value="circuit">
-                        Станционни Ротации (Лагер) (
-                        {getCategoryCount(allExercises, "circuit")})
-                      </SelectItem>
-                      <SelectItem value="tactical">
-                        Мулти-Шатъл (Лагер) (
-                        {getCategoryCount(allExercises, "tactical")})
-                      </SelectItem>
-                      <SelectItem value="quiz">
-                        🧠 Викторини & Тестове (
-                        {getCategoryCount(allExercises, "quiz")})
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex-1 space-y-2 overflow-y-auto pr-1 pb-4">
-                  {isFetching ? (
-                    <div className="flex justify-center p-4">
-                      <Loader2 className="size-6 animate-spin text-indigo-600" />
-                    </div>
+              <div className="flex size-full min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
+                {/* MIDDLE: Time Budget Blocks */}
+                <div
+                  className={cn(
+                    "size-full min-h-0 flex-1 scrollbar-thin flex-col gap-4 overflow-y-auto p-3 sm:p-6 lg:border-r lg:border-zinc-200 dark:lg:border-zinc-800",
+                    mobileStep2Tab === "plan" ? "flex" : "hidden lg:flex"
+                  )}
+                >
+                  {selectedCategory === "quiz" ? (
+                    <DedicatedQuizModule
+                      blocks={blocks}
+                      totalDuration={totalDuration}
+                      onRemoveItem={removeItem}
+                    />
                   ) : (
                     <>
-                      {filteredExercises.map((ex) => (
-                        <ExerciseItemCard
-                          key={ex.id}
-                          exercise={ex}
-                          selectedCategory={selectedCategory}
-                          onAddToBlock={addExerciseToBlock}
-                        />
-                      ))}
-                      {filteredExercises.length === 0 && (
-                        <div className="py-4 text-center text-xs text-zinc-500">
-                          Няма намерени упражнения
-                        </div>
-                      )}
+                      <SessionStep2Toolbar
+                        blocks={blocks}
+                        activePhaseTab={activePhaseTab}
+                        setActivePhaseTab={setActivePhaseTab}
+                        onExpandPhase={(phase) =>
+                          setExpandedPhases((prev) => ({
+                            ...prev,
+                            [phase]: true,
+                          }))
+                        }
+                        onSetAllPhasesExpanded={setAllPhasesExpanded}
+                        onInjectHydration={injectHydrationBreaks}
+                        onToggleRainyDay={toggleRainyDay}
+                        isRainyDay={isRainyDay}
+                      />
+
+                      {blocks
+                        .filter(
+                          (b) =>
+                            activePhaseTab === "all" ||
+                            b.phase === activePhaseTab
+                        )
+                        .map((block) => (
+                          <PhaseAccordionCard
+                            key={block.id}
+                            block={block}
+                            isExpanded={expandedPhases[block.phase] !== false}
+                            onToggleExpand={() =>
+                              togglePhaseExpanded(block.phase)
+                            }
+                            groups={groups}
+                            globalInventory={globalInventory}
+                            sessionInventory={sessionInventory}
+                            kidsPerStation={kidsPerStation}
+                            onRemoveItem={removeItem}
+                            onUpdateDuration={updateItemDuration}
+                            onUpdateTargetGroup={updateItemTargetGroup}
+                            onCreateStation={(phase) => {
+                              setStationPhase(phase);
+                              setStationRotations([]);
+                              setShowStationModal(true);
+                            }}
+                          />
+                        ))}
                     </>
                   )}
                 </div>
+
+                {/* RIGHT: Library */}
+                <SessionStep2Library
+                  mobileStep2Tab={mobileStep2Tab}
+                  allExercises={allExercises}
+                  filteredExercises={filteredExercises}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  isFetching={isFetching}
+                  onAddExerciseToBlock={addExerciseToBlock}
+                />
               </div>
             </div>
           )}
 
           {/* STEP 3: Preview & Save */}
           {currentStep === 3 && (
-            <div className="mx-auto w-full max-w-4xl flex-shrink-0 space-y-8 overflow-y-auto p-6">
-              <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h3 className="mb-4 text-lg font-bold text-zinc-800">
-                  Бележки за треньора
-                </h3>
-                <Textarea
-                  className="min-h-[150px] border-zinc-200 bg-zinc-50 text-sm"
-                  placeholder="Въведете вашите бележки и фокус на тренировката тук..."
-                  value={coachNotes}
-                  onChange={(e) => setCoachNotes(e.target.value)}
-                />
-              </div>
-
-              <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h3 className="mb-4 text-lg font-bold text-zinc-800">
-                  Преглед на графика
-                </h3>
-                <div className="space-y-4">
-                  {blocks
-                    .filter(
-                      (b) =>
-                        !(
-                          selectedCategory === "quiz" &&
-                          (b.phase === "warmup" || b.phase === "cooldown")
-                        )
-                    )
-                    .map((b) => {
-                      let currentTotal = 0;
-                      if (b.items.length > 0) {
-                        currentTotal = b.items.reduce(
-                          (s, i) => s + i.durationMinutes,
-                          0
-                        );
-                      } else if (selectedCategory === "quiz") {
-                        currentTotal = totalDuration;
-                      }
-                      return (
-                        <div
-                          key={b.id}
-                          className="border-l-4 border-indigo-500 py-2 pl-4"
-                        >
-                          <div className="mb-2 flex items-center justify-between">
-                            <span className="font-semibold text-zinc-800">
-                              {getPhaseName(b.phase)}
-                            </span>
-                            <span className="text-sm font-bold text-indigo-600">
-                              {currentTotal} мин
-                            </span>
-                          </div>
-                          {b.items.length > 0 ? (
-                            <ul className="space-y-1">
-                              {b.items.map((item) => (
-                                <li
-                                  key={item.id}
-                                  className="flex justify-between text-sm text-zinc-600"
-                                >
-                                  <span>
-                                    {item.type === "exercise"
-                                      ? item.exercise?.name
-                                      : "Станционна Ротация"}
-                                  </span>
-                                  <span className="text-xs">
-                                    {item.durationMinutes} мин
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <div className="text-sm text-zinc-400 italic">
-                              {selectedCategory === "quiz"
-                                ? "Треньорът ще подбере тест на място"
-                                : "Няма упражнения"}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            </div>
+            <SessionStep3Summary
+              coachNotes={coachNotes}
+              setCoachNotes={setCoachNotes}
+              blocks={blocks}
+              selectedCategory={selectedCategory}
+              totalDuration={totalDuration}
+            />
           )}
         </div>
 
