@@ -85,10 +85,14 @@ export const updateCampSessions = async (
   if (!db) throw new Error("Database not initialized");
   const eventRef = doc(db, "events", id);
   // Normalize date to yyyy-MM-dd and strip undefined values via JSON serialization
-  const sanitized = sessions.map((s) => ({
-    ...s,
-    date: s.date ? format(new Date(s.date), "yyyy-MM-dd") : "",
-  }));
+  const sanitized = JSON.parse(
+    JSON.stringify(
+      sessions.map((s) => ({
+        ...s,
+        date: s.date ? format(new Date(s.date), "yyyy-MM-dd") : "",
+      }))
+    )
+  );
   await updateDoc(eventRef, { campSessions: sanitized });
 };
 

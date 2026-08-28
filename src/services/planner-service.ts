@@ -128,12 +128,14 @@ export const plannerService = {
     data: Omit<PlannerSession, "id" | "siteId" | "createdAt" | "updatedAt">
   ): Promise<string> {
     const newDocRef = doc(collection(db, SESSIONS_COLLECTION));
-    const session: Omit<PlannerSession, "id"> = {
-      ...data,
-      siteId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const session: Omit<PlannerSession, "id"> = JSON.parse(
+      JSON.stringify({
+        ...data,
+        siteId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+    );
     await setDoc(newDocRef, session);
     return newDocRef.id;
   },
@@ -143,7 +145,10 @@ export const plannerService = {
     data: Partial<PlannerSession>
   ): Promise<void> {
     const docRef = doc(db, SESSIONS_COLLECTION, id);
-    await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
+    const sanitized = JSON.parse(
+      JSON.stringify({ ...data, updatedAt: new Date().toISOString() })
+    );
+    await updateDoc(docRef, sanitized);
   },
 
   async deleteSession(id: string): Promise<void> {
