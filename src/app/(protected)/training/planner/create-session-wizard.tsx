@@ -361,6 +361,40 @@ const buildSessionPayload = (params: {
   };
 };
 
+const resolvePrefillGroups = (session?: PlannerSession) => {
+  if (!session) {
+    return [
+      { id: "group-a", name: "Група А", memberIds: [] },
+      { id: "group-b", name: "Група Б", memberIds: [] },
+    ];
+  }
+  if (session.sessionGroups && session.sessionGroups.length > 0) {
+    return session.sessionGroups.map((g) => ({
+      id: g.id || uuidv4(),
+      name: g.name,
+      memberIds: g.memberIds || [],
+    }));
+  }
+  if (session.targetGroups && session.targetGroups.length > 0) {
+    return session.targetGroups.map((name, idx) => ({
+      id: `group-${idx}`,
+      name,
+      memberIds: [],
+    }));
+  }
+  if (session.groupedExercises && session.groupedExercises.length > 0) {
+    return session.groupedExercises.map((ge, idx) => ({
+      id: `group-${idx}`,
+      name: ge.ageGroup || `Група ${idx + 1}`,
+      memberIds: [],
+    }));
+  }
+  return [
+    { id: "group-a", name: "Група А", memberIds: [] },
+    { id: "group-b", name: "Група Б", memberIds: [] },
+  ];
+};
+
 const buildPrefillState = (
   session: PlannerSession,
   initialDate?: string,
@@ -388,14 +422,7 @@ const buildPrefillState = (
       totalDuration:
         session.blocks?.reduce((acc, b) => acc + b.targetDuration, 0) || 60,
       coachNotes: session.coachNotes || "",
-      groups: session.sessionGroups?.map((g) => ({
-        id: g.id,
-        name: g.name,
-        memberIds: g.memberIds || [],
-      })) || [
-        { id: uuidv4(), name: "Група А", memberIds: [] },
-        { id: uuidv4(), name: "Група Б", memberIds: [] },
-      ],
+      groups: resolvePrefillGroups(session),
       blocks: extractBlocksFromSession(session),
     };
   }
@@ -412,10 +439,7 @@ const buildPrefillState = (
     isAllGroupMode: false,
     totalDuration: 90,
     coachNotes: "",
-    groups: [
-      { id: uuidv4(), name: "Група А", memberIds: [] },
-      { id: uuidv4(), name: "Група Б", memberIds: [] },
-    ],
+    groups: resolvePrefillGroups(),
     blocks: [],
   };
 };
@@ -2259,10 +2283,10 @@ export default function CreateSessionWizard({
     setEndTime(s.endTime);
     setMode(s.mode);
     setLocation(s.location);
-    setCustomLocation(s.customLocation);
+    setCustomLocation(s.customLocation || "");
     setIsAllGroupMode(s.isAllGroupMode);
     setTotalDuration(s.totalDuration);
-    setCoachNotes(s.coachNotes);
+    setCoachNotes(s.coachNotes || "");
     setGroups(s.groups);
     setBlocks(s.blocks);
     setSearchQuery("");

@@ -5,6 +5,7 @@ import {
   GraduationCap,
   Loader2,
   MapPin,
+  Pencil,
   Play,
   Plus,
   Trash2,
@@ -22,6 +23,13 @@ import { PlannerSession } from "@/types/planner.types";
 
 import CreateSessionWizard from "./create-session-wizard";
 
+const formatLocationLabel = (loc: string) => {
+  if (loc === "court") return "В зала";
+  if (loc === "stadium") return "Стадион";
+  if (loc === "beach") return "Плаж";
+  return loc || "На открито";
+};
+
 function PlannerClientContent() {
   const { activeBranch } = useAppStore();
   const searchParams = useSearchParams();
@@ -31,6 +39,9 @@ function PlannerClientContent() {
 
   const [sessions, setSessions] = useState<PlannerSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingSession, setEditingSession] = useState<PlannerSession | null>(
+    null
+  );
   const [isWizardOpen, setIsWizardOpen] = useState(
     !!campIdParam || !!importTemplateParam
   );
@@ -111,7 +122,10 @@ function PlannerClientContent() {
             </Link>
           </Button>
           <Button
-            onClick={() => setIsWizardOpen(true)}
+            onClick={() => {
+              setEditingSession(null);
+              setIsWizardOpen(true);
+            }}
             className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
           >
             <Plus className="mr-2 size-4" />
@@ -131,7 +145,10 @@ function PlannerClientContent() {
             тренировка спрямо възрастта и локацията.
           </p>
           <Button
-            onClick={() => setIsWizardOpen(true)}
+            onClick={() => {
+              setEditingSession(null);
+              setIsWizardOpen(true);
+            }}
             className="bg-indigo-600 hover:bg-indigo-700"
           >
             Започни планиране
@@ -196,19 +213,30 @@ function PlannerClientContent() {
                       <div className="flex items-center gap-4 text-xs font-medium text-zinc-500">
                         <div className="flex items-center gap-1">
                           <MapPin className="size-3" />
-                          {session.location === "court"
-                            ? "В зала"
-                            : "На открито"}
+                          {formatLocationLabel(session.location)}
                         </div>
                         <div>{getExerciseCount(session)}</div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                        onClick={() => {
+                          setEditingSession(session);
+                          setIsWizardOpen(true);
+                        }}
+                        title="Редактирай тренировка"
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700"
                         onClick={() => handleDeleteSession(session.id)}
+                        title="Изтрий тренировка"
                       >
                         <Trash2 className="size-4" />
                       </Button>
@@ -235,6 +263,7 @@ function PlannerClientContent() {
         onOpenChange={(open) => {
           setIsWizardOpen(open);
           if (!open) {
+            setEditingSession(null);
             // Remove all specific query params on close so re-opening works fresh
             const newUrl = new URL(window.location.href);
             newUrl.searchParams.delete("campId");
@@ -249,6 +278,7 @@ function PlannerClientContent() {
         initialCampId={campIdParam || undefined}
         initialDate={dateParam || undefined}
         initialImportTemplateId={importTemplateParam || undefined}
+        initialSession={editingSession || undefined}
       />
     </div>
   );
