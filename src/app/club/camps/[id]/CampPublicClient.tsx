@@ -203,7 +203,7 @@ export default function CampPublicClient({
     [camp.campSessions]
   );
 
-  const { hasNewSessionsOnDate } = useCampSeenSessions(
+  const { hasNewSessionsOnDate, seenSessionIds } = useCampSeenSessions(
     camp.id,
     selectedDateStr,
     campSessionsList
@@ -503,6 +503,12 @@ export default function CampPublicClient({
                         <Icon size={12} className={colors.icon} />
                         {sessionTypeLabels[session.type] || session.type}
                       </span>
+                      {!seenSessionIds.has(session.id) &&
+                        !session.isCancelled && (
+                          <span className="flex animate-pulse items-center gap-1 rounded-md border border-rose-500/50 bg-rose-500/20 px-2 py-0.5 text-[10px] font-black tracking-wide text-rose-300 uppercase shadow-xs">
+                            ✨ Ново
+                          </span>
+                        )}
                       {session.isCancelled && (
                         <span className="flex items-center gap-1 rounded-md border border-rose-500/40 bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold tracking-wide text-rose-300 uppercase">
                           🚫 Отменено от треньора

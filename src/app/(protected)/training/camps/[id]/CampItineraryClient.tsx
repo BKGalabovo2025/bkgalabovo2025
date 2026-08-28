@@ -192,7 +192,7 @@ export function CampItineraryClient({
     [sessions, plannerSessions]
   );
 
-  const { hasNewSessionsOnDate } = useCampSeenSessions(
+  const { hasNewSessionsOnDate, seenSessionIds } = useCampSeenSessions(
     camp.id,
     selectedDateStr,
     allCampSessionDateItems
@@ -952,6 +952,15 @@ export function CampItineraryClient({
                             <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                               {sessionTypeLabels[session.type]}
                             </span>
+                            {!seenSessionIds.has(session.id) &&
+                              !session.isCancelled && (
+                                <Badge
+                                  variant="outline"
+                                  className="animate-pulse border-rose-300 bg-rose-50 text-[10px] font-bold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/50 dark:text-rose-300"
+                                >
+                                  ✨ Ново
+                                </Badge>
+                              )}
                             {session.isCancelled && (
                               <Badge
                                 variant="outline"
@@ -1187,6 +1196,15 @@ export function CampItineraryClient({
                                   {g}
                                 </Badge>
                               ))}
+                              {!seenSessionIds.has(ps.id) &&
+                                !ps.isCancelled && (
+                                  <Badge
+                                    variant="outline"
+                                    className="animate-pulse border-rose-300 bg-rose-50 text-[10px] font-bold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/50 dark:text-rose-300"
+                                  >
+                                    ✨ Ново
+                                  </Badge>
+                                )}
                               {ps.isCancelled && (
                                 <Badge
                                   variant="outline"
