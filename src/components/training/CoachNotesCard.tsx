@@ -56,12 +56,12 @@ const renderNoteLine = (line: string, idx: number) => {
     return (
       <div
         key={idx}
-        className="flex flex-col gap-0.5 rounded-lg border border-amber-200/60 bg-white/80 p-2 sm:flex-row sm:items-baseline sm:gap-2 dark:border-amber-900/40 dark:bg-zinc-900/80"
+        className="flex flex-col gap-0.5 rounded-lg border border-amber-300/60 bg-amber-100/50 p-2 sm:flex-row sm:items-baseline sm:gap-2 dark:border-amber-800/60 dark:bg-zinc-900/90"
       >
-        <span className="shrink-0 font-bold text-amber-900 dark:text-amber-200">
+        <span className="shrink-0 font-bold text-amber-950 dark:text-amber-300">
           {label}:
         </span>
-        <span className="font-medium text-zinc-700 dark:text-zinc-300">
+        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
           {value}
         </span>
       </div>
@@ -72,14 +72,19 @@ const renderNoteLine = (line: string, idx: number) => {
     const cleanContent = cleanBulletLine(line);
     return (
       <div key={idx} className="flex items-start gap-2 pl-1">
-        <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400" />
-        <span className="flex-1 font-medium">{cleanContent}</span>
+        <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-500 dark:bg-amber-400" />
+        <span className="flex-1 font-semibold text-zinc-900 dark:text-zinc-100">
+          {cleanContent}
+        </span>
       </div>
     );
   }
 
   return (
-    <p key={idx} className="font-medium whitespace-pre-wrap">
+    <p
+      key={idx}
+      className="font-semibold whitespace-pre-wrap text-zinc-900 dark:text-zinc-100"
+    >
       {line}
     </p>
   );
@@ -101,10 +106,10 @@ export function CoachNotesCard({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border border-amber-200/80 bg-amber-50/70 p-3.5 shadow-xs transition-all dark:border-amber-900/50 dark:bg-amber-950/30",
+        "relative overflow-hidden rounded-xl border border-amber-300/80 bg-amber-50/90 p-3.5 shadow-sm transition-all dark:border-amber-700/60 dark:bg-amber-950/50",
         variant === "compact" && "p-2.5 text-xs",
         variant === "highlight" &&
-          "border-indigo-200/80 bg-indigo-50/70 dark:border-indigo-900/50 dark:bg-indigo-950/30",
+          "border-indigo-300/80 bg-indigo-50/90 dark:border-indigo-700/60 dark:bg-indigo-950/50",
         className
       )}
     >
@@ -112,17 +117,17 @@ export function CoachNotesCard({
       <div className="mb-2 flex items-center gap-2">
         <div
           className={cn(
-            "flex size-5 shrink-0 items-center justify-center rounded-md bg-amber-200/70 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300",
+            "flex size-5 shrink-0 items-center justify-center rounded-md bg-amber-200 text-amber-900 dark:bg-amber-900/80 dark:text-amber-300",
             variant === "highlight" &&
-              "bg-indigo-200/70 text-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-300"
+              "bg-indigo-200 text-indigo-900 dark:bg-indigo-900/80 dark:text-indigo-300"
           )}
         >
           <ClipboardList className="size-3.5" />
         </div>
         <span
           className={cn(
-            "text-xs font-bold tracking-wider text-amber-900 uppercase dark:text-amber-200",
-            variant === "highlight" && "text-indigo-900 dark:text-indigo-200"
+            "text-xs font-bold tracking-wider text-amber-950 uppercase dark:text-amber-200",
+            variant === "highlight" && "text-indigo-950 dark:text-indigo-200"
           )}
         >
           {title}
@@ -130,7 +135,7 @@ export function CoachNotesCard({
       </div>
 
       {/* Content */}
-      <div className="space-y-1.5 text-xs leading-relaxed text-zinc-700 sm:text-sm dark:text-zinc-300">
+      <div className="space-y-1.5 text-xs leading-relaxed text-zinc-900 sm:text-sm dark:text-zinc-100">
         {rawLines.map((line, idx) => renderNoteLine(line, idx))}
       </div>
     </div>

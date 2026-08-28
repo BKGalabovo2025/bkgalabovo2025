@@ -301,17 +301,17 @@ export default async function CampPublicPage({
   });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="dark min-h-screen bg-zinc-950 text-zinc-100">
       {/* Nav */}
-      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-400/20 bg-black/80 px-6 py-4 backdrop-blur-xl">
+      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-400/20 bg-zinc-950/90 px-6 py-4 backdrop-blur-xl">
         <Link
           href="/club"
-          className="flex items-center gap-2 text-sm text-zinc-400 transition-all hover:text-blue-400"
+          className="flex items-center gap-2 text-sm font-medium text-zinc-300 transition-all hover:text-blue-400"
         >
           <ArrowLeft size={16} />
           БК Гълъбово
         </Link>
-        <span className="text-sm font-medium tracking-widest text-blue-400 uppercase">
+        <span className="text-sm font-bold tracking-widest text-blue-400 uppercase">
           Програма на лагер
         </span>
         <div className="flex items-center gap-4">
@@ -321,28 +321,28 @@ export default async function CampPublicPage({
 
       {/* Hero */}
       <div className="relative overflow-hidden px-6 pt-28 pb-10">
-        <div className="pointer-events-none absolute top-0 left-1/2 h-72 w-full max-w-2xl -translate-x-1/2 rounded-full bg-blue-500/8 blur-[100px]" />
+        <div className="pointer-events-none absolute top-0 left-1/2 h-72 w-full max-w-2xl -translate-x-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
         <div className="relative z-10 mx-auto max-w-3xl">
           {/* Camp badge */}
           <div className="mb-3 flex items-center gap-2">
-            <span className="flex items-center gap-1.5 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold tracking-widest text-blue-400 uppercase">
-              <Tent size={11} />
+            <span className="flex items-center gap-1.5 rounded-full border border-blue-400/30 bg-blue-500/20 px-3 py-1 text-xs font-bold tracking-widest text-blue-300 uppercase">
+              <Tent size={12} />
               Лагер
             </span>
           </div>
 
-          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
             {campData.title}
           </h1>
 
-          <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-zinc-400">
+          <div className="mt-3 flex flex-wrap items-center gap-4 text-sm font-medium text-zinc-300">
             {campData.location && (
-              <span className="flex items-center gap-1.5">
-                <MapPin size={14} className="text-zinc-500" />
+              <span className="flex items-center gap-1.5 text-zinc-200">
+                <MapPin size={14} className="text-blue-400" />
                 {campData.location}
               </span>
             )}
-            <span className="flex items-center gap-1.5 text-zinc-500">
+            <span className="flex items-center gap-1.5 text-zinc-300">
               {startDateFormatted} — {endDateFormatted}
             </span>
           </div>

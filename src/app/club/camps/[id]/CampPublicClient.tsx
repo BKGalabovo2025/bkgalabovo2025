@@ -81,53 +81,53 @@ const sessionTypeColors: Record<
   { bg: string; icon: string; border: string; badge: string; accent: string }
 > = {
   training: {
-    bg: "bg-orange-500/10 dark:bg-orange-950/20",
-    icon: "text-orange-400",
-    border: "border-orange-500/30",
-    badge: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-    accent: "bg-orange-500",
+    bg: "border-l-4 border-l-amber-500 bg-linear-to-r from-amber-500/15 via-zinc-900/95 to-zinc-900/95 border-zinc-700/80 shadow-md",
+    icon: "text-amber-400",
+    border: "border-zinc-700/80",
+    badge: "bg-amber-500/25 text-amber-200 border-amber-500/40 font-bold",
+    accent: "bg-amber-500",
   },
   meal: {
-    bg: "bg-emerald-500/10 dark:bg-emerald-950/20",
+    bg: "border-l-4 border-l-emerald-500 bg-linear-to-r from-emerald-500/15 via-zinc-900/95 to-zinc-900/95 border-zinc-700/80 shadow-md",
     icon: "text-emerald-400",
-    border: "border-emerald-500/30",
-    badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+    border: "border-zinc-700/80",
+    badge: "bg-emerald-500/25 text-emerald-200 border-emerald-500/40 font-bold",
     accent: "bg-emerald-500",
   },
   quiet_hour: {
-    bg: "bg-indigo-500/10 dark:bg-indigo-950/20",
+    bg: "border-l-4 border-l-indigo-500 bg-linear-to-r from-indigo-500/15 via-zinc-900/95 to-zinc-900/95 border-zinc-700/80 shadow-md",
     icon: "text-indigo-400",
-    border: "border-indigo-500/30",
-    badge: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+    border: "border-zinc-700/80",
+    badge: "bg-indigo-500/25 text-indigo-200 border-indigo-500/40 font-bold",
     accent: "bg-indigo-500",
   },
   leisure: {
-    bg: "bg-sky-500/10 dark:bg-sky-950/20",
+    bg: "border-l-4 border-l-sky-500 bg-linear-to-r from-sky-500/15 via-zinc-900/95 to-zinc-900/95 border-zinc-700/80 shadow-md",
     icon: "text-sky-400",
-    border: "border-sky-500/30",
-    badge: "bg-sky-500/20 text-sky-300 border-sky-500/30",
+    border: "border-zinc-700/80",
+    badge: "bg-sky-500/25 text-sky-200 border-sky-500/40 font-bold",
     accent: "bg-sky-500",
   },
   attraction: {
-    bg: "bg-pink-500/10 dark:bg-pink-950/20",
+    bg: "border-l-4 border-l-pink-500 bg-linear-to-r from-pink-500/15 via-zinc-900/95 to-zinc-900/95 border-zinc-700/80 shadow-md",
     icon: "text-pink-400",
-    border: "border-pink-500/30",
-    badge: "bg-pink-500/20 text-pink-300 border-pink-500/30",
+    border: "border-zinc-700/80",
+    badge: "bg-pink-500/25 text-pink-200 border-pink-500/40 font-bold",
     accent: "bg-pink-500",
   },
   travel: {
-    bg: "bg-violet-500/10 dark:bg-violet-950/20",
+    bg: "border-l-4 border-l-violet-500 bg-linear-to-r from-violet-500/15 via-zinc-900/95 to-zinc-900/95 border-zinc-700/80 shadow-md",
     icon: "text-violet-400",
-    border: "border-violet-500/30",
-    badge: "bg-violet-500/20 text-violet-300 border-violet-500/30",
+    border: "border-zinc-700/80",
+    badge: "bg-violet-500/25 text-violet-200 border-violet-500/40 font-bold",
     accent: "bg-violet-500",
   },
   other: {
-    bg: "bg-zinc-500/10 dark:bg-zinc-900/40",
-    icon: "text-zinc-400",
-    border: "border-zinc-700/50",
-    badge: "bg-zinc-800 text-zinc-300 border-zinc-700",
-    accent: "bg-zinc-500",
+    bg: "border-l-4 border-l-blue-500 bg-linear-to-r from-blue-500/15 via-zinc-900/95 to-zinc-900/95 border-zinc-700/80 shadow-md",
+    icon: "text-blue-400",
+    border: "border-zinc-700/80",
+    badge: "bg-blue-500/25 text-blue-200 border-blue-500/40 font-bold",
+    accent: "bg-blue-500",
   },
 };
 
@@ -434,31 +434,31 @@ export default function CampPublicClient({
                 <div
                   key={session.id}
                   className={cn(
-                    "relative flex items-start gap-3.5 rounded-xl border p-3.5 transition-all sm:gap-4 sm:p-4",
+                    "relative flex items-start gap-3.5 rounded-xl border p-3.5 shadow-md transition-all sm:gap-4 sm:p-4",
                     session.isCancelled
-                      ? "border-rose-950/40 bg-rose-950/15 opacity-75"
+                      ? "border-l-4 border-rose-900/60 border-l-rose-500 bg-linear-to-r from-rose-950/30 via-zinc-900/95 to-zinc-900/95 opacity-85"
                       : cn(colors.border, colors.bg)
                   )}
                 >
                   {/* Timeline Time Box */}
-                  <div className="relative z-10 flex w-24 shrink-0 flex-col items-center justify-center rounded-xl border border-zinc-700/80 bg-zinc-950 p-2 text-center shadow-md sm:w-28 sm:py-2.5">
+                  <div className="relative z-10 flex w-24 shrink-0 flex-col items-center justify-center rounded-xl border border-zinc-700 bg-zinc-950 p-2 text-center shadow-md sm:w-28 sm:py-2.5">
                     <span
                       className={cn(
                         "text-xs font-black tracking-tight sm:text-sm",
                         session.isCancelled
-                          ? "text-zinc-500 line-through"
+                          ? "text-zinc-400 line-through"
                           : "text-white"
                       )}
                     >
                       {session.startTime}
                     </span>
-                    <div className="my-1 h-px w-full bg-zinc-800" />
-                    <span className="text-[11px] font-medium text-zinc-400">
+                    <div className="my-1 h-px w-full bg-zinc-700" />
+                    <span className="text-[11px] font-bold text-zinc-300">
                       {session.endTime}
                     </span>
                     <div className="mt-1.5 flex flex-wrap items-center justify-center gap-1 border-t border-zinc-800/80 pt-1">
                       <span
-                        className="inline-flex items-center gap-0.5 rounded-full border border-amber-800/50 bg-amber-950/60 px-1.5 py-0.5 text-[9px] font-bold text-amber-300"
+                        className="inline-flex items-center gap-0.5 rounded-full border border-amber-700/60 bg-amber-950/80 px-1.5 py-0.5 text-[9px] font-bold text-amber-200"
                         title={`Въздух: ${weather.airTemp}°C (${weather.conditionText})`}
                       >
                         <span>{weather.iconEmoji}</span>
@@ -466,7 +466,7 @@ export default function CampPublicClient({
                       </span>
                       {weather.waterTemp !== undefined && (
                         <span
-                          className="inline-flex items-center gap-0.5 rounded-full border border-cyan-800/50 bg-cyan-950/60 px-1.5 py-0.5 text-[9px] font-bold text-cyan-300"
+                          className="inline-flex items-center gap-0.5 rounded-full border border-cyan-700/60 bg-cyan-950/80 px-1.5 py-0.5 text-[9px] font-bold text-cyan-200"
                           title={`Вода: ${weather.waterTemp}°C`}
                         >
                           <span>🌊</span>
@@ -474,7 +474,7 @@ export default function CampPublicClient({
                         </span>
                       )}
                       <span
-                        className="inline-flex items-center gap-0.5 rounded-full border border-blue-800/50 bg-blue-950/60 px-1.5 py-0.5 text-[9px] font-bold text-blue-300"
+                        className="inline-flex items-center gap-0.5 rounded-full border border-blue-700/60 bg-blue-950/80 px-1.5 py-0.5 text-[9px] font-bold text-blue-200"
                         title={`Вероятност за дъжд: ${weather.rainProbability ?? 0}%`}
                       >
                         <span>💧</span>
@@ -482,7 +482,7 @@ export default function CampPublicClient({
                       </span>
                       {weather.waveHeight !== undefined && (
                         <span
-                          className="inline-flex items-center gap-0.5 rounded-full border border-teal-800/50 bg-teal-950/60 px-1.5 py-0.5 text-[9px] font-bold text-teal-300"
+                          className="inline-flex items-center gap-0.5 rounded-full border border-teal-700/60 bg-teal-950/80 px-1.5 py-0.5 text-[9px] font-bold text-teal-200"
                           title={`Вълнение на морето: ${weather.waveHeight} м (${weather.seaStateLabel})`}
                         >
                           <span>{weather.seaStateFlag || "🌊"}</span>
@@ -506,12 +506,12 @@ export default function CampPublicClient({
                       </span>
                       {!seenSessionIds.has(session.id) &&
                         !session.isCancelled && (
-                          <span className="flex animate-pulse items-center gap-1 rounded-md border border-rose-500/50 bg-rose-500/20 px-2 py-0.5 text-[10px] font-black tracking-wide text-rose-300 uppercase shadow-xs">
+                          <span className="flex animate-pulse items-center gap-1 rounded-md border border-rose-400 bg-rose-500 px-2 py-0.5 text-[10px] font-black tracking-wide text-white uppercase shadow-sm">
                             ✨ Ново
                           </span>
                         )}
                       {session.isCancelled && (
-                        <span className="flex items-center gap-1 rounded-md border border-rose-500/40 bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold tracking-wide text-rose-300 uppercase">
+                        <span className="flex items-center gap-1 rounded-md border border-rose-500/50 bg-rose-500/25 px-2 py-0.5 text-[10px] font-bold tracking-wide text-rose-200 uppercase">
                           🚫 Отменено от треньора
                         </span>
                       )}
@@ -519,7 +519,7 @@ export default function CampPublicClient({
 
                     <h3
                       className={cn(
-                        "text-sm font-bold sm:text-base",
+                        "text-sm font-extrabold tracking-tight sm:text-base",
                         session.isCancelled
                           ? "text-zinc-400 line-through"
                           : "text-white"
@@ -529,16 +529,17 @@ export default function CampPublicClient({
                     </h3>
 
                     {session.location && (
-                      <div className="mt-1 flex items-center gap-1 text-[11px] font-medium text-zinc-400">
-                        <MapPin size={12} className="text-zinc-500" />
-                        {getLocationLabel(session.location)}
+                      <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                        <MapPin size={13} className="shrink-0 text-blue-400" />
+                        <span>{getLocationLabel(session.location)}</span>
                       </div>
                     )}
 
                     {session.groups && session.groups.length > 0 && (
-                      <div className="mt-2.5 flex flex-col gap-1.5 rounded-md border border-zinc-800/60 bg-zinc-900/40 p-2.5">
-                        <span className="flex items-center gap-1 text-[11px] font-semibold text-zinc-400">
-                          <Users size={12} className="text-zinc-500" /> Групи:
+                      <div className="mt-2.5 flex flex-col gap-1.5 rounded-lg border border-zinc-700/80 bg-zinc-950/80 p-2.5">
+                        <span className="flex items-center gap-1.5 text-xs font-bold text-zinc-200">
+                          <Users size={13} className="text-amber-400" />{" "}
+                          Разпределение по групи:
                         </span>
                         {session.groups.map((sg) => {
                           const groupAttendees =
@@ -546,24 +547,21 @@ export default function CampPublicClient({
                               sg.memberIds.includes(a.memberId)
                             ) || [];
                           return (
-                            <div
-                              key={sg.id}
-                              className="text-[11px] text-zinc-500"
-                            >
-                              <span className="font-semibold text-zinc-300">
+                            <div key={sg.id} className="text-xs text-zinc-300">
+                              <span className="font-bold text-white">
                                 {sg.name}
                               </span>{" "}
                               · {sg.memberIds.length} участници
                               {groupAttendees.length > 0 && (
                                 <details className="group/group-details mt-1 [&_summary::-webkit-details-marker]:hidden">
-                                  <summary className="cursor-pointer text-[10px] font-semibold text-indigo-400 hover:text-indigo-300">
-                                    Виж участниците
+                                  <summary className="cursor-pointer text-xs font-semibold text-indigo-300 underline decoration-indigo-500/40 hover:text-indigo-200">
+                                    Виж участниците ({groupAttendees.length})
                                   </summary>
-                                  <ul className="mt-1.5 space-y-1 border-l border-zinc-700 pl-2">
+                                  <ul className="mt-1.5 space-y-1 border-l-2 border-indigo-500/40 pl-2.5">
                                     {groupAttendees.map((a) => (
                                       <li
                                         key={a.memberId}
-                                        className="text-[11px] leading-tight text-zinc-400"
+                                        className="text-xs font-medium text-zinc-200"
                                       >
                                         • {a.name}
                                       </li>
@@ -579,7 +577,7 @@ export default function CampPublicClient({
                     {session.description && (
                       <CoachNotesCard
                         notes={session.description}
-                        className="mt-3 border-amber-800/40 bg-amber-950/30"
+                        className="mt-3"
                       />
                     )}
                   </div>
