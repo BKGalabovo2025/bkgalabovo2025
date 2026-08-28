@@ -15,8 +15,9 @@ import {
   Ticket,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { useCampSeenSessions } from "@/hooks/useCampSeenSessions";
 import { cn } from "@/lib/utils";
 import {
   fetchLiveCampForecast,
@@ -133,10 +134,14 @@ const getPublicDayButtonClass = (
   isSelected: boolean,
   isCurrentDay: boolean,
   isPast: boolean,
-  hasSessions: boolean
+  hasSessions: boolean,
+  showNewIndicator: boolean
 ) => {
   if (isSelected) {
     return "border-blue-500 bg-blue-500/20 text-white shadow-lg ring-2 shadow-blue-500/10 ring-blue-500/40";
+  }
+  if (showNewIndicator) {
+    return "border-rose-500/80 bg-rose-500/15 text-rose-200 ring-2 ring-rose-500/40 hover:bg-rose-500/25";
   }
   if (isCurrentDay) {
     return "border-amber-400 bg-amber-500/15 text-amber-200 ring-1 ring-amber-400/40 hover:bg-amber-500/25";
@@ -193,6 +198,17 @@ export default function CampPublicClient({
     Record<string, LocationWeatherForecast>
   >({});
 
+  const campSessionsList = useMemo(
+    () => camp.campSessions || [],
+    [camp.campSessions]
+  );
+
+  const { hasNewSessionsOnDate } = useCampSeenSessions(
+    camp.id,
+    selectedDateStr,
+    campSessionsList
+  );
+
   useEffect(() => {
     if (camp.location) {
       fetchLiveCampForecast(camp.location)
@@ -221,6 +237,9 @@ export default function CampPublicClient({
           const hasSessions = camp.campSessions?.some(
             (s) => s.date === day.dateStr
           );
+          const hasNewSessions = hasNewSessionsOnDate(day.dateStr);
+          const showNewIndicator = !isPast && !isSelected && hasNewSessions;
+
           return (
             <button
               key={day.dateStr}
@@ -231,7 +250,8 @@ export default function CampPublicClient({
                   isSelected,
                   isCurrentDay,
                   isPast,
-                  Boolean(hasSessions)
+                  Boolean(hasSessions),
+                  showNewIndicator
                 )
               )}
             >
@@ -247,12 +267,20 @@ export default function CampPublicClient({
                     <Check size={10} strokeWidth={3} />
                   </span>
                 )}
-                {isCurrentDay && (
+                {isCurrentDay && !showNewIndicator && (
                   <span
                     className="inline-flex items-center rounded-xs bg-amber-500 px-1 py-0.5 text-[8px] font-black text-white uppercase"
                     title="Текущ ден (Днес)"
                   >
                     Днес
+                  </span>
+                )}
+                {showNewIndicator && (
+                  <span
+                    className="inline-flex animate-pulse items-center rounded-xs bg-rose-500 px-1 py-0.5 text-[8px] font-black text-white uppercase shadow-xs"
+                    title="Има ново добавено събитие"
+                  >
+                    ✨ Ново
                   </span>
                 )}
               </div>

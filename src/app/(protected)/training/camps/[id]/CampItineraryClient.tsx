@@ -23,7 +23,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -49,6 +49,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCampSeenSessions } from "@/hooks/useCampSeenSessions";
 import { cn } from "@/lib/utils";
 import { plannerService } from "@/services/planner-service";
 import { updateCampSessions } from "@/services/schedule-service";
@@ -64,10 +65,14 @@ const getDayButtonClass = (
   isSelected: boolean,
   isCurrentDay: boolean,
   isPast: boolean,
-  hasContent: boolean
+  hasContent: boolean,
+  showNewIndicator: boolean
 ) => {
   if (isSelected) {
     return "border-indigo-600 bg-indigo-50/95 font-bold text-indigo-950 shadow-xs ring-2 ring-indigo-500/40 dark:border-indigo-500 dark:bg-indigo-950/70 dark:text-white";
+  }
+  if (showNewIndicator) {
+    return "border-rose-400 bg-rose-50/80 text-rose-950 ring-2 ring-rose-400/50 hover:bg-rose-100 dark:border-rose-600 dark:bg-rose-950/50 dark:text-rose-100";
   }
   if (isCurrentDay) {
     return "border-amber-400 bg-amber-50/80 text-amber-950 ring-2 ring-amber-400/50 hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-950/50 dark:text-amber-100";
@@ -178,6 +183,20 @@ export function CampItineraryClient({
     }
     return days[0]?.dateStr || todayStr;
   });
+
+  const allCampSessionDateItems = useMemo(
+    () => [
+      ...sessions.map((s) => ({ id: s.id, date: s.date })),
+      ...plannerSessions.map((ps) => ({ id: ps.id, date: ps.date })),
+    ],
+    [sessions, plannerSessions]
+  );
+
+  const { hasNewSessionsOnDate } = useCampSeenSessions(
+    camp.id,
+    selectedDateStr,
+    allCampSessionDateItems
+  );
 
   const currentDaysSessions = sessions
     .filter((s) => s.date === selectedDateStr)
@@ -566,6 +585,8 @@ export function CampItineraryClient({
               (s) => s.date === day.dateStr
             );
             const hasContent = hasCampSessions || hasPlannerSessions;
+            const hasNewSessions = hasNewSessionsOnDate(day.dateStr);
+            const showNewIndicator = !isPast && !isSelected && hasNewSessions;
 
             return (
               <button
@@ -577,7 +598,8 @@ export function CampItineraryClient({
                     isSelected,
                     isCurrentDay,
                     isPast,
-                    hasContent
+                    hasContent,
+                    showNewIndicator
                   )
                 )}
               >
@@ -593,12 +615,20 @@ export function CampItineraryClient({
                       <Check size={10} strokeWidth={3} />
                     </span>
                   )}
-                  {isCurrentDay && (
+                  {isCurrentDay && !showNewIndicator && (
                     <span
                       className="inline-flex items-center rounded-xs bg-amber-500 px-1 py-0.5 text-[8px] font-black text-white uppercase"
                       title="Текущ ден (Днес)"
                     >
                       Днес
+                    </span>
+                  )}
+                  {showNewIndicator && (
+                    <span
+                      className="inline-flex animate-pulse items-center rounded-xs bg-rose-500 px-1 py-0.5 text-[8px] font-black text-white uppercase shadow-xs"
+                      title="Има ново добавено събитие / тренировка"
+                    >
+                      ✨ Ново
                     </span>
                   )}
                 </div>
