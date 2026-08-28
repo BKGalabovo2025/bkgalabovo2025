@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 import CreateSessionWizard from "@/app/(protected)/training/planner/create-session-wizard";
+import { CoachNotesCard } from "@/components/training/CoachNotesCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1329,12 +1330,10 @@ export function CampItineraryClient({
                                 )}
 
                               {ps.coachNotes && (
-                                <div className="mt-3 border-l-2 border-amber-500/50 pl-2 text-xs text-zinc-600 dark:text-zinc-400">
-                                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                                    Бележки:{" "}
-                                  </span>
-                                  {ps.coachNotes}
-                                </div>
+                                <CoachNotesCard
+                                  notes={ps.coachNotes}
+                                  className="mt-3"
+                                />
                               )}
                             </div>
                           </div>

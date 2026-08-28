@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import { CoachNotesCard } from "@/components/training/CoachNotesCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -1460,18 +1461,82 @@ function SessionStep3Summary({
   selectedCategory: string;
   totalDuration: number;
 }) {
+  const insertTemplate = (prefix: string) => {
+    if (!coachNotes.trim()) {
+      setCoachNotes(`${prefix} `);
+    } else {
+      setCoachNotes(`${coachNotes.trimEnd()}\n${prefix} `);
+    }
+  };
+
   return (
     <div className="mx-auto w-full max-w-4xl flex-shrink-0 space-y-8 overflow-y-auto p-6">
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-lg font-bold text-zinc-800">
-          Бележки за треньора
-        </h3>
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mb-3 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+          <div>
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
+              Бележки за треньора
+            </h3>
+            <p className="text-xs text-zinc-500">
+              Форматирани структурирани указания за тренировката и мобилните
+              екрани
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => insertTemplate("🎯 Фокус:")}
+              className="rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-900 hover:bg-amber-100 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-300"
+            >
+              + 🎯 Фокус
+            </button>
+            <button
+              type="button"
+              onClick={() => insertTemplate("⚡ Интензитет:")}
+              className="rounded-md border border-orange-300 bg-orange-50 px-2 py-1 text-[11px] font-bold text-orange-900 hover:bg-orange-100 dark:border-orange-700/60 dark:bg-orange-950/40 dark:text-orange-300"
+            >
+              + ⚡ Интензитет
+            </button>
+            <button
+              type="button"
+              onClick={() => insertTemplate("👥 Задачи за групите:")}
+              className="rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-900 hover:bg-indigo-100 dark:border-indigo-700/60 dark:bg-indigo-950/40 dark:text-indigo-300"
+            >
+              + 👥 Групи
+            </button>
+            <button
+              type="button"
+              onClick={() => insertTemplate("💧 Хидратация & Почивки:")}
+              className="rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-900 hover:bg-blue-100 dark:border-blue-700/60 dark:bg-blue-950/40 dark:text-blue-300"
+            >
+              + 💧 Хидратация
+            </button>
+            <button
+              type="button"
+              onClick={() => insertTemplate("⚠️ Важно:")}
+              className="rounded-md border border-rose-300 bg-rose-50 px-2 py-1 text-[11px] font-bold text-rose-900 hover:bg-rose-100 dark:border-rose-700/60 dark:bg-rose-950/40 dark:text-rose-300"
+            >
+              + ⚠️ Важно
+            </button>
+          </div>
+        </div>
+
         <Textarea
-          placeholder="Специфични указания за кондиция, фокус, почивки или задачи по групи..."
+          placeholder="Напиши бележки, напр.:&#10;🎯 Фокус: Бързина и реакция на мрежата&#10;⚡ Интензитет: 80% пулс, серии по 45 сек&#10;👥 Задачи за групите: Група А - мулти-шатъл, Група Б - спаринг&#10;💧 Хидратация: 2 мин след всяка станция"
           value={coachNotes}
           onChange={(e) => setCoachNotes(e.target.value)}
           rows={4}
+          className="font-mono text-xs sm:text-sm"
         />
+
+        {coachNotes.trim() && (
+          <div className="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            <div className="mb-2 text-[11px] font-bold tracking-wider text-zinc-500 uppercase">
+              📱 Мобилен преглед на бележките:
+            </div>
+            <CoachNotesCard notes={coachNotes} />
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">

@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
+import { CoachNotesCard } from "@/components/training/CoachNotesCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -217,6 +218,12 @@ function PlannerClientContent() {
                         </div>
                         <div>{getExerciseCount(session)}</div>
                       </div>
+                      {session.coachNotes && (
+                        <CoachNotesCard
+                          notes={session.coachNotes}
+                          className="mt-2.5 max-w-xl"
+                        />
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button

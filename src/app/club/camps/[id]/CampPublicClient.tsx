@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { CoachNotesCard } from "@/components/training/CoachNotesCard";
 import { useCampSeenSessions } from "@/hooks/useCampSeenSessions";
 import { cn } from "@/lib/utils";
 import {
@@ -576,12 +577,10 @@ export default function CampPublicClient({
                       </div>
                     )}
                     {session.description && (
-                      <div className="mt-3 border-l-2 border-amber-500/50 pl-2 text-[11px] text-zinc-400">
-                        <span className="font-semibold text-zinc-300">
-                          Бележки:{" "}
-                        </span>
-                        {session.description}
-                      </div>
+                      <CoachNotesCard
+                        notes={session.description}
+                        className="mt-3 border-amber-800/40 bg-amber-950/30"
+                      />
                     )}
                   </div>
                 </div>
