@@ -4,16 +4,20 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
+  CloudRain,
   Coins,
   HeartPulse,
   MapPin,
+  RefreshCw,
   Tent,
   Users,
+  Waves,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -32,8 +36,13 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatEventDateRange } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
 import { getEventById } from "@/services/schedule-service";
-import { getEstimatedWeather } from "@/services/weather-service";
+import {
+  fetchLiveCampForecast,
+  getEstimatedWeather,
+  LocationWeatherForecast,
+} from "@/services/weather-service";
 import { ScheduleEvent } from "@/types";
 
 import { CampItineraryClient } from "./CampItineraryClient";
@@ -45,12 +54,32 @@ interface CampDetailsClientProps {
 export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
   const [camp, setCamp] = useState<ScheduleEvent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [liveWeatherMap, setLiveWeatherMap] = useState<
+    Record<string, LocationWeatherForecast>
+  >({});
+  const [weatherLoading, setWeatherLoading] = useState(false);
+
+  const loadWeather = useCallback(async (locationName?: string) => {
+    if (!locationName) return;
+    setWeatherLoading(true);
+    try {
+      const forecast = await fetchLiveCampForecast(locationName);
+      setLiveWeatherMap(forecast);
+    } catch (err) {
+      console.warn("Could not load live weather:", err);
+    } finally {
+      setWeatherLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     async function loadCamp() {
       try {
         const data = await getEventById(campId);
         setCamp(data);
+        if (data?.location) {
+          void loadWeather(data.location);
+        }
       } catch (err) {
         console.error("Failed to load camp", err);
       } finally {
@@ -58,7 +87,7 @@ export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
       }
     }
     loadCamp();
-  }, [campId]);
+  }, [campId, loadWeather]);
 
   if (loading) {
     return (
@@ -168,42 +197,113 @@ export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
             )}
 
             {(() => {
+              const startDateStr = camp.startDate
+                ? camp.startDate.split("T")[0]
+                : new Date().toISOString().split("T")[0];
               const overviewWeather = getEstimatedWeather(
                 camp.location,
-                camp.startDate
-                  ? camp.startDate.split("T")[0]
-                  : new Date().toISOString().split("T")[0],
-                "14:00"
+                startDateStr,
+                "14:00",
+                liveWeatherMap
               );
 
               return (
-                <div className="rounded-xl border border-amber-200/80 bg-linear-to-br from-amber-50/60 to-cyan-50/50 p-3.5 dark:border-amber-900/40 dark:from-amber-950/20 dark:to-cyan-950/20">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                      Климатични условия
-                    </span>
-                    <span className="text-[10px] text-zinc-500">
-                      (Сезонна прогноза)
-                    </span>
+                <div className="rounded-2xl border border-sky-200/80 bg-linear-to-br from-amber-50/70 via-sky-50/60 to-cyan-50/70 p-4 shadow-xs dark:border-sky-900/40 dark:from-amber-950/20 dark:via-sky-950/20 dark:to-cyan-950/20">
+                  <div className="flex items-center justify-between border-b border-sky-100/80 pb-2.5 dark:border-sky-900/40">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        Климатични условия
+                      </span>
+                      {overviewWeather.isLive ? (
+                        <Badge
+                          variant="outline"
+                          className="border-emerald-300 bg-emerald-100/80 text-[9px] font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
+                        >
+                          🟢 На живо
+                        </Badge>
+                      ) : (
+                        <span className="text-[10px] text-zinc-500">
+                          (Сезонна прогноза)
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => void loadWeather(camp.location)}
+                      disabled={weatherLoading}
+                      className="h-7 px-2 text-[11px] text-zinc-600 hover:bg-white/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                      title="Актуализирай прогнозата за дните на лагера"
+                    >
+                      <RefreshCw
+                        size={12}
+                        className={cn(
+                          "mr-1",
+                          weatherLoading && "animate-spin text-primary"
+                        )}
+                      />
+                      {weatherLoading ? "Зареждане..." : "Обнови"}
+                    </Button>
                   </div>
-                  <div className="mt-2.5 flex items-center justify-around gap-2">
-                    <div className="flex flex-col items-center">
+
+                  <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                    {/* Air Temperature */}
+                    <div className="flex flex-col items-center justify-center rounded-xl bg-white/70 p-2.5 text-center shadow-2xs backdrop-blur-xs dark:bg-zinc-900/60">
                       <span className="text-xl">
                         {overviewWeather.iconEmoji}
                       </span>
                       <span className="text-sm font-black text-amber-900 dark:text-amber-200">
                         {overviewWeather.airTemp}°C
                       </span>
-                      <span className="text-[10px] text-zinc-500">Въздух</span>
+                      <span className="text-[10px] font-medium text-zinc-500">
+                        Въздух
+                      </span>
                     </div>
+
+                    {/* Sea Temperature */}
                     {overviewWeather.waterTemp !== undefined && (
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center justify-center rounded-xl bg-white/70 p-2.5 text-center shadow-2xs backdrop-blur-xs dark:bg-zinc-900/60">
                         <span className="text-xl">🌊</span>
                         <span className="text-sm font-black text-cyan-900 dark:text-cyan-200">
                           {overviewWeather.waterTemp}°C
                         </span>
-                        <span className="text-[10px] text-zinc-500">
+                        <span className="text-[10px] font-medium text-zinc-500">
                           Морска вода
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Rain Probability */}
+                    <div className="flex flex-col items-center justify-center rounded-xl bg-white/70 p-2.5 text-center shadow-2xs backdrop-blur-xs dark:bg-zinc-900/60">
+                      <CloudRain className="size-5 text-blue-500" />
+                      <span
+                        className={cn(
+                          "text-sm font-black",
+                          (overviewWeather.rainProbability ?? 0) > 40
+                            ? "text-blue-700 dark:text-blue-300"
+                            : "text-zinc-800 dark:text-zinc-200"
+                        )}
+                      >
+                        {overviewWeather.rainProbability ?? 0}%
+                      </span>
+                      <span className="text-[10px] font-medium text-zinc-500">
+                        Вероятност за дъжд
+                      </span>
+                    </div>
+
+                    {/* Sea State / Waves */}
+                    {overviewWeather.waveHeight !== undefined && (
+                      <div className="flex flex-col items-center justify-center rounded-xl bg-white/70 p-2.5 text-center shadow-2xs backdrop-blur-xs dark:bg-zinc-900/60">
+                        <Waves className="size-5 text-teal-600 dark:text-teal-400" />
+                        <span className="text-sm font-black text-teal-900 dark:text-teal-200">
+                          {overviewWeather.waveHeight} м
+                        </span>
+                        <span
+                          className="text-[10px] font-medium text-zinc-500"
+                          title={overviewWeather.seaStateLabel}
+                        >
+                          {overviewWeather.seaStateBalls} бала (
+                          {overviewWeather.seaStateFlag})
                         </span>
                       </div>
                     )}
@@ -375,7 +475,10 @@ export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
               value="itinerary"
               className="mt-0 focus-visible:outline-none"
             >
-              <CampItineraryClient camp={camp} />
+              <CampItineraryClient
+                camp={camp}
+                liveWeatherMap={liveWeatherMap}
+              />
             </TabsContent>
           </Tabs>
         </div>

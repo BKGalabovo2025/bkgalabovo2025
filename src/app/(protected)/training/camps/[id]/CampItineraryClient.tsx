@@ -49,7 +49,10 @@ import {
 import { cn } from "@/lib/utils";
 import { plannerService } from "@/services/planner-service";
 import { updateCampSessions } from "@/services/schedule-service";
-import { getEstimatedWeather } from "@/services/weather-service";
+import {
+  getEstimatedWeather,
+  LocationWeatherForecast,
+} from "@/services/weather-service";
 import { useAppStore } from "@/store/use-app-store";
 import { CampSession, ScheduleEvent } from "@/types";
 import { Exercise, PlannerSession } from "@/types/planner.types";
@@ -74,7 +77,13 @@ const sessionTypeLabels: Record<string, string> = {
   other: "Друго",
 };
 
-export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
+export function CampItineraryClient({
+  camp,
+  liveWeatherMap,
+}: {
+  camp: ScheduleEvent;
+  liveWeatherMap?: Record<string, LocationWeatherForecast>;
+}) {
   const getLocLabel = (loc: string) => {
     if (loc === "court") return "В зала";
     if (loc === "stadium") return "Стадион";
@@ -558,6 +567,78 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
             </div>
           </div>
 
+          {/* Day Overview Weather Banner */}
+          {(() => {
+            const dayWeather = getEstimatedWeather(
+              camp.location,
+              selectedDateStr,
+              "12:00",
+              liveWeatherMap
+            );
+            return (
+              <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-sky-200/80 bg-linear-to-r from-sky-50/70 via-amber-50/50 to-cyan-50/70 px-3.5 py-2.5 text-xs shadow-2xs dark:border-sky-900/40 dark:from-sky-950/20 dark:via-amber-950/20 dark:to-cyan-950/20">
+                <div className="flex items-center gap-2 font-medium">
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    Прогноза:
+                  </span>
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                    {dayWeather.iconEmoji} {dayWeather.conditionText}
+                  </span>
+                  {dayWeather.isLive && (
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-300 bg-emerald-100/70 text-[9px] font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                    >
+                      🟢 На живо
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-3 font-semibold text-zinc-800 dark:text-zinc-200">
+                  <span
+                    title={`Въздух: Мин ${dayWeather.minAirTemp ?? dayWeather.airTemp}°C / Макс ${dayWeather.maxAirTemp ?? dayWeather.airTemp}°C`}
+                    className="inline-flex items-center gap-1 text-amber-900 dark:text-amber-300"
+                  >
+                    <span>☀️</span>
+                    <span>{dayWeather.airTemp}°C</span>
+                  </span>
+                  {dayWeather.waterTemp !== undefined && (
+                    <span
+                      title="Морска вода"
+                      className="inline-flex items-center gap-1 text-cyan-900 dark:text-cyan-300"
+                    >
+                      <span>🌊</span>
+                      <span>{dayWeather.waterTemp}°C</span>
+                    </span>
+                  )}
+                  <span
+                    title="Вероятност за дъжд"
+                    className={cn(
+                      "inline-flex items-center gap-1",
+                      (dayWeather.rainProbability ?? 0) > 40
+                        ? "text-blue-700 dark:text-blue-300"
+                        : "text-zinc-700 dark:text-zinc-300"
+                    )}
+                  >
+                    <span>💧</span>
+                    <span>{dayWeather.rainProbability ?? 0}%</span>
+                  </span>
+                  {dayWeather.waveHeight !== undefined && (
+                    <span
+                      title={dayWeather.seaStateLabel}
+                      className="inline-flex items-center gap-1 text-teal-800 dark:text-teal-300"
+                    >
+                      <span>{dayWeather.seaStateFlag || "🌊"}</span>
+                      <span>
+                        {dayWeather.waveHeight} м ({dayWeather.seaStateBalls}{" "}
+                        бала)
+                      </span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           {!hasAnyContent ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Clock className="mb-3 size-12 text-zinc-300 dark:text-zinc-700" />
@@ -592,7 +673,8 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                   const weather = getEstimatedWeather(
                     camp.location,
                     selectedDateStr,
-                    session.startTime
+                    session.startTime,
+                    liveWeatherMap
                   );
 
                   return (
@@ -608,7 +690,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                           "border-dashed border-primary opacity-50"
                       )}
                     >
-                      <div className="flex shrink-0 items-center justify-between gap-1.5 rounded-lg bg-zinc-100 p-2 sm:w-36 sm:flex-col sm:justify-center dark:bg-zinc-900">
+                      <div className="flex shrink-0 items-center justify-between gap-1.5 rounded-lg bg-zinc-100 p-2 sm:w-40 sm:flex-col sm:justify-center dark:bg-zinc-900">
                         <div className="flex items-center gap-1.5">
                           <span className="font-black text-zinc-900 dark:text-zinc-100">
                             {session.startTime}
@@ -634,6 +716,22 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                             >
                               <span>🌊</span>
                               <span>{weather.waterTemp}°C</span>
+                            </span>
+                          )}
+                          <span
+                            className="inline-flex items-center gap-0.5 rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300"
+                            title={`Вероятност за дъжд: ${weather.rainProbability ?? 0}%`}
+                          >
+                            <span>💧</span>
+                            <span>{weather.rainProbability ?? 0}%</span>
+                          </span>
+                          {weather.waveHeight !== undefined && (
+                            <span
+                              className="inline-flex items-center gap-0.5 rounded-full border border-teal-200 bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold text-teal-700 dark:border-teal-900/50 dark:bg-teal-950/40 dark:text-teal-300"
+                              title={`Вълнение на морето: ${weather.waveHeight} м (${weather.seaStateLabel})`}
+                            >
+                              <span>{weather.seaStateFlag || "🌊"}</span>
+                              <span>{weather.waveHeight}м</span>
                             </span>
                           )}
                         </div>
@@ -778,7 +876,8 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                     const weather = getEstimatedWeather(
                       camp.location,
                       selectedDateStr,
-                      ps.startTime || ""
+                      ps.startTime || "",
+                      liveWeatherMap
                     );
 
                     return (
@@ -786,7 +885,7 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                         key={ps.id}
                         className="group flex flex-col gap-4 rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 shadow-sm transition-all hover:border-indigo-400/50 sm:flex-row sm:items-center dark:border-indigo-900/40 dark:bg-indigo-900/10"
                       >
-                        <div className="flex shrink-0 items-center justify-between gap-1.5 rounded-lg bg-indigo-100 p-2 sm:w-36 sm:flex-col sm:justify-center dark:bg-indigo-900/30">
+                        <div className="flex shrink-0 items-center justify-between gap-1.5 rounded-lg bg-indigo-100 p-2 sm:w-40 sm:flex-col sm:justify-center dark:bg-indigo-900/30">
                           <div className="flex items-center gap-1.5">
                             <span className="font-black text-indigo-900 dark:text-indigo-100">
                               {ps.startTime || "--:--"}
@@ -812,6 +911,22 @@ export function CampItineraryClient({ camp }: { camp: ScheduleEvent }) {
                               >
                                 <span>🌊</span>
                                 <span>{weather.waterTemp}°C</span>
+                              </span>
+                            )}
+                            <span
+                              className="inline-flex items-center gap-0.5 rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300"
+                              title={`Вероятност за дъжд: ${weather.rainProbability ?? 0}%`}
+                            >
+                              <span>💧</span>
+                              <span>{weather.rainProbability ?? 0}%</span>
+                            </span>
+                            {weather.waveHeight !== undefined && (
+                              <span
+                                className="inline-flex items-center gap-0.5 rounded-full border border-teal-200 bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold text-teal-700 dark:border-teal-900/50 dark:bg-teal-950/40 dark:text-teal-300"
+                                title={`Вълнение на морето: ${weather.waveHeight} м (${weather.seaStateLabel})`}
+                              >
+                                <span>{weather.seaStateFlag || "🌊"}</span>
+                                <span>{weather.waveHeight}м</span>
                               </span>
                             )}
                           </div>
