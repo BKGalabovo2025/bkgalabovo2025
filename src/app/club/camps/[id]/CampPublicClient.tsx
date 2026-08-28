@@ -525,7 +525,9 @@ export default function CampPublicClient({
                           : "text-white"
                       )}
                     >
-                      {session.title}
+                      {session.title?.trim() ||
+                        sessionTypeLabels[session.type] ||
+                        "Тренировка"}
                     </h3>
 
                     {session.location && (
