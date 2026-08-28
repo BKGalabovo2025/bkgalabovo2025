@@ -3,6 +3,7 @@
 import { addDays, format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { bg } from "date-fns/locale";
 import {
+  BellRing,
   Bus,
   Check,
   Clock,
@@ -204,11 +205,15 @@ export default function CampPublicClient({
     [camp.campSessions]
   );
 
-  const { hasNewSessionsOnDate, seenSessionIds } = useCampSeenSessions(
-    camp.id,
-    selectedDateStr,
-    campSessionsList
-  );
+  const [isDismissedBanner, setIsDismissedBanner] = useState<boolean>(false);
+
+  const {
+    hasNewSessionsOnDate,
+    seenSessionIds,
+    unseenUpcomingDays,
+    totalUnseenUpcomingCount,
+    markAllAsSeen,
+  } = useCampSeenSessions(camp.id, selectedDateStr, campSessionsList, todayStr);
 
   useEffect(() => {
     if (camp.location) {
@@ -227,7 +232,72 @@ export default function CampPublicClient({
   const selectedDay = days.find((d) => d.dateStr === selectedDateStr);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
+      {/* Device-aware Notification Banner for new sessions */}
+      {totalUnseenUpcomingCount > 0 && !isDismissedBanner && (
+        <div className="relative overflow-hidden rounded-xl border border-rose-500/50 bg-linear-to-r from-rose-950/80 via-zinc-900/95 to-zinc-900/95 p-3.5 shadow-lg shadow-rose-950/20 backdrop-blur-xs transition-all">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-rose-500 text-white shadow-md">
+                <BellRing size={16} className="animate-bounce" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-black tracking-wider text-rose-200 uppercase">
+                    Новодобавени събития / тренировки
+                  </span>
+                  <span className="rounded-full border border-rose-500/50 bg-rose-500/30 px-2 py-0.5 text-[10px] font-black text-rose-200">
+                    {totalUnseenUpcomingCount}{" "}
+                    {totalUnseenUpcomingCount === 1 ? "ново" : "нови"}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs font-medium text-zinc-300">
+                  Треньорът добави нови тренировки/събития за{" "}
+                  <span className="font-bold text-white">
+                    {unseenUpcomingDays
+                      .map((d) => {
+                        const dayObj = days.find(
+                          (dy) => dy.dateStr === d.dateStr
+                        );
+                        const isToday = d.dateStr === todayStr;
+                        return isToday ? "Днес" : dayObj?.label || d.dateStr;
+                      })
+                      .join(", ")}
+                  </span>
+                  .
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  const firstTarget = unseenUpcomingDays[0]?.dateStr;
+                  if (firstTarget) {
+                    setSelectedDateStr(firstTarget);
+                  }
+                }}
+                className="cursor-pointer rounded-lg bg-rose-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-rose-600 active:scale-95"
+              >
+                Прегледай
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  markAllAsSeen();
+                  setIsDismissedBanner(true);
+                }}
+                className="cursor-pointer rounded-lg border border-zinc-700 bg-zinc-800/80 px-2.5 py-1.5 text-xs font-semibold text-zinc-300 transition-all hover:bg-zinc-700 hover:text-white"
+                title="Затвори и маркирай като прегледани"
+              >
+                Затвори
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Ultra-compact responsive day grid */}
       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-2">
         {days.map((day) => {

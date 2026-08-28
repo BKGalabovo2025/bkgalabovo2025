@@ -1,12 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { format } from "date-fns";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const STORAGE_PREFIX = "bkg_camp_seen_sessions_";
 
 export interface SessionDateItem {
   id: string;
   date: string;
+  title?: string;
+  startTime?: string;
+  type?: string;
+}
+
+export interface UnseenDayInfo {
+  dateStr: string;
+  count: number;
+  sessionTitles: string[];
 }
 
 /**
@@ -17,8 +27,10 @@ export interface SessionDateItem {
 export function useCampSeenSessions(
   campId: string,
   selectedDateStr: string,
-  sessions: SessionDateItem[]
+  sessions: SessionDateItem[],
+  todayStr?: string
 ) {
+  const effectiveTodayStr = todayStr || format(new Date(), "yyyy-MM-dd");
   const storageKey = `${STORAGE_PREFIX}${campId}`;
 
   const [seenSessionIds, setSeenSessionIds] = useState<Set<string>>(() => {
@@ -78,8 +90,52 @@ export function useCampSeenSessions(
     [sessions, seenSessionIds]
   );
 
+  // List of upcoming or current days that have unseen/newly added sessions
+  const unseenUpcomingDays: UnseenDayInfo[] = useMemo(() => {
+    const map = new Map<string, { count: number; titles: string[] }>();
+
+    sessions.forEach((s) => {
+      // Check if session is on or after today and not yet seen on this device
+      if (s.date >= effectiveTodayStr && !seenSessionIds.has(s.id)) {
+        const existing = map.get(s.date) || { count: 0, titles: [] };
+        existing.count++;
+        if (s.title) existing.titles.push(s.title);
+        map.set(s.date, existing);
+      }
+    });
+
+    const result: UnseenDayInfo[] = [];
+    map.forEach((value, dateStr) => {
+      result.push({
+        dateStr,
+        count: value.count,
+        sessionTitles: value.titles,
+      });
+    });
+
+    return result.sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+  }, [sessions, seenSessionIds, effectiveTodayStr]);
+
+  const totalUnseenUpcomingCount = useMemo(() => {
+    return unseenUpcomingDays.reduce((acc, day) => acc + day.count, 0);
+  }, [unseenUpcomingDays]);
+
+  const markAllAsSeen = useCallback(() => {
+    const allIds = sessions.map((s) => s.id);
+    const next = new Set(allIds);
+    setSeenSessionIds(next);
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(Array.from(next)));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [sessions, storageKey]);
+
   return {
     seenSessionIds,
     hasNewSessionsOnDate,
+    unseenUpcomingDays,
+    totalUnseenUpcomingCount,
+    markAllAsSeen,
   };
 }
