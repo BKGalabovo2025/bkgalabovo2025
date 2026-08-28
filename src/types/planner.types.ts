@@ -124,6 +124,8 @@ export interface PlannerSession {
   calculatedIntensity?: number;
 
   status: "planned" | "completed";
+  isCancelled?: boolean;
+  cancelledReason?: string;
   weatherIcon?: string; // e.g., 'sun', 'rain', 'cloud'
   createdAt: string;
   updatedAt: string;

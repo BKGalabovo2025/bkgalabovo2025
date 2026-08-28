@@ -367,6 +367,40 @@ export function CampItineraryClient({
     }
   };
 
+  const handleToggleCancelPlannerSession = async (ps: PlannerSession) => {
+    const isNowCancelled = !ps.isCancelled;
+    try {
+      setIsSaving(true);
+      await plannerService.updateSession(ps.id, {
+        isCancelled: isNowCancelled,
+        cancelledReason: isNowCancelled ? "Отменено от треньора" : undefined,
+      });
+      setPlannerSessions((prev) =>
+        prev.map((s) =>
+          s.id === ps.id
+            ? {
+                ...s,
+                isCancelled: isNowCancelled,
+                cancelledReason: isNowCancelled
+                  ? "Отменено от треньора"
+                  : undefined,
+              }
+            : s
+        )
+      );
+      toast.success(
+        isNowCancelled
+          ? `Тренировката "${ps.title}" е отбелязана като отменена.`
+          : `Тренировката "${ps.title}" е възстановена.`
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Грешка при промяна статуса на тренировката");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleDeleteSession = async (id: string) => {
     if (!confirm("Сигурни ли сте, че искате да изтриете тази сесия?")) return;
 
@@ -1075,11 +1109,23 @@ export function CampItineraryClient({
                     return (
                       <div
                         key={ps.id}
-                        className="group flex flex-col gap-4 rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 shadow-sm transition-all hover:border-indigo-400/50 sm:flex-row sm:items-center dark:border-indigo-900/40 dark:bg-indigo-900/10"
+                        className={cn(
+                          "group flex flex-col gap-4 rounded-xl border p-4 shadow-xs transition-all sm:flex-row sm:items-center",
+                          ps.isCancelled
+                            ? "border-rose-200/80 bg-rose-50/20 opacity-80 dark:border-rose-900/30 dark:bg-rose-950/10"
+                            : "border-indigo-200 bg-indigo-50/50 hover:border-indigo-400/50 dark:border-indigo-900/40 dark:bg-indigo-900/10"
+                        )}
                       >
                         <div className="flex shrink-0 items-center justify-between gap-1.5 rounded-lg bg-indigo-100 p-2 sm:w-40 sm:flex-col sm:justify-center dark:bg-indigo-900/30">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-black text-indigo-900 dark:text-indigo-100">
+                            <span
+                              className={cn(
+                                "font-black",
+                                ps.isCancelled
+                                  ? "text-zinc-400 line-through dark:text-zinc-500"
+                                  : "text-indigo-900 dark:text-indigo-100"
+                              )}
+                            >
                               {ps.startTime || "--:--"}
                             </span>
                             <span className="text-xs text-indigo-600 dark:text-indigo-400">
@@ -1141,8 +1187,23 @@ export function CampItineraryClient({
                                   {g}
                                 </Badge>
                               ))}
+                              {ps.isCancelled && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-rose-300 bg-rose-50 text-[10px] font-bold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/50 dark:text-rose-300"
+                                >
+                                  🚫 Отменено от треньора
+                                </Badge>
+                              )}
                             </div>
-                            <h4 className="font-bold text-zinc-900 dark:text-white">
+                            <h4
+                              className={cn(
+                                "font-bold",
+                                ps.isCancelled
+                                  ? "text-zinc-500 line-through dark:text-zinc-400"
+                                  : "text-zinc-900 dark:text-white"
+                              )}
+                            >
                               {ps.title}
                             </h4>
                             <div className="mt-2 flex flex-col gap-2">
@@ -1264,6 +1325,36 @@ export function CampItineraryClient({
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() =>
+                              void handleToggleCancelPlannerSession(ps)
+                            }
+                            className={cn(
+                              "h-8 gap-1.5 text-xs",
+                              ps.isCancelled
+                                ? "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:text-emerald-400"
+                                : "text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400"
+                            )}
+                            title={
+                              ps.isCancelled
+                                ? "Възстанови тренировката"
+                                : "Отмени тренировката (остава в графика с отметка)"
+                            }
+                          >
+                            {ps.isCancelled ? (
+                              <>
+                                <RotateCcw size={12} />
+                                Възстанови
+                              </>
+                            ) : (
+                              <>
+                                <Ban size={12} />
+                                Отмени
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleOpenPlannerWizard(ps)}
                             className="h-8 gap-1.5 text-xs text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
                           >
@@ -1298,16 +1389,18 @@ export function CampItineraryClient({
                           >
                             <Trash2 size={14} />
                           </Button>
-                          <Button
-                            asChild
-                            size="sm"
-                            className="h-8 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
-                          >
-                            <Link href={`/training/planner/${ps.id}/active`}>
-                              <Play size={12} />
-                              Старт
-                            </Link>
-                          </Button>
+                          {!ps.isCancelled && (
+                            <Button
+                              asChild
+                              size="sm"
+                              className="h-8 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                            >
+                              <Link href={`/training/planner/${ps.id}/active`}>
+                                <Play size={12} />
+                                Старт
+                              </Link>
+                            </Button>
+                          )}
                         </div>
                       </div>
                     );
