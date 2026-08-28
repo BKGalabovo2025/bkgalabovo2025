@@ -198,29 +198,16 @@ export function CoachNotesCard({
                   </div>
                 )}
                 {hasItems && (
-                  <details
-                    className="group/group-details mt-1 [&_summary::-webkit-details-marker]:hidden"
-                    open
-                  >
-                    <summary className="cursor-pointer text-xs font-semibold text-indigo-300 underline decoration-indigo-500/40 select-none hover:text-indigo-200">
-                      <span className="group-open/group-details:hidden">
-                        ▶ Виж участниците ({sec.items!.length})
-                      </span>
-                      <span className="hidden group-open/group-details:inline">
-                        ▼ Скрий участниците
-                      </span>
-                    </summary>
-                    <ul className="mt-1.5 space-y-1 border-l-2 border-indigo-500/40 pl-2.5">
-                      {sec.items!.map((item, itemIdx) => (
-                        <li
-                          key={itemIdx}
-                          className="text-xs font-medium text-zinc-200"
-                        >
-                          • {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
+                  <ul className="mt-1 space-y-1 border-l-2 border-indigo-500/40 pl-2.5">
+                    {sec.items!.map((item, itemIdx) => (
+                      <li
+                        key={itemIdx}
+                        className="text-xs font-medium text-zinc-200"
+                      >
+                        • {item}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             );
