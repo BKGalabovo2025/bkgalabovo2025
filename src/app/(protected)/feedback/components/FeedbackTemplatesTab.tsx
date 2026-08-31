@@ -20,6 +20,40 @@ interface FeedbackTemplatesTabProps {
   onRefresh: () => void;
 }
 
+function renderSiteStatusBadge(
+  standingCampaign: FeedbackCampaign | undefined,
+  isLiveOnSite: boolean
+) {
+  if (!standingCampaign) {
+    return (
+      <Badge
+        variant="outline"
+        className="border-zinc-200 bg-zinc-50 text-[10px] font-medium text-zinc-400"
+      >
+        ⚪ Не е пусната на сайта
+      </Badge>
+    );
+  }
+
+  if (isLiveOnSite) {
+    return (
+      <Badge className="border-emerald-300 bg-emerald-100 text-[11px] font-black text-emerald-800 shadow-2xs">
+        <span className="mr-1.5 inline-block size-2 animate-pulse rounded-full bg-emerald-500" />
+        🟢 Активна на сайта
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      variant="secondary"
+      className="border border-zinc-200 bg-zinc-100 text-[10px] font-bold text-zinc-500"
+    >
+      ⏸️ Спряна от сайта
+    </Badge>
+  );
+}
+
 function getEventTypeLabel(eventType: string) {
   switch (eventType) {
     case "camp":
@@ -150,8 +184,33 @@ export function FeedbackTemplatesTab({
         </div>
       </div>
 
+      {/* Information Banner */}
+      <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-white to-blue-50/50 p-4 shadow-2xs">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+          <Globe className="size-5" />
+        </div>
+        <div className="text-xs">
+          <h4 className="font-bold text-indigo-950">
+            Публикуване на анкети на клубния сайт
+          </h4>
+          <p className="mt-0.5 text-zinc-600">
+            Можете да пуснете <strong>всеки един от шаблоните</strong> по-долу
+            да е постоянно достъпен на сайта на клуба (в секция{" "}
+            <a
+              href="/club/reviews"
+              target="_blank"
+              rel="noreferrer"
+              className="font-bold text-indigo-600 underline hover:text-indigo-800"
+            >
+              ⭐ Отзиви
+            </a>
+            ). Посетителите и родителите ще могат да го попълват по всяко време.
+          </p>
+        </div>
+      </div>
+
       {/* Templates List */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {templates.map((tmpl) => {
           const standingCampaign = campaigns.find(
             (c) =>
@@ -159,15 +218,22 @@ export function FeedbackTemplatesTab({
               (c.isStanding || c.eventType === tmpl.eventType || !c.eventId)
           );
 
+          const isLiveOnSite = standingCampaign?.status === "active";
+
           return (
             <Card
               key={tmpl.id}
-              className="overflow-hidden border-zinc-200 shadow-2xs transition-all hover:border-indigo-200 hover:shadow-xs"
+              className={`overflow-hidden transition-all ${
+                isLiveOnSite
+                  ? "border-emerald-300 bg-gradient-to-b from-emerald-50/20 via-white to-white shadow-xs ring-1 ring-emerald-400/30"
+                  : "border-zinc-200 shadow-2xs hover:border-indigo-200 hover:shadow-xs"
+              }`}
             >
               <CardContent className="flex h-full flex-col justify-between space-y-4 p-5">
                 <div>
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
+                  {/* Status Badges Header */}
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <Badge
                         variant="outline"
                         className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase"
@@ -175,22 +241,18 @@ export function FeedbackTemplatesTab({
                         {getEventTypeLabel(tmpl.eventType)}
                       </Badge>
 
-                      {standingCampaign?.status === "active" && (
-                        <Badge className="border-emerald-200 bg-emerald-100 text-[10px] font-bold text-emerald-800">
-                          <span className="mr-1 inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
-                          Видима на сайта
+                      {tmpl.isDefault && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-zinc-100 text-[10px] text-zinc-600"
+                        >
+                          Стандартен
                         </Badge>
                       )}
                     </div>
 
-                    {tmpl.isDefault && (
-                      <Badge
-                        variant="secondary"
-                        className="bg-zinc-100 text-[10px] text-zinc-600"
-                      >
-                        Стандартен
-                      </Badge>
-                    )}
+                    {/* Prominent Site Status Badge */}
+                    {renderSiteStatusBadge(standingCampaign, isLiveOnSite)}
                   </div>
 
                   <h3 className="text-base font-black tracking-tight text-zinc-900">
@@ -235,56 +297,58 @@ export function FeedbackTemplatesTab({
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => handleEdit(tmpl)}
-                      size="sm"
-                      variant="outline"
-                      className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50"
-                    >
-                      <Pencil className="mr-1.5 size-3.5 text-indigo-600" />
-                      Редактирай
-                    </Button>
-
+                {/* Card Action Footer */}
+                <div className="space-y-2 border-t border-zinc-100 pt-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    {/* Primary Standing Control Button */}
                     {standingCampaign ? (
                       <Button
                         onClick={() => handleToggleStanding(standingCampaign)}
                         size="sm"
-                        className={`rounded-xl text-[11px] font-bold transition-all ${
-                          standingCampaign.status === "active"
-                            ? "bg-emerald-600 text-white shadow-2xs hover:bg-amber-600"
-                            : "border border-zinc-300 bg-zinc-100 text-zinc-700 hover:bg-emerald-600 hover:text-white"
+                        className={`rounded-xl text-xs font-bold transition-all ${
+                          isLiveOnSite
+                            ? "bg-emerald-600 text-white shadow-xs hover:bg-amber-600"
+                            : "border border-zinc-300 bg-zinc-100 text-zinc-800 hover:bg-emerald-600 hover:text-white"
                         }`}
                       >
-                        <Power className="mr-1.5 size-3" />
-                        {standingCampaign.status === "active"
-                          ? "🟢 Активна на сайта"
-                          : "▶️ Пусни на сайта"}
+                        <Power className="mr-1.5 size-3.5" />
+                        {isLiveOnSite
+                          ? "🟢 Пусната на сайта (Спри)"
+                          : "▶️ Пусни отново на сайта"}
                       </Button>
                     ) : (
                       <Button
                         onClick={() => handleCreateStanding(tmpl)}
                         size="sm"
-                        variant="outline"
-                        className="rounded-xl border-indigo-200 bg-indigo-50/50 text-[11px] font-bold text-indigo-700 hover:bg-indigo-600 hover:text-white"
+                        className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-xs hover:from-blue-500 hover:to-indigo-500"
                       >
-                        <Globe className="mr-1.5 size-3" />
-                        Пусни на сайта
+                        <Globe className="mr-1.5 size-3.5" />
+                        🌐 Пусни на сайта
                       </Button>
                     )}
-                  </div>
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(tmpl.id)}
-                    className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600"
-                    title="Изтрий шаблон"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        onClick={() => handleEdit(tmpl)}
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50"
+                      >
+                        <Pencil className="mr-1.5 size-3.5 text-indigo-600" />
+                        Редактирай
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(tmpl.id)}
+                        className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600"
+                        title="Изтрий шаблон"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
