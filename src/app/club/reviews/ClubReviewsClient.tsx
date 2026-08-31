@@ -2,7 +2,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Loader2, MessageSquare, Quote, Sparkles, Star } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  MessageSquare,
+  Sparkles,
+  Star,
+  Tag,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PublicFooter } from "@/components/layout/public-footer";
@@ -188,86 +195,117 @@ export default function ClubReviewsClient() {
           </div>
         ) : (
           <div className="relative z-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredReviews.map((rev, idx) => (
-              <motion.div
-                key={rev.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-              >
-                <Card className="group flex h-full flex-col justify-between rounded-3xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/90 to-zinc-950/90 p-6 shadow-xl backdrop-blur-md transition-all hover:border-blue-500/40">
-                  <div className="space-y-4">
-                    {/* Header: Stars & Event Tag */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1 text-amber-400">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`size-4 ${
-                              i < rev.overallRating
-                                ? "fill-amber-400 text-amber-400"
-                                : "text-zinc-700"
-                            }`}
-                          />
-                        ))}
+            {filteredReviews.map((rev, idx) => {
+              const initial =
+                rev.respondentName?.trim()?.charAt(0)?.toUpperCase() || "К";
+              const formattedDate = new Date(rev.createdAt).toLocaleDateString(
+                "bg-BG",
+                {
+                  month: "long",
+                  year: "numeric",
+                }
+              );
+
+              return (
+                <motion.div
+                  key={rev.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/90 via-zinc-900/70 to-zinc-950/90 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-blue-500/50 hover:shadow-blue-500/10 sm:p-7">
+                    {/* Top ambient glow */}
+                    <div className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-blue-500/10 blur-2xl transition-all group-hover:bg-blue-500/20" />
+
+                    <div className="space-y-4">
+                      {/* Header: Stars with rating score & Event Badge */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1 text-amber-400">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`size-4.5 transition-transform group-hover:scale-105 ${
+                                  i < rev.overallRating
+                                    ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]"
+                                    : "text-zinc-700"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs font-bold text-zinc-400">
+                            {rev.overallRating}.0
+                          </span>
+                        </div>
+
+                        <Badge
+                          variant="outline"
+                          className="rounded-full border-blue-500/30 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-extrabold tracking-wider text-blue-400 uppercase"
+                        >
+                          {rev.eventType === "camp"
+                            ? "Лагер"
+                            : rev.eventType === "competition"
+                              ? "Състезание"
+                              : rev.eventType === "training"
+                                ? "Тренировки"
+                                : "Клуб"}
+                        </Badge>
                       </div>
 
-                      <Badge
-                        variant="outline"
-                        className="border-blue-500/30 bg-blue-500/10 text-[10px] font-bold tracking-wider text-blue-400 uppercase"
-                      >
-                        {rev.eventType === "camp"
-                          ? "Лагер"
-                          : rev.eventType === "competition"
-                            ? "Състезание"
-                            : rev.eventType === "training"
-                              ? "Тренировка"
-                              : "Клуб"}
-                      </Badge>
-                    </div>
-
-                    {/* Event Title */}
-                    {rev.eventTitle && (
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-blue-300">
-                        <span>🏷️</span>
-                        <span>{rev.eventTitle}</span>
-                      </div>
-                    )}
-
-                    {/* Review text */}
-                    <div className="relative">
-                      <Quote className="pointer-events-none absolute -top-2 -left-1 size-6 text-blue-500/20" />
-                      <p className="pl-3 text-xs leading-relaxed text-zinc-300 italic sm:text-sm">
-                        &ldquo;
-                        {rev.highlightQuote || rev.reviewText}
-                        &rdquo;
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Author / Parent Footer */}
-                  <div className="mt-6 flex items-center justify-between border-t border-zinc-800/60 pt-4 text-xs">
-                    <div>
-                      <div className="font-bold text-white transition-colors group-hover:text-blue-300">
-                        {rev.respondentName}
-                      </div>
-                      {rev.childName && (
-                        <div className="text-[11px] text-zinc-500">
-                          Родител на {rev.childName}
+                      {/* Event Title Tag */}
+                      {rev.eventTitle && (
+                        <div className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950/60 px-2.5 py-1 text-[11px] font-bold text-blue-300">
+                          <Tag className="size-3 shrink-0 text-blue-400" />
+                          <span className="truncate">{rev.eventTitle}</span>
                         </div>
                       )}
+
+                      {/* Review Text */}
+                      <div className="relative border-l-2 border-blue-500/40 py-0.5 pl-3.5">
+                        <p className="text-sm leading-relaxed font-normal text-zinc-200 italic sm:text-[15px]">
+                          &ldquo;{rev.highlightQuote || rev.reviewText}&rdquo;
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="text-[10px] text-zinc-500">
-                      {new Date(rev.createdAt).toLocaleDateString("bg-BG", {
-                        month: "short",
-                        year: "numeric",
-                      })}
+                    {/* Author / Parent Footer */}
+                    <div className="mt-6 flex items-center justify-between border-t border-zinc-800/80 pt-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-xs font-black text-white shadow-md shadow-blue-500/20">
+                          {initial}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-white transition-colors group-hover:text-blue-300 sm:text-sm">
+                            <span>{rev.respondentName}</span>
+                            <span
+                              title="Проверен отзив"
+                              className="inline-flex"
+                            >
+                              <CheckCircle2 className="size-3.5 shrink-0 text-emerald-400" />
+                            </span>
+                          </div>
+                          {rev.childName ? (
+                            <div className="text-[11px] font-medium text-zinc-400">
+                              Родител на {rev.childName}
+                            </div>
+                          ) : (
+                            <div className="text-[11px] font-medium text-zinc-400 capitalize">
+                              {rev.respondentRole === "athlete"
+                                ? "Състезател"
+                                : "Член на клуба"}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-[11px] font-medium text-zinc-500">
+                        {formattedDate}
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </main>
