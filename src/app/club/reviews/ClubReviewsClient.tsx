@@ -179,25 +179,25 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
 
           {/* 3. Category Stars Breakdown */}
           {ratingItems.length > 0 && (
-            <div className="space-y-2 rounded-2xl border border-zinc-800/80 bg-zinc-950/50 p-4">
+            <div className="space-y-2.5 rounded-2xl border border-zinc-800/80 bg-zinc-950/50 p-4">
               <div className="text-[10px] font-extrabold tracking-wider text-zinc-400 uppercase">
                 Оценки по елементи:
               </div>
-              <div className="divide-zinc-850 space-y-2 divide-y">
+              <div className="divide-zinc-850 space-y-2.5 divide-y">
                 {ratingItems.map((item, rIdx) => (
                   <div
                     key={rIdx}
-                    className="flex items-center justify-between gap-2 pt-1.5 first:pt-0"
+                    className="flex flex-col gap-1 pt-2 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <span className="truncate text-[11px] font-medium text-zinc-300">
+                    <span className="text-[11px] leading-snug font-medium text-zinc-300">
                       {item.label}
                     </span>
-                    <div className="flex shrink-0 items-center gap-1.5">
+                    <div className="flex shrink-0 items-center gap-1.5 self-end sm:self-auto">
                       <div className="flex items-center gap-0.5 text-amber-400">
                         {Array.from({ length: 5 }).map((_, sIdx) => (
                           <Star
                             key={sIdx}
-                            className={`size-3 ${
+                            className={`size-3.5 ${
                               sIdx < item.rating
                                 ? "fill-amber-400 text-amber-400"
                                 : "text-zinc-700"
