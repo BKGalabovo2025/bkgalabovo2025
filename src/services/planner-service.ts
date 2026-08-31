@@ -227,6 +227,17 @@ export const plannerService = {
     );
   },
 
+  async getAttendanceBySite(siteId: string): Promise<SessionAttendance[]> {
+    const q = query(
+      collection(db, ATTENDANCE_COLLECTION),
+      where("siteId", "==", siteId)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() }) as SessionAttendance
+    );
+  },
+
   // ================= ANNUAL PLANS & TEMPLATES =================
   async getAnnualPlans(siteId: string): Promise<AnnualPlan[]> {
     const q = query(
