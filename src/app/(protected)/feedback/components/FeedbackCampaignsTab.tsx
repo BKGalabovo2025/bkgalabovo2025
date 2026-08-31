@@ -5,11 +5,13 @@ import {
   Check,
   CheckCircle2,
   ExternalLink,
+  Globe,
   Link as LinkIcon,
   MessageSquare,
   Plus,
   Power,
   Share2,
+  Sparkles,
   Star,
   Trash2,
 } from "lucide-react";
@@ -46,6 +48,10 @@ export function FeedbackCampaignsTab({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const generalCampaign = campaigns.find(
+    (c) => c.eventType === "general" || !c.eventId
+  );
+
   const handleCopyLink = async (campaignId: string) => {
     const url = `${window.location.origin}/feedback/${campaignId}`;
     await navigator.clipboard.writeText(url);
@@ -62,13 +68,40 @@ export function FeedbackCampaignsTab({
       await feedbackService.updateCampaign(campaign.id, { status: newStatus });
       toast.success(
         newStatus === "active"
-          ? "Анкетата е активирана отново"
-          : "Анкетата е приключена"
+          ? "Анкетата е активирана за сайта и споделяне"
+          : "Анкетата е временно спряна (скрита от сайта)"
       );
       onRefresh();
     } catch (e) {
       console.error(e);
       toast.error("Възникна грешка");
+    }
+  };
+
+  const handleCreateGeneralCampaign = async () => {
+    try {
+      const genTemplate =
+        templates.find((t) => t.eventType === "general") || templates[0];
+      if (!genTemplate) {
+        toast.error("Липсва шаблон за обща анкета.");
+        return;
+      }
+      await feedbackService.createCampaign(siteId, {
+        title: "Общ отзив и впечатления за Бадминтон клуб Гълъбово",
+        description:
+          "Постоянна публична анкета за тренировки, треньорски подход и удовлетвореност от клуба.",
+        eventType: "general",
+        templateId: genTemplate.id,
+        templateName: genTemplate.name,
+        questions: genTemplate.questions,
+        status: "active",
+        targetAudience: "all",
+      });
+      toast.success("Общата анкета беше активирана на публичния сайт!");
+      onRefresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Възникна грешка при създаване на общата анкета.");
     }
   };
 
@@ -90,16 +123,111 @@ export function FeedbackCampaignsTab({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top action header */}
-      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+    <div className="space-y-8">
+      {/* 1. Standing Club Public Survey Card */}
+      <Card className="overflow-hidden border-indigo-200 bg-gradient-to-r from-indigo-900 via-indigo-950 to-zinc-950 p-6 text-white shadow-xl">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge className="border-indigo-400/40 bg-indigo-500/20 text-xs font-bold text-indigo-300">
+                <Globe className="mr-1 size-3.5" />
+                Публичен сайт
+              </Badge>
+              {generalCampaign?.status === "active" ? (
+                <Badge className="border-emerald-500/30 bg-emerald-500/20 text-xs font-bold text-emerald-300">
+                  <span className="mr-1.5 inline-block size-2 animate-pulse rounded-full bg-emerald-400" />
+                  Активна на сайта
+                </Badge>
+              ) : (
+                <Badge className="border-zinc-700 bg-zinc-800 text-xs text-zinc-400">
+                  Спряна (Не се вижда)
+                </Badge>
+              )}
+            </div>
+
+            <h3 className="text-lg font-black text-white sm:text-xl">
+              Постоянна анкета за общ отзив на клуба
+            </h3>
+            <p className="max-w-xl text-xs leading-relaxed text-indigo-200/80 sm:text-sm">
+              Когато е активна, бутонът{" "}
+              <strong>„✍️ Споделете Вашия отзив“</strong> се показва автоматично
+              на сайта на клуба. Всеки родител или гост може да остави отзив,
+              който преминава през модерация преди да се публикува.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {generalCampaign ? (
+              <>
+                <Button
+                  onClick={() => handleToggleStatus(generalCampaign)}
+                  className={`rounded-xl px-4 py-2 text-xs font-bold shadow-md transition-all ${
+                    generalCampaign.status === "active"
+                      ? "bg-amber-500 text-white hover:bg-amber-600"
+                      : "bg-emerald-600 text-white hover:bg-emerald-500"
+                  }`}
+                >
+                  <Power className="mr-1.5 size-4" />
+                  {generalCampaign.status === "active"
+                    ? "⏸️ Спри анкетата от сайта"
+                    : "▶️ Пусни анкетата на сайта"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => handleCopyLink(generalCampaign.id)}
+                  className="rounded-xl border-indigo-400/30 bg-indigo-900/40 text-xs font-bold text-indigo-100 hover:bg-indigo-900/80"
+                >
+                  {copiedId === generalCampaign.id ? (
+                    <>
+                      <Check className="mr-1.5 size-4 text-emerald-400" />
+                      Копиран!
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="mr-1.5 size-4" />
+                      Копирай линк
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-xl border-indigo-400/30 bg-indigo-900/40 text-xs font-bold text-indigo-100 hover:bg-indigo-900/80"
+                >
+                  <a
+                    href={`/feedback/${generalCampaign.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ExternalLink className="mr-1.5 size-3.5" />
+                    Преглед
+                  </a>
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={handleCreateGeneralCampaign}
+                className="rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-500/30 hover:from-blue-400 hover:to-indigo-500"
+              >
+                <Sparkles className="mr-1.5 size-4" />
+                🚀 Активирай обща анкета за сайта сега
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* 2. Top action header for Event Specific Campaigns */}
+      <div className="flex flex-col items-start justify-between gap-4 border-t border-zinc-200 pt-6 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-lg font-black tracking-tight text-zinc-900">
-            Анкети за събития & Линкове за споделяне
+            Анкети за конкретни събития & Линкове за споделяне
           </h2>
           <p className="text-xs font-medium text-zinc-500">
-            Генерирайте линкове за обратна връзка за конкретни лагери, турнири
-            или тренировки.
+            Генерирайте специални линкове за конкретни лагери, турнири или
+            тренировки.
           </p>
         </div>
 

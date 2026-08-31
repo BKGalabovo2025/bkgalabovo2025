@@ -329,6 +329,18 @@ export const feedbackService = {
     return { id: snapshot.id, ...snapshot.data() } as FeedbackCampaign;
   },
 
+  async getActiveGeneralCampaign(
+    siteId: string
+  ): Promise<FeedbackCampaign | null> {
+    const campaigns = await this.getCampaigns(siteId);
+    // Find active general/club campaign, or fallback to first active campaign
+    const generalActive = campaigns.find(
+      (c) => c.status === "active" && (c.eventType === "general" || !c.eventId)
+    );
+    if (generalActive) return generalActive;
+    return campaigns.find((c) => c.status === "active") || null;
+  },
+
   async createCampaign(
     siteId: string,
     data: Omit<

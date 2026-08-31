@@ -9,18 +9,21 @@ import {
   Loader2,
   MessageCircle,
   MessageSquare,
+  PenLine,
   Sparkles,
   Star,
   Tag,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { PublicFooter } from "@/components/layout/public-footer";
 import { PublicNav } from "@/components/layout/public-nav";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { feedbackService } from "@/services/feedback-service";
-import { FeedbackSubmission } from "@/types/feedback.types";
+import { FeedbackCampaign, FeedbackSubmission } from "@/types/feedback.types";
 
 const QUESTION_LABELS_FALLBACK: Record<string, string> = {
   q_org: "Организация и комуникация",
@@ -199,7 +202,7 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
             </div>
           )}
 
-          {/* 5. Open Questions & Answers (Expandable) */}
+          {/* 4. Open Questions & Answers (Expandable) */}
           {textItems.length > 0 && (
             <div className="space-y-2 pt-1">
               {isExpanded && (
@@ -239,7 +242,7 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
           )}
         </div>
 
-        {/* 7. Author / Parent Footer */}
+        {/* 5. Author / Parent Footer */}
         <div className="mt-6 flex items-center justify-between border-t border-zinc-800/80 pt-4">
           <div className="flex items-center gap-3">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-xs font-black text-white shadow-md shadow-blue-500/20">
@@ -277,22 +280,28 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
 
 export default function ClubReviewsClient() {
   const [reviews, setReviews] = useState<FeedbackSubmission[]>([]);
+  const [generalCampaign, setGeneralCampaign] =
+    useState<FeedbackCampaign | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   useEffect(() => {
-    const loadReviews = async () => {
+    const loadData = async () => {
       setIsLoading(true);
       try {
-        const data = await feedbackService.getPublicReviews("bkgalabovo");
-        setReviews(data);
+        const [reviewsData, activeCampaign] = await Promise.all([
+          feedbackService.getPublicReviews("bkgalabovo"),
+          feedbackService.getActiveGeneralCampaign("bkgalabovo"),
+        ]);
+        setReviews(reviewsData);
+        setGeneralCampaign(activeCampaign);
       } catch (e) {
         console.error(e);
       } finally {
         setIsLoading(false);
       }
     };
-    loadReviews();
+    loadData();
   }, []);
 
   const filteredReviews = useMemo(() => {
@@ -354,6 +363,26 @@ export default function ClubReviewsClient() {
             Споделените преживявания и обратна връзка за нашите летни лагери,
             състезателни турнири и целогодишни тренировки в БК Гълъбово.
           </motion.p>
+
+          {/* Direct Public Review Button when General Campaign is Active */}
+          {generalCampaign && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="pt-2"
+            >
+              <Button
+                asChild
+                className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
+              >
+                <Link href={`/feedback/${generalCampaign.id}`}>
+                  <PenLine className="mr-2 size-4.5" />
+                  ✍️ Споделете Вашия отзив за клуба
+                </Link>
+              </Button>
+            </motion.div>
+          )}
         </div>
 
         {/* Rating Metrics Showcase Bar */}
@@ -455,6 +484,37 @@ export default function ClubReviewsClient() {
               <ReviewCardItem key={rev.id} rev={rev} index={idx} />
             ))}
           </div>
+        )}
+
+        {/* Bottom invitation card */}
+        {generalCampaign && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative z-10 mx-auto max-w-3xl overflow-hidden rounded-3xl border border-blue-500/30 bg-gradient-to-r from-zinc-900 via-blue-950/40 to-zinc-900 p-8 text-center shadow-2xl backdrop-blur-xl"
+          >
+            <div className="space-y-4">
+              <h3 className="text-xl font-black text-white sm:text-2xl">
+                Били ли сте част от нашите събития или тренировки?
+              </h3>
+              <p className="mx-auto max-w-lg text-xs leading-relaxed text-zinc-400 sm:text-sm">
+                Вашето мнение е изключително важно за развитието на децата и
+                клуба. Споделете впечатленията си само за 1-2 минути!
+              </p>
+              <div className="pt-2">
+                <Button
+                  asChild
+                  className="rounded-2xl bg-blue-600 px-6 py-5 font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:bg-blue-500"
+                >
+                  <Link href={`/feedback/${generalCampaign.id}`}>
+                    <PenLine className="mr-2 size-4" />
+                    ✍️ Попълнете клубната анкета
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </motion.div>
         )}
       </main>
 
