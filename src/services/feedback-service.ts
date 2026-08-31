@@ -389,12 +389,43 @@ export const feedbackService = {
     siteId: string
   ): Promise<FeedbackCampaign | null> {
     const campaigns = await this.getCampaigns(siteId);
-    // Find active general/club campaign, or fallback to first active campaign
     const generalActive = campaigns.find(
-      (c) => c.status === "active" && (c.eventType === "general" || !c.eventId)
+      (c) =>
+        c.status === "active" &&
+        (c.isStanding || c.eventType === "general" || !c.eventId)
     );
     if (generalActive) return generalActive;
     return campaigns.find((c) => c.status === "active") || null;
+  },
+
+  async getActiveStandingCampaigns(
+    siteId: string
+  ): Promise<FeedbackCampaign[]> {
+    const campaigns = await this.getCampaigns(siteId);
+    return campaigns.filter(
+      (c) =>
+        c.status === "active" &&
+        (c.isStanding || c.eventType === "general" || !c.eventId)
+    );
+  },
+
+  async createStandingCampaignFromTemplate(
+    siteId: string,
+    template: FeedbackSurveyTemplate
+  ): Promise<string> {
+    return this.createCampaign(siteId, {
+      title: `${template.name} (Постоянна)`,
+      description:
+        template.description ||
+        "Постоянна публична анкета за обратна връзка от клуба.",
+      eventType: template.eventType,
+      templateId: template.id,
+      templateName: template.name,
+      questions: template.questions,
+      status: "active",
+      targetAudience: "all",
+      isStanding: true,
+    });
   },
 
   async createCampaign(

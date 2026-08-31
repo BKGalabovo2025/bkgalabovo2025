@@ -273,6 +273,7 @@ function FeedbackClientContent() {
         <TabsContent value="templates" className="mt-6">
           <FeedbackTemplatesTab
             templates={templates}
+            campaigns={campaigns}
             siteId={siteId}
             onRefresh={loadData}
           />

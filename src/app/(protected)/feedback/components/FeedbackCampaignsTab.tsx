@@ -48,8 +48,12 @@ export function FeedbackCampaignsTab({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const generalCampaign = campaigns.find(
-    (c) => c.eventType === "general" || !c.eventId
+  const standingCampaigns = campaigns.filter(
+    (c) => c.isStanding || c.eventType === "general" || !c.eventId
+  );
+
+  const eventCampaigns = campaigns.filter(
+    (c) => !c.isStanding && c.eventType !== "general" && Boolean(c.eventId)
   );
 
   const handleCopyLink = async (campaignId: string) => {
@@ -96,6 +100,7 @@ export function FeedbackCampaignsTab({
         questions: genTemplate.questions,
         status: "active",
         targetAudience: "all",
+        isStanding: true,
       });
       toast.success("Общата анкета беше активирана на публичния сайт!");
       onRefresh();
@@ -124,107 +129,197 @@ export function FeedbackCampaignsTab({
 
   return (
     <div className="space-y-8">
-      {/* 1. Standing Club Public Survey Card */}
-      <Card className="overflow-hidden border-indigo-200 bg-gradient-to-r from-indigo-900 via-indigo-950 to-zinc-950 p-6 text-white shadow-xl">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-          <div className="space-y-2">
+      {/* 1. Standing Club Public Surveys Section */}
+      <div className="space-y-4">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+          <div>
             <div className="flex items-center gap-2">
+              <Badge className="border-indigo-400/40 bg-indigo-500/10 text-xs font-bold text-indigo-700">
+                <Globe className="mr-1 size-3.5" />
+                Публичен клубен сайт
+              </Badge>
               <a
                 href="/club/reviews"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 rounded-full border border-indigo-400/40 bg-indigo-500/20 px-2.5 py-0.5 text-xs font-bold text-indigo-300 transition-colors hover:bg-indigo-500/40 hover:text-white"
-                title="Отвори публичната страница с отзиви на клуба"
+                className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
               >
-                <Globe className="size-3.5" />
-                Публичен сайт
-                <ExternalLink className="size-3 opacity-70" />
+                Виж в сайта
+                <ExternalLink className="size-3" />
               </a>
-              {generalCampaign?.status === "active" ? (
-                <Badge className="border-emerald-500/30 bg-emerald-500/20 text-xs font-bold text-emerald-300">
-                  <span className="mr-1.5 inline-block size-2 animate-pulse rounded-full bg-emerald-400" />
-                  Активна на сайта
-                </Badge>
-              ) : (
-                <Badge className="border-zinc-700 bg-zinc-800 text-xs text-zinc-400">
-                  Спряна (Не се вижда)
-                </Badge>
-              )}
             </div>
-
-            <h3 className="text-lg font-black text-white sm:text-xl">
-              Постоянна анкета за общ отзив на клуба
-            </h3>
-            <p className="max-w-xl text-xs leading-relaxed text-indigo-200/80 sm:text-sm">
-              Когато е активна, бутонът{" "}
-              <strong>„✍️ Споделете Вашия отзив“</strong> се показва автоматично
-              на сайта на клуба. Всеки родител или гост може да остави отзив,
-              който преминава през модерация преди да се публикува.
+            <h2 className="mt-1 text-lg font-black tracking-tight text-zinc-900">
+              Постоянни публични анкети на сайта
+            </h2>
+            <p className="text-xs font-medium text-zinc-500">
+              Всички активирани анкети тук са постоянно достъпни за попълване от
+              посетителите на сайта.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {generalCampaign ? (
-              <>
-                <Button
-                  onClick={() => handleToggleStatus(generalCampaign)}
-                  className={`rounded-xl px-4 py-2 text-xs font-bold shadow-md transition-all ${
-                    generalCampaign.status === "active"
-                      ? "bg-amber-500 text-white hover:bg-amber-600"
-                      : "bg-emerald-600 text-white hover:bg-emerald-500"
+          <Button
+            onClick={handleCreateGeneralCampaign}
+            size="sm"
+            className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-xs hover:from-blue-500 hover:to-indigo-500"
+          >
+            <Sparkles className="mr-1.5 size-3.5" />+ Добави обща анкета за
+            сайта
+          </Button>
+        </div>
+
+        {standingCampaigns.length === 0 ? (
+          <Card className="border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-center">
+            <Globe className="mx-auto mb-2 size-8 text-zinc-400" />
+            <h4 className="text-sm font-bold text-zinc-800">
+              Няма активирани постоянни анкети на сайта
+            </h4>
+            <p className="mx-auto mt-1 max-w-md text-xs text-zinc-500">
+              Можете да активирате всеки един шаблон като постоянна анкета от
+              таб „Шаблони“ или да натиснете бутона по-горе.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {standingCampaigns.map((sc) => {
+              const isActive = sc.status === "active";
+              const isCopied = copiedId === sc.id;
+
+              return (
+                <Card
+                  key={sc.id}
+                  className={`overflow-hidden border transition-all ${
+                    isActive
+                      ? "border-indigo-200 bg-gradient-to-br from-indigo-50/30 via-white to-zinc-50/50 shadow-xs"
+                      : "border-zinc-200 bg-zinc-50/40 opacity-80"
                   }`}
                 >
-                  <Power className="mr-1.5 size-4" />
-                  {generalCampaign.status === "active"
-                    ? "⏸️ Спри анкетата от сайта"
-                    : "▶️ Пусни анкетата на сайта"}
-                </Button>
+                  <CardContent className="flex h-full flex-col justify-between p-5">
+                    <div>
+                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {isActive ? (
+                            <Badge className="border-emerald-300 bg-emerald-100 text-[10px] font-bold text-emerald-800">
+                              <span className="mr-1 inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
+                              Активна на сайта
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="secondary"
+                              className="bg-zinc-200 text-[10px] font-bold text-zinc-600"
+                            >
+                              Спряна
+                            </Badge>
+                          )}
 
-                <Button
-                  variant="outline"
-                  onClick={() => handleCopyLink(generalCampaign.id)}
-                  className="rounded-xl border-indigo-400/30 bg-indigo-900/40 text-xs font-bold text-indigo-100 hover:bg-indigo-900/80"
-                >
-                  {copiedId === generalCampaign.id ? (
-                    <>
-                      <Check className="mr-1.5 size-4 text-emerald-400" />
-                      Копиран!
-                    </>
-                  ) : (
-                    <>
-                      <Share2 className="mr-1.5 size-4" />
-                      Копирай линк
-                    </>
-                  )}
-                </Button>
+                          <Badge
+                            variant="outline"
+                            className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase"
+                          >
+                            {sc.eventType === "camp"
+                              ? "Лагер"
+                              : sc.eventType === "competition"
+                                ? "Състезание"
+                                : sc.eventType === "training"
+                                  ? "Тренировки"
+                                  : "Общ отзив"}
+                          </Badge>
+                        </div>
 
-                <Button
-                  asChild
-                  variant="outline"
-                  className="rounded-xl border-indigo-400/30 bg-indigo-900/40 text-xs font-bold text-indigo-100 hover:bg-indigo-900/80"
-                >
-                  <a
-                    href={`/feedback/${generalCampaign.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <ExternalLink className="mr-1.5 size-3.5" />
-                    Преглед
-                  </a>
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={handleCreateGeneralCampaign}
-                className="rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-500/30 hover:from-blue-400 hover:to-indigo-500"
-              >
-                <Sparkles className="mr-1.5 size-4" />
-                🚀 Активирай обща анкета за сайта сега
-              </Button>
-            )}
+                        <div className="flex items-center gap-2 text-xs font-bold">
+                          <span className="flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-0.5 text-zinc-600">
+                            <MessageSquare className="size-3 text-zinc-500" />
+                            {sc.responseCount || 0} отзива
+                          </span>
+                          {sc.averageRating ? (
+                            <span className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700">
+                              <Star className="size-3 fill-amber-400 text-amber-400" />
+                              {sc.averageRating}/5
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <h3 className="text-base font-black tracking-tight text-zinc-900">
+                        {sc.title}
+                      </h3>
+
+                      {sc.description && (
+                        <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
+                          {sc.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => handleToggleStatus(sc)}
+                          size="sm"
+                          className={`rounded-xl text-xs font-bold shadow-xs transition-all ${
+                            isActive
+                              ? "bg-amber-500 text-white hover:bg-amber-600"
+                              : "bg-emerald-600 text-white hover:bg-emerald-500"
+                          }`}
+                        >
+                          <Power className="mr-1.5 size-3.5" />
+                          {isActive ? "⏸️ Спри от сайта" : "▶️ Пусни на сайта"}
+                        </Button>
+
+                        <Button
+                          onClick={() => handleCopyLink(sc.id)}
+                          size="sm"
+                          variant="outline"
+                          className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50"
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check className="mr-1.5 size-3.5 text-emerald-600" />
+                              Копиран!
+                            </>
+                          ) : (
+                            <>
+                              <Share2 className="mr-1.5 size-3.5" />
+                              Копирай линк
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon"
+                          className="size-8 rounded-xl text-zinc-600 hover:bg-indigo-50 hover:text-indigo-600"
+                          title="Преглед на анкетата"
+                        >
+                          <a
+                            href={`/feedback/${sc.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="size-3.5" />
+                          </a>
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(sc.id)}
+                          className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600"
+                          title="Изтрий"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
-        </div>
-      </Card>
+        )}
+      </div>
 
       {/* 2. Top action header for Event Specific Campaigns */}
       <div className="flex flex-col items-start justify-between gap-4 border-t border-zinc-200 pt-6 sm:flex-row sm:items-center">
@@ -247,8 +342,8 @@ export function FeedbackCampaignsTab({
         </Button>
       </div>
 
-      {/* Campaigns list */}
-      {campaigns.length === 0 ? (
+      {/* Event Campaigns list */}
+      {eventCampaigns.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-16 text-center">
           <LinkIcon className="mx-auto mb-3 size-10 text-zinc-300" />
           <h3 className="mb-1 text-base font-bold text-zinc-900">
@@ -267,7 +362,7 @@ export function FeedbackCampaignsTab({
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {campaigns.map((c) => {
+          {eventCampaigns.map((c) => {
             const isActive = c.status === "active";
             const isCopied = copiedId === c.id;
 

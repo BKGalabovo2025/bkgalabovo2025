@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +57,7 @@ export function CreateCampaignDialog({
   const [targetAudience, setTargetAudience] = useState<
     "parents" | "athletes" | "all"
   >("parents");
+  const [isStanding, setIsStanding] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdLink, setCreatedLink] = useState<string | null>(null);
   const [hasCopied, setHasCopied] = useState(false);
@@ -116,6 +118,7 @@ export function CreateCampaignDialog({
         questions: selectedTemplate.questions,
         status: "active",
         targetAudience,
+        isStanding: isStanding || selectedEventId === "none",
       });
 
       const fullUrl = `${window.location.origin}/feedback/${campaignId}`;
@@ -338,6 +341,21 @@ export function CreateCampaignDialog({
                   <SelectItem value="all">🌐 Всички</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Standing Survey Toggle */}
+            <div className="flex items-center space-x-2 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
+              <Checkbox
+                id="isStandingCheck"
+                checked={isStanding}
+                onCheckedChange={(c) => setIsStanding(Boolean(c))}
+              />
+              <Label
+                htmlFor="isStandingCheck"
+                className="cursor-pointer text-xs font-bold text-indigo-950"
+              >
+                🌐 Постоянна анкета на клубния сайт (видима без краен срок)
+              </Label>
             </div>
 
             <DialogFooter className="pt-2">

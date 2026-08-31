@@ -22,6 +22,13 @@ import { PublicNav } from "@/components/layout/public-nav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { feedbackService } from "@/services/feedback-service";
 import { FeedbackCampaign, FeedbackSubmission } from "@/types/feedback.types";
 
@@ -286,8 +293,10 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
 
 export default function ClubReviewsClient() {
   const [reviews, setReviews] = useState<FeedbackSubmission[]>([]);
-  const [generalCampaign, setGeneralCampaign] =
-    useState<FeedbackCampaign | null>(null);
+  const [standingCampaigns, setStandingCampaigns] = useState<
+    FeedbackCampaign[]
+  >([]);
+  const [isSurveyPickerOpen, setIsSurveyPickerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -306,12 +315,12 @@ export default function ClubReviewsClient() {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const [reviewsData, activeCampaign] = await Promise.all([
+        const [reviewsData, activeCampaigns] = await Promise.all([
           feedbackService.getPublicReviews("bkgalabovo"),
-          feedbackService.getActiveGeneralCampaign("bkgalabovo"),
+          feedbackService.getActiveStandingCampaigns("bkgalabovo"),
         ]);
         setReviews(reviewsData);
-        setGeneralCampaign(activeCampaign);
+        setStandingCampaigns(activeCampaigns);
       } catch (e) {
         console.error(e);
       } finally {
@@ -384,23 +393,33 @@ export default function ClubReviewsClient() {
             състезателни турнири и целогодишни тренировки в БК Гълъбово.
           </motion.p>
 
-          {/* Direct Public Review Button when General Campaign is Active */}
-          {generalCampaign && (
+          {/* Direct Public Review Button when any standing campaign is active */}
+          {standingCampaigns.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
               className="pt-2"
             >
-              <Button
-                asChild
-                className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
-              >
-                <Link href={`/feedback/${generalCampaign.id}`}>
+              {standingCampaigns.length === 1 ? (
+                <Button
+                  asChild
+                  className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
+                >
+                  <Link href={`/feedback/${standingCampaigns[0].id}`}>
+                    <PenLine className="mr-2 size-4.5" />
+                    ✍️ Споделете Вашия отзив за клуба
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setIsSurveyPickerOpen(true)}
+                  className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
+                >
                   <PenLine className="mr-2 size-4.5" />
-                  ✍️ Споделете Вашия отзив за клуба
-                </Link>
-              </Button>
+                  ✍️ Споделете Вашия отзив ({standingCampaigns.length} анкети)
+                </Button>
+              )}
             </motion.div>
           )}
         </div>
@@ -528,7 +547,7 @@ export default function ClubReviewsClient() {
         )}
 
         {/* Bottom invitation card */}
-        {generalCampaign && (
+        {standingCampaigns.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -544,20 +563,89 @@ export default function ClubReviewsClient() {
                 клуба. Споделете впечатленията си само за 1-2 минути!
               </p>
               <div className="pt-2">
-                <Button
-                  asChild
-                  className="rounded-2xl bg-blue-600 px-6 py-5 font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:bg-blue-500"
-                >
-                  <Link href={`/feedback/${generalCampaign.id}`}>
+                {standingCampaigns.length === 1 ? (
+                  <Button
+                    asChild
+                    className="rounded-2xl bg-blue-600 px-6 py-5 font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:bg-blue-500"
+                  >
+                    <Link href={`/feedback/${standingCampaigns[0].id}`}>
+                      <PenLine className="mr-2 size-4" />
+                      ✍️ Попълнете клубната анкета
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setIsSurveyPickerOpen(true)}
+                    className="rounded-2xl bg-blue-600 px-6 py-5 font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:bg-blue-500"
+                  >
                     <PenLine className="mr-2 size-4" />
-                    ✍️ Попълнете клубната анкета
-                  </Link>
-                </Button>
+                    ✍️ Изберете анкета за попълване ({standingCampaigns.length})
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>
         )}
       </main>
+
+      {/* Survey Picker Dialog for Multiple Standing Surveys */}
+      <Dialog open={isSurveyPickerOpen} onOpenChange={setIsSurveyPickerOpen}>
+        <DialogContent className="max-w-xl border-zinc-800 bg-zinc-950 text-white sm:rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-black text-white">
+              <PenLine className="size-5 text-blue-400" />
+              Изберете анкета за отзив
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-400">
+              Моля, изберете за кое направление от клубната дейност желаете да
+              споделите своите впечатления и препоръки:
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            {standingCampaigns.map((sc) => (
+              <Link
+                key={sc.id}
+                href={`/feedback/${sc.id}`}
+                onClick={() => setIsSurveyPickerOpen(false)}
+                className="group flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 transition-all hover:border-blue-500/50 hover:bg-blue-950/30"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="border-blue-500/30 bg-blue-500/10 text-[10px] font-bold text-blue-400 uppercase"
+                    >
+                      {sc.eventType === "camp"
+                        ? "🏕️ Лагер"
+                        : sc.eventType === "competition"
+                          ? "🏸 Състезание"
+                          : sc.eventType === "training"
+                            ? "⚡ Тренировки"
+                            : "🌟 Обща"}
+                    </Badge>
+                    <h4 className="text-sm font-black text-white transition-colors group-hover:text-blue-300">
+                      {sc.title}
+                    </h4>
+                  </div>
+                  {sc.description && (
+                    <p className="line-clamp-1 text-xs text-zinc-400">
+                      {sc.description}
+                    </p>
+                  )}
+                </div>
+
+                <Button
+                  size="sm"
+                  className="shrink-0 rounded-xl bg-blue-600 text-xs font-bold text-white group-hover:bg-blue-500"
+                >
+                  Попълни
+                </Button>
+              </Link>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <PublicFooter />
     </div>

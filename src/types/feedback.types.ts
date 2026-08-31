@@ -48,6 +48,7 @@ export interface FeedbackCampaign {
   responseCount: number;
   averageRating?: number;
   targetAudience: "parents" | "athletes" | "all";
+  isStanding?: boolean; // When true, shown as standing public survey on website
   createdAt: string;
   updatedAt: string;
 }
