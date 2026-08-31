@@ -4,7 +4,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  orderBy,
   query,
   setDoc,
   updateDoc,
@@ -213,8 +212,7 @@ export const feedbackService = {
   async getTemplates(siteId: string): Promise<FeedbackSurveyTemplate[]> {
     const q = query(
       collection(db, TEMPLATES_COLLECTION),
-      where("siteId", "==", siteId),
-      orderBy("createdAt", "desc")
+      where("siteId", "==", siteId)
     );
     const snapshot = await getDocs(q);
 
@@ -222,13 +220,23 @@ export const feedbackService = {
     if (snapshot.empty) {
       await this.seedDefaultTemplates(siteId);
       const seededSnap = await getDocs(q);
-      return seededSnap.docs.map(
+      const list = seededSnap.docs.map(
         (d) => ({ id: d.id, ...d.data() }) as FeedbackSurveyTemplate
+      );
+      return list.sort(
+        (a, b) =>
+          new Date(b.createdAt || 0).getTime() -
+          new Date(a.createdAt || 0).getTime()
       );
     }
 
-    return snapshot.docs.map(
+    const list = snapshot.docs.map(
       (d) => ({ id: d.id, ...d.data() }) as FeedbackSurveyTemplate
+    );
+    return list.sort(
+      (a, b) =>
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime()
     );
   },
 
@@ -285,12 +293,16 @@ export const feedbackService = {
   async getCampaigns(siteId: string): Promise<FeedbackCampaign[]> {
     const q = query(
       collection(db, CAMPAIGNS_COLLECTION),
-      where("siteId", "==", siteId),
-      orderBy("createdAt", "desc")
+      where("siteId", "==", siteId)
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(
+    const list = snapshot.docs.map(
       (d) => ({ id: d.id, ...d.data() }) as FeedbackCampaign
+    );
+    return list.sort(
+      (a, b) =>
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime()
     );
   },
 
@@ -415,16 +427,14 @@ export const feedbackService = {
   ): Promise<FeedbackSubmission[]> {
     let q = query(
       collection(db, SUBMISSIONS_COLLECTION),
-      where("siteId", "==", siteId),
-      orderBy("createdAt", "desc")
+      where("siteId", "==", siteId)
     );
 
     if (filters?.campaignId) {
       q = query(
         collection(db, SUBMISSIONS_COLLECTION),
         where("siteId", "==", siteId),
-        where("campaignId", "==", filters.campaignId),
-        orderBy("createdAt", "desc")
+        where("campaignId", "==", filters.campaignId)
       );
     }
 
@@ -440,7 +450,11 @@ export const feedbackService = {
       results = results.filter((r) => r.eventType === filters.eventType);
     }
 
-    return results;
+    return results.sort(
+      (a, b) =>
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime()
+    );
   },
 
   async updateSubmissionStatus(
@@ -480,8 +494,7 @@ export const feedbackService = {
       collection(db, SUBMISSIONS_COLLECTION),
       where("siteId", "==", siteId),
       where("status", "==", "approved"),
-      where("showInPublic", "==", true),
-      orderBy("createdAt", "desc")
+      where("showInPublic", "==", true)
     );
 
     const snapshot = await getDocs(q);
@@ -493,7 +506,11 @@ export const feedbackService = {
       results = results.filter((r) => r.eventType === eventType);
     }
 
-    return results;
+    return results.sort(
+      (a, b) =>
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime()
+    );
   },
 
   // ================= STATS FOR ADMIN DASHBOARD =================
