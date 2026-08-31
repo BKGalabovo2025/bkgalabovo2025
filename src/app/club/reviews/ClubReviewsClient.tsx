@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Heart,
   Loader2,
   MessageCircle,
   MessageSquare,
@@ -28,7 +27,7 @@ const QUESTION_LABELS_FALLBACK: Record<string, string> = {
   q_training: "Качество на тренировките",
   q_hotel_food: "Настаняване и храна",
   q_atmosphere: "Атмосфера и грижа",
-  q_future: "Бъдещо участие",
+  q_future: "Бихте ли записали детето отново на лагер?",
   q_liked: "Любим момент / Впечатления",
   q_improvements: "Препоръки за подобрение",
   q_comp_org: "Организация на състезанието",
@@ -38,7 +37,7 @@ const QUESTION_LABELS_FALLBACK: Record<string, string> = {
   q_comm: "Комуникация с треньорите",
   q_discipline: "Дисциплина и мотивация",
   q_overall_club: "Удовлетвореност от клуба",
-  q_recommend: "Препоръка на клуба",
+  q_recommend: "Бихте ли препоръчали клуба?",
   q_general_feedback: "Съобщение към екипа",
   q_training_feedback: "Препоръки за тренировките",
 };
@@ -60,35 +59,32 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
   // Extract structured answers
   const ratingItems: Array<{ label: string; rating: number }> = [];
   const textItems: Array<{ label: string; answer: string }> = [];
-  let futureParticipation: string | null = null;
 
   if (rev.questionBreakdown && rev.questionBreakdown.length > 0) {
     rev.questionBreakdown.forEach((q) => {
-      if (q.questionId === "q_future" || q.label?.includes("отново")) {
-        futureParticipation = String(q.answer);
-      } else if (q.type === "rating" && typeof q.answer === "number") {
+      if (q.type === "rating" && typeof q.answer === "number") {
         ratingItems.push({ label: q.label, rating: q.answer });
       } else if (
-        (q.type === "text" || q.type === "select") &&
-        typeof q.answer === "string" &&
-        q.answer.trim()
+        (q.type === "text" || q.type === "select" || q.type === "boolean") &&
+        typeof q.answer !== "undefined" &&
+        q.answer !== null &&
+        String(q.answer).trim()
       ) {
-        textItems.push({ label: q.label, answer: q.answer.trim() });
+        textItems.push({ label: q.label, answer: String(q.answer).trim() });
       }
     });
   } else if (rev.answers) {
     Object.entries(rev.answers).forEach(([k, v]) => {
       const label = QUESTION_LABELS_FALLBACK[k] || k;
-      if (k === "q_future") {
-        futureParticipation = String(v);
-      } else if (typeof v === "number") {
+      if (typeof v === "number") {
         ratingItems.push({ label, rating: v });
       } else if (
-        typeof v === "string" &&
-        v.trim() &&
-        !["true", "false"].includes(v)
+        typeof v !== "undefined" &&
+        v !== null &&
+        String(v).trim() &&
+        !["true", "false"].includes(String(v))
       ) {
-        textItems.push({ label, answer: v.trim() });
+        textItems.push({ label, answer: String(v).trim() });
       }
     });
   }
@@ -156,7 +152,7 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
             </div>
           )}
 
-          {/* 3. Main Review Quote (if present) */}
+          {/* 3. Main Review Quote (if user entered text in reviewText) */}
           {(rev.highlightQuote || rev.reviewText) && (
             <div className="relative rounded-2xl border-l-2 border-blue-500/50 bg-blue-950/10 px-4 py-2.5">
               <p className="text-sm leading-relaxed font-normal text-zinc-100 italic sm:text-[15px]">
@@ -165,18 +161,7 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
             </div>
           )}
 
-          {/* 4. Future Participation Badge */}
-          {futureParticipation && (
-            <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 px-3.5 py-2 text-xs font-semibold text-emerald-300">
-              <Heart className="size-3.5 shrink-0 text-emerald-400" />
-              <span className="text-[11px] text-zinc-400">Бъдещо участие:</span>
-              <span className="font-bold text-emerald-300">
-                {futureParticipation}
-              </span>
-            </div>
-          )}
-
-          {/* 5. Category Stars Breakdown */}
+          {/* 4. Category Stars Breakdown */}
           {ratingItems.length > 0 && (
             <div className="space-y-2 rounded-2xl border border-zinc-800/80 bg-zinc-950/50 p-4">
               <div className="text-[10px] font-extrabold tracking-wider text-zinc-400 uppercase">
@@ -214,7 +199,7 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
             </div>
           )}
 
-          {/* 6. Open Questions & Answers (Expandable) */}
+          {/* 5. Open Questions & Answers (Expandable) */}
           {textItems.length > 0 && (
             <div className="space-y-2 pt-1">
               {isExpanded && (
