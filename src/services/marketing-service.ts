@@ -8,6 +8,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
   writeBatch,
@@ -103,6 +104,69 @@ export const DEFAULT_MARKETING_TEMPLATES: TemplateCreateInput[] = [
   },
 ];
 
+export const DEFAULT_RECOVERY_TEMPLATES: TemplateCreateInput[] = [
+  {
+    title: "🧖‍♂️ Потвърждение за час за възстановяване",
+    category: "general",
+    channel: "whatsapp",
+    subject: "Потвърждение за запазен час - Recovery Zone by ZM",
+    messageText:
+      "Здравейте, {ИМЕ}!\n\nУспешно запазихте час за възстановителна процедура {СЪБИТИЕ} на {ДАТА} от {ЧАС} в {ЛОКАЦИЯ}.\n\nОчакваме Ви за релакс и пълноценно възстановяване!\nТелефон за връзка: 0888 123 456\nЕкипът на Recovery Zone by ZM",
+    variables: ["{ИМЕ}", "{СЪБИТИЕ}", "{ДАТА}", "{ЧАС}", "{ЛОКАЦИЯ}"],
+    isDefault: true,
+  },
+  {
+    title: "💆‍♀️ Напомняне за час в Recovery Zone",
+    category: "schedule",
+    channel: "sms",
+    subject: "Напомняне за запазен час",
+    messageText:
+      "Здравейте, {ИМЕ}! Напомняме Ви за Вашия час за възстановяване на {ДАТА} от {ЧАС} в Recovery Zone by ZM. Очакваме Ви!",
+    variables: ["{ИМЕ}", "{ДАТА}", "{ЧАС}"],
+    isDefault: true,
+  },
+  {
+    title: "💳 Подновяване на пакет за процедури",
+    category: "payment",
+    channel: "viber",
+    subject: "Подновяване на възстановителен пакет",
+    messageText:
+      "Здравейте, {ИМЕ}!\n\nВашият абонамент за възстановителни процедури в Recovery Zone by ZM е към своя край.\n\nМожете да презаредите пакета си на рецепция или онлайн: {ЛИНК}\nБлагодарим Ви за доверието!",
+    variables: ["{ИМЕ}", "{ЛИНК}"],
+    isDefault: true,
+  },
+  {
+    title: "💬 Анкета за обратна връзка от възстановяването",
+    category: "feedback",
+    channel: "whatsapp",
+    subject: "Вашето мнение за Recovery Zone by ZM",
+    messageText:
+      "Здравейте, {ИМЕ}!\n\nВашето мнение за процедурите и обслужването в Recovery Zone by ZM е изключително ценно за нас.\n\nМоля, споделете впечатленията си в кратката ни анкета: {ЛИНК_АНКЕТА}\n\nБлагодарим Ви!",
+    variables: ["{ИМЕ}", "{ЛИНК_АНКЕТА}"],
+    isDefault: true,
+  },
+  {
+    title: "🌟 Специална оферта за нови процедури",
+    category: "general",
+    channel: "email",
+    subject: "Специално предложение от Recovery Zone by ZM",
+    messageText:
+      "Здравейте, {ИМЕ}!\n\nИмаме удоволствието да Ви представим нашите най-нови възстановителни терапии и промоционални спа пакети.\n\nРазгледайте новите ни предложения и запазете час: {ЛИНК}\n\nПоздрави,\nRecovery Zone by ZM",
+    variables: ["{ИМЕ}", "{ЛИНК}"],
+    isDefault: true,
+  },
+  {
+    title: "⏰ Промяна в график за процедура",
+    category: "schedule",
+    channel: "whatsapp",
+    subject: "Промяна в час за процедура",
+    messageText:
+      "Здравейте, {ИМЕ}!\n\nУведомяваме Ви за промяна в графика на Вашия час за {ДАТА}. Нов час: {ЧАС} в {ЛОКАЦИЯ}.\n\nМоля да потвърдите. Recovery Zone by ZM",
+    variables: ["{ИМЕ}", "{ДАТА}", "{ЧАС}", "{ЛОКАЦИЯ}"],
+    isDefault: true,
+  },
+];
+
 export const marketingService = {
   // -------------------------------------------------------------
   // TEMPLATES
@@ -116,27 +180,46 @@ export const marketingService = {
       const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
-        // Seed default templates for this siteId
+        // Seed default templates for this siteId with deterministic IDs to avoid race conditions
+        const targetDefaults =
+          siteId === "recoveryzone"
+            ? DEFAULT_RECOVERY_TEMPLATES
+            : DEFAULT_MARKETING_TEMPLATES;
+
         const seeded: MarketingTemplate[] = [];
-        for (const tmpl of DEFAULT_MARKETING_TEMPLATES) {
-          const docRef = await addDoc(collection(db, TEMPLATES_COLLECTION), {
+        let index = 0;
+        for (const tmpl of targetDefaults) {
+          const docId = `${siteId}_template_${index}`;
+          const docRef = doc(db, TEMPLATES_COLLECTION, docId);
+          await setDoc(docRef, {
             ...tmpl,
             siteId,
             createdAt: new Date().toISOString(),
           });
           seeded.push({
             ...tmpl,
-            id: docRef.id,
+            id: docId,
             siteId,
             createdAt: new Date().toISOString(),
           });
+          index++;
         }
         return seeded;
       }
 
-      return snapshot.docs.map((docSnap) => {
+      // Deduplicate by title to clean up any duplicates created in dev/strict mode
+      const seenTitles = new Set<string>();
+      const templates: MarketingTemplate[] = [];
+
+      for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
-        return {
+        if (seenTitles.has(data.title)) {
+          // Clean up duplicate doc from firestore asynchronously
+          deleteDoc(docSnap.ref).catch(() => {});
+          continue;
+        }
+        seenTitles.add(data.title);
+        templates.push({
           id: docSnap.id,
           siteId: data.siteId,
           title: data.title,
@@ -148,8 +231,10 @@ export const marketingService = {
           isDefault: !!data.isDefault,
           createdAt: data.createdAt || new Date().toISOString(),
           updatedAt: data.updatedAt,
-        } as MarketingTemplate;
-      });
+        } as MarketingTemplate);
+      }
+
+      return templates;
     } catch (error) {
       console.error("Error fetching marketing templates:", error);
       return [];

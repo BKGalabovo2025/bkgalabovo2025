@@ -1,5 +1,6 @@
 "use client";
 
+import { collection, getDocs, query } from "firebase/firestore";
 import { FileText, History, Loader2, Megaphone, Send, Zap } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/auth-context";
 import { useMembers } from "@/hooks/useMembers";
+import { db } from "@/lib/firebase";
 import { marketingService } from "@/services/marketing-service";
 import { useAppStore } from "@/store/use-app-store";
 import {
@@ -47,6 +49,7 @@ export default function MarketingClient() {
   const [selectedTemplateForComposer, setSelectedTemplateForComposer] =
     useState<MarketingTemplate | null>(null);
   const [history, setHistory] = useState<MarketingLog[]>([]);
+  const [clientsList, setClientsList] = useState<MarketingRecipient[]>([]);
   const [stats, setStats] = useState<MarketingStats>({
     totalSent: 0,
     sentThisMonth: 0,
@@ -60,8 +63,12 @@ export default function MarketingClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
 
-  // Map club members to uniform MarketingRecipient entities
+  // Map club members & recovery clients to uniform MarketingRecipient entities
   const recipients: MarketingRecipient[] = useMemo(() => {
+    if (siteId === "recoveryzone" && clientsList.length > 0) {
+      return clientsList;
+    }
+
     return members.map((m) => {
       const isParentPhone = m.phoneType === "parent";
       const athleteFullName =
@@ -82,7 +89,7 @@ export default function MarketingClient() {
         siteId: m.siteId || siteId,
       };
     });
-  }, [members, siteId]);
+  }, [members, clientsList, siteId]);
 
   // Load all marketing data
   const loadData = async () => {
@@ -98,6 +105,32 @@ export default function MarketingClient() {
       setHistory(hist);
       setStats(st);
       setAutomationRules(rules);
+
+      if (siteId === "recoveryzone") {
+        try {
+          const clientsSnap = await getDocs(query(collection(db, "clients")));
+          const recoveryRecipients: MarketingRecipient[] = clientsSnap.docs.map(
+            (docSnap) => {
+              const data = docSnap.data();
+              return {
+                id: docSnap.id,
+                name: data.name || data.fullName || "Клиент",
+                phone: data.phone || undefined,
+                email: data.email || undefined,
+                role: "athlete" as const,
+                status: "active" as const,
+                group: "Recovery Zone Клиенти",
+                siteId: "recoveryzone",
+              };
+            }
+          );
+          setClientsList(recoveryRecipients);
+        } catch {
+          setClientsList([]);
+        }
+      } else {
+        setClientsList([]);
+      }
     } catch (e) {
       console.error("Failed to load marketing data:", e);
       toast.error("Възникна проблем при зареждането на данните.");
