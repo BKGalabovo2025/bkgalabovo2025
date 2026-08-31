@@ -46,9 +46,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const auth = getFirebaseAuth();
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
-        const token = await user.getIdToken();
-        setUser(user);
-        setIdToken(token);
+        try {
+          const token = await user.getIdToken();
+          setUser(user);
+          setIdToken(token);
+        } catch (error) {
+          console.warn("Failed to retrieve ID token (network issue):", error);
+          setUser(user);
+        }
       } else {
         setUser(null);
         setIdToken(null);
