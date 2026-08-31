@@ -207,6 +207,16 @@ export const DEFAULT_FEEDBACK_TEMPLATES: Omit<
   },
 ];
 
+function cleanPayload<T extends Record<string, unknown>>(obj: T): T {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result as T;
+}
+
 export const feedbackService = {
   // ================= TEMPLATES =================
   async getTemplates(siteId: string): Promise<FeedbackSurveyTemplate[]> {
@@ -268,20 +278,26 @@ export const feedbackService = {
     const now = new Date().toISOString();
     if (templateId) {
       const docRef = doc(db, TEMPLATES_COLLECTION, templateId);
-      await updateDoc(docRef, {
-        ...data,
-        updatedAt: now,
-      });
+      await updateDoc(
+        docRef,
+        cleanPayload({
+          ...data,
+          updatedAt: now,
+        })
+      );
       return templateId;
     }
 
     const docRef = doc(collection(db, TEMPLATES_COLLECTION));
-    await setDoc(docRef, {
-      ...data,
-      siteId,
-      createdAt: now,
-      updatedAt: now,
-    });
+    await setDoc(
+      docRef,
+      cleanPayload({
+        ...data,
+        siteId,
+        createdAt: now,
+        updatedAt: now,
+      })
+    );
     return docRef.id;
   },
 
@@ -337,7 +353,7 @@ export const feedbackService = {
       updatedAt: now,
     };
 
-    await setDoc(docRef, campaign);
+    await setDoc(docRef, cleanPayload(campaign));
     return docRef.id;
   },
 
@@ -346,10 +362,13 @@ export const feedbackService = {
     data: Partial<FeedbackCampaign>
   ): Promise<void> {
     const docRef = doc(db, CAMPAIGNS_COLLECTION, campaignId);
-    await updateDoc(docRef, {
-      ...data,
-      updatedAt: new Date().toISOString(),
-    });
+    await updateDoc(
+      docRef,
+      cleanPayload({
+        ...data,
+        updatedAt: new Date().toISOString(),
+      })
+    );
   },
 
   async deleteCampaign(campaignId: string): Promise<void> {
@@ -392,7 +411,7 @@ export const feedbackService = {
       updatedAt: now,
     };
 
-    await setDoc(docRef, submission);
+    await setDoc(docRef, cleanPayload(submission));
 
     // 2. Update campaign statistics
     try {
@@ -478,7 +497,7 @@ export const feedbackService = {
     if (highlightQuote !== undefined)
       updatePayload.highlightQuote = highlightQuote;
 
-    await updateDoc(docRef, updatePayload);
+    await updateDoc(docRef, cleanPayload(updatePayload));
   },
 
   async deleteSubmission(submissionId: string): Promise<void> {
