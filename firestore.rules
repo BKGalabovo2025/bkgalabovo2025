@@ -25,67 +25,76 @@ service cloud.firestore {
       return ('siteId' in resource.data) ? hasAccessToSite(resource.data.siteId) : hasAccessToSite('bkgalabovo');
     }
 
-    // 1. Колекции с достъп за четене от логнати потребители и писане от админи със SiteId
-    match /{collection}/{docId} {
-      allow read: if request.auth != null && collection in [
-        'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
-        'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
-        'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
-        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
-        'business_trips', 'trip_expenses', 'annual_plans', 'training_templates'
-      ] && checkResourceSiteAccess();
+      // 1. Колекции с достъп за четене от логнати потребители и писане от админи със SiteId
+      match /{collection}/{docId} {
+        allow read: if request.auth != null && collection in [
+          'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
+          'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
+          'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
+          'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
+          'business_trips', 'trip_expenses', 'annual_plans', 'training_templates',
+          'feedback_templates'
+        ] && checkResourceSiteAccess();
 
-      allow create, update: if isAdmin() && hasValidSiteId() && collection in [
-        'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
-        'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
-        'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
-        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
-        'business_trips', 'trip_expenses', 'annual_plans', 'training_templates'
-      ] && hasAccessToSite(request.resource.data.siteId);
+        allow create, update: if isAdmin() && hasValidSiteId() && collection in [
+          'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
+          'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
+          'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
+          'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
+          'business_trips', 'trip_expenses', 'annual_plans', 'training_templates',
+          'feedback_templates'
+        ] && hasAccessToSite(request.resource.data.siteId);
 
-      allow delete: if isAdmin() && collection in [
-        'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
-        'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
-        'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
-        'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
-        'business_trips', 'trip_expenses', 'annual_plans', 'training_templates'
-      ] && checkResourceSiteAccess();
+        allow delete: if isAdmin() && collection in [
+          'members', 'clubServices', 'clubGeneralServices', 'memberSubscriptions', 
+          'prices', 'priceHistory', 'events', 'exercises', 'member_assessments',
+          'planner_sessions', 'beep_test_results', 'member_shadow_analytics',
+          'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
+          'business_trips', 'trip_expenses', 'annual_plans', 'training_templates',
+          'feedback_templates'
+        ] && checkResourceSiteAccess();
 
-      // 2. Колекции с достъп за четене и писане само от админи със SiteId
-      allow read: if isAdmin() && collection in [
-        'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
-        'client_packages', 'clients', 'reviews', 'config'
-      ] && checkResourceSiteAccess();
+        // 2. Колекции с достъп за четене и писане само от админи със SiteId
+        allow read: if isAdmin() && collection in [
+          'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
+          'client_packages', 'clients', 'reviews', 'config'
+        ] && checkResourceSiteAccess();
 
-      allow create, update: if isAdmin() && hasValidSiteId() && collection in [
-        'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
-        'client_packages', 'clients', 'reviews', 'config'
-      ] && hasAccessToSite(request.resource.data.siteId);
+        allow create, update: if isAdmin() && hasValidSiteId() && collection in [
+          'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
+          'client_packages', 'clients', 'reviews', 'config'
+        ] && hasAccessToSite(request.resource.data.siteId);
 
-      allow delete: if isAdmin() && collection in [
-        'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
-        'client_packages', 'clients', 'reviews', 'config'
-      ] && checkResourceSiteAccess();
+        allow delete: if isAdmin() && collection in [
+          'sales', 'products', 'inventoryEvents', 'inventory', 'finances',
+          'client_packages', 'clients', 'reviews', 'config'
+        ] && checkResourceSiteAccess();
 
-      // 3. Колекции за администратори без изискване за SiteId (глобални)
-      allow read, write: if isAdmin() && collection in ['settings', 'families'];
+        // 3. Колекции за администратори без изискване за SiteId (глобални)
+        allow read, write: if isAdmin() && collection in ['settings', 'families'];
 
-      // 4. Публично четене, писане от админи със SiteId
-      allow read: if collection in ['sessions', 'tournaments', 'quizzes', 'theory_results'];
-      allow create, update: if isAdmin() && hasValidSiteId() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results'] && hasAccessToSite(request.resource.data.siteId);
-      allow delete: if isAdmin() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results'] && checkResourceSiteAccess();
-      
-      // 4.1. Публично обновяване на theory_results (за да могат децата да предават тестовете си)
-      allow update: if collection == 'theory_results';
+        // 4. Публично четене, писане от админи със SiteId
+        allow read: if collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'];
+        allow create, update: if (isAdmin() && hasValidSiteId() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'] && hasAccessToSite(request.resource.data.siteId)) || (collection == 'feedback_campaigns');
+        allow delete: if isAdmin() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'] && checkResourceSiteAccess();
+        
+        // 4.1. Публично обновяване на theory_results и feedback_submissions
+        allow update: if collection in ['theory_results', 'feedback_campaigns'];
 
-      // 5. Публично четене, писане от админи без SiteId
-      allow read: if collection == 'sites';
-      allow write: if isAdmin() && collection == 'sites';
+        // 4.2. Публично създаване на отзиви (feedback_submissions) и четене на одобрените отзиви
+        allow create: if collection == 'feedback_submissions';
+        allow read: if (collection == 'feedback_submissions' && resource.data.status == 'approved' && resource.data.showInPublic == true) || (isAdmin() && collection == 'feedback_submissions');
+        allow update: if isAdmin() && collection == 'feedback_submissions';
+        allow delete: if isAdmin() && collection == 'feedback_submissions';
 
-      // 6. Специфични за турнирите (четене от логнати, писане от админи без SiteId)
-      allow read: if request.auth != null && collection in ['tournament_entries', 'tournament_matches'];
-      allow write: if isAdmin() && collection in ['tournament_entries', 'tournament_matches'];
-    }
+        // 5. Публично четене, писане от админи без SiteId
+        allow read: if collection == 'sites';
+        allow write: if isAdmin() && collection == 'sites';
+
+        // 6. Специфични за турнирите (четене от логнати, писане от админи без SiteId)
+        allow read: if request.auth != null && collection in ['tournament_entries', 'tournament_matches'];
+        allow write: if isAdmin() && collection in ['tournament_entries', 'tournament_matches'];
+      }
 
     // Изрично позволени под-колекции (wildcard paths), защитаваме ги и тях със siteId
     match /{path=**}/reservations/{docId} {

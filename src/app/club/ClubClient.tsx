@@ -9,6 +9,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  Star,
   Target,
   Trophy,
   Users,
@@ -27,6 +28,7 @@ import { PublicFooter } from "@/components/layout/public-footer";
 import { PublicNav } from "@/components/layout/public-nav";
 import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
 import { Translate } from "@/components/shared/Translate";
+import { Button } from "@/components/ui/button";
 import { Site } from "@/types/site.types";
 
 type EventSlot = {
@@ -546,6 +548,46 @@ export default function ClubClient({
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews Callout Section */}
+      <section className="relative px-6 py-12">
+        <div className="relative z-10 mx-auto max-w-5xl">
+          <div className="group relative overflow-hidden rounded-4xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-indigo-950/40 p-8 shadow-2xl backdrop-blur-xl sm:rounded-6xl sm:p-12">
+            <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
+              <div className="space-y-2 text-center sm:text-left">
+                <div className="flex items-center justify-center gap-1 text-amber-400 sm:justify-start">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className="size-4 fill-amber-400 text-amber-400"
+                    />
+                  ))}
+                  <span className="ml-2 text-xs font-bold text-blue-300">
+                    5.0 / 5.0 Оценка от родители
+                  </span>
+                </div>
+                <h3 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+                  Какво споделят родителите и децата?
+                </h3>
+                <p className="max-w-xl text-xs leading-relaxed text-zinc-400 sm:text-sm">
+                  Прочетете реалните мнения и впечатления за летните лагери,
+                  турнири и тренировъчния процес в БК Гълъбово.
+                </p>
+              </div>
+
+              <Button
+                asChild
+                className="shrink-0 rounded-2xl bg-blue-600 p-6 text-xs font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 sm:text-sm"
+              >
+                <Link href="/club/reviews" className="flex items-center gap-2">
+                  <span>Вижте всички отзиви</span>
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

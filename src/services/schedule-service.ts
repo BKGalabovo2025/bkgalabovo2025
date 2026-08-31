@@ -161,6 +161,18 @@ export const getCamps = async (): Promise<ScheduleEvent[]> => {
   return events;
 };
 
+export const getEvents = async (): Promise<ScheduleEvent[]> => {
+  const q = query(getEventsQuery());
+  const snapshot = await getDocs(q);
+  const events = snapshot.docs
+    .map(docToScheduleEvent)
+    .filter(Boolean) as ScheduleEvent[];
+  events.sort(
+    (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+  );
+  return events;
+};
+
 export const getEventById = async (
   id: string
 ): Promise<ScheduleEvent | null> => {

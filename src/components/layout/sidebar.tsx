@@ -14,6 +14,7 @@ import {
   ListTree,
   LogOut,
   Medal,
+  MessageSquareHeart,
   PanelLeft,
   Settings,
   Target,
@@ -177,6 +178,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <Target size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">Маркетинг и Комуникация</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/feedback")}
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+              >
+                <Link
+                  href="/feedback"
+                  className="flex w-full items-center gap-3"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <MessageSquareHeart size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Отзиви и Анкети</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
