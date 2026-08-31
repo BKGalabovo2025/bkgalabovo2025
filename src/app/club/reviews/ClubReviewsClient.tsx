@@ -339,7 +339,8 @@ export default function ClubReviewsClient() {
   }, [reviews, selectedCategory]);
 
   const stats = useMemo(() => {
-    if (reviews.length === 0) return { avg: 5.0, total: 0, recommendRate: 100 };
+    if (reviews.length === 0)
+      return { avg: null, total: 0, recommendRate: null };
     const total = reviews.length;
     const avg = Number(
       (
@@ -438,41 +439,53 @@ export default function ClubReviewsClient() {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
-                    className="size-6 fill-amber-400 text-amber-400"
+                    className={`size-6 ${
+                      stats.total > 0
+                        ? "fill-amber-400 text-amber-400"
+                        : "fill-zinc-800 text-zinc-700"
+                    }`}
                   />
                 ))}
               </div>
               <div className="mt-2 text-3xl font-black text-white">
-                {stats.avg} <span className="text-sm text-zinc-400">/ 5.0</span>
+                {stats.total > 0 ? stats.avg : "—"}{" "}
+                <span className="text-sm text-zinc-500">/ 5.0</span>
               </div>
-              <p className="text-xs font-medium text-zinc-400">
-                Обща оценка от родители
+              <p className="text-xs font-bold text-zinc-300">
+                Обща удовлетвореност
+              </p>
+              <p className="text-[11px] text-zinc-500">
+                {stats.total > 0
+                  ? "От родители и състезатели"
+                  : "Очакваме първите отзиви"}
               </p>
             </div>
 
             {/* Recommendation rate */}
             <div className="space-y-1 pt-4 sm:px-4 sm:pt-0">
               <div className="text-3xl font-black text-blue-400">
-                {stats.recommendRate}%
+                {stats.total > 0 ? `${stats.recommendRate}%` : "—"}
               </div>
               <p className="text-xs font-bold tracking-wider text-zinc-300 uppercase">
-                Категорично препоръчват
+                Препоръчват клуба
               </p>
-              <p className="text-xs text-zinc-400">
-                Бихте ли записали детето си отново
+              <p className="text-[11px] text-zinc-500">
+                {stats.total > 0
+                  ? "Бихте ли препоръчали на приятели"
+                  : "Оценка от попълнените анкети"}
               </p>
             </div>
 
             {/* Total reviews */}
             <div className="space-y-1 pt-4 sm:px-4 sm:pt-0">
               <div className="text-3xl font-black text-indigo-400">
-                {stats.total}+
+                {stats.total}
               </div>
               <p className="text-xs font-bold tracking-wider text-zinc-300 uppercase">
-                Проверени мнения
+                {stats.total === 1 ? "Проверен отзив" : "Проверени отзива"}
               </p>
-              <p className="text-xs text-zinc-400">
-                От клубни лагери и турнири
+              <p className="text-[11px] text-zinc-500">
+                От тренировки, лагери и турнири
               </p>
             </div>
           </div>
