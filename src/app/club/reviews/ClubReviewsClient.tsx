@@ -558,47 +558,6 @@ export default function ClubReviewsClient() {
             ))}
           </div>
         )}
-
-        {/* Bottom invitation card */}
-        {standingCampaigns.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="relative z-10 mx-auto max-w-3xl overflow-hidden rounded-3xl border border-blue-500/30 bg-gradient-to-r from-zinc-900 via-blue-950/40 to-zinc-900 p-8 text-center shadow-2xl backdrop-blur-xl"
-          >
-            <div className="space-y-4">
-              <h3 className="text-xl font-black text-white sm:text-2xl">
-                Били ли сте част от нашите събития или тренировки?
-              </h3>
-              <p className="mx-auto max-w-lg text-xs leading-relaxed text-zinc-400 sm:text-sm">
-                Вашето мнение е изключително важно за развитието на децата и
-                клуба. Споделете впечатленията си само за 1-2 минути!
-              </p>
-              <div className="pt-2">
-                {standingCampaigns.length === 1 ? (
-                  <Button
-                    asChild
-                    className="rounded-2xl bg-blue-600 px-6 py-5 font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:bg-blue-500"
-                  >
-                    <Link href={`/feedback/${standingCampaigns[0].id}`}>
-                      <PenLine className="mr-2 size-4" />
-                      ✍️ Попълнете клубната анкета
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => setIsSurveyPickerOpen(true)}
-                    className="rounded-2xl bg-blue-600 px-6 py-5 font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:bg-blue-500"
-                  >
-                    <PenLine className="mr-2 size-4" />
-                    ✍️ Изберете анкета за попълване ({standingCampaigns.length})
-                  </Button>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
       </main>
 
       {/* Survey Picker Dialog for Multiple Standing Surveys */}
