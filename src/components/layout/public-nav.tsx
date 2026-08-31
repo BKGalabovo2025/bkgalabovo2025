@@ -61,17 +61,17 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
             Отбор
           </Link>
           <Link
+            href="/club#contacts"
+            className="transition-colors hover:text-blue-400"
+          >
+            Контакти
+          </Link>
+          <Link
             href="/club/reviews"
             className="flex items-center gap-1 text-amber-400 transition-colors hover:text-amber-300"
           >
             <span>⭐</span>
             <span>Отзиви</span>
-          </Link>
-          <Link
-            href="/club#contacts"
-            className="transition-colors hover:text-blue-400"
-          >
-            Контакти
           </Link>
         </div>
 
@@ -144,19 +144,19 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 Отбор
               </Link>
               <Link
+                href="/club#contacts"
+                onClick={() => setMobileMenuOpen(false)}
+                className="hover:text-blue-400"
+              >
+                Контакти
+              </Link>
+              <Link
                 href="/club/reviews"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300"
               >
                 <span>⭐</span>
                 <span>Отзиви</span>
-              </Link>
-              <Link
-                href="/club#contacts"
-                onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-blue-400"
-              >
-                Контакти
               </Link>
               <Link
                 href="/"
