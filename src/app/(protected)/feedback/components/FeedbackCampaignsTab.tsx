@@ -129,10 +129,17 @@ export function FeedbackCampaignsTab({
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge className="border-indigo-400/40 bg-indigo-500/20 text-xs font-bold text-indigo-300">
-                <Globe className="mr-1 size-3.5" />
+              <a
+                href="/club/reviews"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-full border border-indigo-400/40 bg-indigo-500/20 px-2.5 py-0.5 text-xs font-bold text-indigo-300 transition-colors hover:bg-indigo-500/40 hover:text-white"
+                title="Отвори публичната страница с отзиви на клуба"
+              >
+                <Globe className="size-3.5" />
                 Публичен сайт
-              </Badge>
+                <ExternalLink className="size-3 opacity-70" />
+              </a>
               {generalCampaign?.status === "active" ? (
                 <Badge className="border-emerald-500/30 bg-emerald-500/20 text-xs font-bold text-emerald-300">
                   <span className="mr-1.5 inline-block size-2 animate-pulse rounded-full bg-emerald-400" />
