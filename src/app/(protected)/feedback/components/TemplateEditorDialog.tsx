@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, Sparkles, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -50,38 +50,48 @@ export function TemplateEditorDialog({
 }: TemplateEditorDialogProps) {
   const isEditing = Boolean(template?.id);
 
-  const [name, setName] = useState(template?.name || "");
-  const [description, setDescription] = useState(template?.description || "");
-  const [eventType, setEventType] = useState<FeedbackEventType>(
-    template?.eventType || "camp"
-  );
-  const [questions, setQuestions] = useState<SurveyQuestion[]>(
-    template?.questions || []
-  );
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [eventType, setEventType] = useState<FeedbackEventType>("camp");
+  const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sync state when template prop changes
-  const resetForm = () => {
-    if (template) {
-      setName(template.name);
-      setDescription(template.description);
-      setEventType(template.eventType);
-      setQuestions([...template.questions]);
-    } else {
-      setName("");
-      setDescription("");
-      setEventType("camp");
-      setQuestions([
-        {
-          id: uuidv4(),
-          type: "rating",
-          label: "Обща оценка на събитието",
-          required: true,
-          category: "general",
-        },
-      ]);
+  // Sync state properly whenever template or open prop changes
+  useEffect(() => {
+    if (open) {
+      if (template) {
+        setName(template.name || "");
+        setDescription(template.description || "");
+        setEventType(template.eventType || "camp");
+        setQuestions(
+          template.questions && template.questions.length > 0
+            ? JSON.parse(JSON.stringify(template.questions))
+            : [
+                {
+                  id: `q_${uuidv4().slice(0, 8)}`,
+                  type: "rating",
+                  label: "Обща оценка",
+                  required: true,
+                  category: "general",
+                },
+              ]
+        );
+      } else {
+        setName("");
+        setDescription("");
+        setEventType("camp");
+        setQuestions([
+          {
+            id: `q_${uuidv4().slice(0, 8)}`,
+            type: "rating",
+            label: "Обща оценка на събитието",
+            required: true,
+            category: "general",
+          },
+        ]);
+      }
     }
-  };
+  }, [open, template]);
 
   const handleAddQuestion = () => {
     const newQ: SurveyQuestion = {
@@ -148,13 +158,7 @@ export function TemplateEditorDialog({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(isOpen) => {
-        if (isOpen) resetForm();
-        onOpenChange(isOpen);
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] max-w-2xl overflow-hidden p-0 sm:rounded-3xl">
         <DialogHeader className="border-b border-zinc-100 bg-gradient-to-br from-indigo-50/70 via-white to-zinc-50/70 p-6">
           <DialogTitle className="flex items-center gap-2 text-xl font-black tracking-tight text-zinc-900">
