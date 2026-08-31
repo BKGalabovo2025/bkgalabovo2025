@@ -401,40 +401,64 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
             <div className="space-y-4">
               <h3 className="flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider text-indigo-900 uppercase">
                 <Sparkles className="size-4 text-indigo-600" />
-                2. Цялостна оценка
+                2. Цялостна оценка за клуба
               </h3>
 
-              <div className="space-y-3 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/50 via-white to-amber-50/30 p-6 text-center">
+              <div className="space-y-4 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/50 via-white to-amber-50/30 p-6 text-center shadow-xs">
                 <span className="text-xs font-bold text-zinc-700">
-                  Как оценявате цялостното си преживяване? *
+                  Как оценявате цялостното си впечатление и преживяване? *
                 </span>
 
-                {/* Stars Interactive */}
-                <div className="flex items-center justify-center gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setOverallRating(star)}
-                      onMouseEnter={() => setHoverRating(star)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      className="p-1 transition-transform hover:scale-125 focus:outline-hidden"
-                      title={`${star} звезди`}
-                    >
-                      <Star
-                        className={`size-8 transition-colors sm:size-9 ${
-                          star <= activeRatingDisplay
-                            ? "fill-amber-400 text-amber-400 drop-shadow-xs"
-                            : "text-zinc-200"
-                        }`}
-                      />
-                    </button>
-                  ))}
+                {/* Stars Interactive with mini labels */}
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center justify-center gap-2 sm:gap-4">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <div
+                        key={star}
+                        className="flex flex-col items-center gap-1"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setOverallRating(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          className="p-1 transition-transform hover:scale-125 focus:outline-hidden"
+                          title={RATING_DEFINITIONS[star]?.label}
+                        >
+                          <Star
+                            className={`size-8 transition-colors sm:size-10 ${
+                              star <= activeRatingDisplay
+                                ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]"
+                                : "text-zinc-200"
+                            }`}
+                          />
+                        </button>
+                        <span className="text-[10px] font-extrabold text-zinc-400">
+                          {star}★
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Active rating full explanation badge */}
+                  <div
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-black transition-all ${
+                      RATING_DEFINITIONS[activeRatingDisplay]?.color || ""
+                    }`}
+                  >
+                    <span>
+                      {RATING_DEFINITIONS[activeRatingDisplay]?.label}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Rating text label */}
-                <div className="text-xs font-black text-indigo-950">
-                  {RATING_LABELS[activeRatingDisplay]}
+                {/* Scale description legend */}
+                <div className="grid grid-cols-5 gap-1 border-t border-indigo-50/80 pt-3 text-center text-[10px] font-semibold text-zinc-500 sm:text-[11px]">
+                  <span>1★ Слабо</span>
+                  <span>2★ Приемливо</span>
+                  <span>3★ Добро</span>
+                  <span>4★ Мн. добро</span>
+                  <span>5★ Отлично</span>
                 </div>
               </div>
             </div>
@@ -473,26 +497,52 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
 
                         {/* Rating Type */}
                         {q.type === "rating" && (
-                          <div className="flex items-center gap-1.5 pt-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                key={star}
-                                type="button"
-                                onClick={() => handleAnswerChange(q.id, star)}
-                                className="p-1 transition-transform hover:scale-110"
-                              >
-                                <Star
-                                  className={`size-6 ${
-                                    star <= Number(currentVal || 0)
-                                      ? "fill-amber-400 text-amber-400"
-                                      : "text-zinc-200"
+                          <div className="space-y-2 pt-1">
+                            <div className="flex flex-wrap items-center gap-3">
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() =>
+                                      handleAnswerChange(q.id, star)
+                                    }
+                                    className="p-1 transition-transform hover:scale-125 focus:outline-hidden"
+                                    title={RATING_DEFINITIONS[star]?.label}
+                                  >
+                                    <Star
+                                      className={`size-6.5 transition-colors ${
+                                        star <= Number(currentVal || 0)
+                                          ? "fill-amber-400 text-amber-400 drop-shadow-xs"
+                                          : "text-zinc-200"
+                                      }`}
+                                    />
+                                  </button>
+                                ))}
+                              </div>
+
+                              {currentVal && (
+                                <span
+                                  className={`rounded-full border px-3 py-1 text-xs font-black transition-all ${
+                                    RATING_DEFINITIONS[Number(currentVal)]
+                                      ?.color || ""
                                   }`}
-                                />
-                              </button>
-                            ))}
-                            <span className="ml-2 text-xs font-bold text-zinc-700">
-                              {currentVal ? `${currentVal}/5` : ""}
-                            </span>
+                                >
+                                  {
+                                    RATING_DEFINITIONS[Number(currentVal)]
+                                      ?.label
+                                  }
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+                              <span>1★ = Слабо</span>
+                              <span>•</span>
+                              <span>3★ = Добро</span>
+                              <span>•</span>
+                              <span>5★ = Отлично</span>
+                            </div>
                           </div>
                         )}
 
