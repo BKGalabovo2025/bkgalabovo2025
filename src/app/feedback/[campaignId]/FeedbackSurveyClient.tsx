@@ -31,12 +31,35 @@ interface Props {
 
 type SurveyAnswerValue = string | number | boolean;
 
-const RATING_LABELS: Record<number, string> = {
-  1: "Незадоволително",
-  2: "Приемливо",
-  3: "Добро",
-  4: "Много добро",
-  5: "Отлично / Перфектно! 🌟",
+const RATING_DEFINITIONS: Record<
+  number,
+  { label: string; short: string; color: string }
+> = {
+  1: {
+    label: "1★ - Незадоволително / Слабо",
+    short: "Слабо",
+    color: "text-rose-700 bg-rose-50 border-rose-200",
+  },
+  2: {
+    label: "2★ - Приемливо / Има забележки",
+    short: "Приемливо",
+    color: "text-amber-700 bg-amber-50 border-amber-200",
+  },
+  3: {
+    label: "3★ - Добро / Средно ниво",
+    short: "Добро",
+    color: "text-yellow-700 bg-yellow-50 border-yellow-200",
+  },
+  4: {
+    label: "4★ - Много добро / Доволен/на съм",
+    short: "Много добро",
+    color: "text-blue-700 bg-blue-50 border-blue-200",
+  },
+  5: {
+    label: "5★ - Отлично / Изключително доволен/на! 🌟",
+    short: "Отлично 🌟",
+    color: "text-emerald-700 bg-emerald-50 border-emerald-200",
+  },
 };
 
 export default function FeedbackSurveyClient({ campaignId }: Props) {
@@ -243,21 +266,27 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
       <div className="mx-auto max-w-2xl">
         {/* Brand Header */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl border border-blue-400/40 bg-white p-2 shadow-md shadow-indigo-100">
-            <Image
-              src="/icons/LOGO.jpg"
-              alt="Logo"
-              width={44}
-              height={44}
-              className="object-contain"
-            />
-          </div>
+          <Link
+            href="/club"
+            className="group inline-flex flex-col items-center gap-2 transition-all"
+            title="Към сайта на Бадминтон клуб Гълъбово"
+          >
+            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-blue-400/40 bg-white p-2 shadow-md shadow-indigo-100 transition-all group-hover:scale-105 group-hover:border-blue-500 group-hover:shadow-lg group-hover:shadow-indigo-200">
+              <Image
+                src="/icons/LOGO.jpg"
+                alt="Logo"
+                width={44}
+                height={44}
+                className="object-contain"
+              />
+            </div>
 
-          <span className="text-xs font-black tracking-widest text-indigo-700 uppercase">
-            Бадминтон клуб Гълъбово
-          </span>
+            <span className="text-xs font-black tracking-widest text-indigo-700 uppercase transition-colors group-hover:text-blue-600">
+              Бадминтон клуб Гълъбово
+            </span>
+          </Link>
 
-          <h1 className="mt-2 text-2xl font-black tracking-tight text-zinc-950 sm:text-3xl">
+          <h1 className="mt-4 text-2xl font-black tracking-tight text-zinc-950 sm:text-3xl">
             {campaign.title}
           </h1>
 
