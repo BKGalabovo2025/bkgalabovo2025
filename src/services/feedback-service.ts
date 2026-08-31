@@ -397,6 +397,15 @@ export const feedbackService = {
     const docRef = doc(collection(db, SUBMISSIONS_COLLECTION));
     const now = new Date().toISOString();
 
+    const questionBreakdown = (campaign.questions || [])
+      .map((q) => ({
+        questionId: q.id,
+        label: q.label,
+        type: q.type,
+        answer: data.answers[q.id],
+      }))
+      .filter((item) => item.answer !== undefined && item.answer !== "");
+
     const submission: Omit<FeedbackSubmission, "id"> = {
       ...data,
       campaignId,
@@ -405,6 +414,7 @@ export const feedbackService = {
       eventId: campaign.eventId,
       eventTitle: campaign.eventTitle,
       siteId: campaign.siteId,
+      questionBreakdown,
       status: "pending", // Waiting for admin moderation
       showInPublic: false,
       createdAt: now,

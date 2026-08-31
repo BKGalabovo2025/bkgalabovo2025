@@ -1,10 +1,14 @@
-/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity */
 "use client";
 
 import { motion } from "framer-motion";
 import {
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Heart,
   Loader2,
+  MessageCircle,
   MessageSquare,
   Sparkles,
   Star,
@@ -18,6 +22,273 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { feedbackService } from "@/services/feedback-service";
 import { FeedbackSubmission } from "@/types/feedback.types";
+
+const QUESTION_LABELS_FALLBACK: Record<string, string> = {
+  q_org: "Организация и комуникация",
+  q_training: "Качество на тренировките",
+  q_hotel_food: "Настаняване и храна",
+  q_atmosphere: "Атмосфера и грижа",
+  q_future: "Бъдещо участие",
+  q_liked: "Любим момент / Впечатления",
+  q_improvements: "Препоръки за подобрение",
+  q_comp_org: "Организация на състезанието",
+  q_coach_guidance: "Треньорски наставления",
+  q_motivation: "Мотивация на състезателя",
+  q_progress: "Спортно развитие и напредък",
+  q_comm: "Комуникация с треньорите",
+  q_discipline: "Дисциплина и мотивация",
+  q_overall_club: "Удовлетвореност от клуба",
+  q_recommend: "Препоръка на клуба",
+  q_general_feedback: "Съобщение към екипа",
+  q_training_feedback: "Препоръки за тренировките",
+};
+
+interface ReviewCardProps {
+  rev: FeedbackSubmission;
+  index: number;
+}
+
+function ReviewCardItem({ rev, index }: ReviewCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const initial = rev.respondentName?.trim()?.charAt(0)?.toUpperCase() || "К";
+  const formattedDate = new Date(rev.createdAt).toLocaleDateString("bg-BG", {
+    month: "long",
+    year: "numeric",
+  });
+
+  // Extract structured answers
+  const ratingItems: Array<{ label: string; rating: number }> = [];
+  const textItems: Array<{ label: string; answer: string }> = [];
+  let futureParticipation: string | null = null;
+
+  if (rev.questionBreakdown && rev.questionBreakdown.length > 0) {
+    rev.questionBreakdown.forEach((q) => {
+      if (q.questionId === "q_future" || q.label?.includes("отново")) {
+        futureParticipation = String(q.answer);
+      } else if (q.type === "rating" && typeof q.answer === "number") {
+        ratingItems.push({ label: q.label, rating: q.answer });
+      } else if (
+        (q.type === "text" || q.type === "select") &&
+        typeof q.answer === "string" &&
+        q.answer.trim()
+      ) {
+        textItems.push({ label: q.label, answer: q.answer.trim() });
+      }
+    });
+  } else if (rev.answers) {
+    Object.entries(rev.answers).forEach(([k, v]) => {
+      const label = QUESTION_LABELS_FALLBACK[k] || k;
+      if (k === "q_future") {
+        futureParticipation = String(v);
+      } else if (typeof v === "number") {
+        ratingItems.push({ label, rating: v });
+      } else if (
+        typeof v === "string" &&
+        v.trim() &&
+        !["true", "false"].includes(v)
+      ) {
+        textItems.push({ label, answer: v.trim() });
+      }
+    });
+  }
+
+  // Capitalize respondent name properly
+  const cleanName =
+    rev.respondentName?.charAt(0).toUpperCase() + rev.respondentName?.slice(1);
+
+  // Capitalize child name properly
+  const cleanChild = rev.childName
+    ? rev.childName.charAt(0).toUpperCase() + rev.childName.slice(1)
+    : "";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="h-full"
+    >
+      <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/95 via-zinc-900/80 to-zinc-950/95 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-blue-500/50 hover:shadow-blue-500/10 sm:p-7">
+        {/* Top ambient glow */}
+        <div className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-blue-500/10 blur-2xl transition-all group-hover:bg-blue-500/20" />
+
+        <div className="space-y-4">
+          {/* 1. Header: Stars with rating score & Event Badge */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 text-amber-400">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`size-4.5 transition-transform group-hover:scale-105 ${
+                      i < rev.overallRating
+                        ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]"
+                        : "text-zinc-700"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-black text-zinc-300">
+                {rev.overallRating}.0
+              </span>
+            </div>
+
+            <Badge
+              variant="outline"
+              className="rounded-full border-blue-500/30 bg-blue-500/10 px-3 py-0.5 text-[10px] font-extrabold tracking-wider text-blue-400 uppercase"
+            >
+              {rev.eventType === "camp"
+                ? "Лагер"
+                : rev.eventType === "competition"
+                  ? "Състезание"
+                  : rev.eventType === "training"
+                    ? "Тренировки"
+                    : "Клуб"}
+            </Badge>
+          </div>
+
+          {/* 2. Event Title Pill */}
+          {rev.eventTitle && (
+            <div className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950/70 px-2.5 py-1 text-[11px] font-bold text-blue-300">
+              <Tag className="size-3 shrink-0 text-blue-400" />
+              <span className="truncate">{rev.eventTitle}</span>
+            </div>
+          )}
+
+          {/* 3. Main Review Quote (if present) */}
+          {(rev.highlightQuote || rev.reviewText) && (
+            <div className="relative rounded-2xl border-l-2 border-blue-500/50 bg-blue-950/10 px-4 py-2.5">
+              <p className="text-sm leading-relaxed font-normal text-zinc-100 italic sm:text-[15px]">
+                &ldquo;{rev.highlightQuote || rev.reviewText}&rdquo;
+              </p>
+            </div>
+          )}
+
+          {/* 4. Future Participation Badge */}
+          {futureParticipation && (
+            <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 px-3.5 py-2 text-xs font-semibold text-emerald-300">
+              <Heart className="size-3.5 shrink-0 text-emerald-400" />
+              <span className="text-[11px] text-zinc-400">Бъдещо участие:</span>
+              <span className="font-bold text-emerald-300">
+                {futureParticipation}
+              </span>
+            </div>
+          )}
+
+          {/* 5. Category Stars Breakdown */}
+          {ratingItems.length > 0 && (
+            <div className="space-y-2 rounded-2xl border border-zinc-800/80 bg-zinc-950/50 p-4">
+              <div className="text-[10px] font-extrabold tracking-wider text-zinc-400 uppercase">
+                Оценки по елементи:
+              </div>
+              <div className="divide-zinc-850 space-y-2 divide-y">
+                {ratingItems.map((item, rIdx) => (
+                  <div
+                    key={rIdx}
+                    className="flex items-center justify-between gap-2 pt-1.5 first:pt-0"
+                  >
+                    <span className="truncate text-[11px] font-medium text-zinc-300">
+                      {item.label}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <div className="flex items-center gap-0.5 text-amber-400">
+                        {Array.from({ length: 5 }).map((_, sIdx) => (
+                          <Star
+                            key={sIdx}
+                            className={`size-3 ${
+                              sIdx < item.rating
+                                ? "fill-amber-400 text-amber-400"
+                                : "text-zinc-700"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="w-6 text-right text-[10px] font-bold text-zinc-400">
+                        {item.rating}/5
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 6. Open Questions & Answers (Expandable) */}
+          {textItems.length > 0 && (
+            <div className="space-y-2 pt-1">
+              {isExpanded && (
+                <div className="space-y-3 rounded-2xl border border-blue-500/20 bg-blue-950/20 p-4">
+                  {textItems.map((tItem, tIdx) => (
+                    <div key={tIdx} className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-300">
+                        <MessageCircle className="size-3.5 shrink-0 text-blue-400" />
+                        <span>{tItem.label}</span>
+                      </div>
+                      <p className="pl-5 text-xs leading-relaxed text-zinc-200 italic">
+                        &ldquo;{tItem.answer}&rdquo;
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center gap-1.5 text-[11px] font-bold text-blue-400 transition-colors hover:text-blue-300"
+              >
+                {isExpanded ? (
+                  <>
+                    <ChevronUp className="size-3.5" />
+                    Скрий отговорите на въпросите
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="size-3.5" />
+                    Виж отговори на въпросите ({textItems.length})
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 7. Author / Parent Footer */}
+        <div className="mt-6 flex items-center justify-between border-t border-zinc-800/80 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-xs font-black text-white shadow-md shadow-blue-500/20">
+              {initial}
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-white transition-colors group-hover:text-blue-300 sm:text-sm">
+                <span>{cleanName}</span>
+                <span title="Проверен отзив" className="inline-flex">
+                  <CheckCircle2 className="size-3.5 shrink-0 text-emerald-400" />
+                </span>
+              </div>
+              <div className="text-[11px] font-medium text-zinc-400">
+                {rev.respondentRole === "parent"
+                  ? cleanChild
+                    ? `Родител на ${cleanChild}`
+                    : "Родител"
+                  : rev.respondentRole === "athlete"
+                    ? "Състезател"
+                    : rev.respondentRole === "guest"
+                      ? "Приятел / Гост"
+                      : "Отзив"}
+              </div>
+            </div>
+          </div>
+
+          <div className="text-[11px] font-medium text-zinc-500">
+            {formattedDate}
+          </div>
+        </div>
+      </Card>
+    </motion.div>
+  );
+}
 
 export default function ClubReviewsClient() {
   const [reviews, setReviews] = useState<FeedbackSubmission[]>([]);
@@ -107,7 +378,7 @@ export default function ClubReviewsClient() {
           transition={{ delay: 0.3 }}
           className="relative z-10 rounded-3xl border border-blue-500/20 bg-zinc-900/60 p-6 shadow-2xl backdrop-blur-xl sm:p-8"
         >
-          <div className="grid grid-cols-1 gap-6 divide-y divide-zinc-800 text-center sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="grid grid-cols-1 divide-y divide-zinc-800 text-center sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {/* Avg Stars */}
             <div className="space-y-1 sm:px-4">
               <div className="flex items-center justify-center gap-1.5 text-amber-400">
@@ -194,118 +465,10 @@ export default function ClubReviewsClient() {
             </p>
           </div>
         ) : (
-          <div className="relative z-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredReviews.map((rev, idx) => {
-              const initial =
-                rev.respondentName?.trim()?.charAt(0)?.toUpperCase() || "К";
-              const formattedDate = new Date(rev.createdAt).toLocaleDateString(
-                "bg-BG",
-                {
-                  month: "long",
-                  year: "numeric",
-                }
-              );
-
-              return (
-                <motion.div
-                  key={rev.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                >
-                  <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/90 via-zinc-900/70 to-zinc-950/90 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-blue-500/50 hover:shadow-blue-500/10 sm:p-7">
-                    {/* Top ambient glow */}
-                    <div className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-blue-500/10 blur-2xl transition-all group-hover:bg-blue-500/20" />
-
-                    <div className="space-y-4">
-                      {/* Header: Stars with rating score & Event Badge */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <div className="flex items-center gap-1 text-amber-400">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`size-4.5 transition-transform group-hover:scale-105 ${
-                                  i < rev.overallRating
-                                    ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]"
-                                    : "text-zinc-700"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-xs font-bold text-zinc-400">
-                            {rev.overallRating}.0
-                          </span>
-                        </div>
-
-                        <Badge
-                          variant="outline"
-                          className="rounded-full border-blue-500/30 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-extrabold tracking-wider text-blue-400 uppercase"
-                        >
-                          {rev.eventType === "camp"
-                            ? "Лагер"
-                            : rev.eventType === "competition"
-                              ? "Състезание"
-                              : rev.eventType === "training"
-                                ? "Тренировки"
-                                : "Клуб"}
-                        </Badge>
-                      </div>
-
-                      {/* Event Title Tag */}
-                      {rev.eventTitle && (
-                        <div className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950/60 px-2.5 py-1 text-[11px] font-bold text-blue-300">
-                          <Tag className="size-3 shrink-0 text-blue-400" />
-                          <span className="truncate">{rev.eventTitle}</span>
-                        </div>
-                      )}
-
-                      {/* Review Text */}
-                      <div className="relative border-l-2 border-blue-500/40 py-0.5 pl-3.5">
-                        <p className="text-sm leading-relaxed font-normal text-zinc-200 italic sm:text-[15px]">
-                          &ldquo;{rev.highlightQuote || rev.reviewText}&rdquo;
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Author / Parent Footer */}
-                    <div className="mt-6 flex items-center justify-between border-t border-zinc-800/80 pt-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-xs font-black text-white shadow-md shadow-blue-500/20">
-                          {initial}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-white transition-colors group-hover:text-blue-300 sm:text-sm">
-                            <span>{rev.respondentName}</span>
-                            <span
-                              title="Проверен отзив"
-                              className="inline-flex"
-                            >
-                              <CheckCircle2 className="size-3.5 shrink-0 text-emerald-400" />
-                            </span>
-                          </div>
-                          {rev.childName ? (
-                            <div className="text-[11px] font-medium text-zinc-400">
-                              Родител на {rev.childName}
-                            </div>
-                          ) : (
-                            <div className="text-[11px] font-medium text-zinc-400 capitalize">
-                              {rev.respondentRole === "athlete"
-                                ? "Състезател"
-                                : "Член на клуба"}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="text-[11px] font-medium text-zinc-500">
-                        {formattedDate}
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              );
-            })}
+          <div className="relative z-10 grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredReviews.map((rev, idx) => (
+              <ReviewCardItem key={rev.id} rev={rev} index={idx} />
+            ))}
           </div>
         )}
       </main>

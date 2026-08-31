@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-nested-conditional */
 "use client";
 
 import {
@@ -283,14 +283,17 @@ export function FeedbackSubmissionsTab({
 
                       {/* Respondent & Excerpt */}
                       <div>
-                        <div className="text-sm font-bold text-zinc-900">
-                          {sub.respondentName}
-                          {sub.childName && (
-                            <span className="text-xs font-medium text-zinc-500">
-                              {" "}
-                              (Родител на {sub.childName})
-                            </span>
-                          )}
+                        <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-zinc-900">
+                          <span>{sub.respondentName}</span>
+                          <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600">
+                            {sub.respondentRole === "parent" && sub.childName
+                              ? "👨‍👩‍👧 Родител на " + sub.childName
+                              : sub.respondentRole === "parent"
+                                ? "👨‍👩‍👧 Родител"
+                                : sub.respondentRole === "athlete"
+                                  ? "🏸 Състезател"
+                                  : "🌟 Приятел / Гост"}
+                          </span>
                         </div>
 
                         {sub.reviewText && (

@@ -79,6 +79,14 @@ export interface FeedbackSubmission {
   // Detailed answers to questions: questionId -> answer
   answers: Record<string, string | number | boolean>;
 
+  // Formatted question breakdown for detailed display on cards
+  questionBreakdown?: Array<{
+    questionId: string;
+    label: string;
+    type: SurveyQuestionType;
+    answer: string | number | boolean;
+  }>;
+
   // Moderation
   status: FeedbackSubmissionStatus;
   showInPublic: boolean;
