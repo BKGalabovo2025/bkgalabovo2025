@@ -41,6 +41,12 @@ const QUESTION_LABELS_FALLBACK: Record<string, string> = {
   q_discipline: "Дисциплина и мотивация",
   q_overall_club: "Удовлетвореност от клуба",
   q_recommend: "Бихте ли препоръчали клуба?",
+  q_recommend_choice: "Бихте ли препоръчали клуба на приятели?",
+  q_coaching_approach: "Треньорски подход и внимание към децата",
+  q_environment_discipline: "Спортна атмосфера и мотивация",
+  q_communication_org: "Организация и комуникация",
+  q_club_strengths: "Какво най-много цените в работата на клуба",
+  q_club_improvements: "Препоръки за бъдещи подобрения",
   q_general_feedback: "Съобщение към екипа",
   q_training_feedback: "Препоръки за тренировките",
 };
@@ -285,6 +291,17 @@ export default function ClubReviewsClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
+  const categoryCounts = useMemo(() => {
+    return {
+      all: reviews.length,
+      camp: reviews.filter((r) => r.eventType === "camp").length,
+      training: reviews.filter((r) => r.eventType === "training").length,
+      competition: reviews.filter((r) => r.eventType === "competition").length,
+      general: reviews.filter((r) => r.eventType === "general" || !r.eventType)
+        .length,
+    };
+  }, [reviews]);
+
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -306,6 +323,9 @@ export default function ClubReviewsClient() {
 
   const filteredReviews = useMemo(() => {
     if (selectedCategory === "all") return reviews;
+    if (selectedCategory === "general") {
+      return reviews.filter((r) => r.eventType === "general" || !r.eventType);
+    }
     return reviews.filter((r) => r.eventType === selectedCategory);
   }, [reviews, selectedCategory]);
 
@@ -439,25 +459,46 @@ export default function ClubReviewsClient() {
           </div>
         </motion.div>
 
-        {/* Categories Filter Tabs */}
+        {/* Categories Filter Tabs with Badges */}
         <div className="relative z-10 flex flex-wrap items-center justify-center gap-2">
           {[
-            { id: "all", label: "🌟 Всички отзиви" },
-            { id: "camp", label: "🏕️ Лагери" },
-            { id: "training", label: "⚡ Тренировки" },
-            { id: "competition", label: "🏸 Състезания" },
-            { id: "general", label: "💬 Общи впечатления" },
+            { id: "all", label: "🌟 Всички отзиви", count: categoryCounts.all },
+            { id: "camp", label: "🏕️ Лагери", count: categoryCounts.camp },
+            {
+              id: "training",
+              label: "⚡ Тренировки",
+              count: categoryCounts.training,
+            },
+            {
+              id: "competition",
+              label: "🏸 Състезания",
+              count: categoryCounts.competition,
+            },
+            {
+              id: "general",
+              label: "💬 Общи впечатления",
+              count: categoryCounts.general,
+            },
           ].map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`rounded-2xl px-4 py-2.5 text-xs font-bold tracking-wider uppercase transition-all ${
+              className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold tracking-wider uppercase transition-all ${
                 selectedCategory === cat.id
                   ? "scale-105 bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                   : "border border-zinc-800 bg-zinc-900/80 text-zinc-400 hover:border-zinc-700 hover:text-white"
               }`}
             >
-              {cat.label}
+              <span>{cat.label}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                  selectedCategory === cat.id
+                    ? "bg-white/20 text-white"
+                    : "bg-zinc-800 text-zinc-300"
+                }`}
+              >
+                {cat.count}
+              </span>
             </button>
           ))}
         </div>
