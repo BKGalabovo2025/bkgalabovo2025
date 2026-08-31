@@ -1,7 +1,14 @@
 export type MarketingChannel = "whatsapp" | "viber" | "sms" | "email";
 
 export type MarketingTemplateCategory =
-  "general" | "camp" | "tournament" | "payment" | "schedule" | "feedback";
+  | "general"
+  | "camp"
+  | "tournament"
+  | "payment"
+  | "schedule"
+  | "feedback"
+  | "recovery"
+  | "procedures";
 
 export interface MarketingRecipient {
   id: string;

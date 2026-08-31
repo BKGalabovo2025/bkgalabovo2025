@@ -17,10 +17,12 @@ import {
 import { db } from "@/lib/firebase";
 import {
   MarketingAutomationRule,
+  MarketingChannel,
   MarketingLog,
   MarketingLogFormData,
   MarketingStats,
   MarketingTemplate,
+  MarketingTemplateCategory,
 } from "@/types/marketing.types";
 
 const HISTORY_COLLECTION = "marketing_history";
@@ -107,7 +109,7 @@ export const DEFAULT_MARKETING_TEMPLATES: TemplateCreateInput[] = [
 export const DEFAULT_RECOVERY_TEMPLATES: TemplateCreateInput[] = [
   {
     title: "🧖‍♂️ Потвърждение за час за възстановяване",
-    category: "general",
+    category: "recovery",
     channel: "whatsapp",
     subject: "Потвърждение за запазен час - Recovery Zone by ZM",
     messageText:
@@ -117,7 +119,7 @@ export const DEFAULT_RECOVERY_TEMPLATES: TemplateCreateInput[] = [
   },
   {
     title: "💆‍♀️ Напомняне за час в Recovery Zone",
-    category: "schedule",
+    category: "recovery",
     channel: "sms",
     subject: "Напомняне за запазен час",
     messageText:
@@ -147,7 +149,7 @@ export const DEFAULT_RECOVERY_TEMPLATES: TemplateCreateInput[] = [
   },
   {
     title: "🌟 Специална оферта за нови процедури",
-    category: "general",
+    category: "procedures",
     channel: "email",
     subject: "Специално предложение от Recovery Zone by ZM",
     messageText:
@@ -167,74 +169,108 @@ export const DEFAULT_RECOVERY_TEMPLATES: TemplateCreateInput[] = [
   },
 ];
 
+async function seedDefaultTemplates(
+  siteId: string,
+  defaults: TemplateCreateInput[]
+): Promise<MarketingTemplate[]> {
+  const seeded: MarketingTemplate[] = [];
+  let index = 0;
+  for (const tmpl of defaults) {
+    const docId = `${siteId}_template_${index}`;
+    const docRef = doc(db, TEMPLATES_COLLECTION, docId);
+    await setDoc(docRef, {
+      ...tmpl,
+      siteId,
+      createdAt: new Date().toISOString(),
+    });
+    seeded.push({
+      ...tmpl,
+      id: docId,
+      siteId,
+      createdAt: new Date().toISOString(),
+    });
+    index++;
+  }
+  return seeded;
+}
+
+function parseAndDeduplicateTemplates(
+  docs: Array<{ id: string; data: () => Record<string, unknown> }>
+): MarketingTemplate[] {
+  const seenTitles = new Set<string>();
+  const templates: MarketingTemplate[] = [];
+
+  for (const docSnap of docs) {
+    const data = docSnap.data();
+    const title = String(data.title || "");
+    if (seenTitles.has(title)) {
+      continue;
+    }
+    seenTitles.add(title);
+    templates.push({
+      id: docSnap.id,
+      siteId: String(data.siteId || ""),
+      title,
+      category: (data.category as MarketingTemplateCategory) || "general",
+      channel: (data.channel as MarketingChannel) || "whatsapp",
+      subject: String(data.subject || ""),
+      messageText: String(data.messageText || ""),
+      variables: Array.isArray(data.variables)
+        ? (data.variables as string[])
+        : [],
+      isDefault: Boolean(data.isDefault),
+      createdAt: String(data.createdAt || new Date().toISOString()),
+      updatedAt: data.updatedAt ? String(data.updatedAt) : undefined,
+    });
+  }
+
+  return templates;
+}
+
 export const marketingService = {
   // -------------------------------------------------------------
   // TEMPLATES
   // -------------------------------------------------------------
   async getTemplates(siteId: string): Promise<MarketingTemplate[]> {
     try {
-      const q = query(
-        collection(db, TEMPLATES_COLLECTION),
-        where("siteId", "==", siteId)
-      );
+      if (siteId === "recoveryzone") {
+        const q = query(
+          collection(db, TEMPLATES_COLLECTION),
+          where("siteId", "==", "recoveryzone")
+        );
+        const snapshot = await getDocs(q);
+
+        const hasBadmintonContent = snapshot.docs.some((d) => {
+          const text = (d.data().messageText || "") + (d.data().title || "");
+          return (
+            text.includes("БК Гълъбово") ||
+            text.includes("лагер") ||
+            text.includes("турнир")
+          );
+        });
+
+        if (snapshot.empty || hasBadmintonContent) {
+          for (const docSnap of snapshot.docs) {
+            await deleteDoc(docSnap.ref).catch(() => {});
+          }
+          return seedDefaultTemplates(
+            "recoveryzone",
+            DEFAULT_RECOVERY_TEMPLATES
+          );
+        }
+
+        return parseAndDeduplicateTemplates(snapshot.docs);
+      }
+
+      // siteId === "bkgalabovo": Master Admin sees BOTH Badminton and Recovery templates
+      const q = query(collection(db, TEMPLATES_COLLECTION));
       const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
-        // Seed default templates for this siteId with deterministic IDs to avoid race conditions
-        const targetDefaults =
-          siteId === "recoveryzone"
-            ? DEFAULT_RECOVERY_TEMPLATES
-            : DEFAULT_MARKETING_TEMPLATES;
-
-        const seeded: MarketingTemplate[] = [];
-        let index = 0;
-        for (const tmpl of targetDefaults) {
-          const docId = `${siteId}_template_${index}`;
-          const docRef = doc(db, TEMPLATES_COLLECTION, docId);
-          await setDoc(docRef, {
-            ...tmpl,
-            siteId,
-            createdAt: new Date().toISOString(),
-          });
-          seeded.push({
-            ...tmpl,
-            id: docId,
-            siteId,
-            createdAt: new Date().toISOString(),
-          });
-          index++;
-        }
-        return seeded;
+        return seedDefaultTemplates("bkgalabovo", DEFAULT_MARKETING_TEMPLATES);
       }
 
-      // Deduplicate by title to clean up any duplicates created in dev/strict mode
-      const seenTitles = new Set<string>();
-      const templates: MarketingTemplate[] = [];
-
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        if (seenTitles.has(data.title)) {
-          // Clean up duplicate doc from firestore asynchronously
-          deleteDoc(docSnap.ref).catch(() => {});
-          continue;
-        }
-        seenTitles.add(data.title);
-        templates.push({
-          id: docSnap.id,
-          siteId: data.siteId,
-          title: data.title,
-          category: data.category || "general",
-          channel: data.channel || "whatsapp",
-          subject: data.subject || "",
-          messageText: data.messageText || "",
-          variables: data.variables || [],
-          isDefault: !!data.isDefault,
-          createdAt: data.createdAt || new Date().toISOString(),
-          updatedAt: data.updatedAt,
-        } as MarketingTemplate);
-      }
-
-      return templates;
+      return parseAndDeduplicateTemplates(snapshot.docs);
     } catch (error) {
       console.error("Error fetching marketing templates:", error);
       return [];
@@ -320,12 +356,19 @@ export const marketingService = {
     limitCount: number = 200
   ): Promise<MarketingLog[]> {
     try {
-      const q = query(
-        collection(db, HISTORY_COLLECTION),
-        where("siteId", "==", siteId),
-        orderBy("sentAt", "desc"),
-        limit(limitCount)
-      );
+      const q =
+        siteId === "recoveryzone"
+          ? query(
+              collection(db, HISTORY_COLLECTION),
+              where("siteId", "==", "recoveryzone"),
+              orderBy("sentAt", "desc"),
+              limit(limitCount)
+            )
+          : query(
+              collection(db, HISTORY_COLLECTION),
+              orderBy("sentAt", "desc"),
+              limit(limitCount)
+            );
       const snapshot = await getDocs(q);
       return snapshot.docs.map((docSnap) => {
         const data = docSnap.data();

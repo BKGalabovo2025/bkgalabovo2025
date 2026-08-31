@@ -164,14 +164,14 @@ export function TemplateEditorDialog({
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
                     <SelectItem value="general">🌟 Общи</SelectItem>
+                    <SelectItem value="recovery">🧖‍♂️ Възстановяване</SelectItem>
+                    <SelectItem value="procedures">
+                      💆‍♀️ Процедури & Терапии
+                    </SelectItem>
                     <SelectItem value="camp">🏕️ Лагери</SelectItem>
                     <SelectItem value="tournament">🏸 Турнири</SelectItem>
-                    <SelectItem value="payment">
-                      💳 Такси & Абонаменти
-                    </SelectItem>
-                    <SelectItem value="schedule">
-                      ⏰ График & Тренировки
-                    </SelectItem>
+                    <SelectItem value="payment">💳 Такси & Пакети</SelectItem>
+                    <SelectItem value="schedule">⏰ График & Часове</SelectItem>
                     <SelectItem value="feedback">💬 Анкети & Отзиви</SelectItem>
                   </SelectContent>
                 </Select>

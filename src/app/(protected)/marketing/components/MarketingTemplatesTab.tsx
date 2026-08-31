@@ -99,10 +99,14 @@ export function MarketingTemplatesTab({
         return "🏕️ Лагери";
       case "tournament":
         return "🏸 Турнири";
+      case "recovery":
+        return "🧖‍♂️ Възстановяване";
+      case "procedures":
+        return "💆‍♀️ Процедури";
       case "payment":
-        return "💳 Такси & Абонаменти";
+        return "💳 Такси & Пакети";
       case "schedule":
-        return "⏰ График & Тренировки";
+        return "⏰ График & Часове";
       case "feedback":
         return "💬 Анкети & Отзиви";
       default:
@@ -130,8 +134,8 @@ export function MarketingTemplatesTab({
             </Badge>
           </div>
           <p className="text-xs text-zinc-500">
-            Готови съобщения за лагери, турнири, напомняния за такси и анкети за
-            обратна връзка
+            Готови съобщения за лагери, турнири, възстановяване, напомняния за
+            такси и анкети
           </p>
         </div>
 
@@ -148,11 +152,13 @@ export function MarketingTemplatesTab({
       {/* Categories Filter Pills */}
       <div className="flex flex-wrap items-center gap-2">
         {[
-          { id: "all", label: "🌟 Всички категории" },
+          { id: "all", label: "🌟 Всички" },
+          { id: "recovery", label: "🧖‍♂️ Възстановяване" },
+          { id: "procedures", label: "💆‍♀️ Процедури" },
           { id: "camp", label: "🏕️ Лагери" },
           { id: "tournament", label: "🏸 Турнири" },
-          { id: "payment", label: "💳 Такси & Абонаменти" },
-          { id: "schedule", label: "⏰ График & Тренировки" },
+          { id: "payment", label: "💳 Такси & Пакети" },
+          { id: "schedule", label: "⏰ График" },
           { id: "feedback", label: "💬 Анкети & Отзиви" },
           { id: "general", label: "📌 Общи" },
         ].map((cat) => (

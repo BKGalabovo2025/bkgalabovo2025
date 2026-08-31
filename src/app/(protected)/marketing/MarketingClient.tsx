@@ -65,11 +65,27 @@ export default function MarketingClient() {
 
   // Map club members & recovery clients to uniform MarketingRecipient entities
   const recipients: MarketingRecipient[] = useMemo(() => {
-    if (siteId === "recoveryzone" && clientsList.length > 0) {
-      return clientsList;
+    if (siteId === "recoveryzone") {
+      // ONLY recovery zone members + recovery clients
+      const recoveryMembers = members
+        .filter((m) => m.isRecoveryMember || m.memberType === "recovery")
+        .map((m) => ({
+          id: m.id,
+          name: m.name || `${m.firstName || ""} ${m.lastName || ""}`.trim(),
+          phone: m.phone || undefined,
+          email: m.email || undefined,
+          role: "athlete" as const,
+          status:
+            m.status === "active" ? ("active" as const) : ("inactive" as const),
+          group: "Recovery Членове",
+          siteId: "recoveryzone",
+        }));
+
+      return [...recoveryMembers, ...clientsList];
     }
 
-    return members.map((m) => {
+    // siteId === "bkgalabovo": Master Admin sees EVERYTHING (Badminton + Recovery Clients)
+    const memberRecipients = members.map((m) => {
       const isParentPhone = m.phoneType === "parent";
       const athleteFullName =
         m.name || `${m.firstName || ""} ${m.lastName || ""}`.trim();
@@ -84,11 +100,14 @@ export default function MarketingClient() {
         role: getMemberRole(m),
         phone: m.phone || m.emergencyContactPhone || undefined,
         email: m.email || undefined,
-        status: m.status === "active" ? "active" : "inactive",
+        status:
+          m.status === "active" ? ("active" as const) : ("inactive" as const),
         group: m.ageGroup || "Обща група",
         siteId: m.siteId || siteId,
       };
     });
+
+    return [...memberRecipients, ...clientsList];
   }, [members, clientsList, siteId]);
 
   // Load all marketing data
@@ -106,29 +125,25 @@ export default function MarketingClient() {
       setStats(st);
       setAutomationRules(rules);
 
-      if (siteId === "recoveryzone") {
-        try {
-          const clientsSnap = await getDocs(query(collection(db, "clients")));
-          const recoveryRecipients: MarketingRecipient[] = clientsSnap.docs.map(
-            (docSnap) => {
-              const data = docSnap.data();
-              return {
-                id: docSnap.id,
-                name: data.name || data.fullName || "Клиент",
-                phone: data.phone || undefined,
-                email: data.email || undefined,
-                role: "athlete" as const,
-                status: "active" as const,
-                group: "Recovery Zone Клиенти",
-                siteId: "recoveryzone",
-              };
-            }
-          );
-          setClientsList(recoveryRecipients);
-        } catch {
-          setClientsList([]);
-        }
-      } else {
+      try {
+        const clientsSnap = await getDocs(query(collection(db, "clients")));
+        const recoveryRecipients: MarketingRecipient[] = clientsSnap.docs.map(
+          (docSnap) => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              name: data.name || data.fullName || "Клиент",
+              phone: data.phone || undefined,
+              email: data.email || undefined,
+              role: "athlete" as const,
+              status: "active" as const,
+              group: "Recovery Zone Клиенти",
+              siteId: "recoveryzone",
+            };
+          }
+        );
+        setClientsList(recoveryRecipients);
+      } catch {
         setClientsList([]);
       }
     } catch (e) {
