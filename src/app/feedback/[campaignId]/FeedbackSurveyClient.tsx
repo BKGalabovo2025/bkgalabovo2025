@@ -62,6 +62,19 @@ const RATING_DEFINITIONS: Record<
   },
 };
 
+function getSection3Title(eventType: string) {
+  switch (eventType) {
+    case "camp":
+      return "3. Оценка на лагера";
+    case "competition":
+      return "3. Оценка на турнира";
+    case "training":
+      return "3. Оценка на тренировките";
+    default:
+      return "3. Оценка на дейността и условията";
+  }
+}
+
 export default function FeedbackSurveyClient({ campaignId }: Props) {
   const [campaign, setCampaign] = useState<FeedbackCampaign | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -468,7 +481,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
               <div className="space-y-5">
                 <h3 className="flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider text-indigo-900 uppercase">
                   <Star className="size-4 text-indigo-600" />
-                  3. Детайлни въпроси за събитието
+                  {getSection3Title(campaign.eventType)}
                 </h3>
 
                 <div className="space-y-4">

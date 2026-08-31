@@ -207,14 +207,6 @@ export const DEFAULT_FEEDBACK_TEMPLATES: Omit<
         category: "organization",
       },
       {
-        id: "q_overall_club",
-        type: "rating",
-        label: "Цялостно удовлетворение от дейността на БК Гълъбово",
-        description: "Общо впечатление и доверие към клуба",
-        required: true,
-        category: "general",
-      },
-      {
         id: "q_recommend_choice",
         type: "select",
         label: "Бихте ли препоръчали Бадминтон клуб Гълъбово на приятели?",
