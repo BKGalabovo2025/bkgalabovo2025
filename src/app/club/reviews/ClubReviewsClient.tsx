@@ -89,6 +89,15 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
     });
   }
 
+  // If there is an overall personal comment/review, add it to text answers
+  const mainComment = (rev.highlightQuote || rev.reviewText || "").trim();
+  if (mainComment && !textItems.some((t) => t.answer === mainComment)) {
+    textItems.push({
+      label: "Личен коментар и впечатления",
+      answer: mainComment,
+    });
+  }
+
   // Capitalize respondent name properly
   const cleanName =
     rev.respondentName?.charAt(0).toUpperCase() + rev.respondentName?.slice(1);
@@ -152,16 +161,7 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
             </div>
           )}
 
-          {/* 3. Main Review Quote (if user entered text in reviewText) */}
-          {(rev.highlightQuote || rev.reviewText) && (
-            <div className="relative rounded-2xl border-l-2 border-blue-500/50 bg-blue-950/10 px-4 py-2.5">
-              <p className="text-sm leading-relaxed font-normal text-zinc-100 italic sm:text-[15px]">
-                &ldquo;{rev.highlightQuote || rev.reviewText}&rdquo;
-              </p>
-            </div>
-          )}
-
-          {/* 4. Category Stars Breakdown */}
+          {/* 3. Category Stars Breakdown */}
           {ratingItems.length > 0 && (
             <div className="space-y-2 rounded-2xl border border-zinc-800/80 bg-zinc-950/50 p-4">
               <div className="text-[10px] font-extrabold tracking-wider text-zinc-400 uppercase">
