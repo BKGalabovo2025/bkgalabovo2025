@@ -250,9 +250,24 @@ export const feedbackService = {
     );
   },
 
-  async seedDefaultTemplates(siteId: string): Promise<void> {
+  async seedDefaultTemplates(
+    siteId: string,
+    replaceExisting = true
+  ): Promise<void> {
     const batch = writeBatch(db);
     const now = new Date().toISOString();
+
+    if (replaceExisting) {
+      const existingSnapshot = await getDocs(
+        query(
+          collection(db, TEMPLATES_COLLECTION),
+          where("siteId", "==", siteId)
+        )
+      );
+      existingSnapshot.docs.forEach((d) => {
+        batch.delete(d.ref);
+      });
+    }
 
     DEFAULT_FEEDBACK_TEMPLATES.forEach((tmpl) => {
       const docRef = doc(collection(db, TEMPLATES_COLLECTION));

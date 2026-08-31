@@ -53,12 +53,16 @@ export function FeedbackTemplatesTab({
 
   const handleResetDefaults = async () => {
     if (
-      !window.confirm("Искате ли да презаредите стандартните шаблони на клуба?")
+      !window.confirm(
+        "Това ще премахне дублираните шаблони и ще възстанови 4-те стандартни шаблона на клуба. Желаете ли да продължите?"
+      )
     )
       return;
     try {
-      await feedbackService.seedDefaultTemplates(siteId);
-      toast.success("Стандартните шаблони са добавени!");
+      await feedbackService.seedDefaultTemplates(siteId, true);
+      toast.success(
+        "Шаблоните бяха изчистени и възстановени до 4 стандартни шаблона!"
+      );
       onRefresh();
     } catch (e) {
       console.error(e);
@@ -189,17 +193,15 @@ export function FeedbackTemplatesTab({
                   Редактирай въпросите
                 </Button>
 
-                {!tmpl.isDefault && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(tmpl.id)}
-                    className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600"
-                    title="Изтрий шаблон"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDelete(tmpl.id)}
+                  className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600"
+                  title="Изтрий шаблон"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>
