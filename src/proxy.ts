@@ -3,7 +3,13 @@ import { NextResponse } from "next/server";
 
 // Public root and prefixes that do not require authenticated session
 const publicExactPaths = ["/"];
-const publicPrefixes = ["/login", "/quiz", "/club", "/recovery-zone"];
+const publicPrefixes = [
+  "/login",
+  "/quiz",
+  "/club",
+  "/recovery-zone",
+  "/feedback/",
+];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
