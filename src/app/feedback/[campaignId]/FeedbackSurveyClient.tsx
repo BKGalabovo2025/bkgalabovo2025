@@ -481,32 +481,39 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
               <div className="space-y-5">
                 <h3 className="flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider text-indigo-900 uppercase">
                   <Star className="size-4 text-indigo-600" />
-                  {getSection3Title(campaign.eventType)}
+                  {getSection3Title(campaign.eventType)} (
+                  {campaign.questions.length})
                 </h3>
 
                 <div className="space-y-4">
-                  {campaign.questions.map((q) => {
+                  {campaign.questions.map((q, qIndex) => {
                     const currentVal = answers[q.id];
 
                     return (
                       <div
                         key={q.id}
-                        className="space-y-2.5 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4"
+                        className="space-y-2.5 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 transition-all hover:border-indigo-200"
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <Label className="text-xs leading-snug font-bold text-zinc-900">
-                            {q.label}{" "}
-                            {q.required && (
-                              <span className="text-rose-500">*</span>
+                        <div className="flex items-start gap-2.5">
+                          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white shadow-xs">
+                            {qIndex + 1}
+                          </span>
+                          <div className="flex-1">
+                            <Label className="text-xs leading-snug font-bold text-zinc-900">
+                              {q.label}{" "}
+                              {q.required && (
+                                <span className="font-bold text-rose-500">
+                                  *
+                                </span>
+                              )}
+                            </Label>
+                            {q.description && (
+                              <p className="mt-0.5 text-[11px] text-zinc-500">
+                                {q.description}
+                              </p>
                             )}
-                          </Label>
+                          </div>
                         </div>
-
-                        {q.description && (
-                          <p className="text-[11px] text-zinc-500">
-                            {q.description}
-                          </p>
-                        )}
 
                         {/* Rating Type */}
                         {q.type === "rating" && (
