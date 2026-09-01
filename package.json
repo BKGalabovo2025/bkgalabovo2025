@@ -26,7 +26,7 @@
     "check:deps": "dependency-cruiser --config .dependency-cruiser.cjs src",
     "check:dup-code": "jscpd src",
     "check:dup-funcs": "find-duplicate src",
-    "test:e2e": "firebase emulators:exec \"playwright test\" --project bkgalabovo-test",
+    "test:e2e": "firebase emulators:exec \"playwright test --ignore-snapshots\" --project bkgalabovo-test",
     "test:visual": "playwright test visual.spec.ts",
     "check-all": "npm run typecheck && npm run lint && npm run check:deps && npm run check:circular && npm run check:dup-code && npm run check:dup-funcs && npm run test && npm run knip && npm run security-check",
     "test": "vitest run",
