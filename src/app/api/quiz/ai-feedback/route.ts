@@ -253,7 +253,7 @@ export async function POST(request: Request) {
 
     // Verify result exists in Firestore
     const db = getAdminDb();
-    const resultRef = db.collection("theoryResults").doc(resultId);
+    const resultRef = db.collection("theory_results").doc(resultId);
     const resultSnap = await resultRef.get();
     if (!resultSnap.exists) {
       return NextResponse.json({ error: "Result not found" }, { status: 404 });

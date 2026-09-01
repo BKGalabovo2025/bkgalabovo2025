@@ -35,6 +35,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Defense against path traversal and oversized uploads (max 15MB)
+    const MAX_FILE_SIZE = 15 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { success: false, error: "Размерът на файла надвишава лимита от 15MB" },
+        { status: 400 }
+      );
+    }
+
+    if (path.includes("..") || path.includes("\\") || path.startsWith("/")) {
+      return NextResponse.json(
+        { success: false, error: "Невалиден или опасен файлов път" },
+        { status: 400 }
+      );
+    }
+
     // Validate that the path belongs to the user's site
     const adminAuth = (await import("@/lib/firebase-admin")).getAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(token);
@@ -125,6 +141,13 @@ export async function DELETE(request: NextRequest) {
     if (!path) {
       return NextResponse.json(
         { success: false, error: "Missing path" },
+        { status: 400 }
+      );
+    }
+
+    if (path.includes("..") || path.includes("\\") || path.startsWith("/")) {
+      return NextResponse.json(
+        { success: false, error: "Невалиден или опасен файлов път" },
         { status: 400 }
       );
     }

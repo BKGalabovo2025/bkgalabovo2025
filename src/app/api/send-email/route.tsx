@@ -171,24 +171,57 @@ async function renderEmailTemplate<T extends keyof EmailTemplateData>(
   return { html, text };
 }
 
-export async function POST(request: Request) {
-  // Authorize (both prod and dev, because it uses email credentials)
+async function authorizeEmailRequest(request: Request): Promise<boolean> {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    try {
-      const token = authHeader?.split("Bearer ")[1];
-      if (!token) throw new Error("No token provided");
-      await ensureAdmin(token);
-    } catch (err) {
-      console.warn("[send-email] Unauthorized attempt blocked.", err);
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const isCronAuthorized =
+    Boolean(process.env.CRON_SECRET) &&
+    authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+  if (isCronAuthorized) return true;
+
+  try {
+    const token = authHeader?.split("Bearer ")[1];
+    if (!token) return false;
+    await ensureAdmin(token);
+    return true;
+  } catch (err) {
+    console.warn("[send-email] Unauthorized attempt blocked.", err);
+    return false;
+  }
+}
+
+async function recordEmailLog(
+  recipient: string,
+  subject: string,
+  template: string,
+  status: "delivered" | "failed",
+  siteId?: string,
+  error?: string
+): Promise<void> {
+  try {
+    const adminDb = getAdminDb();
+    await adminDb.collection("email_logs").add({
+      recipient,
+      subject: subject || "unknown",
+      template: template || "unknown",
+      status,
+      error: error || null,
+      siteId: siteId || process.env.NEXT_PUBLIC_SITE_ID || "bkgalabovo",
+      sentAt: new Date().toISOString(),
+    });
+  } catch (logErr) {
+    console.error("[send-email] Failed to record email_log:", logErr);
+  }
+}
+
+export async function POST(request: Request) {
+  const isAuthorized = await authorizeEmailRequest(request);
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const body = await request.json();
-
-    // First validate the base schema
     const baseResult = EmailSchema.safeParse(body);
 
     if (!baseResult.success) {
@@ -201,7 +234,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Then validate template-specific data using discriminated union
     const dataResult = EmailDataSchema.safeParse({
       template: baseResult.data.template,
       data: baseResult.data.data,
@@ -218,18 +250,9 @@ export async function POST(request: Request) {
     }
 
     const { to, subject, template, data, attachments } = baseResult.data;
-
-    console.log(
-      `[send-email] Received request for: ${to}, template: ${template}`
-    );
-
     const { html, text } = await renderEmailTemplate(
       template,
       data as EmailTemplateData[typeof template]
-    );
-
-    console.log(
-      `[send-email] Template rendered successfully. HTML length: ${html.length}`
     );
 
     const user = process.env.EMAIL_USER;
@@ -246,45 +269,29 @@ export async function POST(request: Request) {
       host: "smtp.gmail.com",
       port: 465,
       secure: true,
-      auth: {
-        user: user,
-        pass: pass, // This should be a Google App Password
-      },
+      auth: { user, pass },
     });
 
-    const mailOptions = {
+    await transporter.sendMail({
       from: {
         name: 'Администратор "Бадминтон Клуб Гълъбово"',
         address: user,
       },
-      to: to,
+      to,
       bcc: process.env.ADMIN_ARCHIVE_EMAIL || "bkgalabovo2014@gmail.com",
-      subject: subject,
-      html: html,
-      text: text,
-      attachments: attachments,
-    };
+      subject,
+      html,
+      text,
+      attachments,
+    });
 
-    console.log(`[send-email] Attempting to send email via Gmail to: ${to}`);
-    await transporter.sendMail(mailOptions);
-    console.log(`[send-email] Successfully sent email to ${to}`);
-
-    try {
-      const adminDb = getAdminDb();
-      await adminDb.collection("email_logs").add({
-        recipient: to,
-        subject,
-        template,
-        status: "delivered",
-        siteId:
-          (data as { siteId?: string })?.siteId ||
-          process.env.NEXT_PUBLIC_SITE_ID ||
-          "bkgalabovo",
-        sentAt: new Date().toISOString(),
-      });
-    } catch (logErr) {
-      console.error("[send-email] Failed to record email_log:", logErr);
-    }
+    await recordEmailLog(
+      to,
+      subject,
+      template,
+      "delivered",
+      (data as { siteId?: string })?.siteId
+    );
 
     return NextResponse.json(
       { message: "Email sent successfully" },
@@ -292,30 +299,14 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     const e = error as Error & { code?: string };
-    console.error(
-      "[send-email] CRITICAL: Failed to process and send email. Full Error:",
-      JSON.stringify(e, null, 2)
-    );
+    console.error("[send-email] Failed to send email:", e.message);
 
-    try {
-      const adminDb = getAdminDb();
-      await adminDb.collection("email_logs").add({
-        recipient: "unknown",
-        status: "failed",
-        error: e.message || "Unknown email dispatch failure",
-        sentAt: new Date().toISOString(),
-      });
-    } catch (logErr) {
-      console.error(
-        "[send-email] Failed to record error in email_log:",
-        logErr
-      );
-    }
+    await recordEmailLog("unknown", "", "", "failed", undefined, e.message);
 
     let errorMessage = "Възникна грешка при изпращането на имейла.";
     if (e.code === "EAUTH") {
       errorMessage =
-        "Грешка при автентикация с Gmail. Проверете EMAIL_USER и EMAIL_PASS. Препоръчително е да се използва App Password.";
+        "Грешка при автентикация с Gmail. Проверете EMAIL_USER и EMAIL_PASS.";
     } else if (e.message.includes("template")) {
       errorMessage = e.message;
     }

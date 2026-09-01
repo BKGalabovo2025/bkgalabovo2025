@@ -5,7 +5,11 @@ import { getAdminDb } from "@/lib/firebase-admin";
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const isAuthorized =
+    Boolean(process.env.CRON_SECRET) &&
+    authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
