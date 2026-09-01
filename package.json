@@ -23,7 +23,7 @@
     "lighthouse": "node scripts/lighthouse-audit.js",
     "icons:generate": "node scripts/generate-icons.js",
     "check:circular": "madge --circular --extensions ts,tsx src",
-    "check:deps": "dependency-cruiser src",
+    "check:deps": "dependency-cruiser --config .dependency-cruiser.cjs src",
     "check:dup-code": "jscpd src",
     "check:dup-funcs": "find-duplicate src",
     "test:e2e": "firebase emulators:exec \"playwright test\" --project bkgalabovo-test",

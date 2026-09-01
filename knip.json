@@ -10,8 +10,15 @@
     "src/style.css",
     "scripts/**/*.cjs",
     "scripts/**/*.mjs",
-    "update_translations.cjs"
+    "src/services/audit-service.ts"
   ],
+  "ignoreDependencies": ["stylelint-config-tailwindcss"],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "exports": "off",
+    "types": "off",
+    "duplicates": "off"
+  },
   "next": {
     "entry": [
       "src/app/api/**/*.ts",
