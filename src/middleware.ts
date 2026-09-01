@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 const publicExactPaths = ["/"];
 const publicPrefixes = ["/login", "/quiz", "/club", "/recovery-zone"];
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Allow root path exact match

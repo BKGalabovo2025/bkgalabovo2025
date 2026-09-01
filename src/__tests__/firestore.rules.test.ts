@@ -176,4 +176,63 @@ describe("Firestore Rules Security Testing", () => {
       ).resolves.toBeDefined();
     });
   });
+
+  describe("Multi-Tenancy Cross-Tenant Boundary Enforcement", () => {
+    it("Tenant A (bkgalabovo) cannot read sales belonging to Tenant B (recoveryzone)", async () => {
+      const adminB = getAuthDb("admin_b", "adminB@recovery.com", true, [
+        "recoveryzone",
+      ]);
+      await adminB.collection("sales").doc("sale_rz_1").set({
+        siteId: "recoveryzone",
+        totalAmount: 120,
+      });
+
+      const userA = getAuthDb("user_a", "userA@bkgalabovo.com", false, [
+        "bkgalabovo",
+      ]);
+      await expect(
+        assertFails(userA.collection("sales").doc("sale_rz_1").get())
+      ).resolves.toBeDefined();
+    });
+
+    it("Tenant A (bkgalabovo) admin cannot modify or delete resources belonging to Tenant B (recoveryzone)", async () => {
+      const adminB = getAuthDb("admin_b", "adminB@recovery.com", true, [
+        "recoveryzone",
+      ]);
+      await adminB.collection("client_packages").doc("pkg_rz_1").set({
+        siteId: "recoveryzone",
+        packageName: "Cryo Package",
+      });
+
+      const adminA = getAuthDb("admin_a", "adminA@bkgalabovo.com", true, [
+        "bkgalabovo",
+      ]);
+      await expect(
+        assertFails(
+          adminA.collection("client_packages").doc("pkg_rz_1").update({
+            packageName: "Hacked by Tenant A",
+          })
+        )
+      ).resolves.toBeDefined();
+      await expect(
+        assertFails(
+          adminA.collection("client_packages").doc("pkg_rz_1").delete()
+        )
+      ).resolves.toBeDefined();
+    });
+
+    it("Tenant B admin cannot create marketing_templates for Tenant A", async () => {
+      const adminB = getAuthDb("admin_b", "adminB@recovery.com", true, [
+        "recoveryzone",
+      ]);
+      await expect(
+        assertFails(
+          adminB.collection("marketing_templates").doc("tpl_a").set({
+            siteId: "bkgalabovo",
+            title: "Badminton Promo",
+          })
+        )
+      ).resolves.toBeDefined();
+    });
+  });
 });

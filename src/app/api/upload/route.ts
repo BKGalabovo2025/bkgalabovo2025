@@ -1,8 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
+import pathPosix from "path/posix";
 
 import { getSiteConfig } from "@/config/sites";
 import { getAuthUser } from "@/lib/auth-utils";
 import { getAdminStorage } from "@/lib/firebase-admin";
+
+function sanitizeAndValidateStoragePath(
+  rawPath: string,
+  allowedPrefixes: string[]
+): { valid: boolean; normalizedPath: string } {
+  if (!rawPath || typeof rawPath !== "string") {
+    return { valid: false, normalizedPath: "" };
+  }
+
+  let decodedPath = rawPath;
+  try {
+    decodedPath = decodeURIComponent(rawPath);
+    // Double decoding check to prevent nested %252e%252e attacks
+    if (decodedPath.includes("%")) {
+      decodedPath = decodeURIComponent(decodedPath);
+    }
+  } catch {
+    return { valid: false, normalizedPath: "" };
+  }
+
+  // Remove null bytes and carriage returns
+  const cleanPath = decodedPath.replace(/[\0\r\n]/g, "").replace(/\\/g, "/");
+  // Normalize posix path
+  const normalized = pathPosix.normalize(cleanPath).replace(/^\/+/, "");
+
+  // Prevent parent directory traversal
+  if (
+    normalized.startsWith("..") ||
+    normalized.includes("/../") ||
+    normalized.endsWith("/..") ||
+    normalized === ".."
+  ) {
+    return { valid: false, normalizedPath: "" };
+  }
+
+  const isAllowed = allowedPrefixes.some((prefix) => {
+    const cleanPrefix = prefix.replace(/^\/+/, "");
+    return normalized === cleanPrefix || normalized.startsWith(cleanPrefix);
+  });
+
+  return { valid: isAllowed, normalizedPath: normalized };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,16 +69,16 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    const path = formData.get("path") as string;
+    const rawPath = formData.get("path") as string;
 
-    if (!file || !path) {
+    if (!file || !rawPath) {
       return NextResponse.json(
         { success: false, error: "Missing file or path" },
         { status: 400 }
       );
     }
 
-    // Defense against path traversal and oversized uploads (max 15MB)
+    // Defense against oversized uploads (max 15MB)
     const MAX_FILE_SIZE = 15 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
@@ -44,30 +87,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (path.includes("..") || path.includes("\\") || path.startsWith("/")) {
-      return NextResponse.json(
-        { success: false, error: "Невалиден или опасен файлов път" },
-        { status: 400 }
-      );
-    }
-
-    // Validate that the path belongs to the user's site
+    // Validate that the path belongs strictly to the user's allowed scope
     const adminAuth = (await import("@/lib/firebase-admin")).getAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(token);
     const userSiteId =
       (decodedToken as { siteId?: string; allowedSites?: string[] }).siteId ||
       getSiteConfig().id;
 
-    // Allow uploads to avatars/{userId} or sites/{siteId}/ paths
     const allowedPaths = [
+      `avatars/${decodedToken.uid}/`,
       `avatars/${decodedToken.uid}`,
       `sites/${userSiteId}/`,
     ];
 
-    const isAllowedPath = allowedPaths.some((allowed) =>
-      path.startsWith(allowed)
+    const { valid, normalizedPath } = sanitizeAndValidateStoragePath(
+      rawPath,
+      allowedPaths
     );
-    if (!isAllowedPath) {
+
+    if (!valid) {
       return NextResponse.json(
         { success: false, error: "Invalid path for your site" },
         { status: 403 }
@@ -80,7 +118,7 @@ export async function POST(request: NextRequest) {
       "bkgalabovo2025.appspot.com";
     const bucket = storage.bucket(bucketName);
     console.log(`Using bucket: ${bucket.name}`);
-    const fileRef = bucket.file(path);
+    const fileRef = bucket.file(normalizedPath);
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -91,14 +129,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Make the file public or get a signed URL
-    // For simplicity, we can make it public if the bucket allows,
-    // but better is to get the standard firebase download URL format
-    // or just a signed URL with long expiration.
-
-    // In Firebase Storage, the public URL format is:
-    // https://firebasestorage.googleapis.com/v0/b/[BUCKET]/o/[PATH]?alt=media
-    const encodedPath = encodeURIComponent(path);
+    const encodedPath = encodeURIComponent(normalizedPath);
     const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
 
     return NextResponse.json({
@@ -136,18 +167,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const path = searchParams.get("path");
+    const rawPath = searchParams.get("path");
 
-    if (!path) {
+    if (!rawPath) {
       return NextResponse.json(
         { success: false, error: "Missing path" },
-        { status: 400 }
-      );
-    }
-
-    if (path.includes("..") || path.includes("\\") || path.startsWith("/")) {
-      return NextResponse.json(
-        { success: false, error: "Невалиден или опасен файлов път" },
         { status: 400 }
       );
     }
@@ -161,14 +185,17 @@ export async function DELETE(request: NextRequest) {
 
     // Allow deletes from avatars/{userId} or sites/{siteId}/ paths
     const allowedPaths = [
+      `avatars/${decodedToken.uid}/`,
       `avatars/${decodedToken.uid}`,
       `sites/${userSiteId}/`,
     ];
 
-    const isAllowedPath = allowedPaths.some((allowed) =>
-      path.startsWith(allowed)
+    const { valid, normalizedPath } = sanitizeAndValidateStoragePath(
+      rawPath,
+      allowedPaths
     );
-    if (!isAllowedPath) {
+
+    if (!valid) {
       return NextResponse.json(
         { success: false, error: "Invalid path for your site" },
         { status: 403 }
@@ -180,8 +207,10 @@ export async function DELETE(request: NextRequest) {
       process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
       "bkgalabovo2025.appspot.com";
     const bucket = storage.bucket(bucketName);
-    console.log(`Deleting from bucket: ${bucket.name}, path: ${path}`);
-    const fileRef = bucket.file(path);
+    console.log(
+      `Deleting from bucket: ${bucket.name}, path: ${normalizedPath}`
+    );
+    const fileRef = bucket.file(normalizedPath);
 
     await fileRef.delete();
 

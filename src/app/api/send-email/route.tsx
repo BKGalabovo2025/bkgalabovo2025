@@ -173,6 +173,13 @@ async function renderEmailTemplate<T extends keyof EmailTemplateData>(
 
 async function authorizeEmailRequest(request: Request): Promise<boolean> {
   const authHeader = request.headers.get("authorization");
+
+  if (!process.env.CRON_SECRET) {
+    console.warn(
+      "[send-email] Warning: CRON_SECRET is not configured in server environment."
+    );
+  }
+
   const isCronAuthorized =
     Boolean(process.env.CRON_SECRET) &&
     authHeader === `Bearer ${process.env.CRON_SECRET}`;
