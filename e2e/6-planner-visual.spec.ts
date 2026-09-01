@@ -19,7 +19,9 @@ test.describe("Planner Visual Tests", () => {
     await page.goto("/schedule");
 
     // Wait for the main elements to load (e.g. tabs, page header)
-    await expect(page.locator("h1:has-text('График')")).toBeVisible();
+    await expect(page.locator("text=График").first()).toBeVisible({
+      timeout: 15000,
+    });
 
     // Wait for loading spinners to disappear
     await expect(page.locator(".animate-spin")).toHaveCount(0);

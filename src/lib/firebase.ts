@@ -103,6 +103,14 @@ if (isTestEnv) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const auth = isTestEnv ? ({} as any) : getAuth(app);
 
+if (typeof window !== "undefined" && !isTestEnv) {
+  import("firebase/auth").then(
+    ({ setPersistence, browserLocalPersistence }) => {
+      setPersistence(auth, browserLocalPersistence).catch(() => {});
+    }
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const storage = isTestEnv ? ({} as any) : getStorage(app);
 

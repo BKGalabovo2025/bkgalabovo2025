@@ -1,11 +1,13 @@
-import { test as setup, expect } from "@playwright/test";
-import { fileURLToPath } from "url";
+import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
+import { expect, test as setup } from "@playwright/test";
 import admin from "firebase-admin";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const authFile = path.join(__dirname, "../.auth/user.json");
+fs.mkdirSync(path.dirname(authFile), { recursive: true });
 
 setup("authenticate as admin", async ({ page }) => {
   const projectId = "bkgalabovo-test";
