@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 
+import { OfflineStatusIndicator } from "@/components/shared/OfflineStatusIndicator";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/auth-context";
 import { LanguageProvider } from "@/context/language-context";
@@ -53,6 +54,7 @@ export default function RootLayout({
           <LanguageProvider>
             <AuthProvider>
               {children}
+              <OfflineStatusIndicator />
               <Toaster richColors closeButton position="top-right" />
             </AuthProvider>
           </LanguageProvider>
