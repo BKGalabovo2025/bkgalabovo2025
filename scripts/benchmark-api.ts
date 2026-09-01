@@ -23,7 +23,10 @@ async function runBenchmark(
   concurrency = 5
 ): Promise<BenchmarkResult> {
   console.log(
-    `\n🚀 Starting benchmark: ${name} (${totalRequests} requests, concurrency ${concurrency})...`
+    "\n🚀 Starting benchmark: %s (%d requests, concurrency %d)...",
+    name,
+    totalRequests,
+    concurrency
   );
   const latencies: number[] = [];
   let successful = 0;
@@ -77,7 +80,7 @@ async function runBenchmark(
 
 async function main() {
   const baseUrl = process.env.BENCHMARK_BASE_URL || "http://localhost:3000";
-  console.log(`🎯 Benchmarking Base URL: ${baseUrl}`);
+  console.log("🎯 Benchmarking Base URL: %s", baseUrl);
 
   const endpoints = [
     { name: "Public Landing Page", url: `${baseUrl}/` },
@@ -91,7 +94,7 @@ async function main() {
       const res = await runBenchmark(ep.name, ep.url, 20, 4);
       results.push(res);
     } catch (err) {
-      console.warn(`Could not benchmark ${ep.name}:`, err);
+      console.warn("Could not benchmark endpoint %s: %o", ep.name, err);
     }
   }
 
