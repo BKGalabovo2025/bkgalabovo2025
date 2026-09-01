@@ -19,14 +19,46 @@ const fontSans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BK Galabovo & Recovery Zone Admin",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://bkgalabovo2025.vercel.app"
+  ),
+  title: "BK Galabovo & Recovery Zone",
   description:
-    "Unified administrative platform for BK Galabovo and Recovery Zone - Professional Badminton Management",
+    "Официална спортна платформа и система за управление на Бадминтон клуб Гълъбово и Recovery Zone",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/LOGO.jpg",
+    apple: "/icons/LOGO.jpg",
+    shortcut: "/icons/LOGO.jpg",
+  },
+  openGraph: {
+    title: "Бадминтон Клуб Гълъбово & Recovery Zone",
+    description:
+      "Официална спортна платформа, графици, тренировки и управление на Бадминтон клуб Гълъбово и Recovery Zone",
+    url: "https://bkgalabovo2025.vercel.app",
+    siteName: "Бадминтон Клуб Гълъбово & Recovery Zone",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Бадминтон Клуб Гълъбово & Recovery Zone",
+      },
+    ],
+    locale: "bg_BG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Бадминтон Клуб Гълъбово & Recovery Zone",
+    description:
+      "Официална спортна платформа, графици и събития на Бадминтон клуб Гълъбово",
+    images: ["/og-image.jpg"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "BK Galabovo Admin",
+    title: "BK Galabovo",
   },
 };
 
