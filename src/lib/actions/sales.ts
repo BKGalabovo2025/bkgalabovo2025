@@ -8,6 +8,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { revalidatePath } from "next/cache";
 
+import { logAuditEvent } from "@/lib/audit-logger";
 import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -112,6 +113,23 @@ export async function createSaleAction(
           lastPaymentDate: new Date(data.saleDate).toISOString(),
         });
       }
+    });
+
+    // Audit log
+    await logAuditEvent({
+      action: "create_sale",
+      targetCollection: "sales",
+      targetId: newSaleRef.id,
+      siteId: (data.siteId as string) || "bkgalabovo",
+      details: `Регистрирана продажба № ${newSaleRef.id} за ${data.totalAmount || 0} лв. (${data.paymentMethod || "В брой"})`,
+      userId: user.uid,
+      userEmail: user.email || undefined,
+      metadata: {
+        totalAmount: data.totalAmount,
+        paymentMethod: data.paymentMethod,
+        clientName: data.clientName,
+        itemsCount: data.items?.length || 0,
+      },
     });
 
     revalidatePath("/sales");
@@ -493,6 +511,21 @@ export async function deleteSaleAction(
     });
 
     await historyBatch.commit();
+
+    // Audit log
+    await logAuditEvent({
+      action: "delete_sale",
+      targetCollection: "sales",
+      targetId: id,
+      siteId: (deletedSaleData?.siteId as string) || "bkgalabovo",
+      details: `Анулирана/изтрита продажба № ${id} за ${deletedSaleData?.totalAmount || 0} лв.`,
+      userId: user.uid,
+      userEmail: user.email || undefined,
+      metadata: {
+        totalAmount: deletedSaleData?.totalAmount,
+        clientName: deletedSaleData?.clientName,
+      },
+    });
 
     revalidatePath("/sales");
     revalidatePath("/inventory");

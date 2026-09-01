@@ -6,6 +6,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { logAuditEvent } from "@/lib/audit-logger";
 import { ensureAdmin, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
@@ -69,6 +70,18 @@ export async function createMemberAction(
         : FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
       createdBy: { uid: user.uid, email: user.email },
+    });
+
+    // Audit log
+    await logAuditEvent({
+      action: "create_member",
+      targetCollection: "members",
+      targetId: docRef.id,
+      siteId: (data.siteId as string) || "bkgalabovo",
+      details: `Създаден нов член: ${name}`,
+      userId: user.uid,
+      userEmail: user.email || undefined,
+      metadata: { name, email: data.email, role: data.memberType || "athlete" },
     });
 
     // If member is created with a familyId, update the family document
@@ -160,6 +173,21 @@ export async function updateMemberAction(
 
     await memberRef.update(updatePayload);
 
+    // Audit log
+    await logAuditEvent({
+      action: "update_member",
+      targetCollection: "members",
+      targetId: id,
+      siteId:
+        (data.siteId as string) ||
+        (currentData.siteId as string) ||
+        "bkgalabovo",
+      details: `Редактирани данни на член: ${name}`,
+      userId: user.uid,
+      userEmail: user.email || undefined,
+      metadata: { updatedFields: Object.keys(data) },
+    });
+
     // Handle family changes if familyId is provided in the update
     if (data.familyId !== undefined && data.familyId !== currentData.familyId) {
       // Remove from old family
@@ -212,7 +240,7 @@ export async function deleteMemberAction(
   idToken: string
 ): Promise<MemberActionState> {
   try {
-    await ensureAdmin(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const memberRef = adminDb.collection("members").doc(id);
@@ -221,6 +249,19 @@ export async function deleteMemberAction(
     if (memberSnap.exists) {
       const data = memberSnap.data();
       const familyId = data?.familyId;
+      const memberName = data?.name || id;
+      const siteId = (data?.siteId as string) || "bkgalabovo";
+
+      // Audit log before deletion
+      await logAuditEvent({
+        action: "delete_member",
+        targetCollection: "members",
+        targetId: id,
+        siteId,
+        details: `Изтрит член: ${memberName}`,
+        userId: user.uid,
+        userEmail: user.email || undefined,
+      });
 
       if (familyId) {
         const familyRef = adminDb.collection("families").doc(familyId);
@@ -270,7 +311,7 @@ export async function bulkUpdateMemberStatusAction(
   idToken: string
 ): Promise<MemberActionState> {
   try {
-    await ensureAdmin(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     const batch = adminDb.batch();
 
@@ -279,17 +320,28 @@ export async function bulkUpdateMemberStatusAction(
       batch.update(memberRef, {
         status,
         updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: { uid: user.uid, email: user.email },
       });
     });
 
     await batch.commit();
+
+    // Audit log
+    await logAuditEvent({
+      action: "toggle_member_status",
+      targetCollection: "members",
+      details: `Масова промяна на статус на ${memberIds.length} членове на "${status}"`,
+      userId: user.uid,
+      userEmail: user.email || undefined,
+      metadata: { memberIds, status },
+    });
 
     revalidatePath("/members");
     serverCache.invalidatePattern("members:");
 
     return {
       success: true,
-      message: `Успешно обновени ${memberIds.length} членове.`,
+      message: `Статусът на ${memberIds.length} членове бе променен на ${status}.`,
     };
   } catch (error: unknown) {
     console.error("bulkUpdateMemberStatusAction Error:", error);
