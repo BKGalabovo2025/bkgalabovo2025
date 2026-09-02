@@ -7,6 +7,8 @@ import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 
 import ClubClient from "./ClubClient";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "БК Гълъбово | Бадминтон клуб Гълъбово",
   description:

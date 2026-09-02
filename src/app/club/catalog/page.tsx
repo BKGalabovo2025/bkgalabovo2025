@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: "Разгледайте нашите тренировки, услуги и продукти.",
 };
 
-export const revalidate = 300; // ISR: Revalidate every 5 minutes
+export const dynamic = "force-dynamic";
 
 function serializeDoc(data: unknown): unknown {
   if (!data) return data;
