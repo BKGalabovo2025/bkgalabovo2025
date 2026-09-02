@@ -64,7 +64,7 @@ if (
 
 // Initialize Firebase
 const isTestEnv =
-  typeof process !== "undefined" &&
+  typeof window === "undefined" &&
   (process.env.NODE_ENV === "test" || process.env.VITEST === "true");
 
 const app = (() => {
@@ -114,10 +114,9 @@ if (typeof window !== "undefined" && !isTestEnv) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const storage = isTestEnv ? ({} as any) : getStorage(app);
 
-// Connect to emulators in development if requested
+// Connect to emulators in development or test if requested
 if (
   typeof window !== "undefined" &&
-  process.env.NODE_ENV === "development" &&
   process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true"
 ) {
   const authEmulatorHost =
