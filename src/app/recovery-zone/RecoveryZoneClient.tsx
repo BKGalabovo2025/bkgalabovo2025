@@ -967,35 +967,29 @@ export default function RecoveryZoneClient({
               </h2>
 
               <div className="mb-12 space-y-6">
-                {/* Center Location */}
+                {/* Location and Mobile Zone */}
                 <div className="flex items-start gap-4 rounded-2xl border border-zinc-800 bg-black/80 p-6 transition-colors hover:border-emerald-500/50">
                   <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
                     <MapPin size={20} />
                   </div>
-                  <div>
-                    <p className="mb-1 font-medium text-white">
-                      Локация на центъра
-                    </p>
-                    <p className="text-sm text-zinc-400">
-                      {site.address || "Спортна зала „Енергетик“, гр. Гълъбово"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Mobile Zone */}
-                <div className="flex items-start gap-4 rounded-2xl border border-zinc-800 bg-black/80 p-6 transition-colors hover:border-emerald-500/50">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                    <Trophy size={20} />
-                  </div>
-                  <div>
-                    <p className="mb-1 font-medium text-white">Мобилна зона</p>
-                    <p className="text-sm text-zinc-300">
-                      Намери ни на турнирите на НВ Бадминтон, България
-                    </p>
-                    <p className="mt-1.5 text-xs font-semibold text-emerald-400">
-                      🏸 Можете да ни намерите и на турнирите от Национална
-                      верига по бадминтон
-                    </p>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs font-bold tracking-wider text-emerald-400 uppercase">
+                        Локация
+                      </p>
+                      <p className="mt-0.5 text-sm font-medium text-white">
+                        {site.address ||
+                          "Спортна зала „Енергетик“, гр. Гълъбово"}
+                      </p>
+                    </div>
+                    <div className="border-t border-zinc-800/80 pt-2.5">
+                      <p className="text-xs font-bold tracking-wider text-emerald-400 uppercase">
+                        Мобилна зона
+                      </p>
+                      <p className="mt-0.5 text-sm font-medium text-zinc-200">
+                        Намери ни на турнирите на НВ Бадминтон, България
+                      </p>
+                    </div>
                   </div>
                 </div>
 
