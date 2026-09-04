@@ -476,13 +476,13 @@ export default function RecoveryReviewsClient() {
 
       {/* Footer */}
       <footer className="border-t border-zinc-900 bg-black/60 px-6 py-8 text-center text-xs text-zinc-400">
-        <p>
-          © {new Date().getFullYear()} Recovery Zone by ZM. Всички права
-          запазени.
+        <p className="text-[11px] text-zinc-400">
+          Спортна зала „Енергетик“, гр. Гълъбово • Мобилна зона: На турнирите от
+          НВ Бадминтон
         </p>
-        <p className="mt-1.5 text-[11px] text-zinc-400">
-          Спортна зала „Енергетик“, гр. Гълъбово • Можете да ни намерите и на
-          турнирите от Национална верига по бадминтон
+        <p className="mt-1.5 text-zinc-500">
+          © {new Date().getFullYear()} Recovery Zone by ZM. Всички права
+          запазени
         </p>
       </footer>
     </div>

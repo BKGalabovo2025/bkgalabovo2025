@@ -967,16 +967,30 @@ export default function RecoveryZoneClient({
               </h2>
 
               <div className="mb-12 space-y-6">
+                {/* Center Location */}
                 <div className="flex items-start gap-4 rounded-2xl border border-zinc-800 bg-black/80 p-6 transition-colors hover:border-emerald-500/50">
                   <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
                     <MapPin size={20} />
                   </div>
                   <div>
                     <p className="mb-1 font-medium text-white">
-                      Локация и Мобилна зона
+                      Локация на центъра
                     </p>
                     <p className="text-sm text-zinc-400">
                       {site.address || "Спортна зала „Енергетик“, гр. Гълъбово"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Mobile Zone */}
+                <div className="flex items-start gap-4 rounded-2xl border border-zinc-800 bg-black/80 p-6 transition-colors hover:border-emerald-500/50">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                    <Trophy size={20} />
+                  </div>
+                  <div>
+                    <p className="mb-1 font-medium text-white">Мобилна зона</p>
+                    <p className="text-sm text-zinc-300">
+                      Намери ни на турнирите на НВ Бадминтон, България
                     </p>
                     <p className="mt-1.5 text-xs font-semibold text-emerald-400">
                       🏸 Можете да ни намерите и на турнирите от Национална
@@ -1115,8 +1129,8 @@ export default function RecoveryZoneClient({
         </div>
         <div className="text-center md:text-right">
           <p className="text-[11px] text-zinc-400">
-            Спортна зала „Енергетик“, гр. Гълъбово • Можете да ни намерите и на
-            турнирите от Национална верига по бадминтон
+            Спортна зала „Енергетик“, гр. Гълъбово • Мобилна зона: На турнирите
+            от НВ Бадминтон
           </p>
           <span className="mt-1 block text-[10px] font-bold tracking-widest text-zinc-600 uppercase">
             © {new Date().getFullYear()} Recovery Zone by ZM. Всички права
