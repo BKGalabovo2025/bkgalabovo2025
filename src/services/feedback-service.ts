@@ -240,7 +240,7 @@ export const DEFAULT_RECOVERY_FEEDBACK_TEMPLATES: TemplateSeedData[] = [
         options: [
           "Зона „Крака“ (Ботуши Normatec)",
           "Зона „Ръце“ (Ръкави Normatec)",
-          "Зона „Хълбок и Кръст“ (Normatec Hips)",
+          "Зона „Таз“ (Normatec Hips)",
           "Комбинирана сесия",
         ],
         category: "recovery",
