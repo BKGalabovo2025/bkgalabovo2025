@@ -1005,10 +1005,10 @@ export default function RecoveryZoneClient({
                       Резервации и информация
                     </p>
                     <a
-                      href={`tel:${site.phone || "+359899388338"}`}
+                      href={`tel:${site.phone || "+359899829923"}`}
                       className="mt-1 inline-block font-bold text-emerald-400 hover:underline"
                     >
-                      {site.phone || "+359 899 38 83 38"}
+                      {site.phone || "+359 899 82 99 23"}
                     </a>
                   </div>
                 </div>

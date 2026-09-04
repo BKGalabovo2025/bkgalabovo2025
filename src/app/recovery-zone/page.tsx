@@ -48,7 +48,7 @@ export default async function RecoveryZonePage() {
     image: "https://bkgalabovo2025.vercel.app/1.png",
     "@id": "https://bkgalabovo2025.vercel.app/recovery-zone",
     url: "https://bkgalabovo2025.vercel.app/recovery-zone",
-    telephone: site?.phone || "+359899388338",
+    telephone: site?.phone || "+359899829923",
     address: {
       "@type": "PostalAddress",
       streetAddress: site?.address || "Спортна зала „Енергетик“",
