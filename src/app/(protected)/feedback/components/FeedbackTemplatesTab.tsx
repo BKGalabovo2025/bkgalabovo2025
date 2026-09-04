@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { updateCampaignStatusServerAction } from "@/lib/actions/feedback";
 import { feedbackService } from "@/services/feedback-service";
 import {
   FeedbackCampaign,
@@ -105,7 +106,15 @@ export function FeedbackTemplatesTab({
   const handleToggleStanding = async (campaign: FeedbackCampaign) => {
     const newStatus = campaign.status === "active" ? "closed" : "active";
     try {
-      await feedbackService.updateCampaign(campaign.id, { status: newStatus });
+      const srvRes = await updateCampaignStatusServerAction(
+        campaign.id,
+        newStatus
+      );
+      if (!srvRes.success) {
+        await feedbackService.updateCampaign(campaign.id, {
+          status: newStatus,
+        });
+      }
       toast.success(
         newStatus === "active"
           ? "Анкетата е активирана на публичния сайт"

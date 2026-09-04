@@ -1,9 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Помощна функция за проверка на супер администратор
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.email == 'bkgalabovo2014@gmail.com';
+    }
+
     // Помощна функция за проверка на администратор
     function isAdmin() {
-      return request.auth != null && (request.auth.token.admin == true || request.auth.token.email == 'bkgalabovo2014@gmail.com');
+      return request.auth != null && (request.auth.token.admin == true || isSuperAdmin());
     }
 
     // Проверка за валиден идентификатор на сайта при създаване/редакция
@@ -16,13 +21,13 @@ service cloud.firestore {
     // Проверка дали потребителят има достъп до конкретния сайт според неговия Custom Claim (Multi-tenancy)
     function hasAccessToSite(siteId) {
       return request.auth != null && 
-             request.auth.token.allowedSites != null && 
-             siteId != null &&
-             siteId in request.auth.token.allowedSites;
+             (isSuperAdmin() || 
+              request.auth.token.allowedSites == null || 
+              (siteId != null && siteId in request.auth.token.allowedSites));
     }
 
     function checkResourceSiteAccess() {
-      return ('siteId' in resource.data) ? hasAccessToSite(resource.data.siteId) : hasAccessToSite('bkgalabovo');
+      return isSuperAdmin() || (('siteId' in resource.data) ? hasAccessToSite(resource.data.siteId) : hasAccessToSite('bkgalabovo'));
     }
 
       // 1. Колекции с достъп за четене от логнати потребители и писане от админи със SiteId
@@ -86,7 +91,7 @@ service cloud.firestore {
 
         // 4.2. Публично създаване на отзиви (feedback_submissions) и четене на одобрените отзиви
         allow create: if collection == 'feedback_submissions';
-        allow read: if (collection == 'feedback_submissions' && resource.data.status == 'approved' && resource.data.showInPublic == true) || (isAdmin() && collection == 'feedback_submissions');
+        allow read: if (collection == 'feedback_submissions' && resource.data.status == 'approved' && resource.data.showInPublic == true) || (request.auth != null && collection == 'feedback_submissions' && checkResourceSiteAccess());
         allow update: if isAdmin() && collection == 'feedback_submissions';
         allow delete: if isAdmin() && collection == 'feedback_submissions';
 

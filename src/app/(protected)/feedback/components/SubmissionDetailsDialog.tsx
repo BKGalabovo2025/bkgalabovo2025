@@ -26,6 +26,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { updateSubmissionStatusServerAction } from "@/lib/actions/feedback";
 import { feedbackService } from "@/services/feedback-service";
 import { FeedbackCampaign, FeedbackSubmission } from "@/types/feedback.types";
 
@@ -58,13 +59,22 @@ export function SubmissionDetailsDialog({
   ) => {
     setIsSaving(true);
     try {
-      await feedbackService.updateSubmissionStatus(
+      const srvRes = await updateSubmissionStatusServerAction(
         submission.id,
         newStatus,
         showInPublic,
         adminNotes,
         highlightQuote
       );
+      if (!srvRes.success) {
+        await feedbackService.updateSubmissionStatus(
+          submission.id,
+          newStatus,
+          showInPublic,
+          adminNotes,
+          highlightQuote
+        );
+      }
       toast.success(
         newStatus === "approved"
           ? "Отзивът е одобрен за публичния сайт!"

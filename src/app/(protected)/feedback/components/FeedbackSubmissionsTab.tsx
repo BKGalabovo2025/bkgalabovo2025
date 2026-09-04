@@ -26,6 +26,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  deleteSubmissionServerAction,
+  updateSubmissionStatusServerAction,
+} from "@/lib/actions/feedback";
 import { feedbackService } from "@/services/feedback-service";
 import { FeedbackCampaign, FeedbackSubmission } from "@/types/feedback.types";
 
@@ -51,13 +55,22 @@ export function FeedbackSubmissionsTab({
 
   const handleQuickApprove = async (sub: FeedbackSubmission) => {
     try {
-      await feedbackService.updateSubmissionStatus(
+      const srvRes = await updateSubmissionStatusServerAction(
         sub.id,
         "approved",
         true,
         sub.adminNotes,
         sub.highlightQuote
       );
+      if (!srvRes.success) {
+        await feedbackService.updateSubmissionStatus(
+          sub.id,
+          "approved",
+          true,
+          sub.adminNotes,
+          sub.highlightQuote
+        );
+      }
       toast.success("Отзивът е одобрен за публичния сайт!");
       onRefresh();
     } catch (e) {
@@ -70,12 +83,20 @@ export function FeedbackSubmissionsTab({
     if (!window.confirm("Сигурни ли сте, че искате да отхвърлите този отзив?"))
       return;
     try {
-      await feedbackService.updateSubmissionStatus(
+      const srvRes = await updateSubmissionStatusServerAction(
         sub.id,
         "rejected",
         false,
         sub.adminNotes
       );
+      if (!srvRes.success) {
+        await feedbackService.updateSubmissionStatus(
+          sub.id,
+          "rejected",
+          false,
+          sub.adminNotes
+        );
+      }
       toast.info("Отзивът е отхвърлен");
       onRefresh();
     } catch (e) {
@@ -88,7 +109,10 @@ export function FeedbackSubmissionsTab({
     if (!window.confirm("Сигурни ли сте, че искате да изтриете този запис?"))
       return;
     try {
-      await feedbackService.deleteSubmission(submissionId);
+      const srvRes = await deleteSubmissionServerAction(submissionId);
+      if (!srvRes.success) {
+        await feedbackService.deleteSubmission(submissionId);
+      }
       toast.success("Записът е изтрит");
       onRefresh();
     } catch (e) {

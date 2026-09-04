@@ -20,6 +20,10 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  deleteCampaignServerAction,
+  updateCampaignStatusServerAction,
+} from "@/lib/actions/feedback";
 import { feedbackService } from "@/services/feedback-service";
 import { ScheduleEvent } from "@/types";
 import {
@@ -83,7 +87,15 @@ export function FeedbackCampaignsTab({
   const handleToggleStatus = async (campaign: FeedbackCampaign) => {
     const newStatus = campaign.status === "active" ? "closed" : "active";
     try {
-      await feedbackService.updateCampaign(campaign.id, { status: newStatus });
+      const srvRes = await updateCampaignStatusServerAction(
+        campaign.id,
+        newStatus
+      );
+      if (!srvRes.success) {
+        await feedbackService.updateCampaign(campaign.id, {
+          status: newStatus,
+        });
+      }
       toast.success(
         newStatus === "active"
           ? "Анкетата е активирана за сайта и споделяне"
@@ -143,7 +155,10 @@ export function FeedbackCampaignsTab({
     )
       return;
     try {
-      await feedbackService.deleteCampaign(campaignId);
+      const srvRes = await deleteCampaignServerAction(campaignId);
+      if (!srvRes.success) {
+        await feedbackService.deleteCampaign(campaignId);
+      }
       toast.success("Кампанията е изтрита");
       onRefresh();
     } catch (e) {

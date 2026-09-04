@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getFeedbackAdminDataAction } from "@/lib/actions/feedback";
 import { feedbackService } from "@/services/feedback-service";
 import { getEvents } from "@/services/schedule-service";
 import { useAppStore } from "@/store/use-app-store";
@@ -57,6 +58,19 @@ function FeedbackClientContent() {
   const loadData = async () => {
     setIsLoading(true);
     try {
+      // 1. Try Server Action first (reliable, uses Firebase Admin SDK without client permission race conditions)
+      const serverRes = await getFeedbackAdminDataAction(siteId);
+      if (serverRes.success && serverRes.data) {
+        const evs = await getEvents().catch(() => []);
+        setSubmissions(serverRes.data.submissions);
+        setCampaigns(serverRes.data.campaigns);
+        setTemplates(serverRes.data.templates);
+        setStats(serverRes.data.stats);
+        setEvents(evs);
+        return;
+      }
+
+      // 2. Fallback to Client SDK if server action couldn't verify session
       const [subsData, campsData, tmplsData, evsData, statsData] =
         await Promise.all([
           feedbackService.getSubmissions(siteId),
