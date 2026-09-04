@@ -480,8 +480,9 @@ export default function RecoveryReviewsClient() {
           © {new Date().getFullYear()} Recovery Zone by ZM. Всички права
           запазени.
         </p>
-        <p className="mt-1 text-[11px] text-zinc-400">
-          Спортна зала „Енергетик“, гр. Гълъбово
+        <p className="mt-1.5 text-[11px] text-zinc-400">
+          Спортна зала „Енергетик“, гр. Гълъбово • Можете да ни намерите и на
+          турнирите от Национална верига по бадминтон
         </p>
       </footer>
     </div>

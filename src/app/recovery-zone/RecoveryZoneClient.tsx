@@ -973,10 +973,14 @@ export default function RecoveryZoneClient({
                   </div>
                   <div>
                     <p className="mb-1 font-medium text-white">
-                      Локация на центъра
+                      Локация и Мобилна зона
                     </p>
                     <p className="text-sm text-zinc-400">
-                      {site.address || "Гр. Гълъбово, Recovery Zone"}
+                      {site.address || "Спортна зала „Енергетик“, гр. Гълъбово"}
+                    </p>
+                    <p className="mt-1.5 text-xs font-semibold text-emerald-400">
+                      🏸 Можете да ни намерите и на турнирите от Национална
+                      верига по бадминтон
                     </p>
                   </div>
                 </div>
@@ -1109,9 +1113,16 @@ export default function RecoveryZoneClient({
             RECOVERY ZONE BY ZM
           </span>
         </div>
-        <span className="text-[10px] font-bold tracking-widest text-zinc-600 uppercase">
-          © {new Date().getFullYear()} Всички права запазени
-        </span>
+        <div className="text-center md:text-right">
+          <p className="text-[11px] text-zinc-400">
+            Спортна зала „Енергетик“, гр. Гълъбово • Можете да ни намерите и на
+            турнирите от Национална верига по бадминтон
+          </p>
+          <span className="mt-1 block text-[10px] font-bold tracking-widest text-zinc-600 uppercase">
+            © {new Date().getFullYear()} Recovery Zone by ZM. Всички права
+            запазени
+          </span>
+        </div>
       </footer>
     </div>
   );
