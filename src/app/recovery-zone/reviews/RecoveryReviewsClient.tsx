@@ -477,7 +477,7 @@ export default function RecoveryReviewsClient() {
       {/* Footer */}
       <footer className="border-t border-zinc-900 bg-black/60 px-6 py-8 text-center text-xs text-zinc-400">
         <p className="text-[11px] text-zinc-400">
-          Спортна зала „Енергетик“, гр. Гълъбово • Мобилна зона: На турнирите от
+          Спортна зала „Енергетик“, град Гълъбово • Мобилна зона: Турнирите на
           НВ Бадминтон
         </p>
         <p className="mt-1.5 text-zinc-500">
