@@ -101,8 +101,9 @@ function FeedbackClientContent() {
             Отзиви и Анкети
           </h1>
           <p className="mt-1 text-sm font-medium text-zinc-500">
-            Обратна връзка от родители и състезатели за лагери, турнири и
-            тренировки
+            {siteId === "recoveryzone"
+              ? "Клиентски отзиви и анкети за процедурите с Hyperice Normatec 3 и възстановяването"
+              : "Обратна връзка от родители и състезатели за лагери, турнири и тренировки"}
           </p>
         </div>
 
@@ -112,7 +113,14 @@ function FeedbackClientContent() {
             variant="outline"
             className="rounded-xl border-indigo-200 text-xs font-bold text-indigo-700 hover:bg-indigo-50"
           >
-            <Link href="/club/reviews" target="_blank">
+            <Link
+              href={
+                siteId === "recoveryzone"
+                  ? "/recovery-zone/reviews"
+                  : "/club/reviews"
+              }
+              target="_blank"
+            >
               <ExternalLink className="mr-1.5 size-4" />
               Публична витрина на Отзивите
             </Link>
@@ -164,7 +172,7 @@ function FeedbackClientContent() {
         <Card className="border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 to-white shadow-2xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold tracking-wider text-indigo-800 uppercase">
+              <span className="text-xs font-bold tracking-wider text-indigo-900 uppercase">
                 Средна оценка
               </span>
               <Star className="size-4 fill-amber-400 text-amber-400" />
@@ -184,7 +192,9 @@ function FeedbackClientContent() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold tracking-wider text-zinc-600 uppercase">
-                Анкети за събития
+                {siteId === "recoveryzone"
+                  ? "Анкети & Кампании"
+                  : "Анкети за събития"}
               </span>
               <LinkIcon className="size-4 text-indigo-600" />
             </div>

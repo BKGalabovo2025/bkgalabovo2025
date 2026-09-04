@@ -4,6 +4,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   query,
   setDoc,
   updateDoc,
@@ -613,21 +614,21 @@ export const feedbackService = {
 
     await setDoc(docRef, cleanPayload(submission));
 
-    // 2. Update campaign statistics
+    // 2. Update campaign statistics atomically without requiring admin permissions
     try {
-      const allSubs = await this.getSubmissions(campaign.siteId, {
-        campaignId,
-      });
-      const totalRatings = allSubs.reduce(
-        (sum, s) => sum + (s.overallRating || 0),
-        data.overallRating || 5
+      const currentAvg = campaign.averageRating || 5;
+      const currentCount = campaign.responseCount || 0;
+      const newCount = currentCount + 1;
+      const newRating = data.overallRating || 5;
+      const newAvg = Number(
+        ((currentAvg * currentCount + newRating) / newCount).toFixed(1)
       );
-      const newCount = allSubs.length + 1;
-      const newAvg = Number((totalRatings / newCount).toFixed(1));
 
-      await this.updateCampaign(campaignId, {
-        responseCount: newCount,
+      const campaignRef = doc(db, CAMPAIGNS_COLLECTION, campaignId);
+      await updateDoc(campaignRef, {
+        responseCount: increment(1) as unknown as number,
         averageRating: newAvg,
+        updatedAt: now,
       });
     } catch (e) {
       console.warn("Failed to update campaign stats", e);

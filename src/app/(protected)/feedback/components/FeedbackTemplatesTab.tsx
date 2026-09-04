@@ -56,6 +56,8 @@ function renderSiteStatusBadge(
 
 function getEventTypeLabel(eventType: string) {
   switch (eventType) {
+    case "recovery":
+      return "⚡ Normatec 3 / Възстановяване";
     case "camp":
       return "🏕️ Лагер";
     case "competition":
@@ -130,16 +132,17 @@ export function FeedbackTemplatesTab({
   };
 
   const handleResetDefaults = async () => {
-    if (
-      !window.confirm(
-        "Това ще премахне дублираните шаблони и ще възстанови 4-те стандартни шаблона на клуба. Желаете ли да продължите?"
-      )
-    )
-      return;
+    const confirmMsg =
+      siteId === "recoveryzone"
+        ? "Това ще възстанови стандартните шаблони за Recovery Zone by ZM. Желаете ли да продължите?"
+        : "Това ще премахне дублираните шаблони и ще възстанови 4-те стандартни шаблона на клуба. Желаете ли да продължите?";
+    if (!window.confirm(confirmMsg)) return;
     try {
       await feedbackService.seedDefaultTemplates(siteId, true);
       toast.success(
-        "Шаблоните бяха изчистени и възстановени до 4 стандартни шаблона!"
+        siteId === "recoveryzone"
+          ? "Шаблоните за Recovery Zone бяха възстановени успешно!"
+          : "Шаблоните бяха изчистени и възстановени до 4 стандартни шаблона!"
       );
       onRefresh();
     } catch (e) {
@@ -157,8 +160,9 @@ export function FeedbackTemplatesTab({
             Шаблони на анкетите
           </h2>
           <p className="text-xs font-medium text-zinc-500">
-            Редактирайте въпросите или създайте нови шаблони за различни клубни
-            събития по всяко време.
+            {siteId === "recoveryzone"
+              ? "Редактирайте въпросите или създайте нови шаблони за процедури и услуги по всяко време."
+              : "Редактирайте въпросите или създайте нови шаблони за различни клубни събития по всяко време."}
           </p>
         </div>
 
