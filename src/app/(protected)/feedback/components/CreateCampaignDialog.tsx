@@ -1,7 +1,8 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 "use client";
 
 import { Check, Copy, Link as LinkIcon, Loader2, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -48,19 +49,34 @@ export function CreateCampaignDialog({
   events,
   onCampaignCreated,
 }: CreateCampaignDialogProps) {
-  const [selectedEventType, setSelectedEventType] =
-    useState<FeedbackEventType>("camp");
+  const isRecovery = siteId === "recoveryzone";
+  const [selectedEventType, setSelectedEventType] = useState<FeedbackEventType>(
+    isRecovery ? "recovery" : "camp"
+  );
   const [selectedEventId, setSelectedEventId] = useState<string>("none");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [targetAudience, setTargetAudience] = useState<
     "parents" | "athletes" | "all"
-  >("parents");
+  >(isRecovery ? "all" : "parents");
   const [isStanding, setIsStanding] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdLink, setCreatedLink] = useState<string | null>(null);
   const [hasCopied, setHasCopied] = useState(false);
+
+  // Auto-select initial template when dialog opens
+  useEffect(() => {
+    if (open && templates.length > 0) {
+      const preferredType = isRecovery ? "recovery" : "camp";
+      const defaultTmpl =
+        templates.find((t) => t.eventType === preferredType) || templates[0];
+      if (defaultTmpl) {
+        setSelectedTemplateId(defaultTmpl.id);
+        setSelectedEventType(defaultTmpl.eventType);
+      }
+    }
+  }, [open, templates, isRecovery]);
 
   // Auto-select template matching eventType when type changes
   const handleEventTypeChange = (type: FeedbackEventType) => {
@@ -157,11 +173,14 @@ export function CreateCampaignDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-black text-zinc-900">
             <Sparkles className="size-5 text-indigo-600" />
-            Създаване на Анкета за събитие
+            {isRecovery
+              ? "Създаване на Анкета за събитие / кампания"
+              : "Създаване на Анкета за събитие"}
           </DialogTitle>
           <DialogDescription className="text-xs text-zinc-500">
-            Генерирайте уникален публичен линк за анкета, който да изпратите на
-            родителите или състезателите.
+            {isRecovery
+              ? "Генерирайте уникален публичен линк за анкета, който да изпратите на клиентите или спортистите."
+              : "Генерирайте уникален публичен линк за анкета, който да изпратите на родителите или състезателите."}
           </DialogDescription>
         </DialogHeader>
 
@@ -177,8 +196,9 @@ export function CreateCampaignDialog({
                 Анкетата е готова за споделяне!
               </h3>
               <p className="mx-auto mt-1 max-w-sm text-xs text-zinc-500">
-                Копирайте линка по-долу и го изпратете в групата на родителите
-                във Viber, WhatsApp или по имейл.
+                {isRecovery
+                  ? "Копирайте линка по-долу и го изпратете на клиентите във Viber, WhatsApp или по имейл."
+                  : "Копирайте линка по-долу и го изпратете в групата на родителите във Viber, WhatsApp или по имейл."}
               </p>
             </div>
 
@@ -222,11 +242,19 @@ export function CreateCampaignDialog({
             {/* Choose Event from calendar */}
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-zinc-700">
-                Свържи със събитие от клубния график (по избор)
+                {isRecovery
+                  ? "Свържи с конкретно събитие или кампания (по избор)"
+                  : "Свържи със събитие от клубния график (по избор)"}
               </Label>
               <Select value={selectedEventId} onValueChange={handleEventSelect}>
                 <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
-                  <SelectValue placeholder="Изберете събитие от календара..." />
+                  <SelectValue
+                    placeholder={
+                      isRecovery
+                        ? "Изберете събитие (по избор)..."
+                        : "Изберете събитие от календара..."
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
                   <SelectItem value="none">
@@ -262,10 +290,23 @@ export function CreateCampaignDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="camp">🏕️ Лагер</SelectItem>
-                    <SelectItem value="competition">🏸 Състезание</SelectItem>
-                    <SelectItem value="training">⚡ Тренировки</SelectItem>
-                    <SelectItem value="general">🌟 Обща анкета</SelectItem>
+                    {isRecovery ? (
+                      <>
+                        <SelectItem value="recovery">
+                          ⚡ Normatec 3 / Процедура
+                        </SelectItem>
+                        <SelectItem value="general">🌟 Обща анкета</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="camp">🏕️ Лагер</SelectItem>
+                        <SelectItem value="competition">
+                          🏸 Състезание
+                        </SelectItem>
+                        <SelectItem value="training">⚡ Тренировки</SelectItem>
+                        <SelectItem value="general">🌟 Обща анкета</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -295,12 +336,18 @@ export function CreateCampaignDialog({
             {/* Campaign Title */}
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-zinc-700">
-                Заглавие на анкетата (видимо за родителите) *
+                {isRecovery
+                  ? "Заглавие на анкетата (видимо за клиентите) *"
+                  : "Заглавие на анкетата (видимо за родителите) *"}
               </Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="напр. Обратна връзка: Летен лагер Приморско 2026"
+                placeholder={
+                  isRecovery
+                    ? "напр. Обратна връзка: Възстановяване след Републиканско първенство"
+                    : "напр. Обратна връзка: Летен лагер Приморско 2026"
+                }
                 className="rounded-xl border-zinc-200 text-xs"
               />
             </div>
@@ -308,12 +355,18 @@ export function CreateCampaignDialog({
             {/* Description */}
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-zinc-700">
-                Кратко описание / обръщение към родителите
+                {isRecovery
+                  ? "Кратко описание / обръщение към клиентите"
+                  : "Кратко описание / обръщение към родителите"}
               </Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="напр. Скъпи родители, благодарим ви за доверието! Моля, отделете 2 минути да споделите вашите впечатления..."
+                placeholder={
+                  isRecovery
+                    ? "напр. Благодарим ви, че избрахте Recovery Zone by ZM! Моля, отделете 2 минути да споделите впечатленията си от процедурата..."
+                    : "напр. Скъпи родители, благодарим ви за доверието! Моля, отделете 2 минути да споделите вашите впечатления..."
+                }
                 rows={3}
                 className="rounded-xl border-zinc-200 text-xs"
               />
@@ -334,11 +387,22 @@ export function CreateCampaignDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="parents">👨‍👩‍👧 Родители</SelectItem>
-                  <SelectItem value="athletes">
-                    🏸 Състезатели / Деца
-                  </SelectItem>
-                  <SelectItem value="all">🌐 Всички</SelectItem>
+                  {isRecovery ? (
+                    <>
+                      <SelectItem value="all">
+                        👥 Всички клиенти и посетители
+                      </SelectItem>
+                      <SelectItem value="athletes">🏃‍♂️ Спортисти</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="parents">👨‍👩‍👧 Родители</SelectItem>
+                      <SelectItem value="athletes">
+                        🏸 Състезатели / Деца
+                      </SelectItem>
+                      <SelectItem value="all">🌐 Всички</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -354,7 +418,9 @@ export function CreateCampaignDialog({
                 htmlFor="isStandingCheck"
                 className="cursor-pointer text-xs font-bold text-indigo-950"
               >
-                🌐 Постоянна анкета на клубния сайт (видима без краен срок)
+                {isRecovery
+                  ? "🌐 Постоянна анкета на сайта на Recovery Zone (видима без краен срок)"
+                  : "🌐 Постоянна анкета на клубния сайт (видима без краен срок)"}
               </Label>
             </div>
 

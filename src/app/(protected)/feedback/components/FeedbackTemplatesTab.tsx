@@ -222,11 +222,24 @@ export function FeedbackTemplatesTab({
       {/* Templates List */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {templates.map((tmpl) => {
-          const standingCampaign = campaigns.find(
-            (c) =>
-              (c.templateId === tmpl.id || c.title.includes(tmpl.name)) &&
-              (c.isStanding || c.eventType === tmpl.eventType || !c.eventId)
-          );
+          const standingCampaign = campaigns.find((c) => {
+            if (c.templateId === tmpl.id) return true;
+            if (
+              c.isStanding &&
+              (c.eventType === tmpl.eventType ||
+                (c.templateName &&
+                  tmpl.name &&
+                  c.templateName
+                    .toLowerCase()
+                    .includes(tmpl.name.toLowerCase())) ||
+                (c.title &&
+                  tmpl.name &&
+                  c.title.toLowerCase().includes(tmpl.name.toLowerCase())))
+            ) {
+              return true;
+            }
+            return false;
+          });
 
           const isLiveOnSite = standingCampaign?.status === "active";
 

@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import {
@@ -36,6 +35,21 @@ interface FeedbackCampaignsTabProps {
   events: ScheduleEvent[];
   siteId: string;
   onRefresh: () => void;
+}
+
+function getEventTypeBadgeLabel(eventType: string) {
+  switch (eventType) {
+    case "recovery":
+      return "Normatec 3 / Възстановяване";
+    case "camp":
+      return "Лагер";
+    case "competition":
+      return "Състезание";
+    case "training":
+      return "Тренировки";
+    default:
+      return "Общ отзив";
+  }
 }
 
 export function FeedbackCampaignsTab({
@@ -90,10 +104,17 @@ export function FeedbackCampaignsTab({
         toast.error("Липсва шаблон за обща анкета.");
         return;
       }
+      const isRecovery = siteId === "recoveryzone";
+      const title = isRecovery
+        ? "Общ отзив за Recovery Zone by ZM"
+        : "Общ отзив и впечатления за Бадминтон клуб Гълъбово";
+      const description = isRecovery
+        ? "Постоянна публична анкета за обслужването, атмосферата и удовлетвореността от Recovery Zone by ZM."
+        : "Постоянна публична анкета за тренировки, треньорски подход и удовлетвореност от клуба.";
+
       await feedbackService.createCampaign(siteId, {
-        title: "Общ отзив и впечатления за Бадминтон клуб Гълъбово",
-        description:
-          "Постоянна публична анкета за тренировки, треньорски подход и удовлетвореност от клуба.",
+        title,
+        description,
         eventType: "general",
         templateId: genTemplate.id,
         templateName: genTemplate.name,
@@ -102,7 +123,11 @@ export function FeedbackCampaignsTab({
         targetAudience: "all",
         isStanding: true,
       });
-      toast.success("Общата анкета беше активирана на публичния сайт!");
+      toast.success(
+        isRecovery
+          ? "Общата анкета за Recovery Zone беше активирана на сайта!"
+          : "Общата анкета беше активирана на публичния сайт!"
+      );
       onRefresh();
     } catch (e) {
       console.error(e);
@@ -221,13 +246,7 @@ export function FeedbackCampaignsTab({
                             variant="outline"
                             className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase"
                           >
-                            {sc.eventType === "camp"
-                              ? "Лагер"
-                              : sc.eventType === "competition"
-                                ? "Състезание"
-                                : sc.eventType === "training"
-                                  ? "Тренировки"
-                                  : "Общ отзив"}
+                            {getEventTypeBadgeLabel(sc.eventType)}
                           </Badge>
                         </div>
 
@@ -331,11 +350,14 @@ export function FeedbackCampaignsTab({
       <div className="flex flex-col items-start justify-between gap-4 border-t border-zinc-200 pt-6 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-lg font-black tracking-tight text-zinc-900">
-            Анкети за конкретни събития & Линкове за споделяне
+            {siteId === "recoveryzone"
+              ? "Анкети за конкретни събития, промоции & Линкове за споделяне"
+              : "Анкети за конкретни събития & Линкове за споделяне"}
           </h2>
           <p className="text-xs font-medium text-zinc-500">
-            Генерирайте специални линкове за конкретни лагери, турнири или
-            тренировки.
+            {siteId === "recoveryzone"
+              ? "Генерирайте специални линкове за конкретни промоционални кампании, турнирни участия или демонстрации."
+              : "Генерирайте специални линкове за конкретни лагери, турнири или тренировки."}
           </p>
         </div>
 
@@ -344,7 +366,9 @@ export function FeedbackCampaignsTab({
           className="rounded-xl bg-indigo-600 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 sm:text-sm"
         >
           <Plus className="mr-1.5 size-4" />
-          Нова анкета за събитие
+          {siteId === "recoveryzone"
+            ? "Нова анкета за събитие / кампания"
+            : "Нова анкета за събитие"}
         </Button>
       </div>
 
@@ -353,11 +377,14 @@ export function FeedbackCampaignsTab({
         <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-16 text-center">
           <LinkIcon className="mx-auto mb-3 size-10 text-zinc-300" />
           <h3 className="mb-1 text-base font-bold text-zinc-900">
-            Няма активни анкети за събития
+            {siteId === "recoveryzone"
+              ? "Няма активни анкети за събития или кампании"
+              : "Няма активни анкети за събития"}
           </h3>
           <p className="mx-auto mb-4 max-w-sm text-xs text-zinc-500">
-            Създайте първата си анкета за лагер или събитие, за да получите
-            готов линк за родителите.
+            {siteId === "recoveryzone"
+              ? "Създайте първата си анкета за кампания или събитие, за да получите готов линк за клиентите и спортистите."
+              : "Създайте първата си анкета за лагер или събитие, за да получите готов линк за родителите."}
           </p>
           <Button
             onClick={() => setIsCreateOpen(true)}
@@ -400,13 +427,7 @@ export function FeedbackCampaignsTab({
                           variant="outline"
                           className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase"
                         >
-                          {c.eventType === "camp"
-                            ? "Лагер"
-                            : c.eventType === "competition"
-                              ? "Състезание"
-                              : c.eventType === "training"
-                                ? "Тренировки"
-                                : "Обща"}
+                          {getEventTypeBadgeLabel(c.eventType)}
                         </Badge>
                       </div>
 
