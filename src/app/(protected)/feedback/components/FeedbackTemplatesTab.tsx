@@ -191,20 +191,26 @@ export function FeedbackTemplatesTab({
         </div>
         <div className="text-xs">
           <h4 className="font-bold text-indigo-950">
-            Публикуване на анкети на клубния сайт
+            {siteId === "recoveryzone"
+              ? "Публикуване на анкети в сайта на Recovery Zone"
+              : "Публикуване на анкети на клубния сайт"}
           </h4>
           <p className="mt-0.5 text-zinc-600">
             Можете да пуснете <strong>всеки един от шаблоните</strong> по-долу
-            да е постоянно достъпен на сайта на клуба (в секция{" "}
+            да е постоянно достъпен на сайта (в секция{" "}
             <a
-              href="/club/reviews"
+              href={
+                siteId === "recoveryzone"
+                  ? "/recovery-zone/reviews"
+                  : "/club/reviews"
+              }
               target="_blank"
               rel="noreferrer"
               className="font-bold text-indigo-600 underline hover:text-indigo-800"
             >
               ⭐ Отзиви
             </a>
-            ). Посетителите и родителите ще могат да го попълват по всяко време.
+            ). Посетителите и клиентите ще могат да го попълват по всяко време.
           </p>
         </div>
       </div>

@@ -12,6 +12,8 @@ import {
   MapPin,
   Menu,
   Phone,
+  Sparkles,
+  Star,
   Trophy,
   Users,
   X,
@@ -27,6 +29,8 @@ import {
 } from "@/components/icons/social-icons";
 import { TeamSection } from "@/components/recovery/TeamSection";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
+import { feedbackService } from "@/services/feedback-service";
+import { FeedbackSubmission } from "@/types/feedback.types";
 import { Site } from "@/types/site.types";
 
 export interface RecoveryServiceData {
@@ -49,6 +53,8 @@ export default function RecoveryZoneClient({
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
   const [lang, setLang] = useState("bg");
+  const [reviews, setReviews] = useState<FeedbackSubmission[]>([]);
+  const [standingSurveyId, setStandingSurveyId] = useState<string | null>(null);
 
   const nextImage = () => {
     setActiveImage((prev) => (prev + 1) % hallImages.length);
@@ -65,6 +71,24 @@ export default function RecoveryZoneClient({
       const match = document.cookie.match(/googtrans=\/bg\/([a-z]{2})/);
       if (match && match[1] === "en") setLang("en");
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        const [revs, campaigns] = await Promise.all([
+          feedbackService.getPublicReviews("recoveryzone"),
+          feedbackService.getActiveStandingCampaigns("recoveryzone"),
+        ]);
+        setReviews(revs);
+        if (campaigns.length > 0) {
+          setStandingSurveyId(campaigns[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch recovery zone reviews:", err);
+      }
+    };
+    fetchFeedback();
   }, []);
 
   return (
@@ -123,6 +147,12 @@ export default function RecoveryZoneClient({
               className="transition-colors hover:text-emerald-400"
             >
               Екип
+            </a>
+            <a
+              href="#reviews"
+              className="transition-colors hover:text-emerald-400"
+            >
+              Отзиви
             </a>
             <a
               href="#contacts"
@@ -204,6 +234,13 @@ export default function RecoveryZoneClient({
                   className="hover:text-emerald-400"
                 >
                   Екип
+                </a>
+                <a
+                  href="#reviews"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-emerald-400"
+                >
+                  Отзиви
                 </a>
                 <a
                   href="#contacts"
@@ -787,6 +824,135 @@ export default function RecoveryZoneClient({
         therapists={site.therapists || []}
         teamIntro={site.teamIntro || ""}
       />
+
+      {/* Customer Reviews Section */}
+      <section
+        id="reviews"
+        className="relative overflow-hidden bg-black/40 px-6 py-24"
+      >
+        <div className="pointer-events-none absolute -top-40 right-1/4 size-96 rounded-full bg-emerald-500/10 blur-[120px]" />
+
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-14 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-400">
+                <Star size={14} className="fill-emerald-400" />
+                <span>Доверено от спортисти и активни хора</span>
+              </div>
+              <h2 className="mt-4 text-3xl font-light tracking-tight text-white sm:text-5xl">
+                Отзиви от клиенти
+              </h2>
+              <p className="mt-3 max-w-xl text-base text-zinc-400">
+                Вижте реалните мнения на нашите клиенти след компресионна
+                терапия с ботушите и ръкавите Hyperice Normatec 3.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {standingSurveyId && (
+                <Link href={`/feedback/${standingSurveyId}`}>
+                  <button className="flex items-center gap-2 rounded-2xl border border-emerald-500/40 bg-emerald-600 px-5 py-3 text-xs font-bold text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-500 active:scale-95">
+                    <Sparkles size={14} />
+                    Оставете Вашия отзив
+                  </button>
+                </Link>
+              )}
+              <Link href="/recovery-zone/reviews">
+                <button className="flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-3 text-xs font-bold text-zinc-300 transition-all hover:border-emerald-500/40 hover:text-white">
+                  <span>Всички отзиви ({reviews.length})</span>
+                  <ArrowRight size={14} />
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          {reviews.length === 0 ? (
+            <div className="rounded-3xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+              <Sparkles className="mx-auto size-12 text-zinc-600" />
+              <p className="mt-4 text-zinc-400">
+                Все още няма публикувани отзиви. Бъдете първите, които споделят
+                своето преживяване!
+              </p>
+              {standingSurveyId && (
+                <Link
+                  href={`/feedback/${standingSurveyId}`}
+                  className="mt-6 inline-block"
+                >
+                  <button className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-500">
+                    Дайте първия отзив
+                  </button>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-3">
+              {reviews.slice(0, 3).map((rev, idx) => {
+                const initial =
+                  rev.respondentName?.trim()?.charAt(0)?.toUpperCase() || "К";
+                const quote =
+                  rev.highlightQuote ||
+                  rev.reviewText ||
+                  "Страхотно възстановяване и професионално отношение!";
+                return (
+                  <div
+                    key={rev.id || idx}
+                    className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-b from-zinc-900/90 to-zinc-950/90 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-amber-400">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              size={14}
+                              className={
+                                s <= (rev.overallRating || 5)
+                                  ? "fill-amber-400 text-amber-400"
+                                  : "fill-zinc-800 text-zinc-700"
+                              }
+                            />
+                          ))}
+                        </div>
+                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
+                          {rev.eventType === "recovery"
+                            ? "Normatec 3"
+                            : "Отзив"}
+                        </span>
+                      </div>
+
+                      <p className="mt-4 border-l-2 border-emerald-500/60 pl-3 text-sm leading-relaxed text-zinc-200 italic">
+                        &ldquo;{quote}&rdquo;
+                      </p>
+                    </div>
+
+                    <div className="mt-6 flex items-center justify-between border-t border-zinc-800/80 pt-4 text-xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex size-8 items-center justify-center rounded-full border border-emerald-500/40 bg-emerald-500/10 font-bold text-emerald-400">
+                          {initial}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-white">
+                            {rev.respondentName}
+                          </p>
+                          <span className="text-[10px] text-zinc-500">
+                            Клиент на Recovery Zone
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-zinc-500">
+                        {new Date(rev.createdAt).toLocaleDateString("bg-BG", {
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Contacts & Social */}
       <section id="contacts" className="bg-zinc-950 px-6 py-24">

@@ -128,7 +128,9 @@ export function SubmissionDetailsDialog({
                   ? "Родител"
                   : submission.respondentRole === "athlete"
                     ? "Състезател"
-                    : "Гост"}
+                    : submission.respondentRole === "client"
+                      ? "Клиент (Recovery Zone)"
+                      : "Гост"}
               </Badge>
             </div>
 

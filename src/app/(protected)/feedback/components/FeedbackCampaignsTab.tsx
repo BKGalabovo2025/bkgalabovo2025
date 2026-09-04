@@ -136,10 +136,16 @@ export function FeedbackCampaignsTab({
             <div className="flex items-center gap-2">
               <Badge className="border-indigo-400/40 bg-indigo-500/10 text-xs font-bold text-indigo-700">
                 <Globe className="mr-1 size-3.5" />
-                Публичен клубен сайт
+                {siteId === "recoveryzone"
+                  ? "Сайт на Recovery Zone"
+                  : "Публичен клубен сайт"}
               </Badge>
               <a
-                href="/club/reviews"
+                href={
+                  siteId === "recoveryzone"
+                    ? "/recovery-zone/reviews"
+                    : "/club/reviews"
+                }
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline"

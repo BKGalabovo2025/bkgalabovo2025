@@ -24,10 +24,10 @@ const TEMPLATES_COLLECTION = "feedback_templates";
 const CAMPAIGNS_COLLECTION = "feedback_campaigns";
 const SUBMISSIONS_COLLECTION = "feedback_submissions";
 
-export const DEFAULT_FEEDBACK_TEMPLATES: Omit<
-  FeedbackSurveyTemplate,
-  "id" | "siteId" | "createdAt" | "updatedAt"
->[] = [
+type TemplateBaseKeys = "id" | "siteId" | "createdAt" | "updatedAt";
+export type TemplateSeedData = Omit<FeedbackSurveyTemplate, TemplateBaseKeys>;
+
+export const DEFAULT_FEEDBACK_TEMPLATES: TemplateSeedData[] = [
   {
     name: "Лагер - Пълна обратна връзка от родители и състезатели",
     description:
@@ -223,6 +223,117 @@ export const DEFAULT_FEEDBACK_TEMPLATES: Omit<
   },
 ];
 
+export const DEFAULT_RECOVERY_FEEDBACK_TEMPLATES: TemplateSeedData[] = [
+  {
+    name: "Процедура с Hyperice Normatec 3 (Компресионна терапия)",
+    description:
+      "Оценка на процедурата с пневматична компресия: усещане за отмора, ефективност, комфорт и резултати.",
+    eventType: "recovery",
+    isDefault: true,
+    questions: [
+      {
+        id: "q_recovery_zone",
+        type: "select",
+        label: "Коя зона третирахте по време на сесията?",
+        required: true,
+        options: [
+          "Зона „Крака“ (Ботуши Normatec)",
+          "Зона „Ръце“ (Ръкави Normatec)",
+          "Зона „Хълбок и Кръст“ (Normatec Hips)",
+          "Комбинирана сесия",
+        ],
+        category: "recovery",
+      },
+      {
+        id: "q_pressure_comfort",
+        type: "rating",
+        label: "Комфорт и настройки на компресията по време на процедурата",
+        description: "Подходящо ниво на налягане и персонална настройка",
+        required: true,
+        category: "recovery",
+      },
+      {
+        id: "q_post_feeling",
+        type: "rating",
+        label: "Усещане за лекота, тонус и възстановяване след сесията",
+        description: "Намаляване на умората, болката и мускулното напрежение",
+        required: true,
+        category: "recovery",
+      },
+      {
+        id: "q_cleanliness",
+        type: "rating",
+        label: "Чистота, хигиена и обстановка в Зоната за възстановяване",
+        required: true,
+        category: "facilities",
+      },
+      {
+        id: "q_repeat_visit",
+        type: "select",
+        label: "Бихте ли посетили отново Recovery Zone by ZM?",
+        required: true,
+        options: [
+          "Категорично да! Ще направя редовен график.",
+          "Да, при следващо силно физическо натоварване.",
+          "По-скоро да.",
+        ],
+        category: "general",
+      },
+      {
+        id: "q_review_comment",
+        type: "text",
+        label: "Вашите лични впечатления или съвети:",
+        description: "Как се чувствахте преди и след сесията?",
+        required: false,
+        category: "general",
+      },
+    ],
+  },
+  {
+    name: "Общ отзив за Recovery Zone by ZM",
+    description:
+      "Цялостна обратна връзка за обслужването, атмосферата и удовлетвореността от възстановителните услуги.",
+    eventType: "general",
+    isDefault: true,
+    questions: [
+      {
+        id: "q_service_attitude",
+        type: "rating",
+        label: "Отношение на екипа, посрещане и насоки за процедурата",
+        required: true,
+        category: "organization",
+      },
+      {
+        id: "q_tech_impression",
+        type: "rating",
+        label: "Впечатление от оборудването Hyperice Normatec 3",
+        required: true,
+        category: "recovery",
+      },
+      {
+        id: "q_recommend_choice",
+        type: "select",
+        label:
+          "Бихте ли препоръчали Recovery Zone by ZM на познати и спортисти?",
+        required: true,
+        options: [
+          "Категорично да! Препоръчвам горещо! 🌟",
+          "Да, много съм доволен/на 👍",
+          "Бих препоръчал(а) при определени условия ⚖️",
+        ],
+        category: "general",
+      },
+      {
+        id: "q_general_notes",
+        type: "text",
+        label: "Какво бихте споделили с бъдещи клиенти на Recovery Zone?",
+        required: false,
+        category: "general",
+      },
+    ],
+  },
+];
+
 function cleanPayload<T extends Record<string, unknown>>(obj: T): T {
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
@@ -285,7 +396,12 @@ export const feedbackService = {
       });
     }
 
-    DEFAULT_FEEDBACK_TEMPLATES.forEach((tmpl) => {
+    const templatesToSeed =
+      siteId === "recoveryzone"
+        ? DEFAULT_RECOVERY_FEEDBACK_TEMPLATES
+        : DEFAULT_FEEDBACK_TEMPLATES;
+
+    templatesToSeed.forEach((tmpl) => {
       const docRef = doc(collection(db, TEMPLATES_COLLECTION));
       batch.set(docRef, {
         ...tmpl,

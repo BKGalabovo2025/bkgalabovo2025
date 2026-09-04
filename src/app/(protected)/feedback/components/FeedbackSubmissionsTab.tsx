@@ -169,6 +169,9 @@ export function FeedbackSubmissionsTab({
                 <SelectItem value="camp">Лагери</SelectItem>
                 <SelectItem value="training">Тренировки</SelectItem>
                 <SelectItem value="competition">Състезания</SelectItem>
+                <SelectItem value="recovery">
+                  Възстановяване (Normatec)
+                </SelectItem>
                 <SelectItem value="general">Общи отзиви</SelectItem>
               </SelectContent>
             </Select>
@@ -254,7 +257,9 @@ export function FeedbackSubmissionsTab({
                               ? "Състезание"
                               : sub.eventType === "training"
                                 ? "Тренировки"
-                                : "Общ отзив"}
+                                : sub.eventType === "recovery"
+                                  ? "Възстановяване (Normatec)"
+                                  : "Общ отзив"}
                         </Badge>
 
                         {sub.eventTitle && (
@@ -292,7 +297,9 @@ export function FeedbackSubmissionsTab({
                                 ? "👨‍👩‍👧 Родител"
                                 : sub.respondentRole === "athlete"
                                   ? "🏸 Състезател"
-                                  : "🌟 Приятел / Гост"}
+                                  : sub.respondentRole === "client"
+                                    ? "💆 Клиент (Recovery Zone)"
+                                    : "🌟 Приятел / Гост"}
                           </span>
                         </div>
 

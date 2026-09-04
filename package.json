@@ -37,6 +37,7 @@
     "precommit": "lint-staged",
     "migrate:bkgalabovo": "tsx scripts/migrate-bkgalabovo-site-id.ts",
     "migrate:recoveryzone": "tsx scripts/import-recovery-zone.ts",
+    "migrate:recovery-reviews": "tsx scripts/migrate-recovery-reviews.ts",
     "migrate:siteid:dry": "tsx scripts/migrate-siteid-legacy.ts --dry-run",
     "migrate:siteid": "tsx scripts/migrate-siteid-legacy.ts",
     "deploy:rules": "npx -y firebase-tools@latest deploy --only firestore:rules --project bkgalabovo2025",

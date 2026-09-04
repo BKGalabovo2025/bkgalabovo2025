@@ -13,11 +13,16 @@ export interface SurveyQuestion {
   required: boolean;
   options?: string[]; // For 'select' type
   category?:
-    "organization" | "coaching" | "atmosphere" | "facilities" | "general";
+    | "organization"
+    | "coaching"
+    | "atmosphere"
+    | "facilities"
+    | "recovery"
+    | "general";
 }
 
 export type FeedbackEventType =
-  "camp" | "training" | "competition" | "event" | "general";
+  "camp" | "training" | "competition" | "event" | "recovery" | "general";
 
 export interface FeedbackSurveyTemplate {
   id: string;
@@ -54,7 +59,7 @@ export interface FeedbackCampaign {
 }
 
 export type FeedbackSubmissionStatus = "pending" | "approved" | "rejected";
-export type RespondentRole = "parent" | "athlete" | "guest";
+export type RespondentRole = "parent" | "athlete" | "guest" | "client";
 
 export interface FeedbackSubmission {
   id: string;
