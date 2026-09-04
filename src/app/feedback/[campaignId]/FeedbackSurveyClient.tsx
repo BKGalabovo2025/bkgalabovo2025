@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity */
 "use client";
 
 import {
@@ -62,7 +63,10 @@ const RATING_DEFINITIONS: Record<
   },
 };
 
-function getSection3Title(eventType: string) {
+function getSection3Title(eventType: string, isRecovery: boolean) {
+  if (isRecovery || eventType === "recovery") {
+    return "3. Оценка на процедурата и възстановяването";
+  }
   switch (eventType) {
     case "camp":
       return "3. Оценка на лагера";
@@ -92,12 +96,20 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
   const [reviewText, setReviewText] = useState("");
   const [answers, setAnswers] = useState<Record<string, SurveyAnswerValue>>({});
 
+  const isRecovery =
+    campaign?.siteId === "recoveryzone" || campaign?.eventType === "recovery";
+
   useEffect(() => {
     const loadCampaign = async () => {
       setIsLoading(true);
       try {
         const data = await feedbackService.getCampaignById(campaignId);
         setCampaign(data);
+
+        // Pre-set role based on siteId
+        if (data?.siteId === "recoveryzone" || data?.eventType === "recovery") {
+          setRole("client");
+        }
 
         // Pre-fill default answers for boolean/rating if needed
         if (data?.questions) {
@@ -133,7 +145,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
       return;
     }
 
-    if (role === "parent" && !childName.trim()) {
+    if (role === "parent" && !isRecovery && !childName.trim()) {
       toast.error("Моля, въведете името на Вашето дете");
       return;
     }
@@ -148,7 +160,9 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
       for (const q of campaign.questions) {
         if (
           q.required &&
-          (answers[q.id] === undefined || answers[q.id] === "")
+          (answers[q.id] === undefined ||
+            answers[q.id] === "" ||
+            answers[q.id] === null)
         ) {
           toast.error(`Моля, отговорете на въпроса: "${q.label}"`);
           return;
@@ -157,13 +171,15 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
     }
 
     setIsSubmitting(true);
+
     try {
       await feedbackService.submitFeedback(campaignId, {
         siteId: campaign?.siteId || "bkgalabovo",
         eventType: campaign?.eventType || "camp",
         respondentRole: role,
         respondentName: respondentName.trim(),
-        childName: childName.trim() || undefined,
+        childName:
+          !isRecovery && childName.trim() ? childName.trim() : undefined,
         respondentPhone: phone.trim() || undefined,
         respondentEmail: email.trim() || undefined,
         overallRating,
@@ -181,10 +197,51 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
     }
   };
 
+  const brand = {
+    logo: isRecovery ? "/1.png" : "/icons/LOGO.jpg",
+    title: isRecovery ? "RECOVERY ZONE by ZM" : "Бадминтон клуб Гълъбово",
+    url: isRecovery ? "/recovery-zone" : "/club",
+    reviewsUrl: isRecovery ? "/recovery-zone/reviews" : "/club/reviews",
+    themeText: isRecovery
+      ? "text-emerald-700 group-hover:text-emerald-600"
+      : "text-indigo-700 group-hover:text-blue-600",
+    themeBorder: isRecovery
+      ? "border-emerald-500/40 shadow-emerald-100 group-hover:border-emerald-500 group-hover:shadow-emerald-200"
+      : "border-blue-400/40 shadow-indigo-100 group-hover:border-blue-500 group-hover:shadow-indigo-200",
+    accentBg: isRecovery
+      ? "from-emerald-50/40 via-zinc-50/60 to-white"
+      : "from-indigo-50/40 via-zinc-50/60 to-white",
+    cardGradient: isRecovery
+      ? "from-emerald-50/50 via-white to-amber-50/30 border-emerald-100"
+      : "from-indigo-50/50 via-white to-amber-50/30 border-indigo-100",
+    sectionHeaderColor: isRecovery ? "text-emerald-950" : "text-indigo-900",
+    sectionIconColor: isRecovery ? "text-emerald-600" : "text-indigo-600",
+    buttonColor: isRecovery
+      ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
+      : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200",
+  };
+
+  const availableRoles: Array<{ id: RespondentRole; label: string }> =
+    isRecovery
+      ? [
+          { id: "client", label: "💆 Клиент на Зоната" },
+          { id: "athlete", label: "🏃 Спортист" },
+          { id: "guest", label: "🌟 Гост / Посетител" },
+        ]
+      : [
+          { id: "parent", label: "👨‍👩‍👧 Родител" },
+          { id: "athlete", label: "🏸 Състезател" },
+          { id: "guest", label: "🌟 Гост / Приятел" },
+        ];
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4">
-        <Loader2 className="size-8 animate-spin text-indigo-600" />
+        <Loader2
+          className={`size-8 animate-spin ${
+            isRecovery ? "text-emerald-600" : "text-indigo-600"
+          }`}
+        />
       </div>
     );
   }
@@ -200,8 +257,8 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
           <p className="mt-2 text-xs text-zinc-500">
             Възможно е линкът да е невалиден или анкетата да е била премахната.
           </p>
-          <Button asChild className="mt-6 rounded-xl bg-indigo-600 text-xs">
-            <Link href="/club">Към сайта на Бадминтон клуб Гълъбово</Link>
+          <Button asChild className="mt-6 rounded-xl bg-zinc-900 text-xs">
+            <Link href={brand.url}>Към сайта</Link>
           </Button>
         </div>
       </div>
@@ -219,11 +276,15 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
             Тази анкета вече е приключила
           </h2>
           <p className="mt-2 text-xs text-zinc-500">
-            Благодарим на всички родители и състезатели, които споделиха своето
-            мнение!
+            {isRecovery
+              ? "Благодарим на всички клиенти, които споделиха своето мнение!"
+              : "Благодарим на всички родители и състезатели, които споделиха своето мнение!"}
           </p>
-          <Button asChild className="mt-6 rounded-xl bg-indigo-600 text-xs">
-            <Link href="/club">Към сайта на Бадминтон клуб Гълъбово</Link>
+          <Button
+            asChild
+            className={`mt-6 rounded-xl ${brand.buttonColor} text-xs text-white`}
+          >
+            <Link href={brand.url}>Към сайта</Link>
           </Button>
         </div>
       </div>
@@ -232,8 +293,16 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
 
   if (isSubmitted) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-indigo-50/50 via-white to-zinc-50 p-4 text-center">
-        <div className="max-w-lg rounded-3xl border border-indigo-100 bg-white p-8 shadow-xl shadow-indigo-100/30 sm:p-10">
+      <div
+        className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${brand.accentBg} p-4 text-center`}
+      >
+        <div
+          className={`max-w-lg rounded-3xl border ${
+            isRecovery
+              ? "border-emerald-100 shadow-emerald-100/30"
+              : "border-indigo-100 shadow-indigo-100/30"
+          } bg-white p-8 shadow-xl sm:p-10`}
+        >
           <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-600 shadow-inner">
             <Check className="size-8 stroke-3" />
           </div>
@@ -247,24 +316,41 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
           </h2>
 
           <p className="mt-3 text-sm leading-relaxed text-zinc-600">
-            Вашето мнение и препоръки са изключително ценни за екипа на{" "}
-            <strong>Бадминтон клуб Гълъбово</strong>. Те ни помагат непрекъснато
-            да се развиваме и да създаваме най-добрите условия за нашите деца.
+            {isRecovery ? (
+              <>
+                Вашето мнение и обратна връзка са изключително ценни за екипа на{" "}
+                <strong>Recovery Zone by ZM</strong>. Те ни помагат непрекъснато
+                да поддържаме най-висок стандарт на възстановяване и релаксация.
+              </>
+            ) : (
+              <>
+                Вашето мнение и препоръки са изключително ценни за екипа на{" "}
+                <strong>Бадминтон клуб Гълъбово</strong>. Те ни помагат
+                непрекъснато да се развиваме и да създаваме най-добрите условия
+                за нашите деца.
+              </>
+            )}
           </p>
 
           <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Button
               asChild
-              className="rounded-2xl bg-indigo-600 text-xs font-bold text-white shadow-md hover:bg-indigo-700 sm:text-sm"
+              className={`rounded-2xl ${brand.buttonColor} text-xs font-bold text-white shadow-md sm:text-sm`}
             >
-              <Link href="/club">Към клубния сайт</Link>
+              <Link href={brand.url}>
+                {isRecovery ? "Към сайта на Recovery Zone" : "Към клубния сайт"}
+              </Link>
             </Button>
             <Button
               asChild
               variant="outline"
               className="rounded-2xl border-zinc-200 text-xs sm:text-sm"
             >
-              <Link href="/club/reviews">Вижте отзивите на клуба</Link>
+              <Link href={brand.reviewsUrl}>
+                {isRecovery
+                  ? "Вижте отзивите за Зоната"
+                  : "Вижте отзивите на клуба"}
+              </Link>
             </Button>
           </div>
         </div>
@@ -275,27 +361,33 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
   const activeRatingDisplay = hoverRating || overallRating;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50/40 via-zinc-50/60 to-white px-4 py-10 sm:px-6">
+    <div
+      className={`min-h-screen bg-gradient-to-b ${brand.accentBg} px-4 py-10 sm:px-6`}
+    >
       <div className="mx-auto max-w-2xl">
         {/* Brand Header */}
         <div className="mb-8 text-center">
           <Link
-            href="/club"
+            href={brand.url}
             className="group inline-flex flex-col items-center gap-2 transition-all"
-            title="Към сайта на Бадминтон клуб Гълъбово"
+            title={`Към сайта на ${brand.title}`}
           >
-            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-blue-400/40 bg-white p-2 shadow-md shadow-indigo-100 transition-all group-hover:scale-105 group-hover:border-blue-500 group-hover:shadow-lg group-hover:shadow-indigo-200">
+            <div
+              className={`mx-auto flex size-14 items-center justify-center rounded-2xl border bg-white p-2 shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg ${brand.themeBorder}`}
+            >
               <Image
-                src="/icons/LOGO.jpg"
-                alt="Logo"
+                src={brand.logo}
+                alt={brand.title}
                 width={44}
                 height={44}
                 className="object-contain"
               />
             </div>
 
-            <span className="text-xs font-black tracking-widest text-indigo-700 uppercase transition-colors group-hover:text-blue-600">
-              Бадминтон клуб Гълъбово
+            <span
+              className={`text-xs font-black tracking-widest uppercase transition-colors ${brand.themeText}`}
+            >
+              {brand.title}
             </span>
           </Link>
 
@@ -315,8 +407,10 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Section 1: Respondent Info */}
             <div className="space-y-4">
-              <h3 className="flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider text-indigo-900 uppercase">
-                <Users className="size-4 text-indigo-600" />
+              <h3
+                className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase`}
+              >
+                <Users className={`size-4 ${brand.sectionIconColor}`} />
                 1. Информация за Вас
               </h3>
 
@@ -326,24 +420,26 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                   Вие попълвате анкетата като:
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "parent", label: "👨‍👩‍👧 Родител" },
-                    { id: "athlete", label: "🏸 Състезател" },
-                    { id: "guest", label: "🌟 Гост / Приятел" },
-                  ].map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setRole(r.id as RespondentRole)}
-                      className={`rounded-xl border p-2.5 text-xs font-bold transition-all ${
-                        role === r.id
-                          ? "border-indigo-600 bg-indigo-50 text-indigo-800 shadow-xs"
-                          : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-                      }`}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
+                  {availableRoles.map((r) => {
+                    const isActive = role === r.id;
+                    const activeCls = isRecovery
+                      ? "border-emerald-600 bg-emerald-50 text-emerald-800 shadow-xs"
+                      : "border-indigo-600 bg-indigo-50 text-indigo-800 shadow-xs";
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setRole(r.id)}
+                        className={`rounded-xl border p-2.5 text-xs font-bold transition-all ${
+                          isActive
+                            ? activeCls
+                            : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -353,7 +449,9 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                   <Label className="text-xs font-bold text-zinc-700">
                     {role === "parent"
                       ? "Вашето име (Родител) *"
-                      : "Вашето име *"}
+                      : role === "client"
+                        ? "Вашето име (Клиент) *"
+                        : "Вашето име *"}
                   </Label>
                   <Input
                     required
@@ -364,7 +462,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                   />
                 </div>
 
-                {role === "parent" && (
+                {role === "parent" && !isRecovery && (
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold text-zinc-700">
                       Име на детето (Състезател) *
@@ -412,12 +510,18 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
 
             {/* Section 2: Overall Rating */}
             <div className="space-y-4">
-              <h3 className="flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider text-indigo-900 uppercase">
-                <Sparkles className="size-4 text-indigo-600" />
-                2. Цялостна оценка за клуба
+              <h3
+                className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase`}
+              >
+                <Sparkles className={`size-4 ${brand.sectionIconColor}`} />
+                {isRecovery
+                  ? "2. Цялостна оценка за Recovery Zone"
+                  : "2. Цялостна оценка за клуба"}
               </h3>
 
-              <div className="space-y-4 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/50 via-white to-amber-50/30 p-6 text-center shadow-xs">
+              <div
+                className={`space-y-4 rounded-2xl border bg-gradient-to-br p-6 text-center shadow-xs ${brand.cardGradient}`}
+              >
                 <span className="text-xs font-bold text-zinc-700">
                   Как оценявате цялостното си впечатление и преживяване? *
                 </span>
@@ -453,73 +557,67 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                     ))}
                   </div>
 
-                  {/* Active rating full explanation badge */}
-                  <div
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-black transition-all ${
-                      RATING_DEFINITIONS[activeRatingDisplay]?.color || ""
-                    }`}
-                  >
-                    <span>
-                      {RATING_DEFINITIONS[activeRatingDisplay]?.label}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Scale description legend */}
-                <div className="grid grid-cols-5 gap-1 border-t border-indigo-50/80 pt-3 text-center text-[10px] font-semibold text-zinc-500 sm:text-[11px]">
-                  <span>1★ Слабо</span>
-                  <span>2★ Приемливо</span>
-                  <span>3★ Добро</span>
-                  <span>4★ Мн. добро</span>
-                  <span>5★ Отлично</span>
+                  {activeRatingDisplay > 0 && (
+                    <div className="duration-200 animate-in fade-in">
+                      <span
+                        className={`inline-block rounded-full border px-4 py-1.5 text-xs font-black tracking-wide shadow-2xs ${RATING_DEFINITIONS[activeRatingDisplay]?.color}`}
+                      >
+                        {RATING_DEFINITIONS[activeRatingDisplay]?.label}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Section 3: Dynamic Template Questions */}
+            {/* Section 3: Questions Breakdown */}
             {campaign.questions && campaign.questions.length > 0 && (
               <div className="space-y-5">
-                <h3 className="flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider text-indigo-900 uppercase">
-                  <Star className="size-4 text-indigo-600" />
-                  {getSection3Title(campaign.eventType)} (
-                  {campaign.questions.length})
+                <h3
+                  className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase`}
+                >
+                  <Star className={`size-4 ${brand.sectionIconColor}`} />
+                  {getSection3Title(campaign.eventType, isRecovery)}
                 </h3>
 
-                <div className="space-y-4">
-                  {campaign.questions.map((q, qIndex) => {
+                <div className="space-y-6">
+                  {campaign.questions.map((q, idx) => {
                     const currentVal = answers[q.id];
 
                     return (
                       <div
                         key={q.id}
-                        className="space-y-2.5 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 transition-all hover:border-indigo-200"
+                        className="space-y-2 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 transition-all hover:border-zinc-200 hover:bg-zinc-50"
                       >
-                        <div className="flex items-start gap-2.5">
-                          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white shadow-xs">
-                            {qIndex + 1}
-                          </span>
-                          <div className="flex-1">
-                            <Label className="text-xs leading-snug font-bold text-zinc-900">
-                              {q.label}{" "}
-                              {q.required && (
-                                <span className="font-bold text-rose-500">
-                                  *
-                                </span>
-                              )}
-                            </Label>
-                            {q.description && (
-                              <p className="mt-0.5 text-[11px] text-zinc-500">
-                                {q.description}
-                              </p>
+                        <div className="flex items-start justify-between gap-2">
+                          <Label className="text-xs leading-relaxed font-bold text-zinc-900 sm:text-sm">
+                            <span
+                              className={`mr-1.5 font-black ${
+                                isRecovery
+                                  ? "text-emerald-700"
+                                  : "text-indigo-600"
+                              }`}
+                            >
+                              {idx + 1}.
+                            </span>
+                            {q.label}
+                            {q.required && (
+                              <span className="ml-1 text-rose-500">*</span>
                             )}
-                          </div>
+                          </Label>
                         </div>
 
-                        {/* Rating Type */}
+                        {q.description && (
+                          <p className="text-[11px] text-zinc-500">
+                            {q.description}
+                          </p>
+                        )}
+
+                        {/* Rating Type (1-5 Stars) */}
                         {q.type === "rating" && (
                           <div className="space-y-2 pt-1">
                             <div className="flex flex-wrap items-center gap-3">
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1.5">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                   <button
                                     key={star}
@@ -527,13 +625,12 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                                     onClick={() =>
                                       handleAnswerChange(q.id, star)
                                     }
-                                    className="p-1 transition-transform hover:scale-125 focus:outline-hidden"
-                                    title={RATING_DEFINITIONS[star]?.label}
+                                    className="p-1 transition-transform hover:scale-110 focus:outline-hidden"
                                   >
                                     <Star
-                                      className={`size-6.5 transition-colors ${
+                                      className={`size-6 transition-colors ${
                                         star <= Number(currentVal || 0)
-                                          ? "fill-amber-400 text-amber-400 drop-shadow-xs"
+                                          ? "fill-amber-400 text-amber-400"
                                           : "text-zinc-200"
                                       }`}
                                     />
@@ -598,23 +695,29 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                         {q.type === "select" && q.options && (
                           <div className="space-y-1.5 pt-1">
                             {q.options.map((opt) => (
-                              <label
+                              <button
                                 key={opt}
-                                className={`flex cursor-pointer items-center gap-2.5 rounded-xl border p-2.5 text-xs font-semibold transition-all ${
+                                type="button"
+                                onClick={() => handleAnswerChange(q.id, opt)}
+                                className={`flex w-full items-center justify-between rounded-xl border p-2.5 text-left text-xs font-medium transition-all ${
                                   currentVal === opt
-                                    ? "border-indigo-600 bg-indigo-50 text-indigo-900 shadow-2xs"
-                                    : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
+                                    ? isRecovery
+                                      ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-900 shadow-2xs"
+                                      : "border-indigo-500 bg-indigo-50 font-bold text-indigo-900 shadow-2xs"
+                                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
                                 }`}
                               >
-                                <input
-                                  type="radio"
-                                  name={`q_${q.id}`}
-                                  checked={currentVal === opt}
-                                  onChange={() => handleAnswerChange(q.id, opt)}
-                                  className="text-indigo-600 focus:ring-indigo-500"
-                                />
                                 <span>{opt}</span>
-                              </label>
+                                {currentVal === opt && (
+                                  <span
+                                    className={`size-2 rounded-full ${
+                                      isRecovery
+                                        ? "bg-emerald-600"
+                                        : "bg-indigo-600"
+                                    }`}
+                                  />
+                                )}
+                              </button>
                             ))}
                           </div>
                         )}
@@ -642,12 +745,16 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5 text-xs font-bold text-zinc-900">
                 <Heart className="size-4 text-rose-500" />
-                Вашият коментар, впечатления или благодарности към екипа:
+                Вашият коментар, впечатления или препоръки:
               </Label>
               <Textarea
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                placeholder="Споделете свободен коментар или лични впечатления, които бихте искали да споделите с клуба..."
+                placeholder={
+                  isRecovery
+                    ? "Споделете усещането за отмора, вашите впечатления от сесията или препоръки към екипа на Recovery Zone..."
+                    : "Споделете свободен коментар или лични впечатления, които бихте искали да споделите с клуба..."
+                }
                 rows={4}
                 className="rounded-2xl border-zinc-200 p-3 text-xs leading-relaxed sm:text-sm"
               />
@@ -658,7 +765,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="h-12 w-full rounded-2xl bg-indigo-600 text-sm font-black text-white shadow-lg shadow-indigo-200 transition-transform hover:bg-indigo-700 active:scale-98"
+                className={`h-12 w-full rounded-2xl ${brand.buttonColor} text-sm font-black text-white shadow-lg transition-transform active:scale-98`}
               >
                 {isSubmitting ? (
                   <>
@@ -673,7 +780,9 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                 )}
               </Button>
               <p className="mt-2 text-center text-[11px] text-zinc-400">
-                Благодарим Ви, че ни помагате да бъдем все по-добри! 🏸
+                {isRecovery
+                  ? "Благодарим Ви, че се грижите за Вашето възстановяване с нас! ⚡"
+                  : "Благодарим Ви, че ни помагате да бъдем все по-добри! 🏸"}
               </p>
             </div>
           </form>
