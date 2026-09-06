@@ -373,14 +373,19 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
             title={`Към сайта на ${brand.title}`}
           >
             <div
-              className={`mx-auto flex size-14 items-center justify-center rounded-2xl border bg-white p-2 shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg ${brand.themeBorder}`}
+              className={`mx-auto flex size-14 items-center justify-center rounded-2xl border p-2 shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg ${
+                isRecovery
+                  ? "border-emerald-500/40 bg-zinc-950 shadow-emerald-950/20"
+                  : "border-blue-400/30 bg-white shadow-indigo-100"
+              }`}
             >
               <Image
                 src={brand.logo}
                 alt={brand.title}
-                width={44}
-                height={44}
-                className="object-contain"
+                width={40}
+                height={40}
+                className="size-full object-contain"
+                priority
               />
             </div>
 
