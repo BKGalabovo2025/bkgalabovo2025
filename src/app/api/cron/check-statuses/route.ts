@@ -146,10 +146,15 @@ export async function GET(request: Request) {
   if (!isCronSecretValid) {
     try {
       const token = authHeader?.split("Bearer ")[1];
-      if (!token) throw new Error("No token provided");
-      const { ensureAdmin } = await import("@/lib/auth-utils");
-      await ensureAdmin(token);
-    } catch {
+      if (token) {
+        const { ensureAdmin } = await import("@/lib/auth-utils");
+        await ensureAdmin(token);
+      } else {
+        const { ensureAdminFromSession } = await import("@/lib/auth-utils");
+        await ensureAdminFromSession();
+      }
+    } catch (authError) {
+      console.error("Unauthorized cron check-statuses request:", authError);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }

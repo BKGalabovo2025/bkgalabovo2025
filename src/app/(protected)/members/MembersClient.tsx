@@ -381,8 +381,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
       setIsSyncing(true);
       const res = await fetch("/api/cron/check-statuses", {
         headers: {
-          // If you set a CRON_SECRET, you'd need to pass it here, but typically admin actions have their own endpoint or we bypass for UI
-          // For simplicity, we just call the endpoint. If it requires auth, we might need to handle it.
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
         },
       });
       const data = await res.json();
