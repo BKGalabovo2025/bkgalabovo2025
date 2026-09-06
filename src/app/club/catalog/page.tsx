@@ -45,8 +45,8 @@ function serializeDoc(data: unknown): unknown {
 
 const getCachedCollection = unstable_cache(
   async (collectionName: string): Promise<Record<string, unknown>[]> => {
-    const adminDb = getAdminDb();
     try {
+      const adminDb = getAdminDb();
       const snap = await adminDb.collection(collectionName).get();
       return snap.docs.map(
         (doc) =>

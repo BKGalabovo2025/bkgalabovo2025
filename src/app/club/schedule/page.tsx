@@ -9,25 +9,25 @@ export const metadata: Metadata = {
   description: "Разширен месечен график на Бадминтон клуб Гълъбово.",
 };
 
+export const dynamic = "force-dynamic";
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 export default async function SchedulePage() {
-  const adminDb = getAdminDb();
-
   const now = new Date();
   const startOfDay = new Date(now);
   startOfDay.setHours(0, 0, 0, 0);
 
   // Fetch all upcoming events for bkgalabovo
-  let scheduleSnapshot;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let scheduleSnapshot: { docs: any[] } = { docs: [] };
   try {
+    const adminDb = getAdminDb();
     scheduleSnapshot = await adminDb
       .collection("events")
       .where("siteId", "==", "bkgalabovo")
       .get();
   } catch (error) {
     console.error("Failed to fetch events for schedule page:", error);
-    scheduleSnapshot = { docs: [] };
   }
 
   const scheduleRaw = scheduleSnapshot.docs.map((doc) => {

@@ -11,6 +11,8 @@ import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 import { calculateAgeGroup } from "@/services/member-service";
 import { Member } from "@/types/member.types";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Отбор и Треньори | СНЦ Бадминтон Клуб Гълъбово",
   description:
@@ -68,8 +70,8 @@ type TournamentEntryResult = {
 const _fetchEntriesDataRaw = async (): Promise<
   { title: string; members: string[]; partnerMembers: string[] }[]
 > => {
-  const adminDb = getAdminDb();
   try {
+    const adminDb = getAdminDb();
     const tournamentsSnapshot = await adminDb.collection("tournaments").get();
     const entriesFetches = tournamentsSnapshot.docs.map(async (tournDoc) => {
       const data = tournDoc.data();
@@ -153,8 +155,6 @@ async function fetchMemberTournamentsMap(pastEventsData: PastEvent[]) {
 }
 
 export default async function TeamPage() {
-  const adminDb = getAdminDb();
-
   // 1. Fetch site data (for coaches/therapists) – safe fallback
   let clubSite: import("@/types/site.types").Site | null = null;
   try {
@@ -166,6 +166,7 @@ export default async function TeamPage() {
   // 2. Fetch all members that are marked to be shown – safe fallback
   let publicMembers: Member[] = [];
   try {
+    const adminDb = getAdminDb();
     const membersSnapshot = await adminDb
       .collection("members")
       .where("siteId", "==", "bkgalabovo")
@@ -181,6 +182,7 @@ export default async function TeamPage() {
   // 3. Fetch all past competitions from the "events" calendar – safe fallback
   let pastEventsData: PastEvent[] = [];
   try {
+    const adminDb = getAdminDb();
     const eventsSnapshot = await adminDb
       .collection("events")
       .where("siteId", "==", "bkgalabovo")
@@ -188,8 +190,10 @@ export default async function TeamPage() {
       .get();
 
     pastEventsData = eventsSnapshot.docs
-      .map((doc) => doc.data())
-      .filter((data) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((doc: any) => doc.data())
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((data: any) => {
         let endDateStr = new Date().toISOString();
         if (data.endDate) {
           endDateStr =

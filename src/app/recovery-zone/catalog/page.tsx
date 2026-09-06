@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     "Разгледайте нашите възстановителни процедури, услуги и продукти.",
 };
 
+export const dynamic = "force-dynamic";
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 function serializeDoc(data: unknown): unknown {
@@ -46,8 +47,8 @@ function serializeDoc(data: unknown): unknown {
 
 const getCachedSessions = unstable_cache(
   async (): Promise<Record<string, unknown>[]> => {
-    const adminDb = getAdminDb();
     try {
+      const adminDb = getAdminDb();
       const snap = await adminDb.collection("sessions").get();
       return snap.docs.map(
         (doc) =>

@@ -38,8 +38,6 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 300; // ISR: Revalidate every 5 minutes
-
 export default async function ClubMainPage() {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -57,11 +55,8 @@ export default async function ClubMainPage() {
       addressCountry: "BG",
     },
   };
-  const adminDb = getAdminDb();
-
   const clubSite = await getSiteByIdAdmin("bkgalabovo");
 
-  // Fetch 7 day schedule (events with siteId bkgalabovo)
   const now = new Date();
   const startOfDay = new Date(now);
   startOfDay.setHours(0, 0, 0, 0);
@@ -69,9 +64,10 @@ export default async function ClubMainPage() {
   endOf7Days.setDate(now.getDate() + 7);
   endOf7Days.setHours(23, 59, 59, 999);
 
-  // We fetch all events and filter locally to avoid Timestamp vs ISO String comparison issues in Firestore
-  let scheduleSnapshot;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let scheduleSnapshot: { docs: any[] } = { docs: [] };
   try {
+    const adminDb = getAdminDb();
     scheduleSnapshot = await adminDb
       .collection("events")
       .where("siteId", "==", "bkgalabovo")

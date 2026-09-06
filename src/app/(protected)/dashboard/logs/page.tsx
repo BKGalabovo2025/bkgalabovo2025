@@ -14,19 +14,23 @@ interface SystemLog {
 }
 
 export default async function SystemLogsPage() {
-  const db = getAdminDb();
+  let logs: SystemLog[] = [];
+  try {
+    const db = getAdminDb();
+    // Fetch the latest 50 system errors
+    const logsSnapshot = await db
+      .collection("system_errors")
+      .orderBy("timestamp", "desc")
+      .limit(50)
+      .get();
 
-  // Fetch the latest 50 system errors
-  const logsSnapshot = await db
-    .collection("system_errors")
-    .orderBy("timestamp", "desc")
-    .limit(50)
-    .get();
-
-  const logs = logsSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as SystemLog[];
+    logs = logsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as SystemLog[];
+  } catch (error) {
+    console.error("Failed to fetch system logs:", error);
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6 md:p-8">
