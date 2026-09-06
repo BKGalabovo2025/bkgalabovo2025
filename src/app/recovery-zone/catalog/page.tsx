@@ -14,7 +14,6 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
-export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 function serializeDoc(data: unknown): unknown {
   if (!data) return data;

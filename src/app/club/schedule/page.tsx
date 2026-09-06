@@ -10,7 +10,6 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
-export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 export default async function SchedulePage() {
   const now = new Date();
