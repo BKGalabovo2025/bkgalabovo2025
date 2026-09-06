@@ -18,17 +18,22 @@ test.describe("Members Flow", () => {
     const uniqueFirstName = `E2EFirst${Date.now()}`;
     await page.fill('input[name="firstName"]', uniqueFirstName);
     await page.fill('input[name="lastName"]', "Playwright");
-    await page.fill('input[name="dateOfBirth"]', "2005-05-15");
 
-    // Click Next Step
+    const dobInput = page.locator('input[name="dateOfBirth"]');
+    if (await dobInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await dobInput.fill("2005-05-15");
+    }
+
+    // Click Next Step until reaching final submit step
     const nextBtn = page.locator('button:has-text("Напред")');
-    if (await nextBtn.isVisible()) {
+    while (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await nextBtn.click();
+      await page.waitForTimeout(300);
     }
 
     // Submit / Save
     const saveBtn = page.locator(
-      'button:has-text("Запази"), button[type="submit"]'
+      'button:has-text("Създаване"), button:has-text("Запази"), button[type="submit"]'
     );
     await saveBtn.first().click();
 

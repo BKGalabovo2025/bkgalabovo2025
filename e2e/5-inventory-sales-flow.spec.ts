@@ -9,7 +9,8 @@ test.describe("Inventory & Sales Flow", () => {
     await expect(
       page
         .locator("h1:has-text('Инвентар')")
-        .or(page.locator("text=Инвентар").first())
+        .or(page.locator("text=Инвентар"))
+        .first()
     ).toBeVisible({
       timeout: 15000,
     });

@@ -17,15 +17,14 @@ test.describe("Functional E2E Tests", () => {
   });
 
   test("Login modal or page should be accessible", async ({ page }) => {
-    await page.goto("/");
-
     // Check if there are no console errors during load
     const errors: string[] = [];
     page.on("pageerror", (err) => {
       errors.push(err.message);
     });
 
-    await page.waitForLoadState("networkidle");
+    await page.goto("/");
+    await page.waitForLoadState("domcontentloaded");
     expect(errors.length).toBe(0);
   });
 });
