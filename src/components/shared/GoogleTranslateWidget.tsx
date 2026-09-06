@@ -105,7 +105,7 @@ export function GoogleTranslateWidget() {
         className="hidden size-0 overflow-hidden opacity-0"
       ></div>
       <Script
-        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
         strategy="lazyOnload"
       />
 

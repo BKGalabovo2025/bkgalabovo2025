@@ -169,7 +169,7 @@ export default function HomePage() {
                   src="/icons/LOGO.jpg"
                   alt="Бадминтон Клуб Гълъбово Logo"
                   fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="80px"
                   className="object-contain transition-all duration-500 group-hover:scale-105"
                   priority={true}
                 />
@@ -208,7 +208,7 @@ export default function HomePage() {
                   src="/1.png"
                   alt="Recovery Zone by ZM Logo"
                   fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="128px"
                   className="rounded-2xl object-contain transition-all duration-500 group-hover:scale-105"
                   priority={true}
                 />
