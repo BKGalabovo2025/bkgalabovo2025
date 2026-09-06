@@ -26,7 +26,7 @@ function GlobalHeader() {
     },
     {
       id: "recoveryzone",
-      logo: "/recovery-zone/rz-icon-square.png",
+      logo: "/1.png",
       title: "RECOVERY ZONE",
       subtitle: "by ZM",
       color: "emerald",

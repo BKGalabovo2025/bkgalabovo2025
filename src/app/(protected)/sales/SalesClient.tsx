@@ -56,19 +56,19 @@ interface SalesClientProps {
 }
 
 export default function SalesClient({
-  initialSales,
-  initialMembers,
+  initialSales = [],
+  initialMembers = [],
   showPageHeader = true,
 }: SalesClientProps) {
   const router = useRouter();
   const { idToken } = useAuth();
 
-  const [sales, setSales] = useState<Sale[]>(initialSales);
+  const [sales, setSales] = useState<Sale[]>(initialSales || []);
   const [saleToDelete, setSaleToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    setSales(initialSales);
+    setSales(initialSales || []);
   }, [initialSales]);
 
   const memberMap = useMemo(() => {

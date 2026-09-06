@@ -22,10 +22,10 @@ export function ProfileTab() {
             />
           ) : (
             <Image
-              src="/icons/LOGO.jpg"
+              src="/icons/badge-option-3-light-squircle.png"
               alt="Club Logo"
               fill
-              className="object-contain p-6 opacity-80"
+              className="object-cover"
             />
           )}
         </div>

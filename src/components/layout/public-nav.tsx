@@ -16,13 +16,13 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-400/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
       <div className="flex items-center justify-between">
         <Link href="/club" className="flex items-center gap-2">
-          <div className="relative size-8 overflow-hidden rounded-lg border border-blue-400/50 bg-white/5 p-1 shadow-[0_0_10px_rgba(30,58,138,0.5)]">
+          <div className="relative size-8 overflow-hidden rounded-xl shadow-[0_0_10px_rgba(30,58,138,0.5)]">
             <Image
-              src="/icons/LOGO.jpg"
+              src="/icons/badge-option-3-light-squircle.png"
               alt="Logo"
-              width={24}
-              height={24}
-              className="object-contain"
+              width={32}
+              height={32}
+              className="object-cover"
             />
           </div>
           <span className="text-sm font-medium text-white">БК ГЪЛЪБОВО</span>

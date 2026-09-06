@@ -203,9 +203,9 @@ export default function HomePage() {
               onMouseLeave={() => setHovered(null)}
             >
               <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="relative mb-8 size-20 drop-shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+              <div className="relative mb-8 h-20 w-32 drop-shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                 <Image
-                  src="/recovery-zone/rz-icon-square.png"
+                  src="/1.png"
                   alt="Recovery Zone by ZM Logo"
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
