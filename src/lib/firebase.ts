@@ -1,6 +1,7 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import {
+  Firestore,
   getFirestore,
   initializeFirestore,
   persistentLocalCache,
@@ -78,11 +79,17 @@ const app = (() => {
   return initializeApp(firebaseConfig);
 })();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let db: any;
+const globalObj =
+  typeof window !== "undefined"
+    ? (window as unknown as { _firebaseDb?: Firestore })
+    : (globalThis as unknown as { _firebaseDb?: Firestore });
+
+let db: Firestore;
 
 if (isTestEnv) {
-  db = {} as unknown;
+  db = {} as unknown as Firestore;
+} else if (globalObj._firebaseDb) {
+  db = globalObj._firebaseDb;
 } else {
   try {
     // Try to initialize with offline persistence
@@ -99,6 +106,7 @@ if (isTestEnv) {
     );
     db = getFirestore(app);
   }
+  globalObj._firebaseDb = db;
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const auth = isTestEnv ? ({} as any) : getAuth(app);

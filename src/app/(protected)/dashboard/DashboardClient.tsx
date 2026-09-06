@@ -45,6 +45,7 @@ interface DashboardProduct {
 
 interface DashboardStats {
   revenueLast30Days?: number;
+  revenueCurrentMonth?: number;
   totalClubMembers?: number;
   totalGuests?: number;
   totalRecovery?: number;
@@ -62,6 +63,7 @@ interface DashboardStats {
   revenueRecovery?: number;
   revenueCourts?: number;
   revenueShop?: number;
+  revenueCamps?: number;
   lowStockCount?: number;
   lowStockProducts?: DashboardProduct[];
   newMembersCount?: number;
@@ -152,7 +154,8 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   const firstName = `Админ ${displayEmail}`;
 
   // Use values from stats or fallback to 0/placeholder
-  const monthlyRevenue = stats?.revenueLast30Days || 0;
+  const monthlyRevenue =
+    stats?.revenueCurrentMonth ?? stats?.revenueLast30Days ?? 0;
 
   const renderMembersContent = () => {
     if (loading) {
@@ -504,7 +507,11 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             <div className="mb-2.5 flex items-baseline justify-between">
               <p className="text-[10px] font-bold tracking-[0.2em] text-purple-800 uppercase dark:text-purple-300">
                 {t("dash.monthly_revenue")} (
-                {new Date().toLocaleString("bg-BG", { month: "long" })})
+                {new Date().toLocaleString(
+                  language === "bg" ? "bg-BG" : "en-US",
+                  { month: "long" }
+                )}
+                )
               </p>
               <div className="flex items-center gap-1">
                 <span className="text-sm font-extrabold text-purple-700 dark:text-purple-300">

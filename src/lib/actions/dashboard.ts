@@ -141,6 +141,8 @@ export async function getDashboardDataServerAction(activeBranch: string) {
     sixtyDaysAgo.setDate(now.getDate() - 60);
     const sixMonthsAgo = new Date(now);
     sixMonthsAgo.setMonth(now.getMonth() - 6);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
     const startStr = startOfDay.toISOString();
     const endStr = endOfDay.toISOString();
@@ -312,36 +314,37 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           return p.stock <= threshold;
         });
 
-        // Revenue calculations from the scoped sales set
+        // Revenue calculations for current calendar month (excluding camp fees, which belong to camps module)
         const calcRevenue = (list: Sale[]) =>
           list
-            .filter((s) => s.isPaid === true)
+            .filter((s) => s.isPaid === true && s.type !== "camp_fee")
             .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const salesLast30Days = salesFor6Months.filter(
-          (s) => new Date(s.saleDate) >= thirtyDaysAgo
+        const salesCurrentMonth = salesFor6Months.filter(
+          (s) => new Date(s.saleDate) >= startOfMonth && s.type !== "camp_fee"
         );
-        const salesPrev30Days = salesFor6Months.filter(
+        const salesPrevMonth = salesFor6Months.filter(
           (s) =>
-            new Date(s.saleDate) >= sixtyDaysAgo &&
-            new Date(s.saleDate) < thirtyDaysAgo
+            new Date(s.saleDate) >= startOfPrevMonth &&
+            new Date(s.saleDate) < startOfMonth &&
+            s.type !== "camp_fee"
         );
 
-        const revenueLast30Days = calcRevenue(salesLast30Days);
-        const revenuePrev30Days = calcRevenue(salesPrev30Days);
+        const revenueCurrentMonth = calcRevenue(salesCurrentMonth);
+        const revenuePrevMonth = calcRevenue(salesPrevMonth);
         const revenueChange =
-          revenuePrev30Days > 0
-            ? ((revenueLast30Days - revenuePrev30Days) / revenuePrev30Days) *
+          revenuePrevMonth > 0
+            ? ((revenueCurrentMonth - revenuePrevMonth) / revenuePrevMonth) *
               100
-            : revenueLast30Days > 0
+            : revenueCurrentMonth > 0
               ? 100
               : 0;
 
-        const revenueTrainings = salesLast30Days
+        const revenueTrainings = salesCurrentMonth
           .filter((s) => s.isPaid === true && s.type === "training_service")
           .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const revenueCourts = salesLast30Days
+        const revenueCourts = salesCurrentMonth
           .filter(
             (s) =>
               s.isPaid === true &&
@@ -350,7 +353,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           )
           .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const revenueRecovery = salesLast30Days
+        const revenueRecovery = salesCurrentMonth
           .filter(
             (s) =>
               s.isPaid === true &&
@@ -359,7 +362,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           )
           .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const revenueServices = salesLast30Days
+        const revenueServices = salesCurrentMonth
           .filter(
             (s) =>
               s.isPaid === true &&
@@ -372,14 +375,23 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           )
           .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const revenueShop = salesLast30Days
+        const revenueShop = salesCurrentMonth
           .filter(
             (s) => s.isPaid === true && (s.type === "inventory" || !s.type)
           )
           .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
+        const revenueCamps = salesFor6Months
+          .filter(
+            (s) =>
+              s.isPaid === true &&
+              s.type === "camp_fee" &&
+              new Date(s.saleDate) >= startOfMonth
+          )
+          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
         const totalRevenue = salesFor6Months
-          .filter((s) => s.isPaid === true)
+          .filter((s) => s.isPaid === true && s.type !== "camp_fee")
           .reduce(
             (acc, s) => {
               const cur = s.currency || "EUR";
@@ -389,12 +401,14 @@ export async function getDashboardDataServerAction(activeBranch: string) {
             {} as Record<string, number>
           );
 
-        const salesCountLast30 = salesLast30Days.length;
-        const salesCountPrev30 = salesPrev30Days.length;
+        const salesCountCurrentMonth = salesCurrentMonth.length;
+        const salesCountPrevMonth = salesPrevMonth.length;
         const salesChange =
-          salesCountPrev30 > 0
-            ? ((salesCountLast30 - salesCountPrev30) / salesCountPrev30) * 100
-            : salesCountLast30 > 0
+          salesCountPrevMonth > 0
+            ? ((salesCountCurrentMonth - salesCountPrevMonth) /
+                salesCountPrevMonth) *
+              100
+            : salesCountCurrentMonth > 0
               ? 100
               : 0;
 
@@ -423,12 +437,13 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           activeMembersCount: aMem,
           totalRevenue,
           unpaidSales: unpaidSalesCount.data().count,
-          revenueLast30Days,
+          revenueLast30Days: revenueCurrentMonth,
+          revenueCurrentMonth,
           revenueChange,
           newMembersCount: newMemThis,
           newMembersLast30Days: newMemThis,
           newMembersChange,
-          salesLast30Days: salesCountLast30,
+          salesLast30Days: salesCountCurrentMonth,
           salesChange,
           lowStockCount: lowStockProducts.length,
           lowStockProducts: lowStockProducts.map((p) => ({
@@ -448,6 +463,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
           revenueCourts,
           revenueRecovery,
           revenueShop,
+          revenueCamps,
           todayTrainingsCount,
           todayCompetitionsCount,
           todayCampsCount,
