@@ -198,7 +198,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
   };
 
   const brand = {
-    logo: isRecovery ? "/1.png" : "/icons/LOGO.jpg",
+    logo: isRecovery ? "/recovery-zone/rz-icon-square.png" : "/icons/LOGO.jpg",
     title: isRecovery ? "RECOVERY ZONE by ZM" : "Бадминтон клуб Гълъбово",
     url: isRecovery ? "/recovery-zone" : "/club",
     reviewsUrl: isRecovery ? "/recovery-zone/reviews" : "/club/reviews",

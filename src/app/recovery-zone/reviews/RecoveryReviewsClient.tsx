@@ -284,7 +284,7 @@ export default function RecoveryReviewsClient() {
 
   const primarySurveyLink =
     standingCampaigns.length > 0
-      ? `/feedback/${standingCampaigns[0].id}`
+      ? `/feedback/${(standingCampaigns.find((c) => c.eventType === "recovery") || standingCampaigns[0]).id}`
       : null;
 
   return (
@@ -305,20 +305,24 @@ export default function RecoveryReviewsClient() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative size-8 overflow-hidden rounded-lg border border-emerald-500/50 bg-white/5 p-1 shadow-[0_0_10px_rgba(16,185,129,0.4)]">
+          <Link
+            href="/recovery-zone"
+            className="group flex items-center gap-2.5 transition-opacity hover:opacity-95"
+          >
+            <div className="relative size-9 overflow-hidden rounded-xl border border-emerald-500/50 bg-emerald-950/40 p-1.5 shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all group-hover:border-emerald-400 group-hover:shadow-[0_0_16px_rgba(16,185,129,0.5)]">
               <Image
-                src="/1.png"
-                alt="Logo"
-                width={24}
-                height={24}
-                className="object-contain"
+                src="/recovery-zone/rz-icon-square.png"
+                alt="Recovery Zone Logo"
+                width={28}
+                height={28}
+                className="size-full object-contain"
+                priority
               />
             </div>
-            <span className="text-sm font-semibold tracking-wider text-white">
+            <span className="text-sm font-bold tracking-wider text-white">
               RECOVERY ZONE <span className="text-emerald-400">by ZM</span>
             </span>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-3">
             {primarySurveyLink && (

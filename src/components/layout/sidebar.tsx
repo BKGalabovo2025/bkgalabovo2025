@@ -55,7 +55,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   }, []);
 
   const isRecoveryZone = activeBranch === "recoveryzone";
-  const brandLogo = isRecoveryZone ? "/1.png" : "/icons/LOGO.jpg";
+  const brandLogo = isRecoveryZone
+    ? "/recovery-zone/rz-icon-square.png"
+    : "/icons/LOGO.jpg";
   const brandTitle = isRecoveryZone ? "RECOVERY ZONE" : "БАДМИНТОН КЛУБ";
   const brandSubtitle = isRecoveryZone ? "by ZM" : "ГЪЛЪБОВО";
 

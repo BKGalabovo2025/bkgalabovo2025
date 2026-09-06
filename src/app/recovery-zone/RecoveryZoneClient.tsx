@@ -82,7 +82,9 @@ export default function RecoveryZoneClient({
         ]);
         setReviews(revs);
         if (campaigns.length > 0) {
-          setStandingSurveyId(campaigns[0].id);
+          const recoveryCamp =
+            campaigns.find((c) => c.eventType === "recovery") || campaigns[0];
+          setStandingSurveyId(recoveryCamp.id);
         }
       } catch (err) {
         console.error("Failed to fetch recovery zone reviews:", err);
@@ -96,20 +98,29 @@ export default function RecoveryZoneClient({
       {/* Nav */}
       <nav className="fixed inset-x-0 top-0 z-50 border-b border-emerald-500/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="relative size-8 overflow-hidden rounded-lg border border-emerald-500/50 bg-white/5 p-1 shadow-[0_0_10px_rgba(16,185,129,0.5)]">
+          <Link
+            href="/recovery-zone"
+            className="group flex items-center gap-2.5 transition-opacity hover:opacity-95"
+          >
+            <div className="relative size-9 overflow-hidden rounded-xl border border-emerald-500/50 bg-emerald-950/40 p-1.5 shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all group-hover:border-emerald-400 group-hover:shadow-[0_0_16px_rgba(16,185,129,0.5)]">
               <Image
-                src="/1.png"
-                alt="Logo"
-                width={24}
-                height={24}
-                className="object-contain"
+                src="/recovery-zone/rz-icon-square.png"
+                alt="Recovery Zone Logo"
+                width={28}
+                height={28}
+                className="size-full object-contain"
+                priority
               />
             </div>
-            <span className="text-sm font-medium text-white">
-              RECOVERY ZONE
-            </span>
-          </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold tracking-wider text-white">
+                RECOVERY ZONE
+              </span>
+              <span className="-mt-1 text-[10px] font-semibold tracking-widest text-emerald-400">
+                by ZM
+              </span>
+            </div>
+          </Link>
 
           <div className="hidden items-center gap-8 text-[11px] font-bold tracking-widest text-zinc-400 uppercase md:flex">
             <a
