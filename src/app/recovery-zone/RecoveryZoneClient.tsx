@@ -1124,14 +1124,23 @@ export default function RecoveryZoneClient({
 
       {/* Footer */}
       <footer className="flex flex-col items-center justify-between gap-4 border-t border-zinc-900 bg-black p-8 md:flex-row">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-xl bg-emerald-500">
-            <Trophy size={14} className="text-white" />
+        <Link
+          href="/recovery-zone"
+          className="group flex items-center gap-2.5 transition-opacity hover:opacity-90"
+        >
+          <div className="relative size-7 overflow-hidden rounded-lg border border-emerald-500/40 bg-zinc-950 p-1 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+            <Image
+              src="/recovery-zone/rz-icon-square.png"
+              alt="Recovery Zone Logo"
+              width={22}
+              height={22}
+              className="size-full object-contain"
+            />
           </div>
-          <span className="text-sm font-bold text-zinc-400 uppercase">
-            RECOVERY ZONE BY ZM
+          <span className="text-sm font-bold tracking-wider text-white">
+            RECOVERY ZONE <span className="text-emerald-400">by ZM</span>
           </span>
-        </div>
+        </Link>
         <div className="text-center md:text-right">
           <p className="text-[11px] text-zinc-400">
             Спортна зала „Енергетик“, град Гълъбово • Мобилна зона: Турнирите на

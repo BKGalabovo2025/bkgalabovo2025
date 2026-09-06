@@ -480,6 +480,25 @@ export default function RecoveryReviewsClient() {
 
       {/* Footer */}
       <footer className="border-t border-zinc-900 bg-black/60 px-6 py-8 text-center text-xs text-zinc-400">
+        <div className="mb-4 flex items-center justify-center">
+          <Link
+            href="/recovery-zone"
+            className="group inline-flex items-center gap-2.5 transition-opacity hover:opacity-90"
+          >
+            <div className="relative size-7 overflow-hidden rounded-lg border border-emerald-500/40 bg-zinc-950 p-1 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+              <Image
+                src="/recovery-zone/rz-icon-square.png"
+                alt="Recovery Zone Logo"
+                width={22}
+                height={22}
+                className="size-full object-contain"
+              />
+            </div>
+            <span className="text-sm font-bold tracking-wider text-white">
+              RECOVERY ZONE <span className="text-emerald-400">by ZM</span>
+            </span>
+          </Link>
+        </div>
         <p className="text-[11px] text-zinc-400">
           Спортна зала „Енергетик“, град Гълъбово • Мобилна зона: Турнирите на
           НВ Бадминтон
