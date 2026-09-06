@@ -461,6 +461,9 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                         : "Вашето име *"}
                   </Label>
                   <Input
+                    id="respondentName"
+                    name="respondentName"
+                    autoComplete="name"
                     required
                     value={respondentName}
                     onChange={(e) => setRespondentName(e.target.value)}
@@ -471,10 +474,15 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
 
                 {role === "parent" && !isRecovery && (
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-zinc-700">
+                    <Label
+                      htmlFor="childName"
+                      className="text-xs font-bold text-zinc-700"
+                    >
                       Име на детето (Състезател) *
                     </Label>
                     <Input
+                      id="childName"
+                      name="childName"
                       required
                       value={childName}
                       onChange={(e) => setChildName(e.target.value)}
@@ -488,11 +496,17 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
               {/* Optional Contacts */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-zinc-500">
+                  <Label
+                    htmlFor="surveyPhone"
+                    className="text-xs font-semibold text-zinc-500"
+                  >
                     Телефон за връзка (по избор)
                   </Label>
                   <Input
+                    id="surveyPhone"
+                    name="surveyPhone"
                     type="tel"
+                    autoComplete="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="088..."
@@ -501,11 +515,17 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-zinc-500">
+                  <Label
+                    htmlFor="surveyEmail"
+                    className="text-xs font-semibold text-zinc-500"
+                  >
                     Имейл (по избор)
                   </Label>
                   <Input
+                    id="surveyEmail"
+                    name="surveyEmail"
                     type="email"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
@@ -732,6 +752,8 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                         {/* Text Type */}
                         {q.type === "text" && (
                           <Textarea
+                            id={`question_${q.id}`}
+                            name={`question_${q.id}`}
                             value={String(currentVal || "")}
                             onChange={(e) =>
                               handleAnswerChange(q.id, e.target.value)
@@ -750,11 +772,16 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
 
             {/* Section 4: Main Free Text Review */}
             <div className="space-y-2">
-              <Label className="flex items-center gap-1.5 text-xs font-bold text-zinc-900">
+              <Label
+                htmlFor="reviewText"
+                className="flex items-center gap-1.5 text-xs font-bold text-zinc-900"
+              >
                 <Heart className="size-4 text-rose-500" />
                 Вашият коментар, впечатления или препоръки:
               </Label>
               <Textarea
+                id="reviewText"
+                name="reviewText"
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 placeholder={

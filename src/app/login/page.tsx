@@ -92,6 +92,7 @@ const LoginPage = () => {
               </Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 autoComplete="username"
                 placeholder="admin@bkgalabovo.com"
@@ -119,6 +120,7 @@ const LoginPage = () => {
               </div>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 required
                 autoComplete="current-password"

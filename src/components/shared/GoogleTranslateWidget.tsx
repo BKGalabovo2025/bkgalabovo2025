@@ -11,17 +11,30 @@ export function GoogleTranslateWidget() {
     setIsClient(true);
 
     // Check cookies to see if google translate is active
-    const checkLang = () => {
-      if (typeof document !== "undefined") {
-        const match = document.cookie.match(/googtrans=\/bg\/([a-z]{2})/);
-        if (match && match[1] === "en") {
-          setCurrentLang("en");
-        } else {
-          setCurrentLang("bg");
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/googtrans=\/bg\/([a-z]{2})/);
+      if (match && match[1] === "en") {
+        setCurrentLang("en");
+      } else {
+        setCurrentLang("bg");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    const ensureSelectAttributes = () => {
+      const select =
+        document.querySelector<HTMLSelectElement>(".goog-te-combo");
+      if (select) {
+        if (!select.id) select.id = "google_translate_select";
+        if (!select.name) select.name = "google_translate_select";
+        if (!select.getAttribute("autocomplete")) {
+          select.setAttribute("autocomplete", "off");
         }
       }
     };
-    checkLang();
 
     // @ts-expect-error - Google Translate API is loaded externally
     window.googleTranslateElementInit = () => {
@@ -35,17 +48,44 @@ export function GoogleTranslateWidget() {
         },
         "google_translate_element"
       );
+      ensureSelectAttributes();
     };
-  }, []);
+
+    const observer = new MutationObserver(() => {
+      ensureSelectAttributes();
+    });
+
+    const target = document.getElementById("google_translate_element");
+    if (target) {
+      observer.observe(target, { childList: true, subtree: true });
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isClient]);
 
   const switchLanguage = (lang: string) => {
     if (lang === currentLang) return;
 
     if (lang === "bg") {
-      // Clear cookies to restore original language
-      document.cookie =
-        "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
+      // Clear cookies across all possible host/domain variations to restore original language
+      const domains = [
+        window.location.hostname,
+        `.${window.location.hostname}`,
+        "",
+      ];
+      domains.forEach((d) => {
+        const domainStr = d ? `; domain=${d}` : "";
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/${domainStr};`;
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${window.location.pathname}${domainStr};`;
+      });
+      try {
+        sessionStorage.removeItem("googtrans");
+        localStorage.removeItem("googtrans");
+      } catch {
+        // Ignore storage errors
+      }
     } else {
       // Set cookies for translation
       document.cookie = `googtrans=/bg/${lang}; path=/`;

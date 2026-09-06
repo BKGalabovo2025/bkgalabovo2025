@@ -689,7 +689,8 @@ export default function RecoveryZoneClient({
                   alt="Recovery Zone Center"
                   fill
                   sizes="(max-width: 1200px) 100vw, 1200px"
-                  className="bg-zinc-950 object-contain"
+                  className="aspect-video bg-zinc-950 object-contain"
+                  style={{ aspectRatio: "16 / 9" }}
                 />
               </motion.div>
             </AnimatePresence>
@@ -1134,7 +1135,8 @@ export default function RecoveryZoneClient({
               alt="Recovery Zone Logo"
               width={22}
               height={22}
-              className="size-full object-contain"
+              className="aspect-square size-full object-contain"
+              style={{ aspectRatio: "1 / 1" }}
             />
           </div>
           <span className="text-sm font-bold tracking-wider text-white">

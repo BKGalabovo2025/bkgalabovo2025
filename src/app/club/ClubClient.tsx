@@ -509,7 +509,8 @@ export default function ClubClient({
                       alt="Спортна зала Енергетик"
                       fill
                       sizes="(max-width: 896px) 100vw, 896px"
-                      className="object-cover"
+                      className="aspect-video object-cover"
+                      style={{ aspectRatio: "16 / 9" }}
                     />
                   </motion.div>
                 </AnimatePresence>

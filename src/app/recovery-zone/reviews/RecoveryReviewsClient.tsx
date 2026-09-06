@@ -491,7 +491,8 @@ export default function RecoveryReviewsClient() {
                 alt="Recovery Zone Logo"
                 width={22}
                 height={22}
-                className="size-full object-contain"
+                className="aspect-square size-full object-contain"
+                style={{ aspectRatio: "1 / 1" }}
               />
             </div>
             <span className="text-sm font-bold tracking-wider text-white">

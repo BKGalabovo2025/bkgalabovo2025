@@ -23,6 +23,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
               width={32}
               height={32}
               className="object-cover"
+              priority
             />
           </div>
           <span className="text-sm font-medium text-white">БК ГЪЛЪБОВО</span>
