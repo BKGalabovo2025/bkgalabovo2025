@@ -57,6 +57,8 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
               </div>
               {shouldTruncate && (
                 <button
+                  type="button"
+                  aria-expanded={isExpanded}
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="group mt-2 inline-flex items-center gap-2 text-xs font-bold tracking-widest text-emerald-400 uppercase transition-colors hover:text-emerald-300"
                 >
@@ -88,7 +90,7 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
                 <p className="mb-6 bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-xs font-bold tracking-widest text-transparent uppercase">
                   {member.role || "Терапевт"}
                 </p>
-                <p className="mb-8 text-sm leading-relaxed font-light text-zinc-500">
+                <p className="mb-8 text-sm leading-relaxed font-light text-zinc-300">
                   {member.bio}
                 </p>
 
@@ -96,9 +98,10 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
                   {member.phone && (
                     <a
                       href={`tel:${member.phone}`}
+                      aria-label={`Обади се на ${member.name}`}
                       className="flex size-10 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition-all hover:bg-linear-to-r hover:from-purple-500 hover:to-emerald-500 hover:text-white"
                     >
-                      <Phone size={18} />
+                      <Phone size={16} />
                     </a>
                   )}
                 </div>

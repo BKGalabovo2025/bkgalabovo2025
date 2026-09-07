@@ -46,7 +46,10 @@ export default function CatalogsClient({
           onValueChange={setCatalogsSubTab}
           className="space-y-6"
         >
-          <TabsList className="no-scrollbar mb-2 flex h-11 w-full justify-start overflow-x-auto rounded-2xl border border-zinc-200/40 bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:border-zinc-800/40 dark:bg-zinc-900/50">
+          <TabsList
+            aria-label="Каталози и услуги"
+            className="no-scrollbar mb-2 flex h-11 w-full justify-start overflow-x-auto rounded-2xl border border-zinc-200/40 bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:border-zinc-800/40 dark:bg-zinc-900/50"
+          >
             {!isRecoveryOnly && (
               <>
                 <TabsTrigger

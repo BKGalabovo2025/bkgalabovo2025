@@ -66,6 +66,7 @@ const nextConfig = {
     root: __dirname,
   },
   images: {
+    formats: ["image/avif", "image/webp"],
     dangerouslyAllowSVG: true,
     remotePatterns: [
       {

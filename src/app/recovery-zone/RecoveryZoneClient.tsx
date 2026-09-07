@@ -186,8 +186,11 @@ export default function RecoveryZoneClient({
             <GoogleTranslateWidget />
             {/* Mobile Menu Toggle */}
             <button
+              type="button"
               className="p-2 text-white md:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Затвори менюто" : "Отвори менюто"}
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -302,9 +305,9 @@ export default function RecoveryZoneClient({
             </span>
           </h1>
           <div className="mx-auto mb-12 max-w-3xl text-left text-lg leading-relaxed text-zinc-400 md:text-center">
-            <h3 className="mb-4 text-2xl font-medium text-white">
+            <h2 className="mb-4 text-2xl font-medium text-white">
               Новото ниво на възстановяване в Гълъбово
-            </h3>
+            </h2>
             <p className="mb-4">
               Recovery Zone by ZM е създаден с една основна цел - да предостави
               достъп до професионални възстановителни процедури. Независимо дали
@@ -360,6 +363,8 @@ export default function RecoveryZoneClient({
               )}
             </AnimatePresence>
             <button
+              type="button"
+              aria-expanded={isHeroExpanded}
               onClick={() => setIsHeroExpanded(!isHeroExpanded)}
               className="mx-auto mt-4 flex items-center gap-2 text-sm font-bold tracking-widest text-emerald-400 uppercase transition-colors hover:text-white"
             >
@@ -584,6 +589,8 @@ export default function RecoveryZoneClient({
                         className="overflow-hidden rounded-2xl border border-zinc-900 bg-black transition-colors hover:border-emerald-900/50"
                       >
                         <button
+                          type="button"
+                          aria-expanded={openFaq === i}
                           onClick={() => setOpenFaq(openFaq === i ? null : i)}
                           className="flex w-full items-center justify-between px-6 py-5 text-left"
                         >
@@ -698,6 +705,7 @@ export default function RecoveryZoneClient({
             {/* Controls */}
             <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <button
+                type="button"
                 onClick={prevImage}
                 aria-label="Предишна снимка"
                 className="flex size-10 items-center justify-center rounded-full border border-emerald-500/50 bg-black/60 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)] backdrop-blur-md transition-all hover:bg-emerald-500 hover:text-white"
@@ -705,6 +713,7 @@ export default function RecoveryZoneClient({
                 <ChevronLeft size={20} />
               </button>
               <button
+                type="button"
                 onClick={nextImage}
                 aria-label="Следваща снимка"
                 className="flex size-10 items-center justify-center rounded-full border border-emerald-500/50 bg-black/60 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)] backdrop-blur-md transition-all hover:bg-emerald-500 hover:text-white"
@@ -717,6 +726,7 @@ export default function RecoveryZoneClient({
             <div className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1">
               {hallImages.map((_, i) => (
                 <button
+                  type="button"
                   key={i}
                   aria-label={`Отиди на снимка ${i + 1}`}
                   onClick={() => setActiveImage(i)}
@@ -862,18 +872,20 @@ export default function RecoveryZoneClient({
 
             <div className="flex flex-wrap items-center gap-3">
               {standingSurveyId && (
-                <Link href={`/feedback/${standingSurveyId}`}>
-                  <button className="flex items-center gap-2 rounded-2xl border border-emerald-500/40 bg-emerald-600 px-5 py-3 text-xs font-bold text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-500 active:scale-95">
-                    <Sparkles size={14} />
-                    Оставете Вашия отзив
-                  </button>
+                <Link
+                  href={`/feedback/${standingSurveyId}`}
+                  className="flex items-center gap-2 rounded-2xl border border-emerald-500/40 bg-emerald-600 px-5 py-3 text-xs font-bold text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-500 active:scale-95"
+                >
+                  <Sparkles size={14} />
+                  Оставете Вашия отзив
                 </Link>
               )}
-              <Link href="/recovery-zone/reviews">
-                <button className="flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-3 text-xs font-bold text-zinc-300 transition-all hover:border-emerald-500/40 hover:text-white">
-                  <span>Всички отзиви ({reviews.length})</span>
-                  <ArrowRight size={14} />
-                </button>
+              <Link
+                href="/recovery-zone/reviews"
+                className="flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-3 text-xs font-bold text-zinc-300 transition-all hover:border-emerald-500/40 hover:text-white"
+              >
+                <span>Всички отзиви ({reviews.length})</span>
+                <ArrowRight size={14} />
               </Link>
             </div>
           </div>
@@ -888,11 +900,9 @@ export default function RecoveryZoneClient({
               {standingSurveyId && (
                 <Link
                   href={`/feedback/${standingSurveyId}`}
-                  className="mt-6 inline-block"
+                  className="mt-6 inline-block rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-500"
                 >
-                  <button className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-500">
-                    Дайте първия отзив
-                  </button>
+                  Дайте първия отзив
                 </Link>
               )}
             </div>
@@ -1148,7 +1158,7 @@ export default function RecoveryZoneClient({
             Спортна зала „Енергетик“, град Гълъбово • Мобилна зона: Турнирите на
             НВ Бадминтон
           </p>
-          <span className="mt-1 block text-[10px] font-bold tracking-widest text-zinc-600 uppercase">
+          <span className="mt-1 block text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
             © {new Date().getFullYear()} Recovery Zone by ZM. Всички права
             запазени
           </span>

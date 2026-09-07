@@ -25,9 +25,9 @@ export const metadata: Metadata = {
     "Официална спортна платформа и система за управление на Бадминтон клуб Гълъбово и Recovery Zone",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icons/LOGO.jpg",
-    apple: "/icons/LOGO.jpg",
-    shortcut: "/icons/LOGO.jpg",
+    icon: "/icons/LOGO.webp",
+    apple: "/icons/LOGO.webp",
+    shortcut: "/icons/LOGO.webp",
   },
   openGraph: {
     title: "Бадминтон Клуб Гълъбово & Recovery Zone",

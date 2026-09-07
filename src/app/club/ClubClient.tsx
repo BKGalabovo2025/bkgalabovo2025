@@ -153,7 +153,7 @@ export default function ClubClient({
       <section className="relative flex min-h-screen items-center justify-center pt-16">
         <div className="absolute inset-0">
           <Image
-            src="/bk-hero.png"
+            src="/bk-hero.webp"
             alt="БК Гълъбово"
             fill
             sizes="100vw"

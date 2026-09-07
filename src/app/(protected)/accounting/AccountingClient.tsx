@@ -684,6 +684,7 @@ export default function AccountingClient() {
             variant="outline"
             size="icon"
             onClick={prevMonth}
+            aria-label="Предишен месец"
             className="size-9"
           >
             <ChevronLeft className="size-4" />
@@ -695,6 +696,7 @@ export default function AccountingClient() {
             variant="outline"
             size="icon"
             onClick={nextMonth}
+            aria-label="Следващ месец"
             className="size-9"
           >
             <ChevronRight className="size-4" />

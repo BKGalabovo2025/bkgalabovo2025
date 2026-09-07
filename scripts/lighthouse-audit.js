@@ -24,63 +24,83 @@ const baseUrl =
 /**
  * 1. Динамично откриване на всички маршрути в src/app
  */
-function discoverRoutes(dir = "src/app", base = "") {
-  let routes = [];
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
+function discoverRoutes() {
+  const rootDir = path.resolve(process.cwd(), "src", "app");
+  const routes = [];
 
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      routes = routes.concat(
-        discoverRoutes(fullPath, path.join(base, entry.name))
-      );
-    } else if (/^page\.(tsx|jsx|js|ts)$/.test(entry.name)) {
-      // Премахване на route groups като (protected), @slots и др.
-      const segments = base
-        .split(path.sep)
-        .filter((s) => s && !s.startsWith("(") && !s.startsWith("@"));
+  function crawl(currentDir, currentBase = "") {
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
 
-      const routePath = "/" + segments.join("/");
-      const route = routePath === "" ? "/" : routePath;
-      const isDynamic = route.includes("[");
-
-      // Проверка за страници, които са просто redirect към друг маршрут
-      let isRedirectOnly = false;
-      try {
-        const fileContent = fs.readFileSync(fullPath, "utf8");
-        if (
-          fileContent.includes("redirect(") &&
-          !fileContent.includes("<") &&
-          fileContent.length < 300
-        ) {
-          isRedirectOnly = true;
-        }
-      } catch (e) {}
-
-      // Заместване на параметри с тестови стойности за динамичните маршрути
-      let testRoute = route;
-      if (isDynamic) {
-        testRoute = testRoute
-          .replace(/\[serviceId\]/g, "default")
-          .replace(/\[campaignId\]/g, "default")
-          .replace(/\[sessionId\]/g, "default")
-          .replace(/\[token\]/g, "demo")
-          .replace(/\[id\]/g, "demo");
+    for (const entry of entries) {
+      const safeName = path.basename(entry.name);
+      if (
+        !safeName ||
+        safeName === "." ||
+        safeName === ".." ||
+        safeName.includes("..")
+      ) {
+        continue;
       }
 
-      routes.push({
-        rawRoute: route,
-        urlRoute: testRoute,
-        isDynamic,
-        isRedirectOnly,
-        filePath: fullPath,
-        name: (route === "/"
-          ? "home"
-          : route.replace(/^\//, "").replace(/\//g, "-")
-        ).toLowerCase(),
-      });
+      // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
+      const fullPath = path.resolve(currentDir, safeName);
+      if (!fullPath.startsWith(rootDir)) {
+        continue;
+      }
+
+      if (entry.isDirectory()) {
+        const nextBase = currentBase ? `${currentBase}/${safeName}` : safeName;
+        crawl(fullPath, nextBase);
+      } else if (/^page\.(tsx|jsx|js|ts)$/.test(safeName)) {
+        // Премахване на route groups като (protected), @slots и др.
+        const segments = currentBase
+          .split("/")
+          .filter((s) => s && !s.startsWith("(") && !s.startsWith("@"));
+
+        const routePath = "/" + segments.join("/");
+        const route = routePath === "" ? "/" : routePath;
+        const isDynamic = route.includes("[");
+
+        // Проверка за страници, които са просто redirect към друг маршрут
+        let isRedirectOnly = false;
+        try {
+          const fileContent = fs.readFileSync(fullPath, "utf8");
+          if (
+            fileContent.includes("redirect(") &&
+            !fileContent.includes("<") &&
+            fileContent.length < 300
+          ) {
+            isRedirectOnly = true;
+          }
+        } catch (e) {}
+
+        // Заместване на параметри с тестови стойности за динамичните маршрути
+        let testRoute = route;
+        if (isDynamic) {
+          testRoute = testRoute
+            .replace(/\[serviceId\]/g, "default")
+            .replace(/\[campaignId\]/g, "default")
+            .replace(/\[sessionId\]/g, "default")
+            .replace(/\[token\]/g, "demo")
+            .replace(/\[id\]/g, "demo");
+        }
+
+        routes.push({
+          rawRoute: route,
+          urlRoute: testRoute,
+          isDynamic,
+          isRedirectOnly,
+          filePath: fullPath,
+          name: (route === "/"
+            ? "home"
+            : route.replace(/^\//, "").replace(/\//g, "-")
+          ).toLowerCase(),
+        });
+      }
     }
   }
+
+  crawl(rootDir);
   return routes;
 }
 
@@ -276,12 +296,13 @@ async function run() {
         );
       } catch (err) {
         console.error(
-          `  ✗ Грешка при четене на резултатите за ${page.rawRoute}:`,
+          "  ✗ Грешка при четене на резултатите за %s: %s",
+          page.rawRoute,
           err.message
         );
       }
     } else {
-      console.warn(`  ⚠️ Не беше генериран репорт за ${page.rawRoute}.`);
+      console.warn("  ⚠️ Не беше генериран репорт за %s.", page.rawRoute);
     }
   }
 

@@ -1,14 +1,22 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { ChevronRight, Lock, ShieldCheck, Trophy } from "lucide-react";
+import { ChevronRight, Lock, ShieldCheck } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { useAuth } from "@/context/auth-context";
+
+const GoogleTranslateWidget = dynamic(
+  () =>
+    import("@/components/shared/GoogleTranslateWidget").then(
+      (mod) => mod.GoogleTranslateWidget
+    ),
+  { ssr: false }
+);
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -56,21 +64,6 @@ export default function HomePage() {
     }
   }, [user, authLoading, router]);
 
-  if (authLoading || user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="flex animate-pulse flex-col items-center gap-6">
-          <div className="flex size-16 items-center justify-center rounded-3xl border border-zinc-700 bg-zinc-800 text-white">
-            <Trophy size={32} strokeWidth={1.5} />
-          </div>
-          <p className="text-[10px] font-medium tracking-[0.3em] text-zinc-500 uppercase">
-            Зареждане...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-zinc-950 text-white selection:bg-zinc-800">
       {/* Background Grid Pattern */}
@@ -90,7 +83,7 @@ export default function HomePage() {
 
       {/* Header */}
       <motion.header
-        initial={{ opacity: 0, y: -20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-10 flex flex-col items-center justify-between gap-4 border-b border-white/5 px-8 py-6 md:flex-row md:gap-0"
@@ -133,7 +126,7 @@ export default function HomePage() {
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-16">
         <motion.div
           variants={containerVariants}
-          initial="hidden"
+          initial={false}
           animate="visible"
           className="flex w-full flex-col items-center"
         >
@@ -144,11 +137,11 @@ export default function HomePage() {
           >
             Изберете
             <br />
-            <span className="text-zinc-500">своя портал</span>
+            <span className="text-zinc-400">своя портал</span>
           </motion.h1>
           <motion.p
             variants={itemVariants}
-            className="mb-20 max-w-md text-center text-sm text-zinc-600"
+            className="mb-20 max-w-md text-center text-sm text-zinc-300"
           >
             Добре дошли! Изберете за кой обект искате да научите повече или да
             запазите своя час.
@@ -166,7 +159,7 @@ export default function HomePage() {
               <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               <div className="relative mb-8 size-20 overflow-hidden rounded-full drop-shadow-[0_0_15px_rgba(37,99,235,0.3)]">
                 <Image
-                  src="/icons/LOGO.jpg"
+                  src="/icons/LOGO.webp"
                   alt="Бадминтон Клуб Гълъбово Logo"
                   fill
                   sizes="80px"
@@ -244,11 +237,11 @@ export default function HomePage() {
         transition={{ delay: 0.8, duration: 1 }}
         className="relative z-10 flex flex-col items-center justify-between gap-4 border-t border-white/5 px-8 py-6 md:flex-row md:gap-0"
       >
-        <span className="text-center text-[10px] font-medium tracking-[0.3em] text-zinc-600 uppercase md:text-left">
+        <span className="text-center text-[10px] font-medium tracking-[0.3em] text-zinc-400 uppercase md:text-left">
           © {new Date().getFullYear()} Бадминтон клуб Гълъбово & Recovery Zone
           by ZM
         </span>
-        <span className="text-[10px] tracking-widest text-zinc-700 uppercase">
+        <span className="text-[10px] tracking-widest text-zinc-400 uppercase">
           Град Гълъбово
         </span>
       </motion.footer>

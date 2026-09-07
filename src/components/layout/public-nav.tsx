@@ -89,6 +89,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
           <GoogleTranslateWidget />
           {/* Mobile Menu Toggle */}
           <button
+            type="button"
             className="p-2 text-white md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Затвори менюто" : "Отвори менюто"}

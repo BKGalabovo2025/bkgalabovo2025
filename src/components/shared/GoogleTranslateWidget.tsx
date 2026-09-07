@@ -111,17 +111,23 @@ export function GoogleTranslateWidget() {
 
       {/* Beautiful custom button toggle */}
       <div
+        role="group"
+        aria-label="Избор на език / Language selection"
         className="notranslate flex rounded-full border border-white/10 bg-white/5 p-1 shadow-[0_0_15px_rgba(0,0,0,0.3)] backdrop-blur-md"
         suppressHydrationWarning
       >
         <button
+          type="button"
           onClick={() => switchLanguage("bg")}
+          aria-label="BG - Превключи на български език"
           className={`rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 ${currentLang === "bg" ? "bg-zinc-200 text-black shadow-md" : "text-zinc-400 hover:text-white"}`}
         >
           BG
         </button>
         <button
+          type="button"
           onClick={() => switchLanguage("en")}
+          aria-label="EN - Switch to English language"
           className={`rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 ${currentLang === "en" ? "bg-zinc-200 text-black shadow-md" : "text-zinc-400 hover:text-white"}`}
         >
           EN
