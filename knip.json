@@ -6,13 +6,8 @@
     "scripts/**/*.ts",
     "e2e/**/*.ts"
   ],
-  "ignore": [
-    "src/style.css",
-    "scripts/**/*.cjs",
-    "scripts/**/*.mjs",
-    "src/services/audit-service.ts"
-  ],
-  "ignoreDependencies": ["stylelint-config-tailwindcss"],
+  "ignore": ["scripts/**/*.cjs", "scripts/**/*.mjs"],
+  "ignoreDependencies": ["stylelint-config-tailwindcss", "@storybook/nextjs"],
   "ignoreExportsUsedInFile": true,
   "rules": {
     "exports": "off",
@@ -20,10 +15,6 @@
     "duplicates": "off"
   },
   "next": {
-    "entry": [
-      "src/app/api/**/*.ts",
-      "src/app/**/*.tsx",
-      "src/components/recovery/SessionsSection.tsx"
-    ]
+    "entry": ["src/app/api/**/*.ts", "src/app/**/*.tsx"]
   }
 }
