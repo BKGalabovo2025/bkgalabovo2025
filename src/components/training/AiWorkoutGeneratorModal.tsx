@@ -6,6 +6,7 @@ import {
   Clock,
   Download,
   HeartPulse,
+  Info,
   Save,
   ShieldCheck,
   Sparkles,
@@ -13,6 +14,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { ExerciseDetailModal } from "@/components/training/ExerciseDetailModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -42,7 +44,9 @@ import {
   WorkoutProgram,
   WorkoutTargetGoal,
 } from "@/services/ai-workout-context-service";
+import { findExerciseDetails } from "@/services/exercise-lookup-service";
 import { Member } from "@/types/member.types";
+import { Exercise } from "@/types/planner.types";
 
 interface AiWorkoutGeneratorModalProps {
   open: boolean;
@@ -163,7 +167,13 @@ function formatDayCalendarDate(dateStr?: string) {
   }
 }
 
-function WorkoutDayCard({ day }: { day: WorkoutDay }) {
+function WorkoutDayCard({
+  day,
+  onSelectExercise,
+}: {
+  day: WorkoutDay;
+  onSelectExercise?: (exercise: WorkoutDay["exercises"][number]) => void;
+}) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-2 rounded-xl border border-zinc-200/80 bg-zinc-50 p-3.5 sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
@@ -219,10 +229,15 @@ function WorkoutDayCard({ day }: { day: WorkoutDay }) {
             {day.exercises.map((ex, idx) => (
               <tr
                 key={ex.name + idx}
-                className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50"
+                onClick={() => onSelectExercise?.(ex)}
+                className="group cursor-pointer transition-colors hover:bg-blue-50/70 dark:hover:bg-blue-950/30"
+                title="Кликнете за пълно методическо описание от базата данни"
               >
                 <td className="p-2.5 font-semibold text-zinc-900 dark:text-zinc-100">
-                  {ex.name}
+                  <div className="flex items-center gap-1.5 transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                    <span>{ex.name}</span>
+                    <Info className="size-3 shrink-0 text-blue-500 opacity-60 group-hover:opacity-100" />
+                  </div>
                   {ex.targetWeakness && (
                     <span className="block text-[10px] font-normal text-blue-600 dark:text-blue-400">
                       Цел: {ex.targetWeakness}
@@ -352,6 +367,28 @@ export function AiWorkoutGeneratorModal({
   const [loadingStep, setLoadingStep] = useState<number>(0);
   const [program, setProgram] = useState<WorkoutProgram | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
+  const [selectedExerciseData, setSelectedExerciseData] = useState<{
+    exercise: Partial<Exercise> | null;
+    workoutContext?: {
+      sets?: number;
+      repsOrDuration?: string;
+      restSec?: number;
+      techniqueTip?: string;
+    };
+  } | null>(null);
+
+  const handleSelectExercise = async (ex: WorkoutDay["exercises"][number]) => {
+    const details = await findExerciseDetails(ex.name, ex.techniqueTip);
+    setSelectedExerciseData({
+      exercise: details,
+      workoutContext: {
+        sets: ex.sets,
+        repsOrDuration: ex.repsOrDuration,
+        restSec: ex.restSec,
+        techniqueTip: ex.techniqueTip,
+      },
+    });
+  };
 
   const calculatedEndDate = useMemo(() => {
     try {
@@ -657,7 +694,10 @@ export function AiWorkoutGeneratorModal({
 
             {currentProgram.schedule.map((day, idx) => (
               <TabsContent key={day.dayName + idx} value={`day-${idx}`}>
-                <WorkoutDayCard day={day} />
+                <WorkoutDayCard
+                  day={day}
+                  onSelectExercise={handleSelectExercise}
+                />
               </TabsContent>
             ))}
           </Tabs>
@@ -692,29 +732,42 @@ export function AiWorkoutGeneratorModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-3xl border-zinc-200 p-0 dark:border-zinc-800">
-        <div className="border-b border-zinc-100 bg-linear-to-r from-blue-50/50 via-white to-transparent p-6 dark:border-zinc-800 dark:from-blue-950/20 dark:via-zinc-950">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-blue-600 p-2.5 text-white shadow-md shadow-blue-500/20">
-                <Sparkles className="size-5" />
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-3xl border-zinc-200 p-0 dark:border-zinc-800">
+          <div className="border-b border-zinc-100 bg-linear-to-r from-blue-50/50 via-white to-transparent p-6 dark:border-zinc-800 dark:from-blue-950/20 dark:via-zinc-950">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-blue-600 p-2.5 text-white shadow-md shadow-blue-500/20">
+                  <Sparkles className="size-5" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+                    AI Генератор на Тренировки • Gemini Flash
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-zinc-500">
+                    Персонализиран микроцикъл за{" "}
+                    {member.name || `${member.firstName} ${member.lastName}`}
+                  </DialogDescription>
+                </div>
               </div>
-              <div>
-                <DialogTitle className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
-                  AI Генератор на Тренировки • Gemini Flash
-                </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
-                  Персонализиран микроцикъл за{" "}
-                  {member.name || `${member.firstName} ${member.lastName}`}
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-        </div>
+            </DialogHeader>
+          </div>
 
-        <div className="p-6">{renderModalBody()}</div>
-      </DialogContent>
-    </Dialog>
+          <div className="p-6">{renderModalBody()}</div>
+        </DialogContent>
+      </Dialog>
+
+      {selectedExerciseData && (
+        <ExerciseDetailModal
+          open={!!selectedExerciseData}
+          onOpenChange={(isOpen: boolean) => {
+            if (!isOpen) setSelectedExerciseData(null);
+          }}
+          exercise={selectedExerciseData.exercise}
+          workoutContext={selectedExerciseData.workoutContext}
+        />
+      )}
+    </>
   );
 }

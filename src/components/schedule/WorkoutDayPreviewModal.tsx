@@ -1,9 +1,10 @@
 /* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
-import { Clock, ShieldAlert, Sparkles, Trophy } from "lucide-react";
-import React from "react";
+import { Clock, Info, ShieldAlert, Sparkles, Trophy } from "lucide-react";
+import React, { useState } from "react";
 
+import { ExerciseDetailModal } from "@/components/training/ExerciseDetailModal";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -13,6 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ActiveWorkoutScheduleDay } from "@/lib/actions/trainings";
+import { findExerciseDetails } from "@/services/exercise-lookup-service";
+import { Exercise } from "@/types/planner.types";
 
 export interface WorkoutDayPreviewModalProps {
   open: boolean;
@@ -25,6 +28,16 @@ export function WorkoutDayPreviewModal({
   onClose,
   data,
 }: WorkoutDayPreviewModalProps) {
+  const [selectedExerciseData, setSelectedExerciseData] = useState<{
+    exercise: Partial<Exercise>;
+    workoutContext: {
+      sets?: number;
+      repsOrDuration?: string;
+      restSec?: number;
+      techniqueTip?: string;
+    };
+  } | null>(null);
+
   if (!data) return null;
   const { memberName, workout } = data;
   const isDeload = workout.safetyAudit?.fatigueDeloadActive;
@@ -124,10 +137,32 @@ export function WorkoutDayPreviewModal({
                   {workout.exercises.map((ex, i) => (
                     <tr
                       key={i}
-                      className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50"
+                      onClick={async () => {
+                        const details = await findExerciseDetails(
+                          ex.name,
+                          ex.techniqueTip
+                        );
+                        setSelectedExerciseData({
+                          exercise: details,
+                          workoutContext: {
+                            sets: ex.sets,
+                            repsOrDuration: ex.repsOrDuration,
+                            restSec: ex.restSec,
+                            techniqueTip: ex.techniqueTip,
+                          },
+                        });
+                      }}
+                      className="group cursor-pointer transition-colors hover:bg-purple-50/70 dark:hover:bg-purple-950/30"
+                      title="Кликнете за пълно методическо описание и насоки"
                     >
                       <td className="p-2.5 font-medium text-zinc-900 dark:text-zinc-100">
-                        <div>{ex.name}</div>
+                        <div className="flex items-center gap-1.5 transition-colors group-hover:text-purple-700 dark:group-hover:text-purple-300">
+                          <span>{ex.name}</span>
+                          <Info
+                            size={12}
+                            className="shrink-0 text-purple-400 opacity-60 transition-opacity group-hover:opacity-100"
+                          />
+                        </div>
                         {ex.techniqueTip && (
                           <div className="text-[10px] text-zinc-500 italic">
                             {ex.techniqueTip}
@@ -207,6 +242,13 @@ export function WorkoutDayPreviewModal({
           )}
         </div>
       </DialogContent>
+
+      <ExerciseDetailModal
+        open={!!selectedExerciseData}
+        onClose={() => setSelectedExerciseData(null)}
+        exercise={selectedExerciseData?.exercise || null}
+        workoutContext={selectedExerciseData?.workoutContext}
+      />
     </Dialog>
   );
 }

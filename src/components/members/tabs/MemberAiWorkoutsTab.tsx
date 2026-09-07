@@ -6,6 +6,7 @@ import {
   Download,
   Eye,
   HeartPulse,
+  Info,
   Plus,
   ShieldCheck,
   Sparkles,
@@ -14,6 +15,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { ExerciseDetailModal } from "@/components/training/ExerciseDetailModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +36,8 @@ import {
   WorkoutDay,
   WorkoutProgram,
 } from "@/services/ai-workout-context-service";
+import { findExerciseDetails } from "@/services/exercise-lookup-service";
+import { Exercise } from "@/types/planner.types";
 
 interface SavedWorkoutRecord extends WorkoutProgram {
   id: string;
@@ -99,7 +103,13 @@ function formatDayCalendarDate(dateStr?: string) {
   }
 }
 
-function DayDetailCard({ day }: { day: WorkoutDay }) {
+function DayDetailCard({
+  day,
+  onSelectExercise,
+}: {
+  day: WorkoutDay;
+  onSelectExercise?: (exercise: WorkoutDay["exercises"][number]) => void;
+}) {
   return (
     <div className="space-y-3">
       <div className="flex flex-col justify-between gap-2 rounded-xl border border-zinc-200/80 bg-zinc-50 p-3 sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
@@ -154,10 +164,15 @@ function DayDetailCard({ day }: { day: WorkoutDay }) {
             {day.exercises.map((ex, i) => (
               <tr
                 key={i}
-                className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50"
+                onClick={() => onSelectExercise?.(ex)}
+                className="group cursor-pointer transition-colors hover:bg-blue-50/70 dark:hover:bg-blue-950/30"
+                title="Кликнете за пълно методическо описание от базата данни"
               >
                 <td className="p-2.5 font-medium text-zinc-900 dark:text-zinc-100">
-                  <div>{ex.name}</div>
+                  <div className="flex items-center gap-1.5 transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                    <span>{ex.name}</span>
+                    <Info className="size-3 shrink-0 text-blue-500 opacity-60 group-hover:opacity-100" />
+                  </div>
                   {ex.techniqueTip && (
                     <div className="text-[10px] text-zinc-500 italic">
                       {ex.techniqueTip}
@@ -191,6 +206,28 @@ export function MemberAiWorkoutsTab({
   const [viewingProgram, setViewingProgram] =
     useState<SavedWorkoutRecord | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedExerciseData, setSelectedExerciseData] = useState<{
+    exercise: Partial<Exercise> | null;
+    workoutContext?: {
+      sets?: number;
+      repsOrDuration?: string;
+      restSec?: number;
+      techniqueTip?: string;
+    };
+  } | null>(null);
+
+  const handleSelectExercise = async (ex: WorkoutDay["exercises"][number]) => {
+    const details = await findExerciseDetails(ex.name, ex.techniqueTip);
+    setSelectedExerciseData({
+      exercise: details,
+      workoutContext: {
+        sets: ex.sets,
+        repsOrDuration: ex.repsOrDuration,
+        restSec: ex.restSec,
+        techniqueTip: ex.techniqueTip,
+      },
+    });
+  };
 
   const fetchPrograms = useCallback(async () => {
     try {
@@ -513,7 +550,10 @@ export function MemberAiWorkoutsTab({
 
                 {viewingProgram.schedule?.map((day, idx) => (
                   <TabsContent key={idx} value={String(idx)} className="mt-4">
-                    <DayDetailCard day={day} />
+                    <DayDetailCard
+                      day={day}
+                      onSelectExercise={handleSelectExercise}
+                    />
                   </TabsContent>
                 ))}
               </Tabs>
@@ -534,6 +574,17 @@ export function MemberAiWorkoutsTab({
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {selectedExerciseData && (
+        <ExerciseDetailModal
+          open={!!selectedExerciseData}
+          onOpenChange={(open: boolean) => {
+            if (!open) setSelectedExerciseData(null);
+          }}
+          exercise={selectedExerciseData.exercise}
+          workoutContext={selectedExerciseData.workoutContext}
+        />
       )}
     </div>
   );
