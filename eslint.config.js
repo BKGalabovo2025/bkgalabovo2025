@@ -39,6 +39,7 @@ export default tseslint.config(
     settings: {
       tailwindcss: {
         config: "tailwind.config.ts",
+        cssConfigPath: "src/app/globals.css",
         cssFiles: ["src/app/globals.css"],
         callees: ["cn", "cva", "clsx"],
         whitelist: [
