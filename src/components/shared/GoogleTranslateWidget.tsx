@@ -95,8 +95,6 @@ export function GoogleTranslateWidget() {
     window.location.reload();
   };
 
-  if (!isClient) return null;
-
   return (
     <div className="relative flex items-center">
       {/* Hidden google translate element */}
@@ -104,13 +102,18 @@ export function GoogleTranslateWidget() {
         id="google_translate_element"
         className="hidden size-0 overflow-hidden opacity-0"
       ></div>
-      <Script
-        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
-        strategy="lazyOnload"
-      />
+      {isClient && (
+        <Script
+          src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+          strategy="lazyOnload"
+        />
+      )}
 
       {/* Beautiful custom button toggle */}
-      <div className="notranslate flex rounded-full border border-white/10 bg-white/5 p-1 shadow-[0_0_15px_rgba(0,0,0,0.3)] backdrop-blur-md">
+      <div
+        className="notranslate flex rounded-full border border-white/10 bg-white/5 p-1 shadow-[0_0_15px_rgba(0,0,0,0.3)] backdrop-blur-md"
+        suppressHydrationWarning
+      >
         <button
           onClick={() => switchLanguage("bg")}
           className={`rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 ${currentLang === "bg" ? "bg-zinc-200 text-black shadow-md" : "text-zinc-400 hover:text-white"}`}
