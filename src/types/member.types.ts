@@ -58,6 +58,11 @@ export const MemberSchema = z.object({
     )
     .optional(),
 
+  // --- Biometric & Playing Style ---
+  dominantHand: z.enum(["left", "right"]).nullable().optional(),
+  heightCm: z.number().positive().nullable().optional(),
+  weightKg: z.number().positive().nullable().optional(),
+
   // --- ADDED: Emergency Contact ---
   emergencyContactName: z.string().nullable().optional(),
   emergencyContactPhone: z.string().nullable().optional(),
@@ -131,6 +136,16 @@ export const MemberSchema = z.object({
   memberType: z
     .enum(["regular", "guest", "recovery"])
     .catch("regular")
+    .optional(),
+  activeWorkoutProgram: z
+    .object({
+      programId: z.string(),
+      title: z.string(),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+      targetGoal: z.string().optional(),
+    })
+    .nullable()
     .optional(),
 });
 

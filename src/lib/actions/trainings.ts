@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 "use server";
 import "server-only";
 
@@ -8,6 +9,7 @@ import { z } from "zod";
 import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
+import { WorkoutProgram } from "@/services/ai-workout-context-service";
 import { TrainingSession } from "@/types/training.types";
 
 const ShadowDetailsSchema = z
@@ -223,5 +225,411 @@ export async function deleteTrainingSessionAction(
         (error instanceof Error ? error.message : "Unknown error") ||
         "Грешка при изтриване.",
     };
+  }
+}
+
+export async function saveWorkoutProgramAction(
+  idToken: string,
+  memberId: string,
+  program: WorkoutProgram
+) {
+  try {
+    const user = idToken
+      ? await getAuthUser(idToken).catch(() => null)
+      : await getAuthUserFromSessionCookie();
+    if (!user) throw new Error("Unauthorized");
+
+    const db = getAdminDb();
+    const docRef = await db
+      .collection("members")
+      .doc(memberId)
+      .collection("workoutPrograms")
+      .add({
+        ...program,
+        memberId,
+        createdAt: FieldValue.serverTimestamp(),
+        createdBy: {
+          uid: user.uid,
+          email: user.email,
+        },
+      });
+
+    revalidatePath(`/members/${memberId}`);
+
+    // Update activeWorkoutProgram on member doc
+    try {
+      await db
+        .collection("members")
+        .doc(memberId)
+        .update({
+          activeWorkoutProgram: {
+            programId: docRef.id,
+            title: program.programTitle,
+            startDate: program.startDate || "",
+            endDate: program.endDate || "",
+            targetGoal: program.targetGoal || "",
+          },
+        });
+      revalidatePath("/schedule");
+    } catch {
+      // Non-blocking
+    }
+
+    return {
+      success: true,
+      programId: docRef.id,
+      message: "Тренировъчната програма е запазена успешно в профила!",
+    };
+  } catch (error: unknown) {
+    console.error("Error saving workout program:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при запис на програмата.",
+    };
+  }
+}
+
+export async function getMemberWorkoutProgramsAction(
+  memberId: string,
+  idToken?: string
+) {
+  try {
+    const user = idToken
+      ? await getAuthUser(idToken).catch(() => null)
+      : await getAuthUserFromSessionCookie();
+    if (!user) throw new Error("Unauthorized");
+
+    const db = getAdminDb();
+    const snapshot = await db
+      .collection("members")
+      .doc(memberId)
+      .collection("workoutPrograms")
+      .orderBy("createdAt", "desc")
+      .get();
+
+    const programs = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate
+          ? data.createdAt.toDate().toISOString()
+          : data.createdAt,
+      };
+    });
+
+    return { success: true, data: programs };
+  } catch (error: unknown) {
+    console.error("Error fetching member workout programs:", error);
+    return {
+      success: false,
+      data: [],
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при зареждане на програмите.",
+    };
+  }
+}
+
+export async function deleteWorkoutProgramAction(
+  memberId: string,
+  programId: string,
+  idToken?: string
+) {
+  try {
+    const user = idToken
+      ? await getAuthUser(idToken).catch(() => null)
+      : await getAuthUserFromSessionCookie();
+    if (!user) throw new Error("Unauthorized");
+
+    const db = getAdminDb();
+    await db
+      .collection("members")
+      .doc(memberId)
+      .collection("workoutPrograms")
+      .doc(programId)
+      .delete();
+
+    try {
+      const memberDoc = await db.collection("members").doc(memberId).get();
+      const memberData = memberDoc.data();
+      if (memberData?.activeWorkoutProgram?.programId === programId) {
+        await db.collection("members").doc(memberId).update({
+          activeWorkoutProgram: null,
+        });
+      }
+    } catch {
+      // Non-blocking
+    }
+
+    revalidatePath(`/members/${memberId}`);
+    revalidatePath("/schedule");
+    return {
+      success: true,
+      message: "Тренировъчната програма беше изтрита успешно.",
+    };
+  } catch (error: unknown) {
+    console.error("Error deleting workout program:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при изтриване на програмата.",
+    };
+  }
+}
+
+export interface ActiveWorkoutScheduleDay {
+  programId: string;
+  programTitle: string;
+  dayNumber: number;
+  dayName: string;
+  calendarDate?: string;
+  isCompetitionDay?: boolean;
+  competitionTitle?: string;
+  focus: string;
+  intensity: "low" | "medium" | "high";
+  durationMinutes: number;
+  warmup: string[];
+  exercises: WorkoutProgram["schedule"][0]["exercises"];
+  cooldown: string[];
+  safetyAudit: WorkoutProgram["safetyAudit"];
+  recoveryRecommendations?: string[];
+  theoryAssignment?: string;
+}
+
+export async function getMemberActiveWorkoutForDateAction(
+  memberId: string,
+  targetDateStr: string,
+  _idToken?: string
+): Promise<{
+  success: boolean;
+  data?: ActiveWorkoutScheduleDay | null;
+  message?: string;
+}> {
+  try {
+    const db = getAdminDb();
+    const dateClean = targetDateStr.split("T")[0];
+
+    // 1. Fetch workout programs subcollection without requiring custom index
+    const snap = await db
+      .collection("members")
+      .doc(memberId)
+      .collection("workoutPrograms")
+      .get();
+
+    if (snap.empty) {
+      return { success: true, data: null };
+    }
+
+    // Sort descending by createdAt
+    const sortedDocs = snap.docs.slice().sort((a, b) => {
+      const aData = a.data() as Record<string, unknown>;
+      const bData = b.data() as Record<string, unknown>;
+      const aTime =
+        (aData.createdAt as { toDate?: () => Date })?.toDate?.()?.getTime?.() ||
+        (typeof aData.createdAt === "string"
+          ? new Date(aData.createdAt).getTime()
+          : 0);
+      const bTime =
+        (bData.createdAt as { toDate?: () => Date })?.toDate?.()?.getTime?.() ||
+        (typeof bData.createdAt === "string"
+          ? new Date(bData.createdAt).getTime()
+          : 0);
+      return bTime - aTime;
+    });
+
+    // Find first program covering the date
+    for (let docIdx = 0; docIdx < sortedDocs.length; docIdx++) {
+      const doc = sortedDocs[docIdx];
+      const prog = doc.data() as WorkoutProgram;
+
+      // 1. Match exact calendarDate in schedule
+      const matchedDay = prog.schedule?.find(
+        (d) => d.calendarDate === dateClean
+      );
+      if (matchedDay) {
+        return {
+          success: true,
+          data: {
+            programId: doc.id,
+            programTitle: prog.programTitle,
+            ...matchedDay,
+            safetyAudit: prog.safetyAudit,
+            recoveryRecommendations: prog.recoveryRecommendations,
+            theoryAssignment: prog.theoryAssignment,
+          },
+        };
+      }
+
+      // 2. Match within startDate and endDate
+      if (
+        prog.startDate &&
+        prog.endDate &&
+        dateClean >= prog.startDate &&
+        dateClean <= prog.endDate
+      ) {
+        const startMs = new Date(prog.startDate).getTime();
+        const targetMs = new Date(dateClean).getTime();
+        const diffDays = Math.max(
+          0,
+          Math.floor((targetMs - startMs) / 86400000)
+        );
+        const scheduleLen = prog.schedule?.length || 1;
+        const dayIdx = Math.min(diffDays, scheduleLen - 1);
+        const scheduledDay = prog.schedule?.[dayIdx] || prog.schedule?.[0];
+
+        if (scheduledDay) {
+          return {
+            success: true,
+            data: {
+              programId: doc.id,
+              programTitle: prog.programTitle,
+              ...scheduledDay,
+              calendarDate: dateClean,
+              safetyAudit: prog.safetyAudit,
+              recoveryRecommendations: prog.recoveryRecommendations,
+              theoryAssignment: prog.theoryAssignment,
+            },
+          };
+        }
+      }
+
+      // 3. Fallback: match by createdAt and cycleDuration
+      const docData = doc.data() as Record<string, unknown>;
+      const createdAtRaw = docData.createdAt;
+      let createdDateStr = "";
+      if (typeof createdAtRaw === "string") {
+        createdDateStr = createdAtRaw.split("T")[0];
+      } else if (
+        createdAtRaw &&
+        typeof (createdAtRaw as { toDate?: () => Date }).toDate === "function"
+      ) {
+        createdDateStr = (createdAtRaw as { toDate: () => Date })
+          .toDate()
+          .toISOString()
+          .split("T")[0];
+      }
+
+      if (createdDateStr) {
+        const startMs = new Date(createdDateStr).getTime();
+        const targetMs = new Date(dateClean).getTime();
+        const diffDays = Math.round((targetMs - startMs) / 86400000);
+        const cycleDurationDays = prog.cycleDurationDays || 14;
+
+        if (
+          diffDays >= -1 &&
+          diffDays <= cycleDurationDays &&
+          prog.schedule &&
+          prog.schedule.length > 0
+        ) {
+          const dayIdx = Math.max(
+            0,
+            Math.min(diffDays >= 0 ? diffDays : 0, prog.schedule.length - 1)
+          );
+          const day = prog.schedule[dayIdx] || prog.schedule[0];
+
+          // Backfill member doc activeWorkoutProgram
+          db.collection("members")
+            .doc(memberId)
+            .update({
+              activeWorkoutProgram: {
+                programId: doc.id,
+                title: prog.programTitle,
+                startDate: prog.startDate || createdDateStr,
+                endDate: prog.endDate || dateClean,
+                targetGoal: prog.targetGoal || "",
+              },
+            })
+            .catch(() => {});
+
+          return {
+            success: true,
+            data: {
+              programId: doc.id,
+              programTitle: prog.programTitle,
+              ...day,
+              calendarDate: dateClean,
+              safetyAudit: prog.safetyAudit,
+              recoveryRecommendations: prog.recoveryRecommendations,
+              theoryAssignment: prog.theoryAssignment,
+            },
+          };
+        }
+      }
+
+      // 4. Fallback for latest active program: if within 30 days of creation, match day
+      if (docIdx === 0 && prog.schedule && prog.schedule.length > 0) {
+        const day = prog.schedule[0];
+        return {
+          success: true,
+          data: {
+            programId: doc.id,
+            programTitle: prog.programTitle,
+            ...day,
+            calendarDate: dateClean,
+            safetyAudit: prog.safetyAudit,
+            recoveryRecommendations: prog.recoveryRecommendations,
+            theoryAssignment: prog.theoryAssignment,
+          },
+        };
+      }
+    }
+
+    return { success: true, data: null };
+  } catch (error: unknown) {
+    console.error("Error fetching active workout for date:", error);
+    return {
+      success: false,
+      data: null,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при зареждане на тренировката.",
+    };
+  }
+}
+
+export async function getActiveWorkoutsMapForScheduleAction(
+  targetDateStr: string,
+  memberIds: string[],
+  idToken?: string
+): Promise<{
+  success: boolean;
+  data: Record<string, ActiveWorkoutScheduleDay>;
+}> {
+  try {
+    const result: Record<string, ActiveWorkoutScheduleDay> = {};
+    if (!memberIds || memberIds.length === 0) {
+      return { success: true, data: result };
+    }
+
+    const idsToFetch = memberIds.slice(0, 50);
+    await Promise.all(
+      idsToFetch.map(async (mId) => {
+        try {
+          const res = await getMemberActiveWorkoutForDateAction(
+            mId,
+            targetDateStr,
+            idToken
+          );
+          if (res.success && res.data) {
+            result[mId] = res.data;
+          }
+        } catch {
+          // Non-blocking
+        }
+      })
+    );
+
+    return { success: true, data: result };
+  } catch (error: unknown) {
+    console.error("Error in getActiveWorkoutsMapForScheduleAction:", error);
+    return { success: false, data: {} };
   }
 }

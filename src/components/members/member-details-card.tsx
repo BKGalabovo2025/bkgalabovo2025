@@ -1,10 +1,12 @@
 "use client";
 
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Sparkles } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 
+import { AiWorkoutGeneratorModal } from "@/components/training/AiWorkoutGeneratorModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,14 +78,22 @@ const MemberTrainingVolumeTab = dynamic(
   }
 );
 const MemberTheoryTab = dynamic(
-  () =>
-    import("./tabs/MemberTheoryTab").then(
-      (mod) => mod.MemberTheoryTab
-    ),
+  () => import("./tabs/MemberTheoryTab").then((mod) => mod.MemberTheoryTab),
   {
     loading: () => (
       <div className="animate-pulse p-8 text-center text-slate-400">
         Зареждане на тестове...
+      </div>
+    ),
+  }
+);
+const MemberAiWorkoutsTab = dynamic(
+  () =>
+    import("./tabs/MemberAiWorkoutsTab").then((mod) => mod.MemberAiWorkoutsTab),
+  {
+    loading: () => (
+      <div className="animate-pulse p-8 text-center text-slate-400">
+        Зареждане на AI програми...
       </div>
     ),
   }
@@ -131,6 +141,7 @@ export const MemberDetailsCard = ({
 }: MemberDetailsCardProps) => {
   const router = useRouter();
   const { idToken } = useAuth();
+  const [isAiWorkoutModalOpen, setIsAiWorkoutModalOpen] = useState(false);
 
   const fullName = formatFullName(member);
   const ageGroup = member.dateOfBirth ? getAgeGroup(member.dateOfBirth) : null;
@@ -228,12 +239,22 @@ export const MemberDetailsCard = ({
         >
           <ArrowLeft className="mr-3 size-4" strokeWidth={1.5} /> Всички
         </Button>
-        <Button
-          onClick={() => router.push(`/members/${member.id}/edit`)}
-          className="h-10 w-full rounded-xl bg-zinc-950 px-8 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 sm:h-12 sm:w-auto sm:text-[11px]"
-        >
-          <Pencil className="mr-3 size-4" strokeWidth={1.5} /> Редактирай
-        </Button>
+        <div className="flex w-full items-center gap-2.5 sm:w-auto">
+          <Button
+            onClick={() => setIsAiWorkoutModalOpen(true)}
+            variant="outline"
+            className="h-10 w-full rounded-xl border-blue-200 bg-blue-50/60 px-5 text-[10px] font-semibold tracking-widest text-blue-700 uppercase shadow-none transition-all hover:bg-blue-100 sm:h-12 sm:w-auto sm:text-[11px] dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+          >
+            <Sparkles className="mr-2 size-4 text-blue-600 dark:text-blue-400" />{" "}
+            AI Тренировка
+          </Button>
+          <Button
+            onClick={() => router.push(`/members/${member.id}/edit`)}
+            className="h-10 w-full rounded-xl bg-zinc-950 px-8 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 sm:h-12 sm:w-auto sm:text-[11px]"
+          >
+            <Pencil className="mr-3 size-4" strokeWidth={1.5} /> Редактирай
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
@@ -374,6 +395,13 @@ export const MemberDetailsCard = ({
             >
               Теория
             </TabsTrigger>
+            <TabsTrigger
+              value="ai-workouts"
+              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-blue-600 uppercase transition-all data-[state=active]:border data-[state=active]:border-blue-100 data-[state=active]:bg-blue-50/70 data-[state=active]:text-blue-900 data-[state=active]:shadow-sm dark:text-blue-400 dark:data-[state=active]:bg-blue-950/40 dark:data-[state=active]:text-blue-200"
+            >
+              <Sparkles className="mr-1.5 size-3 text-blue-500" />
+              AI Програми
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -423,7 +451,20 @@ export const MemberDetailsCard = ({
         <TabsContent value="theory" className="focus-visible:outline-none">
           <MemberTheoryTab memberId={member.id} />
         </TabsContent>
+
+        <TabsContent value="ai-workouts" className="focus-visible:outline-none">
+          <MemberAiWorkoutsTab
+            memberId={member.id}
+            onOpenGenerator={() => setIsAiWorkoutModalOpen(true)}
+          />
+        </TabsContent>
       </Tabs>
+
+      <AiWorkoutGeneratorModal
+        open={isAiWorkoutModalOpen}
+        onOpenChange={setIsAiWorkoutModalOpen}
+        member={member}
+      />
     </div>
   );
 };

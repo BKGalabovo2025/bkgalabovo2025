@@ -2,9 +2,11 @@
 
 "use client";
 
-import { Check, Loader2, Search } from "lucide-react";
+import { Check, Loader2, Search, Sparkles } from "lucide-react";
 import React, { useEffect, useId, useMemo, useState } from "react";
 
+import { WorkoutDayPreviewModal } from "@/components/schedule/WorkoutDayPreviewModal";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,6 +18,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  ActiveWorkoutScheduleDay,
+  getActiveWorkoutsMapForScheduleAction,
+} from "@/lib/actions/trainings";
 import { formatFullName } from "@/lib/utils";
 import { Attendee, Member, ScheduleEvent } from "@/types";
 
@@ -37,6 +43,13 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attendeeIds, setAttendeeIds] = useState<Set<string>>(new Set());
+  const [activeWorkouts, setActiveWorkouts] = useState<
+    Record<string, ActiveWorkoutScheduleDay>
+  >({});
+  const [selectedWorkoutPreview, setSelectedWorkoutPreview] = useState<{
+    memberName: string;
+    workout: ActiveWorkoutScheduleDay;
+  } | null>(null);
 
   useEffect(() => {
     if (event && isOpen) {
@@ -45,8 +58,23 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
       );
 
       setAttendeeIds(presentIds);
+
+      // Fetch active AI workouts for this event's date
+      if (event.startDate) {
+        const dateClean = event.startDate.split("T")[0];
+        const memberIds = members.map((m) => m.id);
+        getActiveWorkoutsMapForScheduleAction(dateClean, memberIds).then(
+          (res) => {
+            if (res.success && res.data) {
+              setActiveWorkouts(res.data);
+            }
+          }
+        );
+      }
+    } else {
+      setActiveWorkouts({});
     }
-  }, [event, isOpen]);
+  }, [event, isOpen, members]);
 
   const handleToggleMember = (member: Member) => {
     const regDate = member.registrationDate
@@ -135,178 +163,224 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
   const descriptionId = useId();
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <DialogContent
-        key={event?.id}
-        className="flex h-[80vh] max-h-200 w-[95vw] flex-col overflow-hidden rounded-2xl border-none bg-white p-0 shadow-xl sm:max-w-lg dark:bg-zinc-950"
-        aria-describedby={descriptionId}
+    <>
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }}
       >
-        <div className="shrink-0 border-b border-zinc-100 p-4 pb-0 sm:p-6 dark:border-zinc-900">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-zinc-900 sm:text-xl dark:text-white">
-              Присъстващи
-            </DialogTitle>
-            <DialogDescription
-              id={descriptionId}
-              className="mt-1 line-clamp-1 text-xs text-zinc-500"
-            >
-              {event?.title || "Събитие"}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent
+          key={event?.id}
+          className="flex h-[80vh] max-h-200 w-[95vw] flex-col overflow-hidden rounded-2xl border-none bg-white p-0 shadow-xl sm:max-w-lg dark:bg-zinc-950"
+          aria-describedby={descriptionId}
+        >
+          <div className="shrink-0 border-b border-zinc-100 p-4 pb-0 sm:p-6 dark:border-zinc-900">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold text-zinc-900 sm:text-xl dark:text-white">
+                Присъстващи
+              </DialogTitle>
+              <DialogDescription
+                id={descriptionId}
+                className="mt-1 line-clamp-1 text-xs text-zinc-500"
+              >
+                {event?.title || "Събитие"}
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="py-4">
-            <div className="relative">
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
-              <Input
-                placeholder="Търсене..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-10 rounded-lg border-zinc-200 bg-zinc-50 pl-10 text-sm transition-all focus:bg-white"
-              />
-            </div>
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1">
-          <div className="space-y-1 p-2 sm:p-4">
-            {sortedMembers.length > 0 ? (
-              sortedMembers.map((member) => {
-                const isPresent = attendeeIds.has(member.id);
-
-                // Проверяваме дали събитието е преди датата на регистрация на члена
-                const regDate = member.registrationDate
-                  ? new Date(member.registrationDate)
-                  : null;
-                const eventDate = event?.startDate
-                  ? new Date(event.startDate)
-                  : null;
-
-                if (regDate) regDate.setHours(0, 0, 0, 0);
-                if (eventDate) eventDate.setHours(0, 0, 0, 0);
-
-                const isBeforeRegistration =
-                  regDate && eventDate && eventDate < regDate;
-
-                return (
-                  <div
-                    key={member.id}
-                    onClick={() => {
-                      if (!isBeforeRegistration) {
-                        handleToggleMember(member);
-                      }
-                    }}
-                    className={`group flex items-center justify-between rounded-lg px-3 py-2.5 transition-all ${
-                      isBeforeRegistration
-                        ? "cursor-not-allowed bg-zinc-50/50 text-zinc-400 opacity-40 dark:bg-zinc-900/10 dark:text-zinc-600"
-                        : isPresent
-                          ? "cursor-pointer bg-primary/10 text-primary"
-                          : "cursor-pointer text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900/50"
-                    }`}
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div
-                        className={`flex size-5 shrink-0 items-center justify-center rounded border transition-all ${
-                          isBeforeRegistration
-                            ? "border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900"
-                            : isPresent
-                              ? "border-primary bg-primary text-white"
-                              : "border-zinc-300 bg-white dark:border-zinc-800 dark:bg-zinc-900"
-                        }`}
-                      >
-                        {isPresent && !isBeforeRegistration && (
-                          <Check className="size-3 stroke-3" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 truncate">
-                        <span className="truncate text-sm font-medium">
-                          {formatFullName(member)}
-                        </span>
-                        {member.status === "inactive" && (
-                          <span className="shrink-0 rounded-full border border-rose-500/10 bg-rose-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-rose-600 uppercase dark:bg-rose-950/20 dark:text-rose-400">
-                            Неактивен
-                          </span>
-                        )}
-                        {member.isClubMember && (
-                          <span className="shrink-0 rounded-full border border-blue-500/10 bg-blue-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-blue-600 uppercase dark:bg-blue-950/20 dark:text-blue-400">
-                            Клубен
-                          </span>
-                        )}
-                        {member.isRecoveryMember && (
-                          <span className="shrink-0 rounded-full border border-emerald-500/10 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-emerald-600 uppercase dark:bg-emerald-950/20 dark:text-emerald-400">
-                            Зона
-                          </span>
-                        )}
-                        {member.isGuest && (
-                          <span className="shrink-0 rounded-full border border-amber-500/10 bg-amber-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-amber-600 uppercase dark:bg-amber-950/20 dark:text-amber-400">
-                            Външен
-                          </span>
-                        )}
-                        {member.isCoach && (
-                          <span className="shrink-0 rounded-full border border-orange-500/10 bg-orange-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-orange-600 uppercase dark:bg-orange-950/20 dark:text-orange-400">
-                            Треньор
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {isBeforeRegistration ? (
-                      <span className="shrink-0 rounded-full border border-rose-500/10 bg-rose-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-rose-600 uppercase dark:bg-rose-950/20 dark:text-rose-400">
-                        преди рег. ({regDate.toLocaleDateString("bg-BG")})
-                      </span>
-                    ) : isPresent ? (
-                      <span className="rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-primary uppercase">
-                        Тук
-                      </span>
-                    ) : null}
-                  </div>
-                );
-              })
-            ) : (
-              <div className="py-12 text-center">
-                <p className="text-xs text-zinc-400">Няма намерени членове</p>
+            <div className="py-4">
+              <div className="relative">
+                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+                <Input
+                  placeholder="Търсене..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-10 rounded-lg border-zinc-200 bg-zinc-50 pl-10 text-sm transition-all focus:bg-white"
+                />
               </div>
-            )}
+            </div>
           </div>
-        </ScrollArea>
 
-        <DialogFooter className="shrink-0 border-t border-zinc-100 bg-zinc-50/50 p-4 sm:p-6 dark:border-zinc-900">
-          <div className="flex w-full items-center justify-between">
-            <div className="text-xs font-medium text-zinc-500">
-              <span className="text-zinc-900 dark:text-white">
-                {attendeeIds.size}
-              </span>{" "}
-              присъстващи
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
+          {Object.keys(activeWorkouts).length > 0 && (
+            <div className="mx-4 mb-2 flex items-center justify-between rounded-xl border border-purple-200/80 bg-purple-50/70 px-3.5 py-2 text-xs text-purple-950 dark:border-purple-900/50 dark:bg-purple-950/30 dark:text-purple-200">
+              <div className="flex items-center gap-2">
+                <Sparkles className="size-4 shrink-0 text-purple-600 dark:text-purple-400" />
+                <span>
+                  <strong>Активни AI Програми:</strong>{" "}
+                  {Object.keys(activeWorkouts).length}{" "}
+                  {Object.keys(activeWorkouts).length === 1
+                    ? "състезател има"
+                    : "състезатели имат"}{" "}
+                  тренировъчен план за тази дата.
+                </span>
+              </div>
+              <Badge
                 variant="outline"
-                size="sm"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="h-9 rounded-lg px-4 text-xs font-medium"
+                className="border-purple-300 bg-white/50 text-[10px] text-purple-700 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
               >
-                Отказ
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="h-9 rounded-lg bg-zinc-900 px-6 text-xs font-medium text-white hover:bg-zinc-800"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  "Запази"
-                )}
-              </Button>
+                Следвай плана
+              </Badge>
             </div>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          )}
+
+          <ScrollArea className="flex-1">
+            <div className="space-y-1 p-2 sm:p-4">
+              {sortedMembers.length > 0 ? (
+                sortedMembers.map((member) => {
+                  const isPresent = attendeeIds.has(member.id);
+
+                  // Проверяваме дали събитието е преди датата на регистрация на члена
+                  const regDate = member.registrationDate
+                    ? new Date(member.registrationDate)
+                    : null;
+                  const eventDate = event?.startDate
+                    ? new Date(event.startDate)
+                    : null;
+
+                  if (regDate) regDate.setHours(0, 0, 0, 0);
+                  if (eventDate) eventDate.setHours(0, 0, 0, 0);
+
+                  const isBeforeRegistration =
+                    regDate && eventDate && eventDate < regDate;
+
+                  return (
+                    <div
+                      key={member.id}
+                      onClick={() => {
+                        if (!isBeforeRegistration) {
+                          handleToggleMember(member);
+                        }
+                      }}
+                      className={`group flex items-center justify-between rounded-lg px-3 py-2.5 transition-all ${
+                        isBeforeRegistration
+                          ? "cursor-not-allowed bg-zinc-50/50 text-zinc-400 opacity-40 dark:bg-zinc-900/10 dark:text-zinc-600"
+                          : isPresent
+                            ? "cursor-pointer bg-primary/10 text-primary"
+                            : "cursor-pointer text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900/50"
+                      }`}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div
+                          className={`flex size-5 shrink-0 items-center justify-center rounded border transition-all ${
+                            isBeforeRegistration
+                              ? "border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900"
+                              : isPresent
+                                ? "border-primary bg-primary text-white"
+                                : "border-zinc-300 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+                          }`}
+                        >
+                          {isPresent && !isBeforeRegistration && (
+                            <Check className="size-3 stroke-3" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="truncate text-sm font-medium">
+                            {formatFullName(member)}
+                          </span>
+                          {member.status === "inactive" && (
+                            <span className="shrink-0 rounded-full border border-rose-500/10 bg-rose-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-rose-600 uppercase dark:bg-rose-950/20 dark:text-rose-400">
+                              Неактивен
+                            </span>
+                          )}
+                          {member.isClubMember && (
+                            <span className="shrink-0 rounded-full border border-blue-500/10 bg-blue-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-blue-600 uppercase dark:bg-blue-950/20 dark:text-blue-400">
+                              Клубен
+                            </span>
+                          )}
+                          {member.isRecoveryMember && (
+                            <span className="shrink-0 rounded-full border border-emerald-500/10 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-emerald-600 uppercase dark:bg-emerald-950/20 dark:text-emerald-400">
+                              Зона
+                            </span>
+                          )}
+                          {member.isGuest && (
+                            <span className="shrink-0 rounded-full border border-amber-500/10 bg-amber-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-amber-600 uppercase dark:bg-amber-950/20 dark:text-amber-400">
+                              Външен
+                            </span>
+                          )}
+                          {member.isCoach && (
+                            <span className="shrink-0 rounded-full border border-orange-500/10 bg-orange-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-orange-600 uppercase dark:bg-orange-950/20 dark:text-orange-400">
+                              Треньор
+                            </span>
+                          )}
+                          {activeWorkouts[member.id] && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedWorkoutPreview({
+                                  memberName: formatFullName(member),
+                                  workout: activeWorkouts[member.id],
+                                });
+                              }}
+                              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-purple-500/30 bg-purple-100/90 px-2 py-0.5 text-[9px] font-bold tracking-wide text-purple-700 uppercase transition-all hover:scale-105 hover:bg-purple-200 dark:border-purple-800 dark:bg-purple-950/70 dark:text-purple-300 dark:hover:bg-purple-900/50"
+                              title="Преглед на предписаната AI програма"
+                            >
+                              <Sparkles className="size-2.5 text-purple-600 dark:text-purple-400" />
+                              <span>AI Програма</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {isBeforeRegistration ? (
+                        <span className="shrink-0 rounded-full border border-rose-500/10 bg-rose-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-rose-600 uppercase dark:bg-rose-950/20 dark:text-rose-400">
+                          преди рег. ({regDate.toLocaleDateString("bg-BG")})
+                        </span>
+                      ) : isPresent ? (
+                        <span className="rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-primary uppercase">
+                          Тук
+                        </span>
+                      ) : null}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="py-12 text-center">
+                  <p className="text-xs text-zinc-400">Няма намерени членове</p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <DialogFooter className="shrink-0 border-t border-zinc-100 bg-zinc-50/50 p-4 sm:p-6 dark:border-zinc-900">
+            <div className="flex w-full items-center justify-between">
+              <div className="text-xs font-medium text-zinc-500">
+                <span className="text-zinc-900 dark:text-white">
+                  {attendeeIds.size}
+                </span>{" "}
+                присъстващи
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                  className="h-9 rounded-lg px-4 text-xs font-medium"
+                >
+                  Отказ
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="h-9 rounded-lg bg-zinc-900 px-6 text-xs font-medium text-white hover:bg-zinc-800"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    "Запази"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <WorkoutDayPreviewModal
+        open={!!selectedWorkoutPreview}
+        onClose={() => setSelectedWorkoutPreview(null)}
+        data={selectedWorkoutPreview}
+      />
+    </>
   );
 };

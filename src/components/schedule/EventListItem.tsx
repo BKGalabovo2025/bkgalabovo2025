@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import {
@@ -7,12 +8,14 @@ import {
   Edit,
   Printer,
   RotateCcw,
+  Sparkles,
   Tag,
   Trash2,
   Users,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
+import { WorkoutDayPreviewModal } from "@/components/schedule/WorkoutDayPreviewModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +24,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  ActiveWorkoutScheduleDay,
+  getActiveWorkoutsMapForScheduleAction,
+} from "@/lib/actions/trainings";
 import { formatEventDateRange } from "@/lib/date-utils";
 import { formatFullName, getInitials } from "@/lib/utils";
 import { Attendee, Member, ScheduleEvent, ScheduleEventType } from "@/types";
@@ -98,6 +105,80 @@ export const EventListItem = React.memo<EventListItemProps>(
       };
     }, [event.attendees, members, membersMap]);
 
+    const [activeWorkouts, setActiveWorkouts] = useState<
+      Record<string, ActiveWorkoutScheduleDay>
+    >({});
+    const [selectedPreviewWorkout, setSelectedPreviewWorkout] = useState<{
+      memberName: string;
+      workout: ActiveWorkoutScheduleDay;
+    } | null>(null);
+
+    useEffect(() => {
+      const memberIds = Array.from(
+        new Set([
+          ...attendeesData.list.map((m) => m.id),
+          ...(event.attendees || []).map((a) => a.memberId),
+        ])
+      );
+      if (memberIds.length === 0) return;
+
+      let isMounted = true;
+      const d = new Date(event.startDate);
+      const targetDateStr = !isNaN(d.getTime())
+        ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+        : String(event.startDate).split("T")[0];
+
+      getActiveWorkoutsMapForScheduleAction(targetDateStr, memberIds).then(
+        (res) => {
+          if (isMounted && res.success && res.data) {
+            setActiveWorkouts(res.data);
+          }
+        }
+      );
+
+      return () => {
+        isMounted = false;
+      };
+    }, [event.id, event.startDate, attendeesData.list, event.attendees]);
+
+    const activeAttendeesWorkouts = useMemo(() => {
+      const attendedWithWorkout = attendeesData.list
+        .map((m) => {
+          const workout = activeWorkouts[m.id];
+          if (!workout) return null;
+          return { member: m, workout };
+        })
+        .filter(Boolean) as {
+        member: Member;
+        workout: ActiveWorkoutScheduleDay;
+      }[];
+
+      if (attendedWithWorkout.length > 0) return attendedWithWorkout;
+
+      const allEventAttendeesWithWorkout = (event.attendees || [])
+        .map((a) => {
+          const workout = activeWorkouts[a.memberId];
+          if (!workout) return null;
+          const member = membersMap
+            ? membersMap[a.memberId]
+            : members.find((m) => m.id === a.memberId);
+          if (!member) return null;
+          return { member, workout };
+        })
+        .filter(Boolean) as {
+        member: Member;
+        workout: ActiveWorkoutScheduleDay;
+      }[];
+
+      return allEventAttendeesWithWorkout;
+    }, [
+      attendeesData.list,
+      activeWorkouts,
+      event.attendees,
+      members,
+      membersMap,
+    ]);
+
     const MAX_VISIBLE_AVATARS = 6;
     const visibleAttendees = attendeesData.list.slice(0, MAX_VISIBLE_AVATARS);
     const hiddenAttendeesCount =
@@ -146,6 +227,32 @@ export const EventListItem = React.memo<EventListItemProps>(
                     </span>
                   </div>
                 )}
+                {(activeAttendeesWorkouts.length > 0 ||
+                  attendeesData.list.some((m) => !!m.activeWorkoutProgram)) && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (activeAttendeesWorkouts.length > 0) {
+                        setSelectedPreviewWorkout({
+                          memberName: formatFullName(
+                            activeAttendeesWorkouts[0].member
+                          ),
+                          workout: activeAttendeesWorkouts[0].workout,
+                        });
+                      }
+                    }}
+                    className="flex cursor-pointer items-center gap-1.5 rounded-full border border-purple-200 bg-purple-100/90 px-3 py-1 text-purple-800 shadow-xs transition-colors hover:bg-purple-200 dark:border-purple-800/60 dark:bg-purple-950/60 dark:text-purple-200"
+                  >
+                    <Sparkles
+                      size={12}
+                      className="animate-pulse text-purple-600 dark:text-purple-400"
+                    />
+                    <span className="text-[10px] font-bold tracking-widest uppercase">
+                      ✨ AI Програма ({activeAttendeesWorkouts.length || 1})
+                    </span>
+                  </button>
+                )}
                 {formattedDates.isCurrent && (
                   <div className="flex items-center gap-2 rounded-full bg-zinc-950 px-3 py-1 dark:bg-white">
                     <span className="relative flex size-2">
@@ -187,6 +294,70 @@ export const EventListItem = React.memo<EventListItemProps>(
                   <span>{event.location}</span>
                 </div>
               </div>
+
+              {activeAttendeesWorkouts.length > 0 && !event.isCancelled && (
+                <div className="mt-2 rounded-2xl border border-purple-200/90 bg-gradient-to-r from-purple-50 via-indigo-50/40 to-purple-50/30 p-3.5 shadow-xs dark:border-purple-900/50 dark:from-purple-950/40 dark:via-zinc-900 dark:to-purple-950/20">
+                  <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="relative flex size-2">
+                          <span className="absolute inline-flex size-full animate-ping rounded-full bg-purple-400 opacity-75"></span>
+                          <span className="relative inline-flex size-2 rounded-full bg-purple-600"></span>
+                        </span>
+                        <span className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-purple-900 uppercase dark:text-purple-200">
+                          <Sparkles
+                            size={13}
+                            className="text-purple-600 dark:text-purple-400"
+                          />
+                          Индивидуален AI Тренировъчен План за днес:
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        {activeAttendeesWorkouts.map(({ member, workout }) => (
+                          <div
+                            key={member.id}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-purple-200/70 bg-white/90 px-2.5 py-1 shadow-2xs dark:border-purple-900/40 dark:bg-zinc-900"
+                          >
+                            <span className="font-semibold text-purple-950 dark:text-purple-100">
+                              {formatFullName(member)}:
+                            </span>
+                            <span className="text-zinc-600 dark:text-zinc-400">
+                              {workout.focus || workout.dayName}
+                            </span>
+                            <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+                              {workout.intensity === "high"
+                                ? "🔥 Висока"
+                                : workout.intensity === "medium"
+                                  ? "⚡ Умерена"
+                                  : "🌿 Лека"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPreviewWorkout({
+                          memberName: formatFullName(
+                            activeAttendeesWorkouts[0].member
+                          ),
+                          workout: activeAttendeesWorkouts[0].workout,
+                        });
+                      }}
+                      className="shrink-0 cursor-pointer rounded-xl border-purple-300 bg-white text-xs font-semibold text-purple-800 shadow-xs hover:bg-purple-100 hover:text-purple-900 dark:border-purple-700 dark:bg-purple-950/60 dark:text-purple-200"
+                    >
+                      <Sparkles
+                        size={13}
+                        className="mr-1.5 text-purple-600 dark:text-purple-400"
+                      />
+                      Виж предписания AI план
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -364,24 +535,61 @@ export const EventListItem = React.memo<EventListItemProps>(
             <div className="flex items-center">
               <TooltipProvider delayDuration={100}>
                 <div className="flex -space-x-3">
-                  {visibleAttendees.map((member) => (
-                    <Tooltip key={member.id}>
-                      <TooltipTrigger asChild>
-                        <Avatar className="size-10 border-2 border-white shadow-none transition-transform hover:z-10 hover:scale-110 dark:border-zinc-950">
-                          <AvatarImage
-                            src={member.avatarUrl ?? undefined}
-                            alt={formatFullName(member)}
-                          />
-                          <AvatarFallback className="bg-zinc-100 text-xs font-medium text-zinc-400 dark:bg-zinc-800">
-                            {getInitials(formatFullName(member))}
-                          </AvatarFallback>
-                        </Avatar>
-                      </TooltipTrigger>
-                      <TooltipContent className="rounded-lg border-zinc-100 text-[10px] font-medium tracking-widest uppercase dark:border-zinc-800">
-                        <p>{formatFullName(member)}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
+                  {visibleAttendees.map((member) => {
+                    const memberWorkout = activeWorkouts[member.id];
+                    const hasActiveWorkout = !!memberWorkout;
+
+                    return (
+                      <Tooltip key={member.id}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="relative cursor-pointer"
+                            onClick={(e) => {
+                              if (hasActiveWorkout) {
+                                e.stopPropagation();
+                                setSelectedPreviewWorkout({
+                                  memberName: formatFullName(member),
+                                  workout: memberWorkout,
+                                });
+                              }
+                            }}
+                          >
+                            <Avatar
+                              className={`size-10 border-2 transition-transform hover:z-10 hover:scale-110 ${
+                                hasActiveWorkout
+                                  ? "border-purple-500 ring-2 ring-purple-300 dark:ring-purple-700"
+                                  : "border-white dark:border-zinc-950"
+                              }`}
+                            >
+                              <AvatarImage
+                                src={member.avatarUrl ?? undefined}
+                                alt={formatFullName(member)}
+                              />
+                              <AvatarFallback className="bg-zinc-100 text-xs font-medium text-zinc-400 dark:bg-zinc-800">
+                                {getInitials(formatFullName(member))}
+                              </AvatarFallback>
+                            </Avatar>
+                            {hasActiveWorkout && (
+                              <span
+                                title="Активна AI тренировъчна програма"
+                                className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-purple-600 text-[9px] text-white shadow-xs"
+                              >
+                                ✨
+                              </span>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="rounded-lg border-zinc-100 text-[10px] font-medium tracking-widest uppercase dark:border-zinc-800">
+                          <p>
+                            {formatFullName(member)}
+                            {hasActiveWorkout
+                              ? " • ✨ AI Програма (кликни за преглед)"
+                              : ""}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
                 </div>
               </TooltipProvider>
               {hiddenAttendeesCount > 0 && (
@@ -392,6 +600,12 @@ export const EventListItem = React.memo<EventListItemProps>(
             </div>
           </div>
         )}
+
+        <WorkoutDayPreviewModal
+          open={!!selectedPreviewWorkout}
+          onClose={() => setSelectedPreviewWorkout(null)}
+          data={selectedPreviewWorkout}
+        />
       </div>
     );
   }

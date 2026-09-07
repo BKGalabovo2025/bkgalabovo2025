@@ -241,13 +241,17 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
         {attendances
           .slice()
           .reverse()
-          .map((att) => {
+          .map((att, idx) => {
             const s = sessions[att.sessionId];
             if (!s) return null;
 
             return (
               <div
-                key={att.id}
+                key={
+                  att.id
+                    ? att.id
+                    : `att-${att.sessionId || "sess"}-${att.date || "d"}-${idx}`
+                }
                 className="flex flex-col items-start justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center"
               >
                 <div>
