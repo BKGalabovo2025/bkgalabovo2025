@@ -5,6 +5,7 @@
 import { Minus, Trophy } from "lucide-react";
 import { useMemo } from "react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Match } from "@/types/tournament.types";
 
@@ -12,6 +13,9 @@ interface TournamentBracketProps {
   matches: Match[];
   getEntryName: (id?: string | null) => string;
   category: string;
+  onGenerateMatches?: () => void;
+  isGenerating?: boolean;
+  canGenerate?: boolean;
 }
 
 /**
@@ -24,6 +28,9 @@ export function TournamentBracket({
   matches,
   getEntryName,
   category,
+  onGenerateMatches,
+  isGenerating,
+  canGenerate,
 }: TournamentBracketProps) {
   const catMatches = useMemo(
     () => matches.filter((m) => m.categoryId === category),
@@ -44,11 +51,29 @@ export function TournamentBracket({
 
   if (catMatches.length === 0) {
     return (
-      <div className="py-20 text-center text-zinc-400">
-        <Trophy className="mx-auto mb-4 size-12 opacity-10" strokeWidth={1} />
-        <p className="text-[11px] font-medium tracking-widest uppercase">
-          Няма генерирани мачове
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 px-6 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900/30">
+        <div className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+          <Trophy className="size-6" strokeWidth={1.5} />
+        </div>
+        <h4 className="text-sm font-bold text-zinc-900 dark:text-white">
+          Няма генерирани мачове за тази категория
+        </h4>
+        <p className="mt-1.5 max-w-sm text-xs text-zinc-500 dark:text-zinc-400">
+          Схемата на турнира (по системата Бергер) автоматично ще подреди всички
+          срещи по кръгове.
         </p>
+        {onGenerateMatches && canGenerate && (
+          <Button
+            onClick={onGenerateMatches}
+            disabled={isGenerating}
+            className="mt-5 h-10 rounded-xl bg-blue-600 px-5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
+          >
+            <Trophy className="mr-2 size-4" />
+            {isGenerating
+              ? "Генериране на схема..."
+              : "Генерирай турнирната схема"}
+          </Button>
+        )}
       </div>
     );
   }

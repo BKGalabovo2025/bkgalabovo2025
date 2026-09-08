@@ -176,6 +176,7 @@ export default function TournamentDetailsClient({
       await tournamentService.createMatches(allNewMatches);
       toast.success("Схемата беше генерирана успешно!");
       await loadData();
+      setActiveTab("bracket");
     } catch (error) {
       console.error(error);
       toast.error("Грешка при генериране на мачове");
@@ -428,6 +429,16 @@ export default function TournamentDetailsClient({
         ]}
       >
         <div className="flex items-center gap-2">
+          {entries.length >= 2 && (
+            <Button
+              onClick={handleGenerateMatches}
+              disabled={isGenerating}
+              className="rounded-xl bg-blue-600 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
+            >
+              <Trophy className="mr-2 size-4" />
+              {matches.length > 0 ? "Прегенерирай схемата" : "Генерирай схема"}
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={() => setIsEditDialogOpen(true)}
@@ -479,7 +490,7 @@ export default function TournamentDetailsClient({
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid h-14 w-full max-w-2xl grid-cols-5 rounded-2xl border border-zinc-100 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+          <TabsList className="grid h-14 w-full max-w-2xl grid-cols-4 rounded-2xl border border-zinc-100 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
             <TabsTrigger
               value="participants"
               className="rounded-xl text-[11px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-none dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
@@ -517,12 +528,26 @@ export default function TournamentDetailsClient({
                     Всички регистрирани играчи за този турнир
                   </p>
                 </div>
-                <Button
-                  onClick={() => setIsEntryDialogOpen(true)}
-                  className="rounded-xl bg-zinc-950 text-white shadow-none hover:bg-zinc-800"
-                >
-                  <UserPlus className="mr-2 size-4" /> Запиши участник
-                </Button>
+                <div className="flex items-center gap-2">
+                  {entries.length >= 2 && (
+                    <Button
+                      onClick={handleGenerateMatches}
+                      disabled={isGenerating}
+                      className="rounded-xl bg-blue-600 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
+                    >
+                      <Trophy className="mr-2 size-4" />
+                      {matches.length > 0
+                        ? "Прегенерирай схемата"
+                        : "Генерирай схема"}
+                    </Button>
+                  )}
+                  <Button
+                    onClick={() => setIsEntryDialogOpen(true)}
+                    className="rounded-xl bg-zinc-950 text-white shadow-none hover:bg-zinc-800"
+                  >
+                    <UserPlus className="mr-2 size-4" /> Запиши участник
+                  </Button>
+                </div>
               </div>
               <div className="p-8">
                 {entries.length === 0 ? (
@@ -637,6 +662,34 @@ export default function TournamentDetailsClient({
                         </div>
                       ))}
                     </div>
+                    {matches.length === 0 && entries.length >= 2 && (
+                      <div className="mt-6 flex flex-col items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 p-5 sm:flex-row dark:border-blue-900/50 dark:bg-blue-950/20">
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-10 items-center justify-center rounded-xl bg-blue-600 text-white">
+                            <Trophy className="size-5" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                              Всички участници са записани ({entries.length})
+                            </h4>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              Можете да изтеглите жребия и да генерирате схемата
+                              на мачовете веднага.
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={handleGenerateMatches}
+                          disabled={isGenerating}
+                          className="h-10 shrink-0 rounded-xl bg-blue-600 px-5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
+                        >
+                          <Trophy className="mr-2 size-4" />
+                          {isGenerating
+                            ? "Генериране..."
+                            : "Генерирай турнирната схема"}
+                        </Button>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -646,13 +699,32 @@ export default function TournamentDetailsClient({
           {/* Visual bracket tab */}
           <TabsContent value="bracket" className="mt-6">
             <BentoCard className="p-8">
-              <div className="mb-6">
-                <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-                  Визуална Схема
-                </h3>
-                <p className="mt-1 text-sm font-light text-zinc-400">
-                  Прогрес на турнира по кръгове
-                </p>
+              <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div>
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                    Визуална Схема
+                  </h3>
+                  <p className="mt-1 text-sm font-light text-zinc-400">
+                    Прогрес на турнира по кръгове
+                  </p>
+                </div>
+                {entries.length >= 2 && (
+                  <Button
+                    onClick={handleGenerateMatches}
+                    disabled={isGenerating}
+                    className={cn(
+                      "h-10 rounded-xl px-5 text-xs font-semibold shadow-none transition-all",
+                      matches.length > 0
+                        ? "border border-zinc-200 bg-white text-zinc-950 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    )}
+                  >
+                    <Trophy className="mr-2 size-4" />
+                    {matches.length > 0
+                      ? "Прегенерирай схемата"
+                      : "Генерирай турнирната схема"}
+                  </Button>
+                )}
               </div>
               {tournament.categories.map((cat) => (
                 <div key={cat} className="mb-10">
@@ -665,6 +737,11 @@ export default function TournamentDetailsClient({
                     matches={matches}
                     getEntryName={getEntryNameById}
                     category={cat}
+                    onGenerateMatches={handleGenerateMatches}
+                    isGenerating={isGenerating}
+                    canGenerate={
+                      entries.filter((e) => e.categoryId === cat).length >= 2
+                    }
                   />
                 </div>
               ))}
