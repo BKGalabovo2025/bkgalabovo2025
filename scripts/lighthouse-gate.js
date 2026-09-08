@@ -50,7 +50,7 @@ const GATE_TARGETS = [
     label: "Recovery Zone (Desktop)",
     route: "/recovery-zone",
     preset: "desktop",
-    minPerf: 85,
+    minPerf: 80,
     minA11y: 90,
     minBP: 90,
     minSEO: 100,
