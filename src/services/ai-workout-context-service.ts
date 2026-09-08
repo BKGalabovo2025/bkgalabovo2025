@@ -188,12 +188,12 @@ export interface WorkoutProgram {
   endDate?: string;
   cycleDurationDays?: number;
   sessionsPerWeek?: number;
-  targetAthlete: {
-    id: string;
+  targetAthlete?: {
+    id?: string;
     name: string;
-    age: number;
-    ageGroup: string;
-    skillLevel: string;
+    age?: number;
+    ageGroup?: string;
+    skillLevel?: string;
   };
   safetyAudit: {
     activeRestrictions: string[];

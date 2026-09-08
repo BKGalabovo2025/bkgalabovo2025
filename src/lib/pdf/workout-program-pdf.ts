@@ -30,25 +30,60 @@ function formatDayCalendarDate(dateStr?: string) {
  * and progress tracking journal for Badminton Club Galabovo.
  * Each page is an A4 container with class `pdf-page`.
  */
-export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
-  const athlete = program.targetAthlete;
-  const safety = program.safetyAudit;
-  const schedule = program.schedule || [];
+export function renderWorkoutProgramHtml(
+  program: Partial<WorkoutProgram>,
+  athleteFallbackName?: string
+): string {
+  const progRecord = program as unknown as Record<string, unknown>;
+  const rawAthlete = program.targetAthlete;
+  const athleteName =
+    rawAthlete?.name ||
+    athleteFallbackName ||
+    (progRecord.memberName as string) ||
+    (progRecord.athleteName as string) ||
+    "Състезател на БК Гълъбово";
+
+  const athleteAge =
+    rawAthlete?.age !== undefined && rawAthlete.age !== null
+      ? `${rawAthlete.age} г.`
+      : "БК Гълъбово";
+  const athleteAgeGroup = rawAthlete?.ageGroup || "Обща";
+  const athleteSkillLevel = rawAthlete?.skillLevel || "Състезател";
+
+  const rawSafety = program.safetyAudit;
+  const isDeload = Boolean(rawSafety?.fatigueDeloadActive);
+  const activeRestrictions = Array.isArray(rawSafety?.activeRestrictions)
+    ? rawSafety!.activeRestrictions
+    : [];
+  const coachSafetyNotes = rawSafety?.coachSafetyNotes || "";
+
+  const schedule = Array.isArray(program.schedule) ? program.schedule : [];
 
   // Determine total pages:
   // Page 1: Overview & Cycle Progress Log
   // Pages 2..N: Daily Workout Cards (1 day per page)
   // Last Page: Recovery, Theory Assignment & Medical/Coach Signoff
-  const totalPages = 1 + schedule.length + 1;
+  const totalPages = Math.max(1, 1 + schedule.length + 1);
 
-  const safetyAlertBg = safety.fatigueDeloadActive ? "#fef2f2" : "#f0fdf4";
-  const safetyAlertBorder = safety.fatigueDeloadActive ? "#fca5a5" : "#86efac";
-  const safetyAlertTitleColor = safety.fatigueDeloadActive
-    ? "#991b1b"
-    : "#166534";
-  const safetyAlertTitle = safety.fatigueDeloadActive
+  const safetyAlertBg = isDeload ? "#fef2f2" : "#f0fdf4";
+  const safetyAlertBorder = isDeload ? "#fca5a5" : "#86efac";
+  const safetyAlertTitleColor = isDeload ? "#991b1b" : "#166534";
+  const safetyAlertTitle = isDeload
     ? "ВНИМАНИЕ: АКТИВИРАН DELOAD РЕЖИМ (ВИСОКА УМОРА)"
     : "ПРЕДПАЗНИ МЕРКИ И БЕЗОПАСНОСТ";
+
+  const formattedGeneratedDate = (() => {
+    const rawDate = program.generatedAt || (progRecord.createdAt as string);
+    if (!rawDate) return new Date().toLocaleDateString("bg-BG");
+    try {
+      const d = new Date(rawDate);
+      return isNaN(d.getTime())
+        ? new Date().toLocaleDateString("bg-BG")
+        : d.toLocaleDateString("bg-BG");
+    } catch {
+      return new Date().toLocaleDateString("bg-BG");
+    }
+  })();
 
   // --------------------------------------------------------------------------
   // PAGE 1: Overview & Cycle Progress Tracker
@@ -57,15 +92,15 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
     .map(
       (day) => `
       <tr style="border-bottom: 1px solid #e2e8f0; font-size: 11px;">
-        <td style="padding: 8px 10px; font-weight: bold; color: #0f172a;">${day.dayName}</td>
+        <td style="padding: 8px 10px; font-weight: bold; color: #0f172a;">${day.dayName || `Ден ${day.dayNumber || ""}`}</td>
         <td style="padding: 8px 10px; color: #2563eb; font-weight: 600;">
           ${day.calendarDate ? formatDayCalendarDate(day.calendarDate) : "-"}
           ${day.isCompetitionDay ? `<br/><span style="color: #d97706; font-size: 10px; font-weight: bold;">🏆 ${day.competitionTitle || "Състезание"}</span>` : ""}
         </td>
-        <td style="padding: 8px 10px; color: #334155;">${day.focus}</td>
+        <td style="padding: 8px 10px; color: #334155;">${day.focus || "Кондиционна подготовка"}</td>
         <td style="padding: 8px 10px; text-align: center;">
-          <span style="background-color: ${getIntensityBadgeColor(day.intensity)}; color: white; padding: 2px 6px; border-radius: 10px; font-size: 9px; font-weight: bold; text-transform: uppercase;">
-            ${day.intensity}
+          <span style="background-color: ${getIntensityBadgeColor(day.intensity || "medium")}; color: white; padding: 2px 6px; border-radius: 10px; font-size: 9px; font-weight: bold; text-transform: uppercase;">
+            ${day.intensity || "medium"}
           </span>
         </td>
         <td style="padding: 8px 10px; text-align: center;">
@@ -96,7 +131,7 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
             </p>
           </div>
           <div style="text-align: right; font-size: 11px; color: #64748b;">
-            <div>Дата на издаване: <strong>${new Date(program.generatedAt).toLocaleDateString("bg-BG")}</strong></div>
+            <div>Дата на издаване: <strong>${formattedGeneratedDate}</strong></div>
             <div style="font-weight: 600; color: #0f172a; margin-top: 2px;">BK Galabovo Performance Lab</div>
           </div>
         </div>
@@ -105,19 +140,19 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
         <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-size: 12px;">
           <div>
             <span style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 600;">Състезател:</span><br/>
-            <strong style="color: #0f172a; font-size: 14px;">${athlete.name}</strong>
+            <strong style="color: #0f172a; font-size: 14px;">${athleteName}</strong>
           </div>
           <div>
             <span style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 600;">Възраст / Група:</span><br/>
-            <strong style="color: #0f172a;">${athlete.age} г. (${athlete.ageGroup})</strong>
+            <strong style="color: #0f172a;">${athleteAge} (${athleteAgeGroup})</strong>
           </div>
           <div>
             <span style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 600;">Ниво / Категория:</span><br/>
-            <strong style="color: #0f172a; text-transform: capitalize;">${athlete.skillLevel}</strong>
+            <strong style="color: #0f172a; text-transform: capitalize;">${athleteSkillLevel}</strong>
           </div>
           <div>
             <span style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 600;">Период на цикъла:</span><br/>
-            <strong style="color: #2563eb;">${program.startDate ? `${program.startDate} до ${program.endDate || ""}` : program.programTitle}</strong>
+            <strong style="color: #2563eb;">${program.startDate ? `${program.startDate} до ${program.endDate || ""}` : program.programTitle || "Микроцикъл"}</strong>
           </div>
         </div>
 
@@ -127,9 +162,15 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
             ${safetyAlertTitle}
           </div>
           <div style="font-size: 11px; color: #334155; line-height: 1.4;">
-            ${safety.activeRestrictions.map((r) => `• ${r}`).join("&nbsp;&nbsp;|&nbsp;&nbsp;")}
+            ${
+              activeRestrictions.length > 0
+                ? activeRestrictions
+                    .map((r) => `• ${r}`)
+                    .join("&nbsp;&nbsp;|&nbsp;&nbsp;")
+                : "• Стандартен тренировъчен режим без медицински ограничения"
+            }
           </div>
-          ${safety.coachSafetyNotes ? `<div style="font-size: 10.5px; color: #64748b; margin-top: 4px; font-style: italic;">Треньорска бележка: ${safety.coachSafetyNotes}</div>` : ""}
+          ${coachSafetyNotes ? `<div style="font-size: 10.5px; color: #64748b; margin-top: 4px; font-style: italic;">Треньорска бележка: ${coachSafetyNotes}</div>` : ""}
         </div>
 
         <!-- Cycle Progress Tracker -->
@@ -165,7 +206,7 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
 
       <!-- Page Footer -->
       <div style="border-top: 1px solid #e2e8f0; padding-top: 10px; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8;">
-        <span>БК Гълъбово • Персонализирана програма за: ${athlete.name}</span>
+        <span>БК Гълъбово • Персонализирана програма за: ${athleteName}</span>
         <span>Страница 1 от ${totalPages}</span>
       </div>
     </div>
@@ -177,9 +218,14 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
   const dailyPagesHtml = schedule
     .map((day, dayIdx) => {
       const pageNum = 2 + dayIdx;
-      const intensityBadgeColor = getIntensityBadgeColor(day.intensity);
+      const intensityBadgeColor = getIntensityBadgeColor(
+        day.intensity || "medium"
+      );
+      const exercises = Array.isArray(day.exercises) ? day.exercises : [];
+      const warmupList = Array.isArray(day.warmup) ? day.warmup : [];
+      const cooldownList = Array.isArray(day.cooldown) ? day.cooldown : [];
 
-      const exercisesHtml = day.exercises
+      const exercisesHtml = exercises
         .map(
           (ex, exIdx) => `
           <tr style="background-color: ${exIdx % 2 === 0 ? "#ffffff" : "#f8fafc"}; border-bottom: 1px solid #e2e8f0; font-size: 11px;">
@@ -187,20 +233,20 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
               <span style="display: inline-block; width: 16px; height: 16px; border: 1.5px solid #64748b; border-radius: 3px;"></span>
             </td>
             <td style="padding: 8px 10px; font-weight: bold; color: #0f172a;">
-              ${ex.name}
+              ${ex.name || "Упражнение"}
               ${ex.targetWeakness ? `<br/><span style="color: #2563eb; font-size: 10px; font-weight: normal; font-style: italic;">Цел: ${ex.targetWeakness}</span>` : ""}
             </td>
             <td style="padding: 8px 10px; text-align: center; color: #0f172a; font-weight: 600;">
-              ${ex.sets} с. x ${ex.repsOrDuration}
+              ${ex.sets ?? 3} с. x ${ex.repsOrDuration || "10-12"}
             </td>
             <td style="padding: 8px 10px; text-align: center; color: #64748b;">
-              ${ex.restSec}с
+              ${ex.restSec ?? 60}с
             </td>
             <td style="padding: 8px 10px; background-color: #fefce8; border-left: 1px dashed #fde047; border-right: 1px dashed #fde047; text-align: center; color: #854d0e; font-family: monospace;">
               ___ с. x ___ повт.
             </td>
             <td style="padding: 8px 10px; color: #334155; font-size: 10.5px; line-height: 1.3;">
-              ${ex.techniqueTip}
+              ${ex.techniqueTip || "Контрол на биомеханиката и дишането"}
             </td>
           </tr>
         `
@@ -213,33 +259,33 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
             <!-- Running Header -->
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 14px; font-size: 10.5px; color: #64748b;">
               <span style="font-weight: bold; text-transform: uppercase; color: #0f172a;">БК Гълъбово • Дневен Тренировъчен Протокол</span>
-              <span>Състезател: <strong>${athlete.name}</strong></span>
+              <span>Състезател: <strong>${athleteName}</strong></span>
             </div>
 
             <!-- Day Header Card -->
             <div style="background-color: #0f172a; color: #ffffff; border-radius: 8px; padding: 12px 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
               <div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 16px; font-weight: 800;">${day.dayName}</span>
+                  <span style="font-size: 16px; font-weight: 800;">${day.dayName || `Ден ${day.dayNumber || dayIdx + 1}`}</span>
                   ${day.calendarDate ? `<span style="font-size: 11px; background: #334155; color: #f8fafc; padding: 2px 8px; border-radius: 4px; font-weight: 600;">📅 ${formatDayCalendarDate(day.calendarDate)}</span>` : ""}
                   ${day.isCompetitionDay ? `<span style="font-size: 11px; background: #f59e0b; color: #000000; padding: 2px 8px; border-radius: 4px; font-weight: bold;">🏆 ${day.competitionTitle || "ОФИЦИАЛНО СЪСТЕЗАНИЕ"}</span>` : ""}
                 </div>
                 <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
-                  Фокус: <strong>${day.focus}</strong>
+                  Фокус: <strong>${day.focus || "Кондиционна подготовка"}</strong>
                 </div>
               </div>
               <div style="text-align: right; display: flex; gap: 8px; align-items: center;">
                 <span style="background-color: ${intensityBadgeColor}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: bold; text-transform: uppercase;">
-                  ${day.intensity} интензивност
+                  ${day.intensity || "medium"} интензивност
                 </span>
-                <span style="font-size: 12px; color: #cbd5e1; font-weight: 600;">⏱️ ${day.durationMinutes} мин</span>
+                <span style="font-size: 12px; color: #cbd5e1; font-weight: 600;">⏱️ ${day.durationMinutes || 60} мин</span>
               </div>
             </div>
 
             <!-- Warm-up Box -->
             <div style="padding: 8px 14px; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; font-size: 11px; color: #1e40af; margin-bottom: 12px;">
-              <strong>Специализирана загрявка (${day.warmup.length > 0 ? "7-10 мин" : ""}):</strong>
-              ${day.warmup.join(" • ")}
+              <strong>Специализирана загрявка (${warmupList.length > 0 ? "7-10 мин" : "Обща"}):</strong>
+              ${warmupList.length > 0 ? warmupList.join(" • ") : "Стандартна динамична загрявка, ставна мобилност и леко тичане"}
             </div>
 
             <!-- Exercises Table -->
@@ -262,7 +308,7 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
             <!-- Cooldown Box -->
             <div style="padding: 8px 14px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 11px; color: #166534; margin-bottom: 14px;">
               <strong>Разпускане & Стречинг:</strong>
-              ${day.cooldown.join(" • ")}
+              ${cooldownList.length > 0 ? cooldownList.join(" • ") : "Статичен стречинг за долни и горни крайници, дихателни упражнения"}
             </div>
 
             <!-- Daily Progress & Biofeedback Logging Box -->
@@ -314,7 +360,7 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
 
           <!-- Page Footer -->
           <div style="border-top: 1px solid #e2e8f0; padding-top: 10px; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8;">
-            <span>БК Гълъбово • ${day.dayName} (${day.calendarDate || ""})</span>
+            <span>БК Гълъбово • ${day.dayName || `Сесия ${dayIdx + 1}`} (${day.calendarDate || ""})</span>
             <span>Страница ${pageNum} от ${totalPages}</span>
           </div>
         </div>
@@ -325,7 +371,18 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
   // --------------------------------------------------------------------------
   // LAST PAGE: Recovery Zone, Theory & Certification
   // --------------------------------------------------------------------------
-  const recoveryItemsHtml = (program.recoveryRecommendations || [])
+  const rawRecovery =
+    Array.isArray(program.recoveryRecommendations) &&
+    program.recoveryRecommendations.length > 0
+      ? program.recoveryRecommendations
+      : [
+          "Задължително 8+ часа качествен нощен сън за неврологично възстановяване.",
+          "Хидратация: минимум 2.5 литра вода с електролити при интензивни натоварвания.",
+          "Миофасциален релийз с фоумролер и динамичен стречинг след всяка тренировъчна сесия.",
+          "Контрастни душове или пресотерапия (Recovery Boots) при натрупване на мускулна умора.",
+        ];
+
+  const recoveryItemsHtml = rawRecovery
     .map(
       (rec) =>
         `<li style="margin-bottom: 6px; font-size: 11.5px; color: #334155; line-height: 1.4;">${rec}</li>`
@@ -338,7 +395,7 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
         <!-- Running Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 20px; font-size: 10.5px; color: #64748b;">
           <span style="font-weight: bold; text-transform: uppercase; color: #0f172a;">БК Гълъбово • Методически Указания & Възстановяване</span>
-          <span>Състезател: <strong>${athlete.name}</strong></span>
+          <span>Състезател: <strong>${athleteName}</strong></span>
         </div>
 
         <!-- Recovery Recommendations Card -->
@@ -399,7 +456,7 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
 
       <!-- Page Footer -->
       <div style="border-top: 1px solid #e2e8f0; padding-top: 10px; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8;">
-        <span>БК Гълъбово • Персонализирана програма за: ${athlete.name}</span>
+        <span>БК Гълъбово • Персонализирана програма за: ${athleteName}</span>
         <span>Страница ${totalPages} от ${totalPages}</span>
       </div>
     </div>
@@ -418,21 +475,35 @@ export function renderWorkoutProgramHtml(program: WorkoutProgram): string {
  * Client-side utility to export a WorkoutProgram as a high-resolution, multi-page PDF document.
  */
 export async function exportWorkoutProgramPdf(
-  program: WorkoutProgram,
-  filename?: string
+  program: Partial<WorkoutProgram>,
+  filename?: string,
+  athleteFallbackName?: string
 ): Promise<void> {
   const container = document.createElement("div");
   container.style.position = "absolute";
   container.style.left = "-9999px";
   container.style.top = "0";
-  container.innerHTML = renderWorkoutProgramHtml(program);
+  container.innerHTML = renderWorkoutProgramHtml(program, athleteFallbackName);
   document.body.appendChild(container);
 
   try {
+    const progRecord = program as unknown as Record<string, unknown>;
     const targetElement = container.firstElementChild as HTMLElement;
+    const nameForFile =
+      program.targetAthlete?.name ||
+      athleteFallbackName ||
+      (progRecord.memberName as string) ||
+      (progRecord.athleteName as string) ||
+      "athlete";
+
+    const safeName = nameForFile
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/[^a-zA-Z0-9_\u0400-\u04FF-]/g, "");
+
     const exportName =
       filename ||
-      `workout-plan-${program.targetAthlete.name.replace(/\s+/g, "_")}-${new Date().toISOString().split("T")[0]}.pdf`;
+      `workout-plan-${safeName || "athlete"}-${new Date().toISOString().split("T")[0]}.pdf`;
 
     await generatePdfFromElement(targetElement, exportName, "portrait");
   } finally {
@@ -444,13 +515,14 @@ export async function exportWorkoutProgramPdf(
  * Client-side utility to get a WorkoutProgram PDF as a Blob (e.g. for sharing or uploading).
  */
 export async function getWorkoutProgramPdfBlob(
-  program: WorkoutProgram
+  program: Partial<WorkoutProgram>,
+  athleteFallbackName?: string
 ): Promise<Blob> {
   const container = document.createElement("div");
   container.style.position = "absolute";
   container.style.left = "-9999px";
   container.style.top = "0";
-  container.innerHTML = renderWorkoutProgramHtml(program);
+  container.innerHTML = renderWorkoutProgramHtml(program, athleteFallbackName);
   document.body.appendChild(container);
 
   try {

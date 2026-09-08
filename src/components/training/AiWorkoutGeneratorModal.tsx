@@ -485,7 +485,7 @@ export function AiWorkoutGeneratorModal({
     if (!program) return;
     try {
       toast.info("Подготовка на PDF документа...");
-      await exportWorkoutProgramPdf(program);
+      await exportWorkoutProgramPdf(program, undefined, member.name);
       toast.success("PDF документът е свален успешно!");
     } catch (err) {
       console.error(err);
@@ -634,14 +634,18 @@ export function AiWorkoutGeneratorModal({
               {currentProgram.programTitle}
             </h3>
             <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
-              <span>{currentProgram.targetAthlete.name}</span>
+              <span>{currentProgram.targetAthlete?.name || member.name}</span>
               <span>•</span>
               <Badge variant="outline" className="text-[10px] uppercase">
-                {currentProgram.targetAthlete.ageGroup}
+                {currentProgram.targetAthlete?.ageGroup ||
+                  member.ageGroup ||
+                  "Обща"}
               </Badge>
               <span>•</span>
               <span className="capitalize">
-                {currentProgram.targetAthlete.skillLevel}
+                {currentProgram.targetAthlete?.skillLevel ||
+                  member.skillLevel ||
+                  "Състезател"}
               </span>
             </div>
           </div>

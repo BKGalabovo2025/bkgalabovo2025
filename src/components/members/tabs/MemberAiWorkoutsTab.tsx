@@ -51,6 +51,7 @@ interface SavedWorkoutRecord extends WorkoutProgram {
 
 interface MemberAiWorkoutsTabProps {
   memberId: string;
+  memberName?: string;
   onOpenGenerator?: () => void;
 }
 
@@ -439,6 +440,7 @@ function DayDetailCard({
 
 export function MemberAiWorkoutsTab({
   memberId,
+  memberName,
   onOpenGenerator,
 }: MemberAiWorkoutsTabProps) {
   const { idToken } = useAuth();
@@ -527,7 +529,7 @@ export function MemberAiWorkoutsTab({
   const handleDownloadPdf = async (prog: SavedWorkoutRecord) => {
     try {
       toast.info("Подготовка на PDF документа...");
-      await exportWorkoutProgramPdf(prog);
+      await exportWorkoutProgramPdf(prog, undefined, memberName);
       toast.success("PDF документът е свален успешно!");
     } catch (err) {
       console.error("PDF download error:", err);

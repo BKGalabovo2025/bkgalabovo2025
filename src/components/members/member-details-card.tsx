@@ -455,6 +455,7 @@ export const MemberDetailsCard = ({
         <TabsContent value="ai-workouts" className="focus-visible:outline-none">
           <MemberAiWorkoutsTab
             memberId={member.id}
+            memberName={member.name}
             onOpenGenerator={() => setIsAiWorkoutModalOpen(true)}
           />
         </TabsContent>

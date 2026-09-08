@@ -11,6 +11,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import {
   WorkoutDayProgress,
+  WorkoutExercise,
   WorkoutProgram,
   WorkoutProgramProgress,
 } from "@/services/ai-workout-context-service";
@@ -400,7 +401,7 @@ export interface ActiveWorkoutScheduleDay {
   intensity: "low" | "medium" | "high";
   durationMinutes: number;
   warmup: string[];
-  exercises: WorkoutProgram["schedule"][0]["exercises"];
+  exercises: WorkoutExercise[];
   cooldown: string[];
   safetyAudit: WorkoutProgram["safetyAudit"];
   recoveryRecommendations?: string[];

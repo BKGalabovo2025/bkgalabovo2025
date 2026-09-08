@@ -539,4 +539,60 @@ describe("AI Workout Generator Suite", () => {
       }
     });
   });
+
+  describe("6. Workout Program PDF Resilience & Legacy Compatibility", () => {
+    it("renders successfully without error when targetAthlete and safetyAudit are undefined (legacy Firestore records)", () => {
+      const legacyProgram = {
+        id: "prog_legacy_123",
+        programTitle: "Обща кондиционна подготовка (Вероника Игнатова)",
+        targetGoal: "general_conditioning" as const,
+        startDate: "2026-09-08",
+        endDate: "2026-09-14",
+        schedule: [
+          {
+            dayNumber: 1,
+            calendarDate: "2026-09-08",
+            dayName: "Понеделник",
+            focus: "Силова издръжливост",
+            intensity: "medium" as const,
+            durationMinutes: 60,
+            warmup: ["Динамичен стречинг", "Леко бягане"],
+            exercises: [
+              {
+                name: "Клекове с подскок",
+                sets: 4,
+                repsOrDuration: "12",
+                restSec: 60,
+                techniqueTip: "Експлозивно оттласкване",
+              },
+            ],
+            cooldown: ["Стречинг"],
+          },
+        ],
+      } as WorkoutProgram;
+
+      // Must not throw "TypeError: Cannot read properties of undefined (reading 'name')"
+      expect(() => {
+        const html = renderWorkoutProgramHtml(
+          legacyProgram,
+          "Вероника Игнатова"
+        );
+        expect(html).toContain("Вероника Игнатова");
+        expect(html).toContain("Клекове с подскок");
+        expect(html).toContain("pdf-page");
+      }).not.toThrow();
+    });
+
+    it("uses default fallback when athlete name is completely missing", () => {
+      const bareProgram = {
+        programTitle: "Тренировъчен план",
+      } as WorkoutProgram;
+
+      expect(() => {
+        const html = renderWorkoutProgramHtml(bareProgram);
+        expect(html).toContain("Състезател");
+        expect(html).toContain("pdf-page");
+      }).not.toThrow();
+    });
+  });
 });
