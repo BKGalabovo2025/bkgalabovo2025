@@ -110,6 +110,7 @@ export const EventListItem = React.memo<EventListItemProps>(
     >({});
     const [selectedPreviewWorkout, setSelectedPreviewWorkout] = useState<{
       memberName: string;
+      memberId?: string;
       workout: ActiveWorkoutScheduleDay;
     } | null>(null);
 
@@ -344,6 +345,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                           memberName: formatFullName(
                             activeAttendeesWorkouts[0].member
                           ),
+                          memberId: activeAttendeesWorkouts[0].member.id,
                           workout: activeAttendeesWorkouts[0].workout,
                         });
                       }}
@@ -549,6 +551,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                                 e.stopPropagation();
                                 setSelectedPreviewWorkout({
                                   memberName: formatFullName(member),
+                                  memberId: member.id,
                                   workout: memberWorkout,
                                 });
                               }

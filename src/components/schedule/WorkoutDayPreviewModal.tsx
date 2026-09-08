@@ -1,11 +1,22 @@
 /* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
-import { Clock, Info, ShieldAlert, Sparkles, Trophy } from "lucide-react";
-import React, { useState } from "react";
+import {
+  CalendarCheck,
+  CheckCircle2,
+  Clock,
+  Info,
+  RotateCcw,
+  ShieldAlert,
+  Sparkles,
+  Trophy,
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { ExerciseDetailModal } from "@/components/training/ExerciseDetailModal";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,14 +24,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ActiveWorkoutScheduleDay } from "@/lib/actions/trainings";
+import { useAuth } from "@/context/auth-context";
+import {
+  ActiveWorkoutScheduleDay,
+  updateWorkoutProgramProgressAction,
+} from "@/lib/actions/trainings";
 import { findExerciseDetails } from "@/services/exercise-lookup-service";
 import { Exercise } from "@/types/planner.types";
 
 export interface WorkoutDayPreviewModalProps {
   open: boolean;
   onClose: () => void;
-  data: { memberName: string; workout: ActiveWorkoutScheduleDay } | null;
+  data: {
+    memberName: string;
+    memberId?: string;
+    workout: ActiveWorkoutScheduleDay;
+  } | null;
 }
 
 export function WorkoutDayPreviewModal({
@@ -28,6 +47,7 @@ export function WorkoutDayPreviewModal({
   onClose,
   data,
 }: WorkoutDayPreviewModalProps) {
+  const { idToken } = useAuth();
   const [selectedExerciseData, setSelectedExerciseData] = useState<{
     exercise: Partial<Exercise>;
     workoutContext: {
@@ -38,9 +58,59 @@ export function WorkoutDayPreviewModal({
     };
   } | null>(null);
 
+  const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [rpeRating, setRpeRating] = useState<number>(7);
+  const [notes, setNotes] = useState<string>("");
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (data?.workout) {
+      setIsCompleted(!!data.workout.progress?.completed);
+      setRpeRating(data.workout.progress?.rpeRating ?? 7);
+      setNotes(data.workout.progress?.notes ?? "");
+    }
+  }, [data?.workout]);
+
   if (!data) return null;
-  const { memberName, workout } = data;
+  const { memberName, memberId, workout } = data;
   const isDeload = workout.safetyAudit?.fatigueDeloadActive;
+
+  const handleToggleComplete = async (nextCompleted: boolean) => {
+    if (!memberId) {
+      toast.error("Липсва идентификатор на състезателя за запис на прогреса.");
+      return;
+    }
+    try {
+      setIsSaving(true);
+      const res = await updateWorkoutProgramProgressAction(
+        memberId,
+        workout.programId,
+        workout.dayNumber,
+        {
+          completed: nextCompleted,
+          rpeRating,
+          notes,
+        },
+        idToken || undefined
+      );
+
+      if (res.success) {
+        setIsCompleted(nextCompleted);
+        toast.success(
+          nextCompleted
+            ? "Тренировката е маркирана като проведена!"
+            : "Тренировката е маркирана като предстояща."
+        );
+      } else {
+        toast.error(res.message);
+      }
+    } catch (err) {
+      console.error("Failed to update workout progress:", err);
+      toast.error("Грешка при запис на тренировъчния прогрес.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -240,6 +310,107 @@ export function WorkoutDayPreviewModal({
               <p className="mt-0.5 text-[11px]">{workout.theoryAssignment}</p>
             </div>
           )}
+
+          {/* Progress & Compliance Tracker */}
+          <div className="rounded-2xl border border-purple-200 bg-purple-50/60 p-4 shadow-xs dark:border-purple-900/40 dark:bg-purple-950/30">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <CalendarCheck className="size-4 text-purple-600 dark:text-purple-400" />
+                  <h4 className="text-xs font-bold tracking-wider text-purple-950 uppercase dark:text-purple-200">
+                    Отчитане на тренировката:
+                  </h4>
+                </div>
+                <p className="mt-0.5 text-[11px] text-zinc-500">
+                  {isCompleted
+                    ? "Тренировката е маркирана като проведена в спортния дневник."
+                    : "Отбележете изпълнението и субективната умора на състезателя."}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {isCompleted ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={isSaving}
+                    onClick={() => handleToggleComplete(false)}
+                    className="h-8 rounded-xl border-zinc-300 text-xs text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300"
+                  >
+                    <RotateCcw className="mr-1.5 size-3.5" /> Маркирай
+                    предстояща
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    disabled={isSaving}
+                    onClick={() => handleToggleComplete(true)}
+                    className="h-8 rounded-xl bg-purple-600 text-xs font-bold text-white shadow-xs hover:bg-purple-700"
+                  >
+                    <CheckCircle2 className="mr-1.5 size-3.5" /> Маркирай като
+                    проведена
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-3.5 space-y-2 border-t border-purple-200/60 pt-3 dark:border-purple-900/40">
+              <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-[11px] font-semibold text-purple-950 dark:text-purple-200">
+                  Субективно натоварване (RPE Скала 1-10):
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => {
+                        setRpeRating(num);
+                        if (isCompleted) {
+                          updateWorkoutProgramProgressAction(
+                            memberId || "",
+                            workout.programId,
+                            workout.dayNumber,
+                            { completed: true, rpeRating: num, notes },
+                            idToken || undefined
+                          ).then((res) => {
+                            if (res.success)
+                              toast.success(`RPE зададено на ${num}/10`);
+                          });
+                        }
+                      }}
+                      className={`size-6 rounded-md text-[10px] font-bold transition-all ${
+                        rpeRating === num
+                          ? "bg-purple-600 text-white shadow-xs"
+                          : "border border-purple-200 bg-white text-zinc-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-zinc-900 dark:text-zinc-300"
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="text"
+                  placeholder="Бележка от треньора (напр. Отлична реакция на совалки, лека умора в бедрата)..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="h-8 flex-1 rounded-lg border border-purple-200 bg-white px-2.5 text-[11px] text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden dark:border-purple-800 dark:bg-zinc-900 dark:text-zinc-100"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isSaving}
+                  onClick={() => handleToggleComplete(isCompleted)}
+                  className="h-8 rounded-lg border-purple-300 text-[11px] font-medium text-purple-800 hover:bg-purple-100 dark:border-purple-700 dark:text-purple-300"
+                >
+                  Запази
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </DialogContent>
 

@@ -166,6 +166,20 @@ export interface WorkoutDay {
   cooldown: string[];
 }
 
+export interface WorkoutDayProgress {
+  completed?: boolean;
+  completedAt?: string;
+  rpeRating?: number;
+  notes?: string;
+  completedExercises?: number[];
+}
+
+export interface WorkoutProgramProgress {
+  completedDays?: Record<number, WorkoutDayProgress>;
+  overallProgressPercent?: number;
+  lastUpdated?: string;
+}
+
 export interface WorkoutProgram {
   id?: string;
   programTitle: string;
@@ -191,6 +205,7 @@ export interface WorkoutProgram {
   recoveryRecommendations: string[];
   theoryAssignment?: string;
   generatedAt: string;
+  progress?: WorkoutProgramProgress;
 }
 
 /**

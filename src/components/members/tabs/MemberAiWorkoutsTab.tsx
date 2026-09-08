@@ -1,13 +1,16 @@
+/* eslint-disable react/forbid-dom-props */
 "use client";
 
 import {
   Calendar,
+  CheckCircle2,
   Clock,
   Download,
   Eye,
   HeartPulse,
   Info,
   Plus,
+  RotateCcw,
   ShieldCheck,
   Sparkles,
   Trash2,
@@ -30,10 +33,12 @@ import { useAuth } from "@/context/auth-context";
 import {
   deleteWorkoutProgramAction,
   getMemberWorkoutProgramsAction,
+  updateWorkoutProgramProgressAction,
 } from "@/lib/actions/trainings";
 import { exportWorkoutProgramPdf } from "@/lib/pdf/workout-program-pdf";
 import {
   WorkoutDay,
+  WorkoutDayProgress,
   WorkoutProgram,
 } from "@/services/ai-workout-context-service";
 import { findExerciseDetails } from "@/services/exercise-lookup-service";
@@ -105,34 +110,149 @@ function formatDayCalendarDate(dateStr?: string) {
 
 function DayDetailCard({
   day,
+  memberId,
+  programId,
+  progress,
+  onProgressUpdated,
   onSelectExercise,
 }: {
   day: WorkoutDay;
+  memberId: string;
+  programId: string;
+  progress?: WorkoutDayProgress;
+  onProgressUpdated?: (
+    newProg: WorkoutDayProgress,
+    overallPercent?: number
+  ) => void;
   onSelectExercise?: (exercise: WorkoutDay["exercises"][number]) => void;
 }) {
+  const { idToken } = useAuth();
+  const isCompleted = !!progress?.completed;
+  const [rpe, setRpe] = useState<number>(progress?.rpeRating ?? 7);
+  const [notes, setNotes] = useState<string>(progress?.notes ?? "");
+  const [completedExs, setCompletedExs] = useState<number[]>(
+    progress?.completedExercises ?? []
+  );
+  const [saving, setSaving] = useState<boolean>(false);
+
+  useEffect(() => {
+    setRpe(progress?.rpeRating ?? 7);
+    setNotes(progress?.notes ?? "");
+    setCompletedExs(progress?.completedExercises ?? []);
+  }, [progress]);
+
+  const handleToggleDayCompleted = async (nextCompleted: boolean) => {
+    try {
+      setSaving(true);
+      const res = await updateWorkoutProgramProgressAction(
+        memberId,
+        programId,
+        day.dayNumber,
+        {
+          completed: nextCompleted,
+          rpeRating: rpe,
+          notes,
+          completedExercises: completedExs,
+        },
+        idToken || undefined
+      );
+      if (res.success) {
+        toast.success(
+          nextCompleted
+            ? `${day.dayName} е отбелязан като завършен!`
+            : `${day.dayName} е върнат в предстоящи.`
+        );
+        onProgressUpdated?.(
+          {
+            completed: nextCompleted,
+            rpeRating: rpe,
+            notes,
+            completedExercises: completedExs,
+            completedAt: nextCompleted ? new Date().toISOString() : undefined,
+          },
+          res.overallProgressPercent
+        );
+      } else {
+        toast.error(res.message);
+      }
+    } catch {
+      toast.error("Грешка при запис на прогреса.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleExercise = async (exIndex: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextCompletedExs = completedExs.includes(exIndex)
+      ? completedExs.filter((i) => i !== exIndex)
+      : [...completedExs, exIndex];
+
+    setCompletedExs(nextCompletedExs);
+    try {
+      const res = await updateWorkoutProgramProgressAction(
+        memberId,
+        programId,
+        day.dayNumber,
+        {
+          completed: isCompleted,
+          rpeRating: rpe,
+          notes,
+          completedExercises: nextCompletedExs,
+        },
+        idToken || undefined
+      );
+      if (res.success) {
+        onProgressUpdated?.(
+          {
+            completed: isCompleted,
+            rpeRating: rpe,
+            notes,
+            completedExercises: nextCompletedExs,
+          },
+          res.overallProgressPercent
+        );
+      }
+    } catch {
+      // non-blocking
+    }
+  };
+
   return (
-    <div className="space-y-3">
-      <div className="flex flex-col justify-between gap-2 rounded-xl border border-zinc-200/80 bg-zinc-50 p-3 sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="space-y-3.5">
+      <div className="flex flex-col justify-between gap-2.5 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+            <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
               {day.dayName}
             </h4>
             {day.calendarDate && (
               <Badge
                 variant="outline"
-                className="flex items-center gap-1 border-blue-200 bg-blue-50/70 text-[9px] font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300"
+                className="flex items-center gap-1 border-blue-200 bg-blue-50/70 text-[10px] font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300"
               >
                 📅 {formatDayCalendarDate(day.calendarDate)}
               </Badge>
             )}
             {day.isCompetitionDay && (
-              <Badge className="bg-linear-to-r from-amber-500 to-orange-500 text-[9px] font-bold text-white shadow-xs">
+              <Badge className="bg-linear-to-r from-amber-500 to-orange-500 text-[10px] font-bold text-white shadow-xs">
                 🏆 {day.competitionTitle || "Официално състезание"}
               </Badge>
             )}
+            {isCompleted ? (
+              <Badge className="bg-emerald-600 text-[10px] font-semibold text-white">
+                ✅ Завършена
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="border-zinc-300 text-[10px] text-zinc-600 dark:text-zinc-400"
+              >
+                ⏳ Предстояща
+              </Badge>
+            )}
           </div>
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
             {day.focus}
           </p>
         </div>
@@ -142,6 +262,26 @@ function DayDetailCard({
             <span>{day.durationMinutes} мин</span>
           </div>
           {getIntensityBadge(day.intensity)}
+          {isCompleted ? (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={saving}
+              onClick={() => handleToggleDayCompleted(false)}
+              className="h-7.5 rounded-xl border-zinc-300 text-xs text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300"
+            >
+              <RotateCcw className="mr-1 size-3" /> Върни
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              disabled={saving}
+              onClick={() => handleToggleDayCompleted(true)}
+              className="h-7.5 rounded-xl bg-emerald-600 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700"
+            >
+              <CheckCircle2 className="mr-1 size-3" /> Маркирай завършена
+            </Button>
+          )}
         </div>
       </div>
 
@@ -154,6 +294,7 @@ function DayDetailCard({
         <table className="w-full text-left text-xs">
           <thead className="bg-zinc-100 text-[10px] tracking-wider text-zinc-600 uppercase dark:bg-zinc-900 dark:text-zinc-400">
             <tr>
+              <th className="w-10 p-2.5 text-center">Статус</th>
               <th className="p-2.5">Упражнение</th>
               <th className="p-2.5 text-center">Серии</th>
               <th className="p-2.5 text-center">Повторения</th>
@@ -161,29 +302,56 @@ function DayDetailCard({
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-            {day.exercises.map((ex, i) => (
-              <tr
-                key={i}
-                onClick={() => onSelectExercise?.(ex)}
-                className="group cursor-pointer transition-colors hover:bg-blue-50/70 dark:hover:bg-blue-950/30"
-                title="Кликнете за пълно методическо описание от базата данни"
-              >
-                <td className="p-2.5 font-medium text-zinc-900 dark:text-zinc-100">
-                  <div className="flex items-center gap-1.5 transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                    <span>{ex.name}</span>
-                    <Info className="size-3 shrink-0 text-blue-500 opacity-60 group-hover:opacity-100" />
-                  </div>
-                  {ex.techniqueTip && (
-                    <div className="text-[10px] text-zinc-500 italic">
-                      {ex.techniqueTip}
+            {day.exercises.map((ex, i) => {
+              const isExDone = completedExs.includes(i);
+              return (
+                <tr
+                  key={i}
+                  onClick={() => onSelectExercise?.(ex)}
+                  className={`group cursor-pointer transition-colors ${
+                    isExDone
+                      ? "bg-emerald-50/50 hover:bg-emerald-50 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/30"
+                      : "hover:bg-blue-50/70 dark:hover:bg-blue-950/30"
+                  }`}
+                  title="Кликнете за методическо описание от базата данни"
+                >
+                  <td
+                    className="p-2.5 text-center"
+                    onClick={(e) => handleToggleExercise(i, e)}
+                  >
+                    <span
+                      className={`inline-flex size-4.5 cursor-pointer items-center justify-center rounded border transition-all ${
+                        isExDone
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-zinc-300 bg-white hover:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900"
+                      }`}
+                    >
+                      {isExDone && <CheckCircle2 className="size-3" />}
+                    </span>
+                  </td>
+                  <td className="p-2.5 font-medium text-zinc-900 dark:text-zinc-100">
+                    <div className="flex items-center gap-1.5 transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      <span
+                        className={isExDone ? "text-zinc-400 line-through" : ""}
+                      >
+                        {ex.name}
+                      </span>
+                      <Info className="size-3 shrink-0 text-blue-500 opacity-60 group-hover:opacity-100" />
                     </div>
-                  )}
-                </td>
-                <td className="p-2.5 text-center">{ex.sets}</td>
-                <td className="p-2.5 text-center">{ex.repsOrDuration}</td>
-                <td className="p-2.5 text-center">{ex.restSec}s</td>
-              </tr>
-            ))}
+                    {ex.techniqueTip && (
+                      <div className="text-[10px] text-zinc-500 italic">
+                        {ex.techniqueTip}
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center font-semibold">{ex.sets}</td>
+                  <td className="p-2.5 text-center">{ex.repsOrDuration}</td>
+                  <td className="p-2.5 text-center text-zinc-500">
+                    {ex.restSec}s
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -191,6 +359,79 @@ function DayDetailCard({
       <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2.5 text-xs text-emerald-950 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-200">
         <span className="mr-1.5 font-semibold">Разгрявка:</span>
         {day.cooldown.join(" • ")}
+      </div>
+
+      {/* Daily Progress & Biofeedback Logging Card */}
+      <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3.5 text-xs dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+            Оценка на натоварването (RPE 1-10):
+          </span>
+          <div className="flex flex-wrap gap-1">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+              <button
+                key={num}
+                type="button"
+                onClick={() => {
+                  setRpe(num);
+                  if (isCompleted) {
+                    updateWorkoutProgramProgressAction(
+                      memberId,
+                      programId,
+                      day.dayNumber,
+                      {
+                        completed: true,
+                        rpeRating: num,
+                        notes,
+                        completedExercises: completedExs,
+                      },
+                      idToken || undefined
+                    ).then((res) => {
+                      if (res.success) {
+                        toast.success(`RPE зададено на ${num}/10`);
+                        onProgressUpdated?.(
+                          {
+                            completed: true,
+                            rpeRating: num,
+                            notes,
+                            completedExercises: completedExs,
+                          },
+                          res.overallProgressPercent
+                        );
+                      }
+                    });
+                  }
+                }}
+                className={`size-6 rounded-md text-[10px] font-bold transition-all ${
+                  rpe === num
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                }`}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-2.5 flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Бележки за изпълнението, умора или забележки..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="h-8 flex-1 rounded-lg border border-zinc-200 bg-white px-2.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={saving}
+            onClick={() => handleToggleDayCompleted(isCompleted)}
+            className="h-8 rounded-lg text-xs"
+          >
+            Запази
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -418,6 +659,27 @@ export function MemberAiWorkoutsTab({
                     </div>
                   </div>
 
+                  {prog.progress?.overallProgressPercent !== undefined && (
+                    <div className="space-y-1 rounded-2xl bg-blue-50/60 p-2.5 dark:bg-blue-950/20">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-blue-950 dark:text-blue-200">
+                          Прогрес на цикъла:
+                        </span>
+                        <span className="font-bold text-blue-600 dark:text-blue-400">
+                          {prog.progress.overallProgressPercent}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900/40">
+                        <div
+                          className="h-full rounded-full bg-blue-600 transition-all duration-300"
+                          style={{
+                            width: `${prog.progress.overallProgressPercent}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-1 rounded-xl bg-zinc-50 p-2.5 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
@@ -537,21 +799,92 @@ export function MemberAiWorkoutsTab({
 
               <Tabs defaultValue="0" className="w-full">
                 <TabsList className="flex h-auto w-full gap-1 overflow-x-auto rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
-                  {viewingProgram.schedule?.map((day, idx) => (
-                    <TabsTrigger
-                      key={idx}
-                      value={String(idx)}
-                      className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-blue-400"
-                    >
-                      {day.dayName}
-                    </TabsTrigger>
-                  ))}
+                  {viewingProgram.schedule?.map((day, idx) => {
+                    const isDayDone =
+                      viewingProgram.progress?.completedDays?.[day.dayNumber]
+                        ?.completed;
+                    return (
+                      <TabsTrigger
+                        key={idx}
+                        value={String(idx)}
+                        className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-blue-400"
+                      >
+                        {isDayDone ? "✅ " : ""}
+                        {day.dayName}
+                      </TabsTrigger>
+                    );
+                  })}
                 </TabsList>
 
                 {viewingProgram.schedule?.map((day, idx) => (
                   <TabsContent key={idx} value={String(idx)} className="mt-4">
                     <DayDetailCard
                       day={day}
+                      memberId={memberId}
+                      programId={viewingProgram.id}
+                      progress={
+                        viewingProgram.progress?.completedDays?.[day.dayNumber]
+                      }
+                      onProgressUpdated={(newProg, overallPercent) => {
+                        setViewingProgram((prev) => {
+                          if (!prev) return null;
+                          const completedDays = {
+                            ...(prev.progress?.completedDays || {}),
+                            [day.dayNumber]: newProg,
+                          };
+                          const totalDays = prev.schedule?.length || 1;
+                          const calcPercent =
+                            overallPercent ??
+                            Math.min(
+                              100,
+                              Math.round(
+                                (Object.values(completedDays).filter(
+                                  (d) => d.completed
+                                ).length /
+                                  totalDays) *
+                                  100
+                              )
+                            );
+                          return {
+                            ...prev,
+                            progress: {
+                              completedDays,
+                              overallProgressPercent: calcPercent,
+                              lastUpdated: new Date().toISOString(),
+                            },
+                          };
+                        });
+                        setPrograms((prev) =>
+                          prev.map((p) => {
+                            if (p.id !== viewingProgram.id) return p;
+                            const completedDays = {
+                              ...(p.progress?.completedDays || {}),
+                              [day.dayNumber]: newProg,
+                            };
+                            const totalDays = p.schedule?.length || 1;
+                            const calcPercent =
+                              overallPercent ??
+                              Math.min(
+                                100,
+                                Math.round(
+                                  (Object.values(completedDays).filter(
+                                    (d) => d.completed
+                                  ).length /
+                                    totalDays) *
+                                    100
+                                )
+                              );
+                            return {
+                              ...p,
+                              progress: {
+                                completedDays,
+                                overallProgressPercent: calcPercent,
+                                lastUpdated: new Date().toISOString(),
+                              },
+                            };
+                          })
+                        );
+                      }}
                       onSelectExercise={handleSelectExercise}
                     />
                   </TabsContent>

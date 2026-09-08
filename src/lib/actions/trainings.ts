@@ -9,7 +9,11 @@ import { z } from "zod";
 import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
-import { WorkoutProgram } from "@/services/ai-workout-context-service";
+import {
+  WorkoutDayProgress,
+  WorkoutProgram,
+  WorkoutProgramProgress,
+} from "@/services/ai-workout-context-service";
 import { TrainingSession } from "@/types/training.types";
 
 const ShadowDetailsSchema = z
@@ -401,6 +405,7 @@ export interface ActiveWorkoutScheduleDay {
   safetyAudit: WorkoutProgram["safetyAudit"];
   recoveryRecommendations?: string[];
   theoryAssignment?: string;
+  progress?: WorkoutDayProgress;
 }
 
 export async function getMemberActiveWorkoutForDateAction(
@@ -463,6 +468,7 @@ export async function getMemberActiveWorkoutForDateAction(
             safetyAudit: prog.safetyAudit,
             recoveryRecommendations: prog.recoveryRecommendations,
             theoryAssignment: prog.theoryAssignment,
+            progress: prog.progress?.completedDays?.[matchedDay.dayNumber],
           },
         };
       }
@@ -495,6 +501,7 @@ export async function getMemberActiveWorkoutForDateAction(
               safetyAudit: prog.safetyAudit,
               recoveryRecommendations: prog.recoveryRecommendations,
               theoryAssignment: prog.theoryAssignment,
+              progress: prog.progress?.completedDays?.[scheduledDay.dayNumber],
             },
           };
         }
@@ -558,6 +565,7 @@ export async function getMemberActiveWorkoutForDateAction(
               safetyAudit: prog.safetyAudit,
               recoveryRecommendations: prog.recoveryRecommendations,
               theoryAssignment: prog.theoryAssignment,
+              progress: prog.progress?.completedDays?.[day.dayNumber],
             },
           };
         }
@@ -576,6 +584,7 @@ export async function getMemberActiveWorkoutForDateAction(
             safetyAudit: prog.safetyAudit,
             recoveryRecommendations: prog.recoveryRecommendations,
             theoryAssignment: prog.theoryAssignment,
+            progress: prog.progress?.completedDays?.[day.dayNumber],
           },
         };
       }
@@ -631,5 +640,85 @@ export async function getActiveWorkoutsMapForScheduleAction(
   } catch (error: unknown) {
     console.error("Error in getActiveWorkoutsMapForScheduleAction:", error);
     return { success: false, data: {} };
+  }
+}
+
+/**
+ * Updates the progress of a specific day or exercise in a member's AI workout program.
+ */
+export async function updateWorkoutProgramProgressAction(
+  memberId: string,
+  programId: string,
+  dayNumber: number,
+  progressData: {
+    completed: boolean;
+    rpeRating?: number;
+    notes?: string;
+    completedExercises?: number[];
+  },
+  _idToken?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  overallProgressPercent?: number;
+}> {
+  try {
+    const db = getAdminDb();
+    const docRef = db
+      .collection("members")
+      .doc(memberId)
+      .collection("workoutPrograms")
+      .doc(programId);
+
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) {
+      return { success: false, message: "Програмата не е намерена." };
+    }
+
+    const progData = docSnap.data() as WorkoutProgram;
+    const existingProgress = progData.progress || { completedDays: {} };
+    const completedDays = { ...(existingProgress.completedDays || {}) };
+
+    completedDays[dayNumber] = {
+      ...(completedDays[dayNumber] || {}),
+      ...progressData,
+      completedAt: progressData.completed
+        ? completedDays[dayNumber]?.completedAt || new Date().toISOString()
+        : undefined,
+    };
+
+    const totalDays = progData.schedule?.length || 1;
+    const completedCount = Object.values(completedDays).filter(
+      (d) => d.completed
+    ).length;
+    const overallProgressPercent = Math.min(
+      100,
+      Math.round((completedCount / totalDays) * 100)
+    );
+
+    const updatedProgress: WorkoutProgramProgress = {
+      completedDays,
+      overallProgressPercent,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    await docRef.update({
+      progress: updatedProgress,
+    });
+
+    return {
+      success: true,
+      message: "Прогресът на тренировката е обновен успешно.",
+      overallProgressPercent,
+    };
+  } catch (error: unknown) {
+    console.error("Error updating workout progress:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Грешка при обновяване на прогреса.",
+    };
   }
 }

@@ -48,6 +48,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
   >({});
   const [selectedWorkoutPreview, setSelectedWorkoutPreview] = useState<{
     memberName: string;
+    memberId?: string;
     workout: ActiveWorkoutScheduleDay;
   } | null>(null);
 
@@ -309,6 +310,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
                                 e.stopPropagation();
                                 setSelectedWorkoutPreview({
                                   memberName: formatFullName(member),
+                                  memberId: member.id,
                                   workout: activeWorkouts[member.id],
                                 });
                               }}
