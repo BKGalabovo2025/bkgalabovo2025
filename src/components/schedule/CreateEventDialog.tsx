@@ -40,6 +40,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
         type,
         location,
         description,
+        tournamentUrl,
       }) => {
         await onAddEvent({
           title,
@@ -48,6 +49,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
           type,
           location,
           description,
+          tournamentUrl: tournamentUrl || null,
           attendees: [],
           attendeeMemberIds: [],
         });

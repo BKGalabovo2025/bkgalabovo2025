@@ -46,6 +46,24 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({
         <p className="col-span-1 font-semibold">Тип:</p>
         <p className="col-span-2">{translatedEventType}</p>
 
+        {event.tournamentUrl && (
+          <>
+            <p className="col-span-1 font-semibold">Линк към турнира:</p>
+            <p className="col-span-2 break-all text-blue-700 underline">
+              {event.tournamentUrl}
+            </p>
+          </>
+        )}
+
+        {event.description && (
+          <>
+            <p className="col-span-1 font-semibold">Описание / Бележки:</p>
+            <p className="col-span-2 break-words whitespace-pre-wrap">
+              {event.description}
+            </p>
+          </>
+        )}
+
         {isCamp && event.totalCampPrice !== undefined && (
           <>
             <p className="col-span-1 mt-2 font-semibold">Обща цена:</p>

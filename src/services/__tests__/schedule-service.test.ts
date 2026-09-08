@@ -64,6 +64,7 @@ describe("schedule-service", () => {
         attendeeMemberIds: ["m1", "m2"],
         isCancelled: false,
         totalCampPrice: 150,
+        tournamentUrl: "https://example.com/tournament/1",
       };
 
       const mockDoc = {
@@ -82,6 +83,7 @@ describe("schedule-service", () => {
       expect(result?.attendees[0].name).toBe("Иван Иванов");
       expect(result?.attendees[0].attended).toBe(true);
       expect(result?.totalCampPrice).toBe(150);
+      expect(result?.tournamentUrl).toBe("https://example.com/tournament/1");
     });
 
     it("handles fallback default values for missing fields", () => {
@@ -99,6 +101,7 @@ describe("schedule-service", () => {
       expect(result?.type).toBe("other");
       expect(result?.attendees).toEqual([]);
       expect(result?.isCancelled).toBe(false);
+      expect(result?.tournamentUrl).toBeNull();
     });
   });
 

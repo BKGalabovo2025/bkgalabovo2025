@@ -49,6 +49,10 @@ export const docToScheduleEvent = (
     id: doc.id,
     title: typeof data.title === "string" ? data.title : "Untitled Event",
     description: typeof data.description === "string" ? data.description : "",
+    tournamentUrl:
+      typeof data.tournamentUrl === "string" ? data.tournamentUrl : null,
+    tournamentId:
+      typeof data.tournamentId === "string" ? data.tournamentId : null,
     startDate:
       toISOStringOrUndefined(data.startDate) || new Date().toISOString(),
     endDate: toISOStringOrUndefined(data.endDate) || new Date().toISOString(),

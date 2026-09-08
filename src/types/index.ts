@@ -225,6 +225,8 @@ export type ScheduleEvent = {
   attendees: Attendee[];
   attendeeMemberIds: string[];
   description?: string | null;
+  tournamentUrl?: string | null;
+  tournamentId?: string | null;
   maxAttendees?: number;
   isCancelled?: boolean;
 

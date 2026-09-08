@@ -6,11 +6,14 @@ import {
   Calendar as CalendarIcon,
   Car,
   Edit,
+  ExternalLink,
+  FileText,
   Printer,
   RotateCcw,
   Sparkles,
   Tag,
   Trash2,
+  Trophy,
   Users,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
@@ -53,6 +56,43 @@ const eventTypeDetails: Record<
   camp: { translation: "Лагер", color: "bg-green-500" },
   event: { translation: "Събитие", color: "bg-yellow-500" },
   other: { translation: "Друго", color: "bg-gray-500" },
+};
+
+const URL_OR_ROUTE_REGEX = /(https?:\/\/[^\s]+|\/tournaments\/[a-zA-Z0-9_-]+)/g;
+
+const renderTextWithLinks = (text: string) => {
+  const parts = text.split(URL_OR_ROUTE_REGEX);
+  return parts.map((part, index) => {
+    if (part.startsWith("http://") || part.startsWith("https://")) {
+      return (
+        <a
+          key={`ext-link-${index}`}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 font-medium text-blue-600 underline underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          <span>{part}</span>
+          <ExternalLink className="inline size-3 shrink-0 opacity-70" />
+        </a>
+      );
+    }
+    if (part.startsWith("/tournaments/")) {
+      return (
+        <a
+          key={`int-link-${index}`}
+          href={part}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 font-medium text-amber-700 underline underline-offset-2 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300"
+        >
+          <span>{part}</span>
+          <ExternalLink className="inline size-3 shrink-0 opacity-70" />
+        </a>
+      );
+    }
+    return part;
+  });
 };
 
 export const EventListItem = React.memo<EventListItemProps>(
@@ -295,6 +335,41 @@ export const EventListItem = React.memo<EventListItemProps>(
                   <span>{event.location}</span>
                 </div>
               </div>
+
+              {event.tournamentUrl && (
+                <div className="pt-0.5">
+                  <a
+                    href={event.tournamentUrl}
+                    target={
+                      event.tournamentUrl.startsWith("http")
+                        ? "_blank"
+                        : undefined
+                    }
+                    rel={
+                      event.tournamentUrl.startsWith("http")
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                    className="group/link inline-flex items-center gap-2 rounded-xl border border-amber-300/80 bg-amber-50/90 px-3.5 py-1.5 text-xs font-semibold text-amber-900 shadow-2xs transition-all hover:border-amber-400 hover:bg-amber-100 hover:text-amber-950 dark:border-amber-800/80 dark:bg-amber-950/60 dark:text-amber-200 dark:hover:border-amber-700 dark:hover:bg-amber-900/60"
+                  >
+                    <Trophy className="size-3.5 text-amber-600 transition-transform group-hover/link:scale-110 dark:text-amber-400" />
+                    <span>Страница на състезанието / Схема</span>
+                    <ExternalLink className="size-3 opacity-60 transition-transform group-hover/link:translate-x-0.5" />
+                  </a>
+                </div>
+              )}
+
+              {event.description && (
+                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/60 p-3.5 text-xs font-light text-zinc-600 dark:border-zinc-800/80 dark:bg-zinc-900/40 dark:text-zinc-300">
+                  <div className="flex items-start gap-2">
+                    <FileText className="mt-0.5 size-3.5 shrink-0 text-zinc-400" />
+                    <div className="leading-relaxed break-words whitespace-pre-wrap">
+                      {renderTextWithLinks(event.description)}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {activeAttendeesWorkouts.length > 0 && !event.isCancelled && (
                 <div className="mt-2 rounded-2xl border border-purple-200/90 bg-gradient-to-r from-purple-50 via-indigo-50/40 to-purple-50/30 p-3.5 shadow-xs dark:border-purple-900/50 dark:from-purple-950/40 dark:via-zinc-900 dark:to-purple-950/20">

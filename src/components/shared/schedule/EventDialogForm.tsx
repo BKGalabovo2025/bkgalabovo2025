@@ -7,8 +7,10 @@ import {
   ArrowLeft,
   ArrowRight,
   Calendar,
+  Link2,
   Loader2,
   MapPin,
+  Trophy,
 } from "lucide-react";
 import React, { useEffect, useId, useState } from "react";
 
@@ -84,6 +86,7 @@ interface EventDialogFormProps {
     type?: ScheduleEventType;
     location?: string;
     description?: string;
+    tournamentUrl?: string | null;
   };
   /** Called on final submit */
   onSubmit: (data: {
@@ -93,6 +96,7 @@ interface EventDialogFormProps {
     type: ScheduleEventType;
     location: string;
     description: string;
+    tournamentUrl?: string | null;
   }) => Promise<void>;
   /** Unique prefix for form field IDs to avoid collisions when both dialogs coexist */
   idPrefix?: string;
@@ -124,6 +128,9 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
   const [description, setDescription] = useState(
     initialValues?.description ?? ""
   );
+  const [tournamentUrl, setTournamentUrl] = useState(
+    initialValues?.tournamentUrl ?? ""
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const descriptionId = useId();
@@ -138,6 +145,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
       setType(initialValues.type ?? "training");
       setLocation(initialValues.location ?? "");
       setDescription(initialValues.description ?? "");
+      setTournamentUrl(initialValues.tournamentUrl ?? "");
       setError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -214,6 +222,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
         type,
         location,
         description,
+        tournamentUrl: tournamentUrl.trim() || null,
       });
       handleClose();
     } catch (err) {
@@ -399,21 +408,61 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                   step === 3 ? "block opacity-100" : "hidden opacity-0"
                 )}
               >
+                {type === "competition" && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
+                    <div className="flex items-center gap-2 font-medium">
+                      <Trophy className="size-4 text-amber-600 dark:text-amber-400" />
+                      <span>Състезание / Турнир</span>
+                    </div>
+                    <p className="mt-1 text-[11px] text-amber-800/80 dark:text-amber-300/70">
+                      Можете да въведете линк към турнира или схемата (напр.
+                      /tournaments/... или външен уеб адрес). Линкът ще бъде
+                      активен и кликаем в графика.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor={`${idPrefix}-tournamentUrl`}
+                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+                  >
+                    <Link2 className="size-3" /> Линк към турнира / състезанието
+                    (по желание)
+                  </label>
+                  <Input
+                    id={`${idPrefix}-tournamentUrl`}
+                    type="url"
+                    placeholder="https://... или /tournaments/..."
+                    value={tournamentUrl}
+                    onChange={(e) => setTournamentUrl(e.target.value)}
+                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
+                  />
+                  <p className="ml-1 text-[11px] text-zinc-400">
+                    Кликаем линк, водещ към страницата на турнира или схемата.
+                  </p>
+                </div>
+
                 <div className="space-y-2">
                   <label
                     htmlFor={`${idPrefix}-description`}
                     className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
                   >
-                    <AlignLeft className="size-3" /> Описание (по желание)
+                    <AlignLeft className="size-3" /> Описание и бележки (по
+                    желание)
                   </label>
                   <Textarea
                     id={`${idPrefix}-description`}
-                    placeholder="Допълнителни бележки, треньори..."
+                    placeholder="Допълнителни бележки, треньори, подробности или линкове..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="min-h-30 resize-none rounded-2xl border-zinc-100 bg-zinc-50/50 p-4 font-light shadow-none focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/50"
-                    autoFocus={step === 3}
+                    autoFocus={step === 3 && !tournamentUrl}
                   />
+                  <p className="ml-1 text-[11px] text-zinc-400">
+                    Ако напишете уеб линк в текста, той също автоматично ще
+                    стане кликаем в списъка.
+                  </p>
                 </div>
               </div>
 
