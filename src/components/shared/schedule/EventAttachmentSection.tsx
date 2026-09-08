@@ -66,7 +66,7 @@ export const EventAttachmentSection: React.FC<EventAttachmentSectionProps> = ({
           желание)
         </label>
         <span className="text-[10px] text-zinc-400">
-          PDF, Word, Excel (до 15MB)
+          PDF, Word, Excel (до 800KB или външен линк)
         </span>
       </div>
 

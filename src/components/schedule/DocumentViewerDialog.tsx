@@ -60,6 +60,8 @@ export const getDocumentTypeBadge = (type?: DocumentAttachmentType | null) => {
 interface ViewerBodyProps {
   isPdf: boolean;
   isOffice: boolean;
+  isGoogleDrive: boolean;
+  googleDrivePreviewUrl: string;
   documentUrl: string | null;
   documentName?: string | null;
   documentType?: DocumentAttachmentType | null;
@@ -69,12 +71,26 @@ interface ViewerBodyProps {
 const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   isPdf,
   isOffice,
+  isGoogleDrive,
+  googleDrivePreviewUrl,
   documentUrl,
   documentName,
   documentType,
   officeViewerUrl,
 }) => {
   if (!documentUrl) return null;
+
+  if (isGoogleDrive) {
+    return (
+      <iframe
+        src={googleDrivePreviewUrl}
+        className="size-full border-none"
+        title={documentName || "Google Drive Преглед"}
+        allow="autoplay"
+      />
+    );
+  }
+
   if (isPdf) {
     return (
       <iframe
@@ -145,16 +161,26 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
 }) => {
   if (!documentUrl) return null;
 
+  const driveMatch = documentUrl.match(
+    /drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/
+  );
+  const isGoogleDrive = Boolean(driveMatch && driveMatch[1]);
+  const googleDrivePreviewUrl = isGoogleDrive
+    ? `https://drive.google.com/file/d/${driveMatch?.[1]}/preview`
+    : "";
+
   const isPdf =
-    documentType === "pdf" ||
-    documentUrl.toLowerCase().includes(".pdf") ||
-    (documentName ? documentName.toLowerCase().endsWith(".pdf") : false);
+    !isGoogleDrive &&
+    (documentType === "pdf" ||
+      documentUrl.toLowerCase().includes(".pdf") ||
+      (documentName ? documentName.toLowerCase().endsWith(".pdf") : false));
 
   const isOffice =
-    documentType === "word" ||
-    documentType === "excel" ||
-    /\.(docx?|xlsx?|pptx?)$/i.test(documentName || "") ||
-    /\.(docx?|xlsx?|pptx?)/i.test(documentUrl);
+    !isGoogleDrive &&
+    (documentType === "word" ||
+      documentType === "excel" ||
+      /\.(docx?|xlsx?|pptx?)$/i.test(documentName || "") ||
+      /\.(docx?|xlsx?|pptx?)/i.test(documentUrl));
 
   const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
     documentUrl
@@ -219,6 +245,8 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
           <DocumentViewerBody
             isPdf={isPdf}
             isOffice={isOffice}
+            isGoogleDrive={isGoogleDrive}
+            googleDrivePreviewUrl={googleDrivePreviewUrl}
             documentUrl={documentUrl}
             documentName={documentName}
             documentType={documentType}

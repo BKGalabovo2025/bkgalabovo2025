@@ -212,8 +212,10 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 15 * 1024 * 1024) {
-      setError("Размерът на файла не трябва да надвишава 15MB.");
+    if (file.size > 800 * 1024) {
+      setError(
+        "Файлът е по-голям от 800KB. За по-големи документи използвайте опцията 'Постави външен линк' (Google Drive, OneDrive и др.)."
+      );
       return;
     }
 
