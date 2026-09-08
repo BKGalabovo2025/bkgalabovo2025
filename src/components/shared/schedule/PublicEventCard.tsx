@@ -10,14 +10,23 @@ import {
   ChevronDown,
   ChevronRight,
   Clock,
+  Download,
+  ExternalLink,
+  Eye,
   Info,
   Mail,
   MapPin,
   Printer,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import React, { useState } from "react";
 
+import {
+  DocumentAttachmentType,
+  DocumentViewerDialog,
+  getDocumentIcon,
+} from "@/components/schedule/DocumentViewerDialog";
 import { formatEventDateRange } from "@/lib/date-utils";
 
 interface PublicEventSlot {
@@ -28,7 +37,48 @@ interface PublicEventSlot {
   isCancelled?: boolean;
   description?: string;
   location?: string;
+  tournamentUrl?: string | null;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
+  attachmentType?: DocumentAttachmentType | null;
 }
+
+const URL_OR_ROUTE_REGEX = /(https?:\/\/[^\s]+|\/tournaments\/[a-zA-Z0-9_-]+)/g;
+
+const renderPublicTextWithLinks = (text: string) => {
+  const parts = text.split(URL_OR_ROUTE_REGEX);
+  return parts.map((part, index) => {
+    if (part.startsWith("http://") || part.startsWith("https://")) {
+      return (
+        <a
+          key={`ext-link-${index}`}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 font-medium text-blue-400 underline underline-offset-2 hover:text-blue-300"
+        >
+          <span>{part}</span>
+          <ExternalLink className="inline size-3 shrink-0 opacity-70" />
+        </a>
+      );
+    }
+    if (part.startsWith("/tournaments/")) {
+      return (
+        <a
+          key={`int-link-${index}`}
+          href={part}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 font-medium text-amber-400 underline underline-offset-2 hover:text-amber-300"
+        >
+          <span>{part}</span>
+          <ExternalLink className="inline size-3 shrink-0 opacity-70" />
+        </a>
+      );
+    }
+    return part;
+  });
+};
 
 interface PublicEventCardProps {
   event: PublicEventSlot;
@@ -48,6 +98,7 @@ export function PublicEventCard({
   showAdminLinks = false,
 }: PublicEventCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [isDocViewerOpen, setIsDocViewerOpen] = useState(false);
 
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
@@ -58,9 +109,27 @@ export function PublicEventCard({
           <title>Принтиране на събитие - ${event.title}</title>
           <style>
             body { font-family: sans-serif; padding: 2rem; color: #333; }
-            h1 { color: #000; }
-            .meta { color: #666; margin-bottom: 2rem; }
-            .desc { white-space: pre-wrap; line-height: 1.6; }
+            h1 { color: #000; margin-bottom: 0.5rem; }
+            .meta { color: #555; margin-bottom: 1.5rem; }
+            .meta p { margin: 0.35rem 0; }
+            .desc { white-space: pre-wrap; line-height: 1.6; margin-bottom: 2rem; }
+            .print-page-break {
+              page-break-before: always;
+              break-before: page;
+              margin-top: 3rem;
+              padding-top: 2rem;
+              border-top: 2px dashed #999;
+            }
+            .attachment-box {
+              padding: 1.5rem;
+              background-color: #f9f9f9;
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              margin-top: 1rem;
+            }
+            @media print {
+              .print-page-break { page-break-before: always; break-before: page; }
+            }
           </style>
         </head>
         <body>
@@ -68,8 +137,26 @@ export function PublicEventCard({
           <div class="meta">
             <p><strong>Дата и час:</strong> ${formatEventDateRange(event.startTime, event.endTime)}</p>
             <p><strong>Локация:</strong> ${event.location || 'Спортна зала „Енергетик"'}</p>
+            ${event.tournamentUrl ? `<p><strong>Линк към турнира:</strong> <a href="${event.tournamentUrl}">${event.tournamentUrl}</a></p>` : ""}
           </div>
           <div class="desc">${event.description || "Няма допълнителна информация."}</div>
+
+          ${
+            event.attachmentUrl
+              ? `
+            <div class="print-page-break">
+              <h2 style="margin-top:0;">Официална Наредба / Прикачен Документ</h2>
+              <div class="attachment-box">
+                <p><strong>Събитие:</strong> ${event.title}</p>
+                <p><strong>Прикачен файл:</strong> ${event.attachmentName || "Наредба за състезанието"}</p>
+                <p><strong>Връзка за сваляне / проверка:</strong> <a href="${event.attachmentUrl}">${event.attachmentUrl}</a></p>
+              </div>
+              <iframe src="${event.attachmentUrl}" style="width: 100%; height: 900px; border: 1px solid #ccc; margin-top: 1.5rem; border-radius: 4px;"></iframe>
+            </div>
+          `
+              : ""
+          }
+
           <script>window.print(); window.setTimeout(() => window.close(), 500);</script>
         </body>
       </html>
@@ -136,6 +223,55 @@ export function PublicEventCard({
                 {event.location || 'Спортна зала „Енергетик"'}
               </span>
             </div>
+
+            {event.tournamentUrl && (
+              <div className="mt-2.5">
+                <a
+                  href={event.tournamentUrl}
+                  target={
+                    event.tournamentUrl.startsWith("http")
+                      ? "_blank"
+                      : undefined
+                  }
+                  rel={
+                    event.tournamentUrl.startsWith("http")
+                      ? "noopener noreferrer"
+                      : undefined
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300 transition-colors hover:bg-amber-500/20"
+                >
+                  <Trophy size={13} className="text-amber-400" />
+                  <span>Страница на състезанието / Схема</span>
+                  <ExternalLink size={12} className="opacity-70" />
+                </a>
+              </div>
+            )}
+
+            {event.attachmentUrl && (
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsDocViewerOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300 transition-colors hover:bg-blue-500/20"
+                >
+                  {getDocumentIcon(event.attachmentType, "size-3.5")}
+                  <span className="max-w-50 truncate sm:max-w-75">
+                    {event.attachmentName || "Наредба за състезанието"}
+                  </span>
+                  <Eye size={12} className="opacity-70" />
+                </button>
+                <a
+                  href={event.attachmentUrl}
+                  download={event.attachmentName || "document"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800/80 p-1 text-zinc-400 transition-colors hover:text-white"
+                  title="Изтегли файла"
+                >
+                  <Download size={13} />
+                </a>
+              </div>
+            )}
           </div>
         </div>
 
@@ -163,11 +299,12 @@ export function PublicEventCard({
 
           {event.description && (
             <button
+              type="button"
               onClick={() => setExpanded(!expanded)}
               className="flex items-center gap-1.5 text-[13px] font-medium text-blue-400/80 transition-colors hover:text-blue-300"
             >
               <Info size={16} />
-              Бележка
+              <span>{expanded ? "Свий описанието" : "Виж бележките"}</span>
               <ChevronDown
                 size={14}
                 className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
@@ -209,15 +346,25 @@ export function PublicEventCard({
             className="overflow-hidden"
           >
             <div className="ml-6 px-6 pt-2 pb-5 sm:ml-10">
-              <div className="rounded-xl border border-blue-900/20 bg-blue-900/10 p-4">
-                <p className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
-                  {event.description}
-                </p>
+              <div className="rounded-xl border border-blue-900/30 bg-blue-950/20 p-4">
+                <div className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
+                  {renderPublicTextWithLinks(event.description)}
+                </div>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {event.attachmentUrl && (
+        <DocumentViewerDialog
+          isOpen={isDocViewerOpen}
+          onClose={() => setIsDocViewerOpen(false)}
+          documentUrl={event.attachmentUrl}
+          documentName={event.attachmentName || "Наредба за състезанието"}
+          documentType={event.attachmentType}
+        />
+      )}
     </motion.div>
   );
 }

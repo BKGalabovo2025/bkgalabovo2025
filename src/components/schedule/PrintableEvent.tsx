@@ -55,6 +55,20 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({
           </>
         )}
 
+        {event.attachmentUrl && (
+          <>
+            <p className="col-span-1 font-semibold">Прикачен документ:</p>
+            <p className="col-span-2">
+              <span className="font-medium">
+                {event.attachmentName || "Наредба за състезанието"}
+              </span>{" "}
+              <span className="text-xs text-gray-500">
+                (виж отделна страница 2)
+              </span>
+            </p>
+          </>
+        )}
+
         {event.description && (
           <>
             <p className="col-span-1 font-semibold">Описание / Бележки:</p>
@@ -165,6 +179,65 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({
       >
         Генерирано на: {formatDateTimeDisplay(new Date())}
       </p>
+
+      {event.attachmentUrl && (
+        <div className="print-page-break mt-12 break-before-page pt-8 print:break-before-page">
+          <div className="mb-6 flex items-center justify-between border-b-2 border-black pb-4">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight uppercase">
+                Бадминтон Клуб Гълъбово
+              </h2>
+              <p className="text-xs text-gray-600">
+                Официална Наредба / Прикачен документ към събитието
+              </p>
+            </div>
+            <div className="text-right text-xs">
+              <p className="font-semibold">Страница 2 от 2</p>
+              <p className="text-gray-500">
+                {formatDateTimeDisplay(new Date())}
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-6 rounded-lg border border-gray-300 bg-gray-50 p-4 text-xs">
+            <div className="grid grid-cols-3 gap-y-2">
+              <span className="font-semibold text-gray-700">
+                Относно събитие:
+              </span>
+              <span className="col-span-2 font-bold text-gray-900">
+                {event.title}
+              </span>
+
+              <span className="font-semibold text-gray-700">Име на файла:</span>
+              <span className="col-span-2 text-gray-900">
+                {event.attachmentName || "Наредба за състезанието"}
+              </span>
+
+              <span className="font-semibold text-gray-700">
+                Тип на документа:
+              </span>
+              <span className="col-span-2 text-gray-900 uppercase">
+                {event.attachmentType || "Документ"}
+              </span>
+
+              <span className="font-semibold text-gray-700">
+                Директен линк:
+              </span>
+              <span className="col-span-2 break-all text-blue-700 underline">
+                {event.attachmentUrl}
+              </span>
+            </div>
+          </div>
+
+          <div className="w-full overflow-hidden rounded border border-gray-300">
+            <iframe
+              src={event.attachmentUrl}
+              title={event.attachmentName || "Наредба"}
+              className="h-220 w-full border-none"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

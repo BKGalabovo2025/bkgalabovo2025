@@ -7,13 +7,23 @@ import {
   ArrowLeft,
   ArrowRight,
   Calendar,
+  Eye,
   Link2,
   Loader2,
   MapPin,
+  Paperclip,
+  Trash2,
   Trophy,
+  UploadCloud,
 } from "lucide-react";
-import React, { useEffect, useId, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 
+import {
+  DocumentAttachmentType,
+  DocumentViewerDialog,
+  getDocumentIcon,
+  getDocumentTypeBadge,
+} from "@/components/schedule/DocumentViewerDialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,7 +42,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getSiteConfig } from "@/config/sites";
+import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
+import { uploadFile } from "@/services/storage-service";
 import { ScheduleEventType } from "@/types";
 
 // ── Shared constants ──────────────────────────────────────────────────────────
@@ -69,6 +82,24 @@ export const toLocalISOString = (
   }
 };
 
+export const detectFileType = (
+  fileName: string,
+  mimeType?: string
+): DocumentAttachmentType => {
+  const ext = fileName.split(".").pop()?.toLowerCase() || "";
+  if (ext === "pdf" || mimeType === "application/pdf") return "pdf";
+  if (["doc", "docx"].includes(ext) || mimeType?.includes("word"))
+    return "word";
+  if (
+    ["xls", "xlsx", "csv"].includes(ext) ||
+    mimeType?.includes("excel") ||
+    mimeType?.includes("spreadsheet")
+  ) {
+    return "excel";
+  }
+  return "other";
+};
+
 // ── Shared EventDialogForm ────────────────────────────────────────────────────
 
 interface EventDialogFormProps {
@@ -87,6 +118,9 @@ interface EventDialogFormProps {
     location?: string;
     description?: string;
     tournamentUrl?: string | null;
+    attachmentUrl?: string | null;
+    attachmentName?: string | null;
+    attachmentType?: DocumentAttachmentType | null;
   };
   /** Called on final submit */
   onSubmit: (data: {
@@ -97,6 +131,9 @@ interface EventDialogFormProps {
     location: string;
     description: string;
     tournamentUrl?: string | null;
+    attachmentUrl?: string | null;
+    attachmentName?: string | null;
+    attachmentType?: DocumentAttachmentType | null;
   }) => Promise<void>;
   /** Unique prefix for form field IDs to avoid collisions when both dialogs coexist */
   idPrefix?: string;
@@ -111,7 +148,9 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
   onSubmit,
   idPrefix = "event",
 }) => {
+  const { idToken } = useAuth();
   const defaultStart = getDefaultStartTime();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState(initialValues?.title ?? "");
@@ -131,6 +170,19 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
   const [tournamentUrl, setTournamentUrl] = useState(
     initialValues?.tournamentUrl ?? ""
   );
+  const [attachmentUrl, setAttachmentUrl] = useState<string | null>(
+    initialValues?.attachmentUrl ?? null
+  );
+  const [attachmentName, setAttachmentName] = useState<string | null>(
+    initialValues?.attachmentName ?? null
+  );
+  const [attachmentType, setAttachmentType] =
+    useState<DocumentAttachmentType | null>(
+      initialValues?.attachmentType ?? null
+    );
+  const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const descriptionId = useId();
@@ -146,16 +198,59 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
       setLocation(initialValues.location ?? "");
       setDescription(initialValues.description ?? "");
       setTournamentUrl(initialValues.tournamentUrl ?? "");
+      setAttachmentUrl(initialValues.attachmentUrl ?? null);
+      setAttachmentName(initialValues.attachmentName ?? null);
+      setAttachmentType(initialValues.attachmentType ?? null);
       setError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleClose = () => {
-    if (isSubmitting) return;
+    if (isSubmitting || isUploadingAttachment) return;
     setStep(1);
     setError(null);
     onClose();
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+      setError("Размерът на файла не трябва да надвишава 15MB.");
+      return;
+    }
+
+    setIsUploadingAttachment(true);
+    setError(null);
+    try {
+      const detected = detectFileType(file.name, file.type);
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storagePath = `sites/${getSiteConfig().id}/events/attachments/${Date.now()}_${safeName}`;
+
+      const uploadedUrl = await uploadFile(storagePath, file, idToken);
+      setAttachmentUrl(uploadedUrl);
+      setAttachmentName(file.name);
+      setAttachmentType(detected);
+    } catch (err: unknown) {
+      console.error("Upload failed", err);
+      setError(
+        err instanceof Error ? err.message : "Грешка при качване на файла."
+      );
+    } finally {
+      setIsUploadingAttachment(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveAttachment = () => {
+    setAttachmentUrl(null);
+    setAttachmentName(null);
+    setAttachmentType(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const validateStep = (currentStep: number) => {
@@ -223,6 +318,9 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
         location,
         description,
         tournamentUrl: tournamentUrl.trim() || null,
+        attachmentUrl: attachmentUrl || null,
+        attachmentName: attachmentName || null,
+        attachmentType: attachmentType || null,
       });
       handleClose();
     } catch (err) {
@@ -236,304 +334,419 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
   const formId = `${idPrefix}-form`;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent
-        className="flex max-h-[85vh] w-[92vw] flex-col overflow-hidden rounded-4xl border-none bg-white p-0 shadow-2xl sm:max-h-[90vh] sm:max-w-135 sm:rounded-5xl dark:bg-zinc-950"
-        aria-describedby={descriptionId}
-      >
-        <div className="flex h-full flex-col overflow-hidden">
-          {/* Header */}
-          <div className="z-10 shrink-0 border-b border-zinc-100 bg-white p-6 pb-4 sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-            <DialogHeader>
-              <DialogTitle className="flex items-center justify-between text-xl font-light tracking-tight text-zinc-950 sm:text-2xl dark:text-white">
-                <span>{dialogTitle}</span>
-                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-400 sm:text-sm dark:bg-zinc-900">
-                  Стъпка {step} от 3
-                </span>
-              </DialogTitle>
-              <DialogDescription
-                id={descriptionId}
-                className="mt-1 text-xs font-light text-zinc-400 sm:text-sm"
-              >
-                {step === 1 && "Основна информация за събитието."}
-                {step === 2 && "Кога ще се проведе?"}
-                {step === 3 && "Допълнителни детайли (по желание)."}
-              </DialogDescription>
-            </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent
+          className="flex max-h-[85vh] w-[92vw] flex-col overflow-hidden rounded-4xl border-none bg-white p-0 shadow-2xl sm:max-h-[90vh] sm:max-w-135 sm:rounded-5xl dark:bg-zinc-950"
+          aria-describedby={descriptionId}
+        >
+          <div className="flex h-full flex-col overflow-hidden">
+            {/* Header */}
+            <div className="z-10 shrink-0 border-b border-zinc-100 bg-white p-6 pb-4 sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+              <DialogHeader>
+                <DialogTitle className="flex items-center justify-between text-xl font-light tracking-tight text-zinc-950 sm:text-2xl dark:text-white">
+                  <span>{dialogTitle}</span>
+                  <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-400 sm:text-sm dark:bg-zinc-900">
+                    Стъпка {step} от 3
+                  </span>
+                </DialogTitle>
+                <DialogDescription
+                  id={descriptionId}
+                  className="mt-1 text-xs font-light text-zinc-400 sm:text-sm"
+                >
+                  {step === 1 && "Основна информация за събитието."}
+                  {step === 2 && "Кога ще се проведе?"}
+                  {step === 3 && "Допълнителни детайли (по желание)."}
+                </DialogDescription>
+              </DialogHeader>
 
-            {/* Progress Bar */}
-            <div className="mt-6 flex gap-2">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "h-1.5 flex-1 rounded-full transition-all duration-500 ease-out",
-                    i === step
-                      ? "bg-zinc-950 dark:bg-white"
-                      : i < step
-                        ? "bg-zinc-950/30 dark:bg-white/30"
-                        : "bg-zinc-100 dark:bg-zinc-800"
-                  )}
-                />
-              ))}
+              {/* Progress Bar */}
+              <div className="mt-6 flex gap-2">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "h-1.5 flex-1 rounded-full transition-all duration-500 ease-out",
+                      i === step
+                        ? "bg-zinc-950 dark:bg-white"
+                        : i < step
+                          ? "bg-zinc-950/30 dark:bg-white/30"
+                          : "bg-zinc-100 dark:bg-zinc-800"
+                    )}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Form body */}
-          <div className="custom-scrollbar relative flex-1 overflow-y-auto overscroll-contain">
-            <form
-              id={formId}
-              onSubmit={handleSubmit}
-              onKeyDown={handleKeyDown}
-              className="space-y-6 p-6 sm:p-8"
-            >
-              {/* STEP 1: Basic Info */}
-              <div
-                className={cn(
-                  "space-y-5 transition-all duration-500",
-                  step === 1 ? "block opacity-100" : "hidden opacity-0"
-                )}
+            {/* Form body */}
+            <div className="custom-scrollbar relative flex-1 overflow-y-auto overscroll-contain">
+              <form
+                id={formId}
+                onSubmit={handleSubmit}
+                onKeyDown={handleKeyDown}
+                className="space-y-6 p-6 sm:p-8"
               >
-                <div className="space-y-2">
-                  <label
-                    htmlFor={`${idPrefix}-type`}
-                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
-                  >
-                    <MapPin className="size-3" /> Тип на събитието
-                  </label>
-                  <Select
-                    onValueChange={(value: ScheduleEventType) => setType(value)}
-                    value={type}
-                  >
-                    <SelectTrigger
-                      id={`${idPrefix}-type`}
-                      className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
+                {/* STEP 1: Basic Info */}
+                <div
+                  className={cn(
+                    "space-y-5 transition-all duration-500",
+                    step === 1 ? "block opacity-100" : "hidden opacity-0"
+                  )}
+                >
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`${idPrefix}-type`}
+                      className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
                     >
-                      <SelectValue placeholder="Изберете тип" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-zinc-100 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
-                      {Object.entries(eventTypeTranslations).map(
-                        ([key, value]) => (
-                          <SelectItem
-                            key={key}
-                            value={key as ScheduleEventType}
-                            className="cursor-pointer rounded-xl py-3"
-                          >
-                            {value}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                      <MapPin className="size-3" /> Тип на събитието
+                    </label>
+                    <Select
+                      onValueChange={(value: ScheduleEventType) =>
+                        setType(value)
+                      }
+                      value={type}
+                    >
+                      <SelectTrigger
+                        id={`${idPrefix}-type`}
+                        className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
+                      >
+                        <SelectValue placeholder="Изберете тип" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-zinc-100 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+                        {Object.entries(eventTypeTranslations).map(
+                          ([key, value]) => (
+                            <SelectItem
+                              key={key}
+                              value={key as ScheduleEventType}
+                              className="cursor-pointer rounded-xl py-3"
+                            >
+                              {value}
+                            </SelectItem>
+                          )
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`${idPrefix}-title`}
+                      className="ml-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+                    >
+                      Име на събитието / Група
+                    </label>
+                    <Input
+                      id={`${idPrefix}-title`}
+                      placeholder="Например: Тренировка - Напреднали"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/50"
+                      autoFocus={step === 1}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`${idPrefix}-location`}
+                      className="ml-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+                    >
+                      Място / Корт
+                    </label>
+                    <Input
+                      id={`${idPrefix}-location`}
+                      placeholder="Например: Спортна зала 'Енергетик'"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label
-                    htmlFor={`${idPrefix}-title`}
-                    className="ml-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
-                  >
-                    Име на събитието / Група
-                  </label>
-                  <Input
-                    id={`${idPrefix}-title`}
-                    placeholder="Например: Тренировка - Напреднали"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/50"
-                    autoFocus={step === 1}
-                  />
+                {/* STEP 2: Time Range */}
+                <div
+                  className={cn(
+                    "space-y-5 transition-all duration-500",
+                    step === 2 ? "block opacity-100" : "hidden opacity-0"
+                  )}
+                >
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`${idPrefix}-startDate`}
+                      className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+                    >
+                      <Calendar className="size-3" /> Начало
+                    </label>
+                    <Input
+                      id={`${idPrefix}-startDate`}
+                      type="datetime-local"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
+                      autoFocus={step === 2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`${idPrefix}-endDate`}
+                      className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+                    >
+                      <Calendar className="size-3" /> Край
+                    </label>
+                    <Input
+                      id={`${idPrefix}-endDate`}
+                      type="datetime-local"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label
-                    htmlFor={`${idPrefix}-location`}
-                    className="ml-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
-                  >
-                    Място / Корт
-                  </label>
-                  <Input
-                    id={`${idPrefix}-location`}
-                    placeholder="Например: Спортна зала 'Енергетик'"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
-                  />
-                </div>
-              </div>
-
-              {/* STEP 2: Time Range */}
-              <div
-                className={cn(
-                  "space-y-5 transition-all duration-500",
-                  step === 2 ? "block opacity-100" : "hidden opacity-0"
-                )}
-              >
-                <div className="space-y-2">
-                  <label
-                    htmlFor={`${idPrefix}-startDate`}
-                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
-                  >
-                    <Calendar className="size-3" /> Начало
-                  </label>
-                  <Input
-                    id={`${idPrefix}-startDate`}
-                    type="datetime-local"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
-                    autoFocus={step === 2}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label
-                    htmlFor={`${idPrefix}-endDate`}
-                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
-                  >
-                    <Calendar className="size-3" /> Край
-                  </label>
-                  <Input
-                    id={`${idPrefix}-endDate`}
-                    type="datetime-local"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
-                  />
-                </div>
-              </div>
-
-              {/* STEP 3: Additional details */}
-              <div
-                className={cn(
-                  "space-y-5 transition-all duration-500",
-                  step === 3 ? "block opacity-100" : "hidden opacity-0"
-                )}
-              >
-                {type === "competition" && (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
-                    <div className="flex items-center gap-2 font-medium">
-                      <Trophy className="size-4 text-amber-600 dark:text-amber-400" />
-                      <span>Състезание / Турнир</span>
+                {/* STEP 3: Additional details */}
+                <div
+                  className={cn(
+                    "space-y-5 transition-all duration-500",
+                    step === 3 ? "block opacity-100" : "hidden opacity-0"
+                  )}
+                >
+                  {type === "competition" && (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
+                      <div className="flex items-center gap-2 font-medium">
+                        <Trophy className="size-4 text-amber-600 dark:text-amber-400" />
+                        <span>Състезание / Турнир</span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-amber-800/80 dark:text-amber-300/70">
+                        Можете да въведете линк към турнира или схемата (напр.
+                        /tournaments/... или външен уеб адрес). Линкът ще бъде
+                        активен и кликаем в графика.
+                      </p>
                     </div>
-                    <p className="mt-1 text-[11px] text-amber-800/80 dark:text-amber-300/70">
-                      Можете да въведете линк към турнира или схемата (напр.
-                      /tournaments/... или външен уеб адрес). Линкът ще бъде
-                      активен и кликаем в графика.
+                  )}
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`${idPrefix}-tournamentUrl`}
+                      className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+                    >
+                      <Link2 className="size-3" /> Линк към турнира /
+                      състезанието (по желание)
+                    </label>
+                    <Input
+                      id={`${idPrefix}-tournamentUrl`}
+                      type="url"
+                      placeholder="https://... или /tournaments/..."
+                      value={tournamentUrl}
+                      onChange={(e) => setTournamentUrl(e.target.value)}
+                      className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
+                    />
+                    <p className="ml-1 text-[11px] text-zinc-400">
+                      Кликаем линк, водещ към страницата на турнира или схемата.
+                    </p>
+                  </div>
+
+                  {/* Document attachment */}
+                  <div className="space-y-2">
+                    <div className="ml-1 flex items-center justify-between">
+                      <label
+                        htmlFor={`${idPrefix}-file-upload`}
+                        className="flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+                      >
+                        <Paperclip className="size-3" /> Наредба / Прикачен
+                        документ (по желание)
+                      </label>
+                      <span className="text-[10px] text-zinc-400">
+                        PDF, Word, Excel (до 15MB)
+                      </span>
+                    </div>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      id={`${idPrefix}-file-upload`}
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                      onChange={handleFileUpload}
+                      disabled={isUploadingAttachment}
+                    />
+
+                    {attachmentUrl ? (
+                      <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3.5 transition-all dark:border-zinc-800 dark:bg-zinc-900/60">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs dark:bg-zinc-800">
+                            {getDocumentIcon(attachmentType, "size-5")}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                              {attachmentName || "Прикачен документ"}
+                            </p>
+                            <p className="text-[10px] text-zinc-400">
+                              {getDocumentTypeBadge(attachmentType)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 pl-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsPreviewModalOpen(true)}
+                            className="h-8 gap-1 rounded-xl px-2.5 text-xs text-zinc-700 hover:bg-white hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+                          >
+                            <Eye className="size-3.5" />
+                            <span>Преглед</span>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRemoveAttachment}
+                            className="h-8 rounded-xl px-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
+                            title="Премахни документа"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={isUploadingAttachment}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={cn(
+                          "flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/40 p-5 text-center transition-all hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/60",
+                          isUploadingAttachment &&
+                            "pointer-events-none opacity-60"
+                        )}
+                      >
+                        {isUploadingAttachment ? (
+                          <>
+                            <Loader2 className="size-6 animate-spin text-zinc-500" />
+                            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                              Качване на документа...
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                              <UploadCloud className="size-5 text-zinc-500" />
+                            </div>
+                            <div>
+                              <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                                Кликнете за качване на наредба или файл
+                              </span>
+                              <p className="mt-0.5 text-[10px] text-zinc-400">
+                                PDF, Word или Excel документ
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`${idPrefix}-description`}
+                      className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+                    >
+                      <AlignLeft className="size-3" /> Описание и бележки (по
+                      желание)
+                    </label>
+                    <Textarea
+                      id={`${idPrefix}-description`}
+                      placeholder="Допълнителни бележки, треньори, подробности или линкове..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="min-h-30 resize-none rounded-2xl border-zinc-100 bg-zinc-50/50 p-4 font-light shadow-none focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/50"
+                      autoFocus={step === 3 && !tournamentUrl}
+                    />
+                    <p className="ml-1 text-[11px] text-zinc-400">
+                      Ако напишете уеб линк в текста, той също автоматично ще
+                      стане кликаем в списъка.
+                    </p>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="rounded-xl border border-rose-100 bg-rose-50 p-3 dark:border-rose-900 dark:bg-rose-950/30">
+                    <p className="flex items-center justify-center gap-2 text-center text-[11px] font-medium tracking-widest text-rose-500 uppercase">
+                      <span className="size-1.5 animate-pulse rounded-full bg-rose-500" />
+                      {error}
                     </p>
                   </div>
                 )}
+              </form>
+            </div>
 
-                <div className="space-y-2">
-                  <label
-                    htmlFor={`${idPrefix}-tournamentUrl`}
-                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+            {/* Footer */}
+            <div className="z-10 shrink-0 border-t border-zinc-100 bg-zinc-50/30 p-6 pt-4 sm:p-8 dark:border-zinc-900 dark:bg-zinc-900/20">
+              <DialogFooter className="flex w-full flex-row items-center justify-between gap-3 sm:justify-between sm:gap-0">
+                {step > 1 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handlePrevStep}
+                    disabled={isSubmitting}
+                    className="flex h-12 items-center gap-2 rounded-2xl px-6 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-white dark:hover:bg-zinc-900"
                   >
-                    <Link2 className="size-3" /> Линк към турнира / състезанието
-                    (по желание)
-                  </label>
-                  <Input
-                    id={`${idPrefix}-tournamentUrl`}
-                    type="url"
-                    placeholder="https://... или /tournaments/..."
-                    value={tournamentUrl}
-                    onChange={(e) => setTournamentUrl(e.target.value)}
-                    className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 font-light shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
-                  />
-                  <p className="ml-1 text-[11px] text-zinc-400">
-                    Кликаем линк, водещ към страницата на турнира или схемата.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor={`${idPrefix}-description`}
-                    className="ml-1 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+                    <ArrowLeft className="size-4" /> Назад
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleClose}
+                    disabled={isSubmitting}
+                    className="h-12 rounded-2xl px-6 text-[11px] font-medium tracking-widest text-zinc-400 uppercase transition-all hover:text-zinc-950"
                   >
-                    <AlignLeft className="size-3" /> Описание и бележки (по
-                    желание)
-                  </label>
-                  <Textarea
-                    id={`${idPrefix}-description`}
-                    placeholder="Допълнителни бележки, треньори, подробности или линкове..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-30 resize-none rounded-2xl border-zinc-100 bg-zinc-50/50 p-4 font-light shadow-none focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/50"
-                    autoFocus={step === 3 && !tournamentUrl}
-                  />
-                  <p className="ml-1 text-[11px] text-zinc-400">
-                    Ако напишете уеб линк в текста, той също автоматично ще
-                    стане кликаем в списъка.
-                  </p>
-                </div>
-              </div>
+                    Отказ
+                  </Button>
+                )}
 
-              {error && (
-                <div className="rounded-xl border border-rose-100 bg-rose-50 p-3 dark:border-rose-900 dark:bg-rose-950/30">
-                  <p className="flex items-center justify-center gap-2 text-center text-[11px] font-medium tracking-widest text-rose-500 uppercase">
-                    <span className="size-1.5 animate-pulse rounded-full bg-rose-500" />
-                    {error}
-                  </p>
-                </div>
-              )}
-            </form>
+                {step < 3 ? (
+                  <Button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNextStep();
+                    }}
+                    className="active:scale-0.98 flex h-12 items-center gap-2 rounded-2xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-950/10 transition-all hover:opacity-90 dark:bg-white dark:text-zinc-950"
+                  >
+                    Напред <ArrowRight className="size-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    form={formId}
+                    disabled={isSubmitting}
+                    className="active:scale-0.98 h-12 rounded-2xl bg-zinc-950 px-10 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-950/10 transition-all hover:opacity-90 dark:bg-white dark:text-zinc-950"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 size-4 animate-spin" />{" "}
+                        Запазване...
+                      </>
+                    ) : (
+                      submitLabel
+                    )}
+                  </Button>
+                )}
+              </DialogFooter>
+            </div>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          {/* Footer */}
-          <div className="z-10 shrink-0 border-t border-zinc-100 bg-zinc-50/30 p-6 pt-4 sm:p-8 dark:border-zinc-900 dark:bg-zinc-900/20">
-            <DialogFooter className="flex w-full flex-row items-center justify-between gap-3 sm:justify-between sm:gap-0">
-              {step > 1 ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={handlePrevStep}
-                  disabled={isSubmitting}
-                  className="flex h-12 items-center gap-2 rounded-2xl px-6 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-white dark:hover:bg-zinc-900"
-                >
-                  <ArrowLeft className="size-4" /> Назад
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={handleClose}
-                  disabled={isSubmitting}
-                  className="h-12 rounded-2xl px-6 text-[11px] font-medium tracking-widest text-zinc-400 uppercase transition-all hover:text-zinc-950"
-                >
-                  Отказ
-                </Button>
-              )}
-
-              {step < 3 ? (
-                <Button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNextStep();
-                  }}
-                  className="active:scale-0.98 flex h-12 items-center gap-2 rounded-2xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-950/10 transition-all hover:opacity-90 dark:bg-white dark:text-zinc-950"
-                >
-                  Напред <ArrowRight className="size-4" />
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  form={formId}
-                  disabled={isSubmitting}
-                  className="active:scale-0.98 h-12 rounded-2xl bg-zinc-950 px-10 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-950/10 transition-all hover:opacity-90 dark:bg-white dark:text-zinc-950"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 size-4 animate-spin" />{" "}
-                      Запазване...
-                    </>
-                  ) : (
-                    submitLabel
-                  )}
-                </Button>
-              )}
-            </DialogFooter>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+      {attachmentUrl && (
+        <DocumentViewerDialog
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          documentUrl={attachmentUrl}
+          documentName={attachmentName || "Документ"}
+          documentType={attachmentType}
+        />
+      )}
+    </>
   );
 };

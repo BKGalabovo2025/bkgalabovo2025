@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import pathPosix from "path/posix";
 
@@ -123,14 +124,18 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    const downloadToken = crypto.randomUUID();
     await fileRef.save(buffer, {
       metadata: {
         contentType: file.type,
+        metadata: {
+          firebaseStorageDownloadTokens: downloadToken,
+        },
       },
     });
 
     const encodedPath = encodeURIComponent(normalizedPath);
-    const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
+    const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
 
     return NextResponse.json({
       success: true,

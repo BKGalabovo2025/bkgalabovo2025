@@ -5,8 +5,11 @@ import {
   Ban,
   Calendar as CalendarIcon,
   Car,
+  ChevronDown,
+  Download,
   Edit,
   ExternalLink,
+  Eye,
   FileText,
   Printer,
   RotateCcw,
@@ -18,6 +21,11 @@ import {
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
+import {
+  DocumentViewerDialog,
+  getDocumentIcon,
+  getDocumentTypeBadge,
+} from "@/components/schedule/DocumentViewerDialog";
 import { WorkoutDayPreviewModal } from "@/components/schedule/WorkoutDayPreviewModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -32,7 +40,7 @@ import {
   getActiveWorkoutsMapForScheduleAction,
 } from "@/lib/actions/trainings";
 import { formatEventDateRange } from "@/lib/date-utils";
-import { formatFullName, getInitials } from "@/lib/utils";
+import { cn, formatFullName, getInitials } from "@/lib/utils";
 import { Attendee, Member, ScheduleEvent, ScheduleEventType } from "@/types";
 
 interface EventListItemProps {
@@ -153,6 +161,13 @@ export const EventListItem = React.memo<EventListItemProps>(
       memberId?: string;
       workout: ActiveWorkoutScheduleDay;
     } | null>(null);
+
+    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    const [isDocViewerOpen, setIsDocViewerOpen] = useState(false);
+    const isLongDescription = useMemo(() => {
+      if (!event.description) return false;
+      return event.description.length > 120 || event.description.includes("\n");
+    }, [event.description]);
 
     useEffect(() => {
       const memberIds = Array.from(
@@ -360,12 +375,92 @@ export const EventListItem = React.memo<EventListItemProps>(
                 </div>
               )}
 
+              {event.attachmentUrl && (
+                <div className="pt-0.5">
+                  <div className="inline-flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200/90 bg-zinc-50/90 px-3 py-1.5 text-xs text-zinc-800 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-200">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDocViewerOpen(true);
+                      }}
+                      className="group/attach inline-flex items-center gap-2 text-left font-semibold hover:text-blue-600 dark:hover:text-blue-400"
+                    >
+                      {getDocumentIcon(event.attachmentType, "size-4")}
+                      <span className="max-w-50 truncate sm:max-w-80">
+                        {event.attachmentName || "Наредба за състезанието"}
+                      </span>
+                      <span className="rounded-md bg-zinc-200/60 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                        {getDocumentTypeBadge(event.attachmentType)}
+                      </span>
+                    </button>
+
+                    <div className="flex items-center gap-1 border-l border-zinc-200 pl-2 dark:border-zinc-700">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsDocViewerOpen(true);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
+                      >
+                        <Eye className="size-3" />
+                        <span>Преглед</span>
+                      </button>
+                      <a
+                        href={event.attachmentUrl}
+                        download={event.attachmentName || "document"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-medium text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        title="Изтегли файла"
+                      >
+                        <Download className="size-3" />
+                        <span className="sr-only">Свали</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {event.description && (
                 <div className="rounded-2xl border border-zinc-100 bg-zinc-50/60 p-3.5 text-xs font-light text-zinc-600 dark:border-zinc-800/80 dark:bg-zinc-900/40 dark:text-zinc-300">
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2.5">
                     <FileText className="mt-0.5 size-3.5 shrink-0 text-zinc-400" />
-                    <div className="leading-relaxed break-words whitespace-pre-wrap">
-                      {renderTextWithLinks(event.description)}
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className={cn(
+                          "leading-relaxed break-words whitespace-pre-wrap transition-all",
+                          !isDescriptionExpanded &&
+                            isLongDescription &&
+                            "line-clamp-2 overflow-hidden"
+                        )}
+                      >
+                        {renderTextWithLinks(event.description)}
+                      </div>
+                      {isLongDescription && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsDescriptionExpanded(!isDescriptionExpanded);
+                          }}
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                        >
+                          <span>
+                            {isDescriptionExpanded
+                              ? "Свий описанието"
+                              : "Виж цялото описание"}
+                          </span>
+                          <ChevronDown
+                            className={cn(
+                              "size-3.5 transition-transform duration-200",
+                              isDescriptionExpanded && "rotate-180"
+                            )}
+                          />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -684,6 +779,16 @@ export const EventListItem = React.memo<EventListItemProps>(
           onClose={() => setSelectedPreviewWorkout(null)}
           data={selectedPreviewWorkout}
         />
+
+        {event.attachmentUrl && (
+          <DocumentViewerDialog
+            isOpen={isDocViewerOpen}
+            onClose={() => setIsDocViewerOpen(false)}
+            documentUrl={event.attachmentUrl}
+            documentName={event.attachmentName || "Наредба за състезанието"}
+            documentType={event.attachmentType}
+          />
+        )}
       </div>
     );
   }

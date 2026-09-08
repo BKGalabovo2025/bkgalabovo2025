@@ -42,6 +42,9 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         location: event.location ?? "",
         description: event.description ?? "",
         tournamentUrl: event.tournamentUrl ?? "",
+        attachmentUrl: event.attachmentUrl ?? null,
+        attachmentName: event.attachmentName ?? null,
+        attachmentType: event.attachmentType ?? null,
       }}
       onSubmit={async ({
         title,
@@ -51,6 +54,9 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         location,
         description,
         tournamentUrl,
+        attachmentUrl,
+        attachmentName,
+        attachmentType,
       }) => {
         await onUpdateEvent(event.id, {
           title,
@@ -60,6 +66,9 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
           location,
           description,
           tournamentUrl: tournamentUrl || null,
+          attachmentUrl: attachmentUrl || null,
+          attachmentName: attachmentName || null,
+          attachmentType: attachmentType || null,
         });
       }}
     />

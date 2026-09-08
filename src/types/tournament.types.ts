@@ -37,8 +37,16 @@ export const MATCH_FORMAT_PRESETS: MatchFormatPreset[] = [
     maxPoints: 30,
   },
   {
+    id: "best_of_3_15",
+    label: "🏸 2 от 3 гейма до 15 т. (при 14:14 – до 2 разлика, макс. 21)",
+    gamesNeededToWin: 2,
+    pointsPerGame: 15,
+    twoPointAdvantage: true,
+    maxPoints: 21,
+  },
+  {
     id: "single_21",
-    label: "1 гейм до 21 точки",
+    label: "1 гейм до 21 точки (без продължения)",
     gamesNeededToWin: 1,
     pointsPerGame: 21,
     twoPointAdvantage: false,
@@ -46,7 +54,7 @@ export const MATCH_FORMAT_PRESETS: MatchFormatPreset[] = [
   },
   {
     id: "single_30",
-    label: "1 гейм до 30 точки",
+    label: "1 гейм до 30 точки (без продължения)",
     gamesNeededToWin: 1,
     pointsPerGame: 30,
     twoPointAdvantage: false,
@@ -54,16 +62,8 @@ export const MATCH_FORMAT_PRESETS: MatchFormatPreset[] = [
   },
   {
     id: "best_of_5_15",
-    label: "3 от 5 гейма до 15 точки",
+    label: "3 от 5 гейма до 15 точки (без продължения)",
     gamesNeededToWin: 3,
-    pointsPerGame: 15,
-    twoPointAdvantage: false,
-    maxPoints: 15,
-  },
-  {
-    id: "best_of_3_15",
-    label: "2 от 3 гейма до 15 точки",
-    gamesNeededToWin: 2,
     pointsPerGame: 15,
     twoPointAdvantage: false,
     maxPoints: 15,
@@ -76,53 +76,95 @@ export function getMatchFormat(id?: string): MatchFormatPreset {
   );
 }
 
+function validateTwoPointAdvantageGame(
+  winner: number,
+  loser: number,
+  fmt: MatchFormatPreset
+): { valid: boolean; error?: string } {
+  // 1. Победителят трябва да има поне целевите точки (напр. 15 или 21)
+  if (winner < fmt.pointsPerGame) {
+    return {
+      valid: false,
+      error: `Победителят трябва да има поне ${fmt.pointsPerGame} точки`,
+    };
+  }
+
+  // 2. Не може да се превишава абсолютният таван за формата (напр. 21 или 30)
+  if (winner > fmt.maxPoints) {
+    return {
+      valid: false,
+      error: `Максималният брой точки за този формат е ${fmt.maxPoints}`,
+    };
+  }
+
+  // 3. Преди прага на равенство (губещият има <= pointsPerGame - 2, напр. <= 13 за 15т. или <= 19 за 21т.):
+  // Геймът задължително приключва точно на pointsPerGame (напр. 15:13 или 21:19)
+  if (loser < fmt.pointsPerGame - 1) {
+    if (winner !== fmt.pointsPerGame) {
+      return {
+        valid: false,
+        error: `При ${loser} точки на губещия, геймът приключва при ${fmt.pointsPerGame}:${loser}`,
+      };
+    }
+    return { valid: true };
+  }
+
+  // 4. При достигане на абсолютния таван (напр. 21 за 15т. или 30 за 21т.):
+  if (winner === fmt.maxPoints) {
+    if (loser === fmt.maxPoints - 1 || loser === fmt.maxPoints - 2) {
+      return { valid: true };
+    }
+    return {
+      valid: false,
+      error: `При ${fmt.maxPoints} точки на победителя, резултатът на губещия трябва да е поне ${fmt.maxPoints - 2}`,
+    };
+  }
+
+  // 5. Преди абсолютния таван: изисква се точно 2 точки разлика
+  if (winner - loser < 2) {
+    return {
+      valid: false,
+      error: `При равенство след ${fmt.pointsPerGame - 1}:${fmt.pointsPerGame - 1} е необходима разлика от 2 точки`,
+    };
+  }
+
+  if (winner - loser > 2) {
+    return {
+      valid: false,
+      error: `Геймът приключва при разлика от точно 2 точки (${loser + 2}:${loser})`,
+    };
+  }
+
+  return { valid: true };
+}
+
 // Валидация на един гейм спрямо формата
 export function isValidGameScore(
   p1: number,
   p2: number,
   fmt: MatchFormatPreset
 ): { valid: boolean; error?: string } {
+  if (p1 === 0 && p2 === 0) {
+    return { valid: false, error: "Резултатът не може да бъде 0:0" };
+  }
+
+  if (p1 === p2) {
+    return { valid: false, error: "Геймът не може да завърши наравно" };
+  }
+
   const winner = Math.max(p1, p2);
   const loser = Math.min(p1, p2);
 
   if (fmt.twoPointAdvantage) {
-    // Официален режим
-    if (winner < fmt.pointsPerGame) {
-      return {
-        valid: false,
-        error: `Победителят трябва да има поне ${fmt.pointsPerGame} точки`,
-      };
-    }
-    if (winner === fmt.maxPoints) {
-      // При максималния резултат се приема каквато и да е разлика (30-29 е валидно)
-      return { valid: true };
-    }
-    if (winner > fmt.maxPoints) {
-      return {
-        valid: false,
-        error: `Максималният брой точки е ${fmt.maxPoints}`,
-      };
-    }
-    if (winner - loser < 2) {
-      return {
-        valid: false,
-        error: `При ${fmt.pointsPerGame}:${fmt.pointsPerGame} трябва 2 точки разлика`,
-      };
-    }
-    if (winner - loser > 2 && loser >= fmt.pointsPerGame) {
-      return {
-        valid: false,
-        error: `При ${loser} точки на губещия разликата трябва да е точно 2`,
-      };
-    }
-  } else {
-    // Опростен режим – просто до N точки
-    if (winner !== fmt.pointsPerGame) {
-      return {
-        valid: false,
-        error: `Победителят трябва да има точно ${fmt.pointsPerGame} точки`,
-      };
-    }
+    return validateTwoPointAdvantageGame(winner, loser, fmt);
+  }
+
+  // Опростен режим – побеждава този, който пръв достигне pointsPerGame
+  if (winner !== fmt.pointsPerGame) {
+    return {
+      valid: false,
+      error: `Победителят трябва да има точно ${fmt.pointsPerGame} точки`,
+    };
   }
 
   return { valid: true };

@@ -50,11 +50,17 @@ function buildScoreString(games: GameScore[]): string {
   return games.map((g) => `${g.p1}-${g.p2}`).join(", ");
 }
 
-function countWins(games: GameScore[]): { p1: number; p2: number } {
+function countWins(
+  games: GameScore[],
+  fmt: MatchFormatPreset
+): { p1: number; p2: number } {
   return games.reduce(
     (acc, g) => {
-      if (g.p1 > g.p2) acc.p1++;
-      else if (g.p2 > g.p1) acc.p2++;
+      const v = isValidGameScore(g.p1, g.p2, fmt);
+      if (v.valid) {
+        if (g.p1 > g.p2) acc.p1++;
+        else if (g.p2 > g.p1) acc.p2++;
+      }
       return acc;
     },
     { p1: 0, p2: 0 }
@@ -91,7 +97,7 @@ export function ScoreDialog({
 
   const player1Name = getEntryName(match.player1EntryId);
   const player2Name = getEntryName(match.player2EntryId);
-  const wins = countWins(games);
+  const wins = countWins(games, fmt);
 
   const gameValidations = games.map((g) => {
     if (g.p1 === 0 && g.p2 === 0) return null;
@@ -117,20 +123,7 @@ export function ScoreDialog({
       prev.map((g, i) => {
         if (i !== gameIdx) return g;
         const val = Math.max(0, g[player] + delta);
-        const otherPlayer = player === "p1" ? "p2" : "p1";
-
-        let newOtherVal = g[otherPlayer];
-        if (delta > 0 && val > 0 && newOtherVal === 0) {
-          if (val < fmt.pointsPerGame - 1) {
-            newOtherVal = fmt.pointsPerGame;
-          } else {
-            newOtherVal = val + 2;
-            if (fmt.maxPoints > 0 && newOtherVal > fmt.maxPoints)
-              newOtherVal = fmt.maxPoints;
-          }
-        }
-
-        return { ...g, [player]: val, [otherPlayer]: newOtherVal };
+        return { ...g, [player]: val };
       })
     );
   };
@@ -140,20 +133,7 @@ export function ScoreDialog({
       prev.map((g, i) => {
         if (i !== gameIdx) return g;
         const val = Math.max(0, isNaN(value) ? 0 : value);
-        const otherPlayer = player === "p1" ? "p2" : "p1";
-
-        let newOtherVal = g[otherPlayer];
-        if (val > 0 && newOtherVal === 0) {
-          if (val < fmt.pointsPerGame - 1) {
-            newOtherVal = fmt.pointsPerGame;
-          } else {
-            newOtherVal = val + 2;
-            if (fmt.maxPoints > 0 && newOtherVal > fmt.maxPoints)
-              newOtherVal = fmt.maxPoints;
-          }
-        }
-
-        return { ...g, [player]: val, [otherPlayer]: newOtherVal };
+        return { ...g, [player]: val };
       })
     );
   };

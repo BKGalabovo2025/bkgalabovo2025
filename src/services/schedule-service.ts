@@ -73,6 +73,14 @@ export const docToScheduleEvent = (
     totalCampPrice: data.totalCampPrice,
     campInsurancePrice: data.campInsurancePrice,
     campSessions: Array.isArray(data.campSessions) ? data.campSessions : [],
+    attachmentUrl:
+      typeof data.attachmentUrl === "string" ? data.attachmentUrl : null,
+    attachmentName:
+      typeof data.attachmentName === "string" ? data.attachmentName : null,
+    attachmentType:
+      typeof data.attachmentType === "string"
+        ? (data.attachmentType as "pdf" | "word" | "excel" | "other")
+        : null,
   };
 };
 

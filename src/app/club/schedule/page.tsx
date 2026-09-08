@@ -56,6 +56,10 @@ export default async function SchedulePage() {
       isCancelled: !!data.isCancelled,
       description: data.description || "",
       location: data.location || 'Спортна зала „Енергетик"',
+      tournamentUrl: data.tournamentUrl || null,
+      attachmentUrl: data.attachmentUrl || null,
+      attachmentName: data.attachmentName || null,
+      attachmentType: data.attachmentType || null,
     };
   });
 

@@ -41,6 +41,9 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
         location,
         description,
         tournamentUrl,
+        attachmentUrl,
+        attachmentName,
+        attachmentType,
       }) => {
         await onAddEvent({
           title,
@@ -50,6 +53,9 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
           location,
           description,
           tournamentUrl: tournamentUrl || null,
+          attachmentUrl: attachmentUrl || null,
+          attachmentName: attachmentName || null,
+          attachmentType: attachmentType || null,
           attendees: [],
           attendeeMemberIds: [],
         });

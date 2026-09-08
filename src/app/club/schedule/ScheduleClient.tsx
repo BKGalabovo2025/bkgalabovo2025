@@ -21,6 +21,10 @@ interface EventSlot {
   isCancelled?: boolean;
   description?: string;
   location?: string;
+  tournamentUrl?: string | null;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
+  attachmentType?: "pdf" | "word" | "excel" | "other" | null;
 }
 
 interface Props {
