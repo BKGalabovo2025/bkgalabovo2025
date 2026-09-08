@@ -229,12 +229,46 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({
             </div>
           </div>
 
-          <div className="w-full overflow-hidden rounded border border-gray-300">
-            <iframe
-              src={event.attachmentUrl}
-              title={event.attachmentName || "Наредба"}
-              className="h-220 w-full border-none"
-            />
+          <div className="rounded-xl border border-gray-300 bg-white p-6">
+            <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
+              <div className="rounded-lg bg-gray-100 p-2.5 font-bold text-gray-700 uppercase">
+                {event.attachmentType || "PDF"}
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-gray-900">
+                  {event.attachmentName || "Официална наредба на турнира"}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Прикачен електронен документ към календара на БК Гълъбово
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2 text-xs text-gray-700">
+              <p>
+                <strong>Статус на документа:</strong> Официален файл, архивиран
+                и валидиран в системата.
+              </p>
+              <p>
+                <strong>Електронен достъп:</strong>{" "}
+                <span className="font-mono break-all text-gray-900">
+                  {event.attachmentUrl}
+                </span>
+              </p>
+              <div className="mt-4 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-gray-600">
+                <p className="font-semibold text-gray-800">
+                  Указание за пълен печат на документа:
+                </p>
+                <p className="mt-1 leading-relaxed">
+                  За разпечатване на пълния многостраничен текст на оригиналната
+                  наредба (със съдийски правила, схеми и формуляри), отворете
+                  събитието в сайта и кликнете бутона{" "}
+                  <strong>„Преглед“ ➔ „Печат на наредбата“</strong>. Документът
+                  ще се отпечата директно в оригинален формат без загуба на
+                  качество.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

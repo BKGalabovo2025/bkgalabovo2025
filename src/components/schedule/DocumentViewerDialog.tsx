@@ -7,6 +7,7 @@ import {
   FileSpreadsheet,
   FileText,
   Paperclip,
+  Printer,
 } from "lucide-react";
 import React from "react";
 
@@ -224,6 +225,30 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
                 <Download className="size-3.5" />
                 <span className="hidden sm:inline">Изтегли</span>
               </a>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (!documentUrl) return;
+                const printWin = window.open(documentUrl, "_blank");
+                if (printWin) {
+                  printWin.focus();
+                  printWin.onload = () => {
+                    try {
+                      printWin.print();
+                    } catch {
+                      // Handled by native PDF viewer
+                    }
+                  };
+                }
+              }}
+              className="h-9 gap-1.5 rounded-xl border-zinc-200 bg-white text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              title="Принтирай наредбата"
+            >
+              <Printer className="size-3.5" />
+              <span className="hidden sm:inline">Печат</span>
             </Button>
 
             <Button
