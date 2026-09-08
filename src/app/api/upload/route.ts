@@ -114,10 +114,45 @@ export async function POST(request: NextRequest) {
     }
 
     const storage = getAdminStorage();
-    const bucketName =
+    const primaryBucketName =
       process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
       "bkgalabovo2025.appspot.com";
-    const bucket = storage.bucket(bucketName);
+
+    let bucket = storage.bucket(primaryBucketName);
+    let bucketExists = false;
+    try {
+      const [exists] = await bucket.exists();
+      bucketExists = exists;
+    } catch {
+      bucketExists = false;
+    }
+
+    if (!bucketExists) {
+      const fallbackBucket = storage.bucket(
+        "bkgalabovo2025.firebasestorage.app"
+      );
+      try {
+        const [fallbackExists] = await fallbackBucket.exists();
+        if (fallbackExists) {
+          bucket = fallbackBucket;
+          bucketExists = true;
+        }
+      } catch {
+        bucketExists = false;
+      }
+    }
+
+    if (!bucketExists) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Cloud Storage не е активиран в Firebase Console за този проект. Моля, отворете https://console.firebase.google.com/project/bkgalabovo2025/storage и натиснете 'Get Started' (Започнете), за да активирате безплатното хранилище.",
+        },
+        { status: 500 }
+      );
+    }
+
     console.log(`Using bucket: ${bucket.name}`);
     const fileRef = bucket.file(normalizedPath);
 

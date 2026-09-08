@@ -7,22 +7,16 @@ import {
   ArrowLeft,
   ArrowRight,
   Calendar,
-  Eye,
   Link2,
   Loader2,
   MapPin,
-  Paperclip,
-  Trash2,
   Trophy,
-  UploadCloud,
 } from "lucide-react";
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 
 import {
   DocumentAttachmentType,
   DocumentViewerDialog,
-  getDocumentIcon,
-  getDocumentTypeBadge,
 } from "@/components/schedule/DocumentViewerDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +41,8 @@ import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { uploadFile } from "@/services/storage-service";
 import { ScheduleEventType } from "@/types";
+
+import { EventAttachmentSection } from "./EventAttachmentSection";
 
 // ── Shared constants ──────────────────────────────────────────────────────────
 
@@ -150,7 +146,6 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
 }) => {
   const { idToken } = useAuth();
   const defaultStart = getDefaultStartTime();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState(initialValues?.title ?? "");
@@ -248,9 +243,18 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
     setAttachmentUrl(null);
     setAttachmentName(null);
     setAttachmentType(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+  };
+
+  const handleApplyManualLink = (url: string, name: string) => {
+    if (!url.trim()) {
+      setError("Моля, въведете линк към документа.");
+      return;
     }
+    const detected = detectFileType(url);
+    setAttachmentUrl(url.trim());
+    setAttachmentName(name.trim() || "Наредба за състезанието");
+    setAttachmentType(detected);
+    setError(null);
   };
 
   const validateStep = (currentStep: number) => {
@@ -545,105 +549,17 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                   </div>
 
                   {/* Document attachment */}
-                  <div className="space-y-2">
-                    <div className="ml-1 flex items-center justify-between">
-                      <label
-                        htmlFor={`${idPrefix}-file-upload`}
-                        className="flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
-                      >
-                        <Paperclip className="size-3" /> Наредба / Прикачен
-                        документ (по желание)
-                      </label>
-                      <span className="text-[10px] text-zinc-400">
-                        PDF, Word, Excel (до 15MB)
-                      </span>
-                    </div>
-
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      id={`${idPrefix}-file-upload`}
-                      className="hidden"
-                      accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                      onChange={handleFileUpload}
-                      disabled={isUploadingAttachment}
-                    />
-
-                    {attachmentUrl ? (
-                      <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3.5 transition-all dark:border-zinc-800 dark:bg-zinc-900/60">
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs dark:bg-zinc-800">
-                            {getDocumentIcon(attachmentType, "size-5")}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                              {attachmentName || "Прикачен документ"}
-                            </p>
-                            <p className="text-[10px] text-zinc-400">
-                              {getDocumentTypeBadge(attachmentType)}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 pl-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsPreviewModalOpen(true)}
-                            className="h-8 gap-1 rounded-xl px-2.5 text-xs text-zinc-700 hover:bg-white hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
-                          >
-                            <Eye className="size-3.5" />
-                            <span>Преглед</span>
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleRemoveAttachment}
-                            className="h-8 rounded-xl px-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
-                            title="Премахни документа"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={isUploadingAttachment}
-                        onClick={() => fileInputRef.current?.click()}
-                        className={cn(
-                          "flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/40 p-5 text-center transition-all hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/60",
-                          isUploadingAttachment &&
-                            "pointer-events-none opacity-60"
-                        )}
-                      >
-                        {isUploadingAttachment ? (
-                          <>
-                            <Loader2 className="size-6 animate-spin text-zinc-500" />
-                            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                              Качване на документа...
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
-                              <UploadCloud className="size-5 text-zinc-500" />
-                            </div>
-                            <div>
-                              <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                                Кликнете за качване на наредба или файл
-                              </span>
-                              <p className="mt-0.5 text-[10px] text-zinc-400">
-                                PDF, Word или Excel документ
-                              </p>
-                            </div>
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
+                  <EventAttachmentSection
+                    idPrefix={idPrefix}
+                    attachmentUrl={attachmentUrl}
+                    attachmentName={attachmentName}
+                    attachmentType={attachmentType}
+                    isUploadingAttachment={isUploadingAttachment}
+                    onFileUpload={handleFileUpload}
+                    onRemoveAttachment={handleRemoveAttachment}
+                    onOpenPreview={() => setIsPreviewModalOpen(true)}
+                    onApplyManualLink={handleApplyManualLink}
+                  />
 
                   <div className="space-y-2">
                     <label
