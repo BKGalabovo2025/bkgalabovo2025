@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Settings, User, Users } from "lucide-react";
+import { Activity, Database, Settings, User, Users } from "lucide-react";
 import { Save } from "lucide-react";
 import { Shield } from "lucide-react";
 import { Palette } from "lucide-react";
@@ -14,6 +14,7 @@ import { updateSite } from "@/services/site-service";
 import { useSettingsStore } from "@/store/use-settings-store";
 
 import { AuditLogTab } from "./components/AuditLogTab";
+import { BackupTab } from "./components/BackupTab";
 import { BrandingTab } from "./components/BrandingTab";
 import { GeneralTab } from "./components/GeneralTab";
 import { ProfileTab } from "./components/ProfileTab";
@@ -144,6 +145,13 @@ export default function SettingsClient() {
                 <Shield className="mr-4 size-5" strokeWidth={1.5} /> Системни
                 логове
               </TabsTrigger>
+              <TabsTrigger
+                value="backup"
+                className="flex-shrink-0 justify-start rounded-2xl border-none px-6 py-5 text-[13px] font-medium tracking-widest whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-500 lg:w-full"
+              >
+                <Database className="mr-4 size-5" strokeWidth={1.5} /> Резервен
+                архив
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -196,6 +204,13 @@ export default function SettingsClient() {
                 className="m-0 mt-0 animate-in fade-in zoom-in-95 data-[state=inactive]:hidden"
               >
                 <AuditLogTab />
+              </TabsContent>
+
+              <TabsContent
+                value="backup"
+                className="m-0 mt-0 animate-in fade-in zoom-in-95 data-[state=inactive]:hidden"
+              >
+                <BackupTab />
               </TabsContent>
             </div>
           </div>
