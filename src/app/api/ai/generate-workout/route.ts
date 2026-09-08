@@ -1935,11 +1935,15 @@ async function tryModelGenerate(
     const errText = await res.text().catch(() => "");
     if (res.status === 401 || res.status === 403) {
       console.warn(
-        `[Gemini AI] Model ${model} authentication failed (HTTP ${res.status}: key may be restricted or blocked). Switching to dynamic engine.`
+        "[Gemini AI] Model authentication failed. Switching to dynamic engine.",
+        model,
+        res.status
       );
     } else {
       console.warn(
-        `[Gemini API] Model ${model} returned HTTP ${res.status}:`,
+        "[Gemini API] Model returned HTTP error:",
+        model,
+        res.status,
         errText
       );
     }
@@ -1967,7 +1971,11 @@ async function tryModelGenerate(
       return parsed as WorkoutProgram;
     }
   } catch (parseErr) {
-    console.warn(`[Gemini API] Failed to parse JSON from ${model}:`, parseErr);
+    console.warn(
+      "[Gemini API] Failed to parse JSON from model:",
+      model,
+      parseErr
+    );
   }
   return null;
 }
@@ -1991,7 +1999,7 @@ async function requestGeminiProgram(
       const program = await tryModelGenerate(model, apiKey, prompt);
       if (program) return program;
     } catch (err) {
-      console.warn(`[Gemini API] Exception during ${model} call:`, err);
+      console.warn("[Gemini API] Exception during model call:", model, err);
     }
   }
   return null;
