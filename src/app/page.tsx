@@ -164,7 +164,7 @@ export default function HomePage() {
                   fill
                   sizes="80px"
                   className="object-contain transition-all duration-500 group-hover:scale-105"
-                  priority={true}
+                  loading="eager"
                 />
               </div>
               <h2 className="mb-3 text-2xl font-medium text-white">
@@ -203,7 +203,7 @@ export default function HomePage() {
                   fill
                   sizes="128px"
                   className="rounded-2xl object-contain transition-all duration-500 group-hover:scale-105"
-                  priority={true}
+                  loading="eager"
                 />
               </div>
               <h2 className="mb-3 text-2xl font-medium text-white">

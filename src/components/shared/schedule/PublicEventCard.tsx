@@ -16,7 +16,6 @@ import {
   Info,
   Mail,
   MapPin,
-  Printer,
   Trophy,
 } from "lucide-react";
 import Link from "next/link";
@@ -99,70 +98,6 @@ export function PublicEventCard({
 }: PublicEventCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [isDocViewerOpen, setIsDocViewerOpen] = useState(false);
-
-  const handlePrint = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Принтиране на събитие - ${event.title}</title>
-          <style>
-            body { font-family: sans-serif; padding: 2rem; color: #333; }
-            h1 { color: #000; margin-bottom: 0.5rem; }
-            .meta { color: #555; margin-bottom: 1.5rem; }
-            .meta p { margin: 0.35rem 0; }
-            .desc { white-space: pre-wrap; line-height: 1.6; margin-bottom: 2rem; }
-            .print-page-break {
-              page-break-before: always;
-              break-before: page;
-              margin-top: 3rem;
-              padding-top: 2rem;
-              border-top: 2px dashed #999;
-            }
-            .attachment-box {
-              padding: 1.5rem;
-              background-color: #f9f9f9;
-              border: 1px solid #ddd;
-              border-radius: 8px;
-              margin-top: 1rem;
-            }
-            @media print {
-              .print-page-break { page-break-before: always; break-before: page; }
-            }
-          </style>
-        </head>
-        <body>
-          <h1>${event.title}</h1>
-          <div class="meta">
-            <p><strong>Дата и час:</strong> ${formatEventDateRange(event.startTime, event.endTime)}</p>
-            <p><strong>Локация:</strong> ${event.location || 'Спортна зала „Енергетик"'}</p>
-            ${event.tournamentUrl ? `<p><strong>Линк към турнира:</strong> <a href="${event.tournamentUrl}">${event.tournamentUrl}</a></p>` : ""}
-          </div>
-          <div class="desc">${event.description || "Няма допълнителна информация."}</div>
-
-          ${
-            event.attachmentUrl
-              ? `
-            <div class="print-page-break">
-              <h2 style="margin-top:0;">Официална Наредба / Прикачен Документ</h2>
-              <div class="attachment-box">
-                <p><strong>Събитие:</strong> ${event.title}</p>
-                <p><strong>Прикачен файл:</strong> ${event.attachmentName || "Наредба за състезанието"}</p>
-                <p><strong>Връзка за сваляне / проверка:</strong> <a href="${event.attachmentUrl}">${event.attachmentUrl}</a></p>
-              </div>
-              <iframe src="${event.attachmentUrl}" style="width: 100%; height: 900px; border: 1px solid #ccc; margin-top: 1.5rem; border-radius: 4px;"></iframe>
-            </div>
-          `
-              : ""
-          }
-
-          <script>window.print(); window.setTimeout(() => window.close(), 500);</script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  };
 
   const displayTime = formatEventDateRange(event.startTime, event.endTime);
 
@@ -277,14 +212,6 @@ export function PublicEventCard({
 
         {/* Right side */}
         <div className="mt-4 ml-6 flex flex-wrap items-center gap-3 sm:mt-0 sm:ml-0 sm:gap-5">
-          <button
-            onClick={handlePrint}
-            className="p-2 text-zinc-500 transition-colors hover:text-zinc-300"
-            title="Принтирай"
-          >
-            <Printer size={18} />
-          </button>
-
           {/* Admin-only: email confirmation link */}
           {showAdminLinks && (
             <Link

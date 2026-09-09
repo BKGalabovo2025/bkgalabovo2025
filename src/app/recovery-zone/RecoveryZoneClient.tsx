@@ -431,7 +431,6 @@ export default function RecoveryZoneClient({
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
-                    priority={true}
                   />
                 </div>
               </div>
@@ -463,7 +462,6 @@ export default function RecoveryZoneClient({
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
-                    priority={true}
                   />
                 </div>
               </div>
@@ -499,7 +497,6 @@ export default function RecoveryZoneClient({
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-contain"
-                    priority={true}
                   />
                 </div>
               </div>

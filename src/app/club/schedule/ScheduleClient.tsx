@@ -8,6 +8,7 @@ import {
   Share2,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
@@ -18,10 +19,13 @@ interface EventSlot {
   title: string;
   startTime: string;
   endTime: string;
+  type?: string;
+  isTournament?: boolean;
   isCancelled?: boolean;
   description?: string;
   location?: string;
   tournamentUrl?: string | null;
+  tournamentId?: string | null;
   attachmentUrl?: string | null;
   attachmentName?: string | null;
   attachmentType?: "pdf" | "word" | "excel" | "other" | null;
@@ -68,10 +72,63 @@ function groupByDate(events: EventSlot[]): Record<string, EventSlot[]> {
   );
 }
 
-// EventCard extracted to src/components/shared/schedule/PublicEventCard.tsx
+type ScheduleFilter = "all" | "trainings" | "tournaments";
+
+function getEmptyTitle(filter: ScheduleFilter): string {
+  if (filter === "tournaments") return "Няма предстоящи състезания или турнири";
+  if (filter === "trainings") return "Няма предстоящи тренировки";
+  return "Няма предстоящи събития";
+}
+
+function getEmptySubtitle(filter: ScheduleFilter): string {
+  if (filter === "tournaments") {
+    return "Следете тук за обявяване на нови турнири и наредби от БФБ.";
+  }
+  if (filter === "trainings") {
+    return "Проверете по-късно за актуалния график на тренировките.";
+  }
+  return "Проверете по-късно за актуалния график.";
+}
 
 export default function ScheduleClient({ schedule }: Props) {
-  const grouped = groupByDate(schedule);
+  const [filter, setFilter] = useState<ScheduleFilter>("all");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam === "tournaments") {
+        setFilter("tournaments");
+      } else if (tabParam === "trainings") {
+        setFilter("trainings");
+      }
+    }
+  }, []);
+
+  const filteredEvents = schedule.filter((event) => {
+    const isTourney =
+      event.isTournament ||
+      event.type === "competition" ||
+      Boolean(event.tournamentUrl) ||
+      Boolean(event.tournamentId);
+
+    if (filter === "trainings") return !isTourney;
+    if (filter === "tournaments") return isTourney;
+    return true;
+  });
+
+  const trainingsCount = schedule.filter(
+    (e) => !e.isTournament && e.type !== "competition" && !e.tournamentUrl
+  ).length;
+  const tournamentsCount = schedule.filter(
+    (e) =>
+      e.isTournament ||
+      e.type === "competition" ||
+      Boolean(e.tournamentUrl) ||
+      Boolean(e.tournamentId)
+  ).length;
+
+  const grouped = groupByDate(filteredEvents);
   const groups = Object.entries(grouped);
 
   const handleShare = async () => {
@@ -129,7 +186,7 @@ export default function ScheduleClient({ schedule }: Props) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-12 w-full"
+            className="mb-8 w-full"
           >
             <div className="flex w-full flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
               <div className="flex items-center gap-5">
@@ -141,10 +198,10 @@ export default function ScheduleClient({ schedule }: Props) {
                     График
                   </p>
                   <h1 className="text-4xl font-black tracking-tight">
-                    Предстоящи Тренировки
+                    Календар и Събития
                   </h1>
                   <p className="mt-1 text-sm text-zinc-400">
-                    Вижте всички предстоящи събития на клуба.
+                    Вижте всички тренировки, лагери и турнири на клуба.
                   </p>
                 </div>
               </div>
@@ -156,10 +213,76 @@ export default function ScheduleClient({ schedule }: Props) {
                 Сподели Графика
               </button>
             </div>
+
+            {/* Filter Tabs */}
+            <div className="mt-8 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setFilter("all")}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all ${
+                  filter === "all"
+                    ? "bg-zinc-100 text-zinc-950 shadow-md"
+                    : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span>Всички</span>
+                <span
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] ${
+                    filter === "all"
+                      ? "bg-zinc-300 text-zinc-900"
+                      : "bg-zinc-800 text-zinc-500"
+                  }`}
+                >
+                  {schedule.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilter("trainings")}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all ${
+                  filter === "trainings"
+                    ? "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+                    : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span>🏸 Тренировки и лагери</span>
+                <span
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] ${
+                    filter === "trainings"
+                      ? "bg-white/20 text-white"
+                      : "bg-zinc-800 text-zinc-500"
+                  }`}
+                >
+                  {trainingsCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilter("tournaments")}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all ${
+                  filter === "tournaments"
+                    ? "bg-amber-500 text-zinc-950 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
+                    : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span>🏆 Състезания и турнири</span>
+                <span
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] ${
+                    filter === "tournaments"
+                      ? "bg-black/20 text-zinc-950"
+                      : "bg-zinc-800 text-zinc-500"
+                  }`}
+                >
+                  {tournamentsCount}
+                </span>
+              </button>
+            </div>
           </motion.div>
 
           {/* Content */}
-          {schedule.length === 0 ? (
+          {filteredEvents.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -167,11 +290,9 @@ export default function ScheduleClient({ schedule }: Props) {
             >
               <CalendarIcon size={56} className="mx-auto mb-6 text-zinc-700" />
               <p className="mb-2 text-2xl font-light text-white">
-                Няма предстоящи тренировки
+                {getEmptyTitle(filter)}
               </p>
-              <p className="text-zinc-400">
-                Проверете по-късно за актуалния график.
-              </p>
+              <p className="text-zinc-400">{getEmptySubtitle(filter)}</p>
             </motion.div>
           ) : (
             <div className="space-y-10">

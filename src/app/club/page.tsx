@@ -97,26 +97,48 @@ export default async function ClubMainPage() {
           : data.endDate.toDate?.().toISOString() || data.endDate;
     }
 
+    const isTournament =
+      data.type === "competition" ||
+      Boolean(data.tournamentUrl) ||
+      Boolean(data.tournamentId);
+
     return {
       id: doc.id,
       title: data.title || "Тренировка",
       startTime: startDateStr,
       endTime: endDateStr,
+      type: (data.type ||
+        (isTournament ? "competition" : "training")) as string,
+      isTournament,
       isCancelled: !!data.isCancelled,
       description: data.description || "",
       location: data.location || 'Спортна зала „Енергетик"',
       tournamentUrl: data.tournamentUrl || null,
+      tournamentId: data.tournamentId || null,
       attachmentUrl: data.attachmentUrl || null,
       attachmentName: data.attachmentName || null,
       attachmentType: data.attachmentType || null,
     };
   });
 
-  // Filter for next 7 days and sort
-  const schedule = scheduleRaw
+  // 1. Regular trainings, camps, and club events (next 7 days)
+  const trainings = scheduleRaw
     .filter((event) => {
+      if (event.isTournament) return false;
       const eventStart = new Date(event.startTime);
       return eventStart >= startOfDay && eventStart < endOf7Days;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+
+  // 2. Competitions and tournaments (all upcoming)
+  const tournaments = scheduleRaw
+    .filter((event) => {
+      if (!event.isTournament) return false;
+      const eventStart = new Date(event.startTime);
+      return eventStart >= startOfDay;
     })
     .sort(
       (a, b) =>
@@ -144,7 +166,9 @@ export default async function ClubMainPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ClubClient
-        schedule={schedule}
+        schedule={trainings}
+        trainings={trainings}
+        tournaments={tournaments}
         hallImages={hallImages}
         clubSite={clubSite}
       />

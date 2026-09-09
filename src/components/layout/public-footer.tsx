@@ -47,6 +47,12 @@ export function PublicFooter({
             График
           </Link>
           <Link
+            href="/club#tournaments"
+            className="transition-colors hover:text-amber-400"
+          >
+            Турнири
+          </Link>
+          <Link
             href="/club/team"
             className="transition-colors hover:text-blue-400"
           >

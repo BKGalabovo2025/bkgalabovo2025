@@ -48,15 +48,24 @@ export default async function SchedulePage() {
           : data.endDate.toDate?.().toISOString() || data.endDate;
     }
 
+    const isTournament =
+      data.type === "competition" ||
+      Boolean(data.tournamentUrl) ||
+      Boolean(data.tournamentId);
+
     return {
       id: doc.id,
       title: data.title || "Тренировка",
       startTime: startDateStr,
       endTime: endDateStr,
+      type: (data.type ||
+        (isTournament ? "competition" : "training")) as string,
+      isTournament,
       isCancelled: !!data.isCancelled,
       description: data.description || "",
       location: data.location || 'Спортна зала „Енергетик"',
       tournamentUrl: data.tournamentUrl || null,
+      tournamentId: data.tournamentId || null,
       attachmentUrl: data.attachmentUrl || null,
       attachmentName: data.attachmentName || null,
       attachmentType: data.attachmentType || null,

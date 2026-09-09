@@ -36,10 +36,13 @@ type EventSlot = {
   title: string;
   startTime: string | Date;
   endTime: string | Date;
+  type?: string;
+  isTournament?: boolean;
   isCancelled?: boolean;
   description?: string;
   location?: string;
   tournamentUrl?: string | null;
+  tournamentId?: string | null;
   attachmentUrl?: string | null;
   attachmentName?: string | null;
   attachmentType?: "pdf" | "word" | "excel" | "other" | null;
@@ -69,17 +72,56 @@ const activities = [
 ];
 
 export default function ClubClient({
-  schedule,
+  schedule = [],
+  trainings: initialTrainings,
+  tournaments: initialTournaments,
   hallImages = [],
   clubSite,
 }: {
-  schedule: EventSlot[];
+  schedule?: EventSlot[];
+  trainings?: EventSlot[];
+  tournaments?: EventSlot[];
   hallImages?: string[];
   clubSite?: Site | null;
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState<"trainings" | "tournaments">(
+    "trainings"
+  );
   const widgetRef = useRef<HTMLDivElement>(null);
+
+  // Compute segregated events if not passed directly
+  const trainings =
+    initialTrainings ||
+    schedule.filter(
+      (e) => !e.isTournament && e.type !== "competition" && !e.tournamentUrl
+    );
+  const tournaments =
+    initialTournaments ||
+    schedule.filter(
+      (e) =>
+        e.isTournament ||
+        e.type === "competition" ||
+        Boolean(e.tournamentUrl) ||
+        Boolean(e.tournamentId)
+    );
+
+  // Synchronize tab with URL hash (#tournaments vs #schedule)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const checkHash = () => {
+        if (window.location.hash === "#tournaments") {
+          setActiveTab("tournaments");
+        } else if (window.location.hash === "#schedule") {
+          setActiveTab("trainings");
+        }
+      };
+      checkHash();
+      window.addEventListener("hashchange", checkHash);
+      return () => window.removeEventListener("hashchange", checkHash);
+    }
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -109,8 +151,10 @@ export default function ClubClient({
     );
   };
 
+  const displayedEvents = activeTab === "trainings" ? trainings : tournaments;
+
   // Group events by date label
-  const groupedEvents = schedule.reduce(
+  const groupedEvents = displayedEvents.reduce(
     (acc, event) => {
       const date = new Date(event.startTime);
       const today = new Date();
@@ -141,7 +185,7 @@ export default function ClubClient({
       acc[label].push(event);
       return acc;
     },
-    {} as Record<string, typeof schedule>
+    {} as Record<string, EventSlot[]>
   );
 
   const groups = Object.entries(groupedEvents);
@@ -379,32 +423,97 @@ export default function ClubClient({
         </div>
       </section>
 
-      {/* Schedule 7 days */}
+      {/* Schedule & Tournaments */}
       <section id="schedule" className="relative px-6 py-24">
+        <div
+          id="tournaments"
+          className="pointer-events-none relative -top-28"
+        />
         <div className="pointer-events-none absolute top-1/2 right-0 size-[500px] translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400/10 blur-[120px]" />
         <div className="relative z-10 mx-auto max-w-4xl">
-          <div className="mb-16 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
               <h2 className="text-4xl font-light tracking-tight md:text-5xl">
-                Предстоящи Тренировки и Събития
+                {activeTab === "trainings"
+                  ? "Предстоящи Тренировки и Дейности"
+                  : "Спортен Календар и Турнири"}
               </h2>
               <p className="mt-4 text-lg text-zinc-400">
-                През следващите 7 дни
+                {activeTab === "trainings"
+                  ? "График за тренировки, лагери и клубни събития (следващите 7 дни)"
+                  : "Официални състезания, ДСК турнири и наредби"}
               </p>
             </div>
             <Link
-              href="/club/schedule"
+              href={
+                activeTab === "tournaments"
+                  ? "/club/schedule?tab=tournaments"
+                  : "/club/schedule"
+              }
               className="inline-flex items-center gap-2 text-sm font-bold tracking-widest text-blue-400 uppercase transition-colors hover:text-blue-300 hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
             >
               Пълен Календар <ArrowRight size={16} />
             </Link>
           </div>
 
+          {/* Segmented Switcher for Trainings vs Tournaments */}
+          <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <div className="inline-flex rounded-2xl border border-zinc-800/80 bg-black/60 p-1.5 shadow-xl backdrop-blur-xl">
+              <button
+                type="button"
+                onClick={() => setActiveTab("trainings")}
+                className={`flex items-center gap-2.5 rounded-xl px-5 py-3 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
+                  activeTab === "trainings"
+                    ? "bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.5)]"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span>🏸 Тренировки и лагери</span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+                    activeTab === "trainings"
+                      ? "bg-white/20 text-white"
+                      : "bg-zinc-800 text-zinc-400"
+                  }`}
+                >
+                  {trainings.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("tournaments")}
+                className={`flex items-center gap-2.5 rounded-xl px-5 py-3 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
+                  activeTab === "tournaments"
+                    ? "bg-amber-500 text-zinc-950 shadow-[0_0_20px_rgba(245,158,11,0.5)]"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span>🏆 Състезания и турнири</span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+                    activeTab === "tournaments"
+                      ? "bg-black/20 text-zinc-950"
+                      : "bg-zinc-800 text-zinc-400"
+                  }`}
+                >
+                  {tournaments.length}
+                </span>
+              </button>
+            </div>
+
+            <span className="text-xs font-medium text-zinc-500">
+              {activeTab === "trainings"
+                ? "Седмична клубна програма"
+                : "Календар на БФБ и състезания"}
+            </span>
+          </div>
+
           <div className="group relative overflow-hidden rounded-6xl border border-zinc-800/50 bg-black/40 p-8 backdrop-blur-xl transition-colors duration-700 hover:border-zinc-700/80 md:p-14">
             <div className="pointer-events-none absolute right-0 bottom-0 size-64 rounded-full bg-indigo-500/5 blur-[80px] transition-colors duration-700 group-hover:bg-indigo-400/10" />
 
             <div className="relative z-10">
-              {schedule.length > 0 ? (
+              {displayedEvents.length > 0 ? (
                 <div className="space-y-10">
                   {groups.map(([dateLabel, events], groupIdx) => (
                     <motion.div
@@ -445,13 +554,28 @@ export default function ClubClient({
                 </div>
               ) : (
                 <div className="flex flex-col items-center py-12 text-center">
-                  <CalendarDays size={48} className="mb-6 text-zinc-700" />
-                  <p className="text-xl font-light text-zinc-300">
-                    Няма въведени тренировки за следващите 7 дни.
-                  </p>
-                  <p className="text-md mt-2 text-zinc-500">
-                    Очаквайте обновяване на седмичната програма.
-                  </p>
+                  {activeTab === "trainings" ? (
+                    <>
+                      <CalendarDays size={48} className="mb-6 text-zinc-700" />
+                      <p className="text-xl font-light text-zinc-300">
+                        Няма въведени тренировки за следващите 7 дни.
+                      </p>
+                      <p className="text-md mt-2 text-zinc-500">
+                        Очаквайте обновяване на седмичната програма.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Trophy size={48} className="mb-6 text-zinc-700" />
+                      <p className="text-xl font-light text-zinc-300">
+                        Няма предстоящи състезания в календара към момента.
+                      </p>
+                      <p className="text-md mt-2 text-zinc-500">
+                        Следете тук за обявяване на нови турнири и наредби от
+                        БФБ.
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
