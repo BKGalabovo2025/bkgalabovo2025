@@ -81,7 +81,7 @@ export async function executeBackup(siteId = getSiteConfig().id) {
         stats[colName] = docs.length;
         collectionsData[colName] = docs;
       } catch (err) {
-        console.error(`Error backing up collection ${colName}:`, err);
+        console.error("Error backing up collection %s:", colName, err);
         stats[colName] = 0;
         collectionsData[colName] = [];
       }
