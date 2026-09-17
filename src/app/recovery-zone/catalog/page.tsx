@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
 
-import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { getAdminDb } from "@/lib/firebase-admin";
+
+import { RecoveryCatalogClient } from "./RecoveryCatalogClient";
 
 export const metadata: Metadata = {
   title: "Каталог | Recovery Zone by ZM",
@@ -65,8 +66,30 @@ const getCachedSessions = unstable_cache(
   { revalidate: 300, tags: ["sessions"] }
 );
 
+const getCachedSite = unstable_cache(
+  async (): Promise<{ phone?: string; contraindications?: string[] }> => {
+    try {
+      const adminDb = getAdminDb();
+      const doc = await adminDb.collection("sites").doc("recoveryzone").get();
+      if (!doc.exists) return {};
+      const data = doc.data() || {};
+      return {
+        phone: data.phone as string | undefined,
+        contraindications: data.contraindications as string[] | undefined,
+      };
+    } catch {
+      return {};
+    }
+  },
+  ["recovery-site"],
+  { revalidate: 300, tags: ["sites"] }
+);
+
 export default async function RecoveryCatalogPage() {
-  const recoveryServices = await getCachedSessions();
+  const [recoveryServices, site] = await Promise.all([
+    getCachedSessions(),
+    getCachedSite(),
+  ]);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -103,12 +126,10 @@ export default async function RecoveryCatalogPage() {
           </div>
 
           <div className="glassmorphism rounded-3xl border border-emerald-400/20 bg-black/80 p-6 md:p-10">
-            <PublicCatalogTabs
-              trainings={[]}
-              generalServices={[]}
-              products={[]}
+            <RecoveryCatalogClient
               recoveryServices={recoveryServices}
-              allowedTabs={["recovery"]}
+              phone={site.phone}
+              contraindications={site.contraindications}
             />
           </div>
         </div>

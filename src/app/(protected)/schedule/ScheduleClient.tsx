@@ -51,6 +51,7 @@ const CampManagerDialog = dynamic(
     ),
   { ssr: false }
 );
+
 const MonthlyScheduleDialog = dynamic(
   () => import("@/components/schedule/MonthlyScheduleDialog"),
   { ssr: false }
@@ -186,10 +187,15 @@ export default function ScheduleClient() {
   const searchParams = useSearchParams();
   const urlTab = searchParams.get("tab");
 
-  // Sync main tab selection based on URL parameter or Recovery branch
   useEffect(() => {
-    if (isRecoveryZone || urlTab === "reservations" || urlTab === "courts") {
+    if (isRecoveryZone) {
+      setActiveMainTab("recovery");
+    } else if (urlTab === "inquiries") {
+      router.replace("/inquiries");
+    } else if (urlTab === "reservations" || urlTab === "courts") {
       setActiveMainTab("courts");
+    } else if (urlTab === "recovery") {
+      setActiveMainTab("recovery");
     } else {
       setActiveMainTab("events");
     }

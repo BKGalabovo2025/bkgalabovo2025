@@ -71,10 +71,23 @@ const activities = [
   },
 ];
 
+type ScheduleFilter = "all" | "trainings" | "tournaments" | "events";
+
+const isCompetitionEvent = (e: EventSlot) =>
+  Boolean(e.isTournament) ||
+  e.type === "competition" ||
+  Boolean(e.tournamentUrl) ||
+  Boolean(e.tournamentId);
+
+const isClubEvent = (e: EventSlot) =>
+  !isCompetitionEvent(e) &&
+  (e.type === "camp" || e.type === "event" || e.type === "other");
+
+const isTrainingEvent = (e: EventSlot) =>
+  !isCompetitionEvent(e) && (e.type === "training" || !e.type);
+
 export default function ClubClient({
   schedule = [],
-  trainings: initialTrainings,
-  tournaments: initialTournaments,
   hallImages = [],
   clubSite,
 }: {
@@ -86,35 +99,25 @@ export default function ClubClient({
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState<"trainings" | "tournaments">(
-    "trainings"
-  );
+  const [activeTab, setActiveTab] = useState<ScheduleFilter>("all");
   const widgetRef = useRef<HTMLDivElement>(null);
 
-  // Compute segregated events if not passed directly
-  const trainings =
-    initialTrainings ||
-    schedule.filter(
-      (e) => !e.isTournament && e.type !== "competition" && !e.tournamentUrl
-    );
-  const tournaments =
-    initialTournaments ||
-    schedule.filter(
-      (e) =>
-        e.isTournament ||
-        e.type === "competition" ||
-        Boolean(e.tournamentUrl) ||
-        Boolean(e.tournamentId)
-    );
+  const trainingsCount = schedule.filter(isTrainingEvent).length;
+  const tournamentsCount = schedule.filter(isCompetitionEvent).length;
+  const eventsCount = schedule.filter(isClubEvent).length;
 
-  // Synchronize tab with URL hash (#tournaments vs #schedule)
+  // Synchronize tab with URL hash (#tournaments vs #schedule vs #events)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const checkHash = () => {
         if (window.location.hash === "#tournaments") {
           setActiveTab("tournaments");
-        } else if (window.location.hash === "#schedule") {
+        } else if (window.location.hash === "#events") {
+          setActiveTab("events");
+        } else if (window.location.hash === "#trainings") {
           setActiveTab("trainings");
+        } else if (window.location.hash === "#schedule") {
+          setActiveTab("all");
         }
       };
       checkHash();
@@ -151,7 +154,70 @@ export default function ClubClient({
     );
   };
 
-  const displayedEvents = activeTab === "trainings" ? trainings : tournaments;
+  const displayedEvents = schedule.filter((event) => {
+    if (activeTab === "trainings") return isTrainingEvent(event);
+    if (activeTab === "tournaments") return isCompetitionEvent(event);
+    if (activeTab === "events") return isClubEvent(event);
+    return true;
+  });
+
+  const getHeaderInfo = () => {
+    switch (activeTab) {
+      case "trainings":
+        return {
+          title: "График на Тренировките",
+          subtitle: "Седмична тренировъчна програма и часове",
+          meta: "Тренировъчен график",
+        };
+      case "tournaments":
+        return {
+          title: "Спортен Календар и Турнири",
+          subtitle: "Официални състезания от ДСК, първенства и наредби",
+          meta: "Календар на БФБ и състезания",
+        };
+      case "events":
+        return {
+          title: "Лагери и Клубни Събития",
+          subtitle: "Специализирани спортни лагери, демонстрации и събития",
+          meta: "Клубни събития и лагери",
+        };
+      case "all":
+      default:
+        return {
+          title: "Календар и Клубни Дейности",
+          subtitle: "Всички предстоящи тренировки, турнири и клубни събития",
+          meta: "Пълна клубна програма",
+        };
+    }
+  };
+
+  const getEmptyState = () => {
+    switch (activeTab) {
+      case "tournaments":
+        return {
+          title:
+            "Няма предстоящи състезания или турнири в календара към момента.",
+          subtitle:
+            "Следете тук за обявяване на нови турнири и наредби от БФБ.",
+        };
+      case "trainings":
+        return {
+          title: "Няма предстоящи тренировки за следващите дни.",
+          subtitle: "Следете страницата за обновяване на седмичния график.",
+        };
+      case "events":
+        return {
+          title: "Няма предстоящи лагери или клубни събития към момента.",
+          subtitle: "Следете тук за нови клубни лагери, семинари и инициативи.",
+        };
+      case "all":
+      default:
+        return {
+          title: "Няма предстоящи събития в календара към момента.",
+          subtitle: "Проверете по-късно за актуалния график на клуба.",
+        };
+    }
+  };
 
   // Group events by date label
   const groupedEvents = displayedEvents.reduce(
@@ -434,21 +500,17 @@ export default function ClubClient({
           <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
               <h2 className="text-4xl font-light tracking-tight md:text-5xl">
-                {activeTab === "trainings"
-                  ? "Предстоящи Тренировки и Дейности"
-                  : "Спортен Календар и Турнири"}
+                {getHeaderInfo().title}
               </h2>
               <p className="mt-4 text-lg text-zinc-400">
-                {activeTab === "trainings"
-                  ? "График за тренировки, лагери и клубни събития (следващите 7 дни)"
-                  : "Официални състезания, ДСК турнири и наредби"}
+                {getHeaderInfo().subtitle}
               </p>
             </div>
             <Link
               href={
-                activeTab === "tournaments"
-                  ? "/club/schedule?tab=tournaments"
-                  : "/club/schedule"
+                activeTab === "all"
+                  ? "/club/schedule"
+                  : `/club/schedule?tab=${activeTab}`
               }
               className="inline-flex items-center gap-2 text-sm font-bold tracking-widest text-blue-400 uppercase transition-colors hover:text-blue-300 hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
             >
@@ -456,56 +518,96 @@ export default function ClubClient({
             </Link>
           </div>
 
-          {/* Segmented Switcher for Trainings vs Tournaments */}
+          {/* Segmented Filter Switcher - Exactly matching Full Calendar */}
           <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div className="inline-flex rounded-2xl border border-zinc-800/80 bg-black/60 p-1.5 shadow-xl backdrop-blur-xl">
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-800/80 bg-black/60 p-1.5 shadow-xl backdrop-blur-xl">
+              <button
+                type="button"
+                onClick={() => setActiveTab("all")}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
+                  activeTab === "all"
+                    ? "bg-zinc-100 text-zinc-950 shadow-md"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span>Всички</span>
+                <span
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] font-extrabold ${
+                    activeTab === "all"
+                      ? "bg-zinc-300 text-zinc-900"
+                      : "bg-zinc-800 text-zinc-400"
+                  }`}
+                >
+                  {schedule.length}
+                </span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setActiveTab("trainings")}
-                className={`flex items-center gap-2.5 rounded-xl px-5 py-3 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
                   activeTab === "trainings"
                     ? "bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.5)]"
                     : "text-zinc-400 hover:text-white"
                 }`}
               >
-                <span>🏸 Тренировки и лагери</span>
+                <span>🏸 Тренировки</span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] font-extrabold ${
                     activeTab === "trainings"
                       ? "bg-white/20 text-white"
                       : "bg-zinc-800 text-zinc-400"
                   }`}
                 >
-                  {trainings.length}
+                  {trainingsCount}
                 </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab("tournaments")}
-                className={`flex items-center gap-2.5 rounded-xl px-5 py-3 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
                   activeTab === "tournaments"
-                    ? "bg-amber-500 text-zinc-950 shadow-[0_0_20px_rgba(245,158,11,0.5)]"
+                    ? "bg-amber-500 font-black text-zinc-950 shadow-[0_0_20px_rgba(245,158,11,0.5)]"
                     : "text-zinc-400 hover:text-white"
                 }`}
               >
-                <span>🏆 Състезания и турнири</span>
+                <span>🏆 Състезания</span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] font-extrabold ${
                     activeTab === "tournaments"
-                      ? "bg-black/20 text-zinc-950"
+                      ? "bg-zinc-950/20 font-black text-zinc-950"
                       : "bg-zinc-800 text-zinc-400"
                   }`}
                 >
-                  {tournaments.length}
+                  {tournamentsCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("events")}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
+                  activeTab === "events"
+                    ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span>⛺ Лагери и събития</span>
+                <span
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] font-extrabold ${
+                    activeTab === "events"
+                      ? "bg-white/20 text-white"
+                      : "bg-zinc-800 text-zinc-400"
+                  }`}
+                >
+                  {eventsCount}
                 </span>
               </button>
             </div>
 
             <span className="text-xs font-medium text-zinc-500">
-              {activeTab === "trainings"
-                ? "Седмична клубна програма"
-                : "Календар на БФБ и състезания"}
+              {getHeaderInfo().meta}
             </span>
           </div>
 
@@ -554,28 +656,13 @@ export default function ClubClient({
                 </div>
               ) : (
                 <div className="flex flex-col items-center py-12 text-center">
-                  {activeTab === "trainings" ? (
-                    <>
-                      <CalendarDays size={48} className="mb-6 text-zinc-700" />
-                      <p className="text-xl font-light text-zinc-300">
-                        Няма въведени тренировки за следващите 7 дни.
-                      </p>
-                      <p className="text-md mt-2 text-zinc-500">
-                        Очаквайте обновяване на седмичната програма.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <Trophy size={48} className="mb-6 text-zinc-700" />
-                      <p className="text-xl font-light text-zinc-300">
-                        Няма предстоящи състезания в календара към момента.
-                      </p>
-                      <p className="text-md mt-2 text-zinc-500">
-                        Следете тук за обявяване на нови турнири и наредби от
-                        БФБ.
-                      </p>
-                    </>
-                  )}
+                  <CalendarDays size={48} className="mb-6 text-zinc-700" />
+                  <p className="text-xl font-light text-zinc-300">
+                    {getEmptyState().title}
+                  </p>
+                  <p className="text-md mt-2 text-zinc-500">
+                    {getEmptyState().subtitle}
+                  </p>
                 </div>
               )}
             </div>

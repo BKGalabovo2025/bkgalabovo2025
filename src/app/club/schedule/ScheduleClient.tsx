@@ -72,11 +72,12 @@ function groupByDate(events: EventSlot[]): Record<string, EventSlot[]> {
   );
 }
 
-type ScheduleFilter = "all" | "trainings" | "tournaments";
+type ScheduleFilter = "all" | "trainings" | "tournaments" | "events";
 
 function getEmptyTitle(filter: ScheduleFilter): string {
   if (filter === "tournaments") return "Няма предстоящи състезания или турнири";
   if (filter === "trainings") return "Няма предстоящи тренировки";
+  if (filter === "events") return "Няма предстоящи лагери или клубни събития";
   return "Няма предстоящи събития";
 }
 
@@ -86,6 +87,9 @@ function getEmptySubtitle(filter: ScheduleFilter): string {
   }
   if (filter === "trainings") {
     return "Проверете по-късно за актуалния график на тренировките.";
+  }
+  if (filter === "events") {
+    return "Следете тук за нови клубни лагери, събития и инициативи.";
   }
   return "Проверете по-късно за актуалния график.";
 }
@@ -101,32 +105,35 @@ export default function ScheduleClient({ schedule }: Props) {
         setFilter("tournaments");
       } else if (tabParam === "trainings") {
         setFilter("trainings");
+      } else if (tabParam === "events") {
+        setFilter("events");
       }
     }
   }, []);
 
-  const filteredEvents = schedule.filter((event) => {
-    const isTourney =
-      event.isTournament ||
-      event.type === "competition" ||
-      Boolean(event.tournamentUrl) ||
-      Boolean(event.tournamentId);
+  const isCompetitionEvent = (e: EventSlot) =>
+    Boolean(e.isTournament) ||
+    e.type === "competition" ||
+    Boolean(e.tournamentUrl) ||
+    Boolean(e.tournamentId);
 
-    if (filter === "trainings") return !isTourney;
-    if (filter === "tournaments") return isTourney;
+  const isClubEvent = (e: EventSlot) =>
+    !isCompetitionEvent(e) &&
+    (e.type === "camp" || e.type === "event" || e.type === "other");
+
+  const isTrainingEvent = (e: EventSlot) =>
+    !isCompetitionEvent(e) && (e.type === "training" || !e.type);
+
+  const filteredEvents = schedule.filter((event) => {
+    if (filter === "trainings") return isTrainingEvent(event);
+    if (filter === "tournaments") return isCompetitionEvent(event);
+    if (filter === "events") return isClubEvent(event);
     return true;
   });
 
-  const trainingsCount = schedule.filter(
-    (e) => !e.isTournament && e.type !== "competition" && !e.tournamentUrl
-  ).length;
-  const tournamentsCount = schedule.filter(
-    (e) =>
-      e.isTournament ||
-      e.type === "competition" ||
-      Boolean(e.tournamentUrl) ||
-      Boolean(e.tournamentId)
-  ).length;
+  const trainingsCount = schedule.filter(isTrainingEvent).length;
+  const tournamentsCount = schedule.filter(isCompetitionEvent).length;
+  const eventsCount = schedule.filter(isClubEvent).length;
 
   const grouped = groupByDate(filteredEvents);
   const groups = Object.entries(grouped);
@@ -210,7 +217,7 @@ export default function ScheduleClient({ schedule }: Props) {
                 className="flex shrink-0 items-center gap-2 rounded-xl border border-blue-800/30 bg-blue-600/10 px-5 py-2.5 text-sm font-semibold text-blue-400 transition-all hover:border-blue-500/50 hover:bg-blue-600/20"
               >
                 <Share2 size={16} />
-                Сподели Графика
+                <span>Сподели Графика</span>
               </button>
             </div>
 
@@ -246,7 +253,7 @@ export default function ScheduleClient({ schedule }: Props) {
                     : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
                 }`}
               >
-                <span>🏸 Тренировки и лагери</span>
+                <span>🏸 Тренировки</span>
                 <span
                   className={`py-0.2 rounded-full px-1.5 text-[10px] ${
                     filter === "trainings"
@@ -263,19 +270,40 @@ export default function ScheduleClient({ schedule }: Props) {
                 onClick={() => setFilter("tournaments")}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all ${
                   filter === "tournaments"
-                    ? "bg-amber-500 text-zinc-950 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
+                    ? "bg-amber-500 font-black text-zinc-950 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
                     : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
                 }`}
               >
-                <span>🏆 Състезания и турнири</span>
+                <span>🏆 Състезания</span>
                 <span
                   className={`py-0.2 rounded-full px-1.5 text-[10px] ${
                     filter === "tournaments"
-                      ? "bg-black/20 text-zinc-950"
+                      ? "bg-zinc-950/20 font-black text-zinc-950"
                       : "bg-zinc-800 text-zinc-500"
                   }`}
                 >
                   {tournamentsCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilter("events")}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all ${
+                  filter === "events"
+                    ? "bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                    : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span>⛺ Лагери и събития</span>
+                <span
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] ${
+                    filter === "events"
+                      ? "bg-white/20 text-white"
+                      : "bg-zinc-800 text-zinc-500"
+                  }`}
+                >
+                  {eventsCount}
                 </span>
               </button>
             </div>

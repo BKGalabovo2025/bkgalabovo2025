@@ -1,4 +1,6 @@
 "use client";
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable sonarjs/no-nested-conditional */
 
 import {
   AlertCircle,
@@ -14,7 +16,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { BirthdayReminder } from "@/components/dashboard/BirthdayReminder";
+import { CourtsOccupancyCard } from "@/components/dashboard/CourtsOccupancyCard";
 import { DashboardNotifications } from "@/components/dashboard/dashboard-notifications";
+import { FeedbackDashboardCard } from "@/components/dashboard/FeedbackDashboardCard";
+import { InquiriesNotificationCard } from "@/components/dashboard/InquiriesNotificationCard";
 import { PageHeader } from "@/components/layout/page-header";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -89,6 +94,9 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   const [stats, setStats] = useState<DashboardStats | null>(
     initialData?.stats || null
   );
+  const [reminders, setReminders] = useState<Reminder[]>(
+    activeBranch === "recoveryzone" ? [] : initialData?.reminders || []
+  );
   const loading = false;
   const [refreshing, setRefreshing] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -116,6 +124,9 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         if (result.success && "data" in result) {
           const data = result.data as DashboardData;
           setStats(data.stats);
+          setReminders(
+            activeBranch === "recoveryzone" ? [] : data.reminders || []
+          );
           setQuotaExhausted(false);
         } else {
           checkQuotaError(("error" in result ? result.error : "") as string);
@@ -130,7 +141,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   );
 
   useEffect(() => {
-    // Quiet refresh when branch changes or on timer (skip if quota exhausted)
     if (!quotaExhausted) handleRefresh(true);
 
     const interval = setInterval(() => {
@@ -140,7 +150,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
     return () => clearInterval(interval);
   }, [handleRefresh, quotaExhausted]);
 
-  // Branch-specific display logic
   const isRecoveryZone = activeBranch === "recoveryzone";
 
   const displayEmail = isRecoveryZone
@@ -153,7 +162,6 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
   const firstName = `Админ ${displayEmail}`;
 
-  // Use values from stats or fallback to 0/placeholder
   const monthlyRevenue =
     stats?.revenueCurrentMonth ?? stats?.revenueLast30Days ?? 0;
 
@@ -167,34 +175,74 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         </div>
       );
     }
+    if (isRecoveryZone) {
+      return (
+        <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Клиенти за възстановяване:
+            </span>
+            <span className="font-bold text-emerald-700 dark:text-emerald-400">
+              {stats?.totalRecovery ?? 0}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Външни / гост клиенти:
+            </span>
+            <span className="font-bold text-amber-700 dark:text-amber-400">
+              {stats?.totalGuests ?? 0}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Неактивни:
+            </span>
+            <span className="font-bold text-rose-700 dark:text-rose-400">
+              {stats?.inactiveMembersCount ?? 0}
+            </span>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
         <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Клубни членове:</span>
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Клубни членове:
+          </span>
           <span className="font-bold text-blue-700 dark:text-blue-300">
             {stats?.totalClubMembers ?? 0}
           </span>
         </div>
         <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Външни клиенти:</span>
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Външни клиенти:
+          </span>
           <span className="font-bold text-amber-700 dark:text-amber-400">
             {stats?.totalGuests ?? 0}
           </span>
         </div>
         <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Възстановяване:</span>
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Възстановяване:
+          </span>
           <span className="font-bold text-emerald-700 dark:text-emerald-400">
             {stats?.totalRecovery ?? 0}
           </span>
         </div>
         <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Неактивни:</span>
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Неактивни:
+          </span>
           <span className="font-bold text-rose-700 dark:text-rose-400">
             {stats?.inactiveMembersCount ?? 0}
           </span>
         </div>
         <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Семейства:</span>
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Семейства:
+          </span>
           <span className="font-bold text-purple-700 dark:text-purple-400">
             {stats?.totalFamilies ?? 0}
           </span>
@@ -213,25 +261,55 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         </div>
       );
     }
+    if (isRecoveryZone) {
+      return (
+        <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Заявени процедури днес:
+            </span>
+            <span className="font-bold text-emerald-700 dark:text-emerald-400">
+              {stats?.todayRecoveryCount ?? 0}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Сауна, ботуши, масажи:
+            </span>
+            <span className="font-bold text-blue-600 dark:text-blue-400">
+              {(stats?.todayRecoveryCount || 0) > 0
+                ? "Има резервации"
+                : "Свободни"}
+            </span>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="space-y-3">
         <div className="space-y-1 border-b border-emerald-100 pb-3 text-zinc-700 dark:border-emerald-800/50 dark:text-zinc-300">
           {!isRecoveryZone && (
             <>
               <div className="flex items-center justify-between text-[11px] leading-tight">
-                <span className="font-light">Тренировки:</span>
+                <span className="font-normal text-zinc-600 dark:text-zinc-400">
+                  Тренировки:
+                </span>
                 <span className="font-bold text-emerald-700 dark:text-emerald-300">
                   {stats?.todayTrainingsCount ?? 0}
                 </span>
               </div>
               <div className="flex items-center justify-between text-[11px] leading-tight">
-                <span className="font-light">Състезания:</span>
+                <span className="font-normal text-zinc-600 dark:text-zinc-400">
+                  Състезания:
+                </span>
                 <span className="font-bold text-rose-700 dark:text-rose-400">
                   {stats?.todayCompetitionsCount ?? 0}
                 </span>
               </div>
               <div className="flex items-center justify-between text-[11px] leading-tight">
-                <span className="font-light">Лагери & Други:</span>
+                <span className="font-normal text-zinc-600 dark:text-zinc-400">
+                  Лагери & Други:
+                </span>
                 <span className="font-bold text-amber-700 dark:text-amber-400">
                   {(stats?.todayCampsCount ?? 0) +
                     (stats?.todayOtherEventsCount ?? 0)}
@@ -240,14 +318,18 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             </>
           )}
           <div className="flex items-center justify-between text-[11px] leading-tight">
-            <span className="font-light">Възстановяване:</span>
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Възстановяване:
+            </span>
             <span className="font-bold text-blue-600 dark:text-blue-400">
               {stats?.todayRecoveryCount ?? 0}
             </span>
           </div>
           {!isRecoveryZone && (
             <div className="flex items-center justify-between text-[11px] leading-tight">
-              <span className="font-light">Кортове:</span>
+              <span className="font-normal text-zinc-600 dark:text-zinc-400">
+                Кортове:
+              </span>
               <span className="font-bold text-purple-600 dark:text-purple-400">
                 {stats?.todayCourtCount ?? 0}
               </span>
@@ -302,24 +384,44 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         </div>
       );
     }
+    if (isRecoveryZone) {
+      return (
+        <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Възстановителни процедури:
+            </span>
+            <span className="font-bold text-purple-700 dark:text-purple-300">
+              {formatPrice(stats?.revenueRecovery ?? 0)}
+            </span>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="space-y-1 text-zinc-700 dark:text-zinc-300">
         {!isRecoveryZone && (
           <div className="flex items-center justify-between text-[11px] leading-tight">
-            <span className="font-light">Тренировки:</span>
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Тренировки:
+            </span>
             <span className="font-bold text-purple-700 dark:text-purple-300">
               {formatPrice(stats?.revenueTrainings ?? 0)}
             </span>
           </div>
         )}
         <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Клубни услуги:</span>
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Клубни услуги:
+          </span>
           <span className="font-bold text-teal-800 dark:text-teal-400">
             {formatPrice(stats?.revenueServices ?? 0)}
           </span>
         </div>
         <div className="flex items-center justify-between text-[11px] leading-tight">
-          <span className="font-light">Възстановяване:</span>
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Възстановяване:
+          </span>
           <span className="font-bold text-indigo-600 dark:text-indigo-400">
             {formatPrice(stats?.revenueRecovery ?? 0)}
           </span>
@@ -327,13 +429,17 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         {!isRecoveryZone && (
           <>
             <div className="flex items-center justify-between text-[11px] leading-tight">
-              <span className="font-light">Кортове:</span>
+              <span className="font-normal text-zinc-600 dark:text-zinc-400">
+                Кортове:
+              </span>
               <span className="font-bold text-pink-800 dark:text-pink-400">
                 {formatPrice(stats?.revenueCourts ?? 0)}
               </span>
             </div>
             <div className="flex items-center justify-between text-[11px] leading-tight">
-              <span className="font-light">Магазин / Стоки:</span>
+              <span className="font-normal text-zinc-600 dark:text-zinc-400">
+                Магазин / Стоки:
+              </span>
               <span className="font-bold text-purple-700 dark:text-purple-300">
                 {formatPrice(stats?.revenueShop ?? 0)}
               </span>
@@ -449,25 +555,31 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             <div
               className={cn(
                 "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-extrabold tracking-wider uppercase shadow-none transition-colors",
-                (stats?.newMembersCount || 0) > 0
-                  ? "bg-blue-100/80 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300"
-                  : "bg-blue-50 text-blue-500/70 dark:bg-blue-950/20 dark:text-blue-400/50"
+                isRecoveryZone
+                  ? "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  : (stats?.newMembersCount || 0) > 0
+                    ? "bg-blue-100/80 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300"
+                    : "bg-blue-50 text-blue-500/70 dark:bg-blue-950/20 dark:text-blue-400/50"
               )}
             >
               <Sparkles className="size-3" />
-              {(stats?.newMembersCount || 0) > 0
-                ? `+${stats?.newMembersCount} нови`
-                : "Общо"}
+              {isRecoveryZone
+                ? "Релакс"
+                : (stats?.newMembersCount || 0) > 0
+                  ? `+${stats?.newMembersCount} нови`
+                  : "Общо"}
             </div>
           </div>
           <div className="relative z-10 flex flex-1 flex-col justify-end">
             <div className="mb-2.5 flex items-baseline justify-between">
-              <p className="text-[10px] font-bold tracking-[0.2em] text-blue-800 uppercase dark:text-blue-300">
-                Общо членове
+              <p className="text-xs font-bold text-blue-900 dark:text-blue-200">
+                {isRecoveryZone ? "Клиенти на зоната" : "Общо членове"}
               </p>
               <div className="flex items-center gap-1">
                 <span className="text-sm font-extrabold text-blue-700 dark:text-blue-300">
-                  {stats?.totalMembers ?? 0}
+                  {isRecoveryZone
+                    ? (stats?.totalRecovery ?? 0)
+                    : (stats?.totalMembers ?? 0)}
                 </span>
                 <ArrowUpRight className="size-4 -translate-x-2 translate-y-2 text-blue-700 opacity-0 transition-all duration-300 group-hover:translate-0 group-hover:opacity-100 dark:text-blue-300" />
               </div>
@@ -475,27 +587,33 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             {renderMembersContent()}
           </div>
         </BentoCard>
+
         <BentoCard
-          onClick={() => router.push("/schedule")}
+          onClick={() =>
+            router.push(isRecoveryZone ? "/schedule?tab=recovery" : "/schedule")
+          }
           className="group flex h-full min-h-48 cursor-pointer flex-col justify-between rounded-4xl border border-emerald-100 bg-emerald-50 p-6 text-emerald-600 shadow-none transition-all hover:border-emerald-200 hover:bg-emerald-100/50 dark:border-emerald-800/50 dark:bg-emerald-900/10 dark:text-emerald-400"
         >
           <div className="mb-2 flex items-center justify-between">
             <div className="rounded-2xl bg-emerald-100 p-2.5 text-emerald-600 transition-transform group-hover:scale-105 dark:bg-emerald-800 dark:text-emerald-200">
               <Calendar className="size-5" strokeWidth={1.5} />
             </div>
-            <div className="flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-1 text-[9px] font-extrabold tracking-wider text-emerald-700 uppercase shadow-none dark:bg-emerald-900/60 dark:text-emerald-300">
-              {stats?.todayEventsCount ?? 0} общо
+            <div className="flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-1 text-[9px] font-extrabold text-emerald-700 shadow-none dark:bg-emerald-900/60 dark:text-emerald-300">
+              {isRecoveryZone
+                ? `${stats?.todayRecoveryCount ?? 0} сесии`
+                : `${stats?.todayEventsCount ?? 0} общо`}
             </div>
           </div>
           <div>
-            <p className="mb-2.5 text-[10px] font-bold tracking-[0.2em] text-emerald-800 uppercase dark:text-emerald-300">
-              {t("dash.today_training")}
+            <p className="mb-2.5 text-xs font-bold text-emerald-900 dark:text-emerald-200">
+              {isRecoveryZone ? "Процедури днес" : t("dash.today_training")}
             </p>
             {renderScheduleContent()}
           </div>
         </BentoCard>
+
         <BentoCard
-          onClick={() => router.push("/sales")}
+          onClick={() => router.push(isRecoveryZone ? "/finances" : "/sales")}
           className="group relative flex h-full min-h-48 cursor-pointer flex-col justify-between overflow-hidden rounded-4xl border border-purple-100 bg-purple-50 p-6 text-purple-600 shadow-none transition-all duration-300 hover:bg-purple-100/50 dark:border-purple-800/50 dark:bg-purple-900/10 dark:text-purple-400 dark:hover:bg-purple-950/20"
         >
           <div className="mb-2 flex items-center justify-between">
@@ -505,17 +623,24 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
           <div className="relative z-10 flex flex-1 flex-col justify-end">
             <div className="mb-2.5 flex items-baseline justify-between">
-              <p className="text-[10px] font-bold tracking-[0.2em] text-purple-800 uppercase dark:text-purple-300">
-                {t("dash.monthly_revenue")} (
-                {new Date().toLocaleString(
-                  language === "bg" ? "bg-BG" : "en-US",
-                  { month: "long" }
-                )}
-                )
+              <p className="text-xs font-bold text-purple-900 dark:text-purple-200">
+                {isRecoveryZone
+                  ? `Оборот Релакс Зона (${new Date().toLocaleString(
+                      language === "bg" ? "bg-BG" : "en-US",
+                      { month: "long" }
+                    )})`
+                  : `${t("dash.monthly_revenue")} (${new Date().toLocaleString(
+                      language === "bg" ? "bg-BG" : "en-US",
+                      { month: "long" }
+                    )})`}
               </p>
               <div className="flex items-center gap-1">
                 <span className="text-sm font-extrabold text-purple-700 dark:text-purple-300">
-                  {formatPrice(monthlyRevenue)}
+                  {formatPrice(
+                    isRecoveryZone
+                      ? (stats?.revenueRecovery ?? 0)
+                      : monthlyRevenue
+                  )}
                 </span>
                 <ArrowUpRight className="size-4 -translate-x-2 translate-y-2 text-purple-700 opacity-0 transition-all duration-300 group-hover:translate-0 group-hover:opacity-100 dark:text-purple-300" />
               </div>
@@ -523,6 +648,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             {renderRevenueContent()}
           </div>
         </BentoCard>
+
         {!isRecoveryZone && (
           <BentoCard
             onClick={() => router.push("/catalogs?tab=inventory")}
@@ -549,7 +675,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                 )}
               </div>
               {(stats?.lowStockCount || 0) > 0 && (
-                <div className="flex items-center gap-1.5 rounded-full bg-rose-100/80 px-2.5 py-1 text-[9px] font-extrabold tracking-wider text-rose-700 uppercase shadow-none dark:bg-rose-900/60 dark:text-rose-300">
+                <div className="flex items-center gap-1.5 rounded-full bg-rose-100/80 px-2.5 py-1 text-[9px] font-extrabold text-rose-700 shadow-none dark:bg-rose-900/60 dark:text-rose-300">
                   {stats?.lowStockCount} изчерпващи се
                 </div>
               )}
@@ -558,10 +684,10 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
               <div className="mb-2.5 flex items-center justify-between">
                 <p
                   className={cn(
-                    "text-[10px] font-bold tracking-[0.2em] uppercase",
+                    "text-xs font-bold",
                     (stats?.lowStockCount || 0) > 0
-                      ? "text-rose-800 dark:text-rose-300"
-                      : "text-emerald-800 dark:text-emerald-300"
+                      ? "text-rose-900 dark:text-rose-200"
+                      : "text-emerald-900 dark:text-emerald-200"
                   )}
                 >
                   {t("dash.low_stock")}
@@ -574,13 +700,17 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-        <div className="lg:col-span-1">
-          <DashboardNotifications reminders={initialData?.reminders || []} />
-        </div>
-        <div className="space-y-8 lg:col-span-3">
-          <BirthdayReminder />
-        </div>
+      {/* Middle Operations Grid: Courts & Inquiries */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <CourtsOccupancyCard />
+        <InquiriesNotificationCard />
+      </div>
+
+      {/* Community, Reviews & Alerts Grid: Reminders, Customer Reviews & Birthdays */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <DashboardNotifications reminders={isRecoveryZone ? [] : reminders} />
+        <FeedbackDashboardCard />
+        <BirthdayReminder />
       </div>
     </div>
   );

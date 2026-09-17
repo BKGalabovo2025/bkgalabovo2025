@@ -11,6 +11,7 @@ import {
   FileSignature,
   GraduationCap,
   Home,
+  Inbox,
   ListTree,
   LogOut,
   Medal,
@@ -197,6 +198,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <MessageSquareHeart size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">Отзиви и Анкети</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/inquiries")}
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+              >
+                <Link
+                  href="/inquiries"
+                  className="flex w-full items-center gap-3"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Inbox size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Запитвания от сайта</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

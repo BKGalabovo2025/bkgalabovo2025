@@ -121,22 +121,9 @@ export default async function ClubMainPage() {
     };
   });
 
-  // 1. Regular trainings, camps, and club events (next 7 days)
-  const trainings = scheduleRaw
+  // Full upcoming schedule for all events
+  const schedule = scheduleRaw
     .filter((event) => {
-      if (event.isTournament) return false;
-      const eventStart = new Date(event.startTime);
-      return eventStart >= startOfDay && eventStart < endOf7Days;
-    })
-    .sort(
-      (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-    );
-
-  // 2. Competitions and tournaments (all upcoming)
-  const tournaments = scheduleRaw
-    .filter((event) => {
-      if (!event.isTournament) return false;
       const eventStart = new Date(event.startTime);
       return eventStart >= startOfDay;
     })
@@ -166,9 +153,7 @@ export default async function ClubMainPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ClubClient
-        schedule={trainings}
-        trainings={trainings}
-        tournaments={tournaments}
+        schedule={schedule}
         hallImages={hallImages}
         clubSite={clubSite}
       />

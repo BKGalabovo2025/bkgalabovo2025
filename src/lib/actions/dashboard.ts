@@ -481,10 +481,13 @@ export async function getDashboardDataServerAction(activeBranch: string) {
         };
 
         const revenueChartData = getRevenueTrendData(salesFor6Months);
-        const reminders = [
-          ...getOverdueReminders(activeMembers, unpaidSales),
-          ...getUnpaidTrainingReminders(recentTrainings),
-        ];
+        const reminders =
+          activeBranch === "recoveryzone"
+            ? []
+            : [
+                ...getOverdueReminders(activeMembers, unpaidSales),
+                ...getUnpaidTrainingReminders(recentTrainings),
+              ];
 
         return {
           success: true,

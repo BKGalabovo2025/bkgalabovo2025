@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowRight,
+  CalendarCheck,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -27,6 +28,10 @@ import {
   InstagramIcon,
   YoutubeIcon,
 } from "@/components/icons/social-icons";
+import {
+  RecoveryInquiryDialog,
+  RecoveryProcedureInfo,
+} from "@/components/recovery/RecoveryInquiryDialog";
 import { TeamSection } from "@/components/recovery/TeamSection";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { feedbackService } from "@/services/feedback-service";
@@ -55,6 +60,9 @@ export default function RecoveryZoneClient({
   const [lang, setLang] = useState("bg");
   const [reviews, setReviews] = useState<FeedbackSubmission[]>([]);
   const [standingSurveyId, setStandingSurveyId] = useState<string | null>(null);
+  const [isInquiryOpen, setIsInquiryOpen] = useState(false);
+  const [selectedProcedureForInquiry, setSelectedProcedureForInquiry] =
+    useState<RecoveryProcedureInfo | null>(null);
 
   const nextImage = () => {
     setActiveImage((prev) => (prev + 1) % hallImages.length);
@@ -263,6 +271,20 @@ export default function RecoveryZoneClient({
                 >
                   Контакти
                 </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setSelectedProcedureForInquiry({
+                      title: "Зона „Крака“",
+                    });
+                    setIsInquiryOpen(true);
+                  }}
+                  className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-xs font-bold tracking-wider text-white uppercase shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+                >
+                  <CalendarCheck size={14} />
+                  Изпрати запитване за час
+                </button>
                 <Link
                   href="/"
                   onClick={() => setMobileMenuOpen(false)}
@@ -375,10 +397,23 @@ export default function RecoveryZoneClient({
               />
             </button>
           </div>
-          <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedProcedureForInquiry({
+                  title: "Зона „Крака“",
+                });
+                setIsInquiryOpen(true);
+              }}
+              className="group flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-4 text-sm font-bold tracking-widest text-white uppercase shadow-[0_0_20px_rgba(16,185,129,0.6)] transition-all hover:-translate-y-1 hover:bg-emerald-600 hover:shadow-[0_0_30px_rgba(16,185,129,0.9)]"
+            >
+              <CalendarCheck size={18} />
+              Изпрати запитване за час
+            </button>
             <Link
               href="/recovery-zone/catalog"
-              className="group flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-4 text-sm font-bold tracking-widest text-white uppercase shadow-[0_0_20px_rgba(16,185,129,0.6)] transition-all hover:-translate-y-1 hover:bg-emerald-600 hover:shadow-[0_0_30px_rgba(16,185,129,0.9)]"
+              className="group flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-black/80 px-7 py-4 text-sm font-bold tracking-widest text-white uppercase transition-all hover:-translate-y-1 hover:border-emerald-500 hover:bg-black hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
             >
               Разгледай Каталога{" "}
               <ChevronRight
@@ -388,7 +423,7 @@ export default function RecoveryZoneClient({
             </Link>
             <a
               href="#working-hours"
-              className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-black/80 px-8 py-4 text-sm font-bold tracking-widest text-white uppercase transition-all hover:-translate-y-1 hover:border-emerald-500 hover:bg-black hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+              className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-black/80 px-6 py-4 text-sm font-bold tracking-widest text-zinc-300 uppercase transition-all hover:-translate-y-1 hover:border-zinc-700 hover:bg-black hover:text-white"
             >
               Работно време
             </a>
@@ -443,6 +478,20 @@ export default function RecoveryZoneClient({
                   на бедрата. Изключително ефективни при „тежки крака“ след
                   продължително стоене, ходене или интензивно натоварване.
                 </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedProcedureForInquiry({
+                      title: "Зона „Крака“",
+                      preferredZone: "Крака",
+                    });
+                    setIsInquiryOpen(true);
+                  }}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                >
+                  <CalendarCheck size={14} />
+                  Запиши час за крака
+                </button>
               </div>
             </motion.div>
 
@@ -478,6 +527,20 @@ export default function RecoveryZoneClient({
                   мускули. Идеална за облекчаване на напрежението в кръста от
                   дълги часове седене и за подобряване на гъвкавостта.
                 </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedProcedureForInquiry({
+                      title: "Зона „Таз“",
+                      preferredZone: "Таз",
+                    });
+                    setIsInquiryOpen(true);
+                  }}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                >
+                  <CalendarCheck size={14} />
+                  Запиши час за таз
+                </button>
               </div>
             </motion.div>
 
@@ -521,6 +584,20 @@ export default function RecoveryZoneClient({
                     "Обхващат зоните от китките до раменете. Изключително полезни за бадминтонисти, тенисисти, плувци и фитнес трениращи, при които ръцете са подложени на постоянен стрес, както и за хора, работещи пред компютър."
                   )}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedProcedureForInquiry({
+                      title: "Зона „Ръце“",
+                      preferredZone: "Ръце",
+                    });
+                    setIsInquiryOpen(true);
+                  }}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                >
+                  <CalendarCheck size={14} />
+                  Запиши час за ръце
+                </button>
               </div>
             </motion.div>
           </div>
@@ -1161,6 +1238,15 @@ export default function RecoveryZoneClient({
           </span>
         </div>
       </footer>
+
+      {/* Recovery Zone Inquiry Modal */}
+      <RecoveryInquiryDialog
+        isOpen={isInquiryOpen}
+        onClose={() => setIsInquiryOpen(false)}
+        procedure={selectedProcedureForInquiry}
+        phone={site?.phone || "+359 899 82 99 23"}
+        contraindications={site?.contraindications}
+      />
     </div>
   );
 }

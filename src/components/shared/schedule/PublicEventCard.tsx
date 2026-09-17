@@ -28,11 +28,15 @@ import {
 } from "@/components/schedule/DocumentViewerDialog";
 import { formatEventDateRange } from "@/lib/date-utils";
 
+import { EventInquiryDialog } from "./EventInquiryDialog";
+
 interface PublicEventSlot {
   id: string;
   title: string;
   startTime: string;
   endTime: string;
+  type?: string;
+  isTournament?: boolean;
   isCancelled?: boolean;
   description?: string;
   location?: string;
@@ -41,6 +45,76 @@ interface PublicEventSlot {
   attachmentName?: string | null;
   attachmentType?: DocumentAttachmentType | null;
 }
+
+interface EventTypeConfig {
+  label: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
+  barBg: string;
+  barShadow: string;
+  cardBorderHover: string;
+  cardShadowHover: string;
+  icon: string;
+}
+
+const EVENT_TYPE_STYLES: Record<string, EventTypeConfig> = {
+  training: {
+    label: "Тренировка",
+    badgeBg: "bg-blue-500/15",
+    badgeText: "text-blue-300",
+    badgeBorder: "border-blue-500/30",
+    barBg: "bg-blue-500",
+    barShadow: "shadow-[0_0_8px_rgba(59,130,246,0.6)]",
+    cardBorderHover: "hover:border-blue-500/50",
+    cardShadowHover: "hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
+    icon: "🏸",
+  },
+  competition: {
+    label: "Състезание / Турнир",
+    badgeBg: "bg-amber-500/15",
+    badgeText: "text-amber-300",
+    badgeBorder: "border-amber-500/40",
+    barBg: "bg-amber-500",
+    barShadow: "shadow-[0_0_8px_rgba(245,158,11,0.6)]",
+    cardBorderHover: "hover:border-amber-500/50",
+    cardShadowHover: "hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]",
+    icon: "🏆",
+  },
+  camp: {
+    label: "Спортен лагер",
+    badgeBg: "bg-emerald-500/15",
+    badgeText: "text-emerald-300",
+    badgeBorder: "border-emerald-500/40",
+    barBg: "bg-emerald-500",
+    barShadow: "shadow-[0_0_8px_rgba(16,185,129,0.6)]",
+    cardBorderHover: "hover:border-emerald-500/50",
+    cardShadowHover: "hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]",
+    icon: "⛺",
+  },
+  event: {
+    label: "Клубно събитие",
+    badgeBg: "bg-purple-500/15",
+    badgeText: "text-purple-300",
+    badgeBorder: "border-purple-500/40",
+    barBg: "bg-purple-500",
+    barShadow: "shadow-[0_0_8px_rgba(168,85,247,0.6)]",
+    cardBorderHover: "hover:border-purple-500/50",
+    cardShadowHover: "hover:shadow-[0_0_20px_rgba(168,85,247,0.15)]",
+    icon: "🎉",
+  },
+  other: {
+    label: "Друго събитие",
+    badgeBg: "bg-cyan-500/15",
+    badgeText: "text-cyan-300",
+    badgeBorder: "border-cyan-500/40",
+    barBg: "bg-cyan-500",
+    barShadow: "shadow-[0_0_8px_rgba(6,182,212,0.6)]",
+    cardBorderHover: "hover:border-cyan-500/50",
+    cardShadowHover: "hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]",
+    icon: "📋",
+  },
+};
 
 const URL_OR_ROUTE_REGEX = /(https?:\/\/[^\s]+|\/tournaments\/[a-zA-Z0-9_-]+)/g;
 
@@ -98,19 +172,13 @@ export function PublicEventCard({
 }: PublicEventCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [isDocViewerOpen, setIsDocViewerOpen] = useState(false);
+  const [isInquiryOpen, setIsInquiryOpen] = useState(false);
 
   const displayTime = formatEventDateRange(event.startTime, event.endTime);
 
   // WhatsApp message — admin version includes full date/time/location context
-  const eventDateStr = new Date(event.startTime).toLocaleDateString("bg-BG", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-  const whatsappMessage = showAdminLinks
-    ? `Здравейте, интересувам се да се запиша за: ${event.title} - ${eventDateStr} (${displayTime}) в ${event.location || 'Спортна зала „Енергетик"'}. Моля, свържете се с мен.`
-    : `Здравейте, интересувам се да се запиша за: ${event.title}. Моля, свържете се с мен.`;
+  const rawType = event.isTournament ? "competition" : event.type || "training";
+  const typeConfig = EVENT_TYPE_STYLES[rawType] || EVENT_TYPE_STYLES.training;
 
   return (
     <motion.div
@@ -120,7 +188,7 @@ export function PublicEventCard({
       className={`group overflow-hidden rounded-2xl border transition-all duration-300 ${
         event.isCancelled
           ? "border-rose-900/30 bg-black/40 opacity-80"
-          : "border-zinc-800 bg-black/70 hover:border-blue-700/50 hover:bg-black hover:shadow-[0_0_20px_rgba(30,58,138,0.12)]"
+          : `border-zinc-800 bg-black/70 ${typeConfig.cardBorderHover} hover:bg-black ${typeConfig.cardShadowHover}`
       }`}
     >
       <div className="flex flex-col justify-between gap-4 px-6 py-5 sm:flex-row sm:items-center">
@@ -130,11 +198,11 @@ export function PublicEventCard({
             className={`mt-1 h-12 w-1 shrink-0 rounded-full sm:mt-0 ${
               event.isCancelled
                 ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"
-                : "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
+                : `${typeConfig.barBg} ${typeConfig.barShadow}`
             }`}
           />
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               <p
                 className={`text-base font-bold tracking-tight text-white ${
                   event.isCancelled ? "text-zinc-400 line-through" : ""
@@ -142,6 +210,17 @@ export function PublicEventCard({
               >
                 {event.title}
               </p>
+
+              {/* Event Type Badge */}
+              {!event.isCancelled && (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold tracking-wide ${typeConfig.badgeBorder} ${typeConfig.badgeBg} ${typeConfig.badgeText}`}
+                >
+                  <span>{typeConfig.icon}</span>
+                  <span>{typeConfig.label}</span>
+                </span>
+              )}
+
               {event.isCancelled && (
                 <span className="rounded-md border border-rose-500/30 bg-rose-500/20 px-2.5 py-1 text-[10px] font-bold tracking-widest text-rose-400 uppercase">
                   Отменена
@@ -240,26 +319,17 @@ export function PublicEventCard({
           )}
 
           {!event.isCancelled && (
-            <a
-              href={`https://wa.me/359899829923?text=${encodeURIComponent(whatsappMessage)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-2 flex items-center gap-1.5 text-sm font-semibold text-green-400 transition-colors group-hover:gap-2 hover:text-green-300"
+            <button
+              type="button"
+              onClick={() => setIsInquiryOpen(true)}
+              className="ml-2 inline-flex items-center gap-1.5 rounded-xl border border-blue-500/40 bg-blue-600/20 px-3.5 py-1.5 text-xs font-bold text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)] transition-all hover:border-blue-400 hover:bg-blue-600/30 hover:text-white"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="size-3.5"
-              >
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-              </svg>
-              Запиши се
+              <span>Запиши се</span>
               <ChevronRight
-                size={15}
+                size={14}
                 className="transition-transform group-hover:translate-x-0.5"
               />
-            </a>
+            </button>
           )}
         </div>
       </div>
@@ -292,6 +362,12 @@ export function PublicEventCard({
           documentType={event.attachmentType}
         />
       )}
+
+      <EventInquiryDialog
+        isOpen={isInquiryOpen}
+        onClose={() => setIsInquiryOpen(false)}
+        event={event}
+      />
     </motion.div>
   );
 }

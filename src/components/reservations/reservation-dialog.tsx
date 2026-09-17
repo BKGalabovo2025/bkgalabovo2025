@@ -78,10 +78,10 @@ const ReservationDialogContent = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="overflow-hidden rounded-4xl border-zinc-100 p-0 shadow-2xl sm:max-w-lg dark:border-zinc-900">
+      <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden rounded-4xl border-zinc-100 p-0 shadow-2xl sm:max-w-lg dark:border-zinc-900">
         {/* Wizard Header / Progress */}
-        <div className="border-b border-zinc-100 bg-zinc-50 p-8 dark:border-zinc-900 dark:bg-zinc-900/50">
-          <div className="mb-8 flex items-center justify-between">
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50 p-6 sm:p-8 dark:border-zinc-900 dark:bg-zinc-900/50">
+          <div className="mb-6 flex items-center justify-between">
             <div>
               <DialogTitle className="text-2xl font-black tracking-tighter text-zinc-950 uppercase italic dark:text-white">
                 {title}
@@ -145,7 +145,7 @@ const ReservationDialogContent = ({
           </div>
         </div>
 
-        <div className="max-h-[70vh] scrollbar-thin scrollbar-thumb-zinc-200 overflow-y-auto p-8 dark:scrollbar-thumb-zinc-800">
+        <div className="custom-scrollbar flex-1 overflow-y-auto p-6 sm:p-8">
           <Form {...form}>
             <form
               onSubmit={(e) => {

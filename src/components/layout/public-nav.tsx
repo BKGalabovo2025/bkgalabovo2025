@@ -53,13 +53,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
             href="/club#schedule"
             className="transition-colors hover:text-blue-400"
           >
-            График
-          </Link>
-          <Link
-            href="/club#tournaments"
-            className="transition-colors hover:text-amber-400"
-          >
-            Турнири
+            График и Турнири
           </Link>
           <Link
             href="/club/team"
@@ -142,14 +136,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 onClick={() => setMobileMenuOpen(false)}
                 className="hover:text-blue-400"
               >
-                График
-              </Link>
-              <Link
-                href="/club#tournaments"
-                onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-amber-400"
-              >
-                Турнири
+                График и Турнири
               </Link>
               <Link
                 href="/club/team"

@@ -6,6 +6,7 @@
 import {
   Activity,
   Calendar,
+  CalendarCheck,
   Clock,
   Package,
   ShoppingBag,
@@ -36,6 +37,7 @@ interface PublicCatalogTabsProps {
   products: any[];
   recoveryServices?: any[];
   allowedTabs?: CatalogTab[];
+  onRecoveryInquiry?: (item: any) => void;
 }
 
 const cleanUrl = (src: string) => {
@@ -54,6 +56,7 @@ export default function PublicCatalogTabs({
   products,
   recoveryServices = [],
   allowedTabs = ["trainings", "general", "products", "recovery"],
+  onRecoveryInquiry,
 }: PublicCatalogTabsProps) {
   const [activeTab, setActiveTab] = useState<CatalogTab>(
     allowedTabs[0] || "trainings"
@@ -219,6 +222,7 @@ export default function PublicCatalogTabs({
               item={item}
               tab={activeTab}
               lang={lang}
+              onRecoveryInquiry={onRecoveryInquiry}
             />
           ))}
         </div>
@@ -290,10 +294,12 @@ function CatalogCard({
   item,
   tab,
   lang,
+  onRecoveryInquiry,
 }: {
   item: any;
   tab: CatalogTab;
   lang: string;
+  onRecoveryInquiry?: (item: any) => void;
 }) {
   const images = useMemo(() => {
     if (!item.imageUrl) {
@@ -582,7 +588,7 @@ function CatalogCard({
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="overflow-hidden border-zinc-800 bg-zinc-950 p-0 sm:max-w-150">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-zinc-800 bg-zinc-950 p-0 sm:max-w-150">
           <div className="relative h-64 w-full bg-black">
             <ImageGallery
               images={images}
@@ -641,6 +647,22 @@ function CatalogCard({
                     const btnText = showPrice
                       ? t("Запиши се / Заяви", "Book / Request", lang)
                       : t("Попитайте за цена", "Ask for price", lang);
+
+                    if (tab === "recovery" && onRecoveryInquiry) {
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsModalOpen(false);
+                            onRecoveryInquiry(item);
+                          }}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-emerald-500/20 transition-colors hover:bg-emerald-600"
+                        >
+                          <CalendarCheck size={16} />
+                          <span>Изпрати запитване за час</span>
+                        </button>
+                      );
+                    }
 
                     return (
                       <a
