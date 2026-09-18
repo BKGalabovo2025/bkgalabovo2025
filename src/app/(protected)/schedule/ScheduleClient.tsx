@@ -199,7 +199,7 @@ export default function ScheduleClient() {
     } else {
       setActiveMainTab("events");
     }
-  }, [urlTab, isRecoveryZone]);
+  }, [urlTab, isRecoveryZone, router]);
 
   // Handle direct links to events (e.g. from attendance history)
   useEffect(() => {

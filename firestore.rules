@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Помощна функция за проверка на супер администратор
     function isSuperAdmin() {
-      return request.auth != null && request.auth.token.email == 'bkgalabovo2014@gmail.com';
+      return request.auth != null && (request.auth.token.email == 'bkgalabovo2014@gmail.com' || request.auth.token.email == 'recoveryzonebyzm@gmail.com');
     }
 
     // Помощна функция за проверка на администратор
@@ -83,11 +83,17 @@ service cloud.firestore {
 
         // 4. Публично четене, писане от админи със SiteId
         allow read: if collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'];
-        allow create, update: if (isAdmin() && hasValidSiteId() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'] && hasAccessToSite(request.resource.data.siteId)) || (collection == 'feedback_campaigns');
+        allow create, update: if isAdmin() && hasValidSiteId() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'] && hasAccessToSite(request.resource.data.siteId);
         allow delete: if isAdmin() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'] && checkResourceSiteAccess();
         
-        // 4.1. Публично обновяване на theory_results и feedback_submissions
-        allow update: if collection in ['theory_results', 'feedback_campaigns'];
+        // 4.1. Прецизно публично обновяване на theory_results само при предаване на викторина от състезател
+        allow update: if collection == 'theory_results' &&
+          resource.data.status == 'SENT' &&
+          request.resource.data.status == 'PENDING' &&
+          request.resource.data.shareToken == resource.data.shareToken &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'autoScore', 'totalScore', 'tacticalAnswer', 'answers', 'status', 'submittedAt'
+          ]);
 
         // 4.2. Публично създаване на отзиви (feedback_submissions) и четене на одобрените отзиви
         allow create: if collection == 'feedback_submissions';

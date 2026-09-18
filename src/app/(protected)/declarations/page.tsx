@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function DeclarationsPage() {
   const user = await getAuthUserFromSessionCookie();
   if (!user) {
-    redirect("/auth");
+    redirect("/login");
   }
 
   return <DeclarationsClient />;

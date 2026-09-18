@@ -11,6 +11,7 @@ import {
 } from "@/components/shared/sales/SaleFormManager";
 import { useAuth } from "@/context/auth-context";
 import { createSaleAction } from "@/lib/actions/sales";
+import { useAppStore } from "@/store/use-app-store";
 import { Sale } from "@/types";
 
 export default function NewSaleClient() {
@@ -19,6 +20,7 @@ export default function NewSaleClient() {
   const queryMemberId = searchParams.get("memberId");
 
   const { idToken } = useAuth();
+  const { activeBranch } = useAppStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreateSale = async ({
@@ -44,7 +46,7 @@ export default function NewSaleClient() {
         isPaid: status === "completed",
         totalAmount,
         currency: "EUR",
-        siteId: "default",
+        siteId: activeBranch || "bkgalabovo",
       });
 
       if (result.success) {

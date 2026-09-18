@@ -47,10 +47,11 @@ export async function GET(request: Request) {
         continue;
       }
 
-      const host = request.headers.get("host");
-      const protocol =
-        process.env.NODE_ENV === "development" ? "http" : "https";
-      const baseUrl = `${protocol}://${host}`;
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        (process.env.NODE_ENV === "development"
+          ? "http://localhost:3000"
+          : "https://bkgalabovo2025.vercel.app");
 
       let emailsSent = 0;
 

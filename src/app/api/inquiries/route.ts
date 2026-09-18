@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 
-import { ensureAdmin, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdmin, ensureAdminFromSession } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 const InquiryInputSchema = z.object({
@@ -113,7 +113,29 @@ export async function POST(request: Request) {
           auth: { user: emailUser, pass: emailPass },
         });
 
+        const escapeHtml = (str: unknown): string => {
+          if (str === null || str === undefined) return "";
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        };
+
+        const safeName = escapeHtml(data.name);
+        const safePhone = escapeHtml(data.phone);
+        const safeEventTitle = escapeHtml(data.eventTitle);
+        const safeNotes = escapeHtml(data.notes);
+        const safeSubjectName = data.name.replace(/[\r\n]+/g, " ");
+        const safeSubjectTitle = data.eventTitle.replace(/[\r\n]+/g, " ");
+
         if (isRecovery) {
+          const safeZone = escapeHtml(data.preferredZone);
+          const safeGoal = escapeHtml(data.goal);
+          const safeTimeSlot = escapeHtml(data.preferredTimeSlot);
+          const safeEventDate = escapeHtml(data.eventDate);
+
           const htmlContent = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #09090b; color: #ffffff; padding: 24px; border-radius: 16px; border: 1px solid #10b981;">
               <div style="text-align: center; margin-bottom: 20px;">
@@ -121,15 +143,15 @@ export async function POST(request: Request) {
                 <p style="color: #a1a1aa; font-size: 13px; margin-top: 4px;">Ново онлайн запитване за възстановителна процедура</p>
               </div>
               <div style="background-color: #18181b; padding: 20px; border-radius: 12px; border: 1px solid #27272a;">
-                <p style="margin: 8px 0; font-size: 15px;"><strong>Процедура:</strong> <span style="color: #34d399; font-weight: bold;">${data.eventTitle}</span></p>
-                ${data.preferredZone ? `<p style="margin: 8px 0;"><strong>Зона / Приставка:</strong> ${data.preferredZone}</p>` : ""}
-                ${data.goal ? `<p style="margin: 8px 0;"><strong>Цел на посещението:</strong> ${data.goal}</p>` : ""}
-                ${data.preferredTimeSlot ? `<p style="margin: 8px 0;"><strong>Удобно време:</strong> ${data.preferredTimeSlot}</p>` : ""}
-                ${data.eventDate ? `<p style="margin: 8px 0;"><strong>Предпочитана дата:</strong> ${data.eventDate}</p>` : ""}
+                <p style="margin: 8px 0; font-size: 15px;"><strong>Процедура:</strong> <span style="color: #34d399; font-weight: bold;">${safeEventTitle}</span></p>
+                ${data.preferredZone ? `<p style="margin: 8px 0;"><strong>Зона / Приставка:</strong> ${safeZone}</p>` : ""}
+                ${data.goal ? `<p style="margin: 8px 0;"><strong>Цел на посещението:</strong> ${safeGoal}</p>` : ""}
+                ${data.preferredTimeSlot ? `<p style="margin: 8px 0;"><strong>Удобно време:</strong> ${safeTimeSlot}</p>` : ""}
+                ${data.eventDate ? `<p style="margin: 8px 0;"><strong>Предпочитана дата:</strong> ${safeEventDate}</p>` : ""}
                 <hr style="border: none; border-top: 1px solid #27272a; margin: 16px 0;" />
-                <p style="margin: 8px 0;"><strong>Име на клиент:</strong> ${data.name}</p>
-                <p style="margin: 8px 0;"><strong>Телефон:</strong> <a href="tel:${data.phone}" style="color: #34d399; font-weight: bold; font-size: 16px;">${data.phone}</a></p>
-                ${data.notes ? `<p style="margin: 8px 0;"><strong>Бележка / Въпрос:</strong> <em>${data.notes}</em></p>` : ""}
+                <p style="margin: 8px 0;"><strong>Име на клиент:</strong> ${safeName}</p>
+                <p style="margin: 8px 0;"><strong>Телефон:</strong> <a href="tel:${safePhone}" style="color: #34d399; font-weight: bold; font-size: 16px;">${safePhone}</a></p>
+                ${data.notes ? `<p style="margin: 8px 0;"><strong>Бележка / Въпрос:</strong> <em>${safeNotes}</em></p>` : ""}
               </div>
               <p style="font-size: 11px; color: #71717a; text-align: center; margin-top: 20px;">Получено на ${new Date(now).toLocaleString("bg-BG")} през официалния уебсайт на Recovery Zone by ZM.</p>
             </div>
@@ -141,7 +163,7 @@ export async function POST(request: Request) {
               address: emailUser,
             },
             to: adminEmail,
-            subject: `[Ново запитване за процедура] ${data.name} - ${data.eventTitle}`,
+            subject: `[Ново запитване за процедура] ${safeSubjectName} - ${safeSubjectTitle}`,
             html: htmlContent,
             text: `Ново запитване за процедура ${data.eventTitle} от ${data.name} (тел: ${data.phone}).`,
           });
@@ -155,19 +177,27 @@ export async function POST(request: Request) {
             ? levelTranslations[data.level] || data.level
             : "Стандартно";
 
+          const safeTargetText = escapeHtml(targetText);
+          const safeLevelText = escapeHtml(levelText);
+          const safeLocation = escapeHtml(
+            data.eventLocation || 'Спортна зала „Енергетик"'
+          );
+          const safeEventDate = escapeHtml(data.eventDate);
+          const safeEventTime = escapeHtml(data.eventTime || "");
+
           const htmlContent = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9fafb; padding: 24px; border-radius: 12px; border: 1px solid #e5e7eb;">
               <h2 style="color: #1e3a8a; margin-top: 0;">🏸 Ново запитване от сайта на БК Гълъбово</h2>
               <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                <p style="margin: 6px 0;"><strong>Събитие:</strong> ${data.eventTitle}</p>
-                ${data.eventDate ? `<p style="margin: 6px 0;"><strong>Дата/Час:</strong> ${data.eventDate} (${data.eventTime || ""})</p>` : ""}
-                <p style="margin: 6px 0;"><strong>Място:</strong> ${data.eventLocation || 'Спортна зала „Енергетик"'}</p>
+                <p style="margin: 6px 0;"><strong>Събитие:</strong> ${safeEventTitle}</p>
+                ${data.eventDate ? `<p style="margin: 6px 0;"><strong>Дата/Час:</strong> ${safeEventDate} (${safeEventTime})</p>` : ""}
+                <p style="margin: 6px 0;"><strong>Място:</strong> ${safeLocation}</p>
                 <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 16px 0;" />
-                <p style="margin: 6px 0;"><strong>Име на кандидат:</strong> ${data.name}</p>
-                <p style="margin: 6px 0;"><strong>Телефон за връзка:</strong> <a href="tel:${data.phone}" style="color: #2563eb; font-weight: bold;">${data.phone}</a></p>
-                <p style="margin: 6px 0;"><strong>За кого:</strong> ${targetText}</p>
-                <p style="margin: 6px 0;"><strong>Ниво:</strong> ${levelText}</p>
-                ${data.notes ? `<p style="margin: 6px 0;"><strong>Бележка/Въпрос:</strong> <em>${data.notes}</em></p>` : ""}
+                <p style="margin: 6px 0;"><strong>Име на кандидат:</strong> ${safeName}</p>
+                <p style="margin: 6px 0;"><strong>Телефон за връзка:</strong> <a href="tel:${safePhone}" style="color: #2563eb; font-weight: bold;">${safePhone}</a></p>
+                <p style="margin: 6px 0;"><strong>За кого:</strong> ${safeTargetText}</p>
+                <p style="margin: 6px 0;"><strong>Ниво:</strong> ${safeLevelText}</p>
+                ${data.notes ? `<p style="margin: 6px 0;"><strong>Бележка/Въпрос:</strong> <em>${safeNotes}</em></p>` : ""}
               </div>
               <p style="font-size: 12px; color: #6b7280; margin-top: 16px;">Получено на ${new Date(now).toLocaleString("bg-BG")} от уебсайта на клуба.</p>
             </div>
@@ -179,7 +209,7 @@ export async function POST(request: Request) {
               address: emailUser,
             },
             to: adminEmail,
-            subject: `[Ново запитване] ${data.name} - ${data.eventTitle}`,
+            subject: `[Ново запитване] ${safeSubjectName} - ${safeSubjectTitle}`,
             html: htmlContent,
             text: `Ново запитване за ${data.eventTitle} от ${data.name} (тел: ${data.phone}). Ниво: ${levelText}, За кого: ${targetText}.`,
           });
@@ -196,7 +226,7 @@ export async function POST(request: Request) {
       success: true,
       id: docRef.id,
       message: isRecovery
-        ? "Запитването за процедура е прието успешно."
+        ? "Запитването за сесия е прието успешно."
         : "Запитването е прието успешно.",
     });
   } catch (error) {
@@ -226,10 +256,7 @@ export async function GET(request: Request) {
     if (token) {
       await ensureAdmin(token);
     } else {
-      const sessionUser = await getAuthUserFromSessionCookie();
-      if (!sessionUser) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+      await ensureAdminFromSession();
     }
 
     const adminDb = getAdminDb();
@@ -255,7 +282,18 @@ export async function GET(request: Request) {
     );
 
     return NextResponse.json({ inquiries, siteId });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "";
+    if (
+      errorMsg.includes("администраторски права") ||
+      errorMsg.includes("Невалидна сесия") ||
+      errorMsg.includes("Unauthorized")
+    ) {
+      return NextResponse.json(
+        { error: errorMsg || "Unauthorized" },
+        { status: 401 }
+      );
+    }
     console.error("[inquiries-api] Error fetching inquiries:", error);
     return NextResponse.json(
       { error: "Грешка при зареждане на запитванията." },
@@ -274,10 +312,7 @@ export async function PATCH(request: Request) {
     if (token) {
       await ensureAdmin(token);
     } else {
-      const sessionUser = await getAuthUserFromSessionCookie();
-      if (!sessionUser) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+      await ensureAdminFromSession();
     }
 
     const { id, status } = await request.json();
@@ -300,7 +335,18 @@ export async function PATCH(request: Request) {
     await adminDb.collection("inquiries").doc(id).update(updateData);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "";
+    if (
+      errorMsg.includes("администраторски права") ||
+      errorMsg.includes("Невалидна сесия") ||
+      errorMsg.includes("Unauthorized")
+    ) {
+      return NextResponse.json(
+        { error: errorMsg || "Unauthorized" },
+        { status: 401 }
+      );
+    }
     console.error("[inquiries-api] Error updating inquiry:", error);
     return NextResponse.json(
       { error: "Грешка при обновяване на запитването." },

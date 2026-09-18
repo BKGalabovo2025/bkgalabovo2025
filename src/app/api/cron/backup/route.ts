@@ -5,17 +5,29 @@ import { getAdminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
-const BACKUP_COLLECTIONS = [
+export const BACKUP_COLLECTIONS = [
   "members",
   "events",
+  "trainings",
+  "training_attendance",
   "tournaments",
+  "tournament_entries",
   "tournament_matches",
+  "reservations",
+  "blockedSlots",
   "sales",
   "prices",
-  "club_services",
-  "feedback",
-  "assessments",
-  "beep_tests",
+  "clubServices",
+  "clubGeneralServices",
+  "sessions",
+  "inquiries",
+  "feedback_submissions",
+  "feedback_campaigns",
+  "member_assessments",
+  "member_declarations",
+  "beep_test_results",
+  "theory_results",
+  "inventory",
   "audit_logs",
 ] as const;
 

@@ -3,7 +3,10 @@ import "server-only";
 
 import * as admin from "firebase-admin";
 
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import {
+  ensureAdminFromSession,
+  getAuthUserFromSessionCookie,
+} from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
 
@@ -80,8 +83,7 @@ export async function createGeneralServiceAction(
   data: Omit<GeneralService, "id" | "createdAt" | "updatedAt" | "createdBy">
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    const user = await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     const now = new Date().toISOString();
@@ -123,8 +125,7 @@ export async function updateGeneralServiceAction(
   data: Partial<GeneralService>
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    const user = await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     const now = new Date().toISOString();
@@ -172,8 +173,7 @@ export async function updateGeneralServiceAction(
 
 export async function deleteGeneralServiceAction(id: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    const user = await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     const now = new Date().toISOString();
@@ -248,8 +248,7 @@ export async function executeGeneralServiceSaleAction(
   clientName?: string
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    const user = await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     const now = new Date().toISOString();

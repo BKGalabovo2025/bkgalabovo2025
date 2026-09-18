@@ -1,4 +1,4 @@
-﻿/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable sonarjs/no-nested-conditional */
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 
 import { getClubServicesCollection } from "@/lib/firebase-collections";
@@ -32,12 +32,12 @@ export const getAllRecoveryServices = async (): Promise<ClubService[]> => {
       return {
         id: doc.id,
         siteId: "recoveryzone",
-        name: data.name || "РќРµРёРјРµРЅСѓРІР°РЅР° СѓСЃР»СѓРіР°",
+        name: data.name || "Неименувана услуга",
         description: data.description || "",
         price: data.price || 0,
         currency: "EUR",
         durationMinutes: data.duration || 0,
-        category: data.category || "Р”СЂСѓРіРё",
+        category: data.category || "Други",
         zones: Array.isArray(data.zones)
           ? data.zones
           : typeof data.zones === "string"
@@ -46,7 +46,7 @@ export const getAllRecoveryServices = async (): Promise<ClubService[]> => {
         athleteCount: data.athleteCount || 1,
         numberOfDays: data.numberOfDays || 1,
         proceduresPerDay: data.proceduresPerDay || 1,
-        sessionType: data.sessionType || "Р’СЉР·СЃС‚Р°РЅРѕРІСЏРІР°РЅРµ",
+        sessionType: data.sessionType || "Възстановяване",
         requiresBooking: true,
         createdAt: data.createdAt || new Date().toISOString(),
         updatedAt: data.updatedAt || new Date().toISOString(),

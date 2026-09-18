@@ -4,7 +4,7 @@
 
 import { ArrowRight, MessageSquare, Star } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
@@ -19,7 +19,7 @@ export function FeedbackDashboardCard() {
   const [submissions, setSubmissions] = useState<FeedbackSubmission[]>([]);
   const [stats, setStats] = useState<FeedbackStats | null>(null);
 
-  const fetchFeedback = async () => {
+  const fetchFeedback = useCallback(async () => {
     try {
       const res = await getFeedbackAdminDataAction(siteId);
       if (res.success && res.data) {
@@ -29,11 +29,11 @@ export function FeedbackDashboardCard() {
     } catch {
       // silently handle
     }
-  };
+  }, [siteId]);
 
   useEffect(() => {
     fetchFeedback();
-  }, [siteId]);
+  }, [fetchFeedback]);
 
   const recentReviews = useMemo(() => {
     // Prioritize pending reviews (awaiting moderation), then newest reviews

@@ -3,7 +3,7 @@
 import { ArrowRight, CheckCircle2, Clock, Inbox, Phone } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAppStore } from "@/store/use-app-store";
 import { EventInquiry } from "@/types/inquiry.types";
@@ -16,7 +16,7 @@ export function InquiriesNotificationCard() {
 
   const [inquiries, setInquiries] = useState<EventInquiry[]>([]);
 
-  const fetchInquiries = async () => {
+  const fetchInquiries = useCallback(async () => {
     try {
       const res = await fetch(`/api/inquiries?siteId=${siteId}`);
       if (res.ok) {
@@ -26,13 +26,13 @@ export function InquiriesNotificationCard() {
     } catch {
       // silently handle
     }
-  };
+  }, [siteId]);
 
   useEffect(() => {
     fetchInquiries();
     const interval = setInterval(fetchInquiries, 45000);
     return () => clearInterval(interval);
-  }, [siteId]);
+  }, [fetchInquiries]);
 
   const stats = useMemo(() => {
     const total = inquiries.length;

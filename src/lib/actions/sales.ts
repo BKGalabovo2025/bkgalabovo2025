@@ -9,7 +9,12 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
 
 import { logAuditEvent } from "@/lib/audit-logger";
-import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import {
+  ensureAdmin,
+  ensureAdminFromSession,
+  ensureAdminWithSite,
+  getAuthUserFromSessionCookie,
+} from "@/lib/auth-utils";
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
@@ -32,7 +37,8 @@ export async function createSaleAction(
   saleData: Record<string, unknown>
 ): Promise<SaleActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const targetSiteId = (saleData?.siteId as string) || undefined;
+    const user = await ensureAdminWithSite(idToken, targetSiteId);
     const adminDb = getAdminDb();
 
     // Validation
@@ -161,8 +167,32 @@ export async function updateSaleAction(
   saleData: Record<string, unknown>
 ): Promise<SaleActionState> {
   try {
-    await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
+
+    const saleRef = adminDb.collection("sales").doc(id);
+    const existingSaleSnap = await saleRef.get();
+    if (!existingSaleSnap.exists) {
+      return {
+        success: false,
+        message: "Продажбата не бе намерена.",
+      };
+    }
+
+    const existingSale = existingSaleSnap.data();
+    const targetSite = (saleData?.siteId as string) || existingSale?.siteId;
+    const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+    if (
+      targetSite &&
+      allowedSites &&
+      allowedSites.length > 0 &&
+      !allowedSites.includes(targetSite)
+    ) {
+      return {
+        success: false,
+        message: "Нямате достъп до този клон.",
+      };
+    }
 
     const validatedFields = SaleSchema.omit({
       id: true,
@@ -180,16 +210,12 @@ export async function updateSaleAction(
     }
 
     const data = validatedFields.data;
-    const saleRef = adminDb.collection("sales").doc(id);
 
     const dataToUpdate: Record<string, unknown> = { ...data };
     if (data.saleDate) {
       dataToUpdate.saleDate = Timestamp.fromDate(new Date(data.saleDate));
     }
     dataToUpdate.updatedAt = FieldValue.serverTimestamp();
-
-    const existingSaleSnap = await saleRef.get();
-    const existingSale = existingSaleSnap.data();
 
     await saleRef.update(dataToUpdate);
 
@@ -334,9 +360,27 @@ export async function deleteSaleAction(
   idToken: string
 ): Promise<SaleActionState> {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     const saleRef = adminDb.collection("sales").doc(id);
+
+    const preSnap = await saleRef.get();
+    if (!preSnap.exists) {
+      throw new Error("Продажбата не бе намерена.");
+    }
+    const preSaleData = preSnap.data()!;
+    const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+    if (
+      preSaleData.siteId &&
+      allowedSites &&
+      allowedSites.length > 0 &&
+      !allowedSites.includes(preSaleData.siteId)
+    ) {
+      return {
+        success: false,
+        message: "Нямате достъп до този клон.",
+      };
+    }
 
     let deletedSaleData: Record<string, any> = {};
 
@@ -798,8 +842,7 @@ export async function createCampFeeSaleAction(
   feeTypeLabel: string
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    const user = await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     const now = new Date().toISOString();

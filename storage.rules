@@ -1,15 +1,49 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    function isAdmin() {
-      return request.auth != null && (request.auth.token.admin == true || request.auth.token.email == 'bkgalabovo2014@gmail.com');
+    function isSuperAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'bkgalabovo2014@gmail.com' ||
+        request.auth.token.email == 'recoveryzonebyzm@gmail.com'
+      );
     }
 
-    match /{allPaths=**} {
-      // Позволяваме четене на всички влезли (за лога, снимки и т.н.)
-      allow read: if request.auth != null;
-      // САМО администратори могат да качват или трият файлове
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        isSuperAdmin()
+      );
+    }
+
+    function hasAccessToSite(siteId) {
+      return request.auth != null && (
+        isSuperAdmin() ||
+        request.auth.token.allowedSites == null ||
+        (siteId != null && siteId in request.auth.token.allowedSites)
+      );
+    }
+
+    // 1. Публични активи (лого, общи ресурси)
+    match /public/{allPaths=**} {
+      allow read: if true;
       allow write: if isAdmin();
+    }
+
+    // 2. Потребителски аватари
+    match /avatars/{userId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+
+    // 3. Клон-специфични документи
+    match /sites/{siteId}/{allPaths=**} {
+      allow read: if request.auth != null && hasAccessToSite(siteId);
+      allow write: if isAdmin() && hasAccessToSite(siteId);
+    }
+
+    // 4. Глобален достъп само за администратори
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
     }
   }
 }

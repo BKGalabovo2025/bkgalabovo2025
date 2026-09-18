@@ -91,7 +91,7 @@ export function BirthdayReminder() {
     }[];
 
     return withBirthdays.sort((a, b) => a.diffDays - b.diffDays);
-  }, [members]);
+  }, [members, isRecovery]);
 
   const upcomingBirthdays = useMemo(() => {
     return allBirthdays.filter((b) => b.diffDays <= 14);

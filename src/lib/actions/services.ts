@@ -6,7 +6,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 
@@ -125,7 +125,7 @@ export async function createClubService(
 ): Promise<ServiceState> {
   try {
     if (!idToken) throw new Error("Missing ID Token");
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     const rawData = parseFormData(formData);
 
@@ -195,7 +195,7 @@ export async function updateClubService(
 ): Promise<ServiceState> {
   try {
     if (!id || !idToken) throw new Error("Missing ID or ID Token");
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     const rawData = parseFormData(formData);
 
@@ -257,7 +257,7 @@ export async function updateClubService(
 
 export async function deleteClubService(idToken: string, id: string) {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const serviceRef = adminDb.collection("clubServices").doc(id);
@@ -359,7 +359,7 @@ export async function createRecoverySession(
 ): Promise<ServiceState> {
   try {
     if (!idToken) throw new Error("Missing ID Token");
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const validatedFields = parseRecoveryFormData(formData);
@@ -416,7 +416,7 @@ export async function updateRecoverySession(
 ): Promise<ServiceState> {
   try {
     if (!id || !idToken) throw new Error("Missing ID or ID Token");
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const validatedFields = parseRecoveryFormData(formData);
@@ -484,7 +484,7 @@ export async function updateRecoverySession(
 
 export async function deleteRecoverySession(idToken: string, id: string) {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const doc = await adminDb.collection("sessions").doc(id).get();
@@ -734,7 +734,7 @@ export async function executeTrainingSaleAction(
   clientName?: string
 ) {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
     const now = new Date().toISOString();
 

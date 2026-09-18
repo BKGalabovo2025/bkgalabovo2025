@@ -163,7 +163,9 @@ export const getTournamentMatchesCollection = () =>
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getInventoryEventsCollection = () =>
-  collection(getDb(), "inventoryEvents").withConverter(inventoryEventConverter);
+  collection(getDb(), "inventory_events").withConverter(
+    inventoryEventConverter
+  );
 
 export const getEventsCollection = () =>
   collection(getDb(), "events").withConverter(eventConverter);

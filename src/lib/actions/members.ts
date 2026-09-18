@@ -7,7 +7,11 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { logAuditEvent } from "@/lib/audit-logger";
-import { ensureAdmin, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import {
+  ensureAdmin,
+  ensureAdminWithSite,
+  getAuthUserFromSessionCookie,
+} from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 import { serverCache } from "@/lib/server-cache";
@@ -31,7 +35,8 @@ export async function createMemberAction(
   memberData: Record<string, unknown>
 ): Promise<MemberActionState<{ id: string }>> {
   try {
-    const user = await ensureAdmin(idToken);
+    const targetSiteId = (memberData?.siteId as string) || undefined;
+    const user = await ensureAdminWithSite(idToken, targetSiteId);
     const adminDb = getAdminDb();
 
     // Validation
@@ -125,6 +130,29 @@ export async function updateMemberAction(
   try {
     const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
+    const docRef = adminDb.collection("members").doc(id);
+
+    const existingSnap = await docRef.get();
+    if (!existingSnap.exists) {
+      return {
+        success: false,
+        message: "Членът не бе намерен.",
+      };
+    }
+    const existingData = existingSnap.data();
+    const targetSiteId = (memberData?.siteId as string) || existingData?.siteId;
+    const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+    if (
+      targetSiteId &&
+      allowedSites &&
+      allowedSites.length > 0 &&
+      !allowedSites.includes(targetSiteId)
+    ) {
+      return {
+        success: false,
+        message: "Нямате достъп до този клон.",
+      };
+    }
 
     // Validation (allow partial updates)
     const validatedFields = MemberSchema.omit({
@@ -251,6 +279,18 @@ export async function deleteMemberAction(
       const familyId = data?.familyId;
       const memberName = data?.name || id;
       const siteId = (data?.siteId as string) || "bkgalabovo";
+      const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+      if (
+        siteId &&
+        allowedSites &&
+        allowedSites.length > 0 &&
+        !allowedSites.includes(siteId)
+      ) {
+        return {
+          success: false,
+          message: "Нямате достъп до този клон.",
+        };
+      }
 
       // Audit log before deletion
       await logAuditEvent({

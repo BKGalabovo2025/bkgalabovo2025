@@ -131,6 +131,50 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Missing fileId" }, { status: 400 });
     }
 
+    // 1. Authenticate via Bearer token or session cookie
+    let user = null;
+    const authHeader = request.headers.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      try {
+        const { getAuthUser } = await import("@/lib/auth-utils");
+        user = await getAuthUser(authHeader.substring(7));
+      } catch {
+        // Invalid bearer token, will try session cookie
+      }
+    }
+
+    if (!user) {
+      const { getAuthUserFromSessionCookie } = await import("@/lib/auth-utils");
+      user = await getAuthUserFromSessionCookie();
+    }
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          error:
+            "Unauthorized: Влизането в профил е задължително за достъп до качени файлове.",
+        },
+        { status: 401 }
+      );
+    }
+
+    // 2. Tenant isolation check
+    const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+    const isSuperAdmin =
+      user.email === "bkgalabovo2014@gmail.com" ||
+      user.email === "recoveryzonebyzm@gmail.com";
+    if (
+      !isSuperAdmin &&
+      allowedSites &&
+      allowedSites.length > 0 &&
+      !allowedSites.includes(siteId)
+    ) {
+      return NextResponse.json(
+        { error: "Forbidden: Нямате достъп до файловете на този клон." },
+        { status: 403 }
+      );
+    }
+
     const adminDb = (await import("@/lib/firebase-admin")).getAdminDb();
     const docSnap = await adminDb
       .collection("sites")

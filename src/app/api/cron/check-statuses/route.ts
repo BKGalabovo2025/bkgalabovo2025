@@ -6,7 +6,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 export const dynamic = "force-dynamic";
 
 // This endpoint can be triggered by Vercel Cron or manually via UI
-const getLastActivityDate = async (
+export const getLastActivityDate = async (
   adminDb: FirebaseFirestore.Firestore,
   memberId: string,
   data: { registrationDate?: { toDate?: () => Date } | string | Date | null }
@@ -28,24 +28,39 @@ const getLastActivityDate = async (
     }
   }
 
-  const salesSnap = await adminDb
-    .collection("sales")
-    .where("memberId", "==", memberId)
-    .orderBy("saleDate", "desc")
-    .limit(1)
-    .get();
+  const [salesSnap, eventsSnap] = await Promise.all([
+    adminDb
+      .collection("sales")
+      .where("memberId", "==", memberId)
+      .orderBy("saleDate", "desc")
+      .limit(1)
+      .get()
+      .catch((err) => {
+        console.error(`Error querying sales for member ${memberId}:`, err);
+        return {
+          empty: true,
+          docs: [],
+        } as unknown as FirebaseFirestore.QuerySnapshot;
+      }),
+    adminDb
+      .collection("events")
+      .where("attendeeMemberIds", "array-contains", memberId)
+      .orderBy("startDate", "desc")
+      .limit(1)
+      .get()
+      .catch((err) => {
+        console.error(`Error querying events for member ${memberId}:`, err);
+        return {
+          empty: true,
+          docs: [],
+        } as unknown as FirebaseFirestore.QuerySnapshot;
+      }),
+  ]);
 
   if (!salesSnap.empty) {
     const saleDate = new Date(salesSnap.docs[0].data().saleDate);
     if (saleDate > lastActivityDate) lastActivityDate = saleDate;
   }
-
-  const eventsSnap = await adminDb
-    .collection("events")
-    .where("attendeeMemberIds", "array-contains", memberId)
-    .orderBy("startDate", "desc")
-    .limit(1)
-    .get();
 
   if (!eventsSnap.empty) {
     const eventDate = new Date(eventsSnap.docs[0].data().startDate);
@@ -55,7 +70,7 @@ const getLastActivityDate = async (
   return lastActivityDate;
 };
 
-const processMemberStatus = (
+export const processMemberStatus = (
   currentStatus: string,
   lastActivityDate: Date,
   thirtyDaysAgo: Date,
@@ -76,63 +91,133 @@ const processMemberStatus = (
   return { newStatus, note };
 };
 
-const formatDateTime = () => {
+export const formatDateTime = () => {
   const date = new Date();
   return date.toLocaleString("bg-BG", { timeZone: "Europe/Sofia" });
 };
 
-const processMembersBatch = async (
+const evaluateMemberChunk = async (
+  chunk: FirebaseFirestore.QueryDocumentSnapshot[],
+  adminDb: FirebaseFirestore.Firestore,
+  thirtyDaysAgo: Date,
+  formatDateTimeFn: () => string
+) => {
+  return Promise.all(
+    chunk.map(async (doc) => {
+      const memberId = doc.id;
+      const data = doc.data();
+      const currentStatus = data.status || "active";
+
+      const lastActivityDate = await getLastActivityDate(
+        adminDb,
+        memberId,
+        data
+      );
+      const { newStatus, note } = processMemberStatus(
+        currentStatus,
+        lastActivityDate,
+        thirtyDaysAgo,
+        formatDateTimeFn
+      );
+      return { doc, data, currentStatus, newStatus, note };
+    })
+  );
+};
+
+const applyResultToBatch = (
+  res: {
+    doc: FirebaseFirestore.QueryDocumentSnapshot;
+    data: FirebaseFirestore.DocumentData;
+    currentStatus: string;
+    newStatus: string;
+    note: string;
+  },
+  batch: FirebaseFirestore.WriteBatch
+) => {
+  const isDeactivated =
+    res.newStatus === "inactive" && res.currentStatus === "active";
+  const isActivated =
+    res.newStatus === "active" && res.currentStatus === "inactive";
+  const hasChanged = res.newStatus !== res.currentStatus;
+
+  if (hasChanged) {
+    const existingNotes = res.data.notes || "";
+    batch.update(res.doc.ref, {
+      status: res.newStatus,
+      notes: (existingNotes + res.note).trim(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  return { isDeactivated, isActivated, hasChanged };
+};
+
+interface BatchCounts {
+  deactivatedCount: number;
+  activatedCount: number;
+  batchCount: number;
+}
+
+const applyChunkToBatch = (
+  chunkResults: {
+    doc: FirebaseFirestore.QueryDocumentSnapshot;
+    data: FirebaseFirestore.DocumentData;
+    currentStatus: string;
+    newStatus: string;
+    note: string;
+  }[],
+  batch: FirebaseFirestore.WriteBatch,
+  counts: BatchCounts
+) => {
+  for (const res of chunkResults) {
+    const outcome = applyResultToBatch(res, batch);
+    if (outcome.isDeactivated) counts.deactivatedCount++;
+    if (outcome.isActivated) counts.activatedCount++;
+    if (outcome.hasChanged) counts.batchCount++;
+  }
+};
+
+export const processMembersBatch = async (
   adminDb: FirebaseFirestore.Firestore,
   membersDocs: FirebaseFirestore.QueryDocumentSnapshot[],
   thirtyDaysAgo: Date,
-  formatDateTime: () => string
+  formatDateTimeFn: () => string
 ) => {
-  let deactivatedCount = 0;
-  let activatedCount = 0;
-  let batchCount = 0;
+  const counts: BatchCounts = {
+    deactivatedCount: 0,
+    activatedCount: 0,
+    batchCount: 0,
+  };
   const MAX_BATCH_SIZE = 450;
   const batch = adminDb.batch();
 
-  for (const doc of membersDocs) {
-    const memberId = doc.id;
-    const data = doc.data();
-    const currentStatus = data.status || "active";
-
-    const lastActivityDate = await getLastActivityDate(adminDb, memberId, data);
-    const { newStatus, note } = processMemberStatus(
-      currentStatus,
-      lastActivityDate,
+  // Process members in concurrent chunks of 10 to eliminate N+1 bottlenecks
+  const CHUNK_SIZE = 10;
+  for (let i = 0; i < membersDocs.length; i += CHUNK_SIZE) {
+    const chunk = membersDocs.slice(i, i + CHUNK_SIZE);
+    const chunkResults = await evaluateMemberChunk(
+      chunk,
+      adminDb,
       thirtyDaysAgo,
-      formatDateTime
+      formatDateTimeFn
     );
 
-    if (newStatus === "inactive" && currentStatus === "active") {
-      deactivatedCount++;
-    } else if (newStatus === "active" && currentStatus === "inactive") {
-      activatedCount++;
-    }
+    applyChunkToBatch(chunkResults, batch, counts);
 
-    if (newStatus !== currentStatus) {
-      const existingNotes = data.notes || "";
-      batch.update(doc.ref, {
-        status: newStatus,
-        notes: (existingNotes + note).trim(),
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-      batchCount++;
-    }
-
-    if (batchCount >= MAX_BATCH_SIZE) {
+    if (counts.batchCount >= MAX_BATCH_SIZE) {
       await batch.commit();
-      batchCount = 0;
+      counts.batchCount = 0;
     }
   }
 
-  if (batchCount > 0) {
+  if (counts.batchCount > 0) {
     await batch.commit();
   }
 
-  return { deactivatedCount, activatedCount };
+  return {
+    deactivatedCount: counts.deactivatedCount,
+    activatedCount: counts.activatedCount,
+  };
 };
 
 export async function GET(request: Request) {

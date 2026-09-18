@@ -2,12 +2,14 @@
 import "server-only";
 
 import { AuditAction, AuditLog, logSystemEvent } from "@/lib/audit-logger";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 export async function getAuditLogsAction(
   limitCount: number = 50
 ): Promise<AuditLog[]> {
   try {
+    await ensureAdminFromSession();
     const db = getAdminDb();
     const snap = await db
       .collection("audit_logs")
@@ -30,10 +32,11 @@ export async function logAuditAction(
   details: string,
   userEmail: string
 ): Promise<void> {
+  const adminUser = await ensureAdminFromSession();
   await logSystemEvent(
     action,
     details,
     userEmail === "system" ? "system" : "user",
-    userEmail
+    adminUser.email || userEmail
   );
 }

@@ -2,6 +2,6 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default function RecoveryPage() {
-  redirect("/schedule?tab=reservations");
+export default function InventorySalesRedirectPage() {
+  redirect("/sales");
 }

@@ -69,10 +69,10 @@ function getOverdueReminders(
     );
     return {
       id: `overdue-${member.id}-${index}`,
-      title: "РџСЂРѕСЃСЂРѕС‡РµРЅРѕ РїР»Р°С‰Р°РЅРµ",
+      title: "Просрочено плащане",
       description: overdueCheck.reason
         ? `${member.firstName} ${member.lastName}: ${overdueCheck.reason}`
-        : `РўР°РєСЃР°С‚Р° Р·Р° Р°Р±РѕРЅР°РјРµРЅС‚Р° РЅР° ${member.firstName} ${member.lastName} РЅРµ Рµ РїР»Р°С‚РµРЅР°.`,
+        : `Таксата за абонамента на ${member.firstName} ${member.lastName} не е платена.`,
       dueDate: dueDate.toISOString(),
       isCompleted: false,
       type: "payment",
@@ -508,7 +508,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
       success: false,
       error:
         (error instanceof Error ? error.message : "Unknown error") ||
-        "РќРµСѓСЃРїРµС€РЅРѕ РёР·РІР»РёС‡Р°РЅРµ РЅР° РґР°РЅРЅРё",
+        "Неуспешно извличане на данни",
     };
   }
 }

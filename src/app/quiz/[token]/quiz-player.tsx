@@ -337,6 +337,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             resultId: result.id,
+            shareToken: token,
             quizTitle: quiz.title,
             questions: quiz.questions,
             userAnswers: answers,

@@ -1,7 +1,4 @@
 /* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity */
-import fs from "node:fs";
-import path from "node:path";
-
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -2006,21 +2003,6 @@ async function requestGeminiProgram(
 }
 
 function resolveGeminiApiKey(): string | undefined {
-  try {
-    const envPath = path.resolve(process.cwd(), ".env.local");
-    if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, "utf8");
-      const match = content.match(
-        /GEMINI_API_KEY\s*=\s*["']?([^"'\r\n]+)["']?/
-      );
-      if (match && match[1]) {
-        const key = match[1].trim();
-        if (key.length > 0) return key;
-      }
-    }
-  } catch {
-    // Fall back to process.env
-  }
   return process.env.GEMINI_API_KEY?.trim();
 }
 
@@ -2050,6 +2032,27 @@ export async function POST(req: NextRequest) {
       notes,
       startDate,
     } = validated.data;
+
+    const { getAdminDb } = await import("@/lib/firebase-admin");
+    const db = getAdminDb();
+    const memberDoc = await db.collection("members").doc(memberId).get();
+    if (!memberDoc.exists) {
+      return NextResponse.json({ error: "Member not found" }, { status: 404 });
+    }
+
+    const memberData = memberDoc.data();
+    const memberSiteId = memberData?.siteId || "bkgalabovo";
+    const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+    if (
+      allowedSites &&
+      allowedSites.length > 0 &&
+      !allowedSites.includes(memberSiteId)
+    ) {
+      return NextResponse.json(
+        { error: "Forbidden: No access to this member's branch" },
+        { status: 403 }
+      );
+    }
 
     const context = await getAthleteGeminiContext(memberId, {
       targetGoal: targetGoal as WorkoutTargetGoal,

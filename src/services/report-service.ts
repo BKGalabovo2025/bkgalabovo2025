@@ -1,3 +1,4 @@
+import { getSiteConfig } from "@/config/sites";
 import { Member } from "@/types";
 
 import { getAllMembers } from "./member-service";
@@ -74,7 +75,7 @@ export const generateAttendanceReport = async (
         return {
           member: {
             id: memberId,
-            siteId: "default",
+            siteId: getSiteConfig().id || "bkgalabovo",
             firstName: "Неизвестен",
             lastName: "Член",
             name: "Неизвестен Член", // Добавено

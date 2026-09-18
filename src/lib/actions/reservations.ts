@@ -12,7 +12,7 @@ import { z } from "zod";
 
 import { DonationReceiptEmail } from "@/components/emails/donation-receipt-email";
 import { clubInfo } from "@/config/club";
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin, getAuthUser } from "@/lib/auth-utils";
 import { formatPrice } from "@/lib/currency";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -360,7 +360,20 @@ export async function createReservationAction(
 ) {
   try {
     const user = await getAuthUser(idToken);
+    const isAdmin =
+      user.admin === true ||
+      user.email === "bkgalabovo2014@gmail.com" ||
+      user.email === "recoveryzonebyzm@gmail.com";
+
     const validated = reservationSchema.parse(data);
+
+    if (validated.status === "paid" && !isAdmin) {
+      return {
+        success: false,
+        message:
+          "Само администратори могат да създават предварително платени резервации.",
+      };
+    }
 
     const db = getAdminDb();
     const startTime = Timestamp.fromDate(new Date(validated.startTime));
@@ -472,6 +485,11 @@ export async function updateReservationAction(
 ) {
   try {
     const user = await getAuthUser(idToken);
+    const isAdmin =
+      user.admin === true ||
+      user.email === "bkgalabovo2014@gmail.com" ||
+      user.email === "recoveryzonebyzm@gmail.com";
+
     const validated = reservationSchema.parse(data);
 
     const db = getAdminDb();
@@ -484,6 +502,30 @@ export async function updateReservationAction(
       throw new Error("Резервацията не е намерена.");
     }
     const oldReservation = reservationDoc.data()!;
+
+    const isOwner =
+      oldReservation.memberId === user.uid ||
+      oldReservation.createdBy?.uid === user.uid ||
+      (oldReservation.clientEmail && oldReservation.clientEmail === user.email);
+
+    if (!isAdmin && !isOwner) {
+      return {
+        success: false,
+        message: "Нямате права за редакция на тази резервация.",
+      };
+    }
+
+    if (
+      !isAdmin &&
+      validated.status === "paid" &&
+      oldReservation.status !== "paid"
+    ) {
+      return {
+        success: false,
+        message:
+          "Само администратор може да маркира резервацията като платена.",
+      };
+    }
 
     // Conflict check (excluding current)
     let hasConflict = false;
@@ -573,7 +615,12 @@ export async function deleteReservationAction(
   reservationId: string
 ) {
   try {
-    await getAuthUser(idToken);
+    const user = await getAuthUser(idToken);
+    const isAdmin =
+      user.admin === true ||
+      user.email === "bkgalabovo2014@gmail.com" ||
+      user.email === "recoveryzonebyzm@gmail.com";
+
     const db = getAdminDb();
 
     // First fetch the reservation to see if it belongs to a package
@@ -583,6 +630,18 @@ export async function deleteReservationAction(
     }
 
     const resData = resDoc.data();
+    const isOwner =
+      resData?.memberId === user.uid ||
+      resData?.createdBy?.uid === user.uid ||
+      (resData?.clientEmail && resData.clientEmail === user.email);
+
+    if (!isAdmin && !isOwner) {
+      return {
+        success: false,
+        message: "Нямате права да изтриете тази резервация.",
+      };
+    }
+
     const packageGroupId = resData?.packageGroupId;
 
     let reservationIdsToDelete = [reservationId];
@@ -650,7 +709,7 @@ export async function createBlockedSlotAction(
   data: Record<string, unknown>
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const validated = blockedSlotSchema.parse(data);
     const db = getAdminDb();
 
@@ -684,7 +743,7 @@ export async function updateBlockedSlotAction(
   data: Record<string, unknown>
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const validated = blockedSlotSchema.parse(data);
     const db = getAdminDb();
 
@@ -720,7 +779,7 @@ export async function updateBlockedSlotAction(
 
 export async function deleteBlockedSlotAction(idToken: string, slotId: string) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
     await db.collection("blockedSlots").doc(slotId).delete();
     revalidatePath("/reservations");
@@ -742,7 +801,7 @@ export async function markReservationAsPaidAction(
   reservationId: string
 ) {
   try {
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const db = getAdminDb();
 
     const reservationDoc = await db

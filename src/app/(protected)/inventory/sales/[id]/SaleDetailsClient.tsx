@@ -11,12 +11,12 @@ export default function SaleDetailsClient() {
   return (
     <SharedSaleDetails
       saleId={saleId}
-      backUrl="/inventory/sales"
-      baseSaleUrl="/inventory/sales"
+      backUrl="/sales"
+      baseSaleUrl="/sales"
       breadcrumbs={[
         { label: "Начало", href: "/dashboard" },
         { label: "Склад", href: "/inventory" },
-        { label: "Продажби", href: "/inventory/sales" },
+        { label: "Продажби", href: "/sales" },
         { label: "Детайли" },
       ]}
     />

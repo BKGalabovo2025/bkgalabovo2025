@@ -35,7 +35,7 @@ const docToPrice = (doc: DocumentSnapshot): Price => {
     isActive: typeof data.isActive === "boolean" ? data.isActive : true,
     updatedAt: data.updatedAt || new Date().toISOString(),
     updatedBy: data.updatedBy || { userId: "system", userName: "System" },
-    siteId: data.siteId || "default",
+    siteId: data.siteId || getSiteConfig().id || "bkgalabovo",
   };
 };
 
@@ -50,7 +50,7 @@ const docToPriceHistory = (doc: DocumentSnapshot): PriceHistory => {
     oldValue: data.oldValue,
     newValue: data.newValue,
     notes: data.notes || "",
-    siteId: data.siteId || "default",
+    siteId: data.siteId || getSiteConfig().id || "bkgalabovo",
   };
 };
 

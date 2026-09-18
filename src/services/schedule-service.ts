@@ -60,7 +60,7 @@ export const docToScheduleEvent = (
       data.type
     )
       ? data.type
-      : data.title === "РўСЂРµРЅРёСЂРѕРІРєР°"
+      : data.title === "Тренировка" || data.title === "РўСЂРµРЅРёСЂРѕРІРєР°"
         ? "training"
         : "other") as ScheduleEventType,
     location:
@@ -109,10 +109,10 @@ export const updateCampSessions = async (
 };
 
 /**
- * РР·РІР»РёС‡Р° РІСЃРёС‡РєРё СЃСЉР±РёС‚РёСЏ Р·Р° РґР°РґРµРЅ РїРµСЂРёРѕРґ.
- * @param startDate РќР°С‡Р°Р»РЅР° РґР°С‚Р°.
- * @param endDate РљСЂР°Р№РЅР° РґР°С‚Р°.
- * @returns РњР°СЃРёРІ РѕС‚ СЃСЉР±РёС‚РёСЏ.
+ * Извлича всички събития за даден период.
+ * @param startDate Начална дата.
+ * @param endDate Крайна дата.
+ * @returns Масив от събития.
  */
 export const getEventsForPeriod = async (
   startDate: Date,

@@ -8,5 +8,5 @@ import {
 export default function ReceiptClientPage(
   props: Omit<SharedReceiptClientProps, "backUrl">
 ) {
-  return <SharedReceiptClient {...props} backUrl="/inventory/sales" />;
+  return <SharedReceiptClient {...props} backUrl="/sales" />;
 }

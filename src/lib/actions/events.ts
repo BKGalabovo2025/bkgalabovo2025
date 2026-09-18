@@ -86,7 +86,7 @@ export async function updateAttendeesAction(
     if (!eventSnap.exists) {
       return {
         success: false,
-        message: "РЎСЉР±РёС‚РёРµС‚Рѕ РЅРµ Рµ РѕС‚РєСЂРёС‚Рѕ.",
+        message: "Събитието не е открито.",
       };
     }
 
@@ -94,7 +94,7 @@ export async function updateAttendeesAction(
     if (!eventData) {
       return {
         success: false,
-        message: "РќРµРІР°Р»РёРґРЅРё РґР°РЅРЅРё Р·Р° СЃСЉР±РёС‚РёРµС‚Рѕ.",
+        message: "Невалидни данни за събитието.",
       };
     }
 
@@ -108,7 +108,7 @@ export async function updateAttendeesAction(
       d = new Date();
     }
 
-    // Generate the month label (e.g., "РњР°Р№ 2026") AND month key (e.g., "2026-05")
+    // Generate the month label (e.g., "Май 2026") AND month key (e.g., "2026-05")
     const monthLabel =
       format(d, "LLLL", { locale: bg }).charAt(0).toUpperCase() +
       format(d, "LLLL", { locale: bg }).slice(1) +
@@ -170,7 +170,7 @@ export async function updateAttendeesAction(
     console.error("Error in updateAttendeesAction:", error);
     return {
       success: false,
-      message: "Р’СЉР·РЅРёРєРЅР° РіСЂРµС€РєР° РїСЂРё РѕР±РЅРѕРІСЏРІР°РЅРµ.",
+      message: "Възникна грешка при обновяване.",
     };
   }
 }
