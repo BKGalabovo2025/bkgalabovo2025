@@ -36,7 +36,7 @@ export const getLastActivityDate = async (
       .limit(1)
       .get()
       .catch((err) => {
-        console.error(`Error querying sales for member ${memberId}:`, err);
+        console.error("Error querying sales for member %s:", memberId, err);
         return {
           empty: true,
           docs: [],
@@ -49,7 +49,7 @@ export const getLastActivityDate = async (
       .limit(1)
       .get()
       .catch((err) => {
-        console.error(`Error querying events for member ${memberId}:`, err);
+        console.error("Error querying events for member %s:", memberId, err);
         return {
           empty: true,
           docs: [],
