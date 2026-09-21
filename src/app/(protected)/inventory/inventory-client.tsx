@@ -238,8 +238,10 @@ export default function InventoryClient() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Име на уреда</Label>
+              <Label htmlFor="inventoryItemName">Име на уреда</Label>
               <Input
+                id="inventoryItemName"
+                name="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="напр. Медицинска топка"
@@ -247,8 +249,12 @@ export default function InventoryClient() {
             </div>
 
             <div className="space-y-2">
-              <Label>Общо налично количество (бр.)</Label>
+              <Label htmlFor="inventoryTotalQuantity">
+                Общо налично количество (бр.)
+              </Label>
               <Input
+                id="inventoryTotalQuantity"
+                name="totalQuantity"
                 type="number"
                 min={0}
                 value={totalQuantity}
@@ -257,12 +263,15 @@ export default function InventoryClient() {
             </div>
 
             <div className="space-y-2">
-              <Label>Логика на разпределение (Allocation)</Label>
+              <Label htmlFor="inventoryAllocationType">
+                Логика на разпределение (Allocation)
+              </Label>
               <Select
+                name="allocationType"
                 value={allocationType}
                 onValueChange={(val: AllocationType) => setAllocationType(val)}
               >
-                <SelectTrigger>
+                <SelectTrigger id="inventoryAllocationType">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -281,8 +290,12 @@ export default function InventoryClient() {
               allocationType === "per_station" ||
               allocationType === "per_child") && (
               <div className="space-y-2">
-                <Label>Коефициент (Multiplier/Ratio)</Label>
+                <Label htmlFor="inventoryRatioValue">
+                  Коефициент (Multiplier/Ratio)
+                </Label>
                 <Input
+                  id="inventoryRatioValue"
+                  name="ratioValue"
                   type="number"
                   step={0.1}
                   value={ratioValue}

@@ -275,9 +275,12 @@ export default function ProductsCatalogClient({
         <div className="relative max-w-sm flex-1">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
           <Input
+            id="productSearchInput"
+            name="productSearch"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Търси продукт по име или категория..."
+            aria-label="Търсене на продукт"
             className="h-10 rounded-xl pl-9 text-xs"
           />
         </div>
@@ -420,8 +423,15 @@ export default function ProductsCatalogClient({
 
           <form onSubmit={handleSaveProduct} className="space-y-4 pt-2">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Име на артикула *</Label>
+              <Label
+                htmlFor="productFormName"
+                className="text-xs font-semibold"
+              >
+                Име на артикула *
+              </Label>
               <Input
+                id="productFormName"
+                name="name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="напр. Грип Babolat"
@@ -432,8 +442,15 @@ export default function ProductsCatalogClient({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">Категория</Label>
+                <Label
+                  htmlFor="productFormCategory"
+                  className="text-xs font-semibold"
+                >
+                  Категория
+                </Label>
                 <Input
+                  id="productFormCategory"
+                  name="category"
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
                   placeholder="Аксесоари, Пера, Ракети..."
@@ -441,8 +458,15 @@ export default function ProductsCatalogClient({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">Цена (EUR) *</Label>
+                <Label
+                  htmlFor="productFormPrice"
+                  className="text-xs font-semibold"
+                >
+                  Цена (EUR) *
+                </Label>
                 <Input
+                  id="productFormPrice"
+                  name="price"
                   type="number"
                   step="0.01"
                   min="0"
@@ -456,10 +480,15 @@ export default function ProductsCatalogClient({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">
+                <Label
+                  htmlFor="productFormStock"
+                  className="text-xs font-semibold"
+                >
                   Наличност (бр.) *
                 </Label>
                 <Input
+                  id="productFormStock"
+                  name="stock"
                   type="number"
                   min="0"
                   value={formStock}
@@ -469,10 +498,15 @@ export default function ProductsCatalogClient({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">
+                <Label
+                  htmlFor="productFormThreshold"
+                  className="text-xs font-semibold"
+                >
                   Праг за напомняне (бр.)
                 </Label>
                 <Input
+                  id="productFormThreshold"
+                  name="restockThreshold"
                   type="number"
                   min="0"
                   value={formRestockThreshold}
@@ -484,10 +518,15 @@ export default function ProductsCatalogClient({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">
+              <Label
+                htmlFor="productFormImageUrl"
+                className="text-xs font-semibold"
+              >
                 Линк към снимка (URL)
               </Label>
               <Input
+                id="productFormImageUrl"
+                name="imageUrl"
                 value={formImageUrl}
                 onChange={(e) => setFormImageUrl(e.target.value)}
                 placeholder="https://..."
@@ -496,10 +535,15 @@ export default function ProductsCatalogClient({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">
+              <Label
+                htmlFor="productFormDescription"
+                className="text-xs font-semibold"
+              >
                 Описание (по избор)
               </Label>
               <Textarea
+                id="productFormDescription"
+                name="description"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
                 placeholder="Кратко представяне на артикула..."

@@ -185,10 +185,14 @@ export function ServiceForm({
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label className="ml-1 font-medium text-zinc-500">
+                  <Label
+                    htmlFor="serviceCurrency"
+                    className="ml-1 font-medium text-zinc-500"
+                  >
                     Валута
                   </Label>
                   <Input
+                    id="serviceCurrency"
                     name="currency"
                     value="EUR"
                     readOnly
@@ -584,11 +588,13 @@ export function ServiceForm({
                           {licenseCondition === "After N payments" && (
                             <div className="flex items-center gap-2">
                               <Input
+                                id="licensePaymentCount"
                                 name="licensePaymentCount"
                                 type="number"
                                 defaultValue={
                                   initialData?.licensePaymentCount || 1
                                 }
+                                aria-label="Брой вноски за картотека"
                                 className="h-10 w-20 bg-white"
                               />
                               <span className="text-xs text-zinc-500">
@@ -634,11 +640,13 @@ export function ServiceForm({
                           {apparelCondition === "After N payments" && (
                             <div className="flex items-center gap-2">
                               <Input
+                                id="apparelPaymentCount"
                                 name="apparelPaymentCount"
                                 type="number"
                                 defaultValue={
                                   initialData?.apparelPaymentCount || 6
                                 }
+                                aria-label="Брой вноски за екипировка"
                                 className="h-10 w-20 bg-white"
                               />
                               <span className="text-xs text-zinc-500">
@@ -696,10 +704,14 @@ export function ServiceForm({
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] tracking-widest text-zinc-400 uppercase">
+                      <Label
+                        htmlFor="minMembers"
+                        className="text-[10px] tracking-widest text-zinc-400 uppercase"
+                      >
                         Мин. участници
                       </Label>
                       <Input
+                        id="minMembers"
                         name="minMembers"
                         type="number"
                         defaultValue={initialData?.minMembers || 1}
@@ -707,10 +719,14 @@ export function ServiceForm({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] tracking-widest text-zinc-400 uppercase">
+                      <Label
+                        htmlFor="maxMembers"
+                        className="text-[10px] tracking-widest text-zinc-400 uppercase"
+                      >
                         Макс. участници
                       </Label>
                       <Input
+                        id="maxMembers"
                         name="maxMembers"
                         type="number"
                         defaultValue={initialData?.maxMembers || 1}

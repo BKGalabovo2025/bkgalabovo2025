@@ -125,6 +125,7 @@ export const AddGeneralServiceDialog = ({
             </Label>
             <Input
               id="name"
+              name="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="напр. Наем на корт"
@@ -143,6 +144,7 @@ export const AddGeneralServiceDialog = ({
               </Label>
               <Input
                 id="price"
+                name="price"
                 type="number"
                 step="0.01"
                 value={price}
@@ -160,11 +162,15 @@ export const AddGeneralServiceDialog = ({
                 Ценообразуване *
               </Label>
               <Select
+                name="pricingUnit"
                 value={pricingUnit}
                 onValueChange={(val: any) => setPricingUnit(val)}
                 disabled={isProcessing}
               >
-                <SelectTrigger className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <SelectTrigger
+                  id="pricingUnit"
+                  className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50"
+                >
                   <SelectValue placeholder="Избери..." />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -186,6 +192,7 @@ export const AddGeneralServiceDialog = ({
               </Label>
               <Input
                 id="performerName"
+                name="performerName"
                 value={performerName}
                 onChange={(e) => setPerformerName(e.target.value)}
                 placeholder="Име на треньор/клуб"
@@ -201,11 +208,15 @@ export const AddGeneralServiceDialog = ({
                 Тип изпълнител *
               </Label>
               <Select
+                name="performerType"
                 value={performerType}
                 onValueChange={(val: any) => setPerformerType(val)}
                 disabled={isProcessing}
               >
-                <SelectTrigger className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <SelectTrigger
+                  id="performerType"
+                  className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50"
+                >
                   <SelectValue placeholder="Избери..." />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -225,6 +236,7 @@ export const AddGeneralServiceDialog = ({
             </Label>
             <Input
               id="imageUrl"
+              name="imageUrl"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="Линк към снимка на услугата..."
@@ -242,6 +254,7 @@ export const AddGeneralServiceDialog = ({
             </Label>
             <Textarea
               id="description"
+              name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Допълнителни детайли..."
