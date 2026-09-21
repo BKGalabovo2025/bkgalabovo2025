@@ -21,7 +21,10 @@ export type AuditAction =
   | "export_liabilities_report"
   | "mass_marketing_send"
   | "clear_marketing_history"
-  | "sign_declaration";
+  | "sign_declaration"
+  | "create_product"
+  | "update_product"
+  | "delete_product";
 
 export type LogSeverity =
   "INFO" | "WARNING" | "ERROR" | "CRITICAL" | "SECURITY_AUDIT";

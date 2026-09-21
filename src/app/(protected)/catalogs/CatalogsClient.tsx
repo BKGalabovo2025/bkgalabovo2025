@@ -8,19 +8,22 @@ import GeneralServicesClient from "@/app/(protected)/finances/general-services/G
 import RecoveryClientPage from "@/app/(protected)/finances/recovery/client-page";
 import ServicesClientPage from "@/app/(protected)/finances/services/client-page";
 import { Service } from "@/app/(protected)/finances/services/service.types";
-import InventoryClient from "@/app/(protected)/inventory/inventory-client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppStore } from "@/store/use-app-store";
-import { ClubService } from "@/types";
+import { ClubService, Product } from "@/types";
+
+import ProductsCatalogClient from "./ProductsCatalogClient";
 
 interface CatalogsClientProps {
   services: Service[];
   recoveryServices: ClubService[];
+  products: Product[];
 }
 
 export default function CatalogsClient({
   services,
   recoveryServices,
+  products,
 }: CatalogsClientProps) {
   const searchParams = useSearchParams();
   const { activeBranch } = useAppStore();
@@ -114,7 +117,10 @@ export default function CatalogsClient({
           {!isRecoveryOnly && (
             <TabsContent value="inventory" className="mt-0 outline-none">
               <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-                <InventoryClient />
+                <ProductsCatalogClient
+                  initialProducts={products}
+                  activeBranch={activeBranch}
+                />
               </div>
             </TabsContent>
           )}
