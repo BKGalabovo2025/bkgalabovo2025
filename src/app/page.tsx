@@ -5,8 +5,7 @@ import { ChevronRight, Lock, ShieldCheck } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useAuth } from "@/context/auth-context";
 
@@ -42,8 +41,7 @@ const itemVariants: Variants = {
 };
 
 export default function HomePage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [hovered, setHovered] = useState<"bk" | "recovery" | null>(null);
 
   const getBlobColor1 = (hoverState: string | null) => {
@@ -57,12 +55,6 @@ export default function HomePage() {
     if (hoverState === "bk") return "rgba(37,99,235,0.08)";
     return "rgba(255,255,255,0.03)";
   };
-
-  useEffect(() => {
-    if (!authLoading && user) {
-      router.replace("/dashboard");
-    }
-  }, [user, authLoading, router]);
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-zinc-950 text-white selection:bg-zinc-800">
@@ -109,7 +101,7 @@ export default function HomePage() {
           <GoogleTranslateWidget />
 
           <Link
-            href="/login"
+            href={user ? "/dashboard" : "/login"}
             className="group flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-[10px] font-medium tracking-widest text-zinc-400 uppercase transition-all hover:border-zinc-600 hover:text-white"
           >
             <Lock
@@ -117,7 +109,7 @@ export default function HomePage() {
               strokeWidth={2}
               className="transition-transform group-hover:scale-110"
             />
-            <span>Админ</span>
+            <span>{user ? "Табло" : "Админ"}</span>
           </Link>
         </div>
       </motion.header>
