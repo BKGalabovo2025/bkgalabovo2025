@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
+import { sanitizeImageUrl } from "@/lib/utils";
 import { Product } from "@/types";
 
 function snapToData<T>(
@@ -110,7 +111,7 @@ export async function createProductAction(data: {
       currency: "EUR" as const,
       stock: Number(data.stock) || 0,
       description: data.description?.trim() || "",
-      imageUrl: data.imageUrl || null,
+      imageUrl: sanitizeImageUrl(data.imageUrl),
       restockThreshold:
         data.restockThreshold !== undefined && data.restockThreshold !== null
           ? Number(data.restockThreshold)
@@ -184,7 +185,8 @@ function buildProductUpdatePayload(
   if (data.stock !== undefined) payload.stock = Number(data.stock);
   if (data.description !== undefined)
     payload.description = data.description.trim();
-  if (data.imageUrl !== undefined) payload.imageUrl = data.imageUrl;
+  if (data.imageUrl !== undefined)
+    payload.imageUrl = sanitizeImageUrl(data.imageUrl);
   if (data.restockThreshold !== undefined) {
     payload.restockThreshold =
       data.restockThreshold !== null ? Number(data.restockThreshold) : null;

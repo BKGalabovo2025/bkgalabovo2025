@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { sanitizeImageUrl } from "@/lib/utils";
 
 type CatalogTab = "trainings" | "general" | "products" | "recovery";
 
@@ -41,13 +42,9 @@ interface PublicCatalogTabsProps {
 }
 
 const cleanUrl = (src: string) => {
-  if (!src) return src;
-  if (src.includes("\\public\\")) {
-    return "/" + src.split("\\public\\")[1].replace(/\\/g, "/");
-  } else if (src.includes("/public/")) {
-    return "/" + src.split("/public/")[1];
-  }
-  return src;
+  if (!src) return "";
+  const sanitized = sanitizeImageUrl(src);
+  return sanitized || "";
 };
 
 export default function PublicCatalogTabs({
@@ -325,7 +322,10 @@ function CatalogCard({
 
       return [];
     }
-    return item.imageUrl.split(",").filter(Boolean);
+    return item.imageUrl
+      .split(",")
+      .map((u: string) => cleanUrl(u))
+      .filter(Boolean);
   }, [item.imageUrl, item.name, item.zones]);
 
   const displayMode = item.imageDisplayMode || "collage";

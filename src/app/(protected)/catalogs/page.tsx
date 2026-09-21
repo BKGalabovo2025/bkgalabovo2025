@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 import { serverCache } from "@/lib/server-cache";
+import { sanitizeImageUrl } from "@/lib/utils";
 import { ClubService, Product } from "@/types";
 
 import { Service, ServiceSchema } from "../finances/services/service.types";
@@ -97,9 +98,9 @@ export default async function CatalogsPage() {
               description: serialized.description
                 ? String(serialized.description)
                 : "",
-              imageUrl: serialized.imageUrl
-                ? String(serialized.imageUrl)
-                : null,
+              imageUrl: sanitizeImageUrl(
+                serialized.imageUrl ? String(serialized.imageUrl) : null
+              ),
               restockThreshold:
                 serialized.restockThreshold !== undefined &&
                 serialized.restockThreshold !== null

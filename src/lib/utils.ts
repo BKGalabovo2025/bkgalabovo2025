@@ -46,3 +46,41 @@ export const getValidAvatarUrl = (url?: string | null): string | undefined => {
   if (url.startsWith("http") || url.startsWith("/")) return url;
   return `/${url}`;
 };
+
+/**
+ * Sanitizes image URLs to prevent invalid browser protocol errors (e.g. file:/// or local Windows disk paths).
+ * Transforms accidental Windows file paths containing /public/ into relative web paths (e.g. /MAGAZIN/...).
+ * Returns null if the URL is an unrenderable local file path or invalid.
+ */
+export const sanitizeImageUrl = (url?: string | null): string | null => {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+
+  // Handle accidental Windows absolute or file:/// paths
+  if (
+    trimmed.includes("file:///") ||
+    trimmed.includes(":\\") ||
+    trimmed.includes(":/")
+  ) {
+    const normalized = trimmed.replace(/\\/g, "/");
+    const publicIndex = normalized.toLowerCase().indexOf("/public/");
+    if (publicIndex !== -1) {
+      return normalized.substring(publicIndex + "/public".length);
+    }
+    // Cannot load local disk file on web/mobile browser
+    return null;
+  }
+
+  // Already a valid web path or remote URL
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("/")
+  ) {
+    return trimmed;
+  }
+
+  // Relative asset without leading slash
+  return `/${trimmed}`;
+};

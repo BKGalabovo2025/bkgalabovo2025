@@ -32,6 +32,7 @@ import {
   updateProductAction,
 } from "@/lib/actions/products-server";
 import { formatPrice } from "@/lib/currency";
+import { sanitizeImageUrl } from "@/lib/utils";
 import { Product } from "@/types";
 
 interface ProductsCatalogClientProps {
@@ -325,10 +326,10 @@ export default function ProductsCatalogClient({
                 <div>
                   {/* Top image / badge area */}
                   <div className="relative mb-4 flex h-36 w-full items-center justify-center overflow-hidden rounded-2xl bg-zinc-50 dark:bg-zinc-900/60">
-                    {p.imageUrl ? (
+                    {sanitizeImageUrl(p.imageUrl) ? (
                       <div className="relative size-full">
                         <Image
-                          src={p.imageUrl}
+                          src={sanitizeImageUrl(p.imageUrl)!}
                           alt={p.name}
                           fill
                           className="object-contain p-2 transition-transform duration-300 group-hover:scale-105"
