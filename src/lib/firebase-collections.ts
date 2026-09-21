@@ -41,10 +41,12 @@ function createConverter<T>(
       return { ...data, siteId: getSiteConfig().id };
     },
     fromFirestore: (snapshot, options) => {
-      const data = snapshot.data(options);
+      const data = snapshot.data(options) || {};
       return {
         id: snapshot.id,
-        siteId: data.siteId || defaultSiteId,
+        siteId: data.siteId && typeof data.siteId === "string" && data.siteId.trim() !== ""
+          ? data.siteId
+          : defaultSiteId,
         ...data,
       } as unknown as T;
     },

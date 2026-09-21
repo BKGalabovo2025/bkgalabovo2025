@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -9,11 +9,23 @@ import { AppSidebar } from "@/components/layout/sidebar";
 import { UserNav } from "@/components/layout/user-nav";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { getSafeRedirectForBranch } from "@/config/sites";
 import { useAuth } from "@/context/auth-context";
 import { useAppStore } from "@/store/use-app-store";
 
 function GlobalHeader() {
   const { activeBranch, setActiveBranch } = useAppStore();
+  const pathname = usePathname() || "";
+  const router = useRouter();
+
+  const handleBranchSwitch = (newBranch: string) => {
+    if (newBranch === activeBranch) return;
+    setActiveBranch(newBranch);
+    const safeRedirect = getSafeRedirectForBranch(pathname, newBranch);
+    if (safeRedirect !== pathname) {
+      router.push(safeRedirect);
+    }
+  };
 
   const sites = [
     {
@@ -46,7 +58,7 @@ function GlobalHeader() {
             return (
               <button
                 key={site.id}
-                onClick={() => setActiveBranch(site.id)}
+                onClick={() => handleBranchSwitch(site.id)}
                 aria-label={`${site.title} ${site.subtitle}${isActive ? " — активен" : " — избери"}`}
                 aria-pressed={isActive}
                 className={`group flex items-center gap-2 rounded-xl p-1.5 transition-all duration-300 ${
@@ -109,14 +121,22 @@ export default function ProtectedLayoutClient({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-
   const { isSidebarOpen, setSidebarOpen, activeBranch } = useAppStore();
+  const pathname = usePathname() || "";
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/login");
+      return;
     }
-  }, [user, loading, router]);
+
+    if (user && activeBranch) {
+      const safeRedirect = getSafeRedirectForBranch(pathname, activeBranch);
+      if (safeRedirect !== pathname) {
+        router.replace(safeRedirect);
+      }
+    }
+  }, [user, loading, router, activeBranch, pathname]);
 
   if (loading || !user) {
     return null;

@@ -1,13 +1,16 @@
 import { format, isValid } from "date-fns";
 import { bg } from "date-fns/locale";
 
-export type DateInput = Date | string | number;
+export type DateInput = Date | string | number | null | undefined;
 
 /**
  * Detailed date and time format.
  * Example: "5 май 2026 г., 15:30 ч."
  */
 export const formatDateTimeDisplay = (date: DateInput) => {
+  if (!date || (typeof date === "string" && date.trim() === "")) {
+    return "Няма дата";
+  }
   const d = new Date(date);
   if (!isValid(d)) return "Невалидна дата";
   return format(d, "d MMMM yyyy 'г.', HH:mm 'ч.'", { locale: bg });
@@ -16,8 +19,8 @@ export const formatDateTimeDisplay = (date: DateInput) => {
 /**
  * ISO date string for form inputs (yyyy-MM-dd).
  */
-export const formatDateInput = (date: DateInput | undefined) => {
-  if (!date) return "";
+export const formatDateInput = (date: DateInput) => {
+  if (!date || (typeof date === "string" && date.trim() === "")) return "";
   const d = new Date(date);
   if (!isValid(d)) return "";
   return format(d, "yyyy-MM-dd");
@@ -26,8 +29,8 @@ export const formatDateInput = (date: DateInput | undefined) => {
 /**
  * ISO date-time string for datetime-local form inputs (yyyy-MM-ddTHH:mm).
  */
-export const formatDateTimeLocal = (date: DateInput | undefined) => {
-  if (!date) return "";
+export const formatDateTimeLocal = (date: DateInput) => {
+  if (!date || (typeof date === "string" && date.trim() === "")) return "";
   const d = new Date(date);
   if (!isValid(d)) return "";
   // Adjust for timezone offset to get local time string
@@ -39,7 +42,7 @@ export const formatDateTimeLocal = (date: DateInput | undefined) => {
  * Converts various date types to ISO string, or undefined if null/invalid.
  */
 export const toISOStringOrUndefined = (date: unknown): string | undefined => {
-  if (!date) return undefined;
+  if (!date || (typeof date === "string" && date.trim() === "")) return undefined;
 
   // Handle Firebase Timestamp
   if (
@@ -47,7 +50,12 @@ export const toISOStringOrUndefined = (date: unknown): string | undefined => {
     "toDate" in date &&
     typeof date.toDate === "function"
   ) {
-    return date.toDate().toISOString();
+    try {
+      const converted = date.toDate();
+      return isValid(converted) ? converted.toISOString() : undefined;
+    } catch {
+      return undefined;
+    }
   }
 
   const d = new Date(date as string | number | Date);
@@ -59,6 +67,9 @@ export const toISOStringOrUndefined = (date: unknown): string | undefined => {
  * Example: "05.05.2026"
  */
 export const formatDateShort = (date: DateInput) => {
+  if (!date || (typeof date === "string" && date.trim() === "")) {
+    return "Няма дата";
+  }
   const d = new Date(date);
   if (!isValid(d)) return "Невалидна дата";
   return format(d, "dd.MM.yyyy");
@@ -70,6 +81,7 @@ export const formatDateShort = (date: DateInput) => {
  * If different days: "05 май 2026, 15:30 ч. - 06 май 2026, 16:30 ч."
  */
 export const formatTimeRange = (start: DateInput, end: DateInput) => {
+  if (!start || !end) return "Невалиден интервал";
   const s = new Date(start);
   const e = new Date(end);
 
@@ -90,6 +102,7 @@ export const formatTimeRange = (start: DateInput, end: DateInput) => {
  * Multi-day: "27.06.2026 (сб) 09:30 — 28.06.2026 (нд) 16:30"
  */
 export const formatEventDateRange = (start: DateInput, end: DateInput) => {
+  if (!start || !end) return "Невалиден интервал";
   const s = new Date(start);
   const e = new Date(end);
 

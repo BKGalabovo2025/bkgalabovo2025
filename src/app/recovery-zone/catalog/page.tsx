@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
 
 import { RecoveryCatalogClient } from "./RecoveryCatalogClient";
 
@@ -47,20 +48,26 @@ function serializeDoc(data: unknown): unknown {
 
 const getCachedSessions = unstable_cache(
   async (): Promise<Record<string, unknown>[]> => {
-    try {
-      const adminDb = getAdminDb();
-      const snap = await adminDb.collection("sessions").get();
-      return snap.docs.map(
-        (doc) =>
-          serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
-      );
-    } catch (error) {
-      console.error(
-        "Failed to fetch sessions for recovery catalog page:",
-        error
-      );
-      return [];
-    }
+    return serverCache.get(
+      "recovery:sessions",
+      async () => {
+        try {
+          const adminDb = getAdminDb();
+          const snap = await adminDb.collection("sessions").get();
+          return snap.docs.map(
+            (doc) =>
+              serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+          );
+        } catch (error) {
+          console.error(
+            "Failed to fetch sessions for recovery catalog page:",
+            error
+          );
+          return [];
+        }
+      },
+      300_000 // 5 minutes in-memory TTL
+    );
   },
   ["recovery-sessions"],
   { revalidate: 300, tags: ["sessions"] }

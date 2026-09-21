@@ -6,6 +6,7 @@ import Link from "next/link";
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
 
 export const metadata: Metadata = {
   title: "Каталог | БК Гълъбово",
@@ -45,21 +46,27 @@ function serializeDoc(data: unknown): unknown {
 
 const getCachedCollection = unstable_cache(
   async (collectionName: string): Promise<Record<string, unknown>[]> => {
-    try {
-      const adminDb = getAdminDb();
-      const snap = await adminDb.collection(collectionName).get();
-      return snap.docs.map(
-        (doc) =>
-          serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
-      );
-    } catch (error) {
-      console.error(
-        "Failed to fetch %s for catalog page:",
-        collectionName,
-        error
-      );
-      return [];
-    }
+    return serverCache.get(
+      `catalog:${collectionName}`,
+      async () => {
+        try {
+          const adminDb = getAdminDb();
+          const snap = await adminDb.collection(collectionName).get();
+          return snap.docs.map(
+            (doc) =>
+              serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+          );
+        } catch (error) {
+          console.error(
+            "Failed to fetch %s for catalog page:",
+            collectionName,
+            error
+          );
+          return [];
+        }
+      },
+      300_000 // 5 minutes in-memory TTL
+    );
   },
   ["catalog-collection"],
   { revalidate: 300, tags: ["catalog"] }

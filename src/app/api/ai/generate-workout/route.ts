@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { logSystemError } from "@/lib/actions/error-logging";
 import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 import {
   AthleteGeminiContext,
@@ -2065,17 +2066,32 @@ export async function POST(req: NextRequest) {
 
     const apiKey = resolveGeminiApiKey();
     let program: WorkoutProgram | null = null;
+    let isFallback = false;
 
     if (apiKey) {
       try {
         program = await requestGeminiProgram(apiKey, context);
       } catch (geminiErr) {
         console.error("Gemini API call failed, falling back:", geminiErr);
+        await logSystemError({
+          message: "Gemini API call failed in /api/ai/generate-workout",
+          stack: geminiErr instanceof Error ? geminiErr.stack : String(geminiErr),
+          context: `memberId: ${memberId}, goal: ${targetGoal}`,
+          path: "/api/ai/generate-workout",
+        });
       }
     }
 
     if (!program) {
       program = generateFallbackProgram(context);
+      isFallback = true;
+      if (apiKey) {
+        await logSystemError({
+          message: "Gemini model returned null or failed all model tiers, falling back to deterministic template",
+          context: `memberId: ${memberId}, goal: ${targetGoal}`,
+          path: "/api/ai/generate-workout",
+        });
+      }
     }
 
     const effectiveStartDate =
@@ -2119,11 +2135,17 @@ export async function POST(req: NextRequest) {
       success: true,
       program,
       context,
+      isFallback,
     });
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Internal Server Error";
     console.error("Error generating workout program:", error);
+    await logSystemError({
+      message: `Critical error in /api/ai/generate-workout: ${message}`,
+      stack: error instanceof Error ? error.stack : undefined,
+      path: "/api/ai/generate-workout",
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

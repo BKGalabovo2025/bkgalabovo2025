@@ -55,3 +55,54 @@ export const getSiteConfig = (): SiteConfig => {
     activeBranch || process.env.NEXT_PUBLIC_SITE_ID || "bkgalabovo";
   return SITES[siteId] || SITES.bkgalabovo;
 };
+
+// Маршрути, валидни САМО за бадминтон клуб Гълъбово
+const BKG_EXCLUSIVE_PREFIXES = [
+  "/training",
+  "/tournaments",
+  "/rankings",
+  "/inventory",
+];
+
+// Маршрути, валидни САМО за Recovery Zone
+const RZ_EXCLUSIVE_PREFIXES = [
+  "/recovery-zone",
+  "/recovery",
+  "/finances/recovery",
+];
+
+/**
+ * Проверява дали даден URL маршрут е валиден за избрания клон/сайт.
+ */
+export function isRouteValidForBranch(pathname: string, targetBranch: string): boolean {
+  if (!pathname) return true;
+
+  if (targetBranch === "recoveryzone") {
+    // В Recovery Zone няма турнири, ранглисти, кортови бадминтон тренировки и инвентар
+    const isBkgExclusive = BKG_EXCLUSIVE_PREFIXES.some((prefix) =>
+      pathname.startsWith(prefix)
+    );
+    return !isBkgExclusive;
+  }
+
+  if (targetBranch === "bkgalabovo") {
+    // В бадминтон клуба няма специфични Recovery Zone изгледи за спа/възстановяване
+    const isRzExclusive = RZ_EXCLUSIVE_PREFIXES.some((prefix) =>
+      pathname.startsWith(prefix)
+    );
+    return !isRzExclusive;
+  }
+
+  return true;
+}
+
+/**
+ * Връща безопасен URL за редирект, ако текущият маршрут не е валиден за новия клон.
+ */
+export function getSafeRedirectForBranch(pathname: string, targetBranch: string): string {
+  if (!isRouteValidForBranch(pathname, targetBranch)) {
+    return "/dashboard";
+  }
+  return pathname;
+}
+
