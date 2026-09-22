@@ -6,8 +6,18 @@ import {
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
+  setLogLevel,
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+
+// Silence internal Firestore engine logs (such as multi-tab lease garbage collection notices)
+if (typeof window !== "undefined") {
+  try {
+    setLogLevel("silent");
+  } catch {
+    // Ignore in non-browser environments
+  }
+}
 
 const isEmulatorMode =
   process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true";

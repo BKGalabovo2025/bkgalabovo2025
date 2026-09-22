@@ -191,7 +191,7 @@ export async function POST(request: Request) {
           sentBy: adminUid,
         });
       } catch (err) {
-        console.error(`Failed to send email to ${r.email}:`, err);
+        console.error("Failed to send email to recipient:", r.email, err);
         failedCount++;
         batchLogs.push({
           siteId,
