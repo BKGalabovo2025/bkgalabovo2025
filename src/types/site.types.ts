@@ -155,3 +155,25 @@ export const DEFAULT_RECOVERY_ATTACHMENTS: RecoveryAttachment[] = [
     buttonText: "Запиши час за ръце",
   },
 ];
+
+export function resolveAttachmentImage(
+  image?: string,
+  fallback = "/zones/legs.webp"
+): string {
+  if (!image || typeof image !== "string" || !image.trim()) return fallback;
+  const trimmed = image.trim();
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("data:")
+  ) {
+    return trimmed;
+  }
+  const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  if (path === "/legs.webp" || path.endsWith("/legs.webp"))
+    return "/zones/legs.webp";
+  if (path === "/pelvis.webp" || path.endsWith("/pelvis.webp"))
+    return "/zones/pelvis.webp";
+  if (path === "/arm.png" || path.endsWith("/arm.png")) return "/zones/arm.png";
+  return path;
+}

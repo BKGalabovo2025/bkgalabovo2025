@@ -36,7 +36,11 @@ import { TeamSection } from "@/components/recovery/TeamSection";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { feedbackService } from "@/services/feedback-service";
 import { FeedbackSubmission } from "@/types/feedback.types";
-import { DEFAULT_RECOVERY_ATTACHMENTS, Site } from "@/types/site.types";
+import {
+  DEFAULT_RECOVERY_ATTACHMENTS,
+  resolveAttachmentImage,
+  Site,
+} from "@/types/site.types";
 
 export interface RecoveryServiceData {
   id?: string;
@@ -474,7 +478,10 @@ export default function RecoveryZoneClient({
                   <div className="relative flex h-64 w-full items-center justify-center overflow-hidden bg-zinc-900/50 p-6">
                     <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
                       <Image
-                        src={att.image || "/zones/legs.webp"}
+                        src={resolveAttachmentImage(
+                          att.image,
+                          "/zones/legs.webp"
+                        )}
                         alt={att.subtitle || att.name}
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"
