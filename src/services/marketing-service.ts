@@ -8,7 +8,6 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -614,24 +613,46 @@ export const marketingService = {
       );
       const snapshot = await getDocs(q);
 
-      if (snapshot.empty) {
-        return defaultRules;
+      const seenTitles = new Set<string>();
+      const rules: MarketingAutomationRule[] = [];
+
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+        const title = String(data.title || "").trim();
+        const key = title.toLowerCase();
+        if (seenTitles.has(key)) {
+          deleteDoc(docSnap.ref).catch(() => {});
+          continue;
+        }
+        seenTitles.add(key);
+
+        const channel: MarketingChannel =
+          data.channel === "phone" ? "phone" : "email";
+
+        rules.push({
+          id: docSnap.id,
+          siteId: String(data.siteId || siteId),
+          title,
+          description: String(data.description || ""),
+          triggerEvent:
+            (data.triggerEvent as MarketingAutomationRule["triggerEvent"]) ||
+            "post_camp_survey",
+          delayHours: Number(data.delayHours || 24),
+          channel,
+          templateId: data.templateId ? String(data.templateId) : undefined,
+          isActive: Boolean(data.isActive),
+        });
       }
 
-      return snapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
-        return {
-          id: docSnap.id,
-          siteId: data.siteId || siteId,
-          title: data.title || "",
-          description: data.description || "",
-          triggerEvent: data.triggerEvent || "post_camp_survey",
-          delayHours: data.delayHours || 24,
-          channel: data.channel || "email",
-          templateId: data.templateId,
-          isActive: !!data.isActive,
-        } as MarketingAutomationRule;
-      });
+      for (const def of defaultRules) {
+        const key = def.title.trim().toLowerCase();
+        if (!seenTitles.has(key)) {
+          seenTitles.add(key);
+          rules.push(def);
+        }
+      }
+
+      return rules;
     } catch (error) {
       console.warn("Notice: Using default marketing automations:", error);
       return defaultRules;
@@ -645,7 +666,15 @@ export const marketingService = {
   ): Promise<void> {
     try {
       const ref = doc(db, AUTOMATIONS_COLLECTION, id);
-      await updateDoc(ref, { isActive, siteId });
+      await setDoc(
+        ref,
+        {
+          isActive,
+          siteId,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
     } catch (error) {
       console.warn(
         "Notice: Could not toggle automation rule in Firestore:",

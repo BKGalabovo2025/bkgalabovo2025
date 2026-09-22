@@ -66,15 +66,15 @@ export function MarketingAutomationsTab({ rules, onToggleRule }: Props) {
                   variant="outline"
                   className="flex items-center gap-1 rounded-lg border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold text-zinc-700 uppercase dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                 >
-                  {rule.channel === "email" ? (
-                    <>
-                      <Mail className="size-3 text-rose-600" />
-                      <span>Имейл</span>
-                    </>
-                  ) : (
+                  {rule.channel === "phone" ? (
                     <>
                       <Phone className="size-3 text-blue-600" />
                       <span>Телефон</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="size-3 text-indigo-600" />
+                      <span>Имейл</span>
                     </>
                   )}
                 </Badge>
