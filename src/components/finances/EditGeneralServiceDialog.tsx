@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { GenericMovementsTab } from "@/components/shared/history-tabs/GenericMovementsTab";
 import { GenericSalesTab } from "@/components/shared/history-tabs/GenericSalesTab";
+import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -372,22 +373,15 @@ export const EditGeneralServiceDialog = ({
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label
-                  htmlFor="edit-imageUrl"
-                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                >
-                  Изображение URL (Снимка)
-                </Label>
-                <Input
-                  id="edit-imageUrl"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="Линк към снимка на услугата..."
-                  className="h-11 rounded-xl"
-                  disabled={isProcessing}
-                />
-              </div>
+              <UniversalMediaUpload
+                id="edit-imageUrl"
+                label="Изображение / Снимка на услугата"
+                description="PNG, JPG, WEBP или външен линк (до 800KB)"
+                value={imageUrl}
+                onChange={(url) => setImageUrl(url)}
+                storageFolder="services"
+                placeholderUrl="Линк към снимка на услугата..."
+              />
 
               <div className="grid gap-2">
                 <Label

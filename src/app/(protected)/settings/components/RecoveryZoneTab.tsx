@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -363,27 +364,22 @@ export function RecoveryZoneTab() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor={`rz-att-image-${index}`}
-                    className={labelClass}
-                  >
-                    Снимка (URL или път)
-                  </Label>
-                  <Input
+                <div className="space-y-2 md:col-span-2">
+                  <UniversalMediaUpload
                     id={`rz-att-image-${index}`}
-                    name={`rz-att-image-${index}`}
+                    label="Снимка на приставката"
+                    description="PNG, JPG, WEBP или външен линк"
                     value={att.image || ""}
-                    onChange={(e) =>
+                    onChange={(url) =>
                       handleAttachmentChange(
                         "recoveryzone",
                         index,
                         "image",
-                        e.target.value
+                        url
                       )
                     }
-                    placeholder="/zones/legs.webp"
-                    className={inputClassRz}
+                    storageFolder="recovery/attachments"
+                    placeholderUrl="/zones/legs.webp или https://..."
                   />
                 </div>
 

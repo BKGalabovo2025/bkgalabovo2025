@@ -12,6 +12,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -517,22 +518,15 @@ export default function ProductsCatalogClient({
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="productFormImageUrl"
-                className="text-xs font-semibold"
-              >
-                Линк към снимка (URL)
-              </Label>
-              <Input
-                id="productFormImageUrl"
-                name="imageUrl"
-                value={formImageUrl}
-                onChange={(e) => setFormImageUrl(e.target.value)}
-                placeholder="https://..."
-                className="rounded-xl text-xs"
-              />
-            </div>
+            <UniversalMediaUpload
+              id="productFormImageUrl"
+              label="Снимка на артикула (по избор)"
+              description="PNG, JPG, WEBP или външен линк (до 800KB)"
+              value={formImageUrl}
+              onChange={(url) => setFormImageUrl(url)}
+              storageFolder="products"
+              placeholderUrl="https://... или външен линк"
+            />
 
             <div className="space-y-1.5">
               <Label

@@ -1,5 +1,6 @@
 import { Plus, Trash2, Users } from "lucide-react";
 
+import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -116,21 +117,16 @@ export function TeamTab() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <Label className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    Снимка (URL)
-                  </Label>
-                  <Input
+                  <UniversalMediaUpload
+                    id={`team-bkg-img-${index}`}
+                    label="Снимка на треньора"
+                    description="PNG, JPG, WEBP или външен линк"
                     value={member.image || ""}
-                    onChange={(e) =>
-                      handleTherapistChange(
-                        "bkgalabovo",
-                        index,
-                        "image",
-                        e.target.value
-                      )
+                    onChange={(url) =>
+                      handleTherapistChange("bkgalabovo", index, "image", url)
                     }
-                    className={inputClass}
-                    placeholder="/team/member.jpg"
+                    storageFolder="team/bkgalabovo"
+                    placeholderUrl="/team/member.jpg или https://..."
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -257,21 +253,16 @@ export function TeamTab() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <Label className="mb-2 block text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    Снимка (URL)
-                  </Label>
-                  <Input
+                  <UniversalMediaUpload
+                    id={`team-rz-img-${index}`}
+                    label="Снимка на терапевта"
+                    description="PNG, JPG, WEBP или външен линк"
                     value={therapist.image || ""}
-                    onChange={(e) =>
-                      handleTherapistChange(
-                        "recoveryzone",
-                        index,
-                        "image",
-                        e.target.value
-                      )
+                    onChange={(url) =>
+                      handleTherapistChange("recoveryzone", index, "image", url)
                     }
-                    className={inputClass}
-                    placeholder="/team/member.jpg"
+                    storageFolder="team/recoveryzone"
+                    placeholderUrl="/team/member.jpg или https://..."
                   />
                 </div>
                 <div className="md:col-span-2">

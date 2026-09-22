@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -227,23 +228,15 @@ export const AddGeneralServiceDialog = ({
             </div>
           </div>
 
-          <div className="grid gap-1.5">
-            <Label
-              htmlFor="imageUrl"
-              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-            >
-              Изображение URL (Снимка)
-            </Label>
-            <Input
-              id="imageUrl"
-              name="imageUrl"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="Линк към снимка на услугата..."
-              className="h-11 rounded-xl"
-              disabled={isProcessing}
-            />
-          </div>
+          <UniversalMediaUpload
+            id="service-imageUrl"
+            label="Изображение / Снимка на услугата"
+            description="PNG, JPG, WEBP или външен линк (до 800KB)"
+            value={imageUrl}
+            onChange={(url) => setImageUrl(url)}
+            storageFolder="services"
+            placeholderUrl="Линк към снимка на услугата..."
+          />
 
           <div className="grid gap-1.5">
             <Label
