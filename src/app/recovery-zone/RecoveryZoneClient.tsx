@@ -484,6 +484,7 @@ export default function RecoveryZoneClient({
                         )}
                         alt={att.subtitle || att.name}
                         fill
+                        loading="eager"
                         sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-contain"
                       />
