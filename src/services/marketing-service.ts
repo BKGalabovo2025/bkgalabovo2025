@@ -613,24 +613,29 @@ export const marketingService = {
       );
       const snapshot = await getDocs(q);
 
-      const seenTitles = new Set<string>();
+      const seenKeys = new Set<string>();
+      const seenIds = new Set<string>();
       const rules: MarketingAutomationRule[] = [];
 
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
         const title = String(data.title || "").trim();
-        const key = title.toLowerCase();
-        if (seenTitles.has(key)) {
+        const trigger = String(data.triggerEvent || "post_camp_survey");
+        const docId = docSnap.id;
+
+        const dedupeKey = trigger || title.toLowerCase();
+        if (seenKeys.has(dedupeKey) || seenIds.has(docId)) {
           deleteDoc(docSnap.ref).catch(() => {});
           continue;
         }
-        seenTitles.add(key);
+        seenKeys.add(dedupeKey);
+        seenIds.add(docId);
 
         const channel: MarketingChannel =
           data.channel === "phone" ? "phone" : "email";
 
         rules.push({
-          id: docSnap.id,
+          id: docId,
           siteId: String(data.siteId || siteId),
           title,
           description: String(data.description || ""),
@@ -645,9 +650,10 @@ export const marketingService = {
       }
 
       for (const def of defaultRules) {
-        const key = def.title.trim().toLowerCase();
-        if (!seenTitles.has(key)) {
-          seenTitles.add(key);
+        const dedupeKey = def.triggerEvent || def.title.toLowerCase();
+        if (!seenKeys.has(dedupeKey) && !seenIds.has(def.id)) {
+          seenKeys.add(dedupeKey);
+          seenIds.add(def.id);
           rules.push(def);
         }
       }

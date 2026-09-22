@@ -50,9 +50,9 @@ export function MarketingAutomationsTab({ rules, onToggleRule }: Props) {
 
       {/* Automations Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {rules.map((rule) => (
+        {rules.map((rule, idx) => (
           <Card
-            key={rule.id}
+            key={`${rule.id}_${idx}`}
             className={`flex flex-col justify-between overflow-hidden rounded-3xl border p-5 shadow-xs transition-all ${
               rule.isActive
                 ? "border-emerald-300 bg-white shadow-emerald-100/50 dark:border-emerald-800 dark:bg-zinc-900"
