@@ -195,13 +195,25 @@ export async function deleteRecoveryPackageAction(
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function deleteRecoveryClientAction(_idToken: string, clientId: string) {
+export async function updateRecoveryClientCommunicationAction(
+  clientId: string,
+  data: {
+    communicationStatus: string;
+    lastContactAt?: string;
+    lastContactType?: "phone" | "email";
+  }
+) {
   try {
     const user = await getAuthUserFromSessionCookie();
     if (!user) throw new Error("Неоторизиран достъп.");
     const adminDb = getAdminDb();
-    await adminDb.collection("clients").doc(clientId).delete();
+    await adminDb
+      .collection("clients")
+      .doc(clientId)
+      .update({
+        ...data,
+        updatedAt: new Date().toISOString(),
+      });
     return { success: true };
   } catch (error: unknown) {
     return {

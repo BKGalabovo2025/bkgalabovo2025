@@ -1,6 +1,5 @@
 "use client";
 
-import { collection, doc, getDocs, query, updateDoc } from "firebase/firestore";
 import {
   Clock,
   FileText,
@@ -36,7 +35,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/auth-context";
 import { useMembers } from "@/hooks/useMembers";
-import { db } from "@/lib/firebase";
+import {
+  getRecoveryClientsAction,
+  updateRecoveryClientCommunicationAction,
+} from "@/lib/actions/recovery-services-server";
 import { marketingService } from "@/services/marketing-service";
 import { useAppStore } from "@/store/use-app-store";
 import {
@@ -158,28 +160,41 @@ export default function MarketingClient() {
       setAutomationRules(rules);
 
       try {
-        const clientsSnap = await getDocs(query(collection(db, "clients")));
-        const recoveryRecipients: MarketingRecipient[] = clientsSnap.docs.map(
-          (docSnap) => {
-            const data = docSnap.data();
-            return {
-              id: docSnap.id,
-              name: data.name || data.fullName || "Клиент",
-              phone: data.phone || undefined,
-              email: data.email || undefined,
-              role: "athlete" as const,
-              status: "active" as const,
-              communicationStatus:
-                data.communicationStatus || ("pending" as const),
-              notes: data.notes || undefined,
-              lastContactAt: data.lastContactAt || undefined,
-              lastContactType: data.lastContactType || undefined,
-              group: "Recovery Zone Клиенти",
-              siteId: "recoveryzone",
-            };
-          }
-        );
-        setClientsList(recoveryRecipients);
+        const clientsRes = await getRecoveryClientsAction(siteId);
+        if (clientsRes.success && Array.isArray(clientsRes.data)) {
+          const recoveryRecipients: MarketingRecipient[] = clientsRes.data.map(
+            (data: {
+              id: string;
+              name?: string;
+              fullName?: string;
+              phone?: string;
+              email?: string;
+              communicationStatus?: ContactCommunicationStatus;
+              notes?: string;
+              lastContactAt?: string;
+              lastContactType?: "phone" | "email";
+            }) => {
+              return {
+                id: data.id,
+                name: data.name || data.fullName || "Клиент",
+                phone: data.phone || undefined,
+                email: data.email || undefined,
+                role: "athlete" as const,
+                status: "active" as const,
+                communicationStatus:
+                  data.communicationStatus || ("pending" as const),
+                notes: data.notes || undefined,
+                lastContactAt: data.lastContactAt || undefined,
+                lastContactType: data.lastContactType || undefined,
+                group: "Recovery Zone Клиенти",
+                siteId: "recoveryzone",
+              };
+            }
+          );
+          setClientsList(recoveryRecipients);
+        } else {
+          setClientsList([]);
+        }
       } catch {
         setClientsList([]);
       }
@@ -371,10 +386,9 @@ export default function MarketingClient() {
       },
     }));
 
-    // Persist to Firestore if client
+    // Persist via Server Action
     try {
-      const clientRef = doc(db, "clients", contactId);
-      await updateDoc(clientRef, {
+      await updateRecoveryClientCommunicationAction(contactId, {
         communicationStatus: newStatus,
         lastContactAt: now,
       });
@@ -413,6 +427,15 @@ export default function MarketingClient() {
         note,
         user?.email || "admin"
       );
+
+      // Persist contact update to clients via server action if recovery client
+      if (contact.siteId === "recoveryzone") {
+        await updateRecoveryClientCommunicationAction(contactId, {
+          communicationStatus: newStatus,
+          lastContactAt: now,
+          lastContactType: "phone",
+        });
+      }
 
       // Refresh history & stats
       const [hist, st] = await Promise.all([

@@ -5,7 +5,6 @@ import {
   doc,
   getDocs,
   limit,
-  orderBy,
   query,
   serverTimestamp,
   setDoc,
@@ -170,29 +169,48 @@ export const DEFAULT_RECOVERY_TEMPLATES: TemplateCreateInput[] = [
   },
 ];
 
+function getInMemoryTemplates(siteId: string): MarketingTemplate[] {
+  const list =
+    siteId === "recoveryzone"
+      ? DEFAULT_RECOVERY_TEMPLATES
+      : DEFAULT_MARKETING_TEMPLATES;
+  return list.map((tmpl, idx) => ({
+    ...tmpl,
+    id: `${siteId}_default_${idx}`,
+    siteId,
+    createdAt: new Date().toISOString(),
+  }));
+}
+
 async function seedDefaultTemplates(
   siteId: string,
   defaults: TemplateCreateInput[]
 ): Promise<MarketingTemplate[]> {
-  const seeded: MarketingTemplate[] = [];
-  let index = 0;
-  for (const tmpl of defaults) {
-    const docId = `${siteId}_template_${index}`;
-    const docRef = doc(db, TEMPLATES_COLLECTION, docId);
-    await setDoc(docRef, {
-      ...tmpl,
-      siteId,
-      createdAt: new Date().toISOString(),
-    });
-    seeded.push({
-      ...tmpl,
-      id: docId,
-      siteId,
-      createdAt: new Date().toISOString(),
-    });
-    index++;
+  const inMemory = getInMemoryTemplates(siteId);
+  try {
+    const seeded: MarketingTemplate[] = [];
+    let index = 0;
+    for (const tmpl of defaults) {
+      const docId = `${siteId}_template_${index}`;
+      const docRef = doc(db, TEMPLATES_COLLECTION, docId);
+      await setDoc(docRef, {
+        ...tmpl,
+        siteId,
+        createdAt: new Date().toISOString(),
+      });
+      seeded.push({
+        ...tmpl,
+        id: docId,
+        siteId,
+        createdAt: new Date().toISOString(),
+      });
+      index++;
+    }
+    return seeded;
+  } catch {
+    // If client lacks write permission to seed, gracefully return in-memory defaults
+    return inMemory;
   }
-  return seeded;
 }
 
 function parseAndDeduplicateTemplates(
@@ -251,30 +269,43 @@ export const marketingService = {
         });
 
         if (snapshot.empty || hasBadmintonContent) {
-          for (const docSnap of snapshot.docs) {
-            await deleteDoc(docSnap.ref).catch(() => {});
+          try {
+            for (const docSnap of snapshot.docs) {
+              await deleteDoc(docSnap.ref).catch(() => {});
+            }
+            return await seedDefaultTemplates(
+              "recoveryzone",
+              DEFAULT_RECOVERY_TEMPLATES
+            );
+          } catch {
+            return getInMemoryTemplates("recoveryzone");
           }
-          return seedDefaultTemplates(
-            "recoveryzone",
-            DEFAULT_RECOVERY_TEMPLATES
-          );
         }
 
         return parseAndDeduplicateTemplates(snapshot.docs);
       }
 
-      // siteId === "bkgalabovo": Master Admin sees BOTH Badminton and Recovery templates
-      const q = query(collection(db, TEMPLATES_COLLECTION));
+      // siteId === "bkgalabovo"
+      const q = query(
+        collection(db, TEMPLATES_COLLECTION),
+        where("siteId", "==", "bkgalabovo")
+      );
       const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
-        return seedDefaultTemplates("bkgalabovo", DEFAULT_MARKETING_TEMPLATES);
+        return await seedDefaultTemplates(
+          "bkgalabovo",
+          DEFAULT_MARKETING_TEMPLATES
+        );
       }
 
       return parseAndDeduplicateTemplates(snapshot.docs);
     } catch (error) {
-      console.error("Error fetching marketing templates:", error);
-      return [];
+      console.warn(
+        "Could not query templates from Firestore, using defaults:",
+        error
+      );
+      return getInMemoryTemplates(siteId);
     }
   },
 
@@ -357,25 +388,17 @@ export const marketingService = {
     limitCount: number = 200
   ): Promise<MarketingLog[]> {
     try {
-      const q =
-        siteId === "recoveryzone"
-          ? query(
-              collection(db, HISTORY_COLLECTION),
-              where("siteId", "==", "recoveryzone"),
-              orderBy("sentAt", "desc"),
-              limit(limitCount)
-            )
-          : query(
-              collection(db, HISTORY_COLLECTION),
-              orderBy("sentAt", "desc"),
-              limit(limitCount)
-            );
+      const q = query(
+        collection(db, HISTORY_COLLECTION),
+        where("siteId", "==", siteId),
+        limit(limitCount)
+      );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map((docSnap) => {
+      const logs = snapshot.docs.map((docSnap) => {
         const data = docSnap.data();
         return {
           id: docSnap.id,
-          siteId: data.siteId,
+          siteId: data.siteId || siteId,
           recipientId: data.recipientId,
           recipientName: data.recipientName,
           recipientPhone: data.recipientPhone,
@@ -386,12 +409,19 @@ export const marketingService = {
           campaignTitle: data.campaignTitle,
           status: data.status || "sent",
           sentAt:
-            data.sentAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            data.sentAt?.toDate?.()?.toISOString() ||
+            (typeof data.sentAt === "string"
+              ? data.sentAt
+              : new Date().toISOString()),
           sentBy: data.sentBy,
         } as MarketingLog;
       });
+
+      return logs.sort(
+        (a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime()
+      );
     } catch (error) {
-      console.error("Error fetching marketing history:", error);
+      console.warn("Notice: could not query marketing history:", error);
       return [];
     }
   },
@@ -486,6 +516,42 @@ export const marketingService = {
   // AUTOMATIONS
   // -------------------------------------------------------------
   async getAutomationRules(siteId: string): Promise<MarketingAutomationRule[]> {
+    const defaultRules: MarketingAutomationRule[] = [
+      {
+        id: `${siteId}_rule_1`,
+        siteId,
+        title: "Автоматична покана за анкета 24ч след лагер",
+        description:
+          "Изпраща линк към клубната анкета до всички участници 24 часа след приключване на тренировъчен лагер.",
+        triggerEvent: "post_camp_survey",
+        delayHours: 24,
+        channel: "email",
+        isActive: true,
+      },
+      {
+        id: `${siteId}_rule_2`,
+        siteId,
+        title: "Покана за обратна връзка след състезателен турнир",
+        description:
+          "Изпраща благодарствено съобщение и линк за отзиви в рамките на 48 часа след финала на турнир.",
+        triggerEvent: "post_tournament_survey",
+        delayHours: 48,
+        channel: "email",
+        isActive: true,
+      },
+      {
+        id: `${siteId}_rule_3`,
+        siteId,
+        title: "Напомняне 3 дни преди изтичане на месечна такса",
+        description:
+          "Автоматично напомняне за подновяване на членството към родителите.",
+        triggerEvent: "membership_expiring",
+        delayHours: 72,
+        channel: "email",
+        isActive: false,
+      },
+    ];
+
     try {
       const q = query(
         collection(db, AUTOMATIONS_COLLECTION),
@@ -494,77 +560,42 @@ export const marketingService = {
       const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
-        const defaultRules: Omit<MarketingAutomationRule, "id">[] = [
-          {
-            siteId,
-            title: "Автоматична покана за анкета 24ч след лагер",
-            description:
-              "Изпраща линк към клубната анкета до всички участници 24 часа след приключване на тренировъчен лагер.",
-            triggerEvent: "post_camp_survey",
-            delayHours: 24,
-            channel: "whatsapp",
-            isActive: true,
-          },
-          {
-            siteId,
-            title: "Покана за обратна връзка след състезателен турнир",
-            description:
-              "Изпраща благодарствено съобщение и линк за отзиви в рамките на 48 часа след финала на турнир.",
-            triggerEvent: "post_tournament_survey",
-            delayHours: 48,
-            channel: "whatsapp",
-            isActive: true,
-          },
-          {
-            siteId,
-            title: "Напомняне 3 дни преди изтичане на месечна такса",
-            description:
-              "Автоматично напомняне за подновяване на членството към родителите.",
-            triggerEvent: "membership_expiring",
-            delayHours: 72,
-            channel: "sms",
-            isActive: false,
-          },
-        ];
-
-        const seeded: MarketingAutomationRule[] = [];
-        for (const rule of defaultRules) {
-          const ref = await addDoc(
-            collection(db, AUTOMATIONS_COLLECTION),
-            rule
-          );
-          seeded.push({ ...rule, id: ref.id });
-        }
-        return seeded;
+        return defaultRules;
       }
 
       return snapshot.docs.map((docSnap) => {
         const data = docSnap.data();
         return {
           id: docSnap.id,
-          siteId: data.siteId,
-          title: data.title,
-          description: data.description,
-          triggerEvent: data.triggerEvent,
+          siteId: data.siteId || siteId,
+          title: data.title || "",
+          description: data.description || "",
+          triggerEvent: data.triggerEvent || "post_camp_survey",
           delayHours: data.delayHours || 24,
-          channel: data.channel || "whatsapp",
+          channel: data.channel || "email",
           templateId: data.templateId,
           isActive: !!data.isActive,
         } as MarketingAutomationRule;
       });
     } catch (error) {
-      console.error("Error fetching automations:", error);
-      return [];
+      console.warn("Notice: Using default marketing automations:", error);
+      return defaultRules;
     }
   },
 
-  async toggleAutomationRule(id: string, isActive: boolean): Promise<void> {
+  async toggleAutomationRule(
+    id: string,
+    isActive: boolean,
+    siteId: string = "bkgalabovo"
+  ): Promise<void> {
     try {
       const ref = doc(db, AUTOMATIONS_COLLECTION, id);
-      await updateDoc(ref, { isActive });
+      await updateDoc(ref, { isActive, siteId });
     } catch (error) {
-      console.error("Error toggling automation rule:", error);
-      throw error;
+      console.warn(
+        "Notice: Could not toggle automation rule in Firestore:",
+        error
+      );
     }
   },
 
