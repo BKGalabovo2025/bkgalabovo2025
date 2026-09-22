@@ -303,7 +303,7 @@ export async function GET(request: Request) {
 }
 
 /**
- * Admin endpoint: Update inquiry status (new | contacted | enrolled | archived)
+ * Admin endpoint: Update inquiry details and status
  */
 export async function PATCH(request: Request) {
   try {
@@ -315,26 +315,58 @@ export async function PATCH(request: Request) {
       await ensureAdminFromSession();
     }
 
-    const { id, status } = await request.json();
-    if (!id || !status) {
+    const body = await request.json();
+    const { id, status, ...fields } = body;
+    if (!id) {
       return NextResponse.json(
-        { error: "Missing id or status" },
+        { error: "Липсва ID на запитване." },
         { status: 400 }
       );
     }
 
     const adminDb = getAdminDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: Record<string, any> = {
-      status,
-    };
-    if (status === "contacted" || status === "enrolled") {
-      updateData.contactedAt = new Date().toISOString();
+    const updateData: Record<string, any> = {};
+
+    if (status) {
+      updateData.status = status;
+      if (status === "contacted" || status === "enrolled") {
+        updateData.contactedAt = new Date().toISOString();
+      } else if (status === "new") {
+        updateData.contactedAt = null;
+      }
+    }
+
+    // Editable fields
+    const allowedFields = [
+      "name",
+      "phone",
+      "notes",
+      "eventTitle",
+      "eventDate",
+      "eventTime",
+      "eventLocation",
+      "procedureName",
+      "preferredZone",
+      "goal",
+      "preferredTimeSlot",
+      "target",
+      "childAge",
+      "level",
+    ];
+
+    for (const key of allowedFields) {
+      if (key in fields) {
+        updateData[key] = fields[key];
+      }
     }
 
     await adminDb.collection("inquiries").doc(id).update(updateData);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      message: "Запитването е обновено успешно.",
+    });
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : "";
     if (
@@ -350,6 +382,64 @@ export async function PATCH(request: Request) {
     console.error("[inquiries-api] Error updating inquiry:", error);
     return NextResponse.json(
       { error: "Грешка при обновяване на запитването." },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Admin endpoint: Delete an inquiry permanently
+ */
+export async function DELETE(request: Request) {
+  try {
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.split("Bearer ")[1];
+    if (token) {
+      await ensureAdmin(token);
+    } else {
+      await ensureAdminFromSession();
+    }
+
+    const { searchParams } = new URL(request.url);
+    let id = searchParams.get("id");
+    if (!id) {
+      try {
+        const body = await request.json();
+        id = body.id;
+      } catch {
+        // Body may be empty if id was in query param
+      }
+    }
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Липсва ID на запитване за изтриване." },
+        { status: 400 }
+      );
+    }
+
+    const adminDb = getAdminDb();
+    await adminDb.collection("inquiries").doc(id).delete();
+
+    return NextResponse.json({
+      success: true,
+      message: "Запитването беше изтрито успешно.",
+    });
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "";
+    if (
+      errorMsg.includes("администраторски права") ||
+      errorMsg.includes("Невалидна сесия") ||
+      errorMsg.includes("Unauthorized")
+    ) {
+      return NextResponse.json(
+        { error: errorMsg || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    console.error("[inquiries-api] Error deleting inquiry:", error);
+    return NextResponse.json(
+      { error: "Грешка при изтриване на запитването." },
       { status: 500 }
     );
   }
