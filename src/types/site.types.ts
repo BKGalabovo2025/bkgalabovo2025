@@ -107,15 +107,51 @@ export interface Site {
 
   // Content for public page
   benefits?: string[];
-  attachments?: {
-    name: string;
-    image: string;
-    desc: string;
-    points: string[];
-  }[];
+  attachments?: RecoveryAttachment[];
   contraindications?: string[];
   faqs?: {
     q: string;
     a: string;
   }[];
 }
+
+export interface RecoveryAttachment {
+  id?: string;
+  name: string;
+  subtitle?: string;
+  desc: string;
+  image?: string;
+  zone?: string;
+  buttonText?: string;
+  points?: string[];
+}
+
+export const DEFAULT_RECOVERY_ATTACHMENTS: RecoveryAttachment[] = [
+  {
+    id: "legs",
+    name: "КРАКА",
+    subtitle: "Приставки за крака",
+    desc: "Обхващат целите крака от стъпалата и глезените до горната част на бедрата. Изключително ефективни при „тежки крака“ след продължително стоене, ходене или интензивно натоварване.",
+    image: "/zones/legs.webp",
+    zone: "Крака",
+    buttonText: "Запиши час за крака",
+  },
+  {
+    id: "hips",
+    name: "ТАЗ",
+    subtitle: "Приставка за таз",
+    desc: "Обхваща долната част на гърба, таза, хълбоците и седалищните мускули. Идеална за облекчаване на напрежението в кръста от дълги часове седене и за подобряване на гъвкавостта.",
+    image: "/zones/pelvis.webp",
+    zone: "Таз",
+    buttonText: "Запиши час за таз",
+  },
+  {
+    id: "arms",
+    name: "РЪЦЕ",
+    subtitle: "Приставки за ръце",
+    desc: "Обхващат зоните от китките до раменете. Изключително полезни за бадминтонисти, тенисисти, плувци и фитнес трениращи, при които ръцете са подложени на постоянен стрес, както и за хора, работещи пред компютър.",
+    image: "/zones/arm.png",
+    zone: "Ръце",
+    buttonText: "Запиши час за ръце",
+  },
+];

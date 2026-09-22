@@ -3,7 +3,12 @@ import { create } from "zustand";
 import { getAuditLogsAction } from "@/lib/actions/audit";
 import { AuditLog } from "@/lib/audit-logger";
 import { getAllSites } from "@/services/site-service";
-import { Site, Therapist } from "@/types/site.types";
+import {
+  DEFAULT_RECOVERY_ATTACHMENTS,
+  RecoveryAttachment,
+  Site,
+  Therapist,
+} from "@/types/site.types";
 
 interface SettingsState {
   formData: {
@@ -64,6 +69,14 @@ interface SettingsState {
   ) => void;
   addTherapist: (siteId: string) => void;
   removeTherapist: (siteId: string, index: number) => void;
+  handleAttachmentChange: (
+    siteId: string,
+    index: number,
+    field: keyof RecoveryAttachment,
+    value: string
+  ) => void;
+  addAttachment: (siteId: string) => void;
+  removeAttachment: (siteId: string, index: number) => void;
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
@@ -303,6 +316,68 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         formData: {
           ...state.formData,
           [siteId]: { ...site, therapists },
+        },
+      };
+    });
+  },
+
+  handleAttachmentChange: (siteId, index, field, value) => {
+    set((state) => {
+      const site = state.formData[siteId] || {};
+      const currentAttachments =
+        site.attachments && site.attachments.length > 0
+          ? [...site.attachments]
+          : [...DEFAULT_RECOVERY_ATTACHMENTS];
+      currentAttachments[index] = {
+        ...currentAttachments[index],
+        [field]: value,
+      };
+      return {
+        formData: {
+          ...state.formData,
+          [siteId]: { ...site, attachments: currentAttachments },
+        },
+      };
+    });
+  },
+
+  addAttachment: (siteId) => {
+    set((state) => {
+      const site = state.formData[siteId] || {};
+      const currentAttachments =
+        site.attachments && site.attachments.length > 0
+          ? [...site.attachments]
+          : [...DEFAULT_RECOVERY_ATTACHMENTS];
+      currentAttachments.push({
+        id: `att_${Date.now()}`,
+        name: "",
+        subtitle: "",
+        desc: "",
+        image: "/zones/legs.webp",
+        zone: "",
+        buttonText: "Запиши час",
+      });
+      return {
+        formData: {
+          ...state.formData,
+          [siteId]: { ...site, attachments: currentAttachments },
+        },
+      };
+    });
+  },
+
+  removeAttachment: (siteId, index) => {
+    set((state) => {
+      const site = state.formData[siteId] || {};
+      const currentAttachments =
+        site.attachments && site.attachments.length > 0
+          ? [...site.attachments]
+          : [...DEFAULT_RECOVERY_ATTACHMENTS];
+      currentAttachments.splice(index, 1);
+      return {
+        formData: {
+          ...state.formData,
+          [siteId]: { ...site, attachments: currentAttachments },
         },
       };
     });

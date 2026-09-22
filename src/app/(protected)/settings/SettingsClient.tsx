@@ -10,6 +10,7 @@ import { toast } from "react-hot-toast";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { revalidateSiteAction } from "@/lib/actions/site";
 import { updateSite } from "@/services/site-service";
 import { useSettingsStore } from "@/store/use-settings-store";
 
@@ -46,6 +47,7 @@ export default function SettingsClient() {
       );
 
       await Promise.all(savePromises);
+      await revalidateSiteAction();
 
       toast.success("Настройките са запазени успешно!", {
         style: {

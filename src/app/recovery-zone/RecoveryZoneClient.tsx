@@ -36,7 +36,7 @@ import { TeamSection } from "@/components/recovery/TeamSection";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { feedbackService } from "@/services/feedback-service";
 import { FeedbackSubmission } from "@/types/feedback.types";
-import { Site } from "@/types/site.types";
+import { DEFAULT_RECOVERY_ATTACHMENTS, Site } from "@/types/site.types";
 
 export interface RecoveryServiceData {
   id?: string;
@@ -100,6 +100,11 @@ export default function RecoveryZoneClient({
     };
     fetchFeedback();
   }, []);
+
+  const displayAttachments =
+    site.attachments && site.attachments.length > 0
+      ? site.attachments
+      : DEFAULT_RECOVERY_ATTACHMENTS;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-zinc-950 font-sans text-white selection:bg-emerald-500 selection:text-white">
@@ -450,156 +455,63 @@ export default function RecoveryZoneClient({
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {/* Legs */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="group overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 transition-colors hover:border-emerald-500/50"
-            >
-              <div className="relative flex h-64 w-full items-center justify-center overflow-hidden bg-zinc-900/50 p-6">
-                <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
-                  <Image
-                    src="/zones/legs.webp"
-                    alt="Приставки за крака"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-contain"
-                  />
-                </div>
-              </div>
-              <div className="p-8">
-                <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
-                  КРАКА
-                </h3>
-                <p className="text-sm leading-relaxed text-zinc-400">
-                  Обхващат целите крака от стъпалата и глезените до горната част
-                  на бедрата. Изключително ефективни при „тежки крака“ след
-                  продължително стоене, ходене или интензивно натоварване.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedProcedureForInquiry({
-                      title: "Зона „Крака“",
-                      preferredZone: "Крака",
-                    });
-                    setIsInquiryOpen(true);
-                  }}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+            {displayAttachments.map((att, idx) => {
+              const zoneName = att.zone || att.name;
+              const buttonLabel =
+                att.buttonText ||
+                (lang === "en"
+                  ? `Book ${att.name}`
+                  : `Запиши час за ${att.name.toLowerCase()}`);
+              return (
+                <motion.div
+                  key={att.id || att.name || idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: (idx + 1) * 0.1 }}
+                  className="group overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 transition-colors hover:border-emerald-500/50"
                 >
-                  <CalendarCheck size={14} />
-                  Запиши час за крака
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Pelvis */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="group overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 transition-colors hover:border-emerald-500/50"
-            >
-              <div className="relative flex h-64 w-full items-center justify-center overflow-hidden bg-zinc-900/50 p-6">
-                <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
-                  <Image
-                    src="/zones/pelvis.webp"
-                    alt="Приставка за таз"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-contain"
-                  />
-                </div>
-              </div>
-              <div className="p-8">
-                <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
-                  {lang === "en" ? (
-                    <span className="notranslate">PELVIS</span>
-                  ) : (
-                    "ТАЗ"
-                  )}
-                </h3>
-                <p className="text-sm leading-relaxed text-zinc-400">
-                  Обхваща долната част на гърба, таза, хълбоците и седалищните
-                  мускули. Идеална за облекчаване на напрежението в кръста от
-                  дълги часове седене и за подобряване на гъвкавостта.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedProcedureForInquiry({
-                      title: "Зона „Таз“",
-                      preferredZone: "Таз",
-                    });
-                    setIsInquiryOpen(true);
-                  }}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]"
-                >
-                  <CalendarCheck size={14} />
-                  Запиши час за таз
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Arms */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="group overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 transition-colors hover:border-emerald-500/50"
-            >
-              <div className="relative flex h-64 w-full items-center justify-center overflow-hidden bg-zinc-900/50 p-6">
-                <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
-                  <Image
-                    src="/zones/arm.png"
-                    alt="Приставки за ръце"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-contain"
-                  />
-                </div>
-              </div>
-              <div className="p-8">
-                <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
-                  {lang === "en" ? (
-                    <span className="notranslate">ARMS</span>
-                  ) : (
-                    "РЪЦЕ"
-                  )}
-                </h3>
-                <p className="text-sm leading-relaxed text-zinc-400">
-                  {lang === "en" ? (
-                    <span className="notranslate">
-                      Covers the areas from the wrists to the shoulders.
-                      Extremely useful for badminton players, tennis players,
-                      swimmers, and fitness enthusiasts whose arms are subjected
-                      to constant stress, as well as for people working in front
-                      of a computer.
-                    </span>
-                  ) : (
-                    "Обхващат зоните от китките до раменете. Изключително полезни за бадминтонисти, тенисисти, плувци и фитнес трениращи, при които ръцете са подложени на постоянен стрес, както и за хора, работещи пред компютър."
-                  )}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedProcedureForInquiry({
-                      title: "Зона „Ръце“",
-                      preferredZone: "Ръце",
-                    });
-                    setIsInquiryOpen(true);
-                  }}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]"
-                >
-                  <CalendarCheck size={14} />
-                  Запиши час за ръце
-                </button>
-              </div>
-            </motion.div>
+                  <div className="relative flex h-64 w-full items-center justify-center overflow-hidden bg-zinc-900/50 p-6">
+                    <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
+                      <Image
+                        src={att.image || "/zones/legs.webp"}
+                        alt={att.subtitle || att.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-contain"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-8">
+                    {att.subtitle && (
+                      <p className="mb-1 text-xs font-semibold tracking-wider text-zinc-500 uppercase">
+                        {att.subtitle}
+                      </p>
+                    )}
+                    <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
+                      {att.name}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-zinc-400">
+                      {att.desc}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedProcedureForInquiry({
+                          title: `Зона „${zoneName}“`,
+                          preferredZone: zoneName,
+                        });
+                        setIsInquiryOpen(true);
+                      }}
+                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                    >
+                      <CalendarCheck size={14} />
+                      {buttonLabel}
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
