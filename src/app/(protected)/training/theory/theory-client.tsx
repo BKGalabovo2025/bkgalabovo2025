@@ -160,16 +160,6 @@ export default function TheoryClient() {
     toast.success("Линкът е копиран!");
   };
 
-  const openViber = (playerName: string) => {
-    if (!sendQuiz || !playerName) return;
-    const viberUrl = quizService.generateViberLink(
-      playerName,
-      sendQuiz.title,
-      generatedLink
-    );
-    window.location.href = viberUrl;
-  };
-
   // ── EDIT ─────────────────────────────────────────────────────────────────
   const openEdit = (quiz: Quiz) => {
     setEditQuiz(quiz);
@@ -1135,8 +1125,8 @@ export default function TheoryClient() {
         <DialogContent className="rounded-2xl sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Share2 className="size-5 text-indigo-500" /> Изпрати по Viber /
-              Линк
+              <Share2 className="size-5 text-indigo-500" /> Изпрати линк към
+              теста
             </DialogTitle>
             <DialogDescription>{sendQuiz?.title}</DialogDescription>
           </DialogHeader>
@@ -1226,17 +1216,10 @@ export default function TheoryClient() {
                   </Button>
                 </div>
                 <Button
-                  className="w-full rounded-xl bg-purple-600 hover:bg-purple-700"
-                  onClick={() => {
-                    const playerName =
-                      selectedMemberId === "custom"
-                        ? memberSearchQuery.trim()
-                        : members.find((m) => m.id === selectedMemberId)
-                            ?.name || "";
-                    openViber(playerName);
-                  }}
+                  className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                  onClick={copyLink}
                 >
-                  <Send className="mr-2 size-4" /> Отвори Viber
+                  <Copy className="mr-2 size-4" /> Копирай линк
                 </Button>
               </div>
             )}

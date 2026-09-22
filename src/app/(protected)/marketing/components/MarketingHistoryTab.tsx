@@ -103,15 +103,13 @@ export function MarketingHistoryTab({
   const filteredHistory = useMemo(() => {
     return history.filter((log) => {
       if (channelFilter === "phone") {
-        if (log.channel !== "sms" && (log.channel as string) !== "phone") {
+        if ((log.channel as string) !== "phone") {
           return false;
         }
       } else if (channelFilter === "email") {
         if (log.channel !== "email") {
           return false;
         }
-      } else if (channelFilter !== "all" && log.channel !== channelFilter) {
-        return false;
       }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -198,7 +196,7 @@ export function MarketingHistoryTab({
                 variant="outline"
                 className="rounded-lg border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300"
               >
-                📞 Разговори: {stats.callsCount || stats.byChannel?.sms || 0}
+                📞 Разговори: {stats.callsCount || stats.byChannel?.phone || 0}
               </Badge>
               <Badge
                 variant="outline"

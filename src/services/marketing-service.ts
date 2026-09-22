@@ -231,7 +231,7 @@ function parseAndDeduplicateTemplates(
       siteId: String(data.siteId || ""),
       title,
       category: (data.category as MarketingTemplateCategory) || "general",
-      channel: (data.channel as MarketingChannel) || "whatsapp",
+      channel: (data.channel as MarketingChannel) || "email",
       subject: String(data.subject || ""),
       messageText: String(data.messageText || ""),
       variables: Array.isArray(data.variables)
@@ -403,7 +403,7 @@ export const marketingService = {
           recipientName: data.recipientName,
           recipientPhone: data.recipientPhone,
           recipientEmail: data.recipientEmail,
-          channel: data.channel || "whatsapp",
+          channel: (data.channel as MarketingChannel) || "phone",
           messageText: data.messageText,
           templateUsed: data.templateUsed,
           campaignTitle: data.campaignTitle,
@@ -467,9 +467,6 @@ export const marketingService = {
       const byChannel: Record<MarketingChannel, number> = {
         email: 0,
         phone: 0,
-        whatsapp: 0,
-        viber: 0,
-        sms: 0,
       };
 
       let sentThisMonth = 0;

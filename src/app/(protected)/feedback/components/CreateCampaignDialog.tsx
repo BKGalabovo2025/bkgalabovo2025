@@ -153,9 +153,7 @@ export function CreateCampaignDialog({
     if (!createdLink) return;
     await navigator.clipboard.writeText(createdLink);
     setHasCopied(true);
-    toast.success(
-      "Линкът е копиран! Можете да го изпратите във Viber / WhatsApp."
-    );
+    toast.success("Линкът е копиран в клипборда!");
     setTimeout(() => setHasCopied(false), 3000);
   };
 
@@ -197,8 +195,8 @@ export function CreateCampaignDialog({
               </h3>
               <p className="mx-auto mt-1 max-w-sm text-xs text-zinc-500">
                 {isRecovery
-                  ? "Копирайте линка по-долу и го изпратете на клиентите във Viber, WhatsApp или по имейл."
-                  : "Копирайте линка по-долу и го изпратете в групата на родителите във Viber, WhatsApp или по имейл."}
+                  ? "Копирайте линка по-долу и го изпратете на клиентите по имейл или съобщение."
+                  : "Копирайте линка по-долу и го изпратете на родителите по имейл или съобщение."}
               </p>
             </div>
 

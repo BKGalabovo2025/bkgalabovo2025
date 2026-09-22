@@ -14,7 +14,7 @@ export default function MarketingPage() {
     <div className="space-y-8 pb-12 duration-500 animate-in fade-in">
       <PageHeader
         title="Маркетинг и Комуникация"
-        description="Изпращане на съобщения и известия до членовете чрез WhatsApp и Имейл."
+        description="Директна комуникация, телефонни обаждания и официални имейли до състезатели, родители и клиенти."
         breadcrumbs={[{ label: "Начало", href: "/" }, { label: "Комуникация" }]}
       />
       <MarketingClient />

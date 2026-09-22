@@ -8,7 +8,6 @@ import {
   FileText,
   Loader2,
   Mail,
-  MessageCircle,
   Pencil,
   Phone,
   Send,
@@ -305,8 +304,6 @@ function StatusAndActions({
   const phoneStr = rawPhone.startsWith("0")
     ? "+359" + rawPhone.slice(1)
     : rawPhone;
-  const waLink =
-    "https://wa.me/" + phoneStr + "?text=" + encodeURIComponent(messageText);
 
   return (
     <div className="mt-2 flex w-full shrink-0 flex-row flex-wrap items-center justify-between gap-6 border-t border-zinc-100 pt-4 sm:flex-nowrap sm:justify-end 2xl:mt-0 2xl:w-auto 2xl:border-t-0 2xl:pt-0 dark:border-zinc-900">
@@ -366,20 +363,20 @@ function StatusAndActions({
               align="end"
               className="w-48 rounded-2xl border-zinc-100 p-2 dark:border-zinc-800"
             >
-              <DropdownMenuItem
-                asChild
-                className="cursor-pointer gap-2 rounded-xl py-2.5 text-xs font-bold text-zinc-700 transition-colors focus:bg-emerald-50 focus:text-emerald-600 dark:text-zinc-300 dark:focus:bg-emerald-950/30 dark:focus:text-emerald-400"
-              >
-                <a
-                  href={waLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+              {phoneStr && (
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer gap-2 rounded-xl py-2.5 text-xs font-bold text-zinc-700 transition-colors focus:bg-emerald-50 focus:text-emerald-600 dark:text-zinc-300 dark:focus:bg-emerald-950/30 dark:focus:text-emerald-400"
                 >
-                  <MessageCircle className="size-4" />
-                  WhatsApp
-                </a>
-              </DropdownMenuItem>
+                  <a
+                    href={`tel:${phoneStr}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Phone className="size-4" />
+                    Обаждане ({phoneStr})
+                  </a>
+                </DropdownMenuItem>
+              )}
 
               <DropdownMenuItem
                 className="mt-1 cursor-pointer gap-2 rounded-xl py-2.5 text-xs font-bold text-zinc-700 transition-colors focus:bg-blue-50 focus:text-blue-600 dark:text-zinc-300 dark:focus:bg-blue-950/30 dark:focus:text-blue-400"

@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  CheckCircle2,
-  Clock,
-  Mail,
-  MessageCircle,
-  MessageSquare,
-  Phone,
-  Power,
-  Zap,
-} from "lucide-react";
+import { CheckCircle2, Clock, Mail, Phone, Power, Zap } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 
@@ -75,19 +66,17 @@ export function MarketingAutomationsTab({ rules, onToggleRule }: Props) {
                   variant="outline"
                   className="flex items-center gap-1 rounded-lg border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold text-zinc-700 uppercase dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                 >
-                  {rule.channel === "whatsapp" && (
-                    <MessageCircle className="size-3 text-emerald-600" />
+                  {rule.channel === "email" ? (
+                    <>
+                      <Mail className="size-3 text-rose-600" />
+                      <span>Имейл</span>
+                    </>
+                  ) : (
+                    <>
+                      <Phone className="size-3 text-blue-600" />
+                      <span>Телефон</span>
+                    </>
                   )}
-                  {rule.channel === "viber" && (
-                    <Phone className="size-3 text-purple-600" />
-                  )}
-                  {rule.channel === "sms" && (
-                    <MessageSquare className="size-3 text-blue-600" />
-                  )}
-                  {rule.channel === "email" && (
-                    <Mail className="size-3 text-rose-600" />
-                  )}
-                  <span>{rule.channel}</span>
                 </Badge>
 
                 {rule.isActive ? (

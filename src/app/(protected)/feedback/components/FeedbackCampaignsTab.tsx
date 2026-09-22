@@ -78,9 +78,7 @@ export function FeedbackCampaignsTab({
     const url = `${window.location.origin}/feedback/${campaignId}`;
     await navigator.clipboard.writeText(url);
     setCopiedId(campaignId);
-    toast.success(
-      "Линкът е копиран! Можете да го изпратите във Viber / WhatsApp."
-    );
+    toast.success("Линкът е копиран в клипборда!");
     setTimeout(() => setCopiedId(null), 3000);
   };
 

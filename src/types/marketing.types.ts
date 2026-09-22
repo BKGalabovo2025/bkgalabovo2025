@@ -1,4 +1,4 @@
-export type MarketingChannel = "email" | "phone" | "whatsapp" | "viber" | "sms";
+export type MarketingChannel = "email" | "phone";
 
 export type ContactCommunicationStatus =
   "pending" | "contacted" | "emailed" | "archived";

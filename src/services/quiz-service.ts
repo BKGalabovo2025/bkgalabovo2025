@@ -245,14 +245,4 @@ export const quizService = {
     }
     await updateDoc(doc(db, THEORY_RESULTS_COLLECTION, resultId), updateData);
   },
-
-  // Генериране на Viber линк
-  generateViberLink(
-    playerName: string,
-    quizTitle: string,
-    quizUrl: string
-  ): string {
-    const message = `Здравей ${playerName}! 🏸 Твоят треньор те кани да попълниш тест: "${quizTitle}". Натисни линка по-долу:`;
-    return `viber://send?text=${encodeURIComponent(message + "\n" + quizUrl)}`;
-  },
 };

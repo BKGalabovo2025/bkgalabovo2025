@@ -93,7 +93,7 @@ export default function MarketingClient() {
   const [stats, setStats] = useState<MarketingStats>({
     totalSent: 0,
     sentThisMonth: 0,
-    byChannel: { whatsapp: 0, viber: 0, sms: 0, email: 0 },
+    byChannel: { phone: 0, email: 0 },
     activeRecipientsCount: 0,
     callsCount: 0,
     emailsCount: 0,
@@ -335,7 +335,7 @@ export default function MarketingClient() {
     const pending = allRecipients.filter(
       (c) => (c.communicationStatus || "pending") === "pending"
     ).length;
-    const calls = stats.callsCount || stats.byChannel?.sms || 0;
+    const calls = stats.callsCount || stats.byChannel?.phone || 0;
     const emails = stats.emailsCount || stats.byChannel?.email || 0;
 
     return { total, pending, calls, emails };

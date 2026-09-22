@@ -159,7 +159,6 @@ interface PublicEventCardProps {
   i: number;
   /**
    * When true, shows the admin "Потвърждение" mail link (ScheduleClient variant).
-   * When false, shows the basic public WhatsApp link (ClubClient variant).
    */
   showAdminLinks?: boolean;
 }
@@ -176,7 +175,7 @@ export function PublicEventCard({
 
   const displayTime = formatEventDateRange(event.startTime, event.endTime);
 
-  // WhatsApp message — admin version includes full date/time/location context
+  // Event styling config
   const rawType = event.isTournament ? "competition" : event.type || "training";
   const typeConfig = EVENT_TYPE_STYLES[rawType] || EVENT_TYPE_STYLES.training;
 
