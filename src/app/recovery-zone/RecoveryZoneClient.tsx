@@ -28,6 +28,7 @@ import {
   InstagramIcon,
   YoutubeIcon,
 } from "@/components/icons/social-icons";
+import { AttachmentCard } from "@/components/recovery/AttachmentCard";
 import {
   RecoveryInquiryDialog,
   RecoveryProcedureInfo,
@@ -36,11 +37,7 @@ import { TeamSection } from "@/components/recovery/TeamSection";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { feedbackService } from "@/services/feedback-service";
 import { FeedbackSubmission } from "@/types/feedback.types";
-import {
-  DEFAULT_RECOVERY_ATTACHMENTS,
-  resolveAttachmentImage,
-  Site,
-} from "@/types/site.types";
+import { DEFAULT_RECOVERY_ATTACHMENTS, Site } from "@/types/site.types";
 
 export interface RecoveryServiceData {
   id?: string;
@@ -458,68 +455,19 @@ export default function RecoveryZoneClient({
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {displayAttachments.map((att, idx) => {
-              const zoneName = att.zone || att.name;
-              const buttonLabel =
-                att.buttonText ||
-                (lang === "en"
-                  ? `Book ${att.name}`
-                  : `Запиши час за ${att.name.toLowerCase()}`);
-              return (
-                <motion.div
-                  key={att.id || att.name || idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: (idx + 1) * 0.1 }}
-                  className="group overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 transition-colors hover:border-emerald-500/50"
-                >
-                  <div className="relative flex h-64 w-full items-center justify-center overflow-hidden bg-zinc-900/50 p-6">
-                    <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
-                      <Image
-                        src={resolveAttachmentImage(
-                          att.image,
-                          "/zones/legs.webp"
-                        )}
-                        alt={att.subtitle || att.name}
-                        fill
-                        loading="eager"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-contain"
-                      />
-                    </div>
-                  </div>
-                  <div className="p-8">
-                    {att.subtitle && (
-                      <p className="mb-1 text-xs font-semibold tracking-wider text-zinc-500 uppercase">
-                        {att.subtitle}
-                      </p>
-                    )}
-                    <h3 className="mb-4 text-xl font-bold tracking-wider text-emerald-400 uppercase">
-                      {att.name}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-zinc-400">
-                      {att.desc}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedProcedureForInquiry({
-                          title: `Зона „${zoneName}“`,
-                          preferredZone: zoneName,
-                        });
-                        setIsInquiryOpen(true);
-                      }}
-                      className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]"
-                    >
-                      <CalendarCheck size={14} />
-                      {buttonLabel}
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })}
+          <div className="grid grid-cols-1 items-stretch gap-8 md:grid-cols-3">
+            {displayAttachments.map((att, idx) => (
+              <AttachmentCard
+                key={att.id || att.name || idx}
+                attachment={att}
+                index={idx}
+                lang={lang}
+                onSelectInquiry={(procedure) => {
+                  setSelectedProcedureForInquiry(procedure);
+                  setIsInquiryOpen(true);
+                }}
+              />
+            ))}
           </div>
         </div>
       </section>
