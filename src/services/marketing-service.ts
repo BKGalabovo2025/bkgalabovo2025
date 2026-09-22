@@ -246,6 +246,36 @@ function parseAndDeduplicateTemplates(
   return templates;
 }
 
+function mergeTemplatesWithDefaults(
+  firestoreTemplates: MarketingTemplate[],
+  siteId: string
+): MarketingTemplate[] {
+  const merged: MarketingTemplate[] = [];
+  const seenTitles = new Set<string>();
+
+  for (const t of firestoreTemplates) {
+    const key = t.title.trim().toLowerCase();
+    if (!seenTitles.has(key)) {
+      seenTitles.add(key);
+      merged.push({
+        ...t,
+        siteId: t.siteId || siteId,
+      });
+    }
+  }
+
+  const defaults = getInMemoryTemplates(siteId);
+  for (const def of defaults) {
+    const key = def.title.trim().toLowerCase();
+    if (!seenTitles.has(key)) {
+      seenTitles.add(key);
+      merged.push(def);
+    }
+  }
+
+  return merged;
+}
+
 export const marketingService = {
   // -------------------------------------------------------------
   // TEMPLATES
@@ -273,16 +303,18 @@ export const marketingService = {
             for (const docSnap of snapshot.docs) {
               await deleteDoc(docSnap.ref).catch(() => {});
             }
-            return await seedDefaultTemplates(
+            await seedDefaultTemplates(
               "recoveryzone",
               DEFAULT_RECOVERY_TEMPLATES
             );
           } catch {
-            return getInMemoryTemplates("recoveryzone");
+            // Silently fall back to in-memory templates
           }
+          return getInMemoryTemplates("recoveryzone");
         }
 
-        return parseAndDeduplicateTemplates(snapshot.docs);
+        const parsed = parseAndDeduplicateTemplates(snapshot.docs);
+        return mergeTemplatesWithDefaults(parsed, "recoveryzone");
       }
 
       // siteId === "bkgalabovo"
@@ -293,19 +325,41 @@ export const marketingService = {
       const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
-        return await seedDefaultTemplates(
-          "bkgalabovo",
-          DEFAULT_MARKETING_TEMPLATES
-        );
+        try {
+          await seedDefaultTemplates("bkgalabovo", DEFAULT_MARKETING_TEMPLATES);
+        } catch {
+          // Silently fall back to in-memory templates
+        }
+        return getInMemoryTemplates("bkgalabovo");
       }
 
-      return parseAndDeduplicateTemplates(snapshot.docs);
+      const parsed = parseAndDeduplicateTemplates(snapshot.docs);
+      return mergeTemplatesWithDefaults(parsed, "bkgalabovo");
     } catch (error) {
       console.warn(
         "Could not query templates from Firestore, using defaults:",
         error
       );
       return getInMemoryTemplates(siteId);
+    }
+  },
+
+  async getAllTemplates(): Promise<MarketingTemplate[]> {
+    try {
+      const [bkg, rz] = await Promise.all([
+        this.getTemplates("bkgalabovo"),
+        this.getTemplates("recoveryzone"),
+      ]);
+      return [...bkg, ...rz];
+    } catch (error) {
+      console.warn(
+        "Could not query all templates, returning in-memory:",
+        error
+      );
+      return [
+        ...getInMemoryTemplates("bkgalabovo"),
+        ...getInMemoryTemplates("recoveryzone"),
+      ];
     }
   },
 
@@ -329,10 +383,14 @@ export const marketingService = {
   async updateTemplate(id: string, data: TemplateUpdateInput): Promise<void> {
     try {
       const ref = doc(db, TEMPLATES_COLLECTION, id);
-      await updateDoc(ref, {
-        ...data,
-        updatedAt: new Date().toISOString(),
-      });
+      await setDoc(
+        ref,
+        {
+          ...data,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
     } catch (error) {
       console.error("Error updating template:", error);
       throw error;
@@ -342,7 +400,7 @@ export const marketingService = {
   async deleteTemplate(id: string): Promise<void> {
     try {
       const ref = doc(db, TEMPLATES_COLLECTION, id);
-      await deleteDoc(ref);
+      await deleteDoc(ref).catch(() => {});
     } catch (error) {
       console.error("Error deleting template:", error);
       throw error;

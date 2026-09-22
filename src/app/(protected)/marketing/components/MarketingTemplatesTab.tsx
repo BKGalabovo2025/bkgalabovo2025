@@ -43,15 +43,25 @@ export function MarketingTemplatesTab({
   onUpdateTemplate,
   onDeleteTemplate,
 }: Props) {
+  const [selectedBranch, setSelectedBranch] = useState<
+    "all" | "bkgalabovo" | "recoveryzone"
+  >("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] =
     useState<MarketingTemplate | null>(null);
 
   const filteredTemplates = useMemo(() => {
-    if (selectedCategory === "all") return templates;
-    return templates.filter((t) => t.category === selectedCategory);
-  }, [templates, selectedCategory]);
+    return templates.filter((t) => {
+      if (selectedBranch !== "all" && t.siteId && t.siteId !== selectedBranch) {
+        return false;
+      }
+      if (selectedCategory !== "all" && t.category !== selectedCategory) {
+        return false;
+      }
+      return true;
+    });
+  }, [templates, selectedBranch, selectedCategory]);
 
   const handleOpenCreate = () => {
     setEditingTemplate(null);
@@ -146,34 +156,63 @@ export function MarketingTemplatesTab({
         </Button>
       </div>
 
-      {/* Categories Filter Pills */}
-      <div className="flex flex-wrap items-center gap-2">
-        {[
-          { id: "all", label: "🌟 Всички" },
-          { id: "recovery", label: "🧖‍♂️ Възстановяване" },
-          { id: "procedures", label: "💆‍♀️ Процедури" },
-          { id: "camp", label: "🏕️ Лагери" },
-          { id: "tournament", label: "🏸 Турнири" },
-          { id: "payment", label: "💳 Такси & Пакети" },
-          { id: "schedule", label: "⏰ График" },
-          { id: "feedback", label: "💬 Анкети & Отзиви" },
-          { id: "general", label: "📌 Общи" },
-        ].map((cat) => (
-          <Button
-            key={cat.id}
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
-              selectedCategory === cat.id
-                ? "bg-indigo-600 text-white shadow-xs hover:bg-indigo-700"
-                : "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-            }`}
-          >
-            {cat.label}
-          </Button>
-        ))}
+      {/* Branch & Categories Filter Pills */}
+      <div className="space-y-2.5">
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { id: "all", label: "🏢 Всички дейности" },
+            { id: "bkgalabovo", label: "🏸 БК Гълъбово" },
+            { id: "recoveryzone", label: "🌿 Recovery Zone" },
+          ].map((branch) => (
+            <Button
+              key={branch.id}
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                setSelectedBranch(
+                  branch.id as "all" | "bkgalabovo" | "recoveryzone"
+                )
+              }
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
+                selectedBranch === branch.id
+                  ? "bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-950"
+                  : "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+              }`}
+            >
+              {branch.label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { id: "all", label: "🌟 Всички категории" },
+            { id: "recovery", label: "🧖‍♂️ Възстановяване" },
+            { id: "procedures", label: "💆‍♀️ Процедури" },
+            { id: "camp", label: "🏕️ Лагери" },
+            { id: "tournament", label: "🏸 Турнири" },
+            { id: "payment", label: "💳 Такси & Пакети" },
+            { id: "schedule", label: "⏰ График" },
+            { id: "feedback", label: "💬 Анкети & Отзиви" },
+            { id: "general", label: "📌 Общи" },
+          ].map((cat) => (
+            <Button
+              key={cat.id}
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                selectedCategory === cat.id
+                  ? "bg-indigo-600 text-white shadow-xs hover:bg-indigo-700"
+                  : "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+              }`}
+            >
+              {cat.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Templates Grid */}
@@ -184,15 +223,29 @@ export function MarketingTemplatesTab({
             className="group flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-5 shadow-xs transition-all hover:border-indigo-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
           >
             <div className="space-y-3">
-              {/* Card Header: Channel Badge & Category */}
+              {/* Card Header: Channel Badge, Branch Badge & Category */}
               <div className="flex items-center justify-between gap-2">
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 rounded-lg border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 uppercase dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
-                >
-                  <Mail className="size-3 text-blue-600" />
-                  <span>Имейл Шаблон</span>
-                </Badge>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 rounded-lg border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 uppercase dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
+                  >
+                    <Mail className="size-3 text-blue-600" />
+                    <span>Имейл</span>
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${
+                      tmpl.siteId === "recoveryzone"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300"
+                        : "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-300"
+                    }`}
+                  >
+                    {tmpl.siteId === "recoveryzone"
+                      ? "🌿 Recovery"
+                      : "🏸 БК Гълъбово"}
+                  </Badge>
+                </div>
 
                 <span className="text-[11px] font-semibold text-zinc-400">
                   {getCategoryLabel(tmpl.category)}

@@ -149,7 +149,7 @@ export default function MarketingClient() {
     setIsLoading(true);
     try {
       const [tmpls, hist, st, rules] = await Promise.all([
-        marketingService.getTemplates(siteId),
+        marketingService.getAllTemplates(),
         marketingService.getHistory(siteId, 200),
         marketingService.getMarketingStats(siteId),
         marketingService.getAutomationRules(siteId),
@@ -352,7 +352,7 @@ export default function MarketingClient() {
     data: Omit<MarketingTemplate, "id" | "siteId" | "createdAt">
   ) => {
     await marketingService.createTemplate(siteId, data);
-    const updated = await marketingService.getTemplates(siteId);
+    const updated = await marketingService.getAllTemplates();
     setTemplates(updated);
   };
 
@@ -361,13 +361,13 @@ export default function MarketingClient() {
     data: Partial<Omit<MarketingTemplate, "id" | "siteId" | "createdAt">>
   ) => {
     await marketingService.updateTemplate(id, data);
-    const updated = await marketingService.getTemplates(siteId);
+    const updated = await marketingService.getAllTemplates();
     setTemplates(updated);
   };
 
   const handleDeleteTemplate = async (id: string) => {
     await marketingService.deleteTemplate(id);
-    const updated = await marketingService.getTemplates(siteId);
+    const updated = await marketingService.getAllTemplates();
     setTemplates(updated);
   };
 

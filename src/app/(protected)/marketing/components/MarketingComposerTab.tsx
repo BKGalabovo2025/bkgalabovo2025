@@ -107,6 +107,15 @@ export function MarketingComposerTab({
   // Sync with selectedTemplate prop if changed
   React.useEffect(() => {
     if (selectedTemplate) {
+      if (
+        selectedTemplate.siteId === "recoveryzone" ||
+        selectedTemplate.category === "recovery" ||
+        selectedTemplate.category === "procedures"
+      ) {
+        setSenderProfile("recoveryzone");
+      } else {
+        setSenderProfile("bkgalabovo");
+      }
       setMessageText(selectedTemplate.messageText);
       setEmailSubject(selectedTemplate.subject || selectedTemplate.title || "");
       setActiveTemplateTitle(selectedTemplate.title);

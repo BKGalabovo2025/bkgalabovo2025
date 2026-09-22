@@ -93,7 +93,9 @@ export function isTemplateForSender(
   template: { category?: string; siteId?: string; title?: string },
   sender: "bkgalabovo" | "recoveryzone"
 ): boolean {
-  if (template.siteId && template.siteId === sender) return true;
+  if (template.siteId === "bkgalabovo" || template.siteId === "recoveryzone") {
+    return template.siteId === sender;
+  }
   const title = (template.title || "").toLowerCase();
   const category = (template.category || "").toLowerCase();
 
@@ -109,8 +111,5 @@ export function isTemplateForSender(
   }
 
   // sender === "bkgalabovo"
-  if (isRecoveryCategory || isRecoveryText) {
-    return false;
-  }
-  return true;
+  return !isRecoveryCategory && !isRecoveryText;
 }
