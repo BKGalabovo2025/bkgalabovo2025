@@ -10,6 +10,7 @@ import {
   Megaphone,
   Phone,
   PhoneCall,
+  RefreshCw,
   Search,
   Send,
   Users,
@@ -586,9 +587,23 @@ export default function MarketingClient() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => loadData()}
+            disabled={isLoading}
+            className="rounded-full border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 shadow-xs hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+            title="Презареди данни и шаблони"
+          >
+            <RefreshCw
+              className={`mr-1.5 size-3.5 ${isLoading ? "animate-spin text-indigo-600" : ""}`}
+            />
+            Обнови
+          </Button>
           <Badge
             variant="outline"
-            className="rounded-full border-blue-200 bg-blue-50 px-3 py-1 text-xs font-black text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
+            className="rounded-full border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
           >
             {allRecipients.length} обединени контакта
           </Badge>
@@ -669,12 +684,14 @@ export default function MarketingClient() {
       {/* 3. Navigation Tabs */}
       <Tabs
         value={activeTab}
-        onValueChange={(v) =>
-          setActiveTab(
-            v as
-              "contacts" | "composer" | "templates" | "history" | "automations"
-          )
-        }
+        onValueChange={(v) => {
+          const tab = v as
+            "contacts" | "composer" | "templates" | "history" | "automations";
+          setActiveTab(tab);
+          if (tab === "templates" || tab === "composer") {
+            loadData();
+          }
+        }}
         className="space-y-6"
       >
         <TabsList className="grid h-12 w-full grid-cols-2 rounded-2xl border border-zinc-200 bg-zinc-100/80 p-1 sm:grid-cols-5 dark:border-zinc-800 dark:bg-zinc-900">
