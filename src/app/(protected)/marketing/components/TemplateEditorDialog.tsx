@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  MarketingChannel,
   MarketingTemplate,
   MarketingTemplateCategory,
 } from "@/types/marketing.types";
@@ -57,7 +56,6 @@ export function TemplateEditorDialog({
   const [title, setTitle] = useState("");
   const [category, setCategory] =
     useState<MarketingTemplateCategory>("general");
-  const [channel, setChannel] = useState<MarketingChannel>("whatsapp");
   const [subject, setSubject] = useState("");
   const [messageText, setMessageText] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -66,13 +64,11 @@ export function TemplateEditorDialog({
     if (template) {
       setTitle(template.title);
       setCategory(template.category);
-      setChannel(template.channel);
       setSubject(template.subject || "");
       setMessageText(template.messageText);
     } else {
       setTitle("");
       setCategory("general");
-      setChannel("whatsapp");
       setSubject("");
       setMessageText("");
     }
@@ -98,13 +94,15 @@ export function TemplateEditorDialog({
       await onSave({
         title: title.trim(),
         category,
-        channel,
-        subject: subject.trim(),
+        channel: "email",
+        subject: subject.trim() || title.trim(),
         messageText: messageText.trim(),
         variables: usedVars,
-        isDefault: template?.isDefault || false,
       });
+
       onOpenChange(false);
+    } catch (e) {
+      console.error("Error saving template:", e);
     } finally {
       setIsSaving(false);
     }
@@ -112,21 +110,20 @@ export function TemplateEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-3xl p-6">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <form onSubmit={handleSave} className="space-y-4">
-          <DialogHeader className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="flex size-9 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400">
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-indigo-600">
+              <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-950">
                 <FileText className="size-4.5" />
               </div>
               <div>
                 <DialogTitle className="text-base font-black text-zinc-950 dark:text-white">
-                  {template
-                    ? "Редактиране на шаблон"
-                    : "Нов шаблон за съобщение"}
+                  {template ? "Редактиране на шаблон" : "Нов шаблон за имейл"}
                 </DialogTitle>
                 <DialogDescription className="text-xs text-zinc-500">
-                  Конфигурирайте заглавие, категория и динамични променливи
+                  Конфигурирайте заглавие, категория, тема и динамични
+                  променливи
                 </DialogDescription>
               </div>
             </div>
@@ -135,10 +132,15 @@ export function TemplateEditorDialog({
           <div className="space-y-3 pt-1">
             {/* Title */}
             <div className="space-y-1">
-              <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              <Label
+                htmlFor="template-title-input"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              >
                 Заглавие на шаблона *
               </Label>
               <Input
+                id="template-title-input"
+                name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="напр. 🏕️ Покана за Летен Лагер"
@@ -147,10 +149,13 @@ export function TemplateEditorDialog({
               />
             </div>
 
-            {/* Category & Channel Pickers */}
+            {/* Category & Channel */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <Label
+                  htmlFor="template-category-select"
+                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                >
                   Категория
                 </Label>
                 <Select
@@ -159,7 +164,10 @@ export function TemplateEditorDialog({
                     setCategory(v as MarketingTemplateCategory)
                   }
                 >
-                  <SelectTrigger className="h-10 rounded-xl text-xs">
+                  <SelectTrigger
+                    id="template-category-select"
+                    className="h-10 rounded-xl text-xs"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -178,40 +186,39 @@ export function TemplateEditorDialog({
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  Препоръчителен канал
-                </Label>
-                <Select
-                  value={channel}
-                  onValueChange={(v) => setChannel(v as MarketingChannel)}
+                <Label
+                  htmlFor="template-channel-badge"
+                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
                 >
-                  <SelectTrigger className="h-10 rounded-xl text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="whatsapp">💬 WhatsApp</SelectItem>
-                    <SelectItem value="viber">📱 Viber</SelectItem>
-                    <SelectItem value="sms">✉️ SMS</SelectItem>
-                    <SelectItem value="email">📧 Email</SelectItem>
-                  </SelectContent>
-                </Select>
+                  Канал за комуникация
+                </Label>
+                <div
+                  id="template-channel-badge"
+                  className="flex h-10 items-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                >
+                  📧 Електронен имейл (Email)
+                </div>
               </div>
             </div>
 
-            {/* Subject (if Email or General) */}
-            {channel === "email" && (
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  Тема на имейла (Subject)
-                </Label>
-                <Input
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="напр. Важно известие от БК Гълъбово"
-                  className="h-10 rounded-xl text-xs"
-                />
-              </div>
-            )}
+            {/* Subject */}
+            <div className="space-y-1">
+              <Label
+                htmlFor="template-subject-input"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              >
+                Тема на имейла (Subject) *
+              </Label>
+              <Input
+                id="template-subject-input"
+                name="subject"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="напр. Важно известие от БК Гълъбово"
+                className="h-10 rounded-xl text-xs font-medium"
+                required
+              />
+            </div>
 
             {/* Dynamic Variable Chips Bar */}
             <div className="space-y-1.5 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3 dark:border-indigo-950 dark:bg-indigo-950/20">
@@ -236,10 +243,15 @@ export function TemplateEditorDialog({
 
             {/* Message Text */}
             <div className="space-y-1">
-              <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              <Label
+                htmlFor="template-message-text"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              >
                 Текст на съобщението *
               </Label>
               <Textarea
+                id="template-message-text"
+                name="messageText"
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 placeholder="Здравейте, {ИМЕ}! ..."

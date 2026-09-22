@@ -20,6 +20,7 @@ import {
   MarketingChannel,
   MarketingLog,
   MarketingLogFormData,
+  MarketingRecipient,
   MarketingStats,
   MarketingTemplate,
   MarketingTemplateCategory,
@@ -40,7 +41,7 @@ export const DEFAULT_MARKETING_TEMPLATES: TemplateCreateInput[] = [
   {
     title: "🏕️ Покана за клубен лагер",
     category: "camp",
-    channel: "whatsapp",
+    channel: "email",
     subject: "Покана за предстоящ тренировъчен лагер - БК Гълъбово",
     messageText:
       "Здравейте, {ИМЕ}!\n\nИмаме удоволствието да Ви поканим на предстоящия клубен лагер {СЪБИТИЕ} от {ДАТА}.\nОчакват ни интензивни тренировки, много емоции и нови спортни умения за {ДЕТЕ}.\n\nПовече информация и записване: {ЛИНК}\n\nОчакваме Ви!\nЕкипът на БК Гълъбово 🏸",
@@ -50,7 +51,7 @@ export const DEFAULT_MARKETING_TEMPLATES: TemplateCreateInput[] = [
   {
     title: "🏸 Покана за вътрешен / регионален турнир",
     category: "tournament",
-    channel: "viber",
+    channel: "email",
     subject: "Регистрация за състезателен турнир",
     messageText:
       "Здравейте, {ИМЕ}!\n\nЗапочна записването за турнира {СЪБИТИЕ} на {ДАТА} в {ЛОКАЦИЯ}.\n{ДЕТЕ} може да се включи в състезанието и да покаже наученото на корта!\n\nВижте детайли и график: {ЛИНК}\n\nУспех на състезателите! 🌟",
@@ -67,17 +68,17 @@ export const DEFAULT_MARKETING_TEMPLATES: TemplateCreateInput[] = [
   {
     title: "💳 Напомняне за месечна такса / абонамент",
     category: "payment",
-    channel: "sms",
+    channel: "email",
     subject: "Напомняне за подновяване на месечен абонамент",
     messageText:
-      "Здравейте, {ИМЕ}! Напомняме Ви за подновяване на месечния абонамент за тренировки на {ДЕТЕ} за текущия месец. Можете да заплатите на рецепция в залата или по банков път. Благодарим за доверието!",
+      "Здравейте, {ИМЕ}!\n\nНапомняме Ви за подновяване на месечния абонамент за тренировки на {ДЕТЕ} за текущия месец. Можете да заплатите на рецепция в залата или по банков път.\n\nБлагодарим за доверието!\nБК Гълъбово",
     variables: ["{ИМЕ}", "{ДЕТЕ}"],
     isDefault: true,
   },
   {
     title: "⏰ Промяна в график или зала",
     category: "schedule",
-    channel: "whatsapp",
+    channel: "email",
     subject: "Важно съобщение за промяна в графика на тренировките",
     messageText:
       "Здравейте, {ИМЕ}!\n\nУведомяваме Ви за промяна в тренировката на {ДАТА}:\nНов час: {ЧАС}\nЗала/Локация: {ЛОКАЦИЯ}\n\nМоля да потвърдите присъствието на {ДЕТЕ}.\nСпортни поздрави, БК Гълъбово",
@@ -87,7 +88,7 @@ export const DEFAULT_MARKETING_TEMPLATES: TemplateCreateInput[] = [
   {
     title: "🌟 Линк към клубна анкета за обратна връзка",
     category: "feedback",
-    channel: "whatsapp",
+    channel: "email",
     subject: "Вашето мнение е важно за нас! - БК Гълъбово",
     messageText:
       "Здравейте, {ИМЕ}!\n\nВашето мнение за тренировките и събитията на {ДЕТЕ} е изключително ценно за развитието на клуба ни.\n\nМоля, споделете впечатленията си само за 1-2 минути през нашата клубна анкета:\n{ЛИНК_АНКЕТА}\n\nБлагодарим Ви, че ни помагате да ставаме по-добри! 🏸❤️",
@@ -100,7 +101,7 @@ export const DEFAULT_MARKETING_TEMPLATES: TemplateCreateInput[] = [
     channel: "email",
     subject: "Потвърждение за запазен час - БК Гълъбово",
     messageText:
-      "Здравейте, {ИМЕ}!\n\nУспешно запазихте час на {ДАТА} от {ЧАС} за {ЛОКАЦИЯ}.\n\nОчакваме Ви в залата!\nТелефон за връзка при въпроси: 0888 123 456",
+      "Здравейте, {ИМЕ}!\n\nУспешно запазихте час на {ДАТА} от {ЧАС} за {ЛОКАЦИЯ}.\n\nОчакваме Ви в залата!\nТелефон за връзка при въпроси: 0899 829 923",
     variables: ["{ИМЕ}", "{ДАТА}", "{ЧАС}", "{ЛОКАЦИЯ}"],
     isDefault: true,
   },
@@ -110,37 +111,37 @@ export const DEFAULT_RECOVERY_TEMPLATES: TemplateCreateInput[] = [
   {
     title: "🧖‍♂️ Потвърждение за час за възстановяване",
     category: "recovery",
-    channel: "whatsapp",
+    channel: "email",
     subject: "Потвърждение за запазен час - Recovery Zone by ZM",
     messageText:
-      "Здравейте, {ИМЕ}!\n\nУспешно запазихте час за възстановителна процедура {СЪБИТИЕ} на {ДАТА} от {ЧАС} в {ЛОКАЦИЯ}.\n\nОчакваме Ви за релакс и пълноценно възстановяване!\nТелефон за връзка: 0888 123 456\nЕкипът на Recovery Zone by ZM",
+      "Здравейте, {ИМЕ}!\n\nУспешно запазихте час за възстановителна процедура {СЪБИТИЕ} на {ДАТА} от {ЧАС} в {ЛОКАЦИЯ}.\n\nОчакваме Ви за релакс и пълноценно възстановяване!\nТелефон за връзка: 0899 829 923\nЕкипът на Recovery Zone by ZM",
     variables: ["{ИМЕ}", "{СЪБИТИЕ}", "{ДАТА}", "{ЧАС}", "{ЛОКАЦИЯ}"],
     isDefault: true,
   },
   {
     title: "💆‍♀️ Напомняне за час в Recovery Zone",
     category: "recovery",
-    channel: "sms",
-    subject: "Напомняне за запазен час",
+    channel: "email",
+    subject: "Напомняне за запазен час - Recovery Zone",
     messageText:
-      "Здравейте, {ИМЕ}! Напомняме Ви за Вашия час за възстановяване на {ДАТА} от {ЧАС} в Recovery Zone by ZM. Очакваме Ви!",
+      "Здравейте, {ИМЕ}!\n\nНапомняме Ви за Вашия час за възстановяване на {ДАТА} от {ЧАС} в Recovery Zone by ZM.\n\nОчакваме Ви!",
     variables: ["{ИМЕ}", "{ДАТА}", "{ЧАС}"],
     isDefault: true,
   },
   {
     title: "💳 Подновяване на пакет за процедури",
     category: "payment",
-    channel: "viber",
+    channel: "email",
     subject: "Подновяване на възстановителен пакет",
     messageText:
-      "Здравейте, {ИМЕ}!\n\nВашият абонамент за възстановителни процедури в Recovery Zone by ZM е към своя край.\n\nМожете да презаредите пакета си на рецепция или онлайн: {ЛИНК}\nБлагодарим Ви за доверието!",
-    variables: ["{ИМЕ}", "{ЛИНК}"],
+      "Здравейте, {ИМЕ}!\n\nВашият абонамент за възстановителни процедури в Recovery Zone by ZM е към своя край.\n\nМожете да презаредите пакета си на рецепция в залата.\nБлагодарим Ви за доверието!",
+    variables: ["{ИМЕ}"],
     isDefault: true,
   },
   {
     title: "💬 Анкета за обратна връзка от възстановяването",
     category: "feedback",
-    channel: "whatsapp",
+    channel: "email",
     subject: "Вашето мнение за Recovery Zone by ZM",
     messageText:
       "Здравейте, {ИМЕ}!\n\nВашето мнение за процедурите и обслужването в Recovery Zone by ZM е изключително ценно за нас.\n\nМоля, споделете впечатленията си в кратката ни анкета: {ЛИНК_АНКЕТА}\n\nБлагодарим Ви!",
@@ -153,17 +154,17 @@ export const DEFAULT_RECOVERY_TEMPLATES: TemplateCreateInput[] = [
     channel: "email",
     subject: "Специално предложение от Recovery Zone by ZM",
     messageText:
-      "Здравейте, {ИМЕ}!\n\nИмаме удоволствието да Ви представим нашите най-нови възстановителни терапии и промоционални спа пакети.\n\nРазгледайте новите ни предложения и запазете час: {ЛИНК}\n\nПоздрави,\nRecovery Zone by ZM",
-    variables: ["{ИМЕ}", "{ЛИНК}"],
+      "Здравейте, {ИМЕ}!\n\nИмаме удоволствието да Ви представим нашите най-нови възстановителни терапии и промоционални пакети.\n\nОчакваме Ви за релакс и възстановяване!\n\nПоздрави,\nRecovery Zone by ZM",
+    variables: ["{ИМЕ}"],
     isDefault: true,
   },
   {
     title: "⏰ Промяна в график за процедура",
     category: "schedule",
-    channel: "whatsapp",
+    channel: "email",
     subject: "Промяна в час за процедура",
     messageText:
-      "Здравейте, {ИМЕ}!\n\nУведомяваме Ви за промяна в графика на Вашия час за {ДАТА}. Нов час: {ЧАС} в {ЛОКАЦИЯ}.\n\nМоля да потвърдите. Recovery Zone by ZM",
+      "Здравейте, {ИМЕ}!\n\nУведомяваме Ви за промяна в графика на Вашия час за {ДАТА}. Нов час: {ЧАС} в {ЛОКАЦИЯ}.\n\nМоля да се свържете с нас при нужда от промяна. Recovery Zone by ZM",
     variables: ["{ИМЕ}", "{ДАТА}", "{ЧАС}", "{ЛОКАЦИЯ}"],
     isDefault: true,
   },
@@ -433,13 +434,13 @@ export const marketingService = {
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
 
-      const byChannel: Record<"whatsapp" | "viber" | "sms" | "email", number> =
-        {
-          whatsapp: 0,
-          viber: 0,
-          sms: 0,
-          email: 0,
-        };
+      const byChannel: Record<MarketingChannel, number> = {
+        email: 0,
+        phone: 0,
+        whatsapp: 0,
+        viber: 0,
+        sms: 0,
+      };
 
       let sentThisMonth = 0;
       const uniqueRecipients = new Set<string>();
@@ -465,14 +466,18 @@ export const marketingService = {
         sentThisMonth,
         byChannel,
         activeRecipientsCount: uniqueRecipients.size,
+        callsCount: byChannel.phone || 0,
+        emailsCount: byChannel.email || 0,
       };
     } catch (error) {
       console.error("Error calculating marketing stats:", error);
       return {
         totalSent: 0,
         sentThisMonth: 0,
-        byChannel: { whatsapp: 0, viber: 0, sms: 0, email: 0 },
+        byChannel: { phone: 0, email: 0 },
         activeRecipientsCount: 0,
+        callsCount: 0,
+        emailsCount: 0,
       };
     }
   },
@@ -559,6 +564,34 @@ export const marketingService = {
       await updateDoc(ref, { isActive });
     } catch (error) {
       console.error("Error toggling automation rule:", error);
+      throw error;
+    }
+  },
+
+  async logPhoneCall(
+    recipient: MarketingRecipient,
+    outcome: string,
+    notes?: string,
+    sentBy?: string
+  ): Promise<void> {
+    try {
+      const now = new Date().toISOString();
+      const messageContent = notes ? `${outcome} — ${notes}` : outcome;
+      await addDoc(collection(db, HISTORY_COLLECTION), {
+        siteId: recipient.siteId || "bkgalabovo",
+        recipientId: recipient.id,
+        recipientName: recipient.name,
+        recipientPhone: recipient.phone || "",
+        recipientEmail: recipient.email || "",
+        channel: "phone",
+        messageText: messageContent,
+        templateUsed: "Телефонно обаждане",
+        status: "sent",
+        sentAt: now,
+        sentBy: sentBy || "admin",
+      });
+    } catch (error) {
+      console.error("Error logging phone call:", error);
       throw error;
     }
   },

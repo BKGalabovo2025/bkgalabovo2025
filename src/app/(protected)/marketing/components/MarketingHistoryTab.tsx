@@ -10,8 +10,6 @@ import {
   History,
   Inbox,
   Mail,
-  MessageCircle,
-  MessageSquare,
   Phone,
   Search,
   Send,
@@ -104,7 +102,15 @@ export function MarketingHistoryTab({
 
   const filteredHistory = useMemo(() => {
     return history.filter((log) => {
-      if (channelFilter !== "all" && log.channel !== channelFilter) {
+      if (channelFilter === "phone") {
+        if (log.channel !== "sms" && (log.channel as string) !== "phone") {
+          return false;
+        }
+      } else if (channelFilter === "email") {
+        if (log.channel !== "email") {
+          return false;
+        }
+      } else if (channelFilter !== "all" && log.channel !== channelFilter) {
         return false;
       }
       if (searchQuery.trim()) {
@@ -185,32 +191,20 @@ export function MarketingHistoryTab({
         <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="space-y-2">
             <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-              Разпределение по канали
+              Разпределение по комуникация
             </span>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               <Badge
                 variant="outline"
-                className="rounded-lg border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300"
+                className="rounded-lg border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300"
               >
-                WA: {stats.byChannel?.whatsapp || 0}
+                📞 Разговори: {stats.callsCount || stats.byChannel?.sms || 0}
               </Badge>
               <Badge
                 variant="outline"
-                className="rounded-lg border-purple-200 bg-purple-50 text-[10px] font-bold text-purple-800 dark:border-purple-900 dark:bg-purple-950 dark:text-purple-300"
+                className="rounded-lg border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
               >
-                Viber: {stats.byChannel?.viber || 0}
-              </Badge>
-              <Badge
-                variant="outline"
-                className="rounded-lg border-blue-200 bg-blue-50 text-[10px] font-bold text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
-              >
-                SMS: {stats.byChannel?.sms || 0}
-              </Badge>
-              <Badge
-                variant="outline"
-                className="rounded-lg border-rose-200 bg-rose-50 text-[10px] font-bold text-rose-800 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-300"
-              >
-                Email: {stats.byChannel?.email || 0}
+                📧 Имейли: {stats.emailsCount || stats.byChannel?.email || 0}
               </Badge>
             </div>
           </div>
@@ -225,7 +219,7 @@ export function MarketingHistoryTab({
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Търсене по име на родител, телефон или текст..."
+            placeholder="Търсене по име на контакт, телефон, имейл или бележка..."
             className="h-10 rounded-xl pl-9 text-xs"
           />
         </div>
@@ -233,15 +227,13 @@ export function MarketingHistoryTab({
         {/* Channel Filter & Clear actions */}
         <div className="flex flex-wrap items-center gap-2">
           <Select value={channelFilter} onValueChange={setChannelFilter}>
-            <SelectTrigger className="h-10 w-44 rounded-xl text-xs font-semibold">
-              <SelectValue placeholder="Всички канали" />
+            <SelectTrigger className="h-10 w-48 rounded-xl text-xs font-semibold">
+              <SelectValue placeholder="Всички видове" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="all">🌟 Всички канали</SelectItem>
-              <SelectItem value="whatsapp">💬 WhatsApp</SelectItem>
-              <SelectItem value="viber">📱 Viber</SelectItem>
-              <SelectItem value="sms">✉️ SMS</SelectItem>
-              <SelectItem value="email">📧 Email</SelectItem>
+              <SelectItem value="all">🌟 Всички комуникации</SelectItem>
+              <SelectItem value="phone">📞 Телефонни разговори</SelectItem>
+              <SelectItem value="email">📧 Изпратени имейли</SelectItem>
             </SelectContent>
           </Select>
 
@@ -311,21 +303,23 @@ export function MarketingHistoryTab({
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge
                         variant="outline"
-                        className="flex items-center gap-1 rounded-lg border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold text-zinc-700 uppercase dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                        className={`flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          log.channel === "email"
+                            ? "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300"
+                        }`}
                       >
-                        {log.channel === "whatsapp" && (
-                          <MessageCircle className="size-3 text-emerald-600" />
+                        {log.channel === "email" ? (
+                          <>
+                            <Mail className="size-3 text-blue-600" />
+                            <span>Имейл</span>
+                          </>
+                        ) : (
+                          <>
+                            <Phone className="size-3 text-emerald-600" />
+                            <span>Обаждане</span>
+                          </>
                         )}
-                        {log.channel === "viber" && (
-                          <Phone className="size-3 text-purple-600" />
-                        )}
-                        {log.channel === "sms" && (
-                          <MessageSquare className="size-3 text-blue-600" />
-                        )}
-                        {log.channel === "email" && (
-                          <Mail className="size-3 text-rose-600" />
-                        )}
-                        <span>{log.channel}</span>
                       </Badge>
 
                       <Badge className="border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">

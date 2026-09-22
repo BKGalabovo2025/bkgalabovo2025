@@ -1,4 +1,7 @@
-export type MarketingChannel = "whatsapp" | "viber" | "sms" | "email";
+export type MarketingChannel = "email" | "phone" | "whatsapp" | "viber" | "sms";
+
+export type ContactCommunicationStatus =
+  "pending" | "contacted" | "emailed" | "archived";
 
 export type MarketingTemplateCategory =
   | "general"
@@ -19,8 +22,12 @@ export interface MarketingRecipient {
   phone?: string;
   email?: string;
   status: "active" | "inactive" | "pending";
+  communicationStatus?: ContactCommunicationStatus;
   group?: string;
   siteId?: string;
+  notes?: string;
+  lastContactAt?: string;
+  lastContactType?: "phone" | "email";
 }
 
 export interface MarketingTemplate {
@@ -51,6 +58,7 @@ export interface MarketingLog {
   status: "sent" | "delivered" | "failed";
   sentAt: string; // ISO String
   sentBy: string; // User ID
+  notes?: string;
 }
 
 export type MarketingLogFormData = Omit<MarketingLog, "id" | "sentAt">;
@@ -58,8 +66,10 @@ export type MarketingLogFormData = Omit<MarketingLog, "id" | "sentAt">;
 export interface MarketingStats {
   totalSent: number;
   sentThisMonth: number;
-  byChannel: Record<MarketingChannel, number>;
+  byChannel: Record<string, number>;
   activeRecipientsCount: number;
+  callsCount?: number;
+  emailsCount?: number;
 }
 
 export interface MarketingAutomationRule {

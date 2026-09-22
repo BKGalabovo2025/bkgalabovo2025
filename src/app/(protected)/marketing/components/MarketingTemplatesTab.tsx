@@ -3,10 +3,7 @@
 import {
   FileText,
   Mail,
-  MessageCircle,
-  MessageSquare,
   PenLine,
-  Phone,
   Plus,
   Sparkles,
   Tag,
@@ -191,21 +188,10 @@ export function MarketingTemplatesTab({
               <div className="flex items-center justify-between gap-2">
                 <Badge
                   variant="outline"
-                  className="flex items-center gap-1 rounded-lg border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold text-zinc-700 uppercase dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                  className="flex items-center gap-1 rounded-lg border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 uppercase dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
                 >
-                  {tmpl.channel === "whatsapp" && (
-                    <MessageCircle className="size-3 text-emerald-600" />
-                  )}
-                  {tmpl.channel === "viber" && (
-                    <Phone className="size-3 text-purple-600" />
-                  )}
-                  {tmpl.channel === "sms" && (
-                    <MessageSquare className="size-3 text-blue-600" />
-                  )}
-                  {tmpl.channel === "email" && (
-                    <Mail className="size-3 text-rose-600" />
-                  )}
-                  <span>{tmpl.channel}</span>
+                  <Mail className="size-3 text-blue-600" />
+                  <span>Имейл Шаблон</span>
                 </Badge>
 
                 <span className="text-[11px] font-semibold text-zinc-400">
