@@ -86,7 +86,9 @@ export default function MarketingClient() {
     "contacts" | "composer" | "templates" | "history" | "automations"
   >("contacts");
 
-  const [templates, setTemplates] = useState<MarketingTemplate[]>([]);
+  const [templates, setTemplates] = useState<MarketingTemplate[]>(() =>
+    marketingService.getDefaultTemplates()
+  );
   const [selectedTemplateForComposer, setSelectedTemplateForComposer] =
     useState<MarketingTemplate | null>(null);
   const [history, setHistory] = useState<MarketingLog[]>([]);
@@ -101,7 +103,7 @@ export default function MarketingClient() {
   });
   const [automationRules, setAutomationRules] = useState<
     MarketingAutomationRule[]
-  >([]);
+  >(() => marketingService.getDefaultAutomationRules(siteId));
 
   // Local contact communication status overrides
   const [statusOverrides, setStatusOverrides] = useState<

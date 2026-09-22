@@ -343,6 +343,53 @@ export const marketingService = {
     }
   },
 
+  getDefaultTemplates(): MarketingTemplate[] {
+    return [
+      ...getInMemoryTemplates("bkgalabovo"),
+      ...getInMemoryTemplates("recoveryzone"),
+    ];
+  },
+
+  getDefaultAutomationRules(
+    siteId: string = "bkgalabovo"
+  ): MarketingAutomationRule[] {
+    return [
+      {
+        id: `${siteId}_rule_1`,
+        siteId,
+        title: "Автоматична покана за анкета 24ч след лагер",
+        description:
+          "Изпраща линк към клубната анкета до всички участници 24 часа след приключване на тренировъчен лагер.",
+        triggerEvent: "post_camp_survey",
+        delayHours: 24,
+        channel: "email",
+        isActive: true,
+      },
+      {
+        id: `${siteId}_rule_2`,
+        siteId,
+        title: "Покана за обратна връзка след състезателен турнир",
+        description:
+          "Изпраща благодарствено съобщение и линк за отзиви в рамките на 48 часа след финала на турнир.",
+        triggerEvent: "post_tournament_survey",
+        delayHours: 48,
+        channel: "email",
+        isActive: true,
+      },
+      {
+        id: `${siteId}_rule_3`,
+        siteId,
+        title: "Напомняне 3 дни преди изтичане на месечна такса",
+        description:
+          "Автоматично напомняне за подновяване на членството към родителите.",
+        triggerEvent: "membership_expiring",
+        delayHours: 72,
+        channel: "email",
+        isActive: false,
+      },
+    ];
+  },
+
   async getAllTemplates(): Promise<MarketingTemplate[]> {
     try {
       const [bkg, rz] = await Promise.all([
