@@ -88,3 +88,29 @@ export interface MarketingAutomationRule {
   templateId?: string;
   isActive: boolean;
 }
+
+export function isTemplateForSender(
+  template: { category?: string; siteId?: string; title?: string },
+  sender: "bkgalabovo" | "recoveryzone"
+): boolean {
+  if (template.siteId && template.siteId === sender) return true;
+  const title = (template.title || "").toLowerCase();
+  const category = (template.category || "").toLowerCase();
+
+  const isRecoveryCategory =
+    category === "recovery" || category === "procedures";
+  const isRecoveryText =
+    title.includes("recovery") ||
+    title.includes("възстановява") ||
+    title.includes("процедур");
+
+  if (sender === "recoveryzone") {
+    return isRecoveryCategory || isRecoveryText;
+  }
+
+  // sender === "bkgalabovo"
+  if (isRecoveryCategory || isRecoveryText) {
+    return false;
+  }
+  return true;
+}

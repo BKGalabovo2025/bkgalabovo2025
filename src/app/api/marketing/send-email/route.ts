@@ -22,6 +22,7 @@ const SendEmailSchema = z.object({
   messageText: z.string().trim().min(1, "Моля, въведете текст на имейла."),
   templateTitle: z.string().optional(),
   siteId: z.string().default("bkgalabovo"),
+  senderProfile: z.enum(["bkgalabovo", "recoveryzone"]).optional(),
 });
 
 export async function POST(request: Request) {
@@ -51,9 +52,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const { recipients, subject, messageText, templateTitle, siteId } =
-      parsed.data;
-    const isRecovery = siteId === "recoveryzone";
+    const {
+      recipients,
+      subject,
+      messageText,
+      templateTitle,
+      siteId,
+      senderProfile,
+    } = parsed.data;
+    const isRecovery = (senderProfile || siteId) === "recoveryzone";
 
     const emailUser = process.env.EMAIL_USER;
     const emailPass = process.env.EMAIL_PASS;

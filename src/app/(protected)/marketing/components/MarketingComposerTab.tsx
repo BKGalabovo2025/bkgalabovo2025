@@ -2,7 +2,6 @@
 
 import {
   CheckSquare,
-  ExternalLink,
   Mail,
   Search,
   Send,
@@ -27,7 +26,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { MarketingRecipient, MarketingTemplate } from "@/types/marketing.types";
+import {
+  isTemplateForSender,
+  MarketingRecipient,
+  MarketingTemplate,
+} from "@/types/marketing.types";
 
 interface Props {
   recipients: MarketingRecipient[];
@@ -63,10 +66,38 @@ export function MarketingComposerTab({
   idToken,
   siteId = "bkgalabovo",
 }: Props) {
+  // Sender Profile: choose between BK Galabovo or Recovery Zone
+  const [senderProfile, setSenderProfile] = useState<
+    "bkgalabovo" | "recoveryzone"
+  >(siteId === "recoveryzone" ? "recoveryzone" : "bkgalabovo");
+
+  // Filter templates strictly by the chosen sender profile
+  const availableTemplates = useMemo(() => {
+    return templates.filter((t) => isTemplateForSender(t, senderProfile));
+  }, [templates, senderProfile]);
+
   // Content
   const [emailSubject, setEmailSubject] = useState("");
   const [messageText, setMessageText] = useState("");
   const [activeTemplateTitle, setActiveTemplateTitle] = useState<string>("");
+
+  const handleSenderProfileChange = (
+    newSender: "bkgalabovo" | "recoveryzone"
+  ) => {
+    setSenderProfile(newSender);
+    setActiveTemplateTitle("");
+    if (newSender === "recoveryzone") {
+      setEmailSubject("Известие от Recovery Zone by ZM");
+      setMessageText(
+        "Здравейте, {ИМЕ}!\n\nПишем Ви от центъра за възстановяване Recovery Zone by ZM във връзка с..."
+      );
+    } else {
+      setEmailSubject("Известие от БК Гълъбово");
+      setMessageText(
+        "Здравейте, {ИМЕ}!\n\nПишем Ви от Бадминтон Клуб Гълъбово във връзка с..."
+      );
+    }
+  };
 
   // Recipients selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -189,13 +220,18 @@ export function MarketingComposerTab({
             messageText: messageText.trim(),
             templateTitle: activeTemplateTitle || "Кампания",
             siteId,
+            senderProfile,
           }),
         });
         const data = await res.json();
         if (res.ok) {
+          const senderLabel =
+            senderProfile === "recoveryzone"
+              ? "Recovery Zone by ZM"
+              : "БК Гълъбово";
           toast.success(
             data.message ||
-              `Успешно изпратени ${validRecipientsWithEmail.length} имейла!`
+              `Успешно изпратени ${validRecipientsWithEmail.length} имейла от пощата на ${senderLabel}!`
           );
           setSelectedIds(new Set());
         } else {
@@ -215,19 +251,6 @@ export function MarketingComposerTab({
       console.error(err);
       toast.error("Възникна грешка при изпращане на кампанията.");
     }
-  };
-
-  const handleOpenMailto = () => {
-    if (validRecipientsWithEmail.length === 0) {
-      toast.error("Нито един от избраните контакти няма валиден имейл адрес.");
-      return;
-    }
-    const emails = validRecipientsWithEmail.map((r) => r.email).join(",");
-    const mailtoUrl = `mailto:${emails}?subject=${encodeURIComponent(
-      emailSubject.trim() || "Известие от БК Гълъбово"
-    )}&body=${encodeURIComponent(messageText.trim())}`;
-    window.open(mailtoUrl, "_blank");
-    toast.info("Пощенският клиент беше отворен.");
   };
 
   return (
@@ -384,30 +407,72 @@ export function MarketingComposerTab({
           <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
             <div className="space-y-0.5">
               <h2 className="text-sm font-black text-zinc-900 uppercase dark:text-white">
-                2. Съдържание на имейла
+                2. Съдържание на кампанията
               </h2>
               <p className="text-[11px] text-zinc-500">
-                Официален имейл с брандиран вид на БК Гълъбово / Recovery Zone
+                Официален имейл с брандиран вид директно от клубния сървър
               </p>
             </div>
             <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-300">
               <Mail className="size-4 text-blue-600" />
-              <span>Електронен имейл (SMTP)</span>
+              <span>Официален SMTP имейл</span>
             </div>
           </div>
 
-          {/* Quick Template Picker */}
-          {templates.length > 0 && (
+          {/* Sender Profile Selector */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="composer-sender-profile"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+            >
+              Изпрати кампанията от името на: *
+            </Label>
+            <Select
+              value={senderProfile}
+              onValueChange={(v) =>
+                handleSenderProfileChange(v as "bkgalabovo" | "recoveryzone")
+              }
+            >
+              <SelectTrigger
+                id="composer-sender-profile"
+                className="h-10 rounded-xl text-xs font-semibold"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="bkgalabovo">
+                  🏸 Бадминтон Клуб Гълъбово (Клубна официална поща)
+                </SelectItem>
+                <SelectItem value="recoveryzone">
+                  🌿 Recovery Zone by ZM (Официална поща за възстановяване)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Quick Template Picker strictly filtered by Sender Profile */}
+          {availableTemplates.length > 0 && (
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                Зареди от предварително запазен шаблон:
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  Шаблони за{" "}
+                  {senderProfile === "recoveryzone"
+                    ? "Recovery Zone by ZM"
+                    : "БК Гълъбово"}{" "}
+                  ({availableTemplates.length}):
+                </Label>
+                <span className="text-[10px] text-zinc-400">
+                  {senderProfile === "recoveryzone"
+                    ? "🌿 Само за възстановяване"
+                    : "🏸 Само за клубни дейности"}
+                </span>
+              </div>
               <Select onValueChange={handleTemplateChange}>
                 <SelectTrigger className="h-10 rounded-xl text-xs font-medium">
                   <SelectValue placeholder="-- Изберете готов шаблон --" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  {templates.map((tmpl) => (
+                  {availableTemplates.map((tmpl) => (
                     <SelectItem key={tmpl.id} value={tmpl.id}>
                       {tmpl.title} {tmpl.subject ? `(${tmpl.subject})` : ""}
                     </SelectItem>
@@ -475,44 +540,32 @@ export function MarketingComposerTab({
             />
           </div>
 
-          {/* Dispatch Action Buttons */}
+          {/* Dispatch Action Button (ONLY Server SMTP) */}
           <div className="space-y-3 pt-3">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Button
-                type="button"
-                onClick={handleSendViaServer}
-                disabled={
-                  validRecipientsWithEmail.length === 0 ||
-                  !emailSubject.trim() ||
-                  !messageText.trim() ||
-                  isSending
-                }
-                className="h-12 rounded-2xl bg-blue-600 text-xs font-bold text-white shadow-md shadow-blue-200 hover:bg-blue-700 dark:shadow-none"
-              >
-                <Send className="mr-2 size-4" />
-                Изпрати от клубната поща ({validRecipientsWithEmail.length})
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleOpenMailto}
-                disabled={
-                  validRecipientsWithEmail.length === 0 ||
-                  !messageText.trim() ||
-                  isSending
-                }
-                className="h-12 rounded-2xl border-zinc-300 text-xs font-bold text-zinc-800 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-              >
-                <ExternalLink className="mr-2 size-4" />
-                Отвори в моя имейл (mailto:)
-              </Button>
-            </div>
+            <Button
+              type="button"
+              onClick={handleSendViaServer}
+              disabled={
+                validRecipientsWithEmail.length === 0 ||
+                !emailSubject.trim() ||
+                !messageText.trim() ||
+                isSending
+              }
+              className={`h-12 w-full rounded-2xl text-xs font-bold text-white shadow-md transition-all ${
+                senderProfile === "recoveryzone"
+                  ? "bg-emerald-600 shadow-emerald-200 hover:bg-emerald-700 dark:shadow-none"
+                  : "bg-blue-600 shadow-blue-200 hover:bg-blue-700 dark:shadow-none"
+              }`}
+            >
+              <Send className="mr-2 size-4" />
+              {senderProfile === "recoveryzone"
+                ? `Изпрати кампанията от пощата на Recovery Zone (${validRecipientsWithEmail.length} получатели)`
+                : `Изпрати кампанията от клубната поща на БК Гълъбово (${validRecipientsWithEmail.length} получатели)`}
+            </Button>
 
             <p className="text-center text-[11px] text-zinc-400">
-              💡 При директно изпращане имейлът ще излезе с официален брандиран
-              вид и лого на БК Гълъбово / Recovery Zone директно от клубния
-              сървър.
+              💡 Всички съобщения се изпращат с официален брандиран дизайн,
+              заглавие и лого директно от официалния имейл адрес.
             </p>
           </div>
         </Card>

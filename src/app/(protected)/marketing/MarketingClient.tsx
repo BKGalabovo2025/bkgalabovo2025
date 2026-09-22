@@ -454,6 +454,7 @@ export default function MarketingClient() {
           channel,
           messageText: personalized,
           templateUsed: selectedTemplateForComposer?.title || "Ръчно съставено",
+          campaignTitle: emailSubject || undefined,
           status: "sent" as const,
           sentBy: user?.uid || "admin",
         };
@@ -461,18 +462,8 @@ export default function MarketingClient() {
 
       await marketingService.logBatchMessages(logEntries);
 
-      // If single recipient, open email client
-      if (selectedRecipients.length === 1 && selectedRecipients[0].email) {
-        window.open(
-          `mailto:${selectedRecipients[0].email}?subject=${encodeURIComponent(
-            emailSubject || "Известие от БК Гълъбово"
-          )}&body=${encodeURIComponent(logEntries[0].messageText)}`,
-          "_blank"
-        );
-      }
-
       toast.success(
-        `Кампанията беше изпратена успешно за ${selectedRecipients.length} получатели!`
+        `Кампанията беше регистрирана успешно за ${selectedRecipients.length} получатели!`
       );
 
       const [hist, st] = await Promise.all([

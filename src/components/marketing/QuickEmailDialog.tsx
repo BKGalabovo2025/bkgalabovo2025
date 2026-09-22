@@ -1,7 +1,7 @@
 "use client";
 
-import { ExternalLink, Loader2, Mail, Send } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Loader2, Mail, Send } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { MarketingRecipient, MarketingTemplate } from "@/types/marketing.types";
+import {
+  isTemplateForSender,
+  MarketingRecipient,
+  MarketingTemplate,
+} from "@/types/marketing.types";
 
 interface QuickEmailDialogProps {
   recipients: MarketingRecipient[];
@@ -45,11 +49,21 @@ export function QuickEmailDialog({
   onSuccess,
 }: QuickEmailDialogProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [senderProfile, setSenderProfile] = useState<
+    "bkgalabovo" | "recoveryzone"
+  >(siteId === "recoveryzone" ? "recoveryzone" : "bkgalabovo");
   const [subject, setSubject] = useState("");
   const [messageText, setMessageText] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   const singleRecipient = recipients.length === 1 ? recipients[0] : null;
+
+  // Filter templates strictly by the chosen sender profile
+  const availableTemplates = useMemo(() => {
+    return templates.filter((t: MarketingTemplate) =>
+      isTemplateForSender(t, senderProfile)
+    );
+  }, [templates, senderProfile]);
 
   // Personalize message for preview
   const getPersonalizedText = (text: string, r?: MarketingRecipient | null) => {
@@ -62,8 +76,8 @@ export function QuickEmailDialog({
       .replace(/{ЧАС}/g, "18:00 ч.")
       .replace(
         /{ЛОКАЦИЯ}/g,
-        siteId === "recoveryzone"
-          ? "Спортна зала „Енергетик“ - Recovery Zone"
+        senderProfile === "recoveryzone"
+          ? "Спортна зала „Енергетик“ - Recovery Zone by ZM"
           : 'Спортна зала „Енергетик"'
       )
       .replace(
@@ -74,7 +88,9 @@ export function QuickEmailDialog({
 
   useEffect(() => {
     if (selectedTemplateId) {
-      const tmpl = templates.find((t) => t.id === selectedTemplateId);
+      const tmpl = availableTemplates.find(
+        (t: MarketingTemplate) => t.id === selectedTemplateId
+      );
       if (tmpl) {
         setSubject(tmpl.subject || tmpl.title);
         setMessageText(
@@ -85,19 +101,56 @@ export function QuickEmailDialog({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTemplateId]);
+  }, [selectedTemplateId, availableTemplates]);
+
+  const handleSenderProfileChange = (
+    newSender: "bkgalabovo" | "recoveryzone"
+  ) => {
+    setSenderProfile(newSender);
+    setSelectedTemplateId("");
+    if (newSender === "recoveryzone") {
+      setSubject("Известие от Recovery Zone by ZM");
+      setMessageText(
+        singleRecipient
+          ? `Здравейте, ${singleRecipient.name}!\n\nПишем Ви от центъра за възстановяване Recovery Zone by ZM във връзка с...`
+          : "Здравейте, {ИМЕ}!\n\nПишем Ви от центъра за възстановяване Recovery Zone by ZM във връзка с..."
+      );
+    } else {
+      setSubject("Известие от БК Гълъбово");
+      setMessageText(
+        singleRecipient
+          ? `Здравейте, ${singleRecipient.name}!\n\nПишем Ви от Бадминтон Клуб Гълъбово във връзка с...`
+          : "Здравейте, {ИМЕ}!\n\nПишем Ви от Бадминтон Клуб Гълъбово във връзка с..."
+      );
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
       setSelectedTemplateId("");
-      if (singleRecipient) {
-        setSubject("Известие от клуба");
+      const initialSender: "bkgalabovo" | "recoveryzone" =
+        singleRecipient?.siteId === "recoveryzone" || siteId === "recoveryzone"
+          ? "recoveryzone"
+          : "bkgalabovo";
+      setSenderProfile(initialSender);
+
+      if (initialSender === "recoveryzone") {
+        setSubject("Известие от Recovery Zone by ZM");
         setMessageText(
-          `Здравейте, ${singleRecipient.name}!\n\nПишем Ви във връзка с...`
+          singleRecipient
+            ? `Здравейте, ${singleRecipient.name}!\n\nПишем Ви от Recovery Zone by ZM във връзка с...`
+            : "Здравейте, {ИМЕ}!\n\nПишем Ви от Recovery Zone by ZM във връзка с..."
+        );
+      } else if (singleRecipient) {
+        setSubject("Известие от БК Гълъбово");
+        setMessageText(
+          `Здравейте, ${singleRecipient.name}!\n\nПишем Ви от Бадминтон Клуб Гълъбово във връзка с...`
         );
       } else {
         setSubject("Клубно съобщение");
-        setMessageText("Здравейте, {ИМЕ}!\n\nПишем Ви във връзка с...");
+        setMessageText(
+          "Здравейте, {ИМЕ}!\n\nПишем Ви от Бадминтон Клуб Гълъбово във връзка с..."
+        );
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,13 +196,19 @@ export function QuickEmailDialog({
             templates.find((t) => t.id === selectedTemplateId)?.title ||
             "Директен имейл",
           siteId,
+          senderProfile,
         }),
       });
 
       const data = await res.json();
       if (res.ok) {
+        const senderLabel =
+          senderProfile === "recoveryzone"
+            ? "Recovery Zone by ZM"
+            : "БК Гълъбово";
         toast.success(
-          data.message || `Успешно изпратени ${validRecipients.length} имейла!`
+          data.message ||
+            `Успешно изпратени ${validRecipients.length} имейла от пощата на ${senderLabel}!`
         );
         onSuccess?.();
         onClose();
@@ -164,27 +223,6 @@ export function QuickEmailDialog({
     }
   };
 
-  const handleOpenMailto = () => {
-    if (validRecipients.length === 0) {
-      toast.error("Избраният получател няма валиден имейл адрес.");
-      return;
-    }
-
-    const emails = validRecipients.map((r) => r.email).join(",");
-    const text = singleRecipient
-      ? getPersonalizedText(messageText, singleRecipient)
-      : messageText;
-
-    const mailtoUrl = `mailto:${emails}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(text)}`;
-
-    window.open(mailtoUrl, "_blank");
-    toast.info("Пощенският клиент беше отворен успешно.");
-    onSuccess?.();
-    onClose();
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -195,8 +233,8 @@ export function QuickEmailDialog({
             <Mail className="size-5" />
             <DialogTitle className="text-base font-bold text-zinc-900 dark:text-white">
               {singleRecipient
-                ? `Изпращане на имейл до ${singleRecipient.name}`
-                : `Изпращане на имейл до ${recipients.length} получатели`}
+                ? `Изпращане на официален имейл до ${singleRecipient.name}`
+                : `Изпращане на официален имейл до ${recipients.length} получатели`}
             </DialogTitle>
           </div>
           <DialogDescription className="text-xs text-zinc-500">
@@ -215,15 +253,58 @@ export function QuickEmailDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Template Select */}
-          {templates.length > 0 && (
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="quick-email-template"
-                className="text-xs font-bold text-zinc-600 dark:text-zinc-400"
+          {/* Sender Identity Selector */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="quick-email-sender"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+            >
+              Изпрати от официалната поща на: *
+            </Label>
+            <Select
+              value={senderProfile}
+              onValueChange={(v) =>
+                handleSenderProfileChange(v as "bkgalabovo" | "recoveryzone")
+              }
+            >
+              <SelectTrigger
+                id="quick-email-sender"
+                name="quick-email-sender"
+                className="h-10 rounded-xl text-xs font-semibold"
               >
-                Избери готов шаблон (по избор)
-              </Label>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="bkgalabovo">
+                  🏸 Бадминтон Клуб Гълъбово (Клубна поща)
+                </SelectItem>
+                <SelectItem value="recoveryzone">
+                  🌿 Recovery Zone by ZM (Поща за възстановяване)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Template Select Filtered strictly by Sender Profile */}
+          {availableTemplates.length > 0 && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="quick-email-template"
+                  className="text-xs font-bold text-zinc-600 dark:text-zinc-400"
+                >
+                  Шаблони за{" "}
+                  {senderProfile === "recoveryzone"
+                    ? "Recovery Zone by ZM"
+                    : "БК Гълъбово"}{" "}
+                  ({availableTemplates.length})
+                </Label>
+                <span className="text-[10px] text-zinc-400">
+                  {senderProfile === "recoveryzone"
+                    ? "🌿 Само за възстановяване"
+                    : "🏸 Само за клубни дейности"}
+                </span>
+              </div>
               <Select
                 value={selectedTemplateId}
                 onValueChange={setSelectedTemplateId}
@@ -231,18 +312,18 @@ export function QuickEmailDialog({
                 <SelectTrigger
                   id="quick-email-template"
                   name="quick-email-template"
-                  className="h-9 text-xs"
+                  className="h-10 rounded-xl text-xs font-medium"
                 >
-                  <SelectValue placeholder="-- Изберете шаблон или въведете свободен текст --" />
+                  <SelectValue placeholder="-- Изберете готов шаблон --" />
                 </SelectTrigger>
-                <SelectContent>
-                  {templates.map((tmpl) => (
+                <SelectContent className="rounded-xl">
+                  {availableTemplates.map((tmpl: MarketingTemplate) => (
                     <SelectItem
                       key={tmpl.id}
                       value={tmpl.id}
                       className="text-xs"
                     >
-                      {tmpl.title}
+                      {tmpl.title} {tmpl.subject ? `(${tmpl.subject})` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -256,7 +337,7 @@ export function QuickEmailDialog({
               htmlFor="quick-email-subject"
               className="text-xs font-bold text-zinc-600 dark:text-zinc-400"
             >
-              Тема на имейла
+              Тема на имейла *
             </Label>
             <Input
               id="quick-email-subject"
@@ -276,7 +357,7 @@ export function QuickEmailDialog({
                 htmlFor="quick-email-body"
                 className="text-xs font-bold text-zinc-600 dark:text-zinc-400"
               >
-                Текст на съобщението
+                Текст на съобщението *
               </Label>
               <span className="text-[10px] text-zinc-400">
                 Поддържа: {"{ИМЕ}"}, {"{ДЕТЕ}"}, {"{ДАТА}"}, {"{ЧАС}"}
@@ -306,36 +387,29 @@ export function QuickEmailDialog({
             Отказ
           </Button>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Mailto Option */}
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleOpenMailto}
-              disabled={isSending || validRecipients.length === 0}
-              className="h-9 gap-1.5 text-xs font-semibold"
-              title="Отваря пощенската Ви програма на компютъра или телефона"
-            >
-              <ExternalLink className="size-3.5" />
-              <span>Отвори в моя имейл (mailto)</span>
-            </Button>
-
-            {/* Direct Send via Server Option */}
-            <Button
-              type="button"
-              onClick={handleSendViaServer}
-              disabled={isSending || validRecipients.length === 0}
-              className="h-9 gap-1.5 bg-blue-600 text-xs font-bold text-white hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500"
-              title="Изпраща дизайнерски форматиран имейл директно от официалната поща"
-            >
-              {isSending ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Send className="size-3.5" />
-              )}
-              <span>Изпрати от клубната поща</span>
-            </Button>
-          </div>
+          {/* Direct Send via Server Option ONLY */}
+          <Button
+            type="button"
+            onClick={handleSendViaServer}
+            disabled={isSending || validRecipients.length === 0}
+            className={`h-10 gap-2 rounded-xl px-5 text-xs font-bold text-white shadow-md transition-all ${
+              senderProfile === "recoveryzone"
+                ? "bg-emerald-600 shadow-emerald-200 hover:bg-emerald-500 dark:shadow-none"
+                : "bg-blue-600 shadow-blue-200 hover:bg-blue-500 dark:shadow-none"
+            }`}
+            title="Изпраща дизайнерски брандиран имейл директно от официалния сървър"
+          >
+            {isSending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-4" />
+            )}
+            <span>
+              {senderProfile === "recoveryzone"
+                ? `Изпрати от Recovery Zone (${validRecipients.length})`
+                : `Изпрати от БК Гълъбово (${validRecipients.length})`}
+            </span>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
