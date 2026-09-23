@@ -6,7 +6,11 @@
     "scripts/**/*.ts",
     "e2e/**/*.ts"
   ],
-  "ignore": ["scripts/**/*.cjs", "scripts/**/*.mjs"],
+  "ignore": [
+    "scripts/**/*.cjs",
+    "scripts/**/*.mjs",
+    "src/components/ui/calendar.tsx"
+  ],
   "ignoreDependencies": ["stylelint-config-tailwindcss", "@storybook/nextjs"],
   "ignoreExportsUsedInFile": true,
   "rules": {
