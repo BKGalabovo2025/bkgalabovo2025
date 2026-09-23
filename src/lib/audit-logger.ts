@@ -24,7 +24,12 @@ export type AuditAction =
   | "sign_declaration"
   | "create_product"
   | "update_product"
-  | "delete_product";
+  | "delete_product"
+  | "create_certificate_template"
+  | "update_certificate_template"
+  | "issue_certificate"
+  | "redeem_voucher_session"
+  | "generate_ai_certificate_background";
 
 export type LogSeverity =
   "INFO" | "WARNING" | "ERROR" | "CRITICAL" | "SECURITY_AUDIT";

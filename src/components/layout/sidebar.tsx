@@ -1,6 +1,7 @@
 "use client";
 import {
   Activity,
+  Award,
   BarChart,
   Box,
   Briefcase,
@@ -181,6 +182,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <Target size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">Маркетинг и Комуникация</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/certificates")}
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+              >
+                <Link
+                  href="/certificates"
+                  className="flex w-full items-center gap-3"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Award size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Сертификати & Ваучери</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

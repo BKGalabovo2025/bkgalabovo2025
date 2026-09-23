@@ -1,7 +1,13 @@
+import fs from "fs";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import path from "path";
 
 import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
+
+import RecoveryZoneClient from "./RecoveryZoneClient";
+
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 export const metadata: Metadata = {
@@ -33,12 +39,14 @@ export const metadata: Metadata = {
   },
 };
 
-import fs from "fs";
-import path from "path";
+export default async function RecoveryZonePage(props: {
+  searchParams?: Promise<{ verify?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  if (searchParams?.verify) {
+    redirect(`/cert/${encodeURIComponent(searchParams.verify)}`);
+  }
 
-import RecoveryZoneClient from "./RecoveryZoneClient";
-
-export default async function RecoveryZonePage() {
   const site = await getSiteByIdAdmin("recoveryzone");
 
   const jsonLd = {

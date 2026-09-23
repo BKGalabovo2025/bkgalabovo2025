@@ -6,6 +6,7 @@ import {
   FileCode,
   FileSpreadsheet,
   FileText,
+  ImageIcon,
   Paperclip,
   Printer,
 } from "lucide-react";
@@ -19,7 +20,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export type DocumentAttachmentType = "pdf" | "word" | "excel" | "other";
+export type DocumentAttachmentType =
+  "pdf" | "word" | "excel" | "image" | "other";
 
 interface DocumentViewerDialogProps {
   isOpen: boolean;
@@ -27,6 +29,7 @@ interface DocumentViewerDialogProps {
   documentUrl: string | null;
   documentName?: string | null;
   documentType?: DocumentAttachmentType | null;
+  subtitle?: string | null;
 }
 
 export const getDocumentIcon = (
@@ -40,6 +43,8 @@ export const getDocumentIcon = (
       return <FileCode className={`${className} text-blue-500`} />;
     case "excel":
       return <FileSpreadsheet className={`${className} text-emerald-500`} />;
+    case "image":
+      return <ImageIcon className={`${className} text-purple-500`} />;
     default:
       return <Paperclip className={`${className} text-zinc-500`} />;
   }
@@ -53,6 +58,8 @@ export const getDocumentTypeBadge = (type?: DocumentAttachmentType | null) => {
       return "Word Документ";
     case "excel":
       return "Excel Таблица";
+    case "image":
+      return "Изображение";
     default:
       return "Прикачен файл";
   }
@@ -61,6 +68,7 @@ export const getDocumentTypeBadge = (type?: DocumentAttachmentType | null) => {
 interface ViewerBodyProps {
   isPdf: boolean;
   isOffice: boolean;
+  isImage: boolean;
   isGoogleDrive: boolean;
   googleDrivePreviewUrl: string;
   documentUrl: string | null;
@@ -72,6 +80,7 @@ interface ViewerBodyProps {
 const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   isPdf,
   isOffice,
+  isImage,
   isGoogleDrive,
   googleDrivePreviewUrl,
   documentUrl,
@@ -80,6 +89,20 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   officeViewerUrl,
 }) => {
   if (!documentUrl) return null;
+
+  if (isImage) {
+    return (
+      <div className="flex size-full items-center justify-center overflow-auto bg-zinc-950/95 p-6">
+        <div className="relative flex max-h-full max-w-full items-center justify-center">
+          <img
+            src={documentUrl}
+            alt={documentName || "Преглед на изображение"}
+            className="max-h-[78vh] w-auto max-w-full rounded-2xl border border-white/10 object-contain shadow-2xl"
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (isGoogleDrive) {
     return (
@@ -153,15 +176,11 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   );
 };
 
-export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
-  isOpen,
-  onClose,
-  documentUrl,
-  documentName = "Документ",
-  documentType = "pdf",
-}) => {
-  if (!documentUrl) return null;
-
+function parseDocumentViewerData(
+  documentUrl: string,
+  documentName?: string | null,
+  documentType?: DocumentAttachmentType | null
+) {
   const driveMatch = documentUrl.match(
     /drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/
   );
@@ -170,22 +189,78 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
     ? `https://drive.google.com/file/d/${driveMatch?.[1]}/preview`
     : "";
 
+  const isImage =
+    !isGoogleDrive &&
+    (documentType === "image" ||
+      /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(documentUrl) ||
+      /\.(png|jpe?g|webp|gif|svg)$/i.test(documentName || "") ||
+      documentUrl.startsWith("data:image/") ||
+      (documentUrl.includes("/api/upload") &&
+        !documentUrl.includes(".pdf") &&
+        !documentUrl.includes(".doc") &&
+        !documentUrl.includes(".xls")));
+
   const isPdf =
     !isGoogleDrive &&
+    !isImage &&
     (documentType === "pdf" ||
       documentUrl.toLowerCase().includes(".pdf") ||
       (documentName ? documentName.toLowerCase().endsWith(".pdf") : false));
 
   const isOffice =
     !isGoogleDrive &&
+    !isImage &&
+    !isPdf &&
     (documentType === "word" ||
       documentType === "excel" ||
       /\.(docx?|xlsx?|pptx?)$/i.test(documentName || "") ||
       /\.(docx?|xlsx?|pptx?)/i.test(documentUrl));
 
+  let effectiveType: DocumentAttachmentType = "other";
+  if (documentType) {
+    effectiveType = documentType;
+  } else if (isImage) {
+    effectiveType = "image";
+  } else if (isPdf) {
+    effectiveType = "pdf";
+  } else if (isOffice) {
+    effectiveType = "word";
+  }
+
   const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
     documentUrl
   )}`;
+
+  return {
+    isGoogleDrive,
+    googleDrivePreviewUrl,
+    isImage,
+    isPdf,
+    isOffice,
+    effectiveType,
+    officeViewerUrl,
+  };
+}
+
+export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
+  isOpen,
+  onClose,
+  documentUrl,
+  documentName = "Документ",
+  documentType,
+  subtitle,
+}) => {
+  if (!documentUrl) return null;
+
+  const {
+    isGoogleDrive,
+    googleDrivePreviewUrl,
+    isImage,
+    isPdf,
+    isOffice,
+    effectiveType,
+    officeViewerUrl,
+  } = parseDocumentViewerData(documentUrl, documentName, documentType);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -195,14 +270,18 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
           <DialogHeader className="p-0">
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-white p-2 shadow-xs dark:bg-zinc-800">
-                {getDocumentIcon(documentType, "size-5")}
+                {getDocumentIcon(effectiveType, "size-5")}
               </div>
               <div className="text-left">
                 <DialogTitle className="line-clamp-1 text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                  {documentName || "Преглед на наредба / документ"}
+                  {documentName ||
+                    (isImage
+                      ? "Преглед на изображение"
+                      : "Преглед на наредба / документ")}
                 </DialogTitle>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {getDocumentTypeBadge(documentType)} • Наредба за състезанието
+                  {getDocumentTypeBadge(effectiveType)}
+                  {subtitle ? ` • ${subtitle}` : ""}
                 </p>
               </div>
             </div>
@@ -270,11 +349,12 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
           <DocumentViewerBody
             isPdf={isPdf}
             isOffice={isOffice}
+            isImage={isImage}
             isGoogleDrive={isGoogleDrive}
             googleDrivePreviewUrl={googleDrivePreviewUrl}
             documentUrl={documentUrl}
             documentName={documentName}
-            documentType={documentType}
+            documentType={effectiveType}
             officeViewerUrl={officeViewerUrl}
           />
         </div>

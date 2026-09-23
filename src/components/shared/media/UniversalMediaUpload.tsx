@@ -2,7 +2,6 @@
 "use client";
 
 import {
-  ExternalLink,
   Eye,
   ImageIcon,
   Loader2,
@@ -42,7 +41,24 @@ export interface UniversalMediaUploadProps {
 
 export const isImageFileOrUrl = (fileNameOrUrl?: string | null): boolean => {
   if (!fileNameOrUrl) return false;
-  const clean = fileNameOrUrl.toLowerCase().split("?")[0];
+  const lower = fileNameOrUrl.toLowerCase();
+
+  // 1. Check query parameter fileName/filename/name if present
+  try {
+    const urlObj = new URL(fileNameOrUrl, "http://localhost");
+    const param =
+      urlObj.searchParams.get("fileName") ||
+      urlObj.searchParams.get("filename") ||
+      urlObj.searchParams.get("name");
+    if (param && isImageFileOrUrl(param)) {
+      return true;
+    }
+  } catch {
+    // ignore parsing errors for relative/special paths
+  }
+
+  // 2. Direct extension checks
+  const clean = lower.split("?")[0];
   return (
     clean.endsWith(".png") ||
     clean.endsWith(".jpg") ||
@@ -60,6 +76,7 @@ export const detectAttachmentType = (
   fileNameOrUrl?: string | null
 ): DocumentAttachmentType => {
   if (!fileNameOrUrl) return "other";
+  if (isImageFileOrUrl(fileNameOrUrl)) return "image";
   const ext = fileNameOrUrl.split("?")[0].split(".").pop()?.toLowerCase() || "";
   if (ext === "pdf") return "pdf";
   if (["doc", "docx"].includes(ext)) return "word";
@@ -90,8 +107,27 @@ export function UniversalMediaUpload({
   const [error, setError] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  const isImage = isImageFileOrUrl(value);
-  const docType = detectAttachmentType(value);
+  const isImageContext =
+    Boolean(
+      accept?.startsWith("image") &&
+      !accept.includes(".pdf") &&
+      !accept.includes(".doc")
+    ) ||
+    Boolean(
+      storageFolder &&
+      [
+        "sponsors",
+        "certificate-backgrounds",
+        "avatars",
+        "products",
+        "services",
+      ].includes(storageFolder)
+    );
+
+  const isImage = isImageFileOrUrl(value) || (Boolean(value) && isImageContext);
+  const docType: DocumentAttachmentType = isImage
+    ? "image"
+    : detectAttachmentType(value);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -149,10 +185,22 @@ export function UniversalMediaUpload({
   const getCleanFileName = (rawUrl?: string | null) => {
     if (!rawUrl) return "";
     try {
+      const urlObj = new URL(rawUrl, "http://localhost");
+      const queryName =
+        urlObj.searchParams.get("fileName") ||
+        urlObj.searchParams.get("filename") ||
+        urlObj.searchParams.get("name");
+      if (queryName) {
+        return decodeURIComponent(queryName);
+      }
       const withoutQuery = rawUrl.split("?")[0];
       const parts = withoutQuery.split("/");
       const lastPart = parts[parts.length - 1];
-      return decodeURIComponent(lastPart) || rawUrl;
+      const decoded = decodeURIComponent(lastPart);
+      if (decoded === "upload") {
+        return isImage ? "Прикачено изображение" : "Прикачен файл";
+      }
+      return decoded || rawUrl;
     } catch {
       return rawUrl;
     }
@@ -201,14 +249,16 @@ export function UniversalMediaUpload({
         /* Attached Resource Preview Card */
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3.5 transition-all dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-800">
+            <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 shadow-xs dark:border-zinc-800 dark:bg-zinc-800">
               {isImage ? (
                 <Image
                   src={value}
-                  alt="Thumbnail"
+                  alt={getCleanFileName(value) || "Thumbnail"}
                   fill
-                  unoptimized={value.startsWith("http")}
-                  className="object-cover"
+                  sizes="48px"
+                  loading="eager"
+                  unoptimized
+                  className="object-contain p-0.5"
                 />
               ) : (
                 getDocumentIcon(docType, "size-5")
@@ -216,14 +266,14 @@ export function UniversalMediaUpload({
             </div>
             <div className="min-w-0 flex-1">
               <p
-                className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100"
+                className="truncate text-xs font-semibold text-zinc-900 dark:text-zinc-100"
                 title={value}
               >
                 {getCleanFileName(value)}
               </p>
               <p className="text-[10px] text-zinc-400">
                 {isImage
-                  ? "Графично изображение"
+                  ? "Графично изображение / Лого"
                   : getDocumentTypeBadge(docType)}
               </p>
             </div>
@@ -234,20 +284,10 @@ export function UniversalMediaUpload({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => {
-                if (isImage) {
-                  window.open(value, "_blank", "noopener,noreferrer");
-                } else {
-                  setIsPreviewOpen(true);
-                }
-              }}
+              onClick={() => setIsPreviewOpen(true)}
               className="h-8 gap-1 rounded-xl px-2.5 text-xs text-zinc-700 hover:bg-white hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
             >
-              {isImage ? (
-                <ExternalLink className="size-3.5" />
-              ) : (
-                <Eye className="size-3.5" />
-              )}
+              <Eye className="size-3.5" />
               <span>Преглед</span>
             </Button>
             <Button
@@ -353,14 +393,15 @@ export function UniversalMediaUpload({
         </div>
       )}
 
-      {/* Document Viewer Modal if needed */}
-      {!isImage && value && (
+      {/* Document & Image Viewer Modal */}
+      {value && (
         <DocumentViewerDialog
           isOpen={isPreviewOpen}
           onClose={() => setIsPreviewOpen(false)}
           documentUrl={value}
           documentName={getCleanFileName(value)}
           documentType={docType}
+          subtitle={isImage ? "Изображение / Лого" : "Прикачен документ"}
         />
       )}
     </div>

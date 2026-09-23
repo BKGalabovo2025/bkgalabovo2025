@@ -1,5 +1,6 @@
 import fs from "fs";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import path from "path";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -38,7 +39,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function ClubMainPage() {
+export default async function ClubMainPage(props: {
+  searchParams?: Promise<{ verify?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  if (searchParams?.verify) {
+    redirect(`/cert/${encodeURIComponent(searchParams.verify)}`);
+  }
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SportsClub",

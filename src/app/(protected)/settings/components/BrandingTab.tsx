@@ -39,13 +39,16 @@ export function BrandingTab() {
               />
               <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
                 {bkgData.logo ? (
-                  <Image
-                    src={bkgData.logo}
-                    alt="Logo"
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                  />
+                  <div className="relative size-8">
+                    <Image
+                      src={bkgData.logo}
+                      alt="Logo"
+                      fill
+                      sizes="32px"
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
                 ) : (
                   <ImageIcon className="size-5 text-zinc-400" />
                 )}
@@ -65,13 +68,16 @@ export function BrandingTab() {
               />
               <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-900 dark:border-zinc-800">
                 {bkgData.logo ? (
-                  <Image
-                    src={bkgData.logo}
-                    alt="Logo Dark"
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                  />
+                  <div className="relative size-8">
+                    <Image
+                      src={bkgData.logo}
+                      alt="Logo Dark"
+                      fill
+                      sizes="32px"
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
                 ) : (
                   <ImageIcon className="size-5 text-zinc-600" />
                 )}
@@ -92,13 +98,16 @@ export function BrandingTab() {
               />
               <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
                 {rzData.logo ? (
-                  <Image
-                    src={rzData.logo}
-                    alt="Recovery Logo"
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                  />
+                  <div className="relative size-8">
+                    <Image
+                      src={rzData.logo}
+                      alt="Recovery Logo"
+                      fill
+                      sizes="32px"
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
                 ) : (
                   <ImageIcon className="size-5 text-zinc-400" />
                 )}

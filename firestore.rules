@@ -39,7 +39,8 @@ service cloud.firestore {
           'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
           'marketing_templates', 'marketing_automations',
           'business_trips', 'trip_expenses', 'annual_plans', 'training_templates',
-          'feedback_templates', 'serviceHistory', 'generalServiceHistory'
+          'feedback_templates', 'serviceHistory', 'generalServiceHistory',
+          'certificate_templates'
         ] && checkResourceSiteAccess();
 
         allow create, update: if isAdmin() && hasValidSiteId() && collection in [
@@ -49,7 +50,8 @@ service cloud.firestore {
           'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
           'marketing_templates', 'marketing_automations',
           'business_trips', 'trip_expenses', 'annual_plans', 'training_templates',
-          'feedback_templates', 'serviceHistory', 'generalServiceHistory'
+          'feedback_templates', 'serviceHistory', 'generalServiceHistory',
+          'certificate_templates'
         ] && hasAccessToSite(request.resource.data.siteId);
 
         allow delete: if isAdmin() && collection in [
@@ -59,7 +61,8 @@ service cloud.firestore {
           'training_attendance', 'focus_tags', 'member_declarations', 'marketing_history',
           'marketing_templates', 'marketing_automations',
           'business_trips', 'trip_expenses', 'annual_plans', 'training_templates',
-          'feedback_templates', 'serviceHistory', 'generalServiceHistory'
+          'feedback_templates', 'serviceHistory', 'generalServiceHistory',
+          'certificate_templates'
         ] && checkResourceSiteAccess();
 
         // 2. Колекции с достъп за четене и писане само от админи със SiteId
@@ -82,9 +85,9 @@ service cloud.firestore {
         allow read, write: if isAdmin() && collection in ['settings', 'families', 'audit_logs', 'email_logs'];
 
         // 4. Публично четене, писане от админи със SiteId
-        allow read: if collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'];
-        allow create, update: if isAdmin() && hasValidSiteId() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'] && hasAccessToSite(request.resource.data.siteId);
-        allow delete: if isAdmin() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns'] && checkResourceSiteAccess();
+        allow read: if collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns', 'certificates', 'sponsors'];
+        allow create, update: if isAdmin() && hasValidSiteId() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns', 'certificates', 'sponsors'] && hasAccessToSite(request.resource.data.siteId);
+        allow delete: if isAdmin() && collection in ['sessions', 'tournaments', 'quizzes', 'theory_results', 'feedback_campaigns', 'certificates', 'sponsors'] && checkResourceSiteAccess();
         
         // 4.1. Прецизно публично обновяване на theory_results само при предаване на викторина от състезател
         allow update: if collection == 'theory_results' &&

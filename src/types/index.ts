@@ -233,7 +233,7 @@ export type ScheduleEvent = {
   // Attachment fields (e.g. tournament regulations, schedules, documents)
   attachmentUrl?: string | null;
   attachmentName?: string | null;
-  attachmentType?: "pdf" | "word" | "excel" | "other" | null;
+  attachmentType?: "pdf" | "word" | "excel" | "image" | "other" | null;
 
   // Camp-specific fields
   totalCampPrice?: number;

@@ -74,11 +74,54 @@ function tryInitWithGoogleCreds(
   return false;
 }
 
+function tryInitEmulatorMode(resolvedAdmin: typeof admin): boolean {
+  if (
+    process.env.FIREBASE_AUTH_EMULATOR_HOST ||
+    process.env.FIRESTORE_EMULATOR_HOST ||
+    process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true"
+  ) {
+    resolvedAdmin.initializeApp({
+      projectId: process.env.FIREBASE_PROJECT_ID || "bkgalabovo-test",
+    });
+    console.log("Firebase Admin SDK initialized in EMULATOR mode.");
+    return true;
+  }
+  return false;
+}
+
+function resolveAppInitialization(
+  resolvedAdmin: typeof admin,
+  serviceAccountJson?: string,
+  googleCreds?: string
+): boolean {
+  if (serviceAccountJson) {
+    return tryInitWithServiceAccount(resolvedAdmin, serviceAccountJson);
+  }
+  if (tryInitWithEnvVars(resolvedAdmin)) {
+    return true;
+  }
+  if (tryInitWithGoogleCreds(resolvedAdmin, googleCreds)) {
+    return true;
+  }
+  return tryInitEmulatorMode(resolvedAdmin);
+}
+
+function bindAdminServices(resolvedAdmin: typeof admin) {
+  if (!adminDb) {
+    adminDb = resolvedAdmin.firestore();
+    try {
+      adminDb.settings({ ignoreUndefinedProperties: true });
+    } catch {
+      // Ignore if already set
+    }
+  }
+  if (!adminAuth) adminAuth = resolvedAdmin.auth();
+  if (!adminStorage) adminStorage = resolvedAdmin.storage();
+}
+
 function initializeFirebaseAdmin() {
   if (admin.apps && admin.apps.length > 0) {
-    if (!adminDb) adminDb = admin.firestore();
-    if (!adminAuth) adminAuth = admin.auth();
-    if (!adminStorage) adminStorage = admin.storage();
+    bindAdminServices(admin);
     return;
   }
 
@@ -88,27 +131,11 @@ function initializeFirebaseAdmin() {
     (admin as unknown as { default?: typeof admin }).default || admin;
 
   try {
-    let initialized = false;
-    if (serviceAccountJson) {
-      initialized = tryInitWithServiceAccount(
-        resolvedAdmin,
-        serviceAccountJson
-      );
-    } else if (tryInitWithEnvVars(resolvedAdmin)) {
-      initialized = true;
-    } else if (tryInitWithGoogleCreds(resolvedAdmin, googleCreds)) {
-      initialized = true;
-    } else if (
-      process.env.FIREBASE_AUTH_EMULATOR_HOST ||
-      process.env.FIRESTORE_EMULATOR_HOST ||
-      process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true"
-    ) {
-      resolvedAdmin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID || "bkgalabovo-test",
-      });
-      initialized = true;
-      console.log("Firebase Admin SDK initialized in EMULATOR mode.");
-    }
+    const initialized = resolveAppInitialization(
+      resolvedAdmin,
+      serviceAccountJson,
+      googleCreds
+    );
 
     if (!initialized) {
       console.warn(
@@ -117,9 +144,7 @@ function initializeFirebaseAdmin() {
       return;
     }
 
-    adminDb = resolvedAdmin.firestore();
-    adminAuth = resolvedAdmin.auth();
-    adminStorage = resolvedAdmin.storage();
+    bindAdminServices(resolvedAdmin);
   } catch (error) {
     console.error("CRITICAL: Firebase Admin SDK initialization failed.", error);
   }

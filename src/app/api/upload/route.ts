@@ -71,7 +71,8 @@ async function saveFileToFirestore(
       createdAt: new Date().toISOString(),
     });
 
-  return `/api/upload?fileId=${fileId}&siteId=${userSiteId}`;
+  const safeName = encodeURIComponent(file.name || "file");
+  return `/api/upload?fileId=${fileId}&siteId=${userSiteId}&fileName=${safeName}`;
 }
 
 async function checkCloudStorageBucket() {
