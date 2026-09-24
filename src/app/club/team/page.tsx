@@ -1,11 +1,13 @@
-import { MapPin, Medal, Trophy, User as UserIcon } from "lucide-react";
+import { Medal, Trophy, User as UserIcon } from "lucide-react";
 import { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import Image from "next/image";
 
+import { TeamAthletesSection } from "@/components/club/TeamAthletesSection";
 import { PublicFooter } from "@/components/layout/public-footer";
 import { PublicNav } from "@/components/layout/public-nav";
 import { Translate } from "@/components/shared/Translate";
+import { TeamMemberForCard } from "@/lib/athlete-card-generator";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 import { calculateAgeGroup } from "@/services/member-service";
@@ -20,10 +22,7 @@ export const metadata: Metadata = {
 };
 
 // --- Helper type for Member with Tournaments ---
-type TeamMember = Member & {
-  ageGroupDisplay: string;
-  tournaments: string[];
-};
+type TeamMember = TeamMemberForCard;
 
 const getValidImageSrc = (src: string | undefined | null) => {
   if (!src) return "";
@@ -354,93 +353,10 @@ export default async function TeamPage() {
             </h2>
           </div>
 
-          {sortedAgeGroups.length === 0 ? (
-            <p className="py-12 text-center text-lg text-zinc-500">
-              Все още няма добавени състезатели.
-            </p>
-          ) : (
-            <div className="space-y-24">
-              {sortedAgeGroups.map((group) => (
-                <div key={group}>
-                  <h3 className="mb-10 flex items-center gap-4 text-2xl font-light text-white md:text-3xl">
-                    <span className="block h-px w-8 bg-blue-500/50"></span>
-                    Възрастова група {group}
-                    <span className="block h-px flex-1 bg-linear-to-r from-blue-500/50 to-transparent"></span>
-                  </h3>
-
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {groupedMembers[group].map((member) => (
-                      <div
-                        key={member.id}
-                        className="group relative flex h-full flex-col overflow-hidden rounded-4xl border border-zinc-800/50 bg-black/40 backdrop-blur-xl transition-all duration-500 hover:border-zinc-700"
-                      >
-                        {/* Athlete Photo */}
-                        <div className="relative aspect-4/5 overflow-hidden bg-zinc-900">
-                          <div className="absolute inset-0 z-10 bg-linear-to-t from-black via-black/20 to-transparent" />
-                          {member.avatarUrl ? (
-                            <Image
-                              src={getValidImageSrc(member.avatarUrl)}
-                              alt={member.name}
-                              fill
-                              unoptimized
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                              className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                          ) : (
-                            <div className="flex size-full items-center justify-center text-zinc-800">
-                              <UserIcon size={80} />
-                            </div>
-                          )}
-
-                          {/* Name Overlay */}
-                          <div className="absolute inset-x-0 bottom-0 z-20 p-6">
-                            <h4 className="mb-1 text-xl font-medium text-white">
-                              {member.name}
-                            </h4>
-                            <p className="text-xs font-medium tracking-wider text-zinc-400 uppercase">
-                              {member.skillLevel === "advanced" ||
-                              member.skillLevel === "professional"
-                                ? "Състезател"
-                                : "Любител"}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Athlete Details */}
-                        {member.tournaments &&
-                          member.tournaments.length > 0 && (
-                            <div className="flex-1 border-t border-zinc-800/50 bg-zinc-950/50 p-6">
-                              <p className="mb-4 flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-blue-400 uppercase">
-                                <MapPin size={12} />
-                                Участия в Турнири
-                              </p>
-                              <ul className="space-y-2">
-                                {member.tournaments
-                                  .slice(0, 3)
-                                  .map((t, idx) => (
-                                    <li
-                                      key={idx}
-                                      className="flex items-start gap-2 text-sm font-light text-zinc-300"
-                                    >
-                                      <span className="mt-1.5 size-1 shrink-0 rounded-full bg-blue-500/50"></span>
-                                      <span className="leading-snug">{t}</span>
-                                    </li>
-                                  ))}
-                                {member.tournaments.length > 3 && (
-                                  <li className="mt-2 text-xs text-zinc-500 italic">
-                                    и още {member.tournaments.length - 3}...
-                                  </li>
-                                )}
-                              </ul>
-                            </div>
-                          )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <TeamAthletesSection
+            groupedMembers={groupedMembers}
+            sortedAgeGroups={sortedAgeGroups}
+          />
         </div>
       </section>
 
