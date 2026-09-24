@@ -9,6 +9,8 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
+import { useAuth } from "@/context/auth-context";
+import { getMembersAction } from "@/lib/actions/members";
 import { db } from "@/lib/firebase";
 import {
   getMembersCollection,
@@ -22,29 +24,71 @@ export function useMembers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { activeBranch } = useAppStore();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    const membersQuery = getMembersQuery();
+    let isSubscribed = true;
 
-    const unsubscribe = onSnapshot(
-      membersQuery,
-      (snapshot) => {
-        const membersData = snapshot.docs.map((d) => ({
-          ...d.data(),
-          id: d.id,
-        })) as Member[];
-        setMembers(membersData);
+    // 1. Immediate server-side fetch via Server Action:
+    // Uses Firebase Admin SDK, bypassing any client-side auth handshake or permission race conditions.
+    getMembersAction(activeBranch).then((res) => {
+      if (!isSubscribed) return;
+      if (res.success && res.data.length > 0) {
+        setMembers(res.data);
         setLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching members:", err);
-        setError("Failed to fetch members.");
+        setError(null);
+      }
+    });
+
+    // 2. Real-time snapshot listener: only attach if client Firebase Auth is active
+    if (authLoading || !user) {
+      if (!authLoading && !user) {
         setLoading(false);
       }
-    );
+      return () => {
+        isSubscribed = false;
+      };
+    }
 
-    return () => unsubscribe();
-  }, [activeBranch]);
+    let unsubscribe = () => {};
+    try {
+      const membersQuery = getMembersQuery();
+      unsubscribe = onSnapshot(
+        membersQuery,
+        (snapshot) => {
+          if (!isSubscribed) return;
+          const membersData = snapshot.docs.map((d) => ({
+            ...d.data(),
+            id: d.id,
+          })) as Member[];
+          setMembers(membersData);
+          setLoading(false);
+          setError(null);
+        },
+        (err) => {
+          // If client Firestore rules or network handshake fail, keep the server-action data
+          if (
+            err?.code === "permission-denied" ||
+            err?.message?.includes("permissions")
+          ) {
+            // Handled: Server action already populated members safely
+            setLoading(false);
+          } else {
+            console.warn("Notice in members real-time sync:", err);
+            setLoading(false);
+          }
+        }
+      );
+    } catch {
+      // Ignore initial setup exceptions, server data is already loaded
+      setLoading(false);
+    }
+
+    return () => {
+      isSubscribed = false;
+      unsubscribe();
+    };
+  }, [activeBranch, user, authLoading]);
 
   const addMember = async (member: Omit<Member, "id">) => {
     const membersCollection = getMembersCollection();

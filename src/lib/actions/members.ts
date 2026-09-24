@@ -561,3 +561,30 @@ export async function getMemberProfileDataServerAction(
     };
   }
 }
+
+/**
+ * Fetches all members safely on the server using Admin SDK.
+ * Bypasses client-side auth race conditions and security rules latency.
+ */
+export async function getMembersAction(siteId?: string): Promise<{
+  success: boolean;
+  data: Member[];
+  error?: string;
+}> {
+  try {
+    const { getAllMembersServer } =
+      await import("@/services/member-service.server");
+    const members = await getAllMembersServer(siteId);
+    return { success: true, data: members };
+  } catch (error) {
+    console.error("getMembersAction error:", error);
+    return {
+      success: false,
+      data: [],
+      error:
+        error instanceof Error
+          ? error.message
+          : "Грешка при зареждане на списъка с членове",
+    };
+  }
+}

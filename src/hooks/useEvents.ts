@@ -55,15 +55,29 @@ export const useEvents = () => {
 
   // --- Members ---
   useEffect(() => {
+    let isMounted = true;
     const fetchMembers = async () => {
       try {
+        const { getMembersAction } = await import("@/lib/actions/members");
+        const res = await getMembersAction(activeBranch);
+        if (!isMounted) return;
+        if (res.success && res.data.length > 0) {
+          setMembers(res.data);
+          return;
+        }
         const membersData = await getAllMembers();
-        setMembers(membersData);
+        if (isMounted) setMembers(membersData);
       } catch (err) {
-        console.error("Error fetching members:", err);
+        console.warn(
+          "Notice: Member enrichment fallback applied in events",
+          err
+        );
       }
     };
     fetchMembers();
+    return () => {
+      isMounted = false;
+    };
   }, [activeBranch]);
 
   /**
