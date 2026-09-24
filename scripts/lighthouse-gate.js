@@ -47,8 +47,8 @@ const GATE_TARGETS = [
   },
   {
     name: "recovery_desktop",
-    label: "Recovery Zone (Desktop)",
-    route: "/recovery-zone",
+    label: "Recovery Zone Каталог (Desktop)",
+    route: "/recovery-zone/catalog",
     preset: "desktop",
     minPerf: 80,
     minA11y: 90,
@@ -99,20 +99,25 @@ async function runGate() {
       `[${i + 1}/${GATE_TARGETS.length}] Тестване на ${target.label}...`
     );
 
-    const cmd = `${npxCmd} lighthouse "${fullUrl}" --output=json --output-path="${outputBase}.json" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} --quiet`;
-
-    try {
-      execSync(cmd, { stdio: "ignore" });
-    } catch {
-      // Игнорира се потенциален Windows chrome-launcher cleanup lock
-    }
-
     const candidateFiles = [
       `${outputBase}.json`,
       `${outputBase}.report.json`,
       outputBase,
     ];
-    const actualJson = candidateFiles.find((p) => fs.existsSync(p));
+
+    let actualJson = candidateFiles.find((p) => fs.existsSync(p));
+
+    for (let attempt = 1; attempt <= 2 && !actualJson; attempt++) {
+      const cmd = `${npxCmd} lighthouse "${fullUrl}" --output=json --output-path="${outputBase}.json" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} --quiet`;
+
+      try {
+        execSync(cmd, { stdio: "ignore" });
+      } catch {
+        // Игнорира се потенциален Windows chrome-launcher cleanup lock
+      }
+
+      actualJson = candidateFiles.find((p) => fs.existsSync(p));
+    }
 
     if (!actualJson) {
       console.error("  ❌ Не можа да се генерира репорт за %s!", target.label);
