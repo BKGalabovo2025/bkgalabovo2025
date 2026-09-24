@@ -157,12 +157,18 @@ export async function POST(request: Request) {
             </div>
           `;
 
+          const clubAdminEmail =
+            process.env.ADMIN_NOTIFICATION_EMAIL ||
+            process.env.ADMIN_ARCHIVE_EMAIL ||
+            "bkgalabovo2014@gmail.com";
+
           await transporter.sendMail({
             from: {
               name: "Recovery Zone by ZM - Онлайн Запитвания",
               address: emailUser,
             },
             to: adminEmail,
+            cc: clubAdminEmail,
             subject: `[Ново запитване за процедура] ${safeSubjectName} - ${safeSubjectTitle}`,
             html: htmlContent,
             text: `Ново запитване за процедура ${data.eventTitle} от ${data.name} (тел: ${data.phone}).`,
