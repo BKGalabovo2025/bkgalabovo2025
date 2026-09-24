@@ -271,10 +271,11 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current);
     if (deceptionTimeoutRef.current) clearTimeout(deceptionTimeoutRef.current);
     if (centerTimeoutRef.current) clearTimeout(centerTimeoutRef.current);
+    audio.stop();
     setVisualPhase("idle");
     setNextActionDelay(null);
     releaseWakeLock();
-  }, []);
+  }, [audio]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -350,8 +351,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
       const recoveryDelay = splitStepDelay + strokeDuration;
 
-      // Adapt speech playback speed to pace
-      setPlaybackPace(pace);
+      // Adapt speech playback speed to pace & callout mode
+      setPlaybackPace(pace, currentSettings.calloutMode);
 
       const realSeq = [audioPath];
       if (secondAudioPath) realSeq.push(secondAudioPath);
@@ -366,6 +367,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       // Phase 1: SPLIT STEP
       setVisualPhase("split_step");
       if (!currentSettings.visualOnly) {
+        audio.stopVoiceOnly();
         if (!isFirst) audio.play(AUDIO_PATHS.common.splitStep);
         else audio.play(AUDIO_PATHS.common.beep);
       }
@@ -417,11 +419,14 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         if (stateRef.current === "working") {
           setActiveZone(null);
           setVisualPhase("center");
-          if (
+          // In two-word mode (zones_and_shots) on high tempo (< 3.8s), voice Center cue
+          // would collide with the active shot audio. Center recovery remains visual.
+          const allowCenterVoice =
             currentSettings.centerCommandEnabled &&
             !currentSettings.visualOnly &&
-            pace >= 2.2
-          ) {
+            (currentSettings.calloutMode !== "zones_and_shots" || pace >= 3.8);
+
+          if (allowCenterVoice && pace >= 2.2) {
             shadowLogger.trainer("🎯 Center recovery cue triggered");
             audio.play(AUDIO_PATHS.common.center);
           }
@@ -498,7 +503,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           setCurrentPlayersState(nextPlayers);
         }
         shadowLogger.trainer(
-          `⏸️ Set ${currentSetRef.current} complete. Entering rest period (${currentSettings.restSec}s). Next players rotation:`,
+          `⏸️ Set ${currentSetRef.current} complete. Entering rest period (${currentSettings.restSec}s). Next players rotation: ${nextPlayers.map((p) => p.displayName).join(", ")}`,
           nextPlayers.map((p) => p.displayName)
         );
         setState("resting");

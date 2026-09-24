@@ -170,21 +170,52 @@ class AudioManager {
     });
   }
 
-  public setSpeed(paceSec: number) {
+  public setSpeed(paceSec: number, calloutMode?: string) {
     if (!this.voiceAudio) return;
     const oldRate = this.voiceAudio.playbackRate;
-    // For fast pace (<= 2.2s), slightly speed up speech (up to 1.25x) so words do not clip
-    if (paceSec <= 1.8) {
-      this.voiceAudio.playbackRate = 1.25;
-    } else if (paceSec <= 2.2) {
-      this.voiceAudio.playbackRate = 1.15;
+    const isTwoWords = calloutMode === "zones_and_shots";
+
+    if (isTwoWords) {
+      // 2 Bulgarian phrases take ~2.2 - 2.8s; speed up progressively so cues remain ahead of action
+      if (paceSec <= 2.2) {
+        this.voiceAudio.playbackRate = 1.3;
+      } else if (paceSec <= 2.8) {
+        this.voiceAudio.playbackRate = 1.22;
+      } else if (paceSec <= 3.4) {
+        this.voiceAudio.playbackRate = 1.18;
+      } else {
+        this.voiceAudio.playbackRate = 1.08;
+      }
     } else {
-      this.voiceAudio.playbackRate = 1.0;
+      // Single phrase (zone only or shot only)
+      if (paceSec <= 1.8) {
+        this.voiceAudio.playbackRate = 1.25;
+      } else if (paceSec <= 2.2) {
+        this.voiceAudio.playbackRate = 1.15;
+      } else {
+        this.voiceAudio.playbackRate = 1.0;
+      }
     }
+
     if (oldRate !== this.voiceAudio.playbackRate) {
       shadowLogger.audio(
-        `Voice playbackRate adapted: ${this.voiceAudio.playbackRate}x (pace ${paceSec}s)`
+        `Voice playbackRate adapted: ${this.voiceAudio.playbackRate}x (pace ${paceSec}s, mode: ${calloutMode || "single"})`
       );
+    }
+  }
+
+  public stopVoiceOnly() {
+    this.isPlayingSequence = false;
+    this.audioSequence = [];
+    this.sequenceIndex = 0;
+    this.currentPlayId++;
+    this.pendingCenterPath = null;
+    if (this.timeoutId) clearTimeout(this.timeoutId);
+
+    if (this.voiceAudio) {
+      this.voiceAudio.onended = null;
+      this.voiceAudio.pause();
+      this.voiceAudio.currentTime = 0;
     }
   }
 
@@ -250,7 +281,8 @@ class AudioManager {
         this.sequenceIndex < this.audioSequence.length &&
         this.isPlayingSequence
       ) {
-        // Next word in sequence — play after 100ms
+        // Next word in sequence — play after 60ms
+        const pauseMs = 60;
         this.timeoutId = setTimeout(() => {
           if (this.currentPlayId !== playId || !this.isPlayingSequence) return;
           const nextSrc = this.audioSequence[this.sequenceIndex];
@@ -264,7 +296,7 @@ class AudioManager {
               this.isPlayingSequence = false;
             }
           });
-        }, 100);
+        }, pauseMs);
       } else {
         // Sequence finished
         this.isPlayingSequence = false;
@@ -423,12 +455,16 @@ export function stopAudio() {
   shadowAudioManager.stopAll();
 }
 
+export function stopVoiceAudio() {
+  shadowAudioManager.stopVoiceOnly();
+}
+
 export function isAudioPlaying(): boolean {
   return shadowAudioManager.isPlaying();
 }
 
-export function setPlaybackPace(paceSec: number) {
-  shadowAudioManager.setSpeed(paceSec);
+export function setPlaybackPace(paceSec: number, calloutMode?: string) {
+  shadowAudioManager.setSpeed(paceSec, calloutMode);
 }
 
 const SHOTS_BY_ZONE_GROUP = {

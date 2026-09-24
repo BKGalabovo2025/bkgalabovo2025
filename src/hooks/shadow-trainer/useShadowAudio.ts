@@ -6,6 +6,7 @@ import {
   playAudioSequence,
   shadowAudioManager,
   stopAudio,
+  stopVoiceAudio,
 } from "@/lib/shadow-training/audio-map";
 
 import { ShadowPlayer } from "./types";
@@ -48,6 +49,7 @@ export function useShadowAudio() {
       play: playAudio,
       playSequence: playAudioSequence,
       stop: stopAudio,
+      stopVoiceOnly: stopVoiceAudio,
       unlock,
       triggerMotivation,
     }),
