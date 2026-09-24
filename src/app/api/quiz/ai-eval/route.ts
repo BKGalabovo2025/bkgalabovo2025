@@ -156,7 +156,8 @@ export async function POST(request: Request) {
     const isFallback = !geminiResult;
     if (isFallback) {
       await logSystemError({
-        message: "Gemini AI evaluation failed or timed out in /api/quiz/ai-eval, applying graceful deterministic fallback",
+        message:
+          "Gemini AI evaluation failed or timed out in /api/quiz/ai-eval, applying graceful deterministic fallback",
         context: `resultId: ${resultId}, maxPoints: ${maxPoints}`,
         path: "/api/quiz/ai-eval",
       });
@@ -177,16 +178,14 @@ export async function POST(request: Request) {
       isFallback,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Internal server error";
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
     console.error("Error in /api/quiz/ai-eval:", error);
     await logSystemError({
       message: `Critical error in /api/quiz/ai-eval: ${message}`,
       stack: error instanceof Error ? error.stack : undefined,
       path: "/api/quiz/ai-eval",
     });
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

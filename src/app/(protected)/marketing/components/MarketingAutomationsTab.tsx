@@ -31,7 +31,7 @@ export function MarketingAutomationsTab({ rules, onToggleRule }: Props) {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col items-start justify-between gap-4 rounded-3xl border border-indigo-200/80 bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/40 p-6 shadow-xs sm:flex-row sm:items-center dark:border-indigo-900/50 dark:bg-gradient-to-r dark:from-zinc-900 dark:via-zinc-900 dark:to-indigo-950/30">
+      <div className="flex flex-col items-start justify-between gap-4 rounded-3xl border border-indigo-200/80 bg-linear-to-r from-indigo-50/80 via-white to-indigo-50/40 p-6 shadow-xs sm:flex-row sm:items-center dark:border-indigo-900/50 dark:bg-linear-to-r dark:from-zinc-900 dark:via-zinc-900 dark:to-indigo-950/30">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="flex size-9 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none">

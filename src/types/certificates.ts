@@ -165,6 +165,41 @@ export const VisualConfigSchema = z.object({
   overlayOpacity: z.number().min(0).max(100).optional(),
   textColorMode: TextColorModeEnum.optional(),
   contentAlignment: z.enum(["center", "left"]).optional(),
+
+  // Adaptive & Prompt Engine Customizations
+  customTextColor: z.string().optional(),
+  customAccentColor: z.string().optional(),
+  showQrCode: z.boolean().optional(),
+  showSeal: z.boolean().optional(),
+  showSponsors: z.boolean().optional(),
+  showSignatures: z.boolean().optional(),
+  targetAudience: z.enum(["kids", "adults_pro", "wellness"]).optional(),
+  promptBulgarian: z.string().optional(),
+  promptEnglish: z.string().optional(),
+  eventName: z.string().optional(),
+  eventLocation: z.string().optional(),
+  customSealUrl: z.string().optional(),
+  customQrUrl: z.string().optional(),
+  watermarkOpacity: z.number().min(0).max(100).optional(),
+  sealStyle: z
+    .enum(["laurel", "rackets_crest", "monogram", "custom_upload"])
+    .optional(),
+
+  // Backside (Гръб на грамотата/сертификата)
+  includeBackside: z.boolean().optional(),
+  backsideStyle: z.enum(["coach_message", "tournament_protocol"]).optional(),
+  backsideTitle: z.string().optional(),
+  backsideMessage: z.string().optional(),
+  backsideSignatory: z.string().optional(),
+
+  // AI Style Switcher (Абстрактен лукс vs Спортна илюстрация)
+  aiStyleMode: z.enum(["abstract_luxury", "sport_illustration"]).optional(),
+
+  // Специфични полета за Ваучер
+  voucherServiceType: z.string().optional(),
+  voucherValue: z.string().optional(),
+  voucherPromoCode: z.string().optional(),
+  voucherExpiryDate: z.string().optional(),
 });
 export type VisualConfig = z.infer<typeof VisualConfigSchema>;
 
@@ -392,6 +427,10 @@ export const IssuedCertificateSchema = z.object({
     eventLocation: z.string().optional(),
 
     // За Ваучери (voucher)
+    voucherServiceType: z.string().optional(),
+    voucherValue: z.string().optional(),
+    voucherPromoCode: z.string().optional(),
+    voucherExpiryDate: z.string().optional(),
     totalSessions: z.number().int().optional(),
     usedSessions: z.number().int().default(0),
     remainingSessions: z.number().int().optional(),
@@ -404,6 +443,13 @@ export const IssuedCertificateSchema = z.object({
     courseTitle: z.string().optional(),
     completionDate: z.string().optional(),
     hoursTrained: z.number().optional(),
+
+    // За Двустранен документ (backside)
+    includeBackside: z.boolean().optional(),
+    backsideStyle: z.enum(["coach_message", "tournament_protocol"]).optional(),
+    backsideTitle: z.string().optional(),
+    backsideMessage: z.string().optional(),
+    backsideSignatory: z.string().optional(),
   }),
 
   // Замразен визуален снапшот към момента на издаване
@@ -444,6 +490,10 @@ export type IssueCertificateInput = {
     eventTitle?: string;
     eventDate?: string;
     eventLocation?: string;
+    voucherServiceType?: string;
+    voucherValue?: string;
+    voucherPromoCode?: string;
+    voucherExpiryDate?: string;
     totalSessions?: number;
     validityDays?: number;
     validUntil?: string;
@@ -451,6 +501,11 @@ export type IssueCertificateInput = {
     courseTitle?: string;
     completionDate?: string;
     hoursTrained?: number;
+    includeBackside?: boolean;
+    backsideStyle?: "coach_message" | "tournament_protocol";
+    backsideTitle?: string;
+    backsideMessage?: string;
+    backsideSignatory?: string;
   };
 };
 

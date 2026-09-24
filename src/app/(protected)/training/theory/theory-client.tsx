@@ -450,7 +450,7 @@ export default function TheoryClient() {
               key={quiz.id}
               className="overflow-hidden rounded-2xl border-zinc-200 shadow-sm transition-all hover:shadow-md"
             >
-              <CardHeader className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5">
+              <CardHeader className="bg-linear-to-br from-indigo-500 to-purple-600 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <Badge

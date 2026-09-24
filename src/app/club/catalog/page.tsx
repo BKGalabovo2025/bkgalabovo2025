@@ -54,7 +54,10 @@ const getCachedCollection = unstable_cache(
           const snap = await adminDb.collection(collectionName).get();
           return snap.docs.map(
             (doc) =>
-              serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+              serializeDoc({ id: doc.id, ...doc.data() }) as Record<
+                string,
+                unknown
+              >
           );
         } catch (error) {
           console.error(
@@ -115,7 +118,7 @@ export default async function CatalogPage() {
         <div className="relative z-10 mx-auto max-w-6xl text-center">
           <h1 className="mb-6 text-4xl font-light tracking-tight md:text-6xl">
             Клубни{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text font-bold text-transparent drop-shadow-[0_0_12px_rgba(59,130,246,0.4)]">
+            <span className="bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text font-bold text-transparent drop-shadow-[0_0_12px_rgba(59,130,246,0.4)]">
               Каталози
             </span>
           </h1>

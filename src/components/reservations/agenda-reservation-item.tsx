@@ -119,7 +119,7 @@ function ClientInfo({
           ) : (
             <Activity className="mt-0.5 size-4 shrink-0 text-primary" />
           )}
-          <h4 className="w-full min-w-0 flex-1 leading-snug font-bold break-words text-zinc-900 dark:text-white">
+          <h4 className="w-full min-w-0 flex-1 leading-snug font-bold wrap-break-word text-zinc-900 dark:text-white">
             {reservation.memberId || reservation.clientId ? (
               <Link
                 href={`/members/${reservation.memberId || reservation.clientId}`}

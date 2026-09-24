@@ -309,7 +309,7 @@ export function TemplatesTab({
 
             <Button
               onClick={handleOpenCreate}
-              className="h-10 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+              className="h-10 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
             >
               <Plus className="mr-1.5 size-4" />
               Нов шаблон

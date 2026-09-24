@@ -49,16 +49,21 @@ describe("AI Endpoint Resiliency & Graceful Fallback Suite", () => {
         exists: true,
         data: () => ({
           tacticalQuestion: "Как реагирате при остър смаш към тялото?",
-          tacticalAnswer: "Заемам ниска стойка с бекхенд захват и връщам към празната зона на мрежата.",
+          tacticalAnswer:
+            "Заемам ниска стойка с бекхенд захват и връщам към празната зона на мрежата.",
         }),
       });
       mockUpdate.mockResolvedValueOnce(undefined);
 
       // Simulate network failure or timeout in fetch to Gemini API
       process.env.GEMINI_API_KEY = "mock-gemini-key";
-      const globalFetch = vi.spyOn(global, "fetch").mockRejectedValueOnce(
-        new Error("ETIMEDOUT: Connection to generativelanguage.googleapis.com timed out")
-      );
+      const globalFetch = vi
+        .spyOn(global, "fetch")
+        .mockRejectedValueOnce(
+          new Error(
+            "ETIMEDOUT: Connection to generativelanguage.googleapis.com timed out"
+          )
+        );
 
       const req = new Request("http://localhost/api/quiz/ai-eval", {
         method: "POST",
@@ -69,7 +74,8 @@ describe("AI Endpoint Resiliency & Graceful Fallback Suite", () => {
         body: JSON.stringify({
           resultId: "quiz-res-999",
           questionText: "Как реагирате при остър смаш към тялото?",
-          tacticalAnswer: "Заемам ниска стойка с бекхенд захват и връщам към празната зона на мрежата.",
+          tacticalAnswer:
+            "Заемам ниска стойка с бекхенд захват и връщам към празната зона на мрежата.",
           maxPoints: 20,
         }),
       });
@@ -96,7 +102,9 @@ describe("AI Endpoint Resiliency & Graceful Fallback Suite", () => {
       // Verify logSystemError was called with details
       expect(mockLogSystemError).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining("Gemini AI evaluation failed or timed out"),
+          message: expect.stringContaining(
+            "Gemini AI evaluation failed or timed out"
+          ),
           path: "/api/quiz/ai-eval",
         })
       );

@@ -2075,7 +2075,8 @@ export async function POST(req: NextRequest) {
         console.error("Gemini API call failed, falling back:", geminiErr);
         await logSystemError({
           message: "Gemini API call failed in /api/ai/generate-workout",
-          stack: geminiErr instanceof Error ? geminiErr.stack : String(geminiErr),
+          stack:
+            geminiErr instanceof Error ? geminiErr.stack : String(geminiErr),
           context: `memberId: ${memberId}, goal: ${targetGoal}`,
           path: "/api/ai/generate-workout",
         });
@@ -2087,7 +2088,8 @@ export async function POST(req: NextRequest) {
       isFallback = true;
       if (apiKey) {
         await logSystemError({
-          message: "Gemini model returned null or failed all model tiers, falling back to deterministic template",
+          message:
+            "Gemini model returned null or failed all model tiers, falling back to deterministic template",
           context: `memberId: ${memberId}, goal: ${targetGoal}`,
           path: "/api/ai/generate-workout",
         });

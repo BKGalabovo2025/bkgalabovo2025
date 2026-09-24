@@ -116,7 +116,7 @@ export function CertificatesClient() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2.5">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/20">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-linear-to-tr from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/20">
               <Award className="size-5" />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-zinc-900 md:text-3xl dark:text-white">

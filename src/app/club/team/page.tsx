@@ -256,7 +256,7 @@ export default async function TeamPage() {
       {/* Hero Section */}
       <section className="relative flex min-h-[50vh] items-center overflow-hidden px-6 pt-40 pb-20">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 z-10 bg-gradient-to-b from-blue-900/20 via-black/80 to-black" />
+          <div className="absolute inset-0 z-10 bg-linear-to-b from-blue-900/20 via-black/80 to-black" />
           <div className="pointer-events-none absolute top-1/2 left-1/2 size-[1000px] -translate-1/2 rounded-full bg-blue-500/20 blur-[120px]" />
         </div>
 
@@ -364,7 +364,7 @@ export default async function TeamPage() {
                   <h3 className="mb-10 flex items-center gap-4 text-2xl font-light text-white md:text-3xl">
                     <span className="block h-px w-8 bg-blue-500/50"></span>
                     Възрастова група {group}
-                    <span className="block h-px flex-1 bg-gradient-to-r from-blue-500/50 to-transparent"></span>
+                    <span className="block h-px flex-1 bg-linear-to-r from-blue-500/50 to-transparent"></span>
                   </h3>
 
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -374,8 +374,8 @@ export default async function TeamPage() {
                         className="group relative flex h-full flex-col overflow-hidden rounded-4xl border border-zinc-800/50 bg-black/40 backdrop-blur-xl transition-all duration-500 hover:border-zinc-700"
                       >
                         {/* Athlete Photo */}
-                        <div className="relative aspect-[4/5] overflow-hidden bg-zinc-900">
-                          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                        <div className="relative aspect-4/5 overflow-hidden bg-zinc-900">
+                          <div className="absolute inset-0 z-10 bg-linear-to-t from-black via-black/20 to-transparent" />
                           {member.avatarUrl ? (
                             <Image
                               src={getValidImageSrc(member.avatarUrl)}

@@ -454,7 +454,7 @@ export function TemplateEditorDialog({
             </div>
 
             {/* VISUAL DESIGN MODE SWITCHER */}
-            <div className="space-y-2 rounded-2xl border border-indigo-200/70 bg-gradient-to-r from-indigo-50/70 via-purple-50/50 to-pink-50/30 p-3.5 dark:border-indigo-900/60 dark:from-indigo-950/30 dark:via-purple-950/20 dark:to-zinc-900">
+            <div className="space-y-2 rounded-2xl border border-indigo-200/70 bg-linear-to-r from-indigo-50/70 via-purple-50/50 to-pink-50/30 p-3.5 dark:border-indigo-900/60 dark:from-indigo-950/30 dark:via-purple-950/20 dark:to-zinc-900">
               <div className="flex items-center justify-between">
                 <Label className="flex items-center gap-1.5 text-xs font-black text-indigo-950 dark:text-indigo-200">
                   <Sparkles className="size-3.5 text-indigo-600 dark:text-indigo-400" />
@@ -489,7 +489,7 @@ export function TemplateEditorDialog({
                   onClick={() => setLayoutMode("custom_ai_background")}
                   className={`flex items-center justify-center gap-2 rounded-xl border p-2 text-xs font-bold transition-all ${
                     layoutMode === "custom_ai_background"
-                      ? "border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xs"
+                      ? "border-transparent bg-linear-to-r from-indigo-600 to-purple-600 text-white shadow-xs"
                       : "border-transparent bg-transparent text-zinc-500 hover:bg-white/60 dark:hover:bg-zinc-900/60"
                   }`}
                 >
@@ -642,7 +642,7 @@ export function TemplateEditorDialog({
                       type="button"
                       onClick={() => handleDirectAiGenerate(false)}
                       disabled={isGeneratingAi}
-                      className="h-10 w-full rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-xs font-bold text-white shadow-md transition-all hover:from-purple-700 hover:to-blue-700"
+                      className="h-10 w-full rounded-xl bg-linear-to-r from-purple-600 via-indigo-600 to-blue-600 text-xs font-bold text-white shadow-md transition-all hover:from-purple-700 hover:to-blue-700"
                     >
                       {isGeneratingAi ? (
                         <>
@@ -966,7 +966,7 @@ export function TemplateEditorDialog({
             type="submit"
             form="template-editor-form"
             disabled={isSubmitting}
-            className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 text-xs font-bold text-white shadow-sm hover:from-blue-700 hover:to-indigo-700"
+            className="rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-5 text-xs font-bold text-white shadow-sm hover:from-blue-700 hover:to-indigo-700"
           >
             {isSubmitting ? (
               <>

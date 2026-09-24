@@ -184,7 +184,7 @@ export function BirthdayReminder() {
   }
 
   return (
-    <BentoCard className="relative flex flex-col justify-between overflow-hidden rounded-4xl border border-rose-200/80 bg-gradient-to-br from-rose-50/50 via-white to-rose-50/20 p-6 shadow-none dark:border-rose-900/50 dark:from-rose-950/20 dark:via-zinc-900 dark:to-zinc-900">
+    <BentoCard className="relative flex flex-col justify-between overflow-hidden rounded-4xl border border-rose-200/80 bg-linear-to-br from-rose-50/50 via-white to-rose-50/20 p-6 shadow-none dark:border-rose-900/50 dark:from-rose-950/20 dark:via-zinc-900 dark:to-zinc-900">
       <div>
         <div className="relative z-10 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">

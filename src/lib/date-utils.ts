@@ -42,7 +42,8 @@ export const formatDateTimeLocal = (date: DateInput) => {
  * Converts various date types to ISO string, or undefined if null/invalid.
  */
 export const toISOStringOrUndefined = (date: unknown): string | undefined => {
-  if (!date || (typeof date === "string" && date.trim() === "")) return undefined;
+  if (!date || (typeof date === "string" && date.trim() === ""))
+    return undefined;
 
   // Handle Firebase Timestamp
   if (

@@ -72,7 +72,7 @@ export const PrintableEvent: React.FC<PrintableEventProps> = ({
         {event.description && (
           <>
             <p className="col-span-1 font-semibold">Описание / Бележки:</p>
-            <p className="col-span-2 break-words whitespace-pre-wrap">
+            <p className="col-span-2 wrap-break-word whitespace-pre-wrap">
               {event.description}
             </p>
           </>

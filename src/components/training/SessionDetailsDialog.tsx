@@ -108,7 +108,7 @@ export function SessionDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-3xl overflow-hidden p-0 sm:rounded-3xl">
         {/* Header Banner */}
-        <div className="border-b border-zinc-100 bg-gradient-to-br from-indigo-50/80 via-white to-zinc-50/80 p-6">
+        <div className="border-b border-zinc-100 bg-linear-to-br from-indigo-50/80 via-white to-zinc-50/80 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               {isCompleted ? (

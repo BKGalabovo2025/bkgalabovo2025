@@ -73,7 +73,7 @@ export function MemberSalesHistoryTableRow({
       </TableCell>
       <TableCell className="max-w-75 py-4">
         <div
-          className="text-xs leading-tight font-medium break-words text-zinc-900"
+          className="text-xs leading-tight font-medium wrap-break-word text-zinc-900"
           title={itemsList}
         >
           {itemsList}
@@ -92,7 +92,7 @@ export function MemberSalesHistoryTableRow({
       </TableCell>
       <TableCell className="py-4">
         <div className="flex flex-col">
-          <span className="text-xs leading-tight font-semibold break-words text-zinc-900 dark:text-zinc-100">
+          <span className="text-xs leading-tight font-semibold wrap-break-word text-zinc-900 dark:text-zinc-100">
             {sale.clientName ||
               (familyMember
                 ? `${familyMember.firstName} ${familyMember.lastName}`.trim()

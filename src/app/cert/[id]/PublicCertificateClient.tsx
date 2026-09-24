@@ -78,7 +78,7 @@ export function PublicCertificateClient({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-zinc-100/60 to-zinc-50 px-4 py-8 sm:px-6 lg:px-8 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+    <div className="min-h-screen bg-linear-to-b from-zinc-50 via-zinc-100/60 to-zinc-50 px-4 py-8 sm:px-6 lg:px-8 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       <div className="mx-auto max-w-4xl space-y-6">
         {/* 1. Official Verification Status Banner */}
         <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 shadow-xs sm:flex-row dark:border-emerald-800/80 dark:bg-emerald-950/50">
@@ -138,7 +138,7 @@ export function PublicCertificateClient({
 
         {/* 2. Voucher Status Callout (If Voucher) */}
         {isVoucher && (
-          <Card className="rounded-3xl border-amber-200/80 bg-gradient-to-r from-amber-50 to-orange-50/50 p-4 shadow-xs dark:border-amber-900/60 dark:from-amber-950/40 dark:to-zinc-900">
+          <Card className="rounded-3xl border-amber-200/80 bg-linear-to-r from-amber-50 to-orange-50/50 p-4 shadow-xs dark:border-amber-900/60 dark:from-amber-950/40 dark:to-zinc-900">
             <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
               <div className="flex items-center gap-3">
                 <div className="flex size-12 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-500/20">

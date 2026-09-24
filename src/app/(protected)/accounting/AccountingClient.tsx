@@ -737,7 +737,7 @@ export default function AccountingClient() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <BentoCard className="border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:border-blue-900/30 dark:from-blue-950/20 dark:to-indigo-950/20">
+        <BentoCard className="border-blue-100 bg-linear-to-br from-blue-50 to-indigo-50 p-6 dark:border-blue-900/30 dark:from-blue-950/20 dark:to-indigo-950/20">
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-blue-100 p-2.5 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
               <Calculator className="size-5" />

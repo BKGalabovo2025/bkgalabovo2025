@@ -860,7 +860,7 @@ export default function RecoveryZoneClient({
                 return (
                   <div
                     key={rev.id || idx}
-                    className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-b from-zinc-900/90 to-zinc-950/90 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
+                    className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-emerald-500/20 bg-linear-to-b from-zinc-900/90 to-zinc-950/90 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
                   >
                     <div>
                       <div className="flex items-center justify-between">

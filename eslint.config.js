@@ -28,6 +28,14 @@ export default tseslint.config(
       "sync-attendance-payments.js",
       "sync-attendance-payments.cjs",
       "test_sale.ts",
+      "storybook-static/**",
+      "playwright-report/**",
+      "test-results/**",
+      ".lighthouse-reports/**",
+      ".vercel/**",
+      ".genkit/**",
+      ".idx/**",
+      "~/**",
     ],
   },
   ...nextConfig,
@@ -63,7 +71,7 @@ export default tseslint.config(
         ],
       },
       react: {
-        version: "19.2.6",
+        version: "19.3.0",
       },
     },
     plugins: {
@@ -80,6 +88,7 @@ export default tseslint.config(
       ],
       "@typescript-eslint/no-unused-expressions": "off",
       "tailwindcss/no-custom-classname": "off",
+      "tailwindcss/classnames-order": "off",
       "@typescript-eslint/no-explicit-any": "error",
       "react/forbid-dom-props": ["error", { forbid: ["style"] }],
       "@typescript-eslint/naming-convention": [

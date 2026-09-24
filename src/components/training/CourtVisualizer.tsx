@@ -38,7 +38,7 @@ export function CourtVisualizer({
   return (
     <div
       className={cn(
-        "relative mx-auto aspect-[610/1340] w-full max-w-80 overflow-hidden rounded-xl border-2 border-zinc-800 bg-[#1a1c23] shadow-2xl",
+        "relative mx-auto aspect-610/1340 w-full max-w-80 overflow-hidden rounded-xl border-2 border-zinc-800 bg-[#1a1c23] shadow-2xl",
         className
       )}
     >

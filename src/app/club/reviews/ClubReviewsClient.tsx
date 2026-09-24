@@ -130,7 +130,7 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
       transition={{ delay: index * 0.05 }}
       className="h-full"
     >
-      <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/95 via-zinc-900/80 to-zinc-950/95 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-blue-500/50 hover:shadow-blue-500/10 sm:p-7">
+      <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-zinc-800/80 bg-linear-to-b from-zinc-900/95 via-zinc-900/80 to-zinc-950/95 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-blue-500/50 hover:shadow-blue-500/10 sm:p-7">
         {/* Top ambient glow */}
         <div className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-blue-500/10 blur-2xl transition-all group-hover:bg-blue-500/20" />
 
@@ -258,7 +258,7 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
         {/* 5. Author / Parent Footer */}
         <div className="mt-6 flex items-center justify-between border-t border-zinc-800/80 pt-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-xs font-black text-white shadow-md shadow-blue-500/20">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-blue-600 to-indigo-500 text-xs font-black text-white shadow-md shadow-blue-500/20">
               {initial}
             </div>
             <div>
@@ -379,7 +379,7 @@ export default function ClubReviewsClient() {
             className="text-3xl font-black tracking-tight text-white uppercase sm:text-5xl"
           >
             Какво казват{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
               родителите и децата
             </span>
           </motion.h1>
@@ -405,7 +405,7 @@ export default function ClubReviewsClient() {
               {standingCampaigns.length === 1 ? (
                 <Button
                   asChild
-                  className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
+                  className="rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
                 >
                   <Link href={`/feedback/${standingCampaigns[0].id}`}>
                     <PenLine className="mr-2 size-4.5" />
@@ -415,7 +415,7 @@ export default function ClubReviewsClient() {
               ) : (
                 <Button
                   onClick={() => setIsSurveyPickerOpen(true)}
-                  className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
+                  className="rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
                 >
                   <PenLine className="mr-2 size-4.5" />
                   ✍️ Споделете Вашия отзив ({standingCampaigns.length} анкети)

@@ -77,7 +77,7 @@ export const DashboardNotifications = ({
   }
 
   return (
-    <BentoCard className="relative flex flex-col justify-between overflow-hidden rounded-4xl border border-rose-200/80 bg-gradient-to-br from-rose-50/60 via-white to-rose-50/20 p-6 shadow-none dark:border-rose-900/50 dark:from-rose-950/20 dark:via-zinc-900 dark:to-zinc-900">
+    <BentoCard className="relative flex flex-col justify-between overflow-hidden rounded-4xl border border-rose-200/80 bg-linear-to-br from-rose-50/60 via-white to-rose-50/20 p-6 shadow-none dark:border-rose-900/50 dark:from-rose-950/20 dark:via-zinc-900 dark:to-zinc-900">
       <div className="pointer-events-none absolute -top-4 -right-4 p-6 opacity-10">
         <Bell size={110} strokeWidth={1} className="text-rose-600" />
       </div>

@@ -204,7 +204,7 @@ export function FeedbackCampaignsTab({
           <Button
             onClick={handleCreateGeneralCampaign}
             size="sm"
-            className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-xs hover:from-blue-500 hover:to-indigo-500"
+            className="rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-xs hover:from-blue-500 hover:to-indigo-500"
           >
             <Sparkles className="mr-1.5 size-3.5" />+ Добави обща анкета за
             сайта
@@ -233,7 +233,7 @@ export function FeedbackCampaignsTab({
                   key={sc.id}
                   className={`overflow-hidden border transition-all ${
                     isActive
-                      ? "border-indigo-200 bg-gradient-to-br from-indigo-50/30 via-white to-zinc-50/50 shadow-xs"
+                      ? "border-indigo-200 bg-linear-to-br from-indigo-50/30 via-white to-zinc-50/50 shadow-xs"
                       : "border-zinc-200 bg-zinc-50/40 opacity-80"
                   }`}
                 >

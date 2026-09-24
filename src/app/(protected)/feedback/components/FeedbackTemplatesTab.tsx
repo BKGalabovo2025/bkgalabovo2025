@@ -198,7 +198,7 @@ export function FeedbackTemplatesTab({
       </div>
 
       {/* Information Banner */}
-      <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-white to-blue-50/50 p-4 shadow-2xs">
+      <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-linear-to-r from-indigo-50/80 via-white to-blue-50/50 p-4 shadow-2xs">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
           <Globe className="size-5" />
         </div>
@@ -257,7 +257,7 @@ export function FeedbackTemplatesTab({
               key={tmpl.id}
               className={`overflow-hidden transition-all ${
                 isLiveOnSite
-                  ? "border-emerald-300 bg-gradient-to-b from-emerald-50/20 via-white to-white shadow-xs ring-1 ring-emerald-400/30"
+                  ? "border-emerald-300 bg-linear-to-b from-emerald-50/20 via-white to-white shadow-xs ring-1 ring-emerald-400/30"
                   : "border-zinc-200 shadow-2xs hover:border-indigo-200 hover:shadow-xs"
               }`}
             >
@@ -352,7 +352,7 @@ export function FeedbackTemplatesTab({
                       <Button
                         onClick={() => handleCreateStanding(tmpl)}
                         size="sm"
-                        className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-xs hover:from-blue-500 hover:to-indigo-500"
+                        className="rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-xs hover:from-blue-500 hover:to-indigo-500"
                       >
                         <Globe className="mr-1.5 size-3.5" />
                         🌐 Пусни на сайта

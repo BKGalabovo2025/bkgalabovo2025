@@ -29,7 +29,6 @@ export const UnifiedWizardStep4 = () => {
     note,
     totalAmount,
     completedSaleId,
-    selectedMember,
     memberEvents,
   } = useUnifiedSaleWizard();
 
@@ -215,10 +214,7 @@ export const UnifiedWizardStep4 = () => {
               <div className="flex-1">
                 <div className="h-px w-full bg-zinc-300 dark:bg-zinc-800" />
                 <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
-                  Получател:{" "}
-                  {isGuestSale
-                    ? "Външен клиент"
-                    : `${selectedMember?.firstName} ${selectedMember?.lastName}`}
+                  Получател: {isGuestSale ? "Външен клиент" : clientDisplayName}
                 </p>
               </div>
             </div>

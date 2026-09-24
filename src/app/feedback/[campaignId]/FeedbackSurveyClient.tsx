@@ -296,7 +296,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
   if (isSubmitted) {
     return (
       <div
-        className={`flex min-h-screen flex-col items-center justify-center bg-gradient-to-b ${brand.accentBg} p-4 text-center`}
+        className={`flex min-h-screen flex-col items-center justify-center bg-linear-to-b ${brand.accentBg} p-4 text-center`}
       >
         <div
           className={`max-w-lg rounded-3xl border ${
@@ -364,7 +364,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
 
   return (
     <div
-      className={`min-h-screen bg-gradient-to-b ${brand.accentBg} px-4 py-10 sm:px-6`}
+      className={`min-h-screen bg-linear-to-b ${brand.accentBg} px-4 py-10 sm:px-6`}
     >
       <div className="mx-auto max-w-2xl">
         {/* Brand Header */}
@@ -547,7 +547,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
               </h3>
 
               <div
-                className={`space-y-4 rounded-2xl border bg-gradient-to-br p-6 text-center shadow-xs ${brand.cardGradient}`}
+                className={`space-y-4 rounded-2xl border bg-linear-to-br p-6 text-center shadow-xs ${brand.cardGradient}`}
               >
                 <span className="text-xs font-bold text-zinc-700">
                   Как оценявате цялостното си впечатление и преживяване? *

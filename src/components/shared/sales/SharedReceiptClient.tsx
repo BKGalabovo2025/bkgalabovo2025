@@ -216,15 +216,19 @@ const StandardReceipt = ({
   member,
   relatedMember,
   service,
+  familyMembers,
 }: ReceiptCopyProps) => {
   const { paymentDate, issueDate } = getReceiptDates(sale);
   let clientDisplayName = "N/A";
-  if (sale?.clientName) {
-    const parts = sale.clientName.split(" ");
-    clientDisplayName =
-      parts.length > 2
-        ? `${parts[0]} ${parts[parts.length - 1]}`
-        : sale.clientName;
+  if (sale?.clientName && sale.clientName.trim()) {
+    clientDisplayName = sale.clientName.trim();
+  } else if (familyMembers && familyMembers.length > 0) {
+    clientDisplayName = [
+      member ? `${member.firstName} ${member.lastName}` : null,
+      ...familyMembers.map((m) => `${m.firstName} ${m.lastName}`),
+    ]
+      .filter(Boolean)
+      .join(", ");
   } else if (member) {
     clientDisplayName = `${member.firstName} ${member.lastName}`;
   }
@@ -286,20 +290,25 @@ const StandardReceipt = ({
           </div>
         </div>
 
-        {/* Client 2 (if present) */}
-        {(sale?.client2Name || relatedMember) && (
-          <div className="mb-3 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-2 text-[9px]">
-            <span className="mr-1 font-bold tracking-widest text-zinc-500 uppercase">
-              Втори клиент:
-            </span>
-            <span className="font-bold text-zinc-800">
-              {sale?.client2Name || formatFullName(relatedMember!)}
-            </span>
-            {sale?.client2Phone && (
-              <span className="ml-1 text-zinc-500">({sale.client2Phone})</span>
-            )}
-          </div>
-        )}
+        {/* Client 2 (if present and not already listed in clientDisplayName) */}
+        {(sale?.client2Name || relatedMember) &&
+          !clientDisplayName.includes(
+            sale?.client2Name || relatedMember?.firstName || "---"
+          ) && (
+            <div className="mb-3 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-2 text-[9px]">
+              <span className="mr-1 font-bold tracking-widest text-zinc-500 uppercase">
+                Втори клиент:
+              </span>
+              <span className="font-bold text-zinc-800">
+                {sale?.client2Name || formatFullName(relatedMember!)}
+              </span>
+              {sale?.client2Phone && (
+                <span className="ml-1 text-zinc-500">
+                  ({sale.client2Phone})
+                </span>
+              )}
+            </div>
+          )}
 
         {/* Note Block */}
         {sale?.note && (

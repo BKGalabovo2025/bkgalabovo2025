@@ -59,7 +59,7 @@ export default function HomePage() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-zinc-950 text-white selection:bg-zinc-800">
       {/* Background Grid Pattern */}
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:32px_32px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-size-[32px_32px]" />
 
       {/* Ambient background blobs */}
       <div
@@ -148,7 +148,7 @@ export default function HomePage() {
               onMouseEnter={() => setHovered("bk")}
               onMouseLeave={() => setHovered(null)}
             >
-              <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="pointer-events-none absolute inset-0 rounded-3xl bg-linear-to-br from-blue-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               <div className="relative mb-8 size-20 overflow-hidden rounded-full drop-shadow-[0_0_15px_rgba(37,99,235,0.3)]">
                 <Image
                   src="/icons/LOGO.webp"
@@ -187,7 +187,7 @@ export default function HomePage() {
               onMouseEnter={() => setHovered("recovery")}
               onMouseLeave={() => setHovered(null)}
             >
-              <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="pointer-events-none absolute inset-0 rounded-3xl bg-linear-to-br from-emerald-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               <div className="relative mb-8 h-20 w-32 drop-shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                 <Image
                   src="/1.png"

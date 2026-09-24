@@ -165,7 +165,7 @@ export const ReservationStep1Time = () => {
                       className={cn(
                         "group relative flex h-16 flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border-2 font-bold transition-all",
                         field.value === num
-                          ? "scale-105 border-primary bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl ring-2 shadow-primary/30 ring-primary/20 ring-offset-2 ring-offset-background"
+                          ? "scale-105 border-primary bg-linear-to-br from-primary to-primary/80 text-white shadow-xl ring-2 shadow-primary/30 ring-primary/20 ring-offset-2 ring-offset-background"
                           : "border-zinc-200 bg-white text-zinc-500 hover:border-primary/50 hover:bg-primary/5 dark:border-zinc-800 dark:bg-zinc-950"
                       )}
                     >
@@ -180,7 +180,7 @@ export const ReservationStep1Time = () => {
                       <span className="text-xs">Корт {num}</span>
 
                       {field.value === num && (
-                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-50" />
+                        <div className="absolute inset-0 bg-linear-to-tr from-white/0 via-white/20 to-white/0 opacity-50" />
                       )}
                     </button>
                   ))}

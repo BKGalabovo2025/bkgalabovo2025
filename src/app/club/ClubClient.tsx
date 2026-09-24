@@ -330,7 +330,7 @@ export default function ClubClient({
             </p>
             <h2 className="text-4xl font-light tracking-tight md:text-5xl">
               Развитие и популяризиране на{" "}
-              <span className="bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text font-bold text-transparent">
+              <span className="bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text font-bold text-transparent">
                 бадминтона
               </span>{" "}
               в Гълъбово
@@ -365,7 +365,7 @@ export default function ClubClient({
                 />
               </p>
 
-              <div className="mx-auto h-px w-16 bg-gradient-to-r from-blue-500 to-transparent md:mx-0" />
+              <div className="mx-auto h-px w-16 bg-linear-to-r from-blue-500 to-transparent md:mx-0" />
 
               <p className="text-lg leading-relaxed text-zinc-400">
                 Клубът организира регулярни тренировки за всички възрастови
@@ -442,7 +442,7 @@ export default function ClubClient({
                   </div>
                   {/* Divider except for last item */}
                   {i !== activities.length - 1 && (
-                    <div className="mt-12 h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent" />
+                    <div className="mt-12 h-px w-full bg-linear-to-r from-transparent via-zinc-800 to-transparent" />
                   )}
                 </motion.div>
               ))}
@@ -772,7 +772,7 @@ export default function ClubClient({
       {/* Reviews Callout Section */}
       <section className="relative px-6 py-12">
         <div className="relative z-10 mx-auto max-w-5xl">
-          <div className="group relative overflow-hidden rounded-4xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 via-zinc-900/60 to-indigo-950/40 p-8 shadow-2xl backdrop-blur-xl sm:rounded-6xl sm:p-12">
+          <div className="group relative overflow-hidden rounded-4xl border border-blue-500/30 bg-linear-to-r from-blue-950/40 via-zinc-900/60 to-indigo-950/40 p-8 shadow-2xl backdrop-blur-xl sm:rounded-6xl sm:p-12">
             <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
               <div className="space-y-2 text-center sm:text-left">
                 <div className="flex items-center justify-center gap-1 text-amber-400 sm:justify-start">

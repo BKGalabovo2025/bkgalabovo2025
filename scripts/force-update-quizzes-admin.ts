@@ -34,43 +34,47 @@ async function forceUpdateQuizzes() {
   const db = admin.firestore();
 
   console.log("\n🚀 Стартиране на обновяване на тестовете в базата...\n");
-  
+
   const quizzesRef = db.collection("quizzes");
   // We want to fetch all base templates
   const snapshot = await quizzesRef.where("isBaseTemplate", "==", true).get();
-  
+
   if (snapshot.empty) {
     console.log("⚠️ Не са открити никакви базови тестове в базата данни.");
     return;
   }
 
-  console.log(`Намерени ${snapshot.docs.length} съществуващи базови теста. Обновявам ги...`);
+  console.log(
+    `Намерени ${snapshot.docs.length} съществуващи базови теста. Обновявам ги...`
+  );
 
   let updatedCount = 0;
   for (const doc of snapshot.docs) {
     const data = doc.data();
     const baseId = data.baseTemplateId || data.id;
-    const template = DEFAULT_QUIZZES.find(t => t.id === baseId);
-    
+    const template = DEFAULT_QUIZZES.find((t) => t.id === baseId);
+
     if (template) {
       console.log(`🔄 Обновявам: ${template.title}...`);
       await doc.ref.update({
         title: template.title,
         description: template.description,
         questions: template.questions,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
       updatedCount++;
     } else {
-      console.log(`⏭️ Пропускам ${data.title || doc.id} - няма намерен шаблон с id ${baseId}.`);
+      console.log(
+        `⏭️ Пропускам ${data.title || doc.id} - няма намерен шаблон с id ${baseId}.`
+      );
     }
   }
-  
+
   console.log(`\n✅ Готово! Успешно обновени ${updatedCount} теста.`);
   process.exit(0);
 }
 
-forceUpdateQuizzes().catch(err => {
+forceUpdateQuizzes().catch((err) => {
   console.error("❌ Грешка при обновяване:", err);
   process.exit(1);
 });

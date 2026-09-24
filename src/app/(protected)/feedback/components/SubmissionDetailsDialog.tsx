@@ -107,7 +107,7 @@ export function SubmissionDetailsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-hidden p-0 sm:rounded-3xl">
-        <DialogHeader className="border-b border-zinc-100 bg-gradient-to-br from-indigo-50/70 via-white to-zinc-50/70 p-6">
+        <DialogHeader className="border-b border-zinc-100 bg-linear-to-br from-indigo-50/70 via-white to-zinc-50/70 p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {submission.status === "approved" ? (

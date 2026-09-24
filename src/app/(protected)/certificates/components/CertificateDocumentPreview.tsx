@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-nested-conditional, sonarjs/no-all-duplicated-branches */
+/* eslint-disable react/forbid-dom-props, sonarjs/cognitive-complexity, sonarjs/no-nested-conditional, sonarjs/no-all-duplicated-branches */
 "use client";
 
 import {
@@ -66,6 +66,97 @@ export interface CertificatePreviewData {
 interface CertificateDocumentPreviewProps {
   data: CertificatePreviewData;
   className?: string;
+}
+
+function DigitalOfficialSeal({
+  style,
+  customSealUrl,
+  isLightText,
+  isLuxuryDark,
+  sizeClass = "size-14 sm:size-15",
+}: {
+  style?: "laurel" | "rackets_crest" | "monogram" | "custom_upload";
+  customSealUrl?: string;
+  isLightText: boolean;
+  isLuxuryDark: boolean;
+  sizeClass?: string;
+}) {
+  if (customSealUrl) {
+    return (
+      <div className={`relative ${sizeClass} shrink-0 overflow-hidden`}>
+        <Image
+          src={customSealUrl}
+          alt="Персонализиран печат"
+          fill
+          sizes="64px"
+          className="object-contain"
+          unoptimized
+        />
+      </div>
+    );
+  }
+
+  const borderClass = isLightText
+    ? "border-amber-400 bg-black/40 text-amber-300 backdrop-blur-sm"
+    : isLuxuryDark
+      ? "border-amber-400 text-amber-400"
+      : "border-amber-600 text-amber-700 dark:border-amber-400 dark:text-amber-400";
+
+  if (style === "rackets_crest") {
+    return (
+      <div
+        className={`flex ${sizeClass} items-center justify-center rounded-full border-2 p-1 text-center shadow-md ${borderClass}`}
+      >
+        <div className="flex size-full flex-col items-center justify-center rounded-full border border-dashed border-current p-0.5">
+          <CrossedRacketsSvg
+            className="mb-0.5 size-3.5"
+            primaryColor="currentColor"
+            secondaryColor="currentColor"
+          />
+          <span className="text-[6.5px] leading-none font-black tracking-tighter uppercase">
+            БК ГЪЛЪБОВО
+          </span>
+          <span className="text-[5.5px] leading-none font-bold tracking-tighter">
+            ОФИЦИАЛЕН
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "monogram") {
+    return (
+      <div
+        className={`flex ${sizeClass} items-center justify-center rounded-full border-2 p-1 text-center shadow-md ${borderClass}`}
+      >
+        <div className="flex size-full flex-col items-center justify-center rounded-full border border-current p-0.5">
+          <span className="font-serif text-xs font-black tracking-wider leading-none sm:text-sm">
+            БКГ
+          </span>
+          <span className="mt-0.5 text-[6px] font-bold tracking-widest uppercase">
+            2026
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Default: laurel
+  return (
+    <div
+      className={`flex ${sizeClass} items-center justify-center rounded-full border-2 p-1 text-center shadow-md ${borderClass}`}
+    >
+      <div className="flex size-full flex-col items-center justify-center rounded-full border border-dashed border-current p-0.5">
+        <Award className="mb-0.5 size-3.5" />
+        <span className="text-[7px] leading-none font-black tracking-tighter uppercase">
+          ОФИЦИАЛЕН
+        </span>
+        <span className="text-[6px] leading-none font-bold tracking-tighter">
+          ПЕЧАТ • 2026
+        </span>
+      </div>
+    </div>
+  );
 }
 
 export function CertificateDocumentPreview({
@@ -155,13 +246,15 @@ export function CertificateDocumentPreview({
     visualConfig.extraFreeSessions ?? totalSessions ?? 2;
 
   const verifyDomain = "bkgalabovo2025.vercel.app";
-  const verifyPath =
-    isRecoveryZone || type === "voucher"
+  const verifyPath = visualConfig.customQrUrl
+    ? visualConfig.customQrUrl
+    : isRecoveryZone || type === "voucher"
       ? `/recovery-zone?verify=${encodeURIComponent(serialNumber)}`
       : `/club?verify=${encodeURIComponent(serialNumber)}`;
 
   return (
     <div
+      id="printable-certificate"
       className={`relative overflow-hidden transition-all duration-300 select-none ${
         isLandscape
           ? "aspect-[1.414/1] w-full max-w-4xl"
@@ -216,7 +309,7 @@ export function CertificateDocumentPreview({
           {/* Frame 2: Luxury Dark */}
           {frameStyle === "luxury_dark" && (
             <>
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-amber-500/10" />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-amber-500/5 via-transparent to-amber-500/10" />
               <div className="pointer-events-none absolute inset-3.5 rounded-xl border border-amber-500/30" />
               <div className="pointer-events-none absolute inset-5 rounded-lg border border-amber-400/20" />
               <div className="absolute top-4 left-4 size-6 border-t-2 border-l-2 border-amber-400" />
@@ -230,10 +323,10 @@ export function CertificateDocumentPreview({
           {frameStyle === "sport_champion" && (
             <>
               <div className="pointer-events-none absolute inset-3 rounded-xl border-2 border-blue-600/80" />
-              <div className="pointer-events-none absolute top-0 right-0 size-36 bg-gradient-to-bl from-blue-600/15 via-blue-500/5 to-transparent" />
-              <div className="pointer-events-none absolute bottom-0 left-0 size-36 bg-gradient-to-tr from-amber-500/15 via-amber-500/5 to-transparent" />
-              <div className="absolute top-3 left-3 h-1 w-16 bg-gradient-to-r from-blue-600 to-amber-500" />
-              <div className="absolute right-3 bottom-3 h-1 w-16 bg-gradient-to-l from-blue-600 to-amber-500" />
+              <div className="pointer-events-none absolute top-0 right-0 size-36 bg-linear-to-bl from-blue-600/15 via-blue-500/5 to-transparent" />
+              <div className="pointer-events-none absolute bottom-0 left-0 size-36 bg-linear-to-tr from-amber-500/15 via-amber-500/5 to-transparent" />
+              <div className="absolute top-3 left-3 h-1 w-16 bg-linear-to-r from-blue-600 to-amber-500" />
+              <div className="absolute right-3 bottom-3 h-1 w-16 bg-linear-to-l from-blue-600 to-amber-500" />
             </>
           )}
 
@@ -241,7 +334,7 @@ export function CertificateDocumentPreview({
           {frameStyle === "modern_minimal" && (
             <>
               <div className="pointer-events-none absolute inset-4 rounded-xl border border-zinc-200/90 dark:border-zinc-800" />
-              <div className="pointer-events-none absolute inset-x-12 top-4 h-1 bg-gradient-to-r from-transparent via-blue-600 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-12 top-4 h-1 bg-linear-to-r from-transparent via-blue-600 to-transparent" />
             </>
           )}
 
@@ -257,7 +350,10 @@ export function CertificateDocumentPreview({
       )}
 
       {/* Decorative SVG Watermarks (Non-obstructive Canva-style art layers) */}
-      <div className="pointer-events-none absolute inset-0 z-1 overflow-hidden opacity-10">
+      <div
+        className="pointer-events-none absolute inset-0 z-1 overflow-hidden"
+        style={{ opacity: (visualConfig.watermarkOpacity ?? 10) / 100 }}
+      >
         {layoutTemplate === "sports_voucher" && (
           <>
             <div className="absolute -top-6 -right-6">
@@ -296,79 +392,146 @@ export function CertificateDocumentPreview({
       {/* LAYER 2: VECTOR DYNAMIC OVERLAY (High Contrast Canva-style Typography) */}
       {/* ========================================================================= */}
       <div className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-7 md:p-8">
-        {/* Top Header: Logo + Club Title + Serial Number */}
-        <div
-          className={`flex items-start justify-between border-b pb-2.5 ${
-            isAiBackground && isLightText
-              ? "border-white/20"
-              : "border-zinc-200/60 dark:border-zinc-800/80"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/60 bg-white p-1 shadow-md sm:size-12">
-              <div className="relative size-9 sm:size-10">
+        {/* Top Header: Adaptive Layout (Landscape vs Portrait) */}
+        {isLandscape ? (
+          <div
+            className={`flex items-start justify-between border-b pb-2.5 ${
+              isAiBackground && isLightText
+                ? "border-white/20"
+                : "border-zinc-200/60 dark:border-zinc-800/80"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/60 bg-white p-1 shadow-md sm:size-12">
+                <div className="relative size-9 sm:size-10">
+                  <Image
+                    src={orgLogo}
+                    alt={orgName}
+                    fill
+                    sizes="40px"
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+              </div>
+              <div>
+                <span
+                  style={
+                    visualConfig.customTextColor
+                      ? { color: visualConfig.customTextColor }
+                      : undefined
+                  }
+                  className={`block text-xs font-black tracking-wider uppercase sm:text-sm ${
+                    isAiBackground && isLightText
+                      ? "text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]"
+                      : isLuxuryDark
+                        ? "text-amber-400"
+                        : "text-zinc-900 dark:text-white"
+                  }`}
+                >
+                  {orgName}
+                </span>
+                <p
+                  className={`text-[9px] font-semibold tracking-wide uppercase sm:text-[10px] ${
+                    isAiBackground && isLightText
+                      ? "text-white/80 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
+                      : isLuxuryDark
+                        ? "text-zinc-400"
+                        : "text-zinc-500"
+                  }`}
+                >
+                  {orgSubtitle}
+                </p>
+              </div>
+            </div>
+
+            {/* Serial Number & Official Badge */}
+            <div className="flex flex-col items-end text-right">
+              <div
+                className={`rounded-xl border px-2.5 py-1 font-mono text-xs font-black shadow-xs ${
+                  isAiBackground && isLightText
+                    ? "border-amber-400/50 bg-black/60 text-amber-300 backdrop-blur-sm"
+                    : isLuxuryDark
+                      ? "border-amber-500/40 bg-zinc-900 text-amber-400"
+                      : "border-blue-200 bg-white text-blue-900 dark:bg-zinc-900 dark:text-blue-300"
+                }`}
+              >
+                № {serialNumber}
+              </div>
+              <span
+                className={`mt-0.5 text-[9px] font-bold tracking-tighter uppercase ${
+                  isAiBackground && isLightText
+                    ? "text-white/70"
+                    : isLuxuryDark
+                      ? "text-zinc-400"
+                      : "text-zinc-400"
+                }`}
+              >
+                Дигитално удостоверен
+              </span>
+            </div>
+          </div>
+        ) : (
+          /* Portrait Header: Centered Logo + Club Title */
+          <div
+            className={`relative flex flex-col items-center justify-center border-b pb-3 text-center ${
+              isAiBackground && isLightText
+                ? "border-white/20"
+                : "border-zinc-200/60 dark:border-zinc-800/80"
+            }`}
+          >
+            <div className="absolute top-0 right-0 text-right">
+              <span className="rounded-lg border border-white/20 bg-black/50 px-2 py-0.5 font-mono text-[9px] font-bold text-amber-300 backdrop-blur-sm sm:text-[10px]">
+                № {serialNumber}
+              </span>
+            </div>
+
+            <div className="relative mb-1.5 flex size-13 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/80 bg-white p-1.5 shadow-lg sm:size-15">
+              <div className="relative size-10 sm:size-11">
                 <Image
                   src={orgLogo}
                   alt={orgName}
                   fill
-                  sizes="40px"
+                  sizes="64px"
                   className="object-contain"
                   unoptimized
                 />
               </div>
             </div>
-            <div>
-              <span
-                className={`block text-xs font-black tracking-wider uppercase sm:text-sm ${
-                  isAiBackground && isLightText
-                    ? "text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]"
-                    : isLuxuryDark
-                      ? "text-amber-400"
-                      : "text-zinc-900 dark:text-white"
-                }`}
-              >
-                {orgName}
-              </span>
-              <p
-                className={`text-[9px] font-semibold tracking-wide uppercase sm:text-[10px] ${
-                  isAiBackground && isLightText
-                    ? "text-white/80 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
-                    : isLuxuryDark
-                      ? "text-zinc-400"
-                      : "text-zinc-500"
-                }`}
-              >
-                {orgSubtitle}
-              </p>
-            </div>
-          </div>
-
-          {/* Serial Number & Official Badge */}
-          <div className="flex flex-col items-end text-right">
-            <div
-              className={`rounded-xl border px-2.5 py-1 font-mono text-xs font-black shadow-xs ${
+            <span
+              style={
+                visualConfig.customTextColor
+                  ? { color: visualConfig.customTextColor }
+                  : undefined
+              }
+              className={`block text-xs font-black tracking-wider uppercase sm:text-sm md:text-base ${
                 isAiBackground && isLightText
-                  ? "border-amber-400/50 bg-black/60 text-amber-300 backdrop-blur-sm"
+                  ? "text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]"
                   : isLuxuryDark
-                    ? "border-amber-500/40 bg-zinc-900 text-amber-400"
-                    : "border-blue-200 bg-white text-blue-900 dark:bg-zinc-900 dark:text-blue-300"
+                    ? "text-amber-400"
+                    : "text-zinc-900 dark:text-white"
               }`}
             >
-              № {serialNumber}
-            </div>
-            <span
-              className={`mt-0.5 text-[9px] font-bold tracking-tighter uppercase ${
+              {orgName}
+            </span>
+            <p
+              className={`text-[9px] font-semibold tracking-wide uppercase sm:text-[10px] ${
                 isAiBackground && isLightText
-                  ? "text-white/70"
+                  ? "text-white/80 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
                   : isLuxuryDark
                     ? "text-zinc-400"
-                    : "text-zinc-400"
+                    : "text-zinc-500"
               }`}
             >
-              Дигитално удостоверен
-            </span>
+              {orgSubtitle}
+            </p>
+            {eventDate && (
+              <span className="mt-0.5 text-[8px] font-bold tracking-widest text-amber-400 uppercase sm:text-[9px]">
+                {eventDate} {eventLocation ? `• ${eventLocation}` : ""}
+              </span>
+            )}
           </div>
-        </div>
+        )}
 
         {/* ========================================================================= */}
         {/* CENTERPIECE LAYOUTS (Switch based on layoutTemplate) */}
@@ -377,15 +540,17 @@ export function CertificateDocumentPreview({
         {/* LAYOUT A: SPORTS VOUCHER / FLYER */}
         {layoutTemplate === "sports_voucher" && (
           <div className="space-y-2 py-1 text-center">
-            {/* Highlight Banner: + [ X ] FREE SESSIONS */}
-            <div className="inline-flex animate-pulse items-center gap-2 rounded-2xl border border-amber-300/40 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 px-5 py-2 text-white shadow-lg">
+            {/* Highlight Banner: Voucher Value or Free Sessions */}
+            <div className="inline-flex animate-pulse items-center gap-2 rounded-2xl border border-amber-300/40 bg-linear-to-r from-amber-500 via-orange-500 to-amber-500 px-5 py-2 text-white shadow-lg">
               <BadmintonShuttlecockSvg
                 className="size-6 text-white"
                 primaryColor="#FFFFFF"
                 secondaryColor="#FEF08A"
               />
               <span className="text-sm font-black tracking-wider uppercase sm:text-base">
-                + {freeSessionsCount} БЕЗПЛАТНИ ТРЕНИРОВКИ
+                {visualConfig.voucherValue
+                  ? visualConfig.voucherValue
+                  : `+ ${freeSessionsCount} БЕЗПЛАТНИ ТРЕНИРОВКИ`}
               </span>
               <Sparkles className="size-4" />
             </div>
@@ -426,6 +591,52 @@ export function CertificateDocumentPreview({
                 </p>
               )}
             </div>
+
+            {/* Voucher Service, PromoCode & Expiry Details */}
+            {(visualConfig.voucherServiceType ||
+              visualConfig.voucherPromoCode ||
+              visualConfig.voucherExpiryDate ||
+              validUntil) && (
+              <div className="mx-auto flex max-w-lg flex-wrap items-center justify-center gap-2 pt-1 text-xs">
+                {visualConfig.voucherServiceType && (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-xl border px-3 py-1 font-bold ${
+                      isAiBackground && isLightText
+                        ? "border-amber-400/50 bg-amber-500/20 text-amber-200"
+                        : "border-amber-400 bg-amber-50 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200"
+                    }`}
+                  >
+                    🎯 Валиден за: {visualConfig.voucherServiceType}
+                  </span>
+                )}
+                {visualConfig.voucherPromoCode && (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-xl border px-3 py-1 font-mono font-black ${
+                      isAiBackground && isLightText
+                        ? "border-amber-400/40 bg-black/60 text-amber-300"
+                        : "border-zinc-300 bg-zinc-100 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                    }`}
+                  >
+                    🎟️ КОД: {visualConfig.voucherPromoCode}
+                  </span>
+                )}
+                {(visualConfig.voucherExpiryDate || validUntil) && (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-xl border px-3 py-1 font-semibold ${
+                      isAiBackground && isLightText
+                        ? "border-white/20 bg-white/10 text-white/90"
+                        : "border-zinc-200 bg-zinc-50 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                    }`}
+                  >
+                    ⏳ Валиден до:{" "}
+                    {visualConfig.voucherExpiryDate ||
+                      (validUntil
+                        ? new Date(validUntil).toLocaleDateString("bg-BG")
+                        : "")}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Contact & Venue Details */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-1 text-xs">
@@ -473,7 +684,7 @@ export function CertificateDocumentPreview({
               {/* Rank Badge */}
               {visualConfig.showBadge && (
                 <div className="flex justify-center pt-1">
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 px-4 py-1 text-xs font-black text-zinc-950 shadow-md">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-linear-to-r from-amber-400 via-yellow-400 to-amber-500 px-4 py-1 text-xs font-black text-zinc-950 shadow-md">
                     <Trophy className="size-3.5 shrink-0" />
                     <span>{getRankLabel(rank)}</span>
                   </div>
@@ -673,194 +884,575 @@ export function CertificateDocumentPreview({
         )}
 
         {/* ========================================================================= */}
-        {/* BOTTOM SECTION: QR Code + Dual Signatures + Club Seal */}
+        {/* BOTTOM SECTION: Adaptive for Landscape vs Portrait */}
         {/* ========================================================================= */}
-        <div
-          className={`flex items-end justify-between border-t pt-2.5 ${
-            isAiBackground && isLightText
-              ? "border-white/20"
-              : "border-zinc-200/60 dark:border-zinc-800/80"
-          }`}
-        >
-          {/* Left: QR Code Verification Block */}
-          <div className="flex items-center gap-2.5">
-            <div className="relative flex size-13 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white bg-white p-1 shadow-md sm:size-14">
-              {qrCodeDataUrl ? (
-                <div className="relative size-11 sm:size-12">
-                  <Image
-                    src={qrCodeDataUrl}
-                    alt="QR код за верификация"
-                    fill
-                    sizes="48px"
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <QrCodeIcon className="size-9 text-zinc-900" />
-              )}
-            </div>
-            <div className="text-left">
-              <span
-                className={`block text-[8px] font-bold tracking-wider uppercase sm:text-[9px] ${
-                  isAiBackground && isLightText
-                    ? "text-white/80"
-                    : "text-zinc-400"
-                }`}
-              >
-                Сканирай за валидация
-              </span>
-              <p
-                className={`font-mono text-[9px] font-bold sm:text-[10px] ${
-                  isAiBackground && isLightText
-                    ? "text-amber-300"
-                    : "text-zinc-700 dark:text-zinc-300"
-                }`}
-              >
-                {verifyDomain}
-                <span className="block text-[8px] font-normal opacity-75">
-                  {verifyPath}
-                </span>
-              </p>
-            </div>
-          </div>
-
-          {/* Center: Digital Official Golden Stamp */}
-          <div className="hidden flex-col items-center justify-center sm:flex">
+        {isLandscape ? (
+          /* Landscape Bottom */
+          <>
             <div
-              className={`flex size-14 items-center justify-center rounded-full border-2 p-1 text-center shadow-md sm:size-15 ${
+              className={`flex items-end justify-between border-t pt-2.5 ${
                 isAiBackground && isLightText
-                  ? "border-amber-400 bg-black/40 text-amber-300 backdrop-blur-sm"
-                  : isLuxuryDark
-                    ? "border-amber-400 text-amber-400"
-                    : "border-amber-600 text-amber-700 dark:border-amber-400 dark:text-amber-400"
+                  ? "border-white/20"
+                  : "border-zinc-200/60 dark:border-zinc-800/80"
               }`}
             >
-              <div className="flex size-full flex-col items-center justify-center rounded-full border border-dashed border-current p-0.5">
-                <Award className="mb-0.5 size-3.5" />
-                <span className="text-[7px] leading-none font-black tracking-tighter uppercase">
-                  ОФИЦИАЛЕН
-                </span>
-                <span className="text-[6px] leading-none font-bold tracking-tighter">
-                  ПЕЧАТ • 2026
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Signatures (Dual support if coSignatory present) */}
-          <div className="flex items-end gap-4 text-right">
-            {visualConfig.coSignatoryName && (
-              <div className="space-y-0.5">
-                <div
-                  className={`font-serif text-xs font-semibold italic ${
-                    isAiBackground && isLightText
-                      ? "text-white"
-                      : "text-zinc-700 dark:text-zinc-300"
-                  }`}
-                >
-                  {visualConfig.coSignatoryName}
+              {/* Left: QR Code Verification Block */}
+              {visualConfig.showQrCode !== false && (
+                <div className="flex items-center gap-2.5">
+                  <div className="relative flex size-13 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white bg-white p-1 shadow-md sm:size-14">
+                    {qrCodeDataUrl ? (
+                      <div className="relative size-11 sm:size-12">
+                        <Image
+                          src={qrCodeDataUrl}
+                          alt="QR код за верификация"
+                          fill
+                          sizes="48px"
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <QrCodeIcon className="size-9 text-zinc-900" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <span
+                      className={`block text-[8px] font-bold tracking-wider uppercase sm:text-[9px] ${
+                        isAiBackground && isLightText
+                          ? "text-white/80"
+                          : "text-zinc-400"
+                      }`}
+                    >
+                      Сканирай за валидация
+                    </span>
+                    <p
+                      className={`font-mono text-[9px] font-bold sm:text-[10px] ${
+                        isAiBackground && isLightText
+                          ? "text-amber-300"
+                          : "text-zinc-700 dark:text-zinc-300"
+                      }`}
+                    >
+                      {verifyDomain}
+                      <span className="block text-[8px] font-normal opacity-75">
+                        {verifyPath}
+                      </span>
+                    </p>
+                  </div>
                 </div>
+              )}
+
+              {/* Center: Digital Official Golden Stamp */}
+              {visualConfig.showSeal !== false && (
+                <div className="hidden flex-col items-center justify-center sm:flex">
+                  <DigitalOfficialSeal
+                    style={visualConfig.sealStyle}
+                    customSealUrl={visualConfig.customSealUrl}
+                    isLightText={isLightText}
+                    isLuxuryDark={isLuxuryDark}
+                    sizeClass="size-14 sm:size-15"
+                  />
+                </div>
+              )}
+
+              {/* Right: Signatures (Dual support if coSignatory present) */}
+              {visualConfig.showSignatures !== false && (
+                <div className="flex items-end gap-4 text-right">
+                  {visualConfig.coSignatoryName && (
+                    <div className="space-y-0.5">
+                      <div
+                        className={`font-serif text-xs font-semibold italic ${
+                          isAiBackground && isLightText
+                            ? "text-white"
+                            : "text-zinc-700 dark:text-zinc-300"
+                        }`}
+                      >
+                        {visualConfig.coSignatoryName}
+                      </div>
+                      <div
+                        className={`ml-auto h-0.5 w-24 ${
+                          isAiBackground && isLightText
+                            ? "border-b border-amber-300/80"
+                            : "border-b border-zinc-400/80"
+                        }`}
+                      />
+                      <p
+                        className={`text-[9px] font-medium ${
+                          isAiBackground && isLightText
+                            ? "text-white/80"
+                            : "text-zinc-500"
+                        }`}
+                      >
+                        {visualConfig.coSignatoryTitle || "Директор"}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-0.5">
+                    <div
+                      className={`font-serif text-xs font-semibold italic sm:text-sm ${
+                        isAiBackground && isLightText
+                          ? "text-white"
+                          : "text-zinc-700 dark:text-zinc-300"
+                      }`}
+                    >
+                      {visualConfig.signatoryName || "Димитър Иванов"}
+                    </div>
+                    <div
+                      className={`ml-auto h-0.5 w-28 ${
+                        isAiBackground && isLightText
+                          ? "border-b border-amber-300/80"
+                          : "border-b border-zinc-400/80"
+                      }`}
+                    />
+                    <p
+                      className={`text-[9px] font-medium sm:text-[10px] ${
+                        isAiBackground && isLightText
+                          ? "text-white/80"
+                          : "text-zinc-500"
+                      }`}
+                    >
+                      {visualConfig.signatoryTitle || "Председател на УС"}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Sponsor Logos Strip */}
+            {visualConfig.showSponsors !== false &&
+              activeSponsors.length > 0 && (
                 <div
-                  className={`ml-auto h-0.5 w-24 ${
+                  className={`mt-1.5 flex flex-col items-center gap-1 border-t pt-1.5 ${
                     isAiBackground && isLightText
-                      ? "border-b border-amber-300/80"
-                      : "border-b border-zinc-400/80"
-                  }`}
-                />
-                <p
-                  className={`text-[9px] font-medium ${
-                    isAiBackground && isLightText
-                      ? "text-white/80"
-                      : "text-zinc-500"
+                      ? "border-white/15"
+                      : "border-zinc-100 dark:border-zinc-800/60"
                   }`}
                 >
-                  {visualConfig.coSignatoryTitle || "Директор"}
-                </p>
+                  <span
+                    className={`text-[8px] font-bold tracking-wider uppercase sm:text-[9px] ${
+                      isAiBackground && isLightText
+                        ? "text-white/70"
+                        : "text-zinc-400"
+                    }`}
+                  >
+                    Партньори & Спонсори
+                  </span>
+                  <div
+                    className={`flex flex-wrap items-center justify-center gap-3 sm:gap-5 ${
+                      isAiBackground && isLightText
+                        ? "rounded-full border border-white/10 bg-black/30 px-3 py-0.5 backdrop-blur-md"
+                        : ""
+                    }`}
+                  >
+                    {activeSponsors
+                      .filter((sp) => Boolean(sp.logoUrl))
+                      .slice(0, 6)
+                      .map((sp) => (
+                        <div
+                          key={sp.id}
+                          className="relative flex h-5 w-16 items-center justify-center opacity-90 transition-opacity hover:opacity-100 sm:h-6 sm:w-20"
+                          title={sp.name}
+                        >
+                          <Image
+                            src={sp.logoUrl}
+                            alt={sp.name}
+                            fill
+                            sizes="80px"
+                            className={`object-contain filter ${
+                              isAiBackground && isLightText
+                                ? "brightness-200 contrast-125 drop-shadow-xs"
+                                : "contrast-125 grayscale dark:brightness-200"
+                            }`}
+                            unoptimized
+                          />
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+          </>
+        ) : (
+          /* Portrait Bottom: Balanced Multi-Row Layout */
+          <div
+            className={`flex flex-col gap-2 border-t pt-2 ${
+              isAiBackground && isLightText
+                ? "border-white/20"
+                : "border-zinc-200/60 dark:border-zinc-800/80"
+            }`}
+          >
+            {/* Signatures across top of footer */}
+            {visualConfig.showSignatures !== false && (
+              <div className="flex items-end justify-between px-2 text-center">
+                {visualConfig.coSignatoryName ? (
+                  <div className="space-y-0.5 text-left">
+                    <div
+                      className={`font-serif text-xs font-semibold italic ${
+                        isAiBackground && isLightText
+                          ? "text-white"
+                          : "text-zinc-700 dark:text-zinc-300"
+                      }`}
+                    >
+                      {visualConfig.coSignatoryName}
+                    </div>
+                    <div
+                      className={`h-0.5 w-20 sm:w-24 ${
+                        isAiBackground && isLightText
+                          ? "border-b border-amber-300/80"
+                          : "border-b border-zinc-400/80"
+                      }`}
+                    />
+                    <p
+                      className={`text-[8px] font-medium sm:text-[9px] ${
+                        isAiBackground && isLightText
+                          ? "text-white/80"
+                          : "text-zinc-500"
+                      }`}
+                    >
+                      {visualConfig.coSignatoryTitle || "Директор"}
+                    </p>
+                  </div>
+                ) : (
+                  <div />
+                )}
+
+                <div className="space-y-0.5 text-right">
+                  <div
+                    className={`font-serif text-xs font-semibold italic sm:text-sm ${
+                      isAiBackground && isLightText
+                        ? "text-white"
+                        : "text-zinc-700 dark:text-zinc-300"
+                    }`}
+                  >
+                    {visualConfig.signatoryName || "Димитър Иванов"}
+                  </div>
+                  <div
+                    className={`ml-auto h-0.5 w-24 sm:w-28 ${
+                      isAiBackground && isLightText
+                        ? "border-b border-amber-300/80"
+                        : "border-b border-zinc-400/80"
+                    }`}
+                  />
+                  <p
+                    className={`text-[8px] font-medium sm:text-[9px] ${
+                      isAiBackground && isLightText
+                        ? "text-white/80"
+                        : "text-zinc-500"
+                    }`}
+                  >
+                    {visualConfig.signatoryTitle || "Председател на УС"}
+                  </p>
+                </div>
               </div>
             )}
 
-            <div className="space-y-0.5">
-              <div
-                className={`font-serif text-xs font-semibold italic sm:text-sm ${
-                  isAiBackground && isLightText
-                    ? "text-white"
-                    : "text-zinc-700 dark:text-zinc-300"
-                }`}
-              >
-                {visualConfig.signatoryName || "Димитър Иванов"}
+            {/* QR Code and Official Golden Stamp aligned in center */}
+            {(visualConfig.showQrCode !== false ||
+              visualConfig.showSeal !== false) && (
+              <div className="flex items-center justify-center gap-6 py-0.5">
+                {visualConfig.showQrCode !== false && (
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white bg-white p-0.5 shadow-sm">
+                      {qrCodeDataUrl ? (
+                        <div className="relative size-9">
+                          <Image
+                            src={qrCodeDataUrl}
+                            alt="QR код за верификация"
+                            fill
+                            sizes="36px"
+                            className="object-contain"
+                            unoptimized
+                          />
+                        </div>
+                      ) : (
+                        <QrCodeIcon className="size-7 text-zinc-900" />
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-[8px] font-bold text-white/80 uppercase">
+                        Проверка
+                      </span>
+                      <span className="font-mono text-[8px] font-semibold text-amber-300">
+                        № {serialNumber}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {visualConfig.showSeal !== false && (
+                  <DigitalOfficialSeal
+                    style={visualConfig.sealStyle}
+                    customSealUrl={visualConfig.customSealUrl}
+                    isLightText={isLightText}
+                    isLuxuryDark={isLuxuryDark}
+                    sizeClass="size-10 sm:size-11"
+                  />
+                )}
               </div>
-              <div
-                className={`ml-auto h-0.5 w-28 ${
-                  isAiBackground && isLightText
-                    ? "border-b border-amber-300/80"
-                    : "border-b border-zinc-400/80"
-                }`}
-              />
-              <p
-                className={`text-[9px] font-medium sm:text-[10px] ${
-                  isAiBackground && isLightText
-                    ? "text-white/80"
-                    : "text-zinc-500"
-                }`}
-              >
-                {visualConfig.signatoryTitle || "Председател на УС"}
-              </p>
-            </div>
+            )}
+
+            {/* Sponsors in Compact Multi-column Grid */}
+            {visualConfig.showSponsors !== false &&
+              activeSponsors.length > 0 && (
+                <div className="border-t border-white/10 pt-1 text-center">
+                  <span className="block pb-0.5 text-[8px] font-bold text-white/60 uppercase">
+                    Партньори
+                  </span>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {activeSponsors
+                      .filter((sp) => Boolean(sp.logoUrl))
+                      .slice(0, 6)
+                      .map((sp) => (
+                        <div
+                          key={sp.id}
+                          className="relative flex h-4 w-12 items-center justify-center opacity-80 sm:h-5 sm:w-16"
+                          title={sp.name}
+                        >
+                          <Image
+                            src={sp.logoUrl}
+                            alt={sp.name}
+                            fill
+                            sizes="60px"
+                            className="object-contain brightness-200 contrast-125"
+                            unoptimized
+                          />
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * ============================================================================
+ * CERTIFICATE BACKSIDE PREVIEW (Гръб на двустранната грамота / сертификат)
+ * ============================================================================
+ * - Стил „Треньорско послание и пожелание“ (coach_message)
+ * - Стил „Турнирен протокол и статистика“ (tournament_protocol)
+ */
+export function CertificateBacksidePreview({
+  data,
+  className = "",
+  elementId = "printable-certificate-back",
+}: {
+  data: CertificatePreviewData;
+  className?: string;
+  elementId?: string;
+}) {
+  const {
+    siteId,
+    visualConfig,
+    serialNumber = "BKG-2026-DEMO",
+    qrCodeDataUrl,
+    recipientName = "Иван Петров Димитров",
+    eventTitle = "Общински Турнир по Бадминтон „Гълъбово 2026“",
+    eventDate = new Date().toLocaleDateString("bg-BG"),
+    eventLocation = "Спортен Комплекс „Енергетик“, гр. Гълъбово",
+    rank = "1st",
+  } = data;
+
+  const isLandscape = visualConfig.orientation !== "portrait";
+  const backsideStyle = visualConfig.backsideStyle || "coach_message";
+  const isRecoveryZone = siteId === "recoveryzone";
+
+  return (
+    <div
+      id={elementId}
+      className={`relative overflow-hidden rounded-2xl border-4 border-amber-500/40 bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-5 text-white shadow-2xl transition-all duration-300 sm:p-7 ${
+        isLandscape ? "aspect-[1.414/1] w-full" : "aspect-[1/1.414] w-full"
+      } ${className}`}
+    >
+      {/* Decorative Golden Corner Accents */}
+      <div className="pointer-events-none absolute inset-2 rounded-xl border border-dashed border-amber-400/30 sm:inset-3" />
+      <div className="pointer-events-none absolute top-4 left-4 size-6 border-t-2 border-l-2 border-amber-400" />
+      <div className="pointer-events-none absolute top-4 right-4 size-6 border-t-2 border-r-2 border-amber-400" />
+      <div className="pointer-events-none absolute bottom-4 left-4 size-6 border-b-2 border-l-2 border-amber-400" />
+      <div className="pointer-events-none absolute bottom-4 right-4 size-6 border-b-2 border-r-2 border-amber-400" />
+
+      {/* Subtle Central Watermark */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-5">
+        <CrossedRacketsSvg
+          className="size-72"
+          primaryColor="#F59E0B"
+          secondaryColor="#F59E0B"
+        />
+      </div>
+
+      {/* Main Content Layout */}
+      <div className="relative z-10 flex h-full flex-col justify-between">
+        {/* Header */}
+        <div className="border-b border-amber-500/30 pb-3 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <CrossedRacketsSvg
+              className="size-5 text-amber-400"
+              primaryColor="#F59E0B"
+              secondaryColor="#FEF08A"
+            />
+            <span className="text-xs font-black tracking-widest text-amber-400 uppercase sm:text-sm">
+              {isRecoveryZone
+                ? "RECOVERY ZONE BY ZM • ОФИЦИАЛЕН ДОКУМЕНТ"
+                : "БАДМИНТОН КЛУБ ГЪЛЪБОВО • ОФИЦИАЛЕН ДОКУМЕНТ"}
+            </span>
+            <CrossedRacketsSvg
+              className="size-5 text-amber-400"
+              primaryColor="#F59E0B"
+              secondaryColor="#FEF08A"
+            />
+          </div>
+          <h3 className="mt-1 font-serif text-base font-bold text-amber-200 sm:text-lg">
+            {visualConfig.backsideTitle ||
+              (backsideStyle === "coach_message"
+                ? "Послание от Треньорския Щаб & Клубното Ръководство"
+                : "Официален Турнирен Протокол & Регламент")}
+          </h3>
+          <p className="text-[10px] text-zinc-400">
+            Сериен номер:{" "}
+            <span className="font-mono font-bold text-amber-300">
+              {serialNumber}
+            </span>{" "}
+            • Дата на издаване: {eventDate}
+          </p>
         </div>
 
-        {/* Footer Sponsor Logos Strip */}
-        {activeSponsors.length > 0 && (
-          <div
-            className={`mt-1.5 flex flex-col items-center gap-1 border-t pt-1.5 ${
-              isAiBackground && isLightText
-                ? "border-white/15"
-                : "border-zinc-100 dark:border-zinc-800/60"
-            }`}
-          >
-            <span
-              className={`text-[8px] font-bold tracking-wider uppercase sm:text-[9px] ${
-                isAiBackground && isLightText
-                  ? "text-white/70"
-                  : "text-zinc-400"
-              }`}
-            >
-              Партньори & Спонсори
-            </span>
-            <div
-              className={`flex flex-wrap items-center justify-center gap-3 sm:gap-5 ${
-                isAiBackground && isLightText
-                  ? "rounded-full border border-white/10 bg-black/30 px-3 py-0.5 backdrop-blur-md"
-                  : ""
-              }`}
-            >
-              {activeSponsors
-                .filter((sp) => Boolean(sp.logoUrl))
-                .slice(0, 6)
-                .map((sp) => (
-                  <div
-                    key={sp.id}
-                    className="relative flex h-5 w-16 items-center justify-center opacity-90 transition-opacity hover:opacity-100 sm:h-6 sm:w-20"
-                    title={sp.name}
-                  >
-                    <Image
-                      src={sp.logoUrl}
-                      alt={sp.name}
-                      fill
-                      sizes="80px"
-                      className={`object-contain filter ${
-                        isAiBackground && isLightText
-                          ? "brightness-200 contrast-125 drop-shadow-xs"
-                          : "contrast-125 grayscale dark:brightness-200"
-                      }`}
-                      unoptimized
-                    />
-                  </div>
-                ))}
+        {/* Center: Message or Protocol */}
+        {backsideStyle === "coach_message" ? (
+          /* СТИЛ 1: Треньорско послание */
+          <div className="my-auto space-y-4 px-4 py-2 text-center">
+            <div className="mx-auto max-w-xl rounded-2xl border border-amber-400/20 bg-black/40 p-4 shadow-inner backdrop-blur-sm sm:p-5">
+              <span className="block font-serif text-3xl text-amber-400">
+                “
+              </span>
+              <p className="font-serif text-sm leading-relaxed text-zinc-200 italic sm:text-base">
+                {visualConfig.backsideMessage ||
+                  `Скъпи ${recipientName}, твоят устрем, спортна дисциплина и постоянство в тренировъчния процес са истинското вдъхновение за целия клуб. Продължавай да летиш високо, да преодоляваш всяко предизвикателство с достойнство и да обичаш играта!`}
+              </p>
+              <span className="block text-right font-serif text-3xl text-amber-400">
+                ”
+              </span>
+            </div>
+
+            {/* Handwritten Coach Autograph Box */}
+            <div className="mx-auto max-w-md rounded-xl border border-dashed border-amber-500/40 bg-white/5 p-3 text-left">
+              <p className="text-[11px] font-semibold text-amber-300">
+                ✍️ Личен автограф и пожелание от треньора:
+              </p>
+              <div className="mt-4 border-b border-dashed border-zinc-600 pb-1" />
+              <div className="mt-3 border-b border-dashed border-zinc-600 pb-1" />
+            </div>
+          </div>
+        ) : (
+          /* СТИЛ 2: Турнирен протокол */
+          <div className="my-auto space-y-3 px-4 py-2">
+            <div className="rounded-xl border border-amber-400/20 bg-black/40 p-3 backdrop-blur-sm sm:p-4">
+              <h4 className="mb-2 text-xs font-bold text-amber-300 uppercase sm:text-sm">
+                📋 Данни за състезателната изява:
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                <div className="rounded-lg bg-zinc-800/80 p-2">
+                  <span className="block text-[10px] text-zinc-400">
+                    Турнир:
+                  </span>
+                  <span className="font-semibold text-zinc-100">
+                    {eventTitle}
+                  </span>
+                </div>
+                <div className="rounded-lg bg-zinc-800/80 p-2">
+                  <span className="block text-[10px] text-zinc-400">
+                    Място & Зала:
+                  </span>
+                  <span className="font-semibold text-zinc-100">
+                    {eventLocation}
+                  </span>
+                </div>
+                <div className="rounded-lg bg-zinc-800/80 p-2">
+                  <span className="block text-[10px] text-zinc-400">
+                    Отличие:
+                  </span>
+                  <span className="font-bold text-amber-300">
+                    {getRankLabel(rank)}
+                  </span>
+                </div>
+                <div className="rounded-lg bg-zinc-800/80 p-2">
+                  <span className="block text-[10px] text-zinc-400">
+                    Статут:
+                  </span>
+                  <span className="font-bold text-emerald-400">
+                    Официално Валидиран
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-3 rounded-lg border border-white/10 bg-zinc-900/60 p-2.5 text-[11px] leading-relaxed text-zinc-300">
+                <p className="font-semibold text-amber-200">
+                  Официален правилник и верификация:
+                </p>
+                <p className="mt-0.5 text-zinc-400">
+                  Състезанието е проведено съгласно официалните стандарти на
+                  Българска Федерация Бадминтон (БФБ) и BWF. Резултатът е
+                  надлежно записан в архивния регистър на клуба под номер{" "}
+                  {serialNumber}.
+                </p>
+              </div>
             </div>
           </div>
         )}
+
+        {/* Footer: Signatures, Seal & QR Code */}
+        <div className="flex items-end justify-between border-t border-amber-500/30 pt-3">
+          {/* QR Verification */}
+          <div className="flex items-center gap-2">
+            {qrCodeDataUrl ? (
+              <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-amber-400/40 bg-white p-0.5 shadow-md">
+                <Image
+                  src={qrCodeDataUrl}
+                  alt="QR Код"
+                  fill
+                  sizes="48px"
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <div className="flex size-12 items-center justify-center rounded-lg border border-dashed border-amber-400/40 bg-white/5 text-amber-400">
+                <QrCodeIcon className="size-6" />
+              </div>
+            )}
+            <div className="text-[9px] text-zinc-400">
+              <span className="block font-bold text-amber-300 uppercase">
+                Дигитална проверка
+              </span>
+              <span>Сканирайте за верификация</span>
+            </div>
+          </div>
+
+          {/* Central Digital Seal */}
+          <div className="flex items-center justify-center">
+            <DigitalOfficialSeal
+              style={visualConfig.sealStyle}
+              customSealUrl={visualConfig.customSealUrl}
+              isLightText={true}
+              isLuxuryDark={true}
+              sizeClass="size-13 sm:size-14"
+            />
+          </div>
+
+          {/* Signatures */}
+          <div className="text-right">
+            <p className="font-serif text-sm font-black text-amber-300">
+              {visualConfig.backsideSignatory ||
+                visualConfig.signatoryName ||
+                "Димитър Иванов"}
+            </p>
+            <p className="text-[10px] text-zinc-400">
+              {visualConfig.signatoryTitle || "Главен треньор / Председател"}
+            </p>
+            <div className="mt-1 inline-block w-28 border-b border-amber-400/50" />
+          </div>
+        </div>
       </div>
     </div>
   );

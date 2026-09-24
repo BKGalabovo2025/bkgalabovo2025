@@ -74,7 +74,10 @@ const RZ_EXCLUSIVE_PREFIXES = [
 /**
  * Проверява дали даден URL маршрут е валиден за избрания клон/сайт.
  */
-export function isRouteValidForBranch(pathname: string, targetBranch: string): boolean {
+export function isRouteValidForBranch(
+  pathname: string,
+  targetBranch: string
+): boolean {
   if (!pathname) return true;
 
   if (targetBranch === "recoveryzone") {
@@ -99,10 +102,12 @@ export function isRouteValidForBranch(pathname: string, targetBranch: string): b
 /**
  * Връща безопасен URL за редирект, ако текущият маршрут не е валиден за новия клон.
  */
-export function getSafeRedirectForBranch(pathname: string, targetBranch: string): string {
+export function getSafeRedirectForBranch(
+  pathname: string,
+  targetBranch: string
+): string {
   if (!isRouteValidForBranch(pathname, targetBranch)) {
     return "/dashboard";
   }
   return pathname;
 }
-

@@ -57,7 +57,7 @@ export function AttachmentCard({
       transition={{ duration: 0.5, delay: (index + 1) * 0.1 }}
       className="group flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950/90 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]"
     >
-      <div className="relative flex h-64 w-full shrink-0 items-center justify-center overflow-hidden border-b border-zinc-900/80 bg-gradient-to-b from-zinc-900/60 to-zinc-950/80 p-6">
+      <div className="relative flex h-64 w-full shrink-0 items-center justify-center overflow-hidden border-b border-zinc-900/80 bg-linear-to-b from-zinc-900/60 to-zinc-950/80 p-6">
         <div className="relative size-full transform transition-transform duration-500 group-hover:scale-105">
           <Image
             src={resolveAttachmentImage(attachment.image, "/zones/legs.webp")}

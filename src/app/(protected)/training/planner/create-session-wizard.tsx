@@ -704,7 +704,7 @@ const SessionBlockItemCard = ({
 
                 {shortages.length > 0 && (
                   <div className="flex items-center gap-1 rounded border border-red-100 bg-red-50 p-1 text-[10px] text-red-600">
-                    <AlertTriangle className="size-3 flex-shrink-0" />
+                    <AlertTriangle className="size-3 shrink-0" />
                     <span>
                       Внимание:{" "}
                       {shortages
@@ -1470,7 +1470,7 @@ function SessionStep3Summary({
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl flex-shrink-0 space-y-8 overflow-y-auto p-6">
+    <div className="mx-auto w-full max-w-4xl shrink-0 space-y-8 overflow-y-auto p-6">
       <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <div className="mb-3 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <div>
@@ -2103,7 +2103,7 @@ function SessionStep2Library({
   return (
     <div
       className={cn(
-        "size-full min-h-0 flex-col gap-3 overflow-hidden border-t border-zinc-200 bg-white p-3 sm:p-4 lg:w-96 lg:flex-shrink-0 lg:border-t-0 lg:border-l dark:border-zinc-800 dark:bg-zinc-900",
+        "size-full min-h-0 flex-col gap-3 overflow-hidden border-t border-zinc-200 bg-white p-3 sm:p-4 lg:w-96 lg:shrink-0 lg:border-t-0 lg:border-l dark:border-zinc-800 dark:bg-zinc-900",
         mobileStep2Tab === "library" ? "flex flex-1" : "hidden lg:flex"
       )}
     >
@@ -2542,8 +2542,8 @@ export default function CreateSessionWizard({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-full max-w-7xl flex-col gap-0 overflow-hidden rounded-none bg-zinc-50 p-0 sm:h-[90vh] sm:max-h-[90vh] sm:rounded-2xl">
-        <DialogHeader className="z-10 flex-shrink-0 border-b border-zinc-200 bg-white p-3 sm:p-6 dark:border-zinc-800 dark:bg-zinc-950">
+      <DialogContent className="flex h-dvh max-h-dvh w-full max-w-7xl flex-col gap-0 overflow-hidden rounded-none bg-zinc-50 p-0 sm:h-[90vh] sm:max-h-[90vh] sm:rounded-2xl">
+        <DialogHeader className="z-10 shrink-0 border-b border-zinc-200 bg-white p-3 sm:p-6 dark:border-zinc-800 dark:bg-zinc-950">
           <DialogTitle className="text-base sm:text-xl">
             {initialSession
               ? "Редактиране на тренировка"
@@ -2557,7 +2557,7 @@ export default function CreateSessionWizard({
         </DialogHeader>
 
         {/* WIZARD HEADER */}
-        <div className="flex flex-shrink-0 justify-center gap-1.5 border-b border-zinc-200 bg-white p-2 text-xs font-medium sm:gap-6 sm:p-3 sm:text-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex shrink-0 justify-center gap-1.5 border-b border-zinc-200 bg-white p-2 text-xs font-medium sm:gap-6 sm:p-3 sm:text-sm dark:border-zinc-800 dark:bg-zinc-950">
           <div
             className={cn(
               "cursor-pointer rounded-full px-3 py-1.5 transition-colors sm:px-4 sm:py-2",
@@ -2764,7 +2764,7 @@ export default function CreateSessionWizard({
           )}
         </div>
 
-        <DialogFooter className="flex flex-shrink-0 items-center justify-between border-t border-zinc-200 bg-white p-4">
+        <DialogFooter className="flex shrink-0 items-center justify-between border-t border-zinc-200 bg-white p-4">
           <Button
             variant="outline"
             onClick={() => {

@@ -145,7 +145,7 @@ function FeedbackClientContent() {
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {/* Pending Moderation */}
-        <Card className="border-amber-200/80 bg-gradient-to-br from-amber-50/50 to-white shadow-2xs">
+        <Card className="border-amber-200/80 bg-linear-to-br from-amber-50/50 to-white shadow-2xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold tracking-wider text-amber-800 uppercase">
@@ -165,7 +165,7 @@ function FeedbackClientContent() {
         </Card>
 
         {/* Approved Public Reviews */}
-        <Card className="border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white shadow-2xs">
+        <Card className="border-emerald-200/80 bg-linear-to-br from-emerald-50/50 to-white shadow-2xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold tracking-wider text-emerald-800 uppercase">
@@ -183,7 +183,7 @@ function FeedbackClientContent() {
         </Card>
 
         {/* Average Rating */}
-        <Card className="border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 to-white shadow-2xs">
+        <Card className="border-indigo-200/80 bg-linear-to-br from-indigo-50/50 to-white shadow-2xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold tracking-wider text-indigo-900 uppercase">

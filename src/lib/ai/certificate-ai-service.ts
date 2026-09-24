@@ -434,3 +434,163 @@ export async function generateCertificateAiBackground(
     note: `Генериран уникален AI векторен дизайн (${procedural.themeName}, Вариант #${variantIndex + 1})!`,
   };
 }
+
+/**
+ * Интелигентен преводач и оптимизатор на български промптове за генеративни AI модели
+ */
+export async function translateAndEnhanceBulgarianPrompt(params: {
+  bulgarianPrompt: string;
+  targetAudience?: "kids" | "adults_pro" | "wellness";
+  documentType?: "award" | "certificate" | "voucher";
+  orientation?: "landscape" | "portrait";
+}): Promise<{ englishPrompt: string; enhancedKeywords: string[] }> {
+  const {
+    bulgarianPrompt,
+    targetAudience = "adults_pro",
+    documentType = "award",
+    orientation = "landscape",
+  } = params;
+
+  const rawGeminiKey = process.env.GEMINI_API_KEY?.trim() || "";
+  const geminiApiKey = rawGeminiKey.replace(/^["']|["']$/g, "");
+
+  // 1. Опит за превод през Gemini API, ако има наличен ключ
+  if (geminiApiKey) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: `You are an expert prompt engineer for AI image generators (DALL-E 3, Midjourney, Imagen).
+Translate this Bulgarian certificate background request into a descriptive English image generation prompt.
+Audience: ${targetAudience}. Document Type: ${documentType}. Orientation: ${orientation}.
+CRITICAL RULE: The prompt MUST explicitly demand a completely blank, empty, spacious center with NO text, NO letters, NO words, NO titles, so that vector typography can be printed on top.
+Bulgarian input: "${bulgarianPrompt}"
+Output ONLY the English prompt, without quotes or explanations.`,
+                  },
+                ],
+              },
+            ],
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const translated =
+          data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (translated) {
+          return {
+            englishPrompt: translated,
+            enhancedKeywords: [
+              "Gemini AI Translation",
+              targetAudience,
+              documentType,
+            ],
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Gemini translation fallback to deterministic rules:", e);
+    }
+  }
+
+  // 2. Интелигентна детерминистична експанзия и превод
+  const keywords: string[] = [];
+  let baseTone = "";
+
+  if (targetAudience === "kids") {
+    baseTone =
+      "Cheerful cute 3D Pixar-style children award background, playful vibrant colors, dynamic badminton rackets and shuttlecock in corner, golden celebratory stars and colorful confetti borders, happy energetic lighting";
+    keywords.push("детски", "ярки цветове", "конфети", "спортни елементи");
+  } else if (targetAudience === "wellness") {
+    baseTone =
+      "Peaceful zen wellness spa gift voucher background, soothing emerald green and soft warm gold palette, subtle lotus flower and bamboo silhouette accents, relaxing atmospheric lighting";
+    keywords.push("уелнес", "дзен спокойствие", "лотос", "меки градиенти");
+  } else {
+    baseTone =
+      "Prestigious championship award diploma background, luxury 24k gold filigree guilloche ornamental frame borders, royal navy blue and polished onyx marble texture, subtle volumetric arena spotlights, high-end ceremonial hallmark";
+    keywords.push("луксозен", "шампионско злато", "кралско синьо", "престиж");
+  }
+
+  // Детайли от съдържанието
+  const lowerBg = bulgarianPrompt.toLowerCase();
+  const additionalNuances: string[] = [];
+
+  if (lowerBg.includes("колед") || lowerBg.includes("зимен")) {
+    additionalNuances.push(
+      "festive winter holiday accents with delicate shimmering golden snowflakes along the frame"
+    );
+  }
+  if (
+    lowerBg.includes("шампион") ||
+    lowerBg.includes("1-во") ||
+    lowerBg.includes("злат")
+  ) {
+    additionalNuances.push(
+      "triumphant golden particles and winner laurel wreath accents"
+    );
+  }
+  if (lowerBg.includes("бадминтон") || lowerBg.includes("турнир")) {
+    additionalNuances.push(
+      "subtle abstract badminton flight trajectory motion lines in background"
+    );
+  }
+
+  const nuanceStr =
+    additionalNuances.length > 0 ? `, ${additionalNuances.join(", ")}` : "";
+
+  const englishPrompt = `${baseTone}${nuanceStr}, custom user theme: ${bulgarianPrompt}, completely blank empty spacious center with no text, no letters, no words, crystal clear middle area for printed typography, 8k resolution, cinematic lighting, masterpiece`;
+
+  return {
+    englishPrompt,
+    enhancedKeywords: keywords,
+  };
+}
+
+/**
+ * Генериране на партида от 2-3 вариации паралелно
+ */
+export async function generateCertificateAiBackgroundBatch(
+  params: GenerateCertificateAiBackgroundParams & {
+    count?: number;
+    batchOffset?: number;
+  }
+): Promise<GenerateCertificateAiBackgroundResult[]> {
+  const count = params.count ?? 3;
+  const offset = params.batchOffset ?? 0;
+
+  const promises = Array.from({ length: count }, (_, i) => {
+    return generateCertificateAiBackground({
+      ...params,
+      variantIndex: offset + i,
+    });
+  });
+
+  const settled = await Promise.allSettled(promises);
+  return settled.map((res, i) => {
+    if (res.status === "fulfilled") {
+      return res.value;
+    }
+    // Fallback if rejected
+    const fallback = generateProceduralAiCertificateBackground(
+      params.prompt,
+      params.theme,
+      params.orientation || "landscape",
+      offset + i
+    );
+    return {
+      success: true,
+      imageUrl: fallback.dataUrl,
+      providerUsed: "procedural_vector",
+      variantIndex: offset + i,
+      note: `Векторен дизайн (${fallback.themeName}, Вариант #${offset + i + 1})`,
+    };
+  });
+}

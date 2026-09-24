@@ -101,7 +101,7 @@ function RecoveryReviewCardItem({ rev, index }: ReviewCardProps) {
       transition={{ delay: index * 0.05 }}
       className="h-full"
     >
-      <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-b from-zinc-900/95 via-zinc-900/80 to-zinc-950/95 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] sm:p-7">
+      <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-emerald-500/20 bg-linear-to-b from-zinc-900/95 via-zinc-900/80 to-zinc-950/95 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] sm:p-7">
         <div className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-emerald-500/10 blur-2xl transition-all group-hover:bg-emerald-500/20" />
 
         <div className="space-y-4">
@@ -452,7 +452,7 @@ export default function RecoveryReviewsClient() {
 
         {/* Bottom CTA Banner */}
         {primarySurveyLink && (
-          <div className="mt-16 overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-zinc-900/90 to-emerald-950/40 p-8 text-center shadow-2xl backdrop-blur-xl sm:p-12">
+          <div className="mt-16 overflow-hidden rounded-3xl border border-emerald-500/30 bg-linear-to-r from-emerald-950/40 via-zinc-900/90 to-emerald-950/40 p-8 text-center shadow-2xl backdrop-blur-xl sm:p-12">
             <div className="mx-auto max-w-2xl space-y-4">
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
                 Вашето мнение е важно за нас

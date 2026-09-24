@@ -6,9 +6,11 @@ import {
   Check,
   CheckCircle2,
   Copy,
+  Download,
   ExternalLink,
   Eye,
   FileCheck2,
+  FileDown,
   Loader2,
   Plus,
   Printer,
@@ -34,6 +36,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  exportCertificatePdf,
+  exportCertificatePng,
+  printCertificate,
+} from "@/lib/certificate-export-helpers";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
 import {
   getCertificateTypeLabel,
@@ -68,6 +75,49 @@ export function IssuedCertificatesTab({
   const [redeemCert, setRedeemCert] = useState<IssuedCertificate | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isExportingPng, setIsExportingPng] = useState(false);
+
+  const handleExportPdf = async (cert: IssuedCertificate) => {
+    setIsExportingPdf(true);
+    try {
+      const fileName = `${cert.serialNumber}_${cert.recipient.name}.pdf`;
+      const orientation = cert.visualSnapshot.orientation || "landscape";
+      const ok = await exportCertificatePdf(
+        "printable-certificate",
+        fileName,
+        orientation
+      );
+      if (ok) {
+        toast.success("PDF документът е изтеглен успешно!");
+      } else {
+        toast.error("Неуспешен PDF експорт.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при PDF експорт.");
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleExportPng = async (cert: IssuedCertificate) => {
+    setIsExportingPng(true);
+    try {
+      const fileName = `${cert.serialNumber}_${cert.recipient.name}.png`;
+      const ok = await exportCertificatePng("printable-certificate", fileName);
+      if (ok) {
+        toast.success("High-res PNG изображението е изтеглено успешно!");
+      } else {
+        toast.error("Неуспешен PNG експорт.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при PNG експорт.");
+    } finally {
+      setIsExportingPng(false);
+    }
+  };
 
   const handleCopyLink = (cert: IssuedCertificate) => {
     const url = `${window.location.origin}/cert/${cert.id}`;
@@ -254,7 +304,7 @@ export function IssuedCertificatesTab({
 
             <Button
               onClick={onSwitchToIssue}
-              className="h-10 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+              className="h-10 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
             >
               <Plus className="mr-1.5 size-4" />
               Издай нов документ
@@ -436,7 +486,7 @@ export function IssuedCertificatesTab({
                             {/* Mini progress bar */}
                             <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
                               <div
-                                className="h-full rounded-full bg-gradient-to-r from-amber-500 to-emerald-500"
+                                className="h-full rounded-full bg-linear-to-r from-amber-500 to-emerald-500"
                                 style={{
                                   width: `${Math.min(100, (used / total) * 100)}%`,
                                 }}
@@ -533,14 +583,44 @@ export function IssuedCertificatesTab({
                 <span>Документ № {previewCert?.serialNumber}</span>
               </DialogTitle>
               {previewCert && (
-                <Button
-                  size="sm"
-                  onClick={() => window.print()}
-                  className="rounded-xl bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
-                >
-                  <Printer className="mr-1.5 size-3.5" />
-                  Принтирай
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => printCertificate()}
+                    className="gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+                  >
+                    <Printer className="size-3.5" />
+                    Принтирай
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleExportPdf(previewCert)}
+                    disabled={isExportingPdf}
+                    className="gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+                  >
+                    {isExportingPdf ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <FileDown className="size-3.5" />
+                    )}
+                    PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleExportPng(previewCert)}
+                    disabled={isExportingPng}
+                    className="gap-1.5 rounded-xl bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
+                  >
+                    {isExportingPng ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Download className="size-3.5" />
+                    )}
+                    PNG
+                  </Button>
+                </div>
               )}
             </div>
           </DialogHeader>

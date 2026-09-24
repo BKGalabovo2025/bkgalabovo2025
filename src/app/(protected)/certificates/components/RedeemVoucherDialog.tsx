@@ -100,7 +100,7 @@ export function RedeemVoucherDialog({
           {/* Progress bar */}
           <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all duration-300"
+              className="h-full rounded-full bg-linear-to-r from-amber-500 to-emerald-500 transition-all duration-300"
               style={{ width: `${Math.min(100, (used / total) * 100)}%` }}
             />
           </div>

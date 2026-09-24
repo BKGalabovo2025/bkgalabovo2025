@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getSafeRedirectForBranch, isRouteValidForBranch } from "@/config/sites";
+import {
+  getSafeRedirectForBranch,
+  isRouteValidForBranch,
+} from "@/config/sites";
 
 describe("Branch Routing & Safe Redirect Validation Suite", () => {
   describe("isRouteValidForBranch", () => {
@@ -66,24 +69,36 @@ describe("Branch Routing & Safe Redirect Validation Suite", () => {
     it("redirects to /dashboard when current route is invalid for target branch", () => {
       // User is on a court training session and switches to recoveryzone
       expect(
-        getSafeRedirectForBranch("/training/planner/session-123/active", "recoveryzone")
+        getSafeRedirectForBranch(
+          "/training/planner/session-123/active",
+          "recoveryzone"
+        )
       ).toBe("/dashboard");
 
       // User is on tournaments bracket and switches to recoveryzone
       expect(
-        getSafeRedirectForBranch("/tournaments/championship-2026", "recoveryzone")
+        getSafeRedirectForBranch(
+          "/tournaments/championship-2026",
+          "recoveryzone"
+        )
       ).toBe("/dashboard");
 
       // User is on recovery procedures and switches to bkgalabovo
-      expect(
-        getSafeRedirectForBranch("/finances/recovery", "bkgalabovo")
-      ).toBe("/dashboard");
+      expect(getSafeRedirectForBranch("/finances/recovery", "bkgalabovo")).toBe(
+        "/dashboard"
+      );
     });
 
     it("retains the current route when valid for target branch", () => {
-      expect(getSafeRedirectForBranch("/members", "recoveryzone")).toBe("/members");
-      expect(getSafeRedirectForBranch("/reports", "bkgalabovo")).toBe("/reports");
-      expect(getSafeRedirectForBranch("/dashboard", "recoveryzone")).toBe("/dashboard");
+      expect(getSafeRedirectForBranch("/members", "recoveryzone")).toBe(
+        "/members"
+      );
+      expect(getSafeRedirectForBranch("/reports", "bkgalabovo")).toBe(
+        "/reports"
+      );
+      expect(getSafeRedirectForBranch("/dashboard", "recoveryzone")).toBe(
+        "/dashboard"
+      );
     });
   });
 });

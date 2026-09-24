@@ -156,7 +156,7 @@ export function ShadowActiveScreen({
               {settings.mode === "agility_test" &&
               trainer.state === "working" ? (
                 <div className="space-y-1">
-                  <div className="bg-gradient-to-b from-red-400 to-red-700 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-8xl md:text-[9rem] lg:text-[10rem]">
+                  <div className="bg-linear-to-b from-red-400 to-red-700 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-8xl md:text-[9rem] lg:text-[10rem]">
                     {trainer.agilityActionsDone}
                   </div>
                   <p className="text-lg font-medium text-zinc-400">
@@ -195,7 +195,7 @@ export function ShadowActiveScreen({
                   })()}
                 </div>
               ) : (
-                <div className="bg-gradient-to-b from-white to-zinc-500 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-8xl md:text-[9rem] lg:text-[10rem]">
+                <div className="bg-linear-to-b from-white to-zinc-500 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-8xl md:text-[9rem] lg:text-[10rem]">
                   {trainer.timeRemaining}
                 </div>
               )}

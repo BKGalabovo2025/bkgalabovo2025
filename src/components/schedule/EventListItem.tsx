@@ -431,7 +431,7 @@ export const EventListItem = React.memo<EventListItemProps>(
                     <div className="min-w-0 flex-1">
                       <div
                         className={cn(
-                          "leading-relaxed break-words whitespace-pre-wrap transition-all",
+                          "leading-relaxed wrap-break-word whitespace-pre-wrap transition-all",
                           !isDescriptionExpanded &&
                             isLongDescription &&
                             "line-clamp-2 overflow-hidden"
@@ -467,7 +467,7 @@ export const EventListItem = React.memo<EventListItemProps>(
               )}
 
               {activeAttendeesWorkouts.length > 0 && !event.isCancelled && (
-                <div className="mt-2 rounded-2xl border border-purple-200/90 bg-gradient-to-r from-purple-50 via-indigo-50/40 to-purple-50/30 p-3.5 shadow-xs dark:border-purple-900/50 dark:from-purple-950/40 dark:via-zinc-900 dark:to-purple-950/20">
+                <div className="mt-2 rounded-2xl border border-purple-200/90 bg-linear-to-r from-purple-50 via-indigo-50/40 to-purple-50/30 p-3.5 shadow-xs dark:border-purple-900/50 dark:from-purple-950/40 dark:via-zinc-900 dark:to-purple-950/20">
                   <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">

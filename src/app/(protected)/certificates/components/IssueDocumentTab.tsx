@@ -7,6 +7,8 @@ import {
   Check,
   CheckCircle2,
   Copy,
+  Download,
+  FileDown,
   Loader2,
   Printer,
   Search,
@@ -42,7 +44,14 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useMembers } from "@/hooks/useMembers";
+import {
+  exportCertificatePdf,
+  exportCertificatePng,
+  exportTwoPageCertificatePdf,
+  printCertificate,
+} from "@/lib/certificate-export-helpers";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
+import { tournamentService } from "@/services/tournament-service";
 import {
   AwardRank,
   CertificateTemplate,
@@ -53,8 +62,12 @@ import {
   IssuedCertificate,
   SponsorPartner,
 } from "@/types/certificates";
+import { Tournament, TournamentEntry } from "@/types/tournament.types";
 
-import { CertificateDocumentPreview } from "./CertificateDocumentPreview";
+import {
+  CertificateBacksidePreview,
+  CertificateDocumentPreview,
+} from "./CertificateDocumentPreview";
 
 interface IssueDocumentTabProps {
   siteId: "bkgalabovo" | "recoveryzone";
@@ -123,16 +136,189 @@ export function IssueDocumentTab({
   // Details: Voucher
   const [voucherSessions, setVoucherSessions] = useState<number>(5);
   const [voucherValidityDays, setVoucherValidityDays] = useState<number>(180);
+  const [voucherServiceType, setVoucherServiceType] = useState<string>(
+    activeTemplate?.visualConfig?.voucherServiceType ||
+      "Месечна такса тренировки"
+  );
+  const [voucherValue, setVoucherValue] = useState<string>(
+    activeTemplate?.visualConfig?.voucherValue || "50 лв."
+  );
+  const [voucherPromoCode, setVoucherPromoCode] = useState<string>(
+    activeTemplate?.visualConfig?.voucherPromoCode || ""
+  );
+  const [voucherExpiryDate, setVoucherExpiryDate] = useState<string>(
+    activeTemplate?.visualConfig?.voucherExpiryDate || ""
+  );
+
+  // Sync voucher fields when activeTemplate changes
+  React.useEffect(() => {
+    if (activeTemplate?.visualConfig) {
+      const vc = activeTemplate.visualConfig;
+      if (vc.voucherServiceType) setVoucherServiceType(vc.voucherServiceType);
+      if (vc.voucherValue) setVoucherValue(vc.voucherValue);
+      if (vc.voucherPromoCode) setVoucherPromoCode(vc.voucherPromoCode);
+      if (vc.voucherExpiryDate) setVoucherExpiryDate(vc.voucherExpiryDate);
+    }
+  }, [activeTemplate]);
 
   // Details: Certificate
   const [skillsSummary, setSkillsSummary] = useState("");
   const [hoursTrained, setHoursTrained] = useState<number>(20);
+
+  // Tournaments state
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string>("");
+  const [tournamentEntries, setTournamentEntries] = useState<TournamentEntry[]>(
+    []
+  );
+  const [isBulkIssuing, setIsBulkIssuing] = useState(false);
+  const [bulkSuccessList, setBulkSuccessList] = useState<IssuedCertificate[]>(
+    []
+  );
+
+  // Load tournaments
+  React.useEffect(() => {
+    tournamentService
+      .getTournaments()
+      .then((res) => {
+        setTournaments(res || []);
+      })
+      .catch((err) => {
+        console.error("Грешка при зареждане на турнири:", err);
+      });
+  }, []);
+
+  // When selected tournament changes
+  React.useEffect(() => {
+    if (!selectedTournamentId) {
+      setTournamentEntries([]);
+      return;
+    }
+    const t = tournaments.find((x) => x.id === selectedTournamentId);
+    if (t) {
+      setEventTitle(t.title);
+      setEventLocation(
+        t.location || "Спортен Комплекс „Енергетик“, гр. Гълъбово"
+      );
+      if (t.startDate) {
+        setEventDate(new Date(t.startDate).toLocaleDateString("bg-BG"));
+      }
+      tournamentService
+        .getTournamentEntries(selectedTournamentId)
+        .then((entries) => {
+          setTournamentEntries(entries || []);
+        })
+        .catch((err) => {
+          console.error("Грешка при зареждане на участници от турнир:", err);
+        });
+    }
+  }, [selectedTournamentId, tournaments]);
 
   // State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [issuedSuccessDoc, setIssuedSuccessDoc] =
     useState<IssuedCertificate | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isExportingBacksidePdf, setIsExportingBacksidePdf] = useState(false);
+  const [isExportingDoublePdf, setIsExportingDoublePdf] = useState(false);
+  const [isExportingPng, setIsExportingPng] = useState(false);
+
+  const handleExportLivePdf = async () => {
+    setIsExportingPdf(true);
+    try {
+      const fileName = `${recipientName.trim() || "документ-лице"}.pdf`;
+      const orient = activeTemplate?.visualConfig?.orientation || "landscape";
+      const ok = await exportCertificatePdf(
+        "printable-certificate",
+        fileName,
+        orient
+      );
+      if (ok) {
+        toast.success("PDF документът (Лице) е изтеглен успешно!");
+      } else {
+        toast.error("Неуспешно генериране на PDF.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при експорт на PDF.");
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleExportLiveBacksidePdf = async () => {
+    setIsExportingBacksidePdf(true);
+    try {
+      const fileName = `${recipientName.trim() || "документ-гръб"}.pdf`;
+      const orient = activeTemplate?.visualConfig?.orientation || "landscape";
+      const ok = await exportCertificatePdf(
+        "printable-certificate-back",
+        fileName,
+        orient
+      );
+      if (ok) {
+        toast.success("PDF документът (Гръб) е изтеглен успешно!");
+      } else {
+        toast.error("Неуспешно генериране на PDF за гръб.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при експорт на PDF за гръб.");
+    } finally {
+      setIsExportingBacksidePdf(false);
+    }
+  };
+
+  const handleExportLiveDoublePdf = async () => {
+    setIsExportingDoublePdf(true);
+    try {
+      const fileName = `${recipientName.trim() || "документ"}-двустранен.pdf`;
+      const orient = activeTemplate?.visualConfig?.orientation || "landscape";
+      const ok = await exportTwoPageCertificatePdf(
+        "printable-certificate",
+        "printable-certificate-back",
+        fileName,
+        orient
+      );
+      if (ok) {
+        toast.success(
+          "Комбинираният 2-страничен PDF (Лице + Гръб) е изтеглен успешно!"
+        );
+      } else {
+        toast.error("Неуспешно генериране на 2-страничен PDF.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при експорт на 2-страничен PDF.");
+    } finally {
+      setIsExportingDoublePdf(false);
+    }
+  };
+
+  const handleExportLivePng = async () => {
+    setIsExportingPng(true);
+    try {
+      const fileName = `${recipientName.trim() || "документ"}.png`;
+      const ok = await exportCertificatePng(
+        "printable-certificate",
+        fileName,
+        "ultra_300dpi"
+      );
+      if (ok) {
+        toast.success(
+          "Ultra HD 300 DPI PNG изображението е изтеглено успешно!"
+        );
+      } else {
+        toast.error("Неуспешно генериране на PNG.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при експорт на PNG.");
+    } finally {
+      setIsExportingPng(false);
+    }
+  };
 
   // Filtered members for autocomplete
   const filteredMembers = useMemo(() => {
@@ -156,6 +342,101 @@ export function IssueDocumentTab({
     setRecipientPhone(m.phone || "");
   };
 
+  const handleSelectTournamentPlayer = (entryId: string) => {
+    const entry = tournamentEntries.find((e) => (e.id || "") === entryId);
+    if (!entry) return;
+    const member = members.find((m) => m.id === entry.memberId);
+    if (member) {
+      setSelectedMemberId(member.id);
+      setRecipientName(`${member.firstName} ${member.lastName}`);
+      setRecipientInstitution(member.educationInstitution || "БК Гълъбово");
+      setRecipientEmail(member.email || "");
+      setRecipientPhone(member.phone || "");
+    } else {
+      setSelectedMemberId(null);
+      setRecipientName(entry.externalName || "Състезател");
+      setRecipientInstitution("БК Гълъбово");
+    }
+    const idx = tournamentEntries.indexOf(entry);
+    if (idx === 0) setAwardRank("1st");
+    else if (idx === 1) setAwardRank("2nd");
+    else if (idx === 2) setAwardRank("3rd");
+  };
+
+  const handleBulkIssueMedalists = async () => {
+    if (!activeTemplate) {
+      toast.error("Моля, изберете одобрен шаблон.");
+      return;
+    }
+    if (!selectedTournamentId || tournamentEntries.length === 0) {
+      toast.error("Няма намерени участници в този турнир.");
+      return;
+    }
+
+    setIsBulkIssuing(true);
+    try {
+      const sorted = [...tournamentEntries].sort(
+        (a, b) => (b.pointsAwarded || 0) - (a.pointsAwarded || 0)
+      );
+      const top3 = sorted.slice(0, 3);
+      const ranks: AwardRank[] = ["1st", "2nd", "3rd"];
+      const issuedList: IssuedCertificate[] = [];
+
+      for (let i = 0; i < top3.length; i++) {
+        const entry = top3[i];
+        const assignedRank = ranks[i] || "participant";
+        const member = members.find((m) => m.id === entry.memberId);
+        const name = member
+          ? `${member.firstName} ${member.lastName}`
+          : entry.externalName || `Призьор ${i + 1}`;
+
+        const payload: IssueCertificateInput = {
+          templateId: activeTemplate.id,
+          type: "award",
+          recipient: {
+            memberId: entry.memberId,
+            name,
+            institution: member?.educationInstitution || "БК Гълъбово",
+            email: member?.email || undefined,
+            phone: member?.phone || undefined,
+          },
+          details: {
+            rank: assignedRank,
+            nomination: nomination || undefined,
+            eventTitle,
+            eventDate,
+            eventLocation,
+            includeBackside: activeTemplate.visualConfig?.includeBackside,
+            backsideStyle: activeTemplate.visualConfig?.backsideStyle,
+            backsideTitle: activeTemplate.visualConfig?.backsideTitle,
+            backsideMessage: activeTemplate.visualConfig?.backsideMessage,
+            backsideSignatory: activeTemplate.visualConfig?.backsideSignatory,
+          },
+        };
+
+        const res = await certificateIssuanceService.issueCertificate(
+          siteId,
+          payload
+        );
+        issuedList.push(res);
+      }
+
+      setBulkSuccessList(issuedList);
+      try {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      } catch (c) {}
+      toast.success(
+        `Успешно генерирани ${issuedList.length} грамоти за медалистите!`
+      );
+      await onIssuedSuccess();
+    } catch (err) {
+      console.error("Грешка при масово издаване:", err);
+      toast.error("Грешка при масовото издаване на грамоти.");
+    } finally {
+      setIsBulkIssuing(false);
+    }
+  };
+
   const handleIssueSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeTemplate) {
@@ -172,11 +453,15 @@ export function IssueDocumentTab({
 
       let validUntil: string | undefined;
       if (activeTemplate.type === "voucher") {
-        const expDate = new Date();
-        expDate.setDate(
-          expDate.getDate() + (Number(voucherValidityDays) || 180)
-        );
-        validUntil = expDate.toISOString();
+        if (voucherExpiryDate) {
+          validUntil = voucherExpiryDate;
+        } else {
+          const expDate = new Date();
+          expDate.setDate(
+            expDate.getDate() + (Number(voucherValidityDays) || 180)
+          );
+          validUntil = expDate.toISOString();
+        }
       }
 
       const input: IssueCertificateInput = {
@@ -213,6 +498,14 @@ export function IssueDocumentTab({
               : undefined,
 
           // Voucher
+          voucherServiceType:
+            activeTemplate.type === "voucher" ? voucherServiceType : undefined,
+          voucherValue:
+            activeTemplate.type === "voucher" ? voucherValue : undefined,
+          voucherPromoCode:
+            activeTemplate.type === "voucher" ? voucherPromoCode : undefined,
+          voucherExpiryDate:
+            activeTemplate.type === "voucher" ? voucherExpiryDate : undefined,
           totalSessions:
             activeTemplate.type === "voucher"
               ? Number(voucherSessions) || 1
@@ -228,6 +521,13 @@ export function IssueDocumentTab({
             activeTemplate.type === "certificate"
               ? Number(hoursTrained) || undefined
               : undefined,
+
+          // Backside
+          includeBackside: activeTemplate.visualConfig?.includeBackside,
+          backsideStyle: activeTemplate.visualConfig?.backsideStyle,
+          backsideTitle: activeTemplate.visualConfig?.backsideTitle,
+          backsideMessage: activeTemplate.visualConfig?.backsideMessage,
+          backsideSignatory: activeTemplate.visualConfig?.backsideSignatory,
         },
       };
 
@@ -337,6 +637,114 @@ export function IssueDocumentTab({
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* 1.1 Tournament Integration Selector */}
+                <div className="space-y-2.5 rounded-2xl border border-amber-200 bg-amber-50/50 p-3.5 dark:border-amber-900/40 dark:bg-amber-950/20">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-1.5 text-xs font-black text-amber-950 uppercase dark:text-amber-200">
+                      <Trophy className="size-3.5 text-amber-600" />
+                      Зареди данни от Турнир:
+                    </Label>
+                    {selectedTournamentId && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTournamentId("")}
+                        className="text-[10px] text-zinc-500 hover:underline"
+                      >
+                        Изчисти ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <Select
+                    value={selectedTournamentId}
+                    onValueChange={(val) => setSelectedTournamentId(val)}
+                  >
+                    <SelectTrigger className="h-9 rounded-xl border-amber-300 bg-white text-xs dark:bg-zinc-900">
+                      <SelectValue placeholder="-- Изберете турнир/състезание --" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {tournaments.map((t) => (
+                        <SelectItem key={t.id || ""} value={t.id || ""}>
+                          🏆 {t.title} ({t.location})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* If tournament selected, show tournament player picker & bulk button */}
+                  {selectedTournamentId && (
+                    <div className="space-y-2 border-t border-amber-200/60 pt-2">
+                      {tournamentEntries.length > 0 ? (
+                        <>
+                          <div className="space-y-1">
+                            <Label className="text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                              Избери класиран състезател от турнира:
+                            </Label>
+                            <Select
+                              onValueChange={handleSelectTournamentPlayer}
+                            >
+                              <SelectTrigger className="h-9 rounded-xl bg-white text-xs dark:bg-zinc-900">
+                                <SelectValue placeholder="-- Изберете участник за автопопълване --" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                {tournamentEntries.map((e, idx) => {
+                                  const member = members.find(
+                                    (m) => m.id === e.memberId
+                                  );
+                                  const name = member
+                                    ? `${member.firstName} ${member.lastName}`
+                                    : e.externalName || `Участник ${idx + 1}`;
+                                  const place =
+                                    idx === 0
+                                      ? "🥇 1-во място"
+                                      : idx === 1
+                                        ? "🥈 2-ро място"
+                                        : idx === 2
+                                          ? "🥉 3-то място"
+                                          : "🎖️ Участник";
+                                  return (
+                                    <SelectItem
+                                      key={e.id || String(idx)}
+                                      value={e.id || String(idx)}
+                                    >
+                                      {place}: {name}
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* BULK ISSUE BUTTON FOR ALL PODIUM FINISHERS */}
+                          <Button
+                            type="button"
+                            onClick={handleBulkIssueMedalists}
+                            disabled={isBulkIssuing}
+                            className="w-full gap-2 rounded-xl bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 text-xs font-black text-white shadow-md shadow-amber-500/20 hover:from-amber-600 hover:to-yellow-600"
+                          >
+                            {isBulkIssuing ? (
+                              <>
+                                <Loader2 className="size-3.5 animate-spin" />
+                                Издаване на грамоти...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="size-3.5" />⚡ Генерирай
+                                накуп за всички медалисти (1-во, 2-ро, 3-то
+                                място)
+                              </>
+                            )}
+                          </Button>
+                        </>
+                      ) : (
+                        <p className="text-[11px] italic text-zinc-500">
+                          Няма регистрирани състезатели в този турнир.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* 2. Recipient Mode Selector */}
@@ -542,6 +950,60 @@ export function IssueDocumentTab({
                       <span>Параметри на Ваучера</span>
                     </div>
 
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-bold text-teal-900 dark:text-teal-300">
+                        Валиден за услуга / стока:
+                      </Label>
+                      <Input
+                        value={voucherServiceType}
+                        onChange={(e) => setVoucherServiceType(e.target.value)}
+                        placeholder="напр. Месечна такса тренировки"
+                        className="h-8 rounded-xl border-teal-300/80 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-900"
+                      />
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {[
+                          "Месечна такса тренировки",
+                          "Индивидуална тренировка с треньор",
+                          "Клубна екипировка/ракета",
+                          "Свободна игра на корт",
+                        ].map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setVoucherServiceType(s)}
+                            className="rounded-md border border-teal-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-teal-900 hover:bg-teal-100 dark:bg-zinc-900 dark:text-teal-200"
+                          >
+                            + {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-bold text-teal-900 dark:text-teal-300">
+                          Стойност / Отстъпка
+                        </Label>
+                        <Input
+                          value={voucherValue}
+                          onChange={(e) => setVoucherValue(e.target.value)}
+                          placeholder="напр. 50 лв. или 20%"
+                          className="h-8 rounded-xl border-teal-300/80 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-900"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-bold text-teal-900 dark:text-teal-300">
+                          Код на ваучера
+                        </Label>
+                        <Input
+                          value={voucherPromoCode}
+                          onChange={(e) => setVoucherPromoCode(e.target.value)}
+                          placeholder="напр. BKG-GIFT"
+                          className="h-8 rounded-xl border-teal-300/80 bg-white font-mono text-xs uppercase dark:border-zinc-700 dark:bg-zinc-900"
+                        />
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-[11px] font-bold text-teal-900 dark:text-teal-300">
@@ -559,15 +1021,12 @@ export function IssueDocumentTab({
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[11px] font-bold text-teal-900 dark:text-teal-300">
-                          Срок на валидност (дни)
+                          Срок на валидност
                         </Label>
                         <Input
-                          type="number"
-                          min={1}
-                          value={voucherValidityDays}
-                          onChange={(e) =>
-                            setVoucherValidityDays(Number(e.target.value))
-                          }
+                          value={voucherExpiryDate}
+                          onChange={(e) => setVoucherExpiryDate(e.target.value)}
+                          placeholder="напр. 31.12.2026 г."
                           className="h-8 rounded-xl border-teal-300/80 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-900"
                         />
                       </div>
@@ -604,7 +1063,7 @@ export function IssueDocumentTab({
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="h-11 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-black text-white shadow-lg shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700"
+                    className="h-11 w-full rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 text-xs font-black text-white shadow-lg shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700"
                   >
                     {isSubmitting ? (
                       <>
@@ -629,36 +1088,175 @@ export function IssueDocumentTab({
               <span className="flex items-center gap-1.5 text-xs font-bold tracking-wider text-zinc-500 uppercase">
                 <Sparkles className="size-3.5 text-amber-500" />
                 Визуализация в реално време
+                {activeTemplate?.visualConfig?.includeBackside &&
+                  " (Двустранен)"}
               </span>
-              <span className="text-xs font-medium text-zinc-400">
-                Сериен номер ще се генерира автоматично при запис
-              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => printCertificate()}
+                  className="h-7 gap-1 rounded-lg border-zinc-200 px-2 text-[11px] font-bold dark:border-zinc-800"
+                  title="Печат A4"
+                >
+                  <Printer className="size-3" />
+                  Печат
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleExportLivePdf}
+                  disabled={isExportingPdf}
+                  className="h-7 gap-1 rounded-lg border-zinc-200 px-2 text-[11px] font-bold dark:border-zinc-800"
+                  title="Изтегли PDF (Лице)"
+                >
+                  <FileDown className="size-3" />
+                  PDF (Лице)
+                </Button>
+                {activeTemplate?.visualConfig?.includeBackside && (
+                  <>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleExportLiveBacksidePdf}
+                      disabled={isExportingBacksidePdf}
+                      className="h-7 gap-1 rounded-lg border-amber-300 px-2 text-[11px] font-bold text-amber-900 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-200"
+                      title="Изтегли PDF (Гръб)"
+                    >
+                      <FileDown className="size-3" />
+                      PDF (Гръб)
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleExportLiveDoublePdf}
+                      disabled={isExportingDoublePdf}
+                      className="h-7 gap-1 rounded-lg border-purple-300 bg-purple-50/50 px-2 text-[11px] font-bold text-purple-900 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-200"
+                      title="Изтегли 2-страничен PDF"
+                    >
+                      <Sparkles className="size-3 text-purple-600" />
+                      2-странен PDF
+                    </Button>
+                  </>
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleExportLivePng}
+                  disabled={isExportingPng}
+                  className="h-7 gap-1 rounded-lg border-zinc-200 px-2 text-[11px] font-bold dark:border-zinc-800"
+                  title="Изтегли Ultra HD PNG"
+                >
+                  <Download className="size-3" />
+                  PNG (300 DPI)
+                </Button>
+              </div>
             </div>
 
             <div className="flex w-full items-center justify-center rounded-3xl border border-zinc-200/80 bg-zinc-100/70 p-4 dark:border-zinc-800 dark:bg-zinc-950">
               {activeTemplate ? (
-                <div className="scale-0.85 sm:scale-0.95 origin-top transform transition-all">
-                  <CertificateDocumentPreview
-                    data={{
-                      siteId,
-                      type: activeTemplate.type,
-                      title: activeTemplate.title,
-                      visualConfig: activeTemplate.visualConfig,
-                      serialNumber: `${siteId === "recoveryzone" ? "RZ" : "BKG"}-2026-LIVE`,
-                      recipientName: recipientName || "Иван Петров Димитров",
-                      recipientInstitution:
-                        recipientInstitution ||
-                        "СУ „Васил Левски“ • гр. Гълъбово",
-                      rank: awardRank,
-                      nomination,
-                      eventTitle,
-                      eventDate,
-                      eventLocation,
-                      totalSessions: voucherSessions,
-                      sponsors,
-                    }}
-                  />
-                </div>
+                activeTemplate.visualConfig?.includeBackside ? (
+                  <div className="grid w-full grid-cols-1 gap-6 xl:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <span className="block text-center text-xs font-bold text-zinc-600 dark:text-zinc-300">
+                        📄 Лице (Front)
+                      </span>
+                      <CertificateDocumentPreview
+                        data={{
+                          siteId,
+                          type: activeTemplate.type,
+                          title: activeTemplate.title,
+                          visualConfig: {
+                            ...activeTemplate.visualConfig,
+                            voucherServiceType,
+                            voucherValue,
+                            voucherPromoCode,
+                            voucherExpiryDate,
+                          },
+                          serialNumber: `${siteId === "recoveryzone" ? "RZ" : "BKG"}-2026-LIVE`,
+                          recipientName:
+                            recipientName || "Иван Петров Димитров",
+                          recipientInstitution:
+                            recipientInstitution ||
+                            "СУ „Васил Левски“ • гр. Гълъбово",
+                          rank: awardRank,
+                          nomination,
+                          eventTitle,
+                          eventDate,
+                          eventLocation,
+                          totalSessions: voucherSessions,
+                          sponsors,
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="block text-center text-xs font-bold text-amber-500">
+                        📜 Гръб (Backside)
+                      </span>
+                      <CertificateBacksidePreview
+                        data={{
+                          siteId,
+                          type: activeTemplate.type,
+                          title: activeTemplate.title,
+                          visualConfig: {
+                            ...activeTemplate.visualConfig,
+                            voucherServiceType,
+                            voucherValue,
+                            voucherPromoCode,
+                            voucherExpiryDate,
+                          },
+                          serialNumber: `${siteId === "recoveryzone" ? "RZ" : "BKG"}-2026-LIVE`,
+                          recipientName:
+                            recipientName || "Иван Петров Димитров",
+                          recipientInstitution:
+                            recipientInstitution ||
+                            "СУ „Васил Левски“ • гр. Гълъбово",
+                          rank: awardRank,
+                          nomination,
+                          eventTitle,
+                          eventDate,
+                          eventLocation,
+                          totalSessions: voucherSessions,
+                          sponsors,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="scale-0.85 sm:scale-0.95 origin-top transform transition-all">
+                    <CertificateDocumentPreview
+                      data={{
+                        siteId,
+                        type: activeTemplate.type,
+                        title: activeTemplate.title,
+                        visualConfig: {
+                          ...activeTemplate.visualConfig,
+                          voucherServiceType,
+                          voucherValue,
+                          voucherPromoCode,
+                          voucherExpiryDate,
+                        },
+                        serialNumber: `${siteId === "recoveryzone" ? "RZ" : "BKG"}-2026-LIVE`,
+                        recipientName: recipientName || "Иван Петров Димитров",
+                        recipientInstitution:
+                          recipientInstitution ||
+                          "СУ „Васил Левски“ • гр. Гълъбово",
+                        rank: awardRank,
+                        nomination,
+                        eventTitle,
+                        eventDate,
+                        eventLocation,
+                        totalSessions: voucherSessions,
+                        sponsors,
+                      }}
+                    />
+                  </div>
+                )
               ) : null}
             </div>
           </div>
@@ -759,6 +1357,47 @@ export function IssueDocumentTab({
               </Button>
             </div>
 
+            {/* Quick Export / Print in Success Modal */}
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => printCertificate()}
+                className="h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+              >
+                <Printer className="size-3.5" />
+                Печат
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleExportLivePdf}
+                disabled={isExportingPdf}
+                className="h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+              >
+                {isExportingPdf ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <FileDown className="size-3.5" />
+                )}
+                PDF
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleExportLivePng}
+                disabled={isExportingPng}
+                className="h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+              >
+                {isExportingPng ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Download className="size-3.5" />
+                )}
+                PNG
+              </Button>
+            </div>
+
             {/* Direct Messenger Buttons */}
             <div className="flex items-center justify-center gap-2 pt-1">
               <a
@@ -797,6 +1436,97 @@ export function IssueDocumentTab({
               className="w-full rounded-2xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
             >
               Към регистъра с издадени документи
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Issuance Success Dialog */}
+      <Dialog
+        open={bulkSuccessList.length > 0}
+        onOpenChange={(open) => {
+          if (!open) setBulkSuccessList([]);
+        }}
+      >
+        <DialogContent className="max-w-xl rounded-3xl border border-emerald-100 bg-white p-6 shadow-2xl dark:border-emerald-950 dark:bg-zinc-950">
+          <DialogHeader className="text-center">
+            <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-400">
+              <Trophy className="size-7 animate-bounce" />
+            </div>
+            <DialogTitle className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+              🎉 Грамотите за подиума са генерирани!
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+              Успешно издадени {bulkSuccessList.length} официални грамоти за
+              призьорите от турнира.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="my-4 space-y-2.5 max-h-64 overflow-y-auto pr-1">
+            {bulkSuccessList.map((doc, idx) => {
+              const rank = doc.details?.rank || "participant";
+              const rankIcon =
+                rank === "1st"
+                  ? "🥇 1-во място"
+                  : rank === "2nd"
+                    ? "🥈 2-ро място"
+                    : rank === "3rd"
+                      ? "🥉 3-то място"
+                      : "🎖️ Призьор";
+              const rankColor =
+                rank === "1st"
+                  ? "border-amber-200 bg-amber-50/60 dark:bg-amber-950/30"
+                  : rank === "2nd"
+                    ? "border-slate-200 bg-slate-50/60 dark:bg-slate-900/30"
+                    : "border-orange-200 bg-orange-50/60 dark:bg-orange-950/30";
+
+              return (
+                <div
+                  key={doc.id || idx}
+                  className={`flex items-center justify-between rounded-2xl border p-3 ${rankColor}`}
+                >
+                  <div className="min-w-0 pr-3">
+                    <span className="inline-block text-[11px] font-black uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                      {rankIcon}
+                    </span>
+                    <h5 className="truncate text-sm font-bold text-zinc-900 dark:text-white">
+                      {doc.recipient?.name || "Състезател"}
+                    </h5>
+                    <p className="text-[10px] text-zinc-500 font-mono">
+                      Сериен № {doc.serialNumber}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <a
+                      href={`/cert/${doc.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-xl border border-zinc-200 bg-white px-2.5 py-1 text-xs font-bold text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+                    >
+                      Преглед
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <DialogFooter className="grid grid-cols-2 gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setBulkSuccessList([])}
+              className="rounded-2xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+            >
+              Затвори
+            </Button>
+            <Button
+              onClick={() => {
+                setBulkSuccessList([]);
+                onSwitchToRegistry();
+              }}
+              className="rounded-2xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700"
+            >
+              Към регистъра
             </Button>
           </DialogFooter>
         </DialogContent>

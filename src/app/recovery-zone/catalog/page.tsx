@@ -56,7 +56,10 @@ const getCachedSessions = unstable_cache(
           const snap = await adminDb.collection("sessions").get();
           return snap.docs.map(
             (doc) =>
-              serializeDoc({ id: doc.id, ...doc.data() }) as Record<string, unknown>
+              serializeDoc({ id: doc.id, ...doc.data() }) as Record<
+                string,
+                unknown
+              >
           );
         } catch (error) {
           console.error(

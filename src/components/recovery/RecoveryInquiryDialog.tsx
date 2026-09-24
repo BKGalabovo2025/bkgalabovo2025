@@ -228,7 +228,7 @@ export function RecoveryInquiryDialog({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-lg flex-col overflow-hidden rounded-3xl border border-emerald-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl sm:max-w-xl">
         {/* Header decoration */}
-        <div className="relative shrink-0 bg-gradient-to-br from-emerald-950/80 via-zinc-950 to-zinc-950 p-5 pr-14 pb-3 sm:p-6 sm:pb-4">
+        <div className="relative shrink-0 bg-linear-to-br from-emerald-950/80 via-zinc-950 to-zinc-950 p-5 pr-14 pb-3 sm:p-6 sm:pb-4">
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-950/60 px-3 py-1 text-[10px] font-bold tracking-widest text-emerald-400 uppercase">
               <Sparkles size={12} />

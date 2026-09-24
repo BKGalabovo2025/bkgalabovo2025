@@ -94,6 +94,7 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
     return (
       <div className="flex size-full items-center justify-center overflow-auto bg-zinc-950/95 p-6">
         <div className="relative flex max-h-full max-w-full items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={documentUrl}
             alt={documentName || "Преглед на изображение"}

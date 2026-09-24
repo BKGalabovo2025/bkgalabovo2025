@@ -44,9 +44,12 @@ function createConverter<T>(
       const data = snapshot.data(options) || {};
       return {
         id: snapshot.id,
-        siteId: data.siteId && typeof data.siteId === "string" && data.siteId.trim() !== ""
-          ? data.siteId
-          : defaultSiteId,
+        siteId:
+          data.siteId &&
+          typeof data.siteId === "string" &&
+          data.siteId.trim() !== ""
+            ? data.siteId
+            : defaultSiteId,
         ...data,
       } as unknown as T;
     },

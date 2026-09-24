@@ -4,8 +4,10 @@ import "server-only";
 import {
   AiApiStatus,
   generateCertificateAiBackground,
+  generateCertificateAiBackgroundBatch,
   GenerateCertificateAiBackgroundResult,
   getAiApiStatus,
+  translateAndEnhanceBulgarianPrompt,
 } from "@/lib/ai/certificate-ai-service";
 import { logAuditEvent } from "@/lib/audit-logger";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
@@ -103,5 +105,62 @@ export async function generateCertificateAiBackgroundAction(
       providerUsed: "procedural_vector",
       variantIndex,
     };
+  }
+}
+
+/**
+ * Server Action за превод и оптимизиране на български промпт
+ */
+export async function translateBulgarianPromptAction(params: {
+  bulgarianPrompt: string;
+  targetAudience?: "kids" | "adults_pro" | "wellness";
+  documentType?: "award" | "certificate" | "voucher";
+  orientation?: "landscape" | "portrait";
+}): Promise<{ englishPrompt: string; enhancedKeywords: string[] }> {
+  return translateAndEnhanceBulgarianPrompt(params);
+}
+
+/**
+ * Server Action за партидна AI генерация на 2-3 вариации паралелно
+ */
+export async function generateCertificateAiBackgroundBatchAction(
+  siteId: "bkgalabovo" | "recoveryzone",
+  prompt: string,
+  orientation: "landscape" | "portrait" = "landscape",
+  count: number = 3,
+  batchOffset: number = 0,
+  provider?: "auto" | "flux_neural" | "gemini_imagen" | "openai_dalle3"
+): Promise<GenerateCertificateAiBackgroundResult[]> {
+  try {
+    const user = await getAuthUserFromSessionCookie();
+    const userEmail = user?.email || "admin@bkgalabovo.bg";
+
+    const results = await generateCertificateAiBackgroundBatch({
+      prompt,
+      orientation,
+      count,
+      batchOffset,
+      provider,
+    });
+
+    // Одит запис
+    await logAuditEvent({
+      action: "generate_ai_certificate_background",
+      details: `Генерирана партида от ${results.length} AI фона (офсет: ${batchOffset}) за ${siteId}`,
+      siteId,
+      metadata: {
+        count: results.length,
+        batchOffset,
+        userEmail,
+      },
+    });
+
+    return results;
+  } catch (err) {
+    console.error(
+      "Грешка при generateCertificateAiBackgroundBatchAction:",
+      err
+    );
+    return [];
   }
 }

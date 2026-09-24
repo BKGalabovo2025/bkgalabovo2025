@@ -43,7 +43,7 @@ function QuizPlayerResult({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
       <div className="mx-auto max-w-lg space-y-6 py-8">
         <div className="text-center">
           <div className="mb-2 text-5xl">{isReviewed ? emoji : "⏳"}</div>
@@ -59,7 +59,7 @@ function QuizPlayerResult({
             className={`flex items-center justify-center p-8 ${
               isReviewed
                 ? bgColor
-                : "bg-gradient-to-br from-amber-400 to-orange-400"
+                : "bg-linear-to-br from-amber-400 to-orange-400"
             }`}
           >
             <div className="text-center text-white">
@@ -379,7 +379,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
 
   if (step === "loading" || step === "submitting") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50">
         <Loader2 className="size-12 animate-spin text-indigo-500" />
         <p className="text-lg font-semibold text-indigo-700">
           {step === "submitting"
@@ -392,7 +392,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
 
   if (step === "not-found") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-gradient-to-br from-red-50 to-orange-50 p-6">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-linear-to-br from-red-50 to-orange-50 p-6">
         <div className="text-6xl">😕</div>
         <h1 className="text-2xl font-black text-red-600">
           Тестът не е намерен
@@ -415,7 +415,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
   const progress = Math.round((currentQ / questions.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
       <div className="mx-auto max-w-lg space-y-6 py-8">
         <div>
           <div className="mb-1 flex items-center gap-2">
@@ -426,7 +426,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-indigo-100">
             <div
-              className={`h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 w-[${progress}%]`}
+              className={`h-full rounded-full bg-linear-to-r from-indigo-500 to-purple-500 transition-all duration-500 w-[${progress}%]`}
             />
           </div>
           <p className="mt-1 text-right text-xs text-zinc-500">
@@ -434,7 +434,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
           </p>
         </div>
         <div className="overflow-hidden rounded-3xl bg-white shadow-xl">
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
+          <div className="bg-linear-to-r from-indigo-500 to-purple-600 p-6">
             <div className="mb-3 inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white">
               {q.type === "OPEN_TEXT"
                 ? "🧠 Тактическа мисия"
@@ -489,7 +489,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
             <button
               type="button"
               onClick={() => setCurrentQ((p) => p + 1)}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 py-4 text-sm font-bold text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-indigo-500 to-purple-600 py-4 text-sm font-bold text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700"
             >
               Напред <ChevronRight className="size-4" />
             </button>
@@ -497,7 +497,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
             <button
               type="button"
               onClick={() => void handleSubmit()}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 py-4 text-sm font-bold text-white shadow-lg transition-all hover:from-emerald-600 hover:to-green-700"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-emerald-500 to-green-600 py-4 text-sm font-bold text-white shadow-lg transition-all hover:from-emerald-600 hover:to-green-700"
             >
               <Trophy className="size-4" /> Предай Теста!
             </button>
