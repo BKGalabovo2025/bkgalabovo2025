@@ -264,6 +264,11 @@ function ServiceCard({
                 alt={`${service.name} - ${idx + 1}`}
                 priority={idx === 0}
                 fill
+                unoptimized={
+                  imgUrl.startsWith("/api/") ||
+                  imgUrl.includes("/api/upload") ||
+                  imgUrl.startsWith("data:")
+                }
                 sizes="(max-w-768px) 100vw, 33vw"
                 className={`absolute inset-0 object-contain p-4 transition-all duration-1000 group-hover:scale-110 ${
                   idx === activeImageIndex

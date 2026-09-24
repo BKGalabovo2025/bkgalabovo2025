@@ -53,6 +53,13 @@ export function ImageGallery({
     );
   }
 
+  const isUnoptimized = (url?: string) =>
+    typeof url === "string" &&
+    (url.startsWith("/api/") ||
+      url.includes("/api/upload") ||
+      url.startsWith("data:") ||
+      url.startsWith("blob:"));
+
   if (displayMode === "collage") {
     return (
       <div className="flex size-full">
@@ -68,6 +75,7 @@ export function ImageGallery({
               alt={`${altName} - ${idx + 1}`}
               fill
               priority={true}
+              unoptimized={isUnoptimized(imgUrl)}
               sizes="(max-width: 768px) 100vw, 33vw"
               className="object-contain p-4 transition-transform duration-700 group-hover:scale-110 hover:scale-110"
             />
@@ -87,6 +95,7 @@ export function ImageGallery({
         alt={`${altName} - ${activeImgIndex + 1}`}
         sizes="(max-width: 768px) 100vw, 33vw"
         priority={true}
+        unoptimized={isUnoptimized(images[activeImgIndex])}
         className="object-contain p-4 transition-transform duration-700 group-hover:scale-110 hover:scale-110"
         fill
       />

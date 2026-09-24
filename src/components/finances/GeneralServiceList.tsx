@@ -126,6 +126,11 @@ export function GeneralServiceList() {
                     src={service.imageUrl}
                     alt={service.name}
                     fill
+                    unoptimized={
+                      service.imageUrl.startsWith("/api/") ||
+                      service.imageUrl.includes("/api/upload") ||
+                      service.imageUrl.startsWith("data:")
+                    }
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-contain p-4 transition-transform duration-1000 group-hover:scale-110"
                   />
