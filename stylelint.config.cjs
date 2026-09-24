@@ -6,6 +6,7 @@ module.exports = {
       {
         ignoreAtRules: [
           "tailwind",
+          "apply",
           "theme",
           "plugin",
           "utility",
@@ -14,6 +15,12 @@ module.exports = {
           "keyframes",
           "source",
         ],
+      },
+    ],
+    "at-rule-prelude-no-invalid": [
+      true,
+      {
+        ignoreAtRules: ["apply"],
       },
     ],
     "import-notation": null,
