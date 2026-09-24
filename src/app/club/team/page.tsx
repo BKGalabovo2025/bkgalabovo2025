@@ -24,6 +24,49 @@ export const metadata: Metadata = {
 // --- Helper type for Member with Tournaments ---
 type TeamMember = TeamMemberForCard;
 
+/**
+ * Convert a raw value from Firestore Admin SDK to something that is safely
+ * serialisable as a React prop (i.e. a plain JS value).
+ * Firestore Timestamps arrive as objects with _seconds / _nanoseconds or
+ * as a .toDate() method – turn all of these into ISO strings.
+ */
+function serializeValue(val: unknown): unknown {
+  if (val === null || val === undefined) return val;
+  // Firestore Timestamp (admin SDK) – has _seconds or toDate()
+  if (
+    typeof val === "object" &&
+    val !== null &&
+    ("_seconds" in val ||
+      ("toDate" in val &&
+        typeof (val as { toDate: unknown }).toDate === "function"))
+  ) {
+    const ts = val as {
+      _seconds?: number;
+      _nanoseconds?: number;
+      toDate?: () => Date;
+    };
+    if (ts.toDate) return ts.toDate().toISOString();
+    if (ts._seconds !== undefined)
+      return new Date(ts._seconds * 1000).toISOString();
+    return String(val);
+  }
+  if (val instanceof Date) return val.toISOString();
+  if (Array.isArray(val)) return val.map(serializeValue);
+  if (typeof val === "object") {
+    return Object.fromEntries(
+      Object.entries(val as Record<string, unknown>).map(([k, v]) => [
+        k,
+        serializeValue(v),
+      ])
+    );
+  }
+  return val;
+}
+
+function serializeMember(m: TeamMember): TeamMember {
+  return serializeValue(m) as TeamMember;
+}
+
 const getValidImageSrc = (src: string | undefined | null) => {
   if (!src) return "";
   let cleanSrc = src.replace(/\\/g, "/");
@@ -214,19 +257,24 @@ export default async function TeamPage() {
     console.error("TeamPage: failed to fetch tournament map:", err);
   }
 
-  // 5. Enrich members with tournaments and age groups
+  // 5. Enrich members with tournaments and age groups, then SERIALIZE to plain
+  //    objects so Next.js can safely pass them from Server → Client components.
+  //    (Firestore Admin Timestamps have _seconds/_nanoseconds which are not
+  //    serialisable as React props.)
   const enrichedMembers: TeamMember[] = publicMembers.map((m) => {
     const memberTournaments = memberTournamentMap.get(m.id);
     const uniqueCompetitions = memberTournaments
       ? Array.from(memberTournaments)
       : [];
 
-    return {
+    const raw: TeamMember = {
       ...m,
       ageGroupDisplay:
         m.ageGroup || calculateAgeGroup(m.dateOfBirth) || "Мъже/Жени",
       tournaments: uniqueCompetitions,
     };
+
+    return serializeMember(raw);
   });
 
   // 6. Group by age group
