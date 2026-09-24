@@ -1,4 +1,7 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { useCallback, useEffect, useRef, useState } from "react";
+
+import { shadowLogger } from "@/lib/shadow-training/shadow-logger";
 
 import { ShadowSettings, TrainerState } from "./types";
 
@@ -91,10 +94,20 @@ export function useShadowTimer({
           nextVal = currentPrev + 1;
         } else {
           if (currentPrev <= 1) {
+            shadowLogger.timer(
+              `Timer finished for phase [${stateRef.current}], advancing state`
+            );
             setTimeout(() => advanceStateRef.current(), 0);
             nextVal = 0;
           } else {
             nextVal = currentPrev - 1;
+            if (stateRef.current === "countdown") {
+              shadowLogger.timer(`Countdown: ${nextVal}s`);
+            } else if (nextVal % 5 === 0 || nextVal <= 3) {
+              shadowLogger.timer(
+                `Phase [${stateRef.current}]: ${nextVal}s remaining`
+              );
+            }
           }
         }
 
@@ -105,6 +118,9 @@ export function useShadowTimer({
           currentSettings?.motivationEnabled;
 
         if (shouldMotivate) {
+          shadowLogger.timer(
+            "Motivation cue triggered at 15s remaining threshold"
+          );
           onMotivationTickRef.current();
         }
 

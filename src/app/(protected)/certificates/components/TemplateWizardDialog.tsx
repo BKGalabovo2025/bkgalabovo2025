@@ -12,6 +12,7 @@ import {
   Crown,
   Download,
   FileDown,
+  FileText,
   Info,
   Languages,
   Leaf,
@@ -98,33 +99,33 @@ export interface TemplateWizardDialogProps {
 const WIZARD_STEPS = [
   {
     id: 1,
-    title: "Тип & Данни",
-    icon: Trophy,
-    desc: "Тип документ и заглавие",
+    title: "AI Prompt Studio",
+    icon: Wand2,
+    desc: "Тип, аудитория & AI фон",
   },
   {
     id: 2,
-    title: "AI Prompt Studio",
-    icon: Wand2,
-    desc: "Генератор на промптове & вариации",
+    title: "Адаптивен Layout",
+    icon: Sparkles,
+    desc: "Ориентация, рамка & цветове",
   },
   {
     id: 3,
-    title: "Адаптивен Layout",
-    icon: Sparkles,
-    desc: "Ориентация, печати & канвас",
+    title: "Гръб & Специфики",
+    icon: FileText,
+    desc: "Двустранност & ваучери",
   },
   {
     id: 4,
     title: "Подписи & Партньори",
     icon: Users,
-    desc: "Институции, длъжности & спонсори",
+    desc: "Институции, печати & спонсори",
   },
   {
     id: 5,
     title: "Преглед & Запис",
     icon: CheckCircle2,
-    desc: "Тест експорт & активация",
+    desc: "Заглавие, тест & запис",
   },
 ];
 

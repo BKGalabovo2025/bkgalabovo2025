@@ -170,3 +170,127 @@ export async function exportTwoPageCertificatePdf(
 export function printCertificate(): void {
   window.print();
 }
+
+/**
+ * 📦 Масов експорт на няколко сертификата в един общ многостраничен A4 PDF
+ */
+export async function exportBatchMultiCertificatePdf(
+  elements: HTMLElement[],
+  filename = "certificates-batch.pdf",
+  orientation: "landscape" | "portrait" = "landscape",
+  onProgress?: (current: number, total: number) => void
+): Promise<boolean> {
+  if (!elements || elements.length === 0) {
+    console.error("Няма подадени елементи за масов PDF експорт.");
+    return false;
+  }
+
+  try {
+    const { jsPDF } = await import("jspdf");
+    const pdf = new jsPDF({
+      orientation,
+      unit: "mm",
+      format: "a4",
+      compress: true,
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    for (let i = 0; i < elements.length; i++) {
+      if (onProgress) {
+        onProgress(i + 1, elements.length);
+      }
+
+      if (i > 0) {
+        pdf.addPage(undefined, orientation);
+      }
+
+      const canvas = await html2canvas(elements[i], {
+        scale: 2.5, // Висока резолюция
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(
+        imgData,
+        "JPEG",
+        0,
+        0,
+        pageWidth,
+        pageHeight,
+        undefined,
+        "FAST"
+      );
+    }
+
+    const finalFilename = filename.endsWith(".pdf")
+      ? filename
+      : `${filename}.pdf`;
+    pdf.save(finalFilename);
+    return true;
+  } catch (error) {
+    console.error("Грешка при масов PDF експорт:", error);
+    return false;
+  }
+}
+
+/**
+ * 📲 Генериране на бързи връзки за споделяне (WhatsApp, Viber, Имейл)
+ */
+export function getCertificateShareLinks(data: {
+  recipientName: string;
+  serialNumber: string;
+  title: string;
+  verificationUrl: string;
+}) {
+  const textMessage = `🏸 Официално отличие от БК Гълъбово!\n\nПоздравления за ${data.recipientName} за връчения документ "${data.title}" (№ ${data.serialNumber})!\n\nВижте и проверете дигиталния сертификат тук:\n${data.verificationUrl}`;
+  const encodedText = encodeURIComponent(textMessage);
+  const encodedSubject = encodeURIComponent(
+    `Официално отличие от БК Гълъбово: ${data.recipientName}`
+  );
+
+  return {
+    text: textMessage,
+    whatsAppUrl: `https://api.whatsapp.com/send?text=${encodedText}`,
+    viberUrl: `viber://forward?text=${encodedText}`,
+    emailUrl: `mailto:?subject=${encodedSubject}&body=${encodedText}`,
+  };
+}
+
+/**
+ * 🚀 Нативно Web Share API споделяне (за смартфони и таблети)
+ */
+export async function shareCertificateViaWeb(data: {
+  recipientName: string;
+  serialNumber: string;
+  title: string;
+  verificationUrl: string;
+}): Promise<boolean> {
+  const shareLinks = getCertificateShareLinks(data);
+  if (typeof navigator !== "undefined" && navigator.share) {
+    try {
+      await navigator.share({
+        title: `Отличие: ${data.recipientName} - БК Гълъбово`,
+        text: shareLinks.text,
+        url: data.verificationUrl,
+      });
+      return true;
+    } catch (err: unknown) {
+      if ((err as Error)?.name === "AbortError") return false;
+      console.warn(
+        "Web Share API грешка, преминаване към алтернативно копиране:",
+        err
+      );
+    }
+  }
+
+  // Fallback: копиране на текста в клипборда
+  if (typeof navigator !== "undefined" && navigator.clipboard) {
+    await navigator.clipboard.writeText(shareLinks.text);
+    return true;
+  }
+  return false;
+}

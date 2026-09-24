@@ -649,3 +649,521 @@ export function ZenWellnessLotusSvg({
     </svg>
   );
 }
+
+/**
+ * 🥇 Векторна илюстрация: Златен медал 1-во място с панделка и релеф
+ */
+export function GoldMedal1stSvg({
+  className = "size-20",
+}: {
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 100 120"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <defs>
+        <linearGradient
+          id="goldRibbonLeft"
+          x1="20"
+          y1="0"
+          x2="45"
+          y2="60"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#DC2626" />
+          <stop offset="50%" stopColor="#EF4444" />
+          <stop offset="100%" stopColor="#B91C1C" />
+        </linearGradient>
+        <linearGradient
+          id="goldRibbonRight"
+          x1="80"
+          y1="0"
+          x2="55"
+          y2="60"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#1E3A8A" />
+          <stop offset="50%" stopColor="#3B82F6" />
+          <stop offset="100%" stopColor="#1D4ED8" />
+        </linearGradient>
+        <linearGradient
+          id="goldMedalGradient"
+          x1="20"
+          y1="35"
+          x2="80"
+          y2="95"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#FDE68A" />
+          <stop offset="30%" stopColor="#F59E0B" />
+          <stop offset="70%" stopColor="#D97706" />
+          <stop offset="100%" stopColor="#78350F" />
+        </linearGradient>
+        <radialGradient
+          id="goldShine"
+          cx="42"
+          cy="55"
+          r="24"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#FEF08A" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#B45309" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {/* Ribbons */}
+      <path d="M38 10 L25 58 L42 54 L48 10 Z" fill="url(#goldRibbonLeft)" />
+      <path d="M62 10 L75 58 L58 54 L52 10 Z" fill="url(#goldRibbonRight)" />
+      {/* Medal Body */}
+      <circle
+        cx="50"
+        cy="72"
+        r="28"
+        fill="url(#goldMedalGradient)"
+        filter="drop-shadow(0 4px 6px rgba(0,0,0,0.3))"
+      />
+      <circle
+        cx="50"
+        cy="72"
+        r="25"
+        stroke="#FEF08A"
+        strokeWidth="1.5"
+        strokeDasharray="2 2"
+        fill="none"
+        opacity="0.8"
+      />
+      <circle cx="50" cy="72" r="22" fill="#D97706" />
+      <circle cx="50" cy="72" r="22" fill="url(#goldShine)" />
+      {/* Laurel leaves wreath */}
+      <path
+        d="M34 76 C32 68 34 60 40 56 M66 76 C68 68 66 60 60 56"
+        stroke="#FEF9C3"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Star on top */}
+      <polygon
+        points="50,56 52,60 56,60 53,62 54,66 50,64 46,66 47,62 44,60 48,60"
+        fill="#FEF9C3"
+      />
+      {/* Digit 1 */}
+      <text
+        x="50"
+        y="80"
+        textAnchor="middle"
+        fontSize="20"
+        fontWeight="900"
+        fontFamily="sans-serif"
+        fill="#FFFBEB"
+      >
+        1
+      </text>
+    </svg>
+  );
+}
+
+/**
+ * 🥈 Векторна илюстрация: Сребърен медал 2-ро място
+ */
+export function SilverMedal2ndSvg({
+  className = "size-20",
+}: {
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 100 120"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <defs>
+        <linearGradient
+          id="silverRibbon"
+          x1="30"
+          y1="0"
+          x2="70"
+          y2="60"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#1E3A8A" />
+          <stop offset="100%" stopColor="#3B82F6" />
+        </linearGradient>
+        <linearGradient
+          id="silverMedalGradient"
+          x1="20"
+          y1="35"
+          x2="80"
+          y2="95"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#F8FAFC" />
+          <stop offset="40%" stopColor="#CBD5E1" />
+          <stop offset="70%" stopColor="#94A3B8" />
+          <stop offset="100%" stopColor="#475569" />
+        </linearGradient>
+      </defs>
+      <path d="M38 10 L25 58 L42 54 L48 10 Z" fill="url(#silverRibbon)" />
+      <path d="M62 10 L75 58 L58 54 L52 10 Z" fill="url(#silverRibbon)" />
+      <circle
+        cx="50"
+        cy="72"
+        r="28"
+        fill="url(#silverMedalGradient)"
+        filter="drop-shadow(0 4px 6px rgba(0,0,0,0.25))"
+      />
+      <circle
+        cx="50"
+        cy="72"
+        r="25"
+        stroke="#FFFFFF"
+        strokeWidth="1.5"
+        strokeDasharray="2 2"
+        fill="none"
+        opacity="0.9"
+      />
+      <circle cx="50" cy="72" r="22" fill="#64748B" />
+      <text
+        x="50"
+        y="80"
+        textAnchor="middle"
+        fontSize="20"
+        fontWeight="900"
+        fontFamily="sans-serif"
+        fill="#FFFFFF"
+      >
+        2
+      </text>
+    </svg>
+  );
+}
+
+/**
+ * 🥉 Векторна илюстрация: Бронзов медал 3-то място
+ */
+export function BronzeMedal3rdSvg({
+  className = "size-20",
+}: {
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 100 120"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <defs>
+        <linearGradient
+          id="bronzeRibbon"
+          x1="30"
+          y1="0"
+          x2="70"
+          y2="60"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#047857" />
+          <stop offset="100%" stopColor="#10B981" />
+        </linearGradient>
+        <linearGradient
+          id="bronzeMedalGradient"
+          x1="20"
+          y1="35"
+          x2="80"
+          y2="95"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#FDBA74" />
+          <stop offset="40%" stopColor="#EA580C" />
+          <stop offset="70%" stopColor="#C2410C" />
+          <stop offset="100%" stopColor="#7C2D12" />
+        </linearGradient>
+      </defs>
+      <path d="M38 10 L25 58 L42 54 L48 10 Z" fill="url(#bronzeRibbon)" />
+      <path d="M62 10 L75 58 L58 54 L52 10 Z" fill="url(#bronzeRibbon)" />
+      <circle
+        cx="50"
+        cy="72"
+        r="28"
+        fill="url(#bronzeMedalGradient)"
+        filter="drop-shadow(0 4px 6px rgba(0,0,0,0.3))"
+      />
+      <circle
+        cx="50"
+        cy="72"
+        r="25"
+        stroke="#FED7AA"
+        strokeWidth="1.5"
+        strokeDasharray="2 2"
+        fill="none"
+        opacity="0.9"
+      />
+      <circle cx="50" cy="72" r="22" fill="#9A3412" />
+      <text
+        x="50"
+        y="80"
+        textAnchor="middle"
+        fontSize="20"
+        fontWeight="900"
+        fontFamily="sans-serif"
+        fill="#FFEDD5"
+      >
+        3
+      </text>
+    </svg>
+  );
+}
+
+/**
+ * 🎖️ Премиум релефен златен клубен печат с лавров венец и звезда
+ */
+export function EmbossedClubSealSvg({
+  className = "size-24",
+  primaryColor = "#D97706",
+  clubText = "БК ГЪЛЪБОВО 2025",
+  subText = "ОФИЦИАЛЕН ПЕЧАТ",
+}: {
+  className?: string;
+  primaryColor?: string;
+  clubText?: string;
+  subText?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 140 140"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <defs>
+        <radialGradient
+          id="embossedGold"
+          cx="70"
+          cy="70"
+          r="60"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#FEF08A" />
+          <stop offset="55%" stopColor="#F59E0B" />
+          <stop offset="85%" stopColor={primaryColor} />
+          <stop offset="100%" stopColor="#92400E" />
+        </radialGradient>
+      </defs>
+      {/* Serrated Starburst Badge Edge */}
+      <circle
+        cx="70"
+        cy="70"
+        r="62"
+        fill="url(#embossedGold)"
+        filter="drop-shadow(0 4px 8px rgba(180, 83, 9, 0.4))"
+      />
+      <circle
+        cx="70"
+        cy="70"
+        r="56"
+        stroke="#FEF9C3"
+        strokeWidth="2"
+        strokeDasharray="3 3"
+        fill="none"
+      />
+      <circle
+        cx="70"
+        cy="70"
+        r="50"
+        stroke="#78350F"
+        strokeWidth="1.5"
+        fill="none"
+        opacity="0.6"
+      />
+
+      {/* Center circle */}
+      <circle
+        cx="70"
+        cy="70"
+        r="42"
+        fill="#B45309"
+        fillOpacity="0.1"
+        stroke="#FEF3C7"
+        strokeWidth="2"
+      />
+
+      {/* Rackets & Laurel Crest */}
+      <g transform="translate(42, 42) scale(0.46)">
+        <ellipse
+          cx="60"
+          cy="30"
+          rx="16"
+          ry="22"
+          stroke="#78350F"
+          strokeWidth="3"
+          fill="#FEF3C7"
+          fillOpacity="0.4"
+        />
+        <line
+          x1="60"
+          y1="52"
+          x2="60"
+          y2="100"
+          stroke="#78350F"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+        <ellipse
+          cx="30"
+          cy="30"
+          rx="16"
+          ry="22"
+          stroke="#78350F"
+          strokeWidth="3"
+          fill="#FEF3C7"
+          fillOpacity="0.4"
+          transform="rotate(-30 30 30)"
+        />
+      </g>
+
+      {/* Club Name & Subtext */}
+      <text
+        x="70"
+        y="44"
+        textAnchor="middle"
+        fontSize="7.5"
+        fontWeight="900"
+        fill="#78350F"
+        letterSpacing="1.2"
+      >
+        {clubText}
+      </text>
+      <text
+        x="70"
+        y="102"
+        textAnchor="middle"
+        fontSize="6.5"
+        fontWeight="800"
+        fill="#92400E"
+        letterSpacing="1"
+      >
+        ★ {subText} ★
+      </text>
+    </svg>
+  );
+}
+
+/**
+ * ⚜️ Луксозни филигранни ъглови орнаменти за краищата на дипломата
+ */
+export function LuxuryFiligreeCornersSvg({
+  color = "#D97706",
+  className = "w-full h-full",
+}: {
+  color?: string;
+  className?: string;
+}) {
+  return (
+    <div className={`pointer-events-none absolute inset-0 ${className}`}>
+      {/* Top Left */}
+      <svg
+        className="absolute left-3 top-3 size-16"
+        viewBox="0 0 60 60"
+        fill="none"
+      >
+        <path
+          d="M4 4 L4 36 C4 20, 20 4, 36 4 Z"
+          fill={color}
+          fillOpacity="0.15"
+        />
+        <path
+          d="M2 2 L2 40 M2 2 L40 2"
+          stroke={color}
+          strokeWidth="2.5"
+          strokeLinecap="square"
+        />
+        <path
+          d="M8 8 L8 28 C8 16, 16 8, 28 8 Z"
+          stroke={color}
+          strokeWidth="1.2"
+          fill="none"
+        />
+        <circle cx="12" cy="12" r="3" fill={color} />
+      </svg>
+      {/* Top Right */}
+      <svg
+        className="absolute right-3 top-3 size-16 rotate-90"
+        viewBox="0 0 60 60"
+        fill="none"
+      >
+        <path
+          d="M4 4 L4 36 C4 20, 20 4, 36 4 Z"
+          fill={color}
+          fillOpacity="0.15"
+        />
+        <path
+          d="M2 2 L2 40 M2 2 L40 2"
+          stroke={color}
+          strokeWidth="2.5"
+          strokeLinecap="square"
+        />
+        <path
+          d="M8 8 L8 28 C8 16, 16 8, 28 8 Z"
+          stroke={color}
+          strokeWidth="1.2"
+          fill="none"
+        />
+        <circle cx="12" cy="12" r="3" fill={color} />
+      </svg>
+      {/* Bottom Left */}
+      <svg
+        className="absolute bottom-3 left-3 size-16 -rotate-90"
+        viewBox="0 0 60 60"
+        fill="none"
+      >
+        <path
+          d="M4 4 L4 36 C4 20, 20 4, 36 4 Z"
+          fill={color}
+          fillOpacity="0.15"
+        />
+        <path
+          d="M2 2 L2 40 M2 2 L40 2"
+          stroke={color}
+          strokeWidth="2.5"
+          strokeLinecap="square"
+        />
+        <path
+          d="M8 8 L8 28 C8 16, 16 8, 28 8 Z"
+          stroke={color}
+          strokeWidth="1.2"
+          fill="none"
+        />
+        <circle cx="12" cy="12" r="3" fill={color} />
+      </svg>
+      {/* Bottom Right */}
+      <svg
+        className="absolute bottom-3 right-3 size-16 rotate-180"
+        viewBox="0 0 60 60"
+        fill="none"
+      >
+        <path
+          d="M4 4 L4 36 C4 20, 20 4, 36 4 Z"
+          fill={color}
+          fillOpacity="0.15"
+        />
+        <path
+          d="M2 2 L2 40 M2 2 L40 2"
+          stroke={color}
+          strokeWidth="2.5"
+          strokeLinecap="square"
+        />
+        <path
+          d="M8 8 L8 28 C8 16, 16 8, 28 8 Z"
+          stroke={color}
+          strokeWidth="1.2"
+          fill="none"
+        />
+        <circle cx="12" cy="12" r="3" fill={color} />
+      </svg>
+    </div>
+  );
+}

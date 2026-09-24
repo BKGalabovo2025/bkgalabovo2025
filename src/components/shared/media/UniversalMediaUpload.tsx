@@ -68,9 +68,78 @@ export const isImageFileOrUrl = (fileNameOrUrl?: string | null): boolean => {
     clean.endsWith(".svg") ||
     clean.startsWith("data:image/") ||
     clean.startsWith("/zones/") ||
-    clean.includes("/magazin/")
+    clean.includes("/magazin/") ||
+    clean.includes("/team/") ||
+    clean.includes("/avatars/")
   );
 };
+
+async function compressImageIfNeeded(
+  file: File,
+  maxSizeBytes: number
+): Promise<File> {
+  if (
+    typeof window === "undefined" ||
+    !file.type.startsWith("image/") ||
+    file.type === "image/svg+xml"
+  ) {
+    return file;
+  }
+  if (file.size <= maxSizeBytes) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const img = document.createElement("img");
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      const maxDim = 1200;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          const compressedFile = new File(
+            [blob],
+            file.name.replace(/\.[^.]+$/, ".webp"),
+            { type: "image/webp" }
+          );
+          resolve(compressedFile);
+        },
+        "image/webp",
+        0.82
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
 
 export const detectAttachmentType = (
   fileNameOrUrl?: string | null
@@ -129,21 +198,22 @@ export function UniversalMediaUpload({
     ? "image"
     : detectAttachmentType(value);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [isDragOver, setIsDragOver] = useState(false);
 
-    if (file.size > maxSizeBytes) {
-      setError(
-        `Файлът надвишава ${Math.round(maxSizeBytes / 1024)}KB. За по-големи файлове използвайте опцията "Постави външен линк" (Google Drive, Cloudinary и др.).`
-      );
-      return;
-    }
-
+  const processFile = async (rawFile: File) => {
     setIsUploading(true);
     setError(null);
 
     try {
+      const file = await compressImageIfNeeded(rawFile, maxSizeBytes);
+      if (file.size > maxSizeBytes) {
+        setError(
+          `Файлът надвишава ${Math.round(maxSizeBytes / 1024)}KB. За по-големи файлове използвайте опцията "Постави външен линк" (Google Drive, Cloudinary и др.).`
+        );
+        setIsUploading(false);
+        return;
+      }
+
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const siteId = getSiteConfig().id;
       const storagePath = `sites/${siteId}/${storageFolder}/${Date.now()}_${safeName}`;
@@ -160,6 +230,22 @@ export function UniversalMediaUpload({
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      void processFile(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      void processFile(file);
     }
   };
 
@@ -343,8 +429,17 @@ export function UniversalMediaUpload({
               type="button"
               disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragOver(true);
+              }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={handleDrop}
               className={cn(
-                "flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/40 p-5 text-center transition-all hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/60",
+                "flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed p-5 text-center transition-all",
+                isDragOver
+                  ? "border-blue-500 bg-blue-50/50 dark:border-blue-400 dark:bg-blue-950/40"
+                  : "border-zinc-200 bg-zinc-50/40 hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/60",
                 isUploading && "pointer-events-none opacity-60"
               )}
             >
@@ -352,7 +447,7 @@ export function UniversalMediaUpload({
                 <>
                   <Loader2 className="size-6 animate-spin text-zinc-500" />
                   <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                    Качване на файла...
+                    Качване и обработка на файла...
                   </span>
                 </>
               ) : (
@@ -362,10 +457,14 @@ export function UniversalMediaUpload({
                   </div>
                   <div>
                     <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                      Кликнете за качване на снимка или файл
+                      {isImageContext
+                        ? "Кликнете или плъзнете снимка от устройството"
+                        : "Кликнете за качване на снимка или файл"}
                     </span>
                     <p className="mt-0.5 text-[10px] text-zinc-400">
-                      PNG, JPG, WEBP, PDF, Word или Excel
+                      {isImageContext
+                        ? "PNG, JPG, WEBP (до 800KB)"
+                        : "PNG, JPG, WEBP, PDF, Word или Excel"}
                     </p>
                   </div>
                 </>

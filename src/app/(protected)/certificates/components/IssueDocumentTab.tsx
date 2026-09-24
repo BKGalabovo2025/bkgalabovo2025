@@ -45,13 +45,18 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useMembers } from "@/hooks/useMembers";
 import {
+  exportBatchMultiCertificatePdf,
   exportCertificatePdf,
   exportCertificatePng,
   exportTwoPageCertificatePdf,
+  getCertificateShareLinks,
   printCertificate,
+  shareCertificateViaWeb,
 } from "@/lib/certificate-export-helpers";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
+import { getCamps } from "@/services/schedule-service";
 import { tournamentService } from "@/services/tournament-service";
+import { ScheduleEvent } from "@/types";
 import {
   AwardRank,
   CertificateTemplate,
@@ -68,6 +73,7 @@ import {
   CertificateBacksidePreview,
   CertificateDocumentPreview,
 } from "./CertificateDocumentPreview";
+import { ShareCertificateDialog } from "./ShareCertificateDialog";
 
 interface IssueDocumentTabProps {
   siteId: "bkgalabovo" | "recoveryzone";
@@ -76,6 +82,7 @@ interface IssueDocumentTabProps {
   preselectedTemplateId?: string | null;
   onIssuedSuccess: () => Promise<void>;
   onSwitchToRegistry: () => void;
+  onOpenTemplates?: () => void;
 }
 
 export function IssueDocumentTab({
@@ -85,6 +92,7 @@ export function IssueDocumentTab({
   preselectedTemplateId,
   onIssuedSuccess,
   onSwitchToRegistry,
+  onOpenTemplates,
 }: IssueDocumentTabProps) {
   const { members, loading: loadingMembers } = useMembers();
 
@@ -171,12 +179,24 @@ export function IssueDocumentTab({
   const [tournamentEntries, setTournamentEntries] = useState<TournamentEntry[]>(
     []
   );
+
+  // Camps state
+  const [camps, setCamps] = useState<ScheduleEvent[]>([]);
+  const [selectedCampId, setSelectedCampId] = useState<string>("");
+  const [campAttendees, setCampAttendees] = useState<
+    Array<{ memberId?: string; name: string }>
+  >([]);
+
+  // Age group filter for members
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>("all");
+
   const [isBulkIssuing, setIsBulkIssuing] = useState(false);
   const [bulkSuccessList, setBulkSuccessList] = useState<IssuedCertificate[]>(
     []
   );
+  const [isExportingBulkPdf, setIsExportingBulkPdf] = useState(false);
 
-  // Load tournaments
+  // Load tournaments & camps
   React.useEffect(() => {
     tournamentService
       .getTournaments()
@@ -185,6 +205,14 @@ export function IssueDocumentTab({
       })
       .catch((err) => {
         console.error("Грешка при зареждане на турнири:", err);
+      });
+
+    getCamps()
+      .then((res) => {
+        setCamps(res || []);
+      })
+      .catch((err) => {
+        console.error("Грешка при зареждане на лагери:", err);
       });
   }, []);
 
@@ -213,6 +241,27 @@ export function IssueDocumentTab({
         });
     }
   }, [selectedTournamentId, tournaments]);
+
+  // When selected camp changes
+  React.useEffect(() => {
+    if (!selectedCampId) {
+      setCampAttendees([]);
+      return;
+    }
+    const camp = camps.find((c) => c.id === selectedCampId);
+    if (camp) {
+      setEventTitle(camp.title);
+      if (camp.location) setEventLocation(camp.location);
+      if (camp.startDate) {
+        setEventDate(new Date(camp.startDate).toLocaleDateString("bg-BG"));
+      }
+      const attendees = (camp.attendees || []).map((a) => ({
+        memberId: a.memberId,
+        name: a.name || "Участник в лагер",
+      }));
+      setCampAttendees(attendees);
+    }
+  }, [selectedCampId, camps]);
 
   // State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -320,18 +369,44 @@ export function IssueDocumentTab({
     }
   };
 
-  // Filtered members for autocomplete
+  // Filtered members for autocomplete with age groups
   const filteredMembers = useMemo(() => {
-    if (!memberSearchQuery.trim()) return members.slice(0, 6);
+    let result = members;
+
+    // Filter by Age Group
+    if (selectedAgeGroup !== "all") {
+      result = result.filter((m) => {
+        if (
+          m.ageGroup &&
+          m.ageGroup.toLowerCase() === selectedAgeGroup.toLowerCase()
+        ) {
+          return true;
+        }
+        if (!m.dateOfBirth) return false;
+        const d = new Date(m.dateOfBirth);
+        if (isNaN(d.getTime())) return false;
+        const birthYear = d.getFullYear();
+        const age = 2026 - birthYear;
+
+        if (selectedAgeGroup === "u11") return age <= 11;
+        if (selectedAgeGroup === "u13") return age > 11 && age <= 13;
+        if (selectedAgeGroup === "u15") return age > 13 && age <= 15;
+        if (selectedAgeGroup === "u17") return age > 15 && age <= 17;
+        if (selectedAgeGroup === "adults") return age >= 18;
+        return true;
+      });
+    }
+
+    if (!memberSearchQuery.trim()) return result.slice(0, 8);
     const q = memberSearchQuery.toLowerCase();
-    return members
+    return result
       .filter((m) => {
         const full = `${m.firstName} ${m.lastName}`.toLowerCase();
         const inst = (m.educationInstitution || "").toLowerCase();
         return full.includes(q) || inst.includes(q);
       })
-      .slice(0, 8);
-  }, [members, memberSearchQuery]);
+      .slice(0, 10);
+  }, [members, memberSearchQuery, selectedAgeGroup]);
 
   const handleSelectMember = (m: (typeof members)[0]) => {
     setSelectedMemberId(m.id);
@@ -434,6 +509,125 @@ export function IssueDocumentTab({
       toast.error("Грешка при масовото издаване на грамоти.");
     } finally {
       setIsBulkIssuing(false);
+    }
+  };
+
+  // Bulk issue certificates for all registered attendees of a camp
+  const handleBulkIssueCampParticipants = async () => {
+    if (!activeTemplate) {
+      toast.error("Моля, изберете одобрен шаблон.");
+      return;
+    }
+    if (!selectedCampId || campAttendees.length === 0) {
+      toast.error("Няма намерени участници в този спортен лагер.");
+      return;
+    }
+
+    setIsBulkIssuing(true);
+    try {
+      const issuedList: IssuedCertificate[] = [];
+      const camp = camps.find((c) => c.id === selectedCampId);
+
+      for (let i = 0; i < campAttendees.length; i++) {
+        const entry = campAttendees[i];
+        const member = members.find((m) => m.id === entry.memberId);
+        const name = member
+          ? `${member.firstName} ${member.lastName}`
+          : entry.name || `Участник ${i + 1}`;
+
+        const payload: IssueCertificateInput = {
+          templateId: activeTemplate.id,
+          type: activeTemplate.type || "certificate",
+          recipient: {
+            memberId: entry.memberId,
+            name,
+            institution: member?.educationInstitution || "БК Гълъбово",
+            email: member?.email || undefined,
+            phone: member?.phone || undefined,
+          },
+          details: {
+            rank: "participant",
+            nomination:
+              nomination ||
+              `Успешно завършен подготвителен курс по бадминтон (${camp?.title || "спортен лагер"})`,
+            courseTitle: camp?.title,
+            completionDate: eventDate,
+            hoursTrained: hoursTrained || 25,
+            eventTitle,
+            eventDate,
+            eventLocation,
+            includeBackside: activeTemplate.visualConfig?.includeBackside,
+            backsideStyle: activeTemplate.visualConfig?.backsideStyle,
+            backsideTitle: activeTemplate.visualConfig?.backsideTitle,
+            backsideMessage: activeTemplate.visualConfig?.backsideMessage,
+            backsideSignatory: activeTemplate.visualConfig?.backsideSignatory,
+          },
+        };
+
+        const res = await certificateIssuanceService.issueCertificate(
+          siteId,
+          payload
+        );
+        issuedList.push(res);
+      }
+
+      setBulkSuccessList(issuedList);
+      try {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      } catch (c) {}
+      toast.success(
+        `Успешно генерирани ${issuedList.length} сертификата за лагера!`
+      );
+      await onIssuedSuccess();
+    } catch (err) {
+      console.error("Грешка при масово издаване за лагер:", err);
+      toast.error("Грешка при масовото издаване на сертификати.");
+    } finally {
+      setIsBulkIssuing(false);
+    }
+  };
+
+  // Multi-page Consolidated PDF Download
+  const handleDownloadBulkMultiPdf = async () => {
+    if (bulkSuccessList.length === 0) return;
+    setIsExportingBulkPdf(true);
+    const toastId = toast.loading("Обединяване на грамотите в общ PDF...");
+    try {
+      const elements: HTMLElement[] = [];
+      for (let i = 0; i < bulkSuccessList.length; i++) {
+        const el = document.getElementById(`bulk-preview-item-${i}`);
+        if (el) elements.push(el);
+      }
+
+      if (elements.length === 0) {
+        toast.error("Грешка при зареждане на елементите за печат.", {
+          id: toastId,
+        });
+        return;
+      }
+
+      const orient = activeTemplate?.visualConfig?.orientation || "landscape";
+      const ok = await exportBatchMultiCertificatePdf(
+        elements,
+        `грамоти_пакет_${eventTitle || "награждаване"}.pdf`,
+        orient,
+        (curr, tot) => {
+          toast.loading(`Генериране на страница ${curr} от ${tot}...`, {
+            id: toastId,
+          });
+        }
+      );
+
+      if (ok) {
+        toast.success(`Пакетът от ${elements.length} грамоти е изтеглен!`, {
+          id: toastId,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при обединяване на PDF файловете.", { id: toastId });
+    } finally {
+      setIsExportingBulkPdf(false);
     }
   };
 
@@ -599,6 +793,16 @@ export function IssueDocumentTab({
             За да издадете грамота или ваучер, първо одобрете поне един шаблон в
             раздел „Шаблони (Конструктор)“.
           </p>
+          {onOpenTemplates && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onOpenTemplates}
+              className="mt-2 rounded-xl"
+            >
+              Към шаблоните
+            </Button>
+          )}
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -747,6 +951,83 @@ export function IssueDocumentTab({
                   )}
                 </div>
 
+                {/* 1.2 Camp Integration Selector */}
+                <div className="space-y-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-1.5 text-xs font-black text-emerald-950 uppercase dark:text-emerald-200">
+                      <span>🏕️</span>
+                      Зареди данни от Спортен Лагер:
+                    </Label>
+                    {selectedCampId && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCampId("")}
+                        className="text-[10px] text-zinc-500 hover:underline"
+                      >
+                        Изчисти ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <Select
+                    value={selectedCampId}
+                    onValueChange={(val) => setSelectedCampId(val)}
+                  >
+                    <SelectTrigger className="h-9 rounded-xl border-emerald-300 bg-white text-xs dark:bg-zinc-900">
+                      <SelectValue placeholder="-- Изберете тренировъчен лагер --" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {camps.map((c) => (
+                        <SelectItem key={c.id || ""} value={c.id || ""}>
+                          🏕️ {c.title} ({c.attendees?.length || 0} участници)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* If camp selected, show attendees info & bulk issue button */}
+                  {selectedCampId && (
+                    <div className="space-y-2 border-t border-emerald-200/60 pt-2">
+                      {campAttendees.length > 0 ? (
+                        <>
+                          <div className="flex items-center justify-between text-xs text-emerald-900 dark:text-emerald-200">
+                            <span className="font-semibold">
+                              Записани участници:
+                            </span>
+                            <span className="font-bold">
+                              {campAttendees.length} състезатели
+                            </span>
+                          </div>
+
+                          <Button
+                            type="button"
+                            onClick={handleBulkIssueCampParticipants}
+                            disabled={isBulkIssuing}
+                            className="w-full gap-2 rounded-xl bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-500 text-xs font-black text-white shadow-md shadow-emerald-500/20 hover:from-emerald-700 hover:to-teal-700"
+                          >
+                            {isBulkIssuing ? (
+                              <>
+                                <Loader2 className="size-3.5 animate-spin" />
+                                Издаване на сертификати...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="size-3.5" />⚡ Генерирай
+                                сертификати за всички {campAttendees.length}{" "}
+                                участници
+                              </>
+                            )}
+                          </Button>
+                        </>
+                      ) : (
+                        <p className="text-[11px] italic text-zinc-500">
+                          Няма добавени присъстващи в този лагер.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* 2. Recipient Mode Selector */}
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between">
@@ -794,6 +1075,31 @@ export function IssueDocumentTab({
                           onChange={(e) => setMemberSearchQuery(e.target.value)}
                           className="h-8 rounded-xl border-zinc-200 bg-white pl-8 text-xs dark:border-zinc-800 dark:bg-zinc-900"
                         />
+                      </div>
+
+                      {/* Age Category Filter Pills */}
+                      <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                        {[
+                          { id: "all", label: "🌟 Всички" },
+                          { id: "u11", label: "U11 (до 11г.)" },
+                          { id: "u13", label: "U13 (12-13)" },
+                          { id: "u15", label: "U15 (14-15)" },
+                          { id: "u17", label: "U17 (16-17)" },
+                          { id: "adults", label: "18+ (Мъже/Жени)" },
+                        ].map((grp) => (
+                          <button
+                            key={grp.id}
+                            type="button"
+                            onClick={() => setSelectedAgeGroup(grp.id)}
+                            className={`rounded-lg px-2 py-0.5 text-[10px] font-bold transition-all ${
+                              selectedAgeGroup === grp.id
+                                ? "bg-blue-600 text-white shadow-xs"
+                                : "bg-zinc-200/70 text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-300"
+                            }`}
+                          >
+                            {grp.label}
+                          </button>
+                        ))}
                       </div>
 
                       {/* Member list chips */}
@@ -1511,6 +1817,29 @@ export function IssueDocumentTab({
             })}
           </div>
 
+          {/* Batch PDF Download Button */}
+          <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800">
+            <Button
+              type="button"
+              onClick={handleDownloadBulkMultiPdf}
+              disabled={isExportingBulkPdf}
+              className="w-full gap-2 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+            >
+              {isExportingBulkPdf ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Генериране на общ PDF документ...
+                </>
+              ) : (
+                <>
+                  <FileDown className="size-4" />
+                  📦 Свали всички {bulkSuccessList.length} грамоти в един общ A4
+                  PDF
+                </>
+              )}
+            </Button>
+          </div>
+
           <DialogFooter className="grid grid-cols-2 gap-2 pt-2">
             <Button
               variant="outline"
@@ -1531,6 +1860,40 @@ export function IssueDocumentTab({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Hidden container for rendering bulk certificates to multi-page PDF */}
+      <div className="fixed left-[-9999px] top-0 pointer-events-none opacity-0">
+        {bulkSuccessList.map((doc, idx) => (
+          <div
+            key={`bulk_render_${doc.id || idx}`}
+            id={`bulk-preview-item-${idx}`}
+          >
+            <CertificateDocumentPreview
+              data={{
+                siteId: doc.siteId,
+                type: doc.type,
+                title: doc.visualSnapshot?.templateTitle || "Грамота",
+                visualConfig: doc.visualSnapshot,
+                serialNumber: doc.serialNumber,
+                qrCodeDataUrl: doc.qrCodeDataUrl,
+                recipientName: doc.recipient?.name,
+                recipientInstitution: doc.recipient?.institution,
+                rank: doc.details?.rank,
+                nomination: doc.details?.nomination,
+                eventTitle: doc.details?.eventTitle,
+                eventDate: doc.details?.eventDate,
+                eventLocation: doc.details?.eventLocation,
+                totalSessions: doc.details?.totalSessions,
+                remainingSessions: doc.details?.remainingSessions,
+                validUntil: doc.details?.validUntil,
+                skillsSummary: doc.details?.skillsSummary,
+                hoursTrained: doc.details?.hoursTrained,
+                sponsors: sponsors,
+              }}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

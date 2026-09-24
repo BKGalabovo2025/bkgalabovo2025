@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import pathPosix from "path/posix";
@@ -149,33 +150,6 @@ export async function GET(request: NextRequest) {
       user = await getAuthUserFromSessionCookie();
     }
 
-    if (!user) {
-      return NextResponse.json(
-        {
-          error:
-            "Unauthorized: Влизането в профил е задължително за достъп до качени файлове.",
-        },
-        { status: 401 }
-      );
-    }
-
-    // 2. Tenant isolation check
-    const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
-    const isSuperAdmin =
-      user.email === "bkgalabovo2014@gmail.com" ||
-      user.email === "recoveryzonebyzm@gmail.com";
-    if (
-      !isSuperAdmin &&
-      allowedSites &&
-      allowedSites.length > 0 &&
-      !allowedSites.includes(siteId)
-    ) {
-      return NextResponse.json(
-        { error: "Forbidden: Нямате достъп до файловете на този клон." },
-        { status: 403 }
-      );
-    }
-
     const adminDb = (await import("@/lib/firebase-admin")).getAdminDb();
     const docSnap = await adminDb
       .collection("sites")
@@ -189,6 +163,41 @@ export async function GET(request: NextRequest) {
     }
 
     const fileDoc = docSnap.data();
+    const isPublicMedia =
+      fileDoc?.contentType?.startsWith("image/") ||
+      fileDoc?.path?.includes("avatars") ||
+      fileDoc?.path?.includes("sponsors") ||
+      fileDoc?.path?.includes("media");
+
+    if (!user && !isPublicMedia) {
+      return NextResponse.json(
+        {
+          error:
+            "Unauthorized: Влизането в профил е задължително за достъп до прикачени документи.",
+        },
+        { status: 401 }
+      );
+    }
+
+    // 2. Tenant isolation check (for protected private files)
+    if (user && !isPublicMedia) {
+      const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+      const isSuperAdmin =
+        user.email === "bkgalabovo2014@gmail.com" ||
+        user.email === "recoveryzonebyzm@gmail.com";
+      if (
+        !isSuperAdmin &&
+        allowedSites &&
+        allowedSites.length > 0 &&
+        !allowedSites.includes(siteId)
+      ) {
+        return NextResponse.json(
+          { error: "Forbidden: Нямате достъп до файловете на този клон." },
+          { status: 403 }
+        );
+      }
+    }
+
     const buffer = Buffer.from(fileDoc?.data || "", "base64");
     const safeFileName = encodeURIComponent(fileDoc?.name || "document");
 

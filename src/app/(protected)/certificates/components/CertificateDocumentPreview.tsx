@@ -2,7 +2,6 @@
 "use client";
 
 import {
-  Award,
   Calendar,
   MapPin,
   Phone,
@@ -25,9 +24,14 @@ import {
 
 import {
   BadmintonShuttlecockSvg,
+  BronzeMedal3rdSvg,
   CrossedRacketsSvg,
+  EmbossedClubSealSvg,
+  GoldMedal1stSvg,
   KidsSportsDynamicSvg,
   LaurelWreathCrestSvg,
+  LuxuryFiligreeCornersSvg,
+  SilverMedal2ndSvg,
   ZenWellnessLotusSvg,
 } from "./CertificateVectorIllustrations";
 
@@ -141,20 +145,10 @@ function DigitalOfficialSeal({
     );
   }
 
-  // Default: laurel
+  // Default: laurel / embossed gold
   return (
-    <div
-      className={`flex ${sizeClass} items-center justify-center rounded-full border-2 p-1 text-center shadow-md ${borderClass}`}
-    >
-      <div className="flex size-full flex-col items-center justify-center rounded-full border border-dashed border-current p-0.5">
-        <Award className="mb-0.5 size-3.5" />
-        <span className="text-[7px] leading-none font-black tracking-tighter uppercase">
-          ОФИЦИАЛЕН
-        </span>
-        <span className="text-[6px] leading-none font-bold tracking-tighter">
-          ПЕЧАТ • 2026
-        </span>
-      </div>
+    <div className={`relative ${sizeClass} shrink-0`}>
+      <EmbossedClubSealSvg className="size-full" />
     </div>
   );
 }
@@ -194,6 +188,9 @@ export function CertificateDocumentPreview({
   const isAiBackground =
     visualConfig.layoutMode === "custom_ai_background" &&
     Boolean(visualConfig.aiBackgroundUrl);
+  const isBlankCanvas =
+    visualConfig.layoutMode === "custom_ai_background" &&
+    !visualConfig.aiBackgroundUrl;
 
   const textColorMode = visualConfig.textColorMode || "auto";
   const isLightText =
@@ -268,9 +265,23 @@ export function CertificateDocumentPreview({
       } rounded-2xl shadow-2xl ${className}`}
     >
       {/* ========================================================================= */}
-      {/* LAYER 1: BACKGROUND (AI Canvas OR Standard HTML Frames) */}
+      {/* LAYER 1: BACKGROUND (Blank Canvas OR AI Image OR Standard HTML Frames) */}
       {/* ========================================================================= */}
-      {isAiBackground ? (
+      {isBlankCanvas ? (
+        <div className="absolute inset-0 z-0 bg-linear-to-br from-white via-zinc-50 to-zinc-100/70 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
+          {/* Subtle architect guideline frame for pristine canvas feeling */}
+          <div className="pointer-events-none absolute inset-3 rounded-xl border border-dashed border-zinc-200/90 dark:border-zinc-800" />
+          <div className="pointer-events-none absolute inset-5 rounded-lg border border-zinc-100/80 dark:border-zinc-850" />
+
+          {/* Elegant subtle watermark in the center */}
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center opacity-25 select-none">
+            <Sparkles className="mb-1 size-8 text-amber-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              Празен лист • Задайте контекст и генерирайте с AI
+            </span>
+          </div>
+        </div>
+      ) : isAiBackground ? (
         <div className="absolute inset-0 z-0">
           <Image
             src={visualConfig.aiBackgroundUrl!}
@@ -299,10 +310,7 @@ export function CertificateDocumentPreview({
               <div className="pointer-events-none absolute inset-3 rounded-xl border-2 border-amber-600/70" />
               <div className="pointer-events-none absolute inset-4 rounded-lg border border-amber-500/40" />
               <div className="pointer-events-none absolute inset-6 border border-amber-400/20" />
-              <div className="absolute top-3 left-3 size-10 rounded-tl-lg border-t-4 border-l-4 border-amber-500" />
-              <div className="absolute top-3 right-3 size-10 rounded-tr-lg border-t-4 border-r-4 border-amber-500" />
-              <div className="absolute bottom-3 left-3 size-10 rounded-bl-lg border-b-4 border-l-4 border-amber-500" />
-              <div className="absolute right-3 bottom-3 size-10 rounded-br-lg border-r-4 border-b-4 border-amber-500" />
+              <LuxuryFiligreeCornersSvg color="#D97706" />
             </>
           )}
 
@@ -312,10 +320,7 @@ export function CertificateDocumentPreview({
               <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-amber-500/5 via-transparent to-amber-500/10" />
               <div className="pointer-events-none absolute inset-3.5 rounded-xl border border-amber-500/30" />
               <div className="pointer-events-none absolute inset-5 rounded-lg border border-amber-400/20" />
-              <div className="absolute top-4 left-4 size-6 border-t-2 border-l-2 border-amber-400" />
-              <div className="absolute top-4 right-4 size-6 border-t-2 border-r-2 border-amber-400" />
-              <div className="absolute bottom-4 left-4 size-6 border-b-2 border-l-2 border-amber-400" />
-              <div className="absolute right-4 bottom-4 size-6 border-r-2 border-b-2 border-amber-400" />
+              <LuxuryFiligreeCornersSvg color="#EAB308" />
             </>
           )}
 
@@ -349,44 +354,49 @@ export function CertificateDocumentPreview({
         </>
       )}
 
-      {/* Decorative SVG Watermarks (Non-obstructive Canva-style art layers) */}
-      <div
-        className="pointer-events-none absolute inset-0 z-1 overflow-hidden"
-        style={{ opacity: (visualConfig.watermarkOpacity ?? 10) / 100 }}
-      >
-        {layoutTemplate === "sports_voucher" && (
-          <>
-            <div className="absolute -top-6 -right-6">
-              <KidsSportsDynamicSvg
-                className="size-52"
-                primaryColor="#F59E0B"
-                secondaryColor="#3B82F6"
+      {/* Decorative SVG Watermarks (Non-obstructive Canva-style art layers - only for non-blank canvas) */}
+      {!isBlankCanvas && (
+        <div
+          className="pointer-events-none absolute inset-0 z-1 overflow-hidden"
+          style={{ opacity: (visualConfig.watermarkOpacity ?? 10) / 100 }}
+        >
+          {layoutTemplate === "sports_voucher" && (
+            <>
+              <div className="absolute -top-6 -right-6">
+                <KidsSportsDynamicSvg
+                  className="size-52"
+                  primaryColor="#F59E0B"
+                  secondaryColor="#3B82F6"
+                />
+              </div>
+              <div className="absolute -bottom-8 -left-8">
+                <CrossedRacketsSvg
+                  className="size-48"
+                  primaryColor="#3B82F6"
+                  secondaryColor="#F59E0B"
+                />
+              </div>
+            </>
+          )}
+          {layoutTemplate === "official_award" && (
+            <div className="absolute top-1/2 left-1/2 -translate-1/2">
+              <LaurelWreathCrestSvg
+                className="size-80"
+                primaryColor="#D97706"
               />
             </div>
-            <div className="absolute -bottom-8 -left-8">
-              <CrossedRacketsSvg
-                className="size-48"
-                primaryColor="#3B82F6"
-                secondaryColor="#F59E0B"
+          )}
+          {layoutTemplate === "recovery_voucher" && (
+            <div className="absolute top-1/2 left-1/2 -translate-1/2">
+              <ZenWellnessLotusSvg
+                className="size-72"
+                primaryColor="#10B981"
+                secondaryColor="#D97706"
               />
             </div>
-          </>
-        )}
-        {layoutTemplate === "official_award" && (
-          <div className="absolute top-1/2 left-1/2 -translate-1/2">
-            <LaurelWreathCrestSvg className="size-80" primaryColor="#D97706" />
-          </div>
-        )}
-        {layoutTemplate === "recovery_voucher" && (
-          <div className="absolute top-1/2 left-1/2 -translate-1/2">
-            <ZenWellnessLotusSvg
-              className="size-72"
-              primaryColor="#10B981"
-              secondaryColor="#D97706"
-            />
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* LAYER 2: VECTOR DYNAMIC OVERLAY (High Contrast Canva-style Typography) */}
@@ -681,9 +691,16 @@ export function CertificateDocumentPreview({
                 {title}
               </h1>
 
-              {/* Rank Badge */}
+              {/* Rank Badge with Medals */}
               {visualConfig.showBadge && (
-                <div className="flex justify-center pt-1">
+                <div className="flex flex-col items-center justify-center pt-0.5">
+                  {rank === "1st" ? (
+                    <GoldMedal1stSvg className="size-16 -mb-2 drop-shadow-lg" />
+                  ) : rank === "2nd" ? (
+                    <SilverMedal2ndSvg className="size-16 -mb-2 drop-shadow-md" />
+                  ) : rank === "3rd" ? (
+                    <BronzeMedal3rdSvg className="size-16 -mb-2 drop-shadow-md" />
+                  ) : null}
                   <div className="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-linear-to-r from-amber-400 via-yellow-400 to-amber-500 px-4 py-1 text-xs font-black text-zinc-950 shadow-md">
                     <Trophy className="size-3.5 shrink-0" />
                     <span>{getRankLabel(rank)}</span>

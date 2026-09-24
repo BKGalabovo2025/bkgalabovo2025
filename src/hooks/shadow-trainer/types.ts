@@ -1,6 +1,9 @@
 export interface ShadowPlayer {
   id: string;
   displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  ageGroup?: string;
   [key: string]: unknown;
 }
 

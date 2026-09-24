@@ -1,7 +1,17 @@
 type TrainingType = "shadow" | "physical" | "court";
 type ShadowMode = "standard" | "ghost_match" | "agility_test";
-type ShadowPreset = "beginner" | "advanced" | "custom";
-type ShadowCornersMode = "4-corners" | "6-corners";
+type ShadowPreset =
+  | "warmup"
+  | "smash_net"
+  | "defense_drives"
+  | "ghost_match"
+  | "agility_sprint"
+  | "kids_footwork"
+  | "beginner"
+  | "advanced"
+  | "custom"
+  | string;
+type ShadowCornersMode = "2-corners" | "4-corners" | "6-corners";
 type ShadowAgeGroup = "U9-U11" | "U13-U15" | "U17+";
 type ShadowDrillPattern =
   "random" | "fixed-triangle" | "fixed-net-back" | "mixed";

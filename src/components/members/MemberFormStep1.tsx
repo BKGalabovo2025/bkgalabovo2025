@@ -3,6 +3,7 @@
 import { Activity, Check, User, Users } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 
+import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
 import { BentoCard } from "@/components/ui/bento-card";
 import {
   FormControl,
@@ -339,61 +340,60 @@ export function MemberFormStep1({
         )}
       </div>
 
-      {/* --- ADDED FOR PUBLIC TEAM PAGE --- */}
-      {isClubMember && (
-        <div className="mt-8 grid grid-cols-1 gap-5 border-t border-zinc-100 pt-8 sm:grid-cols-2 sm:gap-6 dark:border-zinc-800">
+      {/* --- СНИМКА ЗА ПРОФИЛА & ПУБЛИЧЕН ОТБОР --- */}
+      {!isGuestOnly && (
+        <div className="mt-8 space-y-6 border-t border-zinc-100 pt-8 dark:border-zinc-800">
           <FormField
             name="avatarUrl"
             control={form.control}
             render={({ field }) => (
-              <FormItem className="sm:col-span-1">
-                <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
-                  Снимка за профила (път)
-                </FormLabel>
+              <FormItem>
                 <FormControl>
-                  <Input
-                    {...field}
+                  <UniversalMediaUpload
+                    id="member-avatar-upload"
+                    label="Снимка за профила"
+                    description="PNG, JPG, WEBP (до 800KB или външен линк)"
                     value={field.value || ""}
-                    placeholder="напр. /team/ivan.jpg"
-                    className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                    onChange={(url) => field.onChange(url)}
+                    storageFolder="avatars"
+                    accept="image/png,image/jpeg,image/webp,image/jpg,image/*"
+                    maxSizeBytes={800 * 1024}
+                    placeholderUrl="https://... или /team/ivan.jpg"
                   />
                 </FormControl>
-                <p className="mt-1.5 text-[11px] leading-relaxed font-medium text-amber-600/80">
-                  Важно: Името на файла трябва да е на латиница, без интервали
-                  (напр. veronika.jpg). Снимката трябва да е предварително
-                  качена в папка public/team/.
-                </p>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {(() => {
-            const showOnPublicTeam = form.watch("showOnPublicTeam");
-            return (
-              <div
-                className="mt-auto flex h-auto min-h-11 cursor-pointer flex-row items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 sm:col-span-1 sm:min-h-12"
-                onClick={() =>
-                  form.setValue("showOnPublicTeam", !showOnPublicTeam, {
-                    shouldValidate: true,
-                  })
-                }
-              >
-                <div className="space-y-1">
-                  <p className="text-[11px] font-medium text-zinc-700">
-                    Показвай в публичния отбор
-                  </p>
-                  <p className="text-[10px] leading-relaxed font-normal text-zinc-400">
-                    Ако е избрано, ще се показва на страница /club/team.
-                  </p>
+          {isClubMember &&
+            (() => {
+              const showOnPublicTeam = form.watch("showOnPublicTeam");
+              return (
+                <div
+                  className="flex h-auto min-h-11 cursor-pointer flex-row items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 transition-colors hover:bg-zinc-100/60 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:bg-zinc-850"
+                  onClick={() =>
+                    form.setValue("showOnPublicTeam", !showOnPublicTeam, {
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300">
+                      Показвай в публичния отбор
+                    </p>
+                    <p className="text-[10px] leading-relaxed font-normal text-zinc-400">
+                      Ако е избрано, състезателят ще се показва на публичната
+                      страница /club/team.
+                    </p>
+                  </div>
+                  <VisualCheckbox
+                    checked={showOnPublicTeam}
+                    className="pointer-events-none size-5 data-checked:bg-emerald-500"
+                  />
                 </div>
-                <VisualCheckbox
-                  checked={showOnPublicTeam}
-                  className="pointer-events-none size-5 data-checked:bg-emerald-500"
-                />
-              </div>
-            );
-          })()}
+              );
+            })()}
         </div>
       )}
     </BentoCard>

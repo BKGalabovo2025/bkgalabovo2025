@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Defines the available audio files and helper functions for Shadow Training
 
+import { shadowLogger } from "./shadow-logger";
+
 export const AUDIO_PATHS = {
   common: {
     startSet: "/shadow/common/podgotvi_se.mp3",
-    beep: "/shadow/common/lek_podskok.mp3", // Synthentic or light beep
-    splitStep: "/shadow/common/split_step.mp3", // NEW: Split step command ("Хоп")
+    beep: "/shadow/common/lek_podskok.mp3",
+    splitStep: "/shadow/common/split_step.mp3",
     endSet: "/shadow/common/krai.mp3",
     rest: "/shadow/common/pochivka.mp3",
     endRest: "/shadow/common/krai_pochivka.mp3",
@@ -43,7 +45,7 @@ export const AUDIO_PATHS = {
 };
 
 export type ZoneId = keyof typeof AUDIO_PATHS.zones;
-type ShotId = keyof typeof AUDIO_PATHS.shots;
+export type ShotId = keyof typeof AUDIO_PATHS.shots;
 
 export const ZONE_NAMES: Record<ZoneId, string> = {
   frontForehand: "Форхенд Мрежа",
@@ -57,12 +59,6 @@ export const ZONE_NAMES: Record<ZoneId, string> = {
 
 export const ZONES_ARRAY = Object.keys(AUDIO_PATHS.zones) as ZoneId[];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getRandomZone(): ZoneId {
-  const index = Math.floor(Math.random() * ZONES_ARRAY.length);
-  return ZONES_ARRAY[index];
-}
-
 export function getRandomZoneForMode(
   modeType: "all" | "front_only" | "back_only" | "front_back",
   cornersMode: "2-corners" | "4-corners" | "6-corners" = "6-corners"
@@ -70,15 +66,12 @@ export function getRandomZoneForMode(
   let pool = ZONES_ARRAY;
 
   if (cornersMode === "2-corners") {
-    // 2 corners: само мрежата (front) или само задна линия (back) — зависи от drillMode
     if (modeType === "back_only") {
       pool = ["backForehand", "backBackhand"];
     } else {
-      // front_only или всичко → само мрежата
       pool = ["frontForehand", "frontBackhand"];
     }
   } else if (cornersMode === "4-corners") {
-    // 4 corners strictly excludes midcourt
     pool = ["frontForehand", "frontBackhand", "backForehand", "backBackhand"];
   }
 
@@ -96,47 +89,103 @@ export function getRandomZoneForMode(
   return pool[index];
 }
 
+const SILENT_WAV =
+  "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+
 class AudioManager {
   private voiceAudio: HTMLAudioElement | null = null;
   private overlayAudio: HTMLAudioElement | null = null;
+  private audioCtx: AudioContext | null = null;
 
-  // Current sequence state
+  // Sequence state
   private audioSequence: string[] = [];
   private sequenceIndex = 0;
   private isPlayingSequence = false;
   private currentPlayId = 0;
   private timeoutId: NodeJS.Timeout | null = null;
-
-  // Next sequence to play once the current one finishes
-  private nextSequence: string[] | null = null;
-  // Center command to play once the current+next sequences finish
   private pendingCenterPath: string | null = null;
 
   constructor() {
     if (typeof window !== "undefined") {
-      this.voiceAudio = new Audio();
-      this.voiceAudio.preload = "auto";
-      this.overlayAudio = new Audio();
-      this.overlayAudio.preload = "auto";
+      try {
+        this.voiceAudio = new Audio();
+        this.voiceAudio.preload = "auto";
+        this.overlayAudio = new Audio();
+        this.overlayAudio.preload = "auto";
+      } catch (e) {
+        console.warn("Could not instantiate HTMLAudioElement", e);
+      }
     }
   }
 
+  private getAudioContext(): AudioContext | null {
+    if (typeof window === "undefined") return null;
+    if (!this.audioCtx) {
+      const AudioCtxClass =
+        window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtxClass) {
+        try {
+          this.audioCtx = new AudioCtxClass();
+        } catch (e) {
+          console.warn("AudioContext init error:", e);
+        }
+      }
+    }
+    if (this.audioCtx && this.audioCtx.state === "suspended") {
+      this.audioCtx.resume().catch(() => {});
+    }
+    return this.audioCtx;
+  }
+
+  /**
+   * Unlock audio playback for iOS/Safari/Android upon user gesture (button click).
+   */
   public unlock() {
+    // 1. Resume Web Audio API context
+    const ctx = this.getAudioContext();
+    if (ctx && ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+
+    shadowLogger.audio("Audio engine unlocked by coach gesture", {
+      audioCtxState: ctx?.state || "none",
+    });
+
+    // 2. Unlock HTML5 Audio elements with a tiny silent WAV
     [this.voiceAudio, this.overlayAudio].forEach((audio) => {
       if (audio) {
-        audio.volume = 0;
-        audio
-          .play()
-          .then(() => {
-            audio.pause();
-            audio.currentTime = 0;
-          })
-          .catch(() => {})
-          .finally(() => {
-            audio.volume = 1;
-          });
+        try {
+          audio.src = SILENT_WAV;
+          audio
+            .play()
+            .then(() => {
+              audio.pause();
+              audio.currentTime = 0;
+            })
+            .catch(() => {});
+        } catch {
+          // ignore
+        }
       }
     });
+  }
+
+  public setSpeed(paceSec: number) {
+    if (!this.voiceAudio) return;
+    const oldRate = this.voiceAudio.playbackRate;
+    // For fast pace (<= 2.2s), slightly speed up speech (up to 1.25x) so words do not clip
+    if (paceSec <= 1.8) {
+      this.voiceAudio.playbackRate = 1.25;
+    } else if (paceSec <= 2.2) {
+      this.voiceAudio.playbackRate = 1.15;
+    } else {
+      this.voiceAudio.playbackRate = 1.0;
+    }
+    if (oldRate !== this.voiceAudio.playbackRate) {
+      shadowLogger.audio(
+        `Voice playbackRate adapted: ${this.voiceAudio.playbackRate}x (pace ${paceSec}s)`
+      );
+    }
   }
 
   public stopAll() {
@@ -145,7 +194,6 @@ class AudioManager {
     this.sequenceIndex = 0;
     this.currentPlayId++;
     this.pendingCenterPath = null;
-    this.nextSequence = null;
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
     if (this.voiceAudio) {
@@ -157,6 +205,7 @@ class AudioManager {
       this.overlayAudio.pause();
       this.overlayAudio.currentTime = 0;
     }
+    shadowLogger.audio("All audio playback stopped");
   }
 
   public isPlaying(): boolean {
@@ -177,8 +226,17 @@ class AudioManager {
     this.sequenceIndex = 0;
     this.attachOnEnded(playId);
     this.voiceAudio.src = paths[0];
-    this.voiceAudio.play().catch(() => {
+    shadowLogger.audio(
+      `Starting voice sequence (step 1/${paths.length}): ${paths[0]}`,
+      { sequence: paths }
+    );
+    this.voiceAudio.play().catch((err) => {
+      shadowLogger.warn(
+        "Voice playback rejected, falling back to synthetic beep",
+        err
+      );
       this.isPlayingSequence = false;
+      this.playSyntheticBeep(800, 0.1);
     });
   }
 
@@ -192,31 +250,28 @@ class AudioManager {
         this.sequenceIndex < this.audioSequence.length &&
         this.isPlayingSequence
       ) {
-        // More items in this sequence — continue after 200ms
+        // Next word in sequence — play after 100ms
         this.timeoutId = setTimeout(() => {
           if (this.currentPlayId !== playId || !this.isPlayingSequence) return;
-          this.voiceAudio!.src = this.audioSequence[this.sequenceIndex];
+          const nextSrc = this.audioSequence[this.sequenceIndex];
+          this.voiceAudio!.src = nextSrc;
+          shadowLogger.audio(
+            `Voice sequence step ${this.sequenceIndex + 1}/${this.audioSequence.length}: ${nextSrc}`
+          );
           this.voiceAudio!.play().catch((e) => {
             if (e.name !== "AbortError") {
+              shadowLogger.warn("Failed step in sequence, aborted", e);
               this.isPlayingSequence = false;
             }
           });
-        }, 200);
+        }, 100);
       } else {
-        // Current sequence finished
+        // Sequence finished
         this.isPlayingSequence = false;
+        shadowLogger.audio("Voice sequence completed successfully");
 
-        if (this.nextSequence) {
-          // A new sequence was waiting — play it now
-          const seq = this.nextSequence;
-          this.nextSequence = null;
-          this.currentPlayId++;
-          const nextId = this.currentPlayId;
-          this.timeoutId = setTimeout(() => {
-            this.startSequenceInternal(seq, nextId);
-          }, 150);
-        } else if (this.pendingCenterPath) {
-          // No queued sequence — play the center command
+        // If a center command is waiting, play it cleanly
+        if (this.pendingCenterPath) {
           const centerPath = this.pendingCenterPath;
           this.pendingCenterPath = null;
           this.timeoutId = setTimeout(() => {
@@ -224,40 +279,44 @@ class AudioManager {
             this.currentPlayId++;
             this.voiceAudio.onended = null;
             this.voiceAudio.src = centerPath;
+            shadowLogger.audio(
+              `Executing queued Center command: ${centerPath}`
+            );
             this.voiceAudio.play().catch(() => {});
-          }, 150);
+          }, 120);
         }
       }
     };
   }
 
+  /**
+   * Starts a voice sequence immediately, interrupting any prior command.
+   */
   public playVoiceSequence(paths: string[]) {
     if (!this.voiceAudio || paths.length === 0) return;
 
-    if (this.isPlaying()) {
-      // Audio still playing — queue this sequence; it will auto-play when done
-      this.nextSequence = paths;
-      // Clear any stale center command — the new sequence takes priority
-      this.pendingCenterPath = null;
-    } else {
-      // Nothing playing — start immediately
-      this.currentPlayId++;
-      if (this.timeoutId) clearTimeout(this.timeoutId);
-      this.startSequenceInternal(paths, this.currentPlayId);
-    }
+    // A new corner/shot command ALWAYS interrupts old commands with 0 latency
+    this.currentPlayId++;
+    if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.pendingCenterPath = null;
+    this.startSequenceInternal(paths, this.currentPlayId);
   }
 
   public queueAfterSequence(path: string) {
-    if (!this.isPlaying() && !this.nextSequence) {
+    if (!this.isPlaying()) {
       // Nothing playing right now — play immediately
       this.currentPlayId++;
       if (this.voiceAudio) {
         this.voiceAudio.onended = null;
         this.voiceAudio.src = path;
+        shadowLogger.audio(`Immediate Center recovery cue: ${path}`);
         this.voiceAudio.play().catch(() => {});
       }
     } else {
-      // Queue after whatever is currently playing/pending
+      // Queue after the current active sequence finishes
+      shadowLogger.audio(
+        `Queued Center recovery cue for after active sequence: ${path}`
+      );
       this.pendingCenterPath = path;
     }
   }
@@ -265,47 +324,66 @@ class AudioManager {
   public playVoice(path: string) {
     if (!this.voiceAudio) return;
     this.isPlayingSequence = false;
-    this.nextSequence = null;
     this.pendingCenterPath = null;
     this.currentPlayId++;
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
     this.voiceAudio.onended = null;
     this.voiceAudio.src = path;
-    this.voiceAudio.play().catch(() => {});
+    shadowLogger.audio(`Single voice command: ${path}`, {
+      playbackRate: this.voiceAudio.playbackRate,
+    });
+    this.voiceAudio.play().catch((err) => {
+      shadowLogger.warn(
+        "Voice command rejected, fallback to synthetic beep",
+        err
+      );
+      this.playSyntheticBeep(700, 0.12);
+    });
   }
 
   public playOverlay(path: string) {
-    if (!this.overlayAudio) return;
+    if (!this.overlayAudio) {
+      shadowLogger.warn("Overlay audio element missing, synthetic beep");
+      this.playSyntheticBeep(900, 0.08);
+      return;
+    }
     this.overlayAudio.src = path;
-    this.overlayAudio.play().catch(() => {});
+    shadowLogger.audio(`Overlay sound (split-step/hop): ${path}`);
+    this.overlayAudio.play().catch((err) => {
+      shadowLogger.warn("Overlay sound rejected, synthetic beep", err);
+      this.playSyntheticBeep(900, 0.08);
+    });
   }
 
-  public playSyntheticBeep() {
-    if (typeof window === "undefined" || !window.AudioContext) return;
+  public playSyntheticBeep(
+    freq = 800,
+    duration = 0.09,
+    type: OscillatorType = "sine"
+  ) {
     try {
-      const AudioContextClass =
-        window.AudioContext || (window as any).webkitAudioContext;
-      const audioCtx = new AudioContextClass();
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
+      const ctx = this.getAudioContext();
+      if (!ctx) return;
+      shadowLogger.audio(`Synthetic Web Audio Beep: ${freq}Hz (${duration}s)`, {
+        type,
+      });
 
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // 800Hz beep
+      osc.connect(gain);
+      gain.connect(ctx.destination);
 
-      gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.01,
-        audioCtx.currentTime + 0.1
-      );
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
 
-      oscillator.start();
-      oscillator.stop(audioCtx.currentTime + 0.1);
-    } catch (e: unknown) {
-      console.log("Failed to play synthetic beep", e);
+      gain.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch {
+      // ignore
     }
   }
 }
@@ -326,14 +404,12 @@ export const shadowAudioManager = getAudioManager();
 
 export function playAudio(path: string) {
   if (path === AUDIO_PATHS.common.center) {
-    // Queue the center command to play AFTER the current voice sequence finishes,
-    // so it never interrupts or overlaps with zone/shot callouts.
     shadowAudioManager.queueAfterSequence(path);
   } else if (
     path === AUDIO_PATHS.common.beep ||
     path === AUDIO_PATHS.common.splitStep
   ) {
-    shadowAudioManager.playSyntheticBeep(); // Can be changed to play real splitStep file if provided
+    shadowAudioManager.playOverlay(path);
   } else {
     shadowAudioManager.playVoice(path);
   }
@@ -349,6 +425,10 @@ export function stopAudio() {
 
 export function isAudioPlaying(): boolean {
   return shadowAudioManager.isPlaying();
+}
+
+export function setPlaybackPace(paceSec: number) {
+  shadowAudioManager.setSpeed(paceSec);
 }
 
 const SHOTS_BY_ZONE_GROUP = {
@@ -381,7 +461,6 @@ export function getRandomShotForZone(zone: ZoneId): string {
   } else if (zone.startsWith("mid")) {
     shots = SHOTS_BY_ZONE_GROUP.mid;
   } else {
-    // backRight, backLeft, overhead
     shots = SHOTS_BY_ZONE_GROUP.back;
   }
   const randomShotId = shots[Math.floor(Math.random() * shots.length)];
@@ -396,6 +475,7 @@ export function preloadAudioForSettings(settings: any) {
   // Common sounds
   urlsToFetch.add(AUDIO_PATHS.common.startSet);
   urlsToFetch.add(AUDIO_PATHS.common.beep);
+  urlsToFetch.add(AUDIO_PATHS.common.splitStep);
   urlsToFetch.add(AUDIO_PATHS.common.endSet);
   urlsToFetch.add(AUDIO_PATHS.common.rest);
   urlsToFetch.add(AUDIO_PATHS.common.endRest);
@@ -431,6 +511,15 @@ export function preloadAudioForSettings(settings: any) {
       });
     }
   });
+
+  shadowLogger.audio(
+    `Preloading ${urlsToFetch.size} audio files for drill configuration`,
+    {
+      calloutMode: settings.calloutMode,
+      drillMode: settings.drillMode,
+      sampleUrls: Array.from(urlsToFetch).slice(0, 5),
+    }
+  );
 
   urlsToFetch.forEach((url) => {
     fetch(url).catch(() => {});

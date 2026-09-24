@@ -34,8 +34,8 @@ export function CertificatesClient() {
     activeBranch === "recoveryzone" ? "recoveryzone" : "bkgalabovo";
 
   const [activeTab, setActiveTab] = useState<
-    "sponsors" | "templates" | "issue" | "issued"
-  >("sponsors");
+    "templates" | "issue" | "issued" | "sponsors"
+  >("templates");
 
   // Sponsors State
   const [sponsors, setSponsors] = useState<SponsorPartner[]>([]);
@@ -98,10 +98,10 @@ export function CertificatesClient() {
   }, [siteId]);
 
   useEffect(() => {
-    loadSponsors();
     loadTemplates();
+    loadSponsors();
     loadIssuedCertificates();
-  }, [loadSponsors, loadTemplates, loadIssuedCertificates]);
+  }, [loadTemplates, loadSponsors, loadIssuedCertificates]);
 
   const handleSelectTemplateForIssuance = (templateId: string) => {
     setPreselectedTemplateId(templateId);
@@ -151,9 +151,10 @@ export function CertificatesClient() {
       <Tabs
         value={activeTab}
         onValueChange={(val) => {
-          const tab = val as "sponsors" | "templates" | "issue" | "issued";
+          const tab = val as "templates" | "issue" | "issued" | "sponsors";
           setActiveTab(tab);
           if (tab === "templates") loadTemplates();
+          if (tab === "issue") loadTemplates();
           if (tab === "sponsors") loadSponsors();
           if (tab === "issued") loadIssuedCertificates();
         }}
@@ -161,19 +162,11 @@ export function CertificatesClient() {
       >
         <TabsList className="grid h-12 w-full grid-cols-2 rounded-2xl border border-zinc-200 bg-zinc-100/80 p-1 sm:grid-cols-4 dark:border-zinc-800 dark:bg-zinc-900">
           <TabsTrigger
-            value="sponsors"
-            className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
-          >
-            <Handshake className="size-3.5" />
-            <span>🤝 Партньори & Спонсори</span>
-          </TabsTrigger>
-
-          <TabsTrigger
             value="templates"
             className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <Palette className="size-3.5" />
-            <span>🎨 Шаблони ({templates.length})</span>
+            <span>🎨 Шаблони & AI ({templates.length})</span>
           </TabsTrigger>
 
           <TabsTrigger
@@ -191,19 +184,17 @@ export function CertificatesClient() {
             <FileCheck2 className="size-3.5" />
             <span>📜 Издадени ({issuedCertificates.length})</span>
           </TabsTrigger>
+
+          <TabsTrigger
+            value="sponsors"
+            className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+          >
+            <Handshake className="size-3.5" />
+            <span>🤝 Спонсори ({sponsors.length})</span>
+          </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Partners & Sponsors */}
-        <TabsContent value="sponsors" className="mt-0 outline-none">
-          <SponsorsTab
-            siteId={siteId}
-            sponsors={sponsors}
-            isLoading={isLoadingSponsors}
-            onRefresh={loadSponsors}
-          />
-        </TabsContent>
-
-        {/* Tab 2: Visual Designer / Templates (Phase 3) */}
+        {/* Tab 1: Visual Designer / Templates & AI Generator */}
         <TabsContent value="templates" className="mt-0 outline-none">
           <TemplatesTab
             siteId={siteId}
@@ -215,7 +206,7 @@ export function CertificatesClient() {
           />
         </TabsContent>
 
-        {/* Tab 3: Issue Document (Phase 4) */}
+        {/* Tab 2: Issue Document */}
         <TabsContent value="issue" className="mt-0 outline-none">
           <IssueDocumentTab
             siteId={siteId}
@@ -226,10 +217,11 @@ export function CertificatesClient() {
               await loadIssuedCertificates();
             }}
             onSwitchToRegistry={() => setActiveTab("issued")}
+            onOpenTemplates={() => setActiveTab("templates")}
           />
         </TabsContent>
 
-        {/* Tab 4: Issued Documents Registry (Phase 4) */}
+        {/* Tab 3: Issued Documents Registry */}
         <TabsContent value="issued" className="mt-0 outline-none">
           <IssuedCertificatesTab
             siteId={siteId}
@@ -237,6 +229,16 @@ export function CertificatesClient() {
             isLoading={isLoadingCertificates}
             onRefresh={loadIssuedCertificates}
             onSwitchToIssue={() => setActiveTab("issue")}
+          />
+        </TabsContent>
+
+        {/* Tab 4: Partners & Sponsors */}
+        <TabsContent value="sponsors" className="mt-0 outline-none">
+          <SponsorsTab
+            siteId={siteId}
+            sponsors={sponsors}
+            isLoading={isLoadingSponsors}
+            onRefresh={loadSponsors}
           />
         </TabsContent>
       </Tabs>

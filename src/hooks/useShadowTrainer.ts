@@ -6,8 +6,11 @@ import {
   AUDIO_PATHS,
   getRandomShotForZone,
   getRandomZoneForMode,
+  setPlaybackPace,
+  ZONE_NAMES,
   ZoneId,
 } from "@/lib/shadow-training/audio-map";
+import { shadowLogger } from "@/lib/shadow-training/shadow-logger";
 
 import {
   ShadowPlayer,
@@ -347,6 +350,19 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
       const recoveryDelay = splitStepDelay + strokeDuration;
 
+      // Adapt speech playback speed to pace
+      setPlaybackPace(pace);
+
+      const realSeq = [audioPath];
+      if (secondAudioPath) realSeq.push(secondAudioPath);
+      const canDeceive =
+        currentSettings.deceptionEnabled && Math.random() < 0.15;
+
+      shadowLogger.trainer(
+        `🏸 Action cue: ${ZONE_NAMES[zone] || zone} (Pace: ${pace.toFixed(1)}s, Landing: ${Math.round(splitStepDelay * 1000)}ms)`,
+        { zone, audioSequence: realSeq, canDeceive, ageGroup }
+      );
+
       // Phase 1: SPLIT STEP
       setVisualPhase("split_step");
       if (!currentSettings.visualOnly) {
@@ -354,17 +370,16 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         else audio.play(AUDIO_PATHS.common.beep);
       }
 
-      const realSeq = [audioPath];
-      if (secondAudioPath) realSeq.push(secondAudioPath);
-      const canDeceive =
-        currentSettings.deceptionEnabled && Math.random() < 0.15;
-
       if (canDeceive) {
         const fakeResolved = resolveAudioPathsAndZone(
           currentSettings.drillMode,
           currentSettings.calloutMode,
           currentSettings.cornersMode,
           "random"
+        );
+
+        shadowLogger.trainer(
+          `🎭 Deception triggered! Showing fake [${ZONE_NAMES[fakeResolved.zone] || fakeResolved.zone}] then switching to [${ZONE_NAMES[zone] || zone}]`
         );
 
         if (!currentSettings.visualOnly) {
@@ -386,14 +401,14 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           }
         }, splitStepDelay * 1000);
       } else {
-        if (!currentSettings.visualOnly) {
-          audio.playSequence(realSeq);
-        }
-
+        // Synchronized with landing from split-step
         deceptionTimeoutRef.current = setTimeout(() => {
           if (stateRef.current !== "working") return;
           setActiveZone(zone);
           setVisualPhase("shot");
+          if (!currentSettings.visualOnly) {
+            audio.playSequence(realSeq);
+          }
         }, splitStepDelay * 1000);
       }
 
@@ -404,8 +419,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           setVisualPhase("center");
           if (
             currentSettings.centerCommandEnabled &&
-            !currentSettings.visualOnly
+            !currentSettings.visualOnly &&
+            pace >= 2.2
           ) {
+            shadowLogger.trainer("🎯 Center recovery cue triggered");
             audio.play(AUDIO_PATHS.common.center);
           }
         }
@@ -416,6 +433,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         triggerNextAction();
       }, pace * 1000);
     } catch (error) {
+      shadowLogger.error("Error in triggerNextAction", error);
       console.error("Error in triggerNextAction", error);
       const pace = settingsRef.current?.paceSec || 3;
       actionTimeoutRef.current = setTimeout(triggerNextAction, pace * 1000);
@@ -447,6 +465,14 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
       setAgilityActionsDone(0);
       requestWakeLock();
+      shadowLogger.trainer(
+        `🏁 Set ${currentSetRef.current}/${currentSettings.sets} WORK PHASE STARTED`,
+        {
+          mode: currentSettings.mode,
+          durationSec: currentSettings.workSec,
+          activePlayers: currentPlayersRef.current.map((p) => p.displayName),
+        }
+      );
       actionTimeoutRef.current = setTimeout(triggerNextAction, 0);
     } else if (phase === "working") {
       setActiveZone(null);
@@ -456,6 +482,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         currentSettings.mode === "agility_test";
 
       if (isLastSet) {
+        shadowLogger.trainer(
+          `🏆 Training session finished successfully! Completed sets: ${currentSetRef.current}`
+        );
         setState("finished");
         if (!currentSettings.visualOnly) audio.play(AUDIO_PATHS.common.endSet);
       } else {
@@ -468,6 +497,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           currentPlayersRef.current = nextPlayers;
           setCurrentPlayersState(nextPlayers);
         }
+        shadowLogger.trainer(
+          `⏸️ Set ${currentSetRef.current} complete. Entering rest period (${currentSettings.restSec}s). Next players rotation:`,
+          nextPlayers.map((p) => p.displayName)
+        );
         setState("resting");
         timerRef.current.syncState("resting");
         audio.stop();
@@ -476,6 +509,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
     } else if (phase === "resting") {
       setCurrentSet((c) => c + 1);
+      shadowLogger.trainer(
+        `🔔 Rest period ended. Starting countdown for Set ${currentSetRef.current + 1}/${currentSettings.sets}`
+      );
       setState("countdown");
       timerRef.current.syncState("countdown");
       timerRef.current.updateTimeRemaining(10);
@@ -530,6 +566,23 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     agilityActionsDoneRef.current = 0;
     consecutiveFastShotsRef.current = 0;
     timerRef.current.setActualElapsedMs(0);
+
+    shadowLogger.trainer("🚀 Training Launched from Coach Interface", {
+      mode: settings.mode,
+      preset: settings.preset,
+      drillMode: settings.drillMode,
+      cornersMode: settings.cornersMode,
+      sets: settings.sets,
+      workSec: settings.workSec,
+      restSec: settings.restSec,
+      paceSec: settings.paceSec,
+      calloutMode: settings.calloutMode,
+      deceptionEnabled: settings.deceptionEnabled,
+      centerCommandEnabled: settings.centerCommandEnabled,
+      playersCount: settings.activePlayers.length,
+      players: settings.activePlayers.map((p) => p.displayName),
+    });
+
     if (!settings.visualOnly) {
       audio.play(AUDIO_PATHS.common.startSet);
     }
@@ -543,6 +596,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     ) {
       previousStateRef.current = stateRef.current;
     }
+    shadowLogger.trainer("⏸️ Training Paused by Coach", {
+      fromState: stateRef.current,
+    });
     setState("paused");
     timerRef.current.syncState("paused");
     audio.stop();
@@ -552,6 +608,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const resumeTraining = useCallback(() => {
     if (stateRef.current === "paused") {
       const targetState = previousStateRef.current;
+      shadowLogger.trainer("▶️ Training Resumed", {
+        resumingState: targetState,
+      });
       setState(targetState);
       timerRef.current.syncState(targetState);
       requestWakeLock();
@@ -562,6 +621,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   }, [triggerNextAction]);
 
   const stopTraining = useCallback(() => {
+    shadowLogger.trainer("⏹️ Training Stopped by Coach");
     setState("finished");
     timerRef.current.syncState("finished");
     audio.stop();
@@ -585,6 +645,14 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     };
   }, [cleanupActions, cleanupTimer]);
 
+  const skipCountdown = useCallback(() => {
+    if (stateRef.current === "countdown") {
+      shadowLogger.trainer("⏩ Countdown skipped — Starting work immediately");
+      audio.stop();
+      advanceState();
+    }
+  }, [advanceState, audio]);
+
   return {
     state,
     currentSet,
@@ -599,5 +667,6 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     pauseTraining,
     resumeTraining,
     stopTraining,
+    skipCountdown,
   };
 }

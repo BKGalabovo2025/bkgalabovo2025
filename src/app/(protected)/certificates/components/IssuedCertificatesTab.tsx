@@ -17,6 +17,7 @@ import {
   QrCode,
   RefreshCw,
   Search,
+  Share2,
   Sparkles,
   Ticket,
   Trash2,
@@ -37,6 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
+  exportBatchMultiCertificatePdf,
   exportCertificatePdf,
   exportCertificatePng,
   printCertificate,
@@ -50,6 +52,7 @@ import {
 
 import { CertificateDocumentPreview } from "./CertificateDocumentPreview";
 import { RedeemVoucherDialog } from "./RedeemVoucherDialog";
+import { ShareCertificateDialog } from "./ShareCertificateDialog";
 
 interface IssuedCertificatesTabProps {
   siteId: "bkgalabovo" | "recoveryzone";
@@ -73,10 +76,18 @@ export function IssuedCertificatesTab({
     null
   );
   const [redeemCert, setRedeemCert] = useState<IssuedCertificate | null>(null);
+  const [shareCert, setShareCert] = useState<IssuedCertificate | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isExportingPng, setIsExportingPng] = useState(false);
+
+  // Multi-select for Batch Printing
+  const [selectedCertIds, setSelectedCertIds] = useState<string[]>([]);
+  const [isBatchPrinting, setIsBatchPrinting] = useState(false);
+
+  // Quick Voucher Scanner input
+  const [voucherScanQuery, setVoucherScanQuery] = useState("");
 
   const handleExportPdf = async (cert: IssuedCertificate) => {
     setIsExportingPdf(true);
@@ -140,6 +151,7 @@ export function IssuedCertificatesTab({
       setDeletingId(cert.id);
       await certificateIssuanceService.deleteIssuedCertificate(cert.id);
       toast.success(`Документ № ${cert.serialNumber} беше изтрит.`);
+      setSelectedCertIds((prev) => prev.filter((id) => id !== cert.id));
       await onRefresh();
     } catch (error) {
       console.error("Грешка при изтриване на документ:", error);
@@ -178,6 +190,91 @@ export function IssuedCertificatesTab({
     ).length;
     return { total, awards, vouchers, activeVouchers };
   }, [certificates]);
+
+  // Selection logic
+  const handleToggleSelectAll = () => {
+    if (selectedCertIds.length === filteredCertificates.length) {
+      setSelectedCertIds([]);
+    } else {
+      setSelectedCertIds(filteredCertificates.map((c) => c.id));
+    }
+  };
+
+  const handleToggleCert = (id: string) => {
+    setSelectedCertIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  // Batch Print Selected
+  const handleBatchPrint = async () => {
+    if (selectedCertIds.length === 0) {
+      toast.error("Моля, изберете поне един сертификат за печат.");
+      return;
+    }
+
+    setIsBatchPrinting(true);
+    const toastId = toast.loading("Подготовка на документите за печат...");
+    try {
+      const elements: HTMLElement[] = [];
+      for (const id of selectedCertIds) {
+        const el = document.getElementById(`batch-cert-${id}`);
+        if (el) elements.push(el);
+      }
+
+      if (elements.length === 0) {
+        toast.error("Грешка при зареждане на шаблоните за печат.", {
+          id: toastId,
+        });
+        return;
+      }
+
+      const ok = await exportBatchMultiCertificatePdf(
+        elements,
+        `грамоти_пакет_${new Date().toISOString().slice(0, 10)}.pdf`,
+        "landscape",
+        (curr, tot) => {
+          toast.loading(`Генериране на страница ${curr} от ${tot}...`, {
+            id: toastId,
+          });
+        }
+      );
+
+      if (ok) {
+        toast.success(
+          `Успешно генериран общ PDF с ${elements.length} страници!`,
+          { id: toastId }
+        );
+      } else {
+        toast.error("Възникна грешка при създаването на PDF.", { id: toastId });
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при масов печат.", { id: toastId });
+    } finally {
+      setIsBatchPrinting(false);
+    }
+  };
+
+  // Quick Voucher Redeem Search
+  const handleVoucherScanSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!voucherScanQuery.trim()) return;
+    const clean = voucherScanQuery.trim().toLowerCase();
+    const found = certificates.find(
+      (c) =>
+        c.type === "voucher" &&
+        (c.serialNumber.toLowerCase() === clean ||
+          c.details.voucherPromoCode?.toLowerCase() === clean)
+    );
+
+    if (found) {
+      setRedeemCert(found);
+      setVoucherScanQuery("");
+    } else {
+      toast.error(`Не е намерен активен ваучер с код/№ "${voucherScanQuery}".`);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -248,8 +345,8 @@ export function IssuedCertificatesTab({
         </Card>
       </div>
 
-      {/* 2. Filter Bar and Actions */}
-      <Card className="rounded-3xl border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+      {/* 2. Filter Bar, Quick Scanner and Actions */}
+      <Card className="space-y-3.5 rounded-3xl border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
             {/* Search */}
@@ -311,6 +408,63 @@ export function IssuedCertificatesTab({
             </Button>
           </div>
         </div>
+
+        {/* Quick Voucher Scanner Sub-bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+          <form
+            onSubmit={handleVoucherScanSubmit}
+            className="flex items-center gap-2"
+          >
+            <div className="relative">
+              <QrCode className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-amber-500" />
+              <Input
+                placeholder="🎟️ Сканирай баркод или въведи № на ваучер..."
+                value={voucherScanQuery}
+                onChange={(e) => setVoucherScanQuery(e.target.value)}
+                className="h-8.5 w-72 rounded-xl border-amber-200/70 bg-amber-50/30 pl-8 text-xs font-mono dark:border-amber-900/40 dark:bg-amber-950/20"
+              />
+            </div>
+            <Button
+              type="submit"
+              size="sm"
+              variant="outline"
+              className="h-8.5 rounded-xl border-amber-300 text-xs font-bold text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300"
+            >
+              Осребри бързо
+            </Button>
+          </form>
+
+          {/* Batch Print Action when items selected */}
+          {selectedCertIds.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                Избрани {selectedCertIds.length} от{" "}
+                {filteredCertificates.length}
+              </span>
+              <Button
+                onClick={handleBatchPrint}
+                disabled={isBatchPrinting}
+                size="sm"
+                className="h-8.5 gap-1.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md hover:from-blue-700 hover:to-indigo-700"
+              >
+                {isBatchPrinting ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <FileDown className="size-3.5" />
+                )}
+                Масов PDF печат ({selectedCertIds.length})
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedCertIds([])}
+                className="h-8.5 rounded-xl text-xs text-zinc-500"
+              >
+                Отмаркирай
+              </Button>
+            </div>
+          )}
+        </div>
       </Card>
 
       {/* 3. Document Registry Table */}
@@ -350,7 +504,18 @@ export function IssuedCertificatesTab({
             <table className="w-full text-left text-xs">
               <thead className="border-b border-zinc-200 bg-zinc-50/70 text-[11px] font-bold tracking-wider text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-950">
                 <tr>
-                  <th className="py-3.5 pr-3 pl-6">Сериен № & QR</th>
+                  <th className="py-3.5 pr-2 pl-4 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={
+                        filteredCertificates.length > 0 &&
+                        selectedCertIds.length === filteredCertificates.length
+                      }
+                      onChange={handleToggleSelectAll}
+                      className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                    />
+                  </th>
+                  <th className="px-3 py-3.5">Сериен № & QR</th>
                   <th className="px-3 py-3.5">Получател & Институция</th>
                   <th className="px-3 py-3.5">Тип & Отличие</th>
                   <th className="px-3 py-3.5">Дата на издаване</th>
@@ -367,14 +532,29 @@ export function IssuedCertificatesTab({
                   const isFullyUsed =
                     cert.details.voucherStatus === "fully_used" ||
                     remaining === 0;
+                  const isSelected = selectedCertIds.includes(cert.id);
 
                   return (
                     <tr
                       key={cert.id}
-                      className="transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50"
+                      className={`transition-colors ${
+                        isSelected
+                          ? "bg-blue-50/50 dark:bg-blue-950/20"
+                          : "hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50"
+                      }`}
                     >
+                      {/* Checkbox */}
+                      <td className="py-4 pr-2 pl-4 text-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleCert(cert.id)}
+                          className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </td>
+
                       {/* Serial Number & QR Icon */}
-                      <td className="py-4 pr-3 pl-6">
+                      <td className="px-3 py-4">
                         <div className="flex items-center gap-2.5">
                           <button
                             type="button"
@@ -507,6 +687,17 @@ export function IssuedCertificatesTab({
                       {/* Actions */}
                       <td className="py-4 pr-6 pl-3 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          {/* Share Button */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setShareCert(cert)}
+                            className="size-8 rounded-xl text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/50"
+                            title="Дигитално споделяне (Viber, WhatsApp, Email)"
+                          >
+                            <Share2 className="size-3.5" />
+                          </Button>
+
                           {/* Preview Modal Button */}
                           <Button
                             variant="ghost"
@@ -570,6 +761,51 @@ export function IssuedCertificatesTab({
         </Card>
       )}
 
+      {/* Hidden batch render container for multi-page PDF generation */}
+      <div className="fixed left-[-9999px] top-0 pointer-events-none opacity-0">
+        {selectedCertIds.map((id) => {
+          const cert = certificates.find((c) => c.id === id);
+          if (!cert) return null;
+          return (
+            <div key={`render_${id}`} id={`batch-cert-${id}`}>
+              <CertificateDocumentPreview
+                data={{
+                  siteId: cert.siteId,
+                  type: cert.type,
+                  title: cert.visualSnapshot?.templateTitle || "Грамота",
+                  visualConfig: cert.visualSnapshot,
+                  serialNumber: cert.serialNumber,
+                  qrCodeDataUrl: cert.qrCodeDataUrl,
+                  recipientName: cert.recipient.name,
+                  recipientInstitution: cert.recipient.institution,
+                  rank: cert.details.rank,
+                  nomination: cert.details.nomination,
+                  eventTitle: cert.details.eventTitle,
+                  eventDate: cert.details.eventDate,
+                  eventLocation: cert.details.eventLocation,
+                  totalSessions: cert.details.totalSessions,
+                  remainingSessions: cert.details.remainingSessions,
+                  validUntil: cert.details.validUntil,
+                  skillsSummary: cert.details.skillsSummary,
+                  hoursTrained: cert.details.hoursTrained,
+                  sponsors: cert.visualSnapshot.sponsors.map((s, idx) => ({
+                    id: `snap_${idx}`,
+                    siteId: cert.siteId,
+                    name: s.name,
+                    category: "general",
+                    logoUrl: s.logoUrl,
+                    websiteUrl: s.websiteUrl,
+                    isActive: true,
+                    order: idx,
+                    createdAt: cert.issuedAt,
+                  })),
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
       {/* Full Document Preview Modal */}
       <Dialog
         open={Boolean(previewCert)}
@@ -619,6 +855,15 @@ export function IssuedCertificatesTab({
                       <Download className="size-3.5" />
                     )}
                     PNG
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShareCert(previewCert)}
+                    className="gap-1.5 rounded-xl border-blue-200 text-xs font-bold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300"
+                  >
+                    <Share2 className="size-3.5" />
+                    Сподели
                   </Button>
                 </div>
               )}
@@ -675,6 +920,13 @@ export function IssuedCertificatesTab({
         onOpenChange={(open) => !open && setRedeemCert(null)}
         certificate={redeemCert}
         onRedeemed={onRefresh}
+      />
+
+      {/* Digital Share Modal */}
+      <ShareCertificateDialog
+        open={Boolean(shareCert)}
+        onOpenChange={(open) => !open && setShareCert(null)}
+        certificate={shareCert}
       />
     </div>
   );

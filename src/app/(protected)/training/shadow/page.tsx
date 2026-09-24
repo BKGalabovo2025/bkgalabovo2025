@@ -14,12 +14,18 @@ export default async function ShadowTrainingPage() {
     firstName: string;
     lastName: string;
     displayName: string;
+    ageGroup?: string;
   }[] = [];
   try {
     const raw = await getAllMembersServer();
     // Pre-clean data to prevent Next.js serialization errors (e.g. Firebase Timestamps)
     members = raw.map(
-      (m: { id: string; firstName?: string; lastName?: string }) => ({
+      (m: {
+        id: string;
+        firstName?: string;
+        lastName?: string;
+        ageGroup?: string | null;
+      }) => ({
         id: m.id,
         firstName: m.firstName || "",
         lastName: m.lastName || "",
@@ -27,6 +33,7 @@ export default async function ShadowTrainingPage() {
           m.firstName && m.lastName
             ? `${m.firstName} ${m.lastName}`
             : "Неизвестен играч",
+        ageGroup: m.ageGroup || undefined,
       })
     );
   } catch (e: unknown) {
