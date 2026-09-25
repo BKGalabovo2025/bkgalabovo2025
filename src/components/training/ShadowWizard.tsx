@@ -46,6 +46,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     centerCommandEnabled: true,
     activePlayers: [],
     courtsAvailable: 6,
+    courtAllocationStrategy: "two_per_court",
   });
 
   const [rpeScore, setRpeScore] = useState<number>(5);
@@ -143,6 +144,14 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     }
   };
 
+  const handleDiscard = () => {
+    setRpeNotes("");
+    setRpeScore(5);
+    trainer.stopTraining();
+    setScreen("setup");
+    toast.info("Сесията беше приключена без запазване.");
+  };
+
   if (screen === "analytics") {
     return (
       <ShadowReportForm
@@ -151,6 +160,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         rpeNotes={rpeNotes}
         setRpeNotes={setRpeNotes}
         onSave={handleSave}
+        onDiscard={handleDiscard}
         settings={settings}
         actualElapsedMs={trainer.actualElapsedMs}
         completedSets={trainer.currentSet}

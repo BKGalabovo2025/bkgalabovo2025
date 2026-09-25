@@ -12,7 +12,15 @@
 
 export interface ShadowLogEntry {
   timestamp: string;
-  category: "SETUP" | "TRAINER" | "TIMER" | "AUDIO" | "WARN" | "ERROR";
+  category:
+    | "SETUP"
+    | "TRAINER"
+    | "TIMER"
+    | "AUDIO"
+    | "COURT"
+    | "DIAG"
+    | "WARN"
+    | "ERROR";
   event: string;
   data?: unknown;
 }
@@ -44,7 +52,7 @@ function recordLog(
   }
 }
 
-// Global hook in browser window for easy one-click copying
+// Global hooks in browser window for diagnostics and inspection
 if (typeof window !== "undefined") {
   (window as unknown as { __SHADOW_LOGS__: ShadowLogEntry[] }).__SHADOW_LOGS__ =
     logHistory;
@@ -53,6 +61,41 @@ if (typeof window !== "undefined") {
   ).__EXPORT_SHADOW_LOGS__ = () => {
     return JSON.stringify(logHistory, null, 2);
   };
+  (window as unknown as { __SHADOW_HEALTH__: () => void }).__SHADOW_HEALTH__ =
+    () => {
+      const mgr = (
+        globalThis as unknown as {
+          __shadowAudioManager__?: {
+            voiceAudio?: HTMLAudioElement;
+            overlayAudio?: HTMLAudioElement;
+            audioCtx?: AudioContext;
+          };
+        }
+      ).__shadowAudioManager__;
+      const report = {
+        AudioContextState: mgr?.audioCtx?.state || "unlocked/native",
+        VoiceAudio: {
+          src: mgr?.voiceAudio?.src || "none",
+          paused: mgr?.voiceAudio?.paused ?? true,
+          playbackRate: mgr?.voiceAudio?.playbackRate ?? 1.0,
+        },
+        OverlayAudio: {
+          src: mgr?.overlayAudio?.src || "none",
+          paused: mgr?.overlayAudio?.paused ?? true,
+        },
+        ScreenWakeLock:
+          typeof navigator !== "undefined" && "wakeLock" in navigator
+            ? "Supported"
+            : "Not supported",
+        DocumentVisible:
+          typeof document !== "undefined"
+            ? document.visibilityState === "visible"
+            : true,
+        BufferedLogsCount: logHistory.length,
+      };
+      console.table(report);
+      return report;
+    };
 }
 
 const BADGE_STYLES = {
@@ -64,6 +107,9 @@ const BADGE_STYLES = {
     "background: #d97706; color: #ffffff; font-weight: 800; padding: 2px 6px; border-radius: 4px;",
   AUDIO:
     "background: #059669; color: #ffffff; font-weight: 800; padding: 2px 6px; border-radius: 4px;",
+  COURT:
+    "background: #7c3aed; color: #ffffff; font-weight: 800; padding: 2px 6px; border-radius: 4px;",
+  DIAG: "background: #0891b2; color: #ffffff; font-weight: 800; padding: 2px 6px; border-radius: 4px;",
   WARN: "background: #ea580c; color: #ffffff; font-weight: 800; padding: 2px 6px; border-radius: 4px;",
   ERROR:
     "background: #e11d48; color: #ffffff; font-weight: 800; padding: 2px 6px; border-radius: 4px;",
@@ -74,6 +120,8 @@ const TEXT_STYLES = {
   TRAINER: "color: #818cf8; font-weight: 600;",
   TIMER: "color: #fbbf24; font-weight: 600;",
   AUDIO: "color: #34d399; font-weight: 600;",
+  COURT: "color: #c4b5fd; font-weight: 600;",
+  DIAG: "color: #22d3ee; font-weight: 600;",
   WARN: "color: #fb923c; font-weight: 600;",
   ERROR: "color: #f87171; font-weight: 700;",
 };
@@ -163,6 +211,50 @@ export const shadowLogger = {
         BADGE_STYLES.AUDIO,
         "color: #94a3b8; font-weight: normal; font-size: 10px;",
         TEXT_STYLES.AUDIO
+      );
+    }
+  },
+
+  court(event: string, data?: unknown) {
+    const ts = getTimestamp();
+    recordLog("COURT", event, data);
+    if (typeof window === "undefined") return;
+    if (data !== undefined) {
+      console.log(
+        `%c[🏟️ COURT %c${ts}]%c ${event}`,
+        BADGE_STYLES.COURT,
+        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TEXT_STYLES.COURT,
+        data
+      );
+    } else {
+      console.log(
+        `%c[🏟️ COURT %c${ts}]%c ${event}`,
+        BADGE_STYLES.COURT,
+        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TEXT_STYLES.COURT
+      );
+    }
+  },
+
+  diagnostic(event: string, data?: unknown) {
+    const ts = getTimestamp();
+    recordLog("DIAG", event, data);
+    if (typeof window === "undefined") return;
+    if (data !== undefined) {
+      console.log(
+        `%c[🛠️ ДИАГНОСТИКА %c${ts}]%c ${event}`,
+        BADGE_STYLES.DIAG,
+        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TEXT_STYLES.DIAG,
+        data
+      );
+    } else {
+      console.log(
+        `%c[🛠️ ДИАГНОСТИКА %c${ts}]%c ${event}`,
+        BADGE_STYLES.DIAG,
+        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TEXT_STYLES.DIAG
       );
     }
   },

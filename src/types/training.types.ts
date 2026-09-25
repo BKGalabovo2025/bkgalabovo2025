@@ -11,10 +11,15 @@ type ShadowPreset =
   | "advanced"
   | "custom"
   | string;
+type ShadowAgeGroup = "U9-U11" | "U11-U13" | "U13-U15" | "U15-U17" | "U17+";
 type ShadowCornersMode = "2-corners" | "4-corners" | "6-corners";
-type ShadowAgeGroup = "U9-U11" | "U13-U15" | "U17+";
 type ShadowDrillPattern =
-  "random" | "fixed-triangle" | "fixed-net-back" | "mixed";
+  | "random"
+  | "fixed-triangle"
+  | "fixed-net-back"
+  | "forehand-only"
+  | "backhand-only"
+  | "mixed";
 
 export interface TrainingSession {
   id?: string;

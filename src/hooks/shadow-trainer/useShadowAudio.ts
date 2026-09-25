@@ -4,6 +4,7 @@ import {
   isAudioPlaying,
   playAudio,
   playAudioSequence,
+  queueRecoveryAudio,
   shadowAudioManager,
   stopAudio,
   stopVoiceAudio,
@@ -48,8 +49,12 @@ export function useShadowAudio() {
     () => ({
       play: playAudio,
       playSequence: playAudioSequence,
+      queueRecovery: queueRecoveryAudio,
+      playSyntheticBeep: (freq = 800, dur = 0.08) =>
+        shadowAudioManager.playSyntheticBeep(freq, dur),
       stop: stopAudio,
       stopVoiceOnly: stopVoiceAudio,
+      isPlaying: isAudioPlaying,
       unlock,
       triggerMotivation,
     }),

@@ -9,6 +9,7 @@ const inter = Inter({
   subsets: ["latin", "cyrillic"],
   display: "swap",
   variable: "--font-inter",
+  preload: false,
 });
 
 import { OfflineStatusIndicator } from "@/components/shared/OfflineStatusIndicator";
@@ -75,7 +76,9 @@ export default function RootLayout({
   return (
     <html lang="bg" suppressHydrationWarning>
       <head />
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body
+        className={`${inter.className} ${inter.variable} font-sans antialiased`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

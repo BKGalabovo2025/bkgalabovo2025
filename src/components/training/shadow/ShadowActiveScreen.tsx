@@ -14,7 +14,6 @@ import {
   Square,
   Target,
   Timer,
-  Zap,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -31,6 +30,7 @@ import { ZONE_NAMES } from "@/lib/shadow-training/audio-map";
 import { shadowLogger } from "@/lib/shadow-training/shadow-logger";
 
 import { CourtVisualizer } from "../CourtVisualizer";
+import { MultiCourtGrid } from "./MultiCourtGrid";
 
 interface ShadowActiveScreenProps {
   trainer: ReturnType<typeof useShadowTrainer>;
@@ -46,19 +46,17 @@ function getStateLabel(state: string) {
 }
 
 function getModeLabel(mode: string) {
-  if (mode === "ghost_match")
-    return {
-      label: "Мач на сенки (Ghost Match)",
-      icon: Zap,
-      color: "text-amber-400",
-    };
   if (mode === "agility_test")
     return {
       label: "Тест за бързина (Agility)",
       icon: Target,
       color: "text-red-400",
     };
-  return { label: "Стандартен ритъм", icon: Timer, color: "text-blue-400" };
+  return {
+    label: "Стандартен тренировъчен",
+    icon: Timer,
+    color: "text-blue-400",
+  };
 }
 
 function getSubLabel(
@@ -84,6 +82,10 @@ export function ShadowActiveScreen({
 }: ShadowActiveScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [hallViewMode, setHallViewMode] = useState<"hall" | "focus">(
+    trainer.courtSlots && trainer.courtSlots.length > 1 ? "hall" : "focus"
+  );
+  const [focusedCourt, setFocusedCourt] = useState<number | null>(null);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -181,7 +183,10 @@ export function ShadowActiveScreen({
           {/* Active players on court */}
           <div className="flex flex-wrap items-center gap-3">
             <span className="flex items-center gap-2 text-xs font-black tracking-wider text-zinc-400 uppercase">
-              <Activity size={16} className="text-emerald-400" /> На Корта:
+              <Activity size={16} className="text-emerald-400" />{" "}
+              {trainer.totalWaves > 1
+                ? `На Корта (Част ${trainer.currentWave}/${trainer.totalWaves}):`
+                : "На Корта:"}
             </span>
             <div className="flex flex-wrap gap-2">
               {trainer.currentRotationPlayers.length === 0 ? (
@@ -207,7 +212,14 @@ export function ShadowActiveScreen({
             {restingPlayers.length > 0 && (
               <div className="flex items-center gap-2">
                 <span className="flex items-center gap-1.5 text-xs font-black tracking-wider text-zinc-500 uppercase">
-                  <RotateCcw size={14} /> Следват:
+                  <RotateCcw size={14} />{" "}
+                  {trainer.totalWaves > 1
+                    ? `Чакащи за Част ${
+                        trainer.currentWave < trainer.totalWaves
+                          ? trainer.currentWave + 1
+                          : 1
+                      }:`
+                    : "Следват:"}
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {restingPlayers.slice(0, 3).map((p) => (
@@ -273,13 +285,108 @@ export function ShadowActiveScreen({
 
         {/* ─── ОСНОВЕН ДАШБОРД ─── */}
         <CardContent className="flex flex-1 flex-col items-center justify-between gap-6 p-6 md:flex-row md:gap-12 md:p-10">
-          {/* LEFT: Интерактивен Бадминтон Корт */}
-          <div className="flex w-full max-w-75 flex-1 items-center justify-center md:max-w-105">
-            <CourtVisualizer
-              activeZone={trainer.activeZone}
-              visualPhase={trainer.visualPhase}
-              className="w-full origin-center scale-100 transition-transform duration-300 md:scale-105"
-            />
+          {/* LEFT: Интерактивен Бадминтон Корт / Зала */}
+          <div
+            className={`flex w-full flex-col items-center justify-center transition-all ${
+              hallViewMode === "hall" && (trainer.courtSlots?.length ?? 0) > 1
+                ? "max-w-full lg:max-w-3xl xl:max-w-4xl flex-2"
+                : "max-w-85 md:max-w-115 flex-1"
+            }`}
+          >
+            {trainer.courtSlots && trainer.courtSlots.length > 1 && (
+              <div className="mb-4 flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/90 p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHallViewMode("hall");
+                    setFocusedCourt(null);
+                  }}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                    hallViewMode === "hall"
+                      ? "bg-zinc-800 text-white shadow-xs"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  🏸 Цяла зала ({trainer.courtSlots.length} корта)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHallViewMode("focus")}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                    hallViewMode === "focus"
+                      ? "bg-zinc-800 text-white shadow-xs"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  🎯 Фокус корт
+                </button>
+              </div>
+            )}
+
+            {hallViewMode === "hall" &&
+            (trainer.courtSlots?.length ?? 0) > 1 ? (
+              <MultiCourtGrid
+                slots={trainer.courtSlots}
+                activeZone={trainer.activeZone}
+                visualPhase={trainer.visualPhase}
+                focusedCourtNumber={focusedCourt}
+                onToggleFocus={(cNum) => {
+                  if (cNum !== null) {
+                    setFocusedCourt(cNum);
+                    setHallViewMode("focus");
+                  } else {
+                    setFocusedCourt(null);
+                  }
+                }}
+                className="w-full"
+              />
+            ) : (
+              <div className="flex w-full flex-col items-center gap-2">
+                {trainer.courtSlots && trainer.courtSlots.length > 1 && (
+                  <div className="mb-2 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-zinc-400">
+                      Корт:
+                    </span>
+                    <div className="flex gap-1">
+                      {trainer.courtSlots.map((s) => (
+                        <button
+                          key={s.courtNumber}
+                          type="button"
+                          onClick={() => setFocusedCourt(s.courtNumber)}
+                          className={`size-7 rounded-lg text-xs font-black transition-all ${
+                            (focusedCourt ?? 1) === s.courtNumber
+                              ? "bg-amber-500 text-black font-black"
+                              : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                          }`}
+                        >
+                          {s.courtNumber}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {(() => {
+                  const activeSlot =
+                    trainer.courtSlots?.find(
+                      (s) => s.courtNumber === (focusedCourt ?? 1)
+                    ) || trainer.courtSlots?.[0];
+
+                  return (
+                    <CourtVisualizer
+                      activeZone={trainer.activeZone}
+                      visualPhase={trainer.visualPhase}
+                      courtNumber={activeSlot?.courtNumber ?? 1}
+                      playerBottom={activeSlot?.halfA}
+                      playerTop={activeSlot?.halfB}
+                      viewMode={activeSlot?.isFullCourt ? "full" : "half"}
+                      dualActive={activeSlot?.isFullCourt}
+                      allowToggleView
+                      className="w-full origin-center scale-100 transition-transform duration-300 md:scale-105"
+                    />
+                  );
+                })()}
+              </div>
+            )}
           </div>
 
           {/* RIGHT: Таймер, Команди и Контроли */}
@@ -306,6 +413,21 @@ export function ShadowActiveScreen({
                     className="border-zinc-800 text-[11px] font-semibold text-zinc-400"
                   >
                     {settings.preset}
+                  </Badge>
+                )}
+
+                <Badge
+                  variant="outline"
+                  className="border-zinc-800 text-[11px] font-bold text-zinc-300"
+                >
+                  Серия {trainer.currentSet} от {settings.sets}
+                </Badge>
+                {trainer.totalWaves > 1 && (
+                  <Badge
+                    variant="outline"
+                    className="border-blue-500/40 bg-blue-500/10 text-[11px] font-bold text-blue-300"
+                  >
+                    Част {trainer.currentWave} от {trainer.totalWaves}
                   </Badge>
                 )}
               </div>
@@ -380,13 +502,20 @@ export function ShadowActiveScreen({
               {/* Main Number Display (Big Hall Display) */}
               {settings.mode === "agility_test" &&
               trainer.state === "working" ? (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className="bg-linear-to-b from-red-400 via-rose-500 to-red-600 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-9xl md:text-[10rem]">
                     {trainer.agilityActionsDone}
                   </div>
-                  <p className="text-base font-semibold text-zinc-400 md:text-lg">
-                    движения от общо {settings.workSec}
-                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3 text-zinc-400 md:justify-start">
+                    <span className="text-base font-semibold md:text-lg">
+                      движения от общо {settings.workSec}
+                    </span>
+                    <span className="text-zinc-600">•</span>
+                    <span className="flex items-center gap-1.5 text-base font-bold text-amber-400 md:text-lg">
+                      <Timer size={18} className="animate-pulse" />
+                      {trainer.timeRemaining}s хронометър
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="bg-linear-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-9xl md:text-[10rem]">
@@ -405,20 +534,6 @@ export function ShadowActiveScreen({
                   settings.sets
                 )}
               </p>
-
-              {/* Ghost Match next delay indicator */}
-              {settings.mode === "ghost_match" &&
-                trainer.state === "working" &&
-                trainer.nextActionDelay !== undefined &&
-                trainer.nextActionDelay !== null && (
-                  <div className="mt-2 flex items-center justify-center gap-2 text-base font-bold text-amber-400 md:justify-start md:text-lg">
-                    <Timer size={18} className="animate-spin" />
-                    <span>
-                      Следващо отиграване след:{" "}
-                      {trainer.nextActionDelay.toFixed(1)} сек
-                    </span>
-                  </div>
-                )}
             </div>
 
             {/* ACTION BUTTONS */}

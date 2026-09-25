@@ -60,7 +60,13 @@ export const ZONE_NAMES: Record<ZoneId, string> = {
 export const ZONES_ARRAY = Object.keys(AUDIO_PATHS.zones) as ZoneId[];
 
 export function getRandomZoneForMode(
-  modeType: "all" | "front_only" | "back_only" | "front_back",
+  modeType:
+    | "all"
+    | "front_only"
+    | "back_only"
+    | "forehand_only"
+    | "backhand_only"
+    | "front_back",
   cornersMode: "2-corners" | "4-corners" | "6-corners" = "6-corners"
 ): ZoneId {
   let pool = ZONES_ARRAY;
@@ -68,6 +74,10 @@ export function getRandomZoneForMode(
   if (cornersMode === "2-corners") {
     if (modeType === "back_only") {
       pool = ["backForehand", "backBackhand"];
+    } else if (modeType === "forehand_only") {
+      pool = ["frontForehand", "backForehand"];
+    } else if (modeType === "backhand_only") {
+      pool = ["frontBackhand", "backBackhand"];
     } else {
       pool = ["frontForehand", "frontBackhand"];
     }
@@ -79,6 +89,12 @@ export function getRandomZoneForMode(
     pool = pool.filter((z) => z.startsWith("front"));
   } else if (modeType === "back_only") {
     pool = pool.filter((z) => z.startsWith("back") || z === "overhead");
+  } else if (modeType === "forehand_only") {
+    pool = pool.filter((z) => z.toLowerCase().includes("forehand"));
+  } else if (modeType === "backhand_only") {
+    pool = pool.filter(
+      (z) => z.toLowerCase().includes("backhand") || z === "overhead"
+    );
   } else if (modeType === "front_back") {
     pool = pool.filter((z) => !z.startsWith("mid"));
   }
@@ -101,9 +117,12 @@ class AudioManager {
   private audioSequence: string[] = [];
   private sequenceIndex = 0;
   private isPlayingSequence = false;
+  private isPlayingCenter = false;
   private currentPlayId = 0;
   private timeoutId: NodeJS.Timeout | null = null;
-  private pendingCenterPath: string | null = null;
+  private pendingCenterPaths: string[] = [];
+  private currentPaceSec = 3.0;
+  private currentCalloutMode = "zones_and_shots";
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -170,46 +189,51 @@ class AudioManager {
     });
   }
 
-  public setSpeed(paceSec: number, calloutMode?: string) {
+  private isLongPhrase(path: string): boolean {
+    const filename = path.split("/").pop() || "";
+    return (
+      filename.includes("s_otskok") ||
+      filename.includes("polusmach") ||
+      filename.includes("skasiavane_po_diagonal") ||
+      filename.includes("iztegliane_po_diagonal") ||
+      filename.includes("dulgo_po_diagonal") ||
+      filename.length > 24
+    );
+  }
+
+  private sequenceCompleteCallback: (() => void) | null = null;
+
+  public getPlaybackRateForPath(_path: string): number {
+    return 1.0;
+  }
+
+  private setVoiceSource(path: string) {
     if (!this.voiceAudio) return;
-    const oldRate = this.voiceAudio.playbackRate;
-    const isTwoWords = calloutMode === "zones_and_shots";
-
-    if (isTwoWords) {
-      // 2 Bulgarian phrases take ~2.2 - 2.8s; speed up progressively so cues remain ahead of action
-      if (paceSec <= 2.2) {
-        this.voiceAudio.playbackRate = 1.3;
-      } else if (paceSec <= 2.8) {
-        this.voiceAudio.playbackRate = 1.22;
-      } else if (paceSec <= 3.4) {
-        this.voiceAudio.playbackRate = 1.18;
-      } else {
-        this.voiceAudio.playbackRate = 1.08;
-      }
-    } else {
-      // Single phrase (zone only or shot only)
-      if (paceSec <= 1.8) {
-        this.voiceAudio.playbackRate = 1.25;
-      } else if (paceSec <= 2.2) {
-        this.voiceAudio.playbackRate = 1.15;
-      } else {
-        this.voiceAudio.playbackRate = 1.0;
-      }
+    const rate = this.getPlaybackRateForPath(path);
+    this.voiceAudio.src = path;
+    try {
+      this.voiceAudio.defaultPlaybackRate = rate;
+      this.voiceAudio.playbackRate = rate;
+    } catch {
+      // ignore
     }
+  }
 
-    if (oldRate !== this.voiceAudio.playbackRate) {
-      shadowLogger.audio(
-        `Voice playbackRate adapted: ${this.voiceAudio.playbackRate}x (pace ${paceSec}s, mode: ${calloutMode || "single"})`
-      );
-    }
+  public setSpeed(paceSec: number, calloutMode?: string) {
+    this.currentPaceSec = paceSec;
+    if (calloutMode) this.currentCalloutMode = calloutMode;
+    if (!this.voiceAudio) return;
+    this.voiceAudio.playbackRate = 1.0;
   }
 
   public stopVoiceOnly() {
     this.isPlayingSequence = false;
+    this.isPlayingCenter = false;
+    this.sequenceCompleteCallback = null;
     this.audioSequence = [];
     this.sequenceIndex = 0;
     this.currentPlayId++;
-    this.pendingCenterPath = null;
+    this.pendingCenterPaths = [];
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
     if (this.voiceAudio) {
@@ -221,10 +245,12 @@ class AudioManager {
 
   public stopAll() {
     this.isPlayingSequence = false;
+    this.isPlayingCenter = false;
+    this.sequenceCompleteCallback = null;
     this.audioSequence = [];
     this.sequenceIndex = 0;
     this.currentPlayId++;
-    this.pendingCenterPath = null;
+    this.pendingCenterPaths = [];
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
     if (this.voiceAudio) {
@@ -239,11 +265,29 @@ class AudioManager {
     shadowLogger.audio("All audio playback stopped");
   }
 
+  public isSequencePlaying(): boolean {
+    return this.isPlayingSequence;
+  }
+
+  public isCenterPlaying(): boolean {
+    if (!this.isPlayingCenter) return false;
+    if (this.voiceAudio && (this.voiceAudio.paused || this.voiceAudio.ended)) {
+      this.isPlayingCenter = false;
+      return false;
+    }
+    return true;
+  }
+
   public isPlaying(): boolean {
+    if (this.voiceAudio && (this.voiceAudio.paused || this.voiceAudio.ended)) {
+      this.isPlayingCenter = false;
+    }
     if (this.isPlayingSequence) return true;
+    if (this.isPlayingCenter) return true;
     if (
       this.voiceAudio &&
       !this.voiceAudio.paused &&
+      !this.voiceAudio.ended &&
       this.voiceAudio.currentTime > 0
     )
       return true;
@@ -251,23 +295,40 @@ class AudioManager {
   }
 
   private startSequenceInternal(paths: string[], playId: number) {
-    if (!this.voiceAudio || paths.length === 0) return;
+    if (!this.voiceAudio || paths.length === 0) {
+      if (this.sequenceCompleteCallback && this.currentPlayId === playId) {
+        const cb = this.sequenceCompleteCallback;
+        this.sequenceCompleteCallback = null;
+        cb();
+      }
+      return;
+    }
     this.isPlayingSequence = true;
+    this.isPlayingCenter = false;
     this.audioSequence = paths;
     this.sequenceIndex = 0;
     this.attachOnEnded(playId);
-    this.voiceAudio.src = paths[0];
+    this.setVoiceSource(paths[0]);
     shadowLogger.audio(
       `Starting voice sequence (step 1/${paths.length}): ${paths[0]}`,
-      { sequence: paths }
+      { sequence: paths, playbackRate: this.voiceAudio.playbackRate }
     );
     this.voiceAudio.play().catch((err) => {
+      if (err.name === "AbortError") {
+        // Interrupted by pause/stop or next voice command - normal browser behavior
+        return;
+      }
       shadowLogger.warn(
         "Voice playback rejected, falling back to synthetic beep",
         err
       );
       this.isPlayingSequence = false;
       this.playSyntheticBeep(800, 0.1);
+      if (this.sequenceCompleteCallback && this.currentPlayId === playId) {
+        const cb = this.sequenceCompleteCallback;
+        this.sequenceCompleteCallback = null;
+        cb();
+      }
     });
   }
 
@@ -281,19 +342,28 @@ class AudioManager {
         this.sequenceIndex < this.audioSequence.length &&
         this.isPlayingSequence
       ) {
-        // Next word in sequence — play after 60ms
-        const pauseMs = 60;
+        // Next word in sequence — play after 30ms for snappy, natural coach delivery
+        const pauseMs = 30;
         this.timeoutId = setTimeout(() => {
           if (this.currentPlayId !== playId || !this.isPlayingSequence) return;
           const nextSrc = this.audioSequence[this.sequenceIndex];
-          this.voiceAudio!.src = nextSrc;
+          this.setVoiceSource(nextSrc);
           shadowLogger.audio(
-            `Voice sequence step ${this.sequenceIndex + 1}/${this.audioSequence.length}: ${nextSrc}`
+            `Voice sequence step ${this.sequenceIndex + 1}/${this.audioSequence.length}: ${nextSrc}`,
+            { playbackRate: this.voiceAudio!.playbackRate }
           );
           this.voiceAudio!.play().catch((e) => {
             if (e.name !== "AbortError") {
               shadowLogger.warn("Failed step in sequence, aborted", e);
               this.isPlayingSequence = false;
+              if (
+                this.sequenceCompleteCallback &&
+                this.currentPlayId === playId
+              ) {
+                const cb = this.sequenceCompleteCallback;
+                this.sequenceCompleteCallback = null;
+                cb();
+              }
             }
           });
         }, pauseMs);
@@ -302,20 +372,24 @@ class AudioManager {
         this.isPlayingSequence = false;
         shadowLogger.audio("Voice sequence completed successfully");
 
-        // If a center command is waiting, play it cleanly
-        if (this.pendingCenterPath) {
-          const centerPath = this.pendingCenterPath;
-          this.pendingCenterPath = null;
+        // If recovery commands (e.g. Center, then Леко подскачане) are waiting, play them cleanly
+        if (this.pendingCenterPaths.length > 0) {
+          const recoveryList = [...this.pendingCenterPaths];
+          this.pendingCenterPaths = [];
           this.timeoutId = setTimeout(() => {
-            if (!this.voiceAudio || this.isPlayingSequence) return;
-            this.currentPlayId++;
-            this.voiceAudio.onended = null;
-            this.voiceAudio.src = centerPath;
-            shadowLogger.audio(
-              `Executing queued Center command: ${centerPath}`
+            if (this.isPlayingSequence) return;
+            this.playVoiceSequence(
+              recoveryList,
+              this.sequenceCompleteCallback || undefined
             );
-            this.voiceAudio.play().catch(() => {});
-          }, 120);
+          }, 35);
+        } else if (
+          this.sequenceCompleteCallback &&
+          this.currentPlayId === playId
+        ) {
+          const cb = this.sequenceCompleteCallback;
+          this.sequenceCompleteCallback = null;
+          cb();
         }
       }
     };
@@ -324,48 +398,53 @@ class AudioManager {
   /**
    * Starts a voice sequence immediately, interrupting any prior command.
    */
-  public playVoiceSequence(paths: string[]) {
-    if (!this.voiceAudio || paths.length === 0) return;
+  public playVoiceSequence(paths: string[], onComplete?: () => void) {
+    if (!this.voiceAudio || paths.length === 0) {
+      onComplete?.();
+      return;
+    }
 
     // A new corner/shot command ALWAYS interrupts old commands with 0 latency
     this.currentPlayId++;
     if (this.timeoutId) clearTimeout(this.timeoutId);
-    this.pendingCenterPath = null;
+    this.pendingCenterPaths = [];
+    this.isPlayingCenter = false;
+    this.sequenceCompleteCallback = onComplete || null;
     this.startSequenceInternal(paths, this.currentPlayId);
   }
 
-  public queueAfterSequence(path: string) {
+  public queueAfterSequence(paths: string | string[]) {
+    const list = Array.isArray(paths) ? paths : [paths];
     if (!this.isPlaying()) {
       // Nothing playing right now — play immediately
-      this.currentPlayId++;
-      if (this.voiceAudio) {
-        this.voiceAudio.onended = null;
-        this.voiceAudio.src = path;
-        shadowLogger.audio(`Immediate Center recovery cue: ${path}`);
-        this.voiceAudio.play().catch(() => {});
-      }
+      this.playVoiceSequence(list);
     } else {
       // Queue after the current active sequence finishes
       shadowLogger.audio(
-        `Queued Center recovery cue for after active sequence: ${path}`
+        `Queued recovery cue for after active sequence: ${list.join(" + ")}`
       );
-      this.pendingCenterPath = path;
+      this.pendingCenterPaths = list;
     }
   }
 
   public playVoice(path: string) {
     if (!this.voiceAudio) return;
     this.isPlayingSequence = false;
-    this.pendingCenterPath = null;
+    this.isPlayingCenter = false;
+    this.pendingCenterPaths = [];
     this.currentPlayId++;
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
     this.voiceAudio.onended = null;
-    this.voiceAudio.src = path;
+    this.setVoiceSource(path);
     shadowLogger.audio(`Single voice command: ${path}`, {
       playbackRate: this.voiceAudio.playbackRate,
     });
     this.voiceAudio.play().catch((err) => {
+      if (err.name === "AbortError") {
+        // Interrupted by pause/stop or next voice command - normal browser behavior
+        return;
+      }
       shadowLogger.warn(
         "Voice command rejected, fallback to synthetic beep",
         err
@@ -383,6 +462,9 @@ class AudioManager {
     this.overlayAudio.src = path;
     shadowLogger.audio(`Overlay sound (split-step/hop): ${path}`);
     this.overlayAudio.play().catch((err) => {
+      if (err.name === "AbortError") {
+        return;
+      }
       shadowLogger.warn("Overlay sound rejected, synthetic beep", err);
       this.playSyntheticBeep(900, 0.08);
     });
@@ -437,18 +519,17 @@ export const shadowAudioManager = getAudioManager();
 export function playAudio(path: string) {
   if (path === AUDIO_PATHS.common.center) {
     shadowAudioManager.queueAfterSequence(path);
-  } else if (
-    path === AUDIO_PATHS.common.beep ||
-    path === AUDIO_PATHS.common.splitStep
-  ) {
-    shadowAudioManager.playOverlay(path);
   } else {
     shadowAudioManager.playVoice(path);
   }
 }
 
-export function playAudioSequence(paths: string[]) {
-  shadowAudioManager.playVoiceSequence(paths);
+export function queueRecoveryAudio(paths: string | string[]) {
+  shadowAudioManager.queueAfterSequence(paths);
+}
+
+export function playAudioSequence(paths: string[], onComplete?: () => void) {
+  shadowAudioManager.playVoiceSequence(paths, onComplete);
 }
 
 export function stopAudio() {
@@ -461,6 +542,14 @@ export function stopVoiceAudio() {
 
 export function isAudioPlaying(): boolean {
   return shadowAudioManager.isPlaying();
+}
+
+export function isAudioSequencePlaying(): boolean {
+  return shadowAudioManager.isSequencePlaying();
+}
+
+export function isCenterAudioPlaying(): boolean {
+  return shadowAudioManager.isCenterPlaying();
 }
 
 export function setPlaybackPace(paceSec: number, calloutMode?: string) {
@@ -526,6 +615,16 @@ export function preloadAudioForSettings(settings: any) {
       if (settings.drillMode === "front_only" && z.startsWith("front"))
         return true;
       if (settings.drillMode === "back_only" && z.startsWith("back"))
+        return true;
+      if (
+        settings.drillMode === "forehand_only" &&
+        z.toLowerCase().includes("forehand")
+      )
+        return true;
+      if (
+        settings.drillMode === "backhand_only" &&
+        (z.toLowerCase().includes("backhand") || z === "overhead")
+      )
         return true;
       if (settings.drillMode === "front_back" && !z.startsWith("mid"))
         return true;

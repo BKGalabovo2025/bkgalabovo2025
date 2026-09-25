@@ -1,6 +1,14 @@
 "use client";
 
-import { CheckCircle2, Clock, Layers, Save, Target, Zap } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  Layers,
+  Save,
+  Target,
+  XCircle,
+  Zap,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +22,7 @@ interface ShadowReportFormProps {
   rpeNotes: string;
   setRpeNotes: (notes: string) => void;
   onSave: () => void;
+  onDiscard?: () => void;
   settings?: ShadowSettings;
   actualElapsedMs?: number;
   completedSets?: number;
@@ -40,6 +49,7 @@ export function ShadowReportForm({
   rpeNotes,
   setRpeNotes,
   onSave,
+  onDiscard,
   settings,
   actualElapsedMs = 0,
   completedSets = 0,
@@ -198,13 +208,28 @@ export function ShadowReportForm({
             </div>
           </div>
 
-          <Button
-            size="lg"
-            onClick={onSave}
-            className="mt-8 h-16 w-full rounded-xl bg-green-600 text-xl font-black text-white hover:bg-green-700"
-          >
-            <Save className="mr-3 size-6" /> ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ
-          </Button>
+          <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row">
+            {onDiscard && (
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={onDiscard}
+                className="h-16 flex-1 rounded-xl border-zinc-800 bg-zinc-900/90 text-base font-bold text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
+              >
+                <XCircle className="mr-2 size-5 text-zinc-400" /> НЕ ЗАПИСВАЙ /
+                ПРОПУСНИ
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="lg"
+              onClick={onSave}
+              className={`h-16 rounded-xl bg-green-600 text-lg font-black text-white hover:bg-green-700 sm:text-xl ${onDiscard ? "flex-1 sm:flex-[1.5]" : "w-full"}`}
+            >
+              <Save className="mr-2.5 size-6" /> ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ
+            </Button>
+          </div>
         </div>
       </Card>
     </div>

@@ -597,8 +597,12 @@ export function ShadowHistoryClient({
                 <span className="mb-2 text-[11px] font-bold uppercase text-zinc-400">
                   Схема на корта за тази сесия
                 </span>
-                <div className="w-full max-w-45">
-                  <CourtVisualizer previewZones={inspectZones} />
+                <div className="w-full max-w-60">
+                  <CourtVisualizer
+                    previewZones={inspectZones}
+                    viewMode="half"
+                    allowToggleView
+                  />
                 </div>
               </div>
 

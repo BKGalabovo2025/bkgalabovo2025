@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 
 import { ShadowWizard } from "@/components/training/ShadowWizard";
 import { Button } from "@/components/ui/button";
+import { resolveMemberAgeGroup } from "@/lib/utils";
 import { getAllMembersServer } from "@/services/member-service.server";
 
 export const metadata = {
@@ -18,24 +20,29 @@ export default async function ShadowTrainingPage() {
   }[] = [];
   try {
     const raw = await getAllMembersServer();
+    // Only include registered CLUB members:
+    // External/guest members are excluded unless isClubMember is set to true
+    const clubMembersRaw = raw.filter((m: any) => {
+      return (
+        m.isClubMember === true || (!m.isGuest && m.memberType === "regular")
+      );
+    });
+
     // Pre-clean data to prevent Next.js serialization errors (e.g. Firebase Timestamps)
-    members = raw.map(
-      (m: {
-        id: string;
-        firstName?: string;
-        lastName?: string;
-        ageGroup?: string | null;
-      }) => ({
+    members = clubMembersRaw.map((m: any) => {
+      const resolvedAgeGroup = resolveMemberAgeGroup(m);
+      return {
         id: m.id,
         firstName: m.firstName || "",
         lastName: m.lastName || "",
         displayName:
-          m.firstName && m.lastName
+          m.displayName ||
+          (m.firstName && m.lastName
             ? `${m.firstName} ${m.lastName}`
-            : "Неизвестен играч",
-        ageGroup: m.ageGroup || undefined,
-      })
-    );
+            : m.name || "Неизвестен играч"),
+        ageGroup: resolvedAgeGroup,
+      };
+    });
   } catch (e: unknown) {
     console.error("Error fetching members", e);
   }

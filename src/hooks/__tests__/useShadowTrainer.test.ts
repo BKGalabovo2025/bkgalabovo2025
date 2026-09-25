@@ -60,6 +60,7 @@ describe("useShadowTrainer Comprehensive Variations", () => {
       centerCommandEnabled: false,
       activePlayers: basePlayers,
       courtsAvailable: 1,
+      courtAllocationStrategy: "one_per_court",
       cornersMode: "6-corners",
       ageGroup: "U17+",
       drillPattern: "mixed",
@@ -116,9 +117,9 @@ describe("useShadowTrainer Comprehensive Variations", () => {
     });
   });
 
-  describe("Mode: Ghost Match (Randomized pace)", () => {
-    it("should start and cycle with randomized pace values", () => {
-      const settings = createSettings({ mode: "ghost_match", paceSec: 3 });
+  describe("Mode: Standard Training (Fixed pacing)", () => {
+    it("should start and cycle with fixed pace values", () => {
+      const settings = createSettings({ mode: "standard", paceSec: 3 });
       const { result } = renderHook(() => useShadowTrainer(settings));
 
       act(() => {
@@ -189,11 +190,12 @@ describe("useShadowTrainer Comprehensive Variations", () => {
   });
 
   describe("Player Rotations and Court Limits", () => {
-    it("should rotate players correctly between sets", () => {
+    it("should progression through all sub-groups in each set ensuring fair sets for all", () => {
       const settings = createSettings({
         sets: 3,
         courtsAvailable: 1,
-        activePlayers: basePlayers, // 3 players, 1 court = rotation needed
+        courtAllocationStrategy: "one_per_court",
+        activePlayers: basePlayers, // 3 players, 1 court = 3 waves per set
       });
       const { result } = renderHook(() => useShadowTrainer(settings));
 
@@ -201,26 +203,50 @@ describe("useShadowTrainer Comprehensive Variations", () => {
         result.current.startTraining();
       });
 
-      // Ivan is on court first (index 0)
+      // Wave 1 of Set 1: Ivan is on court
+      expect(result.current.currentSet).toBe(1);
+      expect(result.current.currentWave).toBe(1);
+      expect(result.current.totalWaves).toBe(3);
       expect(result.current.currentRotationPlayers[0].displayName).toBe(
         "Иван Петров"
       );
 
       advanceSeconds(10); // end countdown
+      advanceSeconds(15); // end work for Wave 1
 
-      // Fast-forward set 1 work (15 seconds)
-      advanceSeconds(15);
+      // Transition to Wave 2 of Set 1: Maria is on court
+      expect(result.current.state).toBe("countdown");
+      expect(result.current.currentSet).toBe(1);
+      expect(result.current.currentWave).toBe(2);
+      expect(result.current.currentRotationPlayers[0].displayName).toBe(
+        "Мария Георгиева"
+      );
 
-      // Now resting - should transition rotation index to next group
+      advanceSeconds(10); // end countdown
+      advanceSeconds(15); // end work for Wave 2
+
+      // Transition to Wave 3 of Set 1: Dimitar is on court
+      expect(result.current.state).toBe("countdown");
+      expect(result.current.currentSet).toBe(1);
+      expect(result.current.currentWave).toBe(3);
+      expect(result.current.currentRotationPlayers[0].displayName).toBe(
+        "Димитър Иванов"
+      );
+
+      advanceSeconds(10); // end countdown
+      advanceSeconds(15); // end work for Wave 3
+
+      // All 3 players completed Set 1 -> now enters Set Rest
       expect(result.current.state).toBe("resting");
 
-      // Fast-forward resting state (5 seconds) to start set 2 countdown
+      // Advance rest period (5 seconds) to start Set 2
       advanceSeconds(5);
 
       expect(result.current.currentSet).toBe(2);
-      // Next group: Maria should be on court (index 1)
+      expect(result.current.currentWave).toBe(1);
+      // Set 2 begins again with Wave 1 (Ivan)
       expect(result.current.currentRotationPlayers[0].displayName).toBe(
-        "Мария Георгиева"
+        "Иван Петров"
       );
     });
   });
@@ -393,7 +419,7 @@ describe("useShadowTrainer Comprehensive Variations", () => {
       await act(async () => {
         await Promise.resolve();
       });
-      expect(wakeLockRequestMock).toHaveBeenCalledTimes(3);
+      expect(wakeLockRequestMock).toHaveBeenCalledTimes(2);
 
       // Now stop training
       act(() => {

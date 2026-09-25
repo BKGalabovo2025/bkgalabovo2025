@@ -44,8 +44,11 @@ vi.mock("@/lib/shadow-training/audio-map", async () => {
       unlock: vi.fn(),
       play: vi.fn(),
       playSequence: vi.fn(),
+      queueRecovery: vi.fn(),
+      playSyntheticBeep: vi.fn(),
       stopAll: vi.fn(),
     },
+    queueRecoveryAudio: vi.fn(),
     preloadAudioForSettings: vi.fn(),
   };
 });
@@ -60,6 +63,7 @@ vi.mock("sonner", () => ({
   toast: {
     error: vi.fn(),
     success: vi.fn(),
+    info: vi.fn(),
   },
 }));
 
@@ -125,7 +129,7 @@ describe("ShadowWizard Component Flow", () => {
 
     // Active Training State
     expect(screen.getByText("Приготви се...")).toBeDefined();
-    expect(screen.getByText("Иван Петров")).toBeDefined(); // Player is on court
+    expect(screen.getAllByText("Иван Петров").length).toBeGreaterThan(0); // Player is on court & header
 
     // End training early
     fireEvent.click(screen.getByText("СТОП"));
@@ -180,5 +184,40 @@ describe("ShadowWizard Component Flow", () => {
     await waitFor(() => {
       expect(trainingsActions.createTrainingSessionAction).toHaveBeenCalled();
     });
+  });
+
+  it("allows discarding session without saving to database", async () => {
+    vi.useFakeTimers();
+    vi.mocked(trainingsActions.createTrainingSessionAction).mockClear();
+
+    render(<ShadowWizard initialMembers={mockMembers} />);
+
+    // Setup and select player
+    fireEvent.click(screen.getByText("Иван Петров"));
+    fireEvent.click(screen.getByText(/ГОТОВНОСТ ЗА СТАРТ/i));
+
+    // Start training
+    fireEvent.click(screen.getByText("СТАРТ"));
+
+    // Advance through 10s countdown
+    advanceSeconds(10);
+    advanceSeconds(15);
+
+    // End training
+    fireEvent.click(screen.getByText("СТОП"));
+
+    // Check we are on the report screen
+    expect(screen.getByText("Тренировъчен Отчет")).toBeDefined();
+    expect(screen.getByText(/НЕ ЗАПИСВАЙ \/ ПРОПУСНИ/i)).toBeDefined();
+
+    // Click Discard
+    fireEvent.click(screen.getByText(/НЕ ЗАПИСВАЙ \/ ПРОПУСНИ/i));
+
+    // Should return back to setup screen without calling createTrainingSessionAction
+    expect(screen.getByText(/ГОТОВНОСТ ЗА СТАРТ/i)).toBeDefined();
+    expect(trainingsActions.createTrainingSessionAction).not.toHaveBeenCalled();
+    expect(toast.info).toHaveBeenCalledWith(
+      "Сесията беше приключена без запазване."
+    );
   });
 });

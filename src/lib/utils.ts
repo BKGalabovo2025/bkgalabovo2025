@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, sonarjs/cognitive-complexity */
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -39,6 +40,71 @@ export const getAgeGroup = (birthDate: string): string => {
   if (diff >= 19) return "Мъже/Жени";
 
   return "Неопределена";
+};
+
+export const resolveMemberAgeGroup = (
+  member?: {
+    ageGroup?: string | null;
+    dateOfBirth?: any;
+    birthDate?: any;
+    birthYear?: number | null;
+    dob?: any;
+  } | null
+): string | undefined => {
+  if (!member) return undefined;
+
+  if (
+    member.ageGroup &&
+    typeof member.ageGroup === "string" &&
+    member.ageGroup.trim()
+  ) {
+    return member.ageGroup.trim();
+  }
+
+  const rawDob = member.dateOfBirth || member.birthDate || member.dob;
+  if (rawDob) {
+    if (typeof rawDob?.toDate === "function") {
+      const res = getAgeGroup(rawDob.toDate().toISOString());
+      if (res && res !== "Неопределена") return res;
+    }
+    if (typeof rawDob === "object") {
+      if ("seconds" in rawDob && typeof rawDob.seconds === "number") {
+        const res = getAgeGroup(new Date(rawDob.seconds * 1000).toISOString());
+        if (res && res !== "Неопределена") return res;
+      }
+      if ("_seconds" in rawDob && typeof rawDob._seconds === "number") {
+        const res = getAgeGroup(new Date(rawDob._seconds * 1000).toISOString());
+        if (res && res !== "Неопределена") return res;
+      }
+    }
+    if (typeof rawDob === "string") {
+      const trimmed = rawDob.trim();
+      if (/^\d{2}\.\d{2}\.\d{4}$/.test(trimmed)) {
+        const [d, mo, yr] = trimmed.split(".").map(Number);
+        const res = getAgeGroup(new Date(yr, mo - 1, d).toISOString());
+        if (res && res !== "Неопределена") return res;
+      }
+      const res = getAgeGroup(trimmed);
+      if (res && res !== "Неопределена") return res;
+    }
+    if (rawDob instanceof Date) {
+      const res = getAgeGroup(rawDob.toISOString());
+      if (res && res !== "Неопределена") return res;
+    }
+  }
+
+  if (member.birthYear && typeof member.birthYear === "number") {
+    const diff = new Date().getFullYear() - member.birthYear;
+    if (diff <= 8) return "U9";
+    if (diff <= 10) return "U11";
+    if (diff <= 12) return "U13";
+    if (diff <= 14) return "U15";
+    if (diff <= 16) return "U17";
+    if (diff <= 18) return "U19";
+    return "Мъже/Жени";
+  }
+
+  return undefined;
 };
 
 export const getValidAvatarUrl = (url?: string | null): string | undefined => {

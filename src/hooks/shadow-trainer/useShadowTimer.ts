@@ -10,6 +10,7 @@ interface TimerOptions {
   settings: ShadowSettings | null;
   advanceState: () => void;
   onMotivationTick: () => void;
+  onCountdownReady?: () => void;
 }
 
 export function useShadowTimer({
@@ -17,6 +18,7 @@ export function useShadowTimer({
   settings,
   advanceState,
   onMotivationTick,
+  onCountdownReady,
 }: TimerOptions) {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [actualElapsedMs, setActualElapsedMs] = useState(0);
@@ -51,6 +53,10 @@ export function useShadowTimer({
     }
   }, []);
 
+  const getTimeRemaining = useCallback(() => {
+    return expectedTimeRemainingRef.current;
+  }, []);
+
   const advanceStateRef = useRef(advanceState);
   useEffect(() => {
     advanceStateRef.current = advanceState;
@@ -60,6 +66,11 @@ export function useShadowTimer({
   useEffect(() => {
     onMotivationTickRef.current = onMotivationTick;
   }, [onMotivationTick]);
+
+  const onCountdownReadyRef = useRef(onCountdownReady);
+  useEffect(() => {
+    onCountdownReadyRef.current = onCountdownReady;
+  }, [onCountdownReady]);
 
   useEffect(() => {
     if (state === "idle" || state === "finished" || state === "paused") {
@@ -103,6 +114,9 @@ export function useShadowTimer({
             nextVal = currentPrev - 1;
             if (stateRef.current === "countdown") {
               shadowLogger.timer(`Countdown: ${nextVal}s`);
+              if (nextVal === 2 && onCountdownReadyRef.current) {
+                onCountdownReadyRef.current();
+              }
             } else if (nextVal % 5 === 0 || nextVal <= 3) {
               shadowLogger.timer(
                 `Phase [${stateRef.current}]: ${nextVal}s remaining`
@@ -141,5 +155,6 @@ export function useShadowTimer({
     syncState,
     setActualElapsedMs,
     cleanupTimer,
+    getTimeRemaining,
   };
 }
