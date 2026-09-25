@@ -126,6 +126,8 @@ const TEXT_STYLES = {
   ERROR: "color: #f87171; font-weight: 700;",
 };
 
+const TIME_STYLE = "color: #94a3b8; font-weight: normal; font-size: 10px;";
+
 export const shadowLogger = {
   setup(event: string, data?: unknown) {
     const ts = getTimestamp();
@@ -133,18 +135,22 @@ export const shadowLogger = {
     if (typeof window === "undefined") return;
     if (data !== undefined) {
       console.log(
-        `%c[🏸 SETUP %c${ts}]%c ${event}`,
+        "%c[🏸 SETUP %c%s]%c %s",
         BADGE_STYLES.SETUP,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TIME_STYLE,
+        ts,
         TEXT_STYLES.SETUP,
+        event,
         data
       );
     } else {
       console.log(
-        `%c[🏸 SETUP %c${ts}]%c ${event}`,
+        "%c[🏸 SETUP %c%s]%c %s",
         BADGE_STYLES.SETUP,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
-        TEXT_STYLES.SETUP
+        TIME_STYLE,
+        ts,
+        TEXT_STYLES.SETUP,
+        event
       );
     }
   },
@@ -155,18 +161,22 @@ export const shadowLogger = {
     if (typeof window === "undefined") return;
     if (data !== undefined) {
       console.log(
-        `%c[⚡ TRAINER %c${ts}]%c ${event}`,
+        "%c[⚡ TRAINER %c%s]%c %s",
         getBadgeStyle("TRAINER"),
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TIME_STYLE,
+        ts,
         TEXT_STYLES.TRAINER,
+        event,
         data
       );
     } else {
       console.log(
-        `%c[⚡ TRAINER %c${ts}]%c ${event}`,
+        "%c[⚡ TRAINER %c%s]%c %s",
         getBadgeStyle("TRAINER"),
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
-        TEXT_STYLES.TRAINER
+        TIME_STYLE,
+        ts,
+        TEXT_STYLES.TRAINER,
+        event
       );
     }
   },
@@ -177,18 +187,22 @@ export const shadowLogger = {
     if (typeof window === "undefined") return;
     if (data !== undefined) {
       console.log(
-        `%c[⏱️ TIMER %c${ts}]%c ${event}`,
+        "%c[⏱️ TIMER %c%s]%c %s",
         BADGE_STYLES.TIMER,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TIME_STYLE,
+        ts,
         TEXT_STYLES.TIMER,
+        event,
         data
       );
     } else {
       console.log(
-        `%c[⏱️ TIMER %c${ts}]%c ${event}`,
+        "%c[⏱️ TIMER %c%s]%c %s",
         BADGE_STYLES.TIMER,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
-        TEXT_STYLES.TIMER
+        TIME_STYLE,
+        ts,
+        TEXT_STYLES.TIMER,
+        event
       );
     }
   },
@@ -199,18 +213,22 @@ export const shadowLogger = {
     if (typeof window === "undefined") return;
     if (data !== undefined) {
       console.log(
-        `%c[🔊 AUDIO %c${ts}]%c ${event}`,
+        "%c[🔊 AUDIO %c%s]%c %s",
         BADGE_STYLES.AUDIO,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TIME_STYLE,
+        ts,
         TEXT_STYLES.AUDIO,
+        event,
         data
       );
     } else {
       console.log(
-        `%c[🔊 AUDIO %c${ts}]%c ${event}`,
+        "%c[🔊 AUDIO %c%s]%c %s",
         BADGE_STYLES.AUDIO,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
-        TEXT_STYLES.AUDIO
+        TIME_STYLE,
+        ts,
+        TEXT_STYLES.AUDIO,
+        event
       );
     }
   },
@@ -221,18 +239,22 @@ export const shadowLogger = {
     if (typeof window === "undefined") return;
     if (data !== undefined) {
       console.log(
-        `%c[🏟️ COURT %c${ts}]%c ${event}`,
+        "%c[🏟️ COURT %c%s]%c %s",
         BADGE_STYLES.COURT,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TIME_STYLE,
+        ts,
         TEXT_STYLES.COURT,
+        event,
         data
       );
     } else {
       console.log(
-        `%c[🏟️ COURT %c${ts}]%c ${event}`,
+        "%c[🏟️ COURT %c%s]%c %s",
         BADGE_STYLES.COURT,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
-        TEXT_STYLES.COURT
+        TIME_STYLE,
+        ts,
+        TEXT_STYLES.COURT,
+        event
       );
     }
   },
@@ -243,18 +265,22 @@ export const shadowLogger = {
     if (typeof window === "undefined") return;
     if (data !== undefined) {
       console.log(
-        `%c[🛠️ ДИАГНОСТИКА %c${ts}]%c ${event}`,
+        "%c[🛠️ ДИАГНОСТИКА %c%s]%c %s",
         BADGE_STYLES.DIAG,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
+        TIME_STYLE,
+        ts,
         TEXT_STYLES.DIAG,
+        event,
         data
       );
     } else {
       console.log(
-        `%c[🛠️ ДИАГНОСТИКА %c${ts}]%c ${event}`,
+        "%c[🛠️ ДИАГНОСТИКА %c%s]%c %s",
         BADGE_STYLES.DIAG,
-        "color: #94a3b8; font-weight: normal; font-size: 10px;",
-        TEXT_STYLES.DIAG
+        TIME_STYLE,
+        ts,
+        TEXT_STYLES.DIAG,
+        event
       );
     }
   },
@@ -264,10 +290,12 @@ export const shadowLogger = {
     recordLog("WARN", event, data);
     if (typeof window === "undefined") return;
     console.warn(
-      `%c[⚠️ WARN %c${ts}]%c ${event}`,
+      "%c[⚠️ WARN %c%s]%c %s",
       BADGE_STYLES.WARN,
-      "color: #94a3b8; font-weight: normal; font-size: 10px;",
+      TIME_STYLE,
+      ts,
       TEXT_STYLES.WARN,
+      event,
       data ?? ""
     );
   },
@@ -277,10 +305,12 @@ export const shadowLogger = {
     recordLog("ERROR", event, { error: String(error), details: data });
     if (typeof window === "undefined") return;
     console.error(
-      `%c[❌ ERROR %c${ts}]%c ${event}`,
+      "%c[❌ ERROR %c%s]%c %s",
       BADGE_STYLES.ERROR,
-      "color: #94a3b8; font-weight: normal; font-size: 10px;",
+      TIME_STYLE,
+      ts,
       TEXT_STYLES.ERROR,
+      event,
       error,
       data ?? ""
     );
