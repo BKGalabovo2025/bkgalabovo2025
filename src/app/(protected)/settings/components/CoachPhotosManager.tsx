@@ -10,10 +10,11 @@ import {
   Star,
   Trash2,
   UploadCloud,
+  User as UserIcon,
   X,
 } from "lucide-react";
 import Image from "next/image";
-import React, { useRef, useState } from "react";
+import React, { useId, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 
 import { getValidImageSrc } from "@/components/club/ShareAthleteDialog";
@@ -22,6 +23,14 @@ import { compressImageIfNeeded } from "@/components/shared/media/UniversalMediaU
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { getSiteConfig } from "@/config/sites";
 import { useAuth } from "@/context/auth-context";
@@ -65,8 +74,13 @@ export function CoachPhotosManager({
   idPrefix,
 }: CoachPhotosManagerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const linksTextareaId = useId();
   const { idToken } = useAuth();
 
+  // Modal open state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Uploader state inside modal
   const [showUploader, setShowUploader] = useState(false);
   const [uploaderTab, setUploaderTab] = useState<"files" | "links">("files");
   const [isDragOver, setIsDragOver] = useState(false);
@@ -89,6 +103,7 @@ export function CoachPhotosManager({
 
   const primaryImage =
     coach.image?.trim() || (photos.length > 0 ? photos[0].url : "");
+  const primaryValidSrc = getValidImageSrc(primaryImage);
 
   const publicCount = photos.filter((p) => p.isPublic !== false).length;
   const allMarkedPublic = photos.length > 0 && publicCount === photos.length;
@@ -135,7 +150,6 @@ export function CoachPhotosManager({
     setUploadProgress(null);
 
     if (newUploadedPhotos.length > 0) {
-      // Append to existing, avoid duplicates
       const existingUrls = new Set(photos.map((p) => p.url));
       const filteredNew = newUploadedPhotos.filter(
         (p) => !existingUrls.has(p.url)
@@ -143,7 +157,6 @@ export function CoachPhotosManager({
       const updated = [...photos, ...filteredNew];
       onUpdateField("photos", updated);
 
-      // If no primary image set, set the first newly uploaded
       if (!coach.image || !coach.image.trim()) {
         onUpdateField("image", filteredNew[0].url);
       }
@@ -158,7 +171,6 @@ export function CoachPhotosManager({
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       handleUploadMultipleFiles(e.target.files);
-      // Reset input value so same files can be re-selected if needed
       e.target.value = "";
     }
   };
@@ -175,7 +187,6 @@ export function CoachPhotosManager({
   const handleAddLinksBatch = () => {
     if (!linksInput.trim()) return;
 
-    // Split by newlines or commas
     const rawTokens = linksInput
       .split(/[\n,]+/)
       .map((t) => t.trim())
@@ -223,7 +234,6 @@ export function CoachPhotosManager({
   // Set as primary image
   const handleSetPrimary = (url: string) => {
     onUpdateField("image", url);
-    // Ensure primary image is marked public
     const updated = photos.map((p) =>
       p.url === url ? { ...p, isPublic: true } : p
     );
@@ -236,7 +246,6 @@ export function CoachPhotosManager({
     const updated = photos.filter((_, idx) => idx !== index);
     onUpdateField("photos", updated);
 
-    // If we removed the primary image, update primary to the first available
     if (photoToRemove.url === primaryImage) {
       const nextPrimary = updated.length > 0 ? updated[0].url : "";
       onUpdateField("image", nextPrimary);
@@ -251,338 +260,415 @@ export function CoachPhotosManager({
   };
 
   return (
-    <div className="space-y-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 p-5 dark:border-zinc-800 dark:bg-zinc-900/40">
-      {/* Hidden Multi-file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        accept="image/png,image/jpeg,image/webp,image/jpg"
-        onChange={handleFileInputChange}
-        className="hidden"
-      />
-
-      {/* Header and Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 pb-4 dark:border-zinc-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <ImageIcon className="size-4 text-primary" />
-            <Label className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              Галерия от снимки на треньора
-            </Label>
-            <Badge
-              variant="outline"
-              className="border-primary/30 bg-primary/10 text-xs font-semibold text-primary"
-            >
-              {photos.length} {photos.length === 1 ? "снимка" : "снимки"}
-            </Badge>
+    <>
+      {/* 1. COMPACT FORM CARD (Takes only 1 neat row in Settings!) */}
+      <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-4 transition-colors sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900/40">
+        <div className="flex items-center gap-3.5">
+          {/* Avatar Preview */}
+          <div className="relative size-14 shrink-0 overflow-hidden rounded-full border-2 border-zinc-300 bg-zinc-900 shadow-xs sm:size-16 dark:border-zinc-700">
+            {primaryValidSrc ? (
+              <Image
+                src={primaryValidSrc}
+                alt={coach.name}
+                fill
+                unoptimized
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center text-zinc-500">
+                <UserIcon className="size-8" />
+              </div>
+            )}
           </div>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Качете една или повече снимки. Можете да изберете кои да се виждат
-            на публичната страница.
-          </p>
+
+          {/* Info & Stats */}
+          <div>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                Снимки и галерия на треньора
+              </Label>
+              <Badge
+                variant="outline"
+                className="border-primary/30 bg-primary/10 text-xs font-semibold text-primary"
+              >
+                {photos.length} {photos.length === 1 ? "снимка" : "снимки"}
+              </Badge>
+            </div>
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              {publicCount} от {photos.length} видими в публичния сайт • Главна
+              снимка е зададена
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {photos.length > 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleToggleAll}
-              className="h-8 rounded-xl text-xs font-medium"
-            >
-              <Check className="mr-1.5 size-3.5 text-emerald-500" />
-              {allMarkedPublic
-                ? "Скрий всички от сайта"
-                : "Маркирай всички за сайта"}
-            </Button>
-          )}
-
+        {/* Action Button: Opens the Management Dialog */}
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <Button
             type="button"
-            variant={showUploader ? "secondary" : "default"}
-            size="sm"
-            onClick={() => setShowUploader(!showUploader)}
-            className="h-8 rounded-xl text-xs font-medium"
+            variant="outline"
+            onClick={() => setIsModalOpen(true)}
+            className="h-9 w-full rounded-xl border-primary/30 px-4 text-xs font-semibold text-primary hover:bg-primary/10 sm:w-auto"
           >
-            {showUploader ? (
-              <>
-                <X className="mr-1.5 size-3.5" /> Затвори формата
-              </>
-            ) : (
-              <>
-                <Plus className="mr-1.5 size-3.5" /> Добави снимки (множествен
-                избор)
-              </>
-            )}
+            <ImageIcon className="mr-1.5 size-4" />
+            Управление на галерията ({photos.length})
           </Button>
         </div>
       </div>
 
-      {/* Multi-Photo Uploader Form (when active) */}
-      {showUploader && (
-        <div className="space-y-4 rounded-xl border border-primary/30 bg-primary/5 p-4 transition-all">
-          <div className="flex items-center justify-between border-b border-primary/10 pb-3">
+      {/* 2. DEDICATED MANAGEMENT DIALOG (Spacious, clean, modal) */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-6 sm:rounded-3xl">
+          {/* Hidden multi-file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/png,image/jpeg,image/webp,image/jpg"
+            onChange={handleFileInputChange}
+            className="hidden"
+          />
+
+          <DialogHeader className="border-b border-zinc-100 pb-3 dark:border-zinc-800">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setUploaderTab("files")}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                  uploaderTab === "files"
-                    ? "bg-primary text-white shadow-xs"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                }`}
+              <ImageIcon className="size-5 text-primary" />
+              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                Фотогалерия — {coach.name}
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-zinc-500">
+              Качвайте множество снимки едновременно, маркирайте кои да се
+              виждат на сайта и изберете водещ аватар.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Action Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="border-primary/30 bg-primary/10 text-xs font-semibold text-primary"
               >
-                <UploadCloud className="mr-1.5 inline-block size-3.5" />
-                Качи файлове наведнъж
-              </button>
-              <button
-                type="button"
-                onClick={() => setUploaderTab("links")}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                  uploaderTab === "links"
-                    ? "bg-primary text-white shadow-xs"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                }`}
-              >
-                <LinkIcon className="mr-1.5 inline-block size-3.5" />
-                Постави външни линкове
-              </button>
+                {photos.length} общо
+              </Badge>
+              <span className="text-xs text-zinc-500">
+                ({publicCount} видими в сайта)
+              </span>
             </div>
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowUploader(false)}
-              className="size-7 p-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
-            >
-              <X className="size-4" />
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {photos.length > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleAll}
+                  className="h-8 rounded-xl text-xs font-medium"
+                >
+                  <Check className="mr-1.5 size-3.5 text-emerald-500" />
+                  {allMarkedPublic
+                    ? "Скрий всички от сайта"
+                    : "Маркирай всички за сайта"}
+                </Button>
+              )}
+
+              <Button
+                type="button"
+                variant={showUploader ? "secondary" : "default"}
+                size="sm"
+                onClick={() => setShowUploader(!showUploader)}
+                className="h-8 rounded-xl text-xs font-medium"
+              >
+                {showUploader ? (
+                  <>
+                    <X className="mr-1.5 size-3.5" /> Затвори ъплоудера
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-1.5 size-3.5" /> Добави снимки
+                    (множествен избор)
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
-          {/* TAB 1: Multiple Files Upload */}
-          {uploaderTab === "files" && (
-            <div>
-              {uploadProgress ? (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-primary/30 bg-white/60 p-6 text-center backdrop-blur-xs dark:bg-zinc-950/60">
-                  <Loader2 className="size-8 animate-spin text-primary" />
-                  <p className="mt-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                    Качване на снимка {uploadProgress.current} от{" "}
-                    {uploadProgress.total}...
-                  </p>
-                  <p className="mt-1 max-w-xs truncate text-xs text-zinc-500">
-                    {uploadProgress.fileName}
-                  </p>
-                  <div className="mt-4 h-2 w-full max-w-md overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                    <div
-                      className={cn(
-                        "h-full bg-primary transition-all duration-300",
-                        getProgressWidthClass(
-                          uploadProgress.current,
-                          uploadProgress.total
-                        )
-                      )}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setIsDragOver(true);
-                  }}
-                  onDragLeave={() => setIsDragOver(false)}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-all ${
-                    isDragOver
-                      ? "border-primary bg-primary/10 shadow-inner"
-                      : "border-zinc-300 bg-white/40 hover:border-primary/60 hover:bg-white/80 dark:border-zinc-700 dark:bg-zinc-900/30 dark:hover:bg-zinc-900/60"
-                  }`}
-                >
-                  <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <UploadCloud className="size-7" />
-                  </div>
-                  <h4 className="mt-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                    Плъзнете няколко снимки тук или кликнете за избор
-                  </h4>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    Можете да изберете <b>няколко снимки едновременно</b> (PNG,
-                    JPG, WEBP). Автоматична компресия.
-                  </p>
-                  <Button
+          {/* Batch Uploader Panel (Collapsible inside modal) */}
+          {showUploader && (
+            <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 transition-all">
+              <div className="flex items-center justify-between border-b border-primary/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <button
                     type="button"
-                    size="sm"
-                    className="mt-4 h-8 rounded-xl px-4 text-xs font-medium shadow-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      fileInputRef.current?.click();
-                    }}
+                    onClick={() => setUploaderTab("files")}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                      uploaderTab === "files"
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                    }`}
                   >
-                    Избери файлове от устройството
-                  </Button>
+                    <UploadCloud className="mr-1.5 inline-block size-3.5" />
+                    Качи файлове наведнъж
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUploaderTab("links")}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                      uploaderTab === "links"
+                        ? "bg-primary text-white shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                    }`}
+                  >
+                    <LinkIcon className="mr-1.5 inline-block size-3.5" />
+                    Постави външни линкове
+                  </button>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowUploader(false)}
+                  className="size-7 p-0 text-zinc-400 hover:text-zinc-600"
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+
+              {/* Tab 1: Multi-file picker */}
+              {uploaderTab === "files" && (
+                <div className="pt-3">
+                  {uploadProgress ? (
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-primary/30 bg-white/60 p-6 text-center backdrop-blur-xs dark:bg-zinc-950/60">
+                      <Loader2 className="size-8 animate-spin text-primary" />
+                      <p className="mt-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                        Качване на снимка {uploadProgress.current} от{" "}
+                        {uploadProgress.total}...
+                      </p>
+                      <p className="mt-1 max-w-xs truncate text-xs text-zinc-500">
+                        {uploadProgress.fileName}
+                      </p>
+                      <div className="mt-4 h-2 w-full max-w-md overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                        <div
+                          className={cn(
+                            "h-full bg-primary transition-all duration-300",
+                            getProgressWidthClass(
+                              uploadProgress.current,
+                              uploadProgress.total
+                            )
+                          )}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragOver(true);
+                      }}
+                      onDragLeave={() => setIsDragOver(false)}
+                      onDrop={handleDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all ${
+                        isDragOver
+                          ? "border-primary bg-primary/10 shadow-inner"
+                          : "border-zinc-300 bg-white/40 hover:border-primary/60 hover:bg-white/80 dark:border-zinc-700 dark:bg-zinc-900/30"
+                      }`}
+                    >
+                      <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <UploadCloud className="size-6" />
+                      </div>
+                      <h4 className="mt-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                        Плъзнете няколко снимки тук или кликнете за избор
+                      </h4>
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        Поддържа маркиране на множество файлове едновременно
+                        (PNG, JPG, WEBP).
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="mt-3 h-8 rounded-xl px-4 text-xs font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                      >
+                        Избери файлове от компютър
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 2: Multiple links */}
+              {uploaderTab === "links" && (
+                <div className="space-y-3 pt-3">
+                  <Label
+                    htmlFor={linksTextareaId}
+                    className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Въведете един или няколко линка (по един на ред или
+                    разделени със запетая):
+                  </Label>
+                  <textarea
+                    id={linksTextareaId}
+                    rows={3}
+                    value={linksInput}
+                    onChange={(e) => setLinksInput(e.target.value)}
+                    placeholder="public\team\mira georgieva.jpg&#10;/team/photo-2.jpg&#10;https://..."
+                    className="w-full rounded-xl border border-zinc-300 bg-white p-3 font-mono text-xs text-zinc-800 focus:border-primary focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-zinc-500">
+                      Автоматично разпознава и нормализира пътища.
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleAddLinksBatch}
+                      className="h-8 rounded-xl text-xs font-medium"
+                    >
+                      <Plus className="mr-1.5 size-3.5" /> Добави линковете
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* TAB 2: Multiple Links Input */}
-          {uploaderTab === "links" && (
-            <div className="space-y-3">
-              <Label
-                htmlFor={`${idPrefix}-links-area`}
-                className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Въведете един или няколко линка (по един на ред или разделени
-                със запетая):
-              </Label>
-              <textarea
-                id={`${idPrefix}-links-area`}
-                rows={3}
-                value={linksInput}
-                onChange={(e) => setLinksInput(e.target.value)}
-                placeholder="public\team\mira georgieva.jpg&#10;/team/photo-2.jpg&#10;https://..."
-                className="w-full rounded-xl border border-zinc-300 bg-white p-3 font-mono text-xs text-zinc-800 focus:border-primary focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-              />
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-zinc-500">
-                  Автоматично разпознава локални и външни пътища.
-                </span>
+          {/* Scrollable Photos Grid inside Modal */}
+          <div className="flex-1 overflow-y-auto pr-1">
+            {photos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-800">
+                <ImageIcon className="size-10 text-zinc-400" />
+                <p className="mt-3 text-sm text-zinc-500">
+                  Все още няма качени снимки за този треньор.
+                </p>
                 <Button
                   type="button"
+                  variant="outline"
                   size="sm"
-                  onClick={handleAddLinksBatch}
-                  className="h-8 rounded-xl text-xs font-medium"
+                  onClick={() => setShowUploader(true)}
+                  className="mt-3 h-8 rounded-xl text-xs"
                 >
-                  <Plus className="mr-1.5 size-3.5" /> Добави линковете
+                  <Plus className="mr-1.5 size-3.5" /> Качи първи снимки
                 </Button>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            ) : (
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 md:grid-cols-3">
+                {photos.map((photo, idx) => {
+                  const isPrimary = photo.url === primaryImage;
+                  const isVisible = photo.isPublic !== false;
+                  const validSrc = getValidImageSrc(photo.url);
 
-      {/* Photos Grid */}
-      {photos.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 py-8 text-center dark:border-zinc-800">
-          <ImageIcon className="size-8 text-zinc-400" />
-          <p className="mt-2 text-sm text-zinc-500">
-            Все още няма качени снимки за този треньор.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowUploader(true)}
-            className="mt-3 h-8 rounded-xl text-xs"
-          >
-            <Plus className="mr-1.5 size-3.5" /> Качи първи снимки
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {photos.map((photo, idx) => {
-            const isPrimary = photo.url === primaryImage;
-            const isVisible = photo.isPublic !== false;
-            const validSrc = getValidImageSrc(photo.url);
-
-            return (
-              <div
-                key={idx}
-                className={`group relative flex flex-col overflow-hidden rounded-xl border bg-white p-3 shadow-xs transition-all dark:bg-zinc-950 ${
-                  isPrimary
-                    ? "border-primary ring-1 ring-primary/40"
-                    : "border-zinc-200 dark:border-zinc-800"
-                }`}
-              >
-                {/* Photo Thumbnail */}
-                <div className="relative aspect-4/3 w-full overflow-hidden rounded-lg bg-zinc-900">
-                  {validSrc ? (
-                    <Image
-                      src={validSrc}
-                      alt={`${coach.name} снимка ${idx + 1}`}
-                      fill
-                      unoptimized
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex size-full items-center justify-center text-zinc-600">
-                      <ImageIcon className="size-8" />
-                    </div>
-                  )}
-
-                  {/* Primary Badge */}
-                  {isPrimary && (
-                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded-md bg-primary px-2 py-0.5 text-[10px] font-bold text-white shadow-md">
-                      <Star className="size-3 fill-white" />
-                      <span>Главна</span>
-                    </div>
-                  )}
-
-                  {/* View Button Overlay */}
-                  <button
-                    type="button"
-                    onClick={() => setPreviewUrl(validSrc)}
-                    title="Преглед на цял екран"
-                    className="absolute top-2 right-2 z-10 flex size-7 items-center justify-center rounded-lg border border-white/20 bg-black/60 text-white opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100 hover:bg-blue-600"
-                  >
-                    <Eye className="size-3.5" />
-                  </button>
-                </div>
-
-                {/* Controls Bar */}
-                <div className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-2.5 dark:border-zinc-800/80">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={`${idPrefix}-public-${idx}`}
-                      checked={isVisible}
-                      onCheckedChange={() => handleTogglePublic(idx)}
-                    />
-                    <label
-                      htmlFor={`${idPrefix}-public-${idx}`}
-                      className="cursor-pointer text-xs font-medium text-zinc-700 select-none dark:text-zinc-300"
+                  return (
+                    <div
+                      key={idx}
+                      className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-white p-2.5 shadow-xs transition-all dark:bg-zinc-950 ${
+                        isPrimary
+                          ? "border-primary ring-2 ring-primary/30"
+                          : "border-zinc-200 dark:border-zinc-800"
+                      }`}
                     >
-                      Видима в сайта
-                    </label>
-                  </div>
+                      {/* Photo Thumbnail */}
+                      <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-zinc-900">
+                        {validSrc ? (
+                          <Image
+                            src={validSrc}
+                            alt={`${coach.name} снимка ${idx + 1}`}
+                            fill
+                            unoptimized
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex size-full items-center justify-center text-zinc-600">
+                            <ImageIcon className="size-8" />
+                          </div>
+                        )}
 
-                  <div className="flex items-center gap-1">
-                    {!isPrimary && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        title="Направи главна снимка"
-                        onClick={() => handleSetPrimary(photo.url)}
-                        className="h-7 px-2 text-[11px] text-zinc-500 hover:text-primary"
-                      >
-                        <Star className="mr-1 size-3" /> Главна
-                      </Button>
-                    )}
+                        {/* Primary Star Badge */}
+                        {isPrimary && (
+                          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded-md bg-primary px-2 py-0.5 text-[10px] font-bold text-white shadow-md">
+                            <Star className="size-3 fill-white" />
+                            <span>Главна</span>
+                          </div>
+                        )}
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      title="Изтрий снимката"
-                      onClick={() => handleRemovePhoto(idx)}
-                      className="size-7 p-0 text-red-500 hover:bg-red-500/10 hover:text-red-600"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                  </div>
-                </div>
+                        {/* Fullscreen view button */}
+                        <button
+                          type="button"
+                          onClick={() => setPreviewUrl(validSrc)}
+                          title="Преглед на цял екран"
+                          className="absolute top-2 right-2 z-10 flex size-7 items-center justify-center rounded-lg border border-white/20 bg-black/60 text-white opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100 hover:bg-blue-600"
+                        >
+                          <Eye className="size-3.5" />
+                        </button>
+                      </div>
 
-                <div className="mt-1 truncate text-[10px] text-zinc-400">
-                  {photo.url}
-                </div>
+                      {/* Controls Bar */}
+                      <div className="mt-2.5 flex items-center justify-between border-t border-zinc-100 pt-2 dark:border-zinc-800/80">
+                        <div className="flex items-center gap-1.5">
+                          <Checkbox
+                            id={`${idPrefix}-modal-public-${idx}`}
+                            checked={isVisible}
+                            onCheckedChange={() => handleTogglePublic(idx)}
+                          />
+                          <label
+                            htmlFor={`${idPrefix}-modal-public-${idx}`}
+                            className="cursor-pointer text-xs font-medium text-zinc-700 select-none dark:text-zinc-300"
+                          >
+                            Видима
+                          </label>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          {!isPrimary && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              title="Направи главна снимка"
+                              onClick={() => handleSetPrimary(photo.url)}
+                              className="h-7 px-2 text-[11px] text-zinc-500 hover:text-primary"
+                            >
+                              <Star className="mr-1 size-3" /> Главна
+                            </Button>
+                          )}
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            title="Изтрий снимката"
+                            onClick={() => handleRemovePhoto(idx)}
+                            className="size-7 p-0 text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+          </div>
+
+          {/* Dialog Footer */}
+          <DialogFooter className="flex items-center justify-between border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            <p className="text-xs text-zinc-500">
+              {photos.length} снимки в галерията ({publicCount} видими в сайта)
+            </p>
+            <Button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="h-9 rounded-xl px-5 text-xs font-semibold"
+            >
+              Запази и затвори
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Lightbox / Fullscreen Preview Modal */}
       {previewUrl && (
@@ -595,6 +681,6 @@ export function CoachPhotosManager({
           subtitle="Преглед на изображението"
         />
       )}
-    </div>
+    </>
   );
 }
