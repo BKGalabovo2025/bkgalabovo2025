@@ -1,6 +1,6 @@
 import { Plus, Trash2, Users } from "lucide-react";
 
-import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
+import { CoachPhotosManager } from "@/app/(protected)/settings/components/CoachPhotosManager";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -117,16 +117,13 @@ export function TeamTab() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <UniversalMediaUpload
-                    id={`team-bkg-img-${index}`}
-                    label="Снимка на треньора"
-                    description="PNG, JPG, WEBP или външен линк"
-                    value={member.image || ""}
-                    onChange={(url) =>
-                      handleTherapistChange("bkgalabovo", index, "image", url)
+                  <CoachPhotosManager
+                    coach={member}
+                    onUpdateField={(field, val) =>
+                      handleTherapistChange("bkgalabovo", index, field, val)
                     }
                     storageFolder="team/bkgalabovo"
-                    placeholderUrl="/team/member.jpg или https://..."
+                    idPrefix={`team-bkg-${index}`}
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -253,16 +250,13 @@ export function TeamTab() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <UniversalMediaUpload
-                    id={`team-rz-img-${index}`}
-                    label="Снимка на терапевта"
-                    description="PNG, JPG, WEBP или външен линк"
-                    value={therapist.image || ""}
-                    onChange={(url) =>
-                      handleTherapistChange("recoveryzone", index, "image", url)
+                  <CoachPhotosManager
+                    coach={therapist}
+                    onUpdateField={(field, val) =>
+                      handleTherapistChange("recoveryzone", index, field, val)
                     }
                     storageFolder="team/recoveryzone"
-                    placeholderUrl="/team/member.jpg или https://..."
+                    idPrefix={`team-rz-${index}`}
                   />
                 </div>
                 <div className="md:col-span-2">

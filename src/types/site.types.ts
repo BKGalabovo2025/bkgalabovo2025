@@ -14,13 +14,23 @@ export interface SiteInventory {
 }
 
 /**
- * Represents a member of the recovery team.
+ * Represents a photo entry for a team member/coach.
+ */
+export interface TherapistPhoto {
+  url: string;
+  isPublic?: boolean;
+  caption?: string;
+}
+
+/**
+ * Represents a member of the recovery team or coaching staff.
  */
 export interface Therapist {
   id: string;
   name: string;
   phone?: string;
   image?: string;
+  photos?: TherapistPhoto[];
   bio?: string;
   role?: string;
   isActive: boolean;

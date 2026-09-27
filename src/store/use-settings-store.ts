@@ -8,6 +8,7 @@ import {
   RecoveryAttachment,
   Site,
   Therapist,
+  TherapistPhoto,
 } from "@/types/site.types";
 
 interface SettingsState {
@@ -65,7 +66,7 @@ interface SettingsState {
     siteId: string,
     index: number,
     field: keyof Therapist,
-    value: string | boolean
+    value: string | boolean | TherapistPhoto[]
   ) => void;
   addTherapist: (siteId: string) => void;
   removeTherapist: (siteId: string, index: number) => void;
