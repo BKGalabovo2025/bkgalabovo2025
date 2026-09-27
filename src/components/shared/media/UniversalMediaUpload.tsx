@@ -74,9 +74,9 @@ export const isImageFileOrUrl = (fileNameOrUrl?: string | null): boolean => {
   );
 };
 
-async function compressImageIfNeeded(
+export async function compressImageIfNeeded(
   file: File,
-  maxSizeBytes: number
+  maxSizeBytes: number = 800 * 1024
 ): Promise<File> {
   if (
     typeof window === "undefined" ||
