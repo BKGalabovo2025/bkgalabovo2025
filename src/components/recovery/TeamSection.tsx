@@ -4,6 +4,7 @@ import { Phone } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
+import { getValidImageSrc } from "@/components/club/ShareAthleteDialog";
 import { cn } from "@/lib/utils";
 import { Therapist } from "@/types/site.types";
 
@@ -77,7 +78,10 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
               >
                 <div className="relative mb-6 size-24 overflow-hidden rounded-3xl border border-white/10 transition-colors group-hover:border-emerald-500/30">
                   <Image
-                    src={member.image || "/1.png"}
+                    src={
+                      getValidImageSrc(member.image) ||
+                      "/team/mira georgieva.jpg"
+                    }
                     alt={member.name}
                     fill
                     sizes="96px"
