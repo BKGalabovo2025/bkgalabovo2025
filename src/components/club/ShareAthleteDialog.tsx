@@ -105,8 +105,13 @@ export function ShareAthleteDialog({
   const ageGroup = member.ageGroupDisplay || "Мъже/Жени";
   const tournaments = member.tournaments || [];
 
-  const shareTitle = `Дигитална карта на ${member.name} | БК Гълъбово`;
-  const shareText = `Вижте профила и турнирните участия на ${member.name} (${levelText}, ${ageGroup}) в СНЦ Бадминтон Клуб Гълъбово! 🏸🏆`;
+  const athleteName =
+    member.name?.trim() ||
+    [member.firstName, member.lastName].filter(Boolean).join(" ") ||
+    "Състезател";
+
+  const shareTitle = `Дигитална карта на ${athleteName} | БК Гълъбово`;
+  const shareText = `Вижте профила и турнирните участия на ${athleteName} (${levelText}, ${ageGroup}) в СНЦ Бадминтон Клуб Гълъбово! 🏸🏆`;
 
   // 1. Copy Link
   const handleCopyLink = async () => {
@@ -133,7 +138,11 @@ export function ShareAthleteDialog({
     const viberUrl = `viber://forward?text=${encodeURIComponent(
       `${shareText}\n${shareUrl}`
     )}`;
-    window.open(viberUrl, "_blank");
+    try {
+      window.location.href = viberUrl;
+    } catch {
+      handleCopyLink();
+    }
   };
 
   // 4. WhatsApp Share
@@ -226,7 +235,7 @@ export function ShareAthleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-xl overflow-y-auto border-blue-500/20 bg-zinc-950 p-6 text-white shadow-2xl backdrop-blur-2xl sm:p-8 dark:border-blue-500/20 dark:bg-zinc-950">
+      <DialogContent className="max-h-[92vh] max-w-xl overflow-y-auto border-blue-500/20 bg-zinc-950 p-6 text-white shadow-2xl backdrop-blur-2xl sm:p-8 dark:border-blue-500/20 dark:bg-zinc-950 [scrollbar-color:rgba(59,130,246,0.3)_transparent] scrollbar-thin [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-blue-500/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
         <DialogHeader className="space-y-1 text-left">
           <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-blue-400 uppercase">
             <Share2 className="size-4" />
@@ -234,7 +243,7 @@ export function ShareAthleteDialog({
           </div>
           <DialogTitle className="text-2xl font-light text-white">
             Сподели{" "}
-            <span className="font-semibold text-blue-400">{member.name}</span>
+            <span className="font-semibold text-blue-400">{athleteName}</span>
           </DialogTitle>
           <DialogDescription className="text-sm text-zinc-400">
             Изтеглете или споделете профила на състезателя във Facebook,

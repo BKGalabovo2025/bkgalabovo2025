@@ -68,8 +68,8 @@ function serializeMember(m: TeamMember): TeamMember {
 }
 
 const getValidImageSrc = (src: string | undefined | null) => {
-  if (!src) return "";
-  let cleanSrc = src.replace(/\\/g, "/");
+  if (!src || !src.trim()) return "";
+  let cleanSrc = src.trim().replace(/\\/g, "/");
   if (cleanSrc.startsWith("public/")) cleanSrc = cleanSrc.substring(6);
   if (cleanSrc.startsWith("/public/")) cleanSrc = cleanSrc.substring(7);
   if (
@@ -84,6 +84,7 @@ const getValidImageSrc = (src: string | undefined | null) => {
 type PastEvent = {
   attendeeMemberIds?: string[];
   title?: string;
+  endDate?: string | { toDate?: () => Date };
   [key: string]: unknown;
 };
 
@@ -232,16 +233,14 @@ export default async function TeamPage() {
       .get();
 
     pastEventsData = eventsSnapshot.docs
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((doc: any) => doc.data())
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .filter((data: any) => {
+      .map((doc) => doc.data() as PastEvent)
+      .filter((data) => {
         let endDateStr = new Date().toISOString();
         if (data.endDate) {
           endDateStr =
             typeof data.endDate === "string"
               ? data.endDate
-              : data.endDate.toDate?.().toISOString() || data.endDate;
+              : data.endDate.toDate?.().toISOString() || String(data.endDate);
         }
         return new Date(endDateStr) < new Date();
       });
@@ -269,6 +268,10 @@ export default async function TeamPage() {
 
     const raw: TeamMember = {
       ...m,
+      name:
+        m.name?.trim() ||
+        [m.firstName, m.middleName, m.lastName].filter(Boolean).join(" ") ||
+        "Състезател",
       ageGroupDisplay:
         m.ageGroup || calculateAgeGroup(m.dateOfBirth) || "Мъже/Жени",
       tournaments: uniqueCompetitions,
@@ -335,53 +338,65 @@ export default async function TeamPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {clubSite.therapists.map((coach, idx) => (
-                <div
-                  key={idx}
-                  className="group relative overflow-hidden rounded-5xl border border-zinc-800/50 bg-black/40 p-8 backdrop-blur-xl transition-all duration-500 hover:border-blue-500/30"
-                >
-                  <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-blue-500/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-500/10" />
+            <div
+              className={
+                clubSite.therapists.length === 1
+                  ? "mx-auto max-w-md"
+                  : "grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
+              }
+            >
+              {clubSite.therapists.map((coach, idx) => {
+                const validCoachImg = getValidImageSrc(coach.image);
+                const cleanBio = coach.bio
+                  ? coach.bio.replace("Провесионалният", "Професионалният")
+                  : undefined;
+                return (
+                  <div
+                    key={idx}
+                    className="group relative overflow-hidden rounded-5xl border border-zinc-800/50 bg-black/40 p-8 backdrop-blur-xl transition-all duration-500 hover:border-blue-500/30"
+                  >
+                    <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-blue-500/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-500/10" />
 
-                  <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="relative mb-6 size-40 overflow-hidden rounded-full border-2 border-zinc-800 bg-zinc-900 shadow-2xl transition-colors group-hover:border-blue-500/50">
-                      {coach.image ? (
-                        <Image
-                          src={getValidImageSrc(coach.image)}
-                          alt={coach.name}
-                          fill
-                          sizes="160px"
-                          unoptimized
-                          className="object-cover"
+                    <div className="relative z-10 flex flex-col items-center text-center">
+                      <div className="relative mb-6 size-40 overflow-hidden rounded-full border-2 border-zinc-800 bg-zinc-900 shadow-2xl transition-colors group-hover:border-blue-500/50">
+                        {validCoachImg ? (
+                          <Image
+                            src={validCoachImg}
+                            alt={coach.name}
+                            fill
+                            sizes="160px"
+                            unoptimized
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex size-full items-center justify-center text-zinc-700">
+                            <UserIcon size={64} />
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="mb-2 text-2xl font-medium text-white">
+                        {coach.name}
+                      </h3>
+                      <p className="mb-6 text-[11px] font-semibold tracking-widest text-blue-400 uppercase">
+                        <Translate
+                          bg={coach.role || "Треньор"}
+                          en={
+                            (coach.role || "Треньор").trim().toLowerCase() ===
+                            "председател и треньор"
+                              ? "President and Coach"
+                              : undefined
+                          }
                         />
-                      ) : (
-                        <div className="flex size-full items-center justify-center text-zinc-700">
-                          <UserIcon size={64} />
-                        </div>
+                      </p>
+                      {cleanBio && (
+                        <p className="mb-6 text-sm leading-relaxed text-zinc-400">
+                          {cleanBio}
+                        </p>
                       )}
                     </div>
-                    <h3 className="mb-2 text-2xl font-medium text-white">
-                      {coach.name}
-                    </h3>
-                    <p className="mb-6 text-[11px] font-semibold tracking-widest text-blue-400 uppercase">
-                      <Translate
-                        bg={coach.role || "Треньор"}
-                        en={
-                          (coach.role || "Треньор").trim().toLowerCase() ===
-                          "председател и треньор"
-                            ? "President and Coach"
-                            : undefined
-                        }
-                      />
-                    </p>
-                    {coach.bio && (
-                      <p className="mb-6 text-sm leading-relaxed text-zinc-400">
-                        {coach.bio}
-                      </p>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

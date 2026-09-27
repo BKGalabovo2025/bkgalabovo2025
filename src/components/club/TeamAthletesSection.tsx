@@ -73,6 +73,13 @@ function TeamAthletesContent({
                   member.skillLevel === "professional";
                 const levelText = isCompetitor ? "Състезател" : "Любител";
                 const tournaments = member.tournaments || [];
+                const athleteName =
+                  member.name?.trim() ||
+                  [member.firstName, member.middleName, member.lastName]
+                    .filter(Boolean)
+                    .join(" ") ||
+                  "Състезател";
+                const validAvatar = getValidImageSrc(member.avatarUrl);
 
                 return (
                   <div
@@ -83,10 +90,10 @@ function TeamAthletesContent({
                     {/* Athlete Photo Container */}
                     <div className="relative aspect-4/5 overflow-hidden bg-zinc-900">
                       <div className="absolute inset-0 z-10 bg-linear-to-t from-black via-black/30 to-transparent" />
-                      {member.avatarUrl ? (
+                      {validAvatar ? (
                         <Image
-                          src={getValidImageSrc(member.avatarUrl)}
-                          alt={member.name}
+                          src={validAvatar}
+                          alt={athleteName}
                           fill
                           unoptimized
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -102,7 +109,7 @@ function TeamAthletesContent({
                       <button
                         onClick={() => setSelectedAthlete(member)}
                         title="Сподели картичка на състезателя"
-                        aria-label={`Сподели картичка на ${member.name}`}
+                        aria-label={`Сподели картичка на ${athleteName}`}
                         className="absolute top-4 right-4 z-20 flex size-10 items-center justify-center rounded-2xl border border-white/20 bg-black/60 text-white shadow-lg backdrop-blur-md transition-all hover:scale-110 hover:border-blue-400 hover:bg-blue-600 hover:text-white"
                       >
                         <Share2 size={16} />
@@ -111,7 +118,7 @@ function TeamAthletesContent({
                       {/* Name & Badges Overlay */}
                       <div className="absolute inset-x-0 bottom-0 z-20 p-6">
                         <h4 className="mb-1 text-xl font-medium text-white drop-shadow-md">
-                          {member.name}
+                          {athleteName}
                         </h4>
                         <div className="flex flex-wrap items-center gap-2">
                           <span
@@ -149,7 +156,7 @@ function TeamAthletesContent({
                         )}
 
                         {/* Tournaments List */}
-                        <div>
+                        <div className="flex min-h-22 flex-col justify-start">
                           <p className="mb-2.5 flex items-center justify-between text-[10px] font-bold tracking-[0.2em] text-blue-400 uppercase">
                             <span className="flex items-center gap-1.5">
                               <MapPin size={12} />
@@ -161,7 +168,7 @@ function TeamAthletesContent({
                           </p>
 
                           {tournaments.length === 0 ? (
-                            <p className="text-xs text-zinc-500 italic">
+                            <p className="py-1 text-xs text-zinc-500 italic">
                               В подготовка за турнири
                             </p>
                           ) : (
@@ -179,7 +186,10 @@ function TeamAthletesContent({
                               ))}
                               {tournaments.length > 3 && (
                                 <li className="text-[11px] text-zinc-500 italic">
-                                  + още {tournaments.length - 3} състезания
+                                  + още {tournaments.length - 3}{" "}
+                                  {tournaments.length - 3 === 1
+                                    ? "състезание"
+                                    : "състезания"}
                                 </li>
                               )}
                             </ul>
@@ -209,7 +219,21 @@ function TeamAthletesContent({
         member={selectedAthlete}
         open={Boolean(selectedAthlete)}
         onOpenChange={(open) => {
-          if (!open) setSelectedAthlete(null);
+          if (!open) {
+            setSelectedAthlete(null);
+            if (
+              typeof window !== "undefined" &&
+              window.location.search.includes("athlete=")
+            ) {
+              const url = new URL(window.location.href);
+              url.searchParams.delete("athlete");
+              window.history.replaceState(
+                {},
+                "",
+                url.pathname + (url.search ? url.search : "")
+              );
+            }
+          }
         }}
       />
     </>

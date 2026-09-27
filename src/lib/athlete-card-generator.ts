@@ -22,13 +22,28 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = () => {
-      const fallbackImg = new Image();
-      fallbackImg.onload = () => resolve(fallbackImg);
-      fallbackImg.onerror = () => resolve(null);
-      fallbackImg.src = src;
+      // Resolving null on CORS error prevents drawing a non-CORS image
+      // that would taint the canvas and cause canvas.toBlob() to throw SecurityError.
+      resolve(null);
     };
     img.src = src;
   });
+}
+
+function fitText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let truncated = text;
+  while (
+    truncated.length > 0 &&
+    ctx.measureText(truncated + "...").width > maxWidth
+  ) {
+    truncated = truncated.slice(0, -1);
+  }
+  return truncated + "...";
 }
 
 function resolveAvatarUrl(rawUrl: string | undefined | null): string {
@@ -363,6 +378,7 @@ function drawTournaments(
       tY + 10
     );
   } else {
+    const maxTextWidth = boxWidth - 85;
     for (const tourn of visible) {
       ctx.fillStyle = "#3b82f6";
       ctx.beginPath();
@@ -372,7 +388,8 @@ function drawTournaments(
       ctx.fillStyle = "#e2e8f0";
       ctx.font = "16px sans-serif";
       ctx.letterSpacing = "0px";
-      ctx.fillText(tourn, boxX + 52, tY);
+      const fittedTourn = fitText(ctx, tourn, maxTextWidth);
+      ctx.fillText(fittedTourn, boxX + 52, tY);
       tY += itemLineHeight;
     }
 
