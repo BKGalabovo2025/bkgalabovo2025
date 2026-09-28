@@ -266,6 +266,16 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Error reading file";
+    if (message.includes("RESOURCE_EXHAUSTED")) {
+      const placeholderSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="#f8fafc" rx="12"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#94a3b8" font-weight="bold">Лого</text></svg>`;
+      return new NextResponse(placeholderSvg, {
+        status: 200,
+        headers: {
+          "Content-Type": "image/svg+xml",
+          "Cache-Control": "public, max-age=30",
+        },
+      });
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

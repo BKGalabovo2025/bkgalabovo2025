@@ -71,8 +71,7 @@ export function CertificatesClient() {
 
   useEffect(() => {
     loadSponsors();
-    loadIssuedCertificates();
-  }, [loadSponsors, loadIssuedCertificates]);
+  }, [loadSponsors]);
 
   const isRecoveryZone = siteId === "recoveryzone";
 

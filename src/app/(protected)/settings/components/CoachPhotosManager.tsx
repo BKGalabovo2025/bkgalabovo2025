@@ -142,7 +142,7 @@ export function CoachPhotosManager({
           });
         }
       } catch (err) {
-        console.error(`Error uploading ${rawFile.name}:`, err);
+        console.error("Error uploading file:", rawFile.name, err);
         toast.error(`Грешка при качване на ${rawFile.name}`);
       }
     }

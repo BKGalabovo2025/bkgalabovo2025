@@ -235,14 +235,26 @@ export async function getIssuedCertificatesAction(
 
     return { success: true, data: items };
   } catch (error) {
-    console.error("Грешка при getIssuedCertificatesAction:", error);
+    const isQuota =
+      error instanceof Error && error.message.includes("RESOURCE_EXHAUSTED");
+    if (isQuota) {
+      console.warn(
+        "getIssuedCertificatesAction: Firestore дневната квота е достигната временно."
+      );
+    } else {
+      console.error("Грешка при getIssuedCertificatesAction:", error);
+    }
+    let errorMessage = "Грешка при зареждане на регистъра";
+    if (isQuota) {
+      errorMessage =
+        "Дневната Firestore квота за четене е достигната. Списъкът ще се зареди автоматично при зануляване.";
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return {
       success: false,
       data: [],
-      error:
-        error instanceof Error
-          ? error.message
-          : "Грешка при зареждане на регистъра",
+      error: errorMessage,
     };
   }
 }
