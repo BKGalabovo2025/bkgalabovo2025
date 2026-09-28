@@ -153,15 +153,19 @@ export function UploadVoucherTab({
     "Община Гълъбово",
   ];
 
-  // Preset Purposes
-  const PRESET_PURPOSES = [
-    "8 безплатни тренировки по бадминтон",
-    "1 месец безплатни тренировки за начинаещи",
-    "Участие в летен бадминтон лагер",
-    "Пакет „Шампион“ – 12 тренировки",
-    "Награда за отлично представяне в училище",
-    "Безплатна възстановителна сесия (Recovery Zone)",
-  ];
+  // Dynamic Preset Purposes
+  const presetPurposes = useMemo(() => {
+    const sessionWord =
+      totalSessions === 1 ? "безплатна тренировка" : "безплатни тренировки";
+    return [
+      `${totalSessions} ${sessionWord} по бадминтон`,
+      "1 месец безплатни тренировки за начинаещи",
+      "Участие в летен бадминтон лагер",
+      "Пакет „Шампион“ – 12 тренировки",
+      "Награда за отлично представяне в училище",
+      "Безплатна възстановителна сесия (Recovery Zone)",
+    ];
+  }, [totalSessions]);
 
   // Filtered members for quick pick
   const filteredMembers = useMemo(() => {
@@ -284,6 +288,30 @@ export function UploadVoucherTab({
         ? prev.filter((id) => id !== sponsorId)
         : [...prev, sponsorId]
     );
+  };
+
+  // Dynamically update sessions count & sync with purpose text
+  const handleSelectSessions = (num: number) => {
+    setTotalSessions(num);
+    const sessionWord =
+      num === 1 ? "безплатна тренировка" : "безплатни тренировки";
+    const defaultSport = isRecoveryZone
+      ? "възстановителна процедура"
+      : "по бадминтон";
+
+    const leadingSessionRegex = /^\d+\s+безплатн[аи]\s+тренировк[аи]/i;
+
+    if (leadingSessionRegex.test(purpose.trim())) {
+      setPurpose(purpose.replace(leadingSessionRegex, `${num} ${sessionWord}`));
+    } else if (
+      !purpose.trim() ||
+      purpose.includes("тренировк") ||
+      purpose.includes("тренировки")
+    ) {
+      setPurpose(`${num} ${sessionWord} ${defaultSport}`);
+    } else {
+      setPurpose(`${num} ${sessionWord} ${defaultSport} – ${purpose.trim()}`);
+    }
   };
 
   // Execute Issuance
@@ -817,7 +845,7 @@ export function UploadVoucherTab({
 
               {/* Quick Preset Buttons for Purposes */}
               <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                {PRESET_PURPOSES.map((p) => (
+                {presetPurposes.map((p) => (
                   <button
                     key={p}
                     type="button"
@@ -828,6 +856,11 @@ export function UploadVoucherTab({
                   </button>
                 ))}
               </div>
+              <p className="text-[10px] text-zinc-400">
+                💡 Текстът се обновява автоматично спрямо броя тренировки, като
+                можете свободно да допишете допълнителен текст (напр. повод,
+                награда или училище).
+              </p>
             </div>
 
             {/* Attendance & Session settings (If Voucher) */}
@@ -848,7 +881,7 @@ export function UploadVoucherTab({
                       <button
                         key={num}
                         type="button"
-                        onClick={() => setTotalSessions(num)}
+                        onClick={() => handleSelectSessions(num)}
                         className={`min-w-8 flex-1 rounded-xl border py-1.5 text-xs font-bold transition-all ${
                           totalSessions === num
                             ? "border-amber-400 bg-amber-500 text-white shadow-xs"

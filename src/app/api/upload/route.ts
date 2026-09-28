@@ -7,7 +7,8 @@ import { getSiteConfig } from "@/config/sites";
 import { getAuthUser } from "@/lib/auth-utils";
 import { getAdminStorage } from "@/lib/firebase-admin";
 
-const FIRESTORE_MAX_FILE_SIZE = 800 * 1024; // 800KB max per document in Firestore (0 лв Spark tier)
+const FIRESTORE_MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB max per file using Firestore chunking
+const FIRESTORE_CHUNK_SIZE = 600 * 1024; // 600KB binary per chunk (~800KB base64, safe under 1MB Firestore doc limit)
 
 function sanitizeAndValidateStoragePath(
   rawPath: string,
@@ -53,24 +54,59 @@ async function saveFileToFirestore(
   userSiteId: string
 ): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
-  const base64Data = Buffer.from(arrayBuffer).toString("base64");
+  const fileBuffer = Buffer.from(arrayBuffer);
   const fileId = crypto.randomUUID();
 
   const adminDb = (await import("@/lib/firebase-admin")).getAdminDb();
-  await adminDb
+  const fileDocRef = adminDb
     .collection("sites")
     .doc(userSiteId)
     .collection("uploaded_files")
-    .doc(fileId)
-    .set({
+    .doc(fileId);
+
+  if (fileBuffer.length <= FIRESTORE_CHUNK_SIZE) {
+    await fileDocRef.set({
       id: fileId,
       name: file.name,
       contentType: file.type || "application/octet-stream",
       size: file.size,
       path: normalizedPath,
-      data: base64Data,
+      data: fileBuffer.toString("base64"),
       createdAt: new Date().toISOString(),
     });
+  } else {
+    const totalChunks = Math.ceil(fileBuffer.length / FIRESTORE_CHUNK_SIZE);
+    const batch = adminDb.batch();
+
+    batch.set(fileDocRef, {
+      id: fileId,
+      name: file.name,
+      contentType: file.type || "application/octet-stream",
+      size: file.size,
+      path: normalizedPath,
+      chunksCount: totalChunks,
+      createdAt: new Date().toISOString(),
+    });
+
+    for (let i = 0; i < totalChunks; i++) {
+      const chunkStart = i * FIRESTORE_CHUNK_SIZE;
+      const chunkEnd = Math.min(
+        chunkStart + FIRESTORE_CHUNK_SIZE,
+        fileBuffer.length
+      );
+      const chunkSlice = fileBuffer.subarray(chunkStart, chunkEnd);
+      const chunkRef = fileDocRef
+        .collection("chunks")
+        .doc(String(i).padStart(4, "0"));
+
+      batch.set(chunkRef, {
+        index: i,
+        data: chunkSlice.toString("base64"),
+      });
+    }
+
+    await batch.commit();
+  }
 
   const safeName = encodeURIComponent(file.name || "file");
   return `/api/upload?fileId=${fileId}&siteId=${userSiteId}&fileName=${safeName}`;
@@ -200,10 +236,27 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const buffer = Buffer.from(fileDoc?.data || "", "base64");
+    let buffer: Buffer;
+    if (fileDoc?.chunksCount && Number(fileDoc.chunksCount) > 0) {
+      const chunksSnap = await adminDb
+        .collection("sites")
+        .doc(siteId)
+        .collection("uploaded_files")
+        .doc(fileId)
+        .collection("chunks")
+        .orderBy("index", "asc")
+        .get();
+
+      const chunkBuffers = chunksSnap.docs.map((d) =>
+        Buffer.from(d.data().data || "", "base64")
+      );
+      buffer = Buffer.concat(chunkBuffers);
+    } else {
+      buffer = Buffer.from(fileDoc?.data || "", "base64");
+    }
     const safeFileName = encodeURIComponent(fileDoc?.name || "document");
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": fileDoc?.contentType || "application/octet-stream",
         "Content-Disposition": `inline; filename="${safeFileName}"; filename*=UTF-8''${safeFileName}`,
@@ -299,13 +352,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, downloadUrl });
     }
 
-    // Free Firestore storage fallback (Spark plan - 0.00 лв)
+    // Free Firestore storage fallback (Spark plan - 0.00 лв, with automatic chunking up to 15MB)
     if (file.size > FIRESTORE_MAX_FILE_SIZE) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "Файлът надвишава лимита от 800KB за директно безплатно качване. Моля, използвайте опцията 'Постави външен линк' (Google Drive, OneDrive и др.) за по-големи документи.",
+            "Файлът надвишава максималния размер от 15MB за директно качване. Моля, използвайте по-малък файл или външен линк.",
         },
         { status: 400 }
       );
@@ -360,12 +413,26 @@ export async function DELETE(request: NextRequest) {
 
     if (fileId) {
       const adminDb = (await import("@/lib/firebase-admin")).getAdminDb();
-      await adminDb
+      const targetDocRef = adminDb
         .collection("sites")
         .doc(userSiteId)
         .collection("uploaded_files")
-        .doc(fileId)
-        .delete();
+        .doc(fileId);
+
+      const docSnap = await targetDocRef.get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        if (data?.chunksCount) {
+          const chunksSnap = await targetDocRef.collection("chunks").get();
+          const batch = adminDb.batch();
+          chunksSnap.docs.forEach((doc) => batch.delete(doc.ref));
+          batch.delete(targetDocRef);
+          await batch.commit();
+          return NextResponse.json({ success: true });
+        }
+      }
+
+      await targetDocRef.delete();
       return NextResponse.json({ success: true });
     }
 
