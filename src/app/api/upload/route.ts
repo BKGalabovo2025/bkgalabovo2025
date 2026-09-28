@@ -255,10 +255,22 @@ export async function POST(request: NextRequest) {
       (decodedToken as { siteId?: string; allowedSites?: string[] }).siteId ||
       getSiteConfig().id;
 
+    const userSites = Array.from(
+      new Set(
+        [
+          userSiteId,
+          ...((decodedToken as { allowedSites?: string[] }).allowedSites || []),
+          getSiteConfig().id,
+          "bkgalabovo",
+          "recoveryzone",
+        ].filter(Boolean) as string[]
+      )
+    );
+
     const allowedPaths = [
       `avatars/${decodedToken.uid}/`,
       `avatars/${decodedToken.uid}`,
-      `sites/${userSiteId}/`,
+      ...userSites.map((s) => `sites/${s}/`),
       `certificates/`,
     ];
 
@@ -364,10 +376,22 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const userSites = Array.from(
+      new Set(
+        [
+          (decodedToken as { siteId?: string }).siteId,
+          ...((decodedToken as { allowedSites?: string[] }).allowedSites || []),
+          getSiteConfig().id,
+          "bkgalabovo",
+          "recoveryzone",
+        ].filter(Boolean) as string[]
+      )
+    );
+
     const allowedPaths = [
       `avatars/${decodedToken.uid}/`,
       `avatars/${decodedToken.uid}`,
-      `sites/${userSiteId}/`,
+      ...userSites.map((s) => `sites/${s}/`),
       `certificates/`,
     ];
 
