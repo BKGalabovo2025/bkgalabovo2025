@@ -165,12 +165,49 @@ export function PublicCertificateClient({
 
   return (
     <div className="min-h-screen bg-linear-to-b from-amber-50/40 via-zinc-100/50 to-zinc-50 px-3 py-6 sm:px-6 lg:px-8 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+      {/* Explicit Print CSS so the voucher document prints with full color and no blank pages */}
+      <style>{`
+        @media print {
+          body, html {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          .printable-voucher,
+          .printable-voucher * {
+            visibility: visible !important;
+          }
+          .printable-voucher {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: white !important;
+          }
+          .no-print,
+          .print\\:hidden {
+            display: none !important;
+          }
+          @page {
+            size: auto;
+            margin: 8mm;
+          }
+        }
+      `}</style>
+
       <div className="mx-auto max-w-4xl space-y-6">
         {/* ================================================================= */}
         {/* 1. COACH / ADMIN PRIVATE PANEL (ONLY VISIBLE IF USER IS LOGGED IN) */}
         {/* ================================================================= */}
         {user && isVoucher && (
-          <div className="print:hidden rounded-2xl border border-amber-300 bg-amber-500/10 p-4 shadow-sm backdrop-blur-sm dark:border-amber-800 dark:bg-amber-950/40">
+          <div className="no-print print:hidden rounded-2xl border border-amber-300 bg-amber-500/10 p-4 shadow-sm backdrop-blur-sm dark:border-amber-800 dark:bg-amber-950/40">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-600 text-white shadow-xs">
@@ -210,7 +247,7 @@ export function PublicCertificateClient({
         {/* ================================================================= */}
         {/* 2. TOP ACTION & AUTHENTICITY BAR (Public & Discreet)              */}
         {/* ================================================================= */}
-        <div className="print:hidden flex flex-col items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white/90 px-4 py-2.5 shadow-xs backdrop-blur-md sm:flex-row dark:border-zinc-800 dark:bg-zinc-900/90">
+        <div className="no-print print:hidden flex flex-col items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white/90 px-4 py-2.5 shadow-xs backdrop-blur-md sm:flex-row dark:border-zinc-800 dark:bg-zinc-900/90">
           <div className="flex items-center gap-2.5">
             <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
               <ShieldCheck className="size-4" />
@@ -269,7 +306,7 @@ export function PublicCertificateClient({
         {uploadedDoc ? (
           <div
             id="official-voucher-certificate"
-            className="relative overflow-hidden rounded-3xl border-2 border-amber-300/80 bg-white p-5 shadow-2xl transition-all sm:p-8 md:p-10 dark:border-amber-500/30 dark:bg-zinc-900 print:rounded-none print:border-none print:p-0 print:shadow-none"
+            className="printable-voucher relative overflow-hidden rounded-3xl border-2 border-amber-300/80 bg-white p-5 shadow-2xl transition-all sm:p-8 md:p-10 dark:border-amber-500/30 dark:bg-zinc-900 print:rounded-none print:border-none print:p-0 print:shadow-none"
           >
             {/* Top Royal Gradient Line */}
             <div className="absolute top-0 inset-x-0 h-2.5 bg-linear-to-r from-blue-700 via-amber-400 to-indigo-700" />
@@ -575,7 +612,7 @@ export function PublicCertificateClient({
         {/* ================================================================= */}
         {/* 4. SOCIAL SHARING & VERIFICATION FOOTER (Print Hidden)           */}
         {/* ================================================================= */}
-        <Card className="print:hidden space-y-4 rounded-3xl border-zinc-200/80 bg-white p-6 text-center shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="no-print print:hidden space-y-4 rounded-3xl border-zinc-200/80 bg-white p-6 text-center shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="space-y-1">
             <h4 className="text-sm font-bold text-zinc-900 dark:text-white">
               Споделете този ваучер
