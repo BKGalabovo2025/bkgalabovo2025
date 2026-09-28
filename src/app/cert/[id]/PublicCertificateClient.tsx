@@ -40,6 +40,8 @@ import { useAuth } from "@/context/auth-context";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
 import { IssuedCertificate } from "@/types/certificates";
 
+import { PdfVoucherCanvas } from "./PdfVoucherCanvas";
+
 interface PublicCertificateClientProps {
   certificate: IssuedCertificate;
 }
@@ -369,14 +371,14 @@ export function PublicCertificateClient({
             {/* THE EMBEDDED VOUCHER DOCUMENT (PDF OR IMAGE)                   */}
             {/* Cleanly framed as the centerpiece of the document             */}
             {/* ============================================================= */}
-            <div className="relative overflow-hidden rounded-2xl border border-zinc-200/90 bg-zinc-50/80 p-2 sm:p-3 shadow-inner dark:border-zinc-800 dark:bg-zinc-950/40">
+            <div className="relative group my-4 w-full overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               {/* Floating controls in top right (hidden when printing) */}
-              <div className="print:hidden absolute top-4 right-4 z-10 flex items-center gap-2">
+              <div className="print:hidden absolute top-3 right-3 z-10 flex items-center gap-2">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => setIsZoomOpen(true)}
-                  className="h-8 rounded-xl border-zinc-300/80 bg-white/95 px-2.5 text-xs font-bold text-zinc-800 shadow-md backdrop-blur-md hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900/95 dark:text-white"
+                  className="h-8 rounded-xl border-zinc-200/80 bg-white/90 px-3 text-xs font-bold text-zinc-800 shadow-md backdrop-blur-md hover:bg-white dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-white"
                 >
                   <Maximize2 className="mr-1.5 size-3.5 text-blue-600" />
                   Увеличи
@@ -384,32 +386,33 @@ export function PublicCertificateClient({
 
                 <a
                   href={uploadedDoc.fileUrl}
-                  download={uploadedDoc.fileName || "vaucher.pdf"}
+                  download={
+                    uploadedDoc.fileName ||
+                    (uploadedDoc.fileType === "pdf"
+                      ? "vaucher.pdf"
+                      : "vaucher.png")
+                  }
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex h-8 items-center gap-1.5 rounded-xl bg-blue-600 px-3 text-xs font-bold text-white shadow-md hover:bg-blue-700"
                 >
                   <Download className="size-3.5" />
-                  Свали PDF
+                  {uploadedDoc.fileType === "pdf" ? "Свали PDF" : "Свали"}
                 </a>
               </div>
 
+              {/* Native flush presentation: zero black bars, zero margins */}
               {uploadedDoc.fileType === "pdf" ? (
-                <div className="w-full overflow-hidden rounded-xl bg-white shadow-xs">
-                  <iframe
-                    src={`${uploadedDoc.fileUrl}#toolbar=0&navpanes=0`}
-                    title="Официален клубен ваучер"
-                    className="h-130 sm:h-160 md:h-180 w-full border-0"
-                  />
-                </div>
+                <PdfVoucherCanvas
+                  fileUrl={uploadedDoc.fileUrl}
+                  fileName={uploadedDoc.fileName}
+                />
               ) : (
-                <div className="flex w-full items-center justify-center p-2">
-                  <img
-                    src={uploadedDoc.fileUrl}
-                    alt="Официален клубен ваучер"
-                    className="max-h-170 w-auto rounded-xl object-contain shadow-md"
-                  />
-                </div>
+                <img
+                  src={uploadedDoc.fileUrl}
+                  alt="Официален клубен ваучер"
+                  className="block h-auto w-full rounded-2xl object-contain shadow-xs"
+                />
               )}
             </div>
 
@@ -649,19 +652,18 @@ export function PublicCertificateClient({
               </DialogTitle>
             </DialogHeader>
 
-            <div className="h-[80vh] w-full overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-950">
+            <div className="max-h-[85vh] w-full overflow-y-auto rounded-xl bg-white p-2 dark:bg-zinc-900">
               {uploadedDoc.fileType === "pdf" ? (
-                <iframe
-                  src={uploadedDoc.fileUrl}
-                  title="Ваучер пълен екран"
-                  className="size-full border-0"
+                <PdfVoucherCanvas
+                  fileUrl={uploadedDoc.fileUrl}
+                  fileName={uploadedDoc.fileName}
                 />
               ) : (
                 <div className="flex size-full items-center justify-center p-2">
                   <img
                     src={uploadedDoc.fileUrl}
                     alt="Ваучер пълен екран"
-                    className="max-h-full max-w-full object-contain rounded-lg"
+                    className="max-h-[80vh] max-w-full object-contain rounded-lg"
                   />
                 </div>
               )}
