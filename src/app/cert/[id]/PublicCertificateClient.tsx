@@ -674,26 +674,26 @@ export function PublicCertificateClient({
             <div className="mt-6 rounded-2xl border border-amber-200/90 bg-linear-to-b from-amber-50/50 via-white to-amber-50/20 p-4 text-center shadow-xs sm:p-5 dark:border-zinc-800 dark:from-zinc-900/60 dark:to-zinc-950">
               <div className="mb-3 inline-flex items-center gap-2">
                 <span className="text-[11px] sm:text-xs font-black tracking-widest text-amber-900 uppercase dark:text-amber-300">
-                  Партньори & Подкрепа
+                  Партньори
                 </span>
               </div>
 
               <div className="partner-grid grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
                 {/* 1. Educational Institution Card */}
                 {cert.recipient.institution && (
-                  <div className="partner-card flex items-center gap-3 rounded-2xl border-2 border-blue-200/90 bg-white p-3 shadow-xs hover:border-blue-400 transition-all dark:border-zinc-700 dark:bg-zinc-800">
+                  <div className="partner-card flex min-h-16 sm:min-h-18 items-center gap-2.5 sm:gap-3 rounded-2xl border-2 border-blue-200/90 bg-white p-2.5 sm:p-3 shadow-xs hover:border-blue-400 transition-all dark:border-zinc-700 dark:bg-zinc-800">
                     <PartnerLogoOrEmblem
                       name={cert.recipient.institution}
                       logoUrl={cert.branding?.institutionLogoUrl}
                     />
                     <div className="text-left min-w-0 flex-1">
                       <span
-                        className="block text-xs sm:text-sm font-black tracking-tight text-zinc-900 truncate dark:text-white"
+                        className="block text-[11px] sm:text-xs md:text-sm font-black tracking-tight text-zinc-900 wrap-break-word leading-tight whitespace-normal dark:text-white"
                         title={cert.recipient.institution}
                       >
                         {cert.recipient.institution}
                       </span>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-blue-700 dark:text-blue-400">
+                      <span className="mt-0.5 block text-[10px] sm:text-[11px] font-bold text-blue-700 dark:text-blue-400">
                         Образователна институция
                       </span>
                     </div>
@@ -704,17 +704,17 @@ export function PublicCertificateClient({
                 {uniquePartners.map((p, idx) => (
                   <div
                     key={idx}
-                    className="partner-card flex items-center gap-3 rounded-2xl border-2 border-zinc-200/90 bg-white p-3 shadow-xs hover:border-amber-400 transition-all dark:border-zinc-700 dark:bg-zinc-800"
+                    className="partner-card flex min-h-16 sm:min-h-18 items-center gap-2.5 sm:gap-3 rounded-2xl border-2 border-zinc-200/90 bg-white p-2.5 sm:p-3 shadow-xs hover:border-amber-400 transition-all dark:border-zinc-700 dark:bg-zinc-800"
                   >
                     <PartnerLogoOrEmblem name={p.name} logoUrl={p.logoUrl} />
                     <div className="text-left min-w-0 flex-1">
                       <span
-                        className="block text-xs sm:text-sm font-black tracking-tight text-zinc-900 truncate dark:text-white"
+                        className="block text-[11px] sm:text-xs md:text-sm font-black tracking-tight text-zinc-900 wrap-break-word leading-tight whitespace-normal dark:text-white"
                         title={p.name}
                       >
                         {p.name}
                       </span>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                      <span className="mt-0.5 block text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-400">
                         {getPartnerSubtitle(p.name)}
                       </span>
                     </div>

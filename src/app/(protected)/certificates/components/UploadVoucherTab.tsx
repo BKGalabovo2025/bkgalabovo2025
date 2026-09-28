@@ -496,14 +496,14 @@ export function UploadVoucherTab({
   return (
     <div className="space-y-8">
       {/* 1. Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-blue-200/80 bg-linear-to-br from-blue-900 via-indigo-900 to-zinc-950 p-6 text-white shadow-xl dark:border-blue-900/60 sm:p-8">
-        <div className="relative z-10 max-w-3xl space-y-3">
+      <div className="relative overflow-hidden rounded-3xl border border-blue-200/80 bg-linear-to-br from-blue-900 via-indigo-900 to-zinc-950 p-4 sm:p-6 md:p-8 text-white shadow-xl dark:border-blue-900/60">
+        <div className="relative z-10 max-w-3xl space-y-2.5 sm:space-y-3">
           <div className="inline-flex items-center gap-2 rounded-2xl bg-white/10 px-3.5 py-1 text-xs font-bold text-blue-200 backdrop-blur-md">
             <Sparkles className="size-3.5 text-amber-300" />
             <span>Нов универсален модул за ваучери и грамоти</span>
           </div>
 
-          <h2 className="text-2xl font-black tracking-tight sm:text-3xl">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
             Качване на готов ваучер с електронна валидация
           </h2>
 
@@ -521,11 +521,11 @@ export function UploadVoucherTab({
       </div>
 
       {/* 2. Main Issuance Layout: Left Form + Right Live Preview */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-12">
         {/* LEFT COLUMN: Data Entry & Upload (7 cols) */}
         <div className="space-y-6 lg:col-span-7">
           {/* STEP 1: Upload Ready Voucher */}
-          <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
               <div className="flex items-center gap-2.5">
                 <div className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
@@ -682,7 +682,7 @@ export function UploadVoucherTab({
           </Card>
 
           {/* STEP 2: Recipient Child & Educational Institution */}
-          <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
               <div className="flex items-center gap-2.5">
                 <div className="flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
@@ -816,7 +816,7 @@ export function UploadVoucherTab({
           </Card>
 
           {/* STEP 3: Document Purpose & Attendance Details */}
-          <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
               <div className="flex size-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 dark:bg-teal-950/60 dark:text-teal-400">
                 <Ticket className="size-4" />
@@ -832,7 +832,7 @@ export function UploadVoucherTab({
             </div>
 
             {/* Document Type Selector */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {[
                 { id: "voucher", label: "🎟️ Ваучер", desc: "С отчитане" },
                 { id: "award", label: "🏆 Грамота", desc: "За отличие" },
@@ -846,7 +846,7 @@ export function UploadVoucherTab({
                   key={t.id}
                   type="button"
                   onClick={() => setDocType(t.id as CertificateType)}
-                  className={`flex flex-col items-center justify-center rounded-2xl border p-3 text-center transition-all ${
+                  className={`flex flex-col items-center justify-center rounded-2xl border p-2 sm:p-3 text-center transition-all ${
                     docType === t.id
                       ? "border-blue-600 bg-blue-50/60 font-bold text-blue-900 shadow-xs dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-200"
                       : "border-zinc-200 bg-zinc-50/50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
@@ -937,11 +937,11 @@ export function UploadVoucherTab({
                   </div>
 
                   {/* 3 Quick Options: 30 days, 60 days, exact date */}
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
                     <button
                       type="button"
                       onClick={() => setValidityMode("30")}
-                      className={`rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                      className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
                         validityMode === "30"
                           ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
                           : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
@@ -952,7 +952,7 @@ export function UploadVoucherTab({
                     <button
                       type="button"
                       onClick={() => setValidityMode("60")}
-                      className={`rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                      className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
                         validityMode === "60"
                           ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
                           : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
@@ -963,7 +963,7 @@ export function UploadVoucherTab({
                     <button
                       type="button"
                       onClick={() => setValidityMode("custom_date")}
-                      className={`rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                      className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
                         validityMode === "custom_date"
                           ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
                           : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
@@ -991,7 +991,7 @@ export function UploadVoucherTab({
           </Card>
 
           {/* STEP 4: Logos & Branding (Club, Institution, Partners) */}
-          <Card className="space-y-5 rounded-3xl border-zinc-200/90 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <Card className="space-y-5 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
               <div className="flex size-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
                 <Handshake className="size-4" />
@@ -1130,7 +1130,7 @@ export function UploadVoucherTab({
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                 {sponsors.map((s) => {
                   const isChecked = selectedSponsorIds.includes(s.id);
                   return (
@@ -1193,7 +1193,7 @@ export function UploadVoucherTab({
               type="button"
               disabled={isSubmitting}
               onClick={handleIssueVoucher}
-              className="h-14 w-full rounded-2xl bg-linear-to-r from-blue-600 via-indigo-600 to-blue-700 text-sm font-black text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-1.01 hover:from-blue-700 hover:to-indigo-800"
+              className="h-12 sm:h-14 w-full rounded-2xl bg-linear-to-r from-blue-600 via-indigo-600 to-blue-700 text-xs sm:text-sm font-black text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-1.01 hover:from-blue-700 hover:to-indigo-800"
             >
               {isSubmitting ? (
                 <>
@@ -1226,7 +1226,7 @@ export function UploadVoucherTab({
             </div>
 
             {/* Electronic Voucher Pass Card */}
-            <Card className="overflow-hidden rounded-3xl border border-zinc-200/90 bg-linear-to-b from-white to-zinc-50/80 p-6 shadow-xl dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-950">
+            <Card className="overflow-hidden rounded-3xl border border-zinc-200/90 bg-linear-to-b from-white to-zinc-50/80 p-4 sm:p-6 shadow-xl dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-950">
               {/* Header Logos Row */}
               <div className="flex items-center justify-between border-b border-zinc-100 pb-4 dark:border-zinc-800">
                 <div className="flex items-center gap-2">

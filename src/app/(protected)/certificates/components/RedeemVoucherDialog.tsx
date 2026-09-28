@@ -71,7 +71,7 @@ export function RedeemVoucherDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-3xl border-zinc-200 p-6 dark:border-zinc-800">
+      <DialogContent className="max-h-[92vh] w-[95vw] max-w-md overflow-y-auto rounded-3xl border-zinc-200 p-4 sm:p-6 dark:border-zinc-800">
         <DialogHeader>
           <div className="flex items-center gap-2.5">
             <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
@@ -170,7 +170,7 @@ export function RedeemVoucherDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2 pt-2">
+        <DialogFooter className="grid grid-cols-2 gap-2 pt-2 sm:flex sm:justify-end">
           <Button
             type="button"
             variant="outline"

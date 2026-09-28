@@ -74,7 +74,7 @@ export function ShareCertificateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-3xl border-zinc-200 p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+      <DialogContent className="max-h-[92vh] w-[95vw] max-w-md overflow-y-auto rounded-3xl border-zinc-200 p-4 sm:p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="flex size-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
@@ -185,7 +185,7 @@ export function ShareCertificateDialog({
           </div>
         </div>
 
-        <DialogFooter className="pt-2 sm:justify-between">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row items-center justify-between gap-2.5 pt-2">
           <a
             href={verificationUrl}
             target="_blank"
@@ -198,7 +198,7 @@ export function ShareCertificateDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+            className="w-full sm:w-auto rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
           >
             Затвори
           </Button>

@@ -22,6 +22,7 @@ import {
   Ticket,
   Trash2,
   User,
+  UserCheck,
 } from "lucide-react";
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
@@ -279,84 +280,84 @@ export function IssuedCertificatesTab({
   return (
     <div className="space-y-6">
       {/* 1. Header KPI Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
+        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 Общо издадени
               </span>
-              <div className="text-2xl font-black text-zinc-900 dark:text-white">
+              <div className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white">
                 {stats.total}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-              <FileCheck2 className="size-5" />
+            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+              <FileCheck2 className="size-4 sm:size-5" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 Издадени грамоти
               </span>
-              <div className="text-2xl font-black text-blue-600 dark:text-blue-400">
+              <div className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400">
                 {stats.awards}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
-              <Award className="size-5" />
+            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+              <Award className="size-4 sm:size-5" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 Активни ваучери
               </span>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+              <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
                 {stats.activeVouchers}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
-              <Ticket className="size-5" />
+            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <Ticket className="size-4 sm:size-5" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 Общо ваучери
               </span>
-              <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
+              <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">
                 {stats.vouchers}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
-              <Sparkles className="size-5" />
+            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+              <Sparkles className="size-4 sm:size-5" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* 2. Filter Bar, Quick Scanner and Actions */}
-      <Card className="space-y-3.5 rounded-3xl border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <Card className="space-y-3.5 rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
             {/* Search */}
-            <div className="relative max-w-sm flex-1">
+            <div className="relative w-full max-w-sm">
               <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-400" />
               <Input
                 placeholder="Търсене по сериен номер или име..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 rounded-2xl border-zinc-200 bg-zinc-50/50 pl-10 text-xs dark:border-zinc-800 dark:bg-zinc-950"
+                className="h-10 w-full rounded-2xl border-zinc-200 bg-zinc-50/50 pl-10 text-xs dark:border-zinc-800 dark:bg-zinc-950"
               />
             </div>
 
@@ -385,13 +386,13 @@ export function IssuedCertificatesTab({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex w-full sm:w-auto items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={onRefresh}
               disabled={isLoading}
-              className="h-10 rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+              className="h-10 flex-1 sm:flex-initial rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             >
               <RefreshCw
                 className={`mr-1.5 size-3.5 ${isLoading ? "animate-spin" : ""}`}
@@ -401,34 +402,34 @@ export function IssuedCertificatesTab({
 
             <Button
               onClick={onSwitchToIssue}
-              className="h-10 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+              className="h-10 flex-1 sm:flex-initial rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
             >
               <Plus className="mr-1.5 size-4" />
-              Издай нов документ
+              Издай нов
             </Button>
           </div>
         </div>
 
         {/* Quick Voucher Scanner Sub-bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
           <form
             onSubmit={handleVoucherScanSubmit}
-            className="flex items-center gap-2"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto"
           >
-            <div className="relative">
+            <div className="relative w-full sm:w-72">
               <QrCode className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-amber-500" />
               <Input
-                placeholder="🎟️ Сканирай баркод или въведи № на ваучер..."
+                placeholder="🎟️ Сканирай код или въведи №..."
                 value={voucherScanQuery}
                 onChange={(e) => setVoucherScanQuery(e.target.value)}
-                className="h-8.5 w-72 rounded-xl border-amber-200/70 bg-amber-50/30 pl-8 text-xs font-mono dark:border-amber-900/40 dark:bg-amber-950/20"
+                className="h-9 w-full rounded-xl border-amber-200/70 bg-amber-50/30 pl-8 text-xs font-mono dark:border-amber-900/40 dark:bg-amber-950/20"
               />
             </div>
             <Button
               type="submit"
               size="sm"
               variant="outline"
-              className="h-8.5 rounded-xl border-amber-300 text-xs font-bold text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300"
+              className="h-9 w-full sm:w-auto rounded-xl border-amber-300 text-xs font-bold text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300"
             >
               Осребри бързо
             </Button>
@@ -436,7 +437,7 @@ export function IssuedCertificatesTab({
 
           {/* Batch Print Action when items selected */}
           {selectedCertIds.length > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
               <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
                 Избрани {selectedCertIds.length} от{" "}
                 {filteredCertificates.length}
@@ -445,7 +446,7 @@ export function IssuedCertificatesTab({
                 onClick={handleBatchPrint}
                 disabled={isBatchPrinting}
                 size="sm"
-                className="h-8.5 gap-1.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md hover:from-blue-700 hover:to-indigo-700"
+                className="h-9 gap-1.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md hover:from-blue-700 hover:to-indigo-700"
               >
                 {isBatchPrinting ? (
                   <Loader2 className="size-3.5 animate-spin" />
@@ -458,7 +459,7 @@ export function IssuedCertificatesTab({
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedCertIds([])}
-                className="h-8.5 rounded-xl text-xs text-zinc-500"
+                className="h-9 rounded-xl text-xs text-zinc-500"
               >
                 Отмаркирай
               </Button>
@@ -499,279 +500,488 @@ export function IssuedCertificatesTab({
           </Button>
         </div>
       ) : (
-        <Card className="overflow-hidden rounded-3xl border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-zinc-200 bg-zinc-50/70 text-[11px] font-bold tracking-wider text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-950">
-                <tr>
-                  <th className="py-3.5 pr-2 pl-4 w-10 text-center">
-                    <input
-                      type="checkbox"
-                      checked={
-                        filteredCertificates.length > 0 &&
-                        selectedCertIds.length === filteredCertificates.length
-                      }
-                      onChange={handleToggleSelectAll}
-                      className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </th>
-                  <th className="px-3 py-3.5">Сериен № & QR</th>
-                  <th className="px-3 py-3.5">Получател & Институция</th>
-                  <th className="px-3 py-3.5">Тип & Отличие</th>
-                  <th className="px-3 py-3.5">Дата на издаване</th>
-                  <th className="px-3 py-3.5">Статус / Процедури</th>
-                  <th className="py-3.5 pr-6 pl-3 text-right">Действия</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 font-medium dark:divide-zinc-800/80">
-                {filteredCertificates.map((cert) => {
-                  const isVoucher = cert.type === "voucher";
-                  const total = cert.details.totalSessions || 1;
-                  const used = cert.details.usedSessions || 0;
-                  const remaining = Math.max(0, total - used);
-                  const isFullyUsed =
-                    cert.details.voucherStatus === "fully_used" ||
-                    remaining === 0;
-                  const isSelected = selectedCertIds.includes(cert.id);
+        <div className="space-y-4">
+          {/* Mobile Select-all Bar */}
+          <div className="flex md:hidden items-center justify-between rounded-2xl border border-zinc-200/80 bg-white px-4 py-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
+            <label className="flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={
+                  filteredCertificates.length > 0 &&
+                  selectedCertIds.length === filteredCertificates.length
+                }
+                onChange={handleToggleSelectAll}
+                className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>Избери всички ({filteredCertificates.length})</span>
+            </label>
+            {selectedCertIds.length > 0 && (
+              <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                Избрани: {selectedCertIds.length}
+              </span>
+            )}
+          </div>
 
-                  return (
-                    <tr
-                      key={cert.id}
-                      className={`transition-colors ${
-                        isSelected
-                          ? "bg-blue-50/50 dark:bg-blue-950/20"
-                          : "hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50"
-                      }`}
-                    >
-                      {/* Checkbox */}
-                      <td className="py-4 pr-2 pl-4 text-center">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleToggleCert(cert.id)}
-                          className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
-                        />
-                      </td>
+          {/* 1. Mobile Cards View (Phones & Small screens) */}
+          <div className="grid grid-cols-1 gap-3.5 md:hidden">
+            {filteredCertificates.map((cert) => {
+              const isVoucher = cert.type === "voucher";
+              const total = cert.details.totalSessions || 1;
+              const used = cert.details.usedSessions || 0;
+              const remaining = Math.max(0, total - used);
+              const isFullyUsed =
+                cert.details.voucherStatus === "fully_used" || remaining === 0;
+              const isSelected = selectedCertIds.includes(cert.id);
 
-                      {/* Serial Number & QR Icon */}
-                      <td className="px-3 py-4">
-                        <div className="flex items-center gap-2.5">
-                          <button
-                            type="button"
-                            onClick={() => setPreviewCert(cert)}
-                            className="relative flex size-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white p-0.5 shadow-xs hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950"
-                            title="Кликнете за предварителен преглед"
-                          >
-                            {cert.qrCodeDataUrl ? (
-                              <Image
-                                src={cert.qrCodeDataUrl}
-                                alt="QR"
-                                width={36}
-                                height={36}
-                                className="size-full object-contain"
-                                style={{ width: "auto", height: "auto" }}
-                                unoptimized
-                              />
-                            ) : (
-                              <QrCode className="size-5 text-zinc-400" />
-                            )}
-                          </button>
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-mono font-bold text-zinc-900 dark:text-white">
-                                {cert.serialNumber}
-                              </span>
-                              {cert.uploadedDocument && (
-                                <Badge
-                                  variant="outline"
-                                  className="rounded-lg border-blue-200 bg-blue-50/70 px-1.5 py-0 text-[9px] font-bold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
-                                >
-                                  📎{" "}
-                                  {cert.uploadedDocument.fileType === "pdf"
-                                    ? "PDF"
-                                    : "Снимка"}
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="text-[10px] text-zinc-400">
-                              {cert.visualSnapshot?.templateTitle}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Recipient & School */}
-                      <td className="px-3 py-4">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-white">
-                            <User className="size-3.5 text-zinc-400" />
-                            <span>{cert.recipient.name}</span>
-                          </div>
-                          {cert.recipient.institution && (
-                            <div className="text-[11px] text-zinc-500">
-                              {cert.recipient.institution}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Type & Award Rank */}
-                      <td className="px-3 py-4">
-                        <div className="space-y-1">
+              return (
+                <div
+                  key={`mobile-${cert.id}`}
+                  className={`rounded-3xl border p-4 transition-all shadow-xs space-y-3 ${
+                    isSelected
+                      ? "border-blue-300 bg-blue-50/40 dark:border-blue-800 dark:bg-blue-950/20"
+                      : "border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+                  }`}
+                >
+                  {/* Top Bar: Checkbox + Serial Number + Type Badge */}
+                  <div className="flex items-center justify-between gap-2 border-b border-zinc-100 pb-2.5 dark:border-zinc-800">
+                    <div className="flex items-center gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleCert(cert.id)}
+                        className="size-4.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPreviewCert(cert)}
+                        className="flex items-center gap-1.5 text-left group"
+                      >
+                        <span className="font-mono text-xs font-black text-blue-600 group-hover:underline dark:text-blue-400">
+                          {cert.serialNumber}
+                        </span>
+                        {cert.uploadedDocument && (
                           <Badge
                             variant="outline"
-                            className={`rounded-xl border px-2 py-0.5 text-[10px] font-bold ${
-                              cert.type === "award"
-                                ? "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
-                                : cert.type === "voucher"
-                                  ? "border-teal-300 bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
-                                  : "border-blue-300 bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
-                            }`}
+                            className="rounded-md border-blue-200 bg-blue-50/70 px-1 py-0 text-[9px] font-bold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
                           >
-                            {getCertificateTypeLabel(cert.type)}
-                          </Badge>
-
-                          {cert.type === "award" && cert.details.rank && (
-                            <div className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">
-                              {getRankLabel(cert.details.rank)}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Date */}
-                      <td className="px-3 py-4">
-                        <div className="text-zinc-600 dark:text-zinc-300">
-                          {new Date(cert.issuedAt).toLocaleDateString("bg-BG")}
-                        </div>
-                        <div className="text-[10px] text-zinc-400">
-                          {cert.issuedByName || "Администратор"}
-                        </div>
-                      </td>
-
-                      {/* Voucher Sessions / Status */}
-                      <td className="px-3 py-4">
-                        {isVoucher ? (
-                          <div className="min-w-[130px] space-y-1.5">
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span
-                                className={`font-bold ${
-                                  isFullyUsed
-                                    ? "text-zinc-400"
-                                    : "text-amber-600 dark:text-amber-400"
-                                }`}
-                              >
-                                {isFullyUsed
-                                  ? "Изразходен"
-                                  : `${remaining} от ${total} оставащи`}
-                              </span>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setRedeemCert(cert)}
-                                disabled={isFullyUsed}
-                                className="h-6 rounded-lg border-amber-300/80 px-2 text-[10px] font-bold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300"
-                              >
-                                Отчети
-                              </Button>
-                            </div>
-
-                            {/* Mini progress bar */}
-                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                              <div
-                                className="h-full rounded-full bg-linear-to-r from-amber-500 to-emerald-500"
-                                style={{
-                                  width: `${Math.min(100, (used / total) * 100)}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="rounded-xl border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                          >
-                            <CheckCircle2 className="mr-1 size-3" />
-                            Валиден
+                            📎{" "}
+                            {cert.uploadedDocument.fileType === "pdf"
+                              ? "PDF"
+                              : "Снимка"}
                           </Badge>
                         )}
-                      </td>
+                      </button>
+                    </div>
 
-                      {/* Actions */}
-                      <td className="py-4 pr-6 pl-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {/* Share Button */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setShareCert(cert)}
-                            className="size-8 rounded-xl text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/50"
-                            title="Дигитално споделяне (Viber, WhatsApp, Email)"
-                          >
-                            <Share2 className="size-3.5" />
-                          </Button>
+                    <Badge
+                      variant="outline"
+                      className={`rounded-xl border px-2 py-0.5 text-[10px] font-bold ${
+                        cert.type === "award"
+                          ? "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                          : cert.type === "voucher"
+                            ? "border-teal-300 bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
+                            : "border-blue-300 bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
+                      }`}
+                    >
+                      {getCertificateTypeLabel(cert.type)}
+                    </Badge>
+                  </div>
 
-                          {/* Preview Modal Button */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setPreviewCert(cert)}
-                            className="size-8 rounded-xl text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-                            title="Преглед на документа"
-                          >
-                            <Eye className="size-3.5" />
-                          </Button>
+                  {/* Recipient & Institution */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 text-sm font-black text-zinc-900 dark:text-white">
+                      <User className="size-4 text-zinc-400 shrink-0" />
+                      <span>{cert.recipient.name}</span>
+                    </div>
+                    {cert.recipient.institution && (
+                      <p className="text-xs text-blue-700 dark:text-blue-400 font-semibold pl-5">
+                        {cert.recipient.institution}
+                      </p>
+                    )}
+                    <div className="text-[11px] text-zinc-400 pl-5 pt-0.5">
+                      Издаден на{" "}
+                      {new Date(cert.issuedAt).toLocaleDateString("bg-BG")} •{" "}
+                      {cert.details.voucherServiceType ||
+                        cert.visualSnapshot?.templateTitle ||
+                        "Официален документ"}
+                    </div>
+                  </div>
 
-                          {/* Copy Link Button */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleCopyLink(cert)}
-                            className="size-8 rounded-xl text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-                            title="Копирай линк"
-                          >
-                            {copiedId === cert.id ? (
-                              <Check className="size-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="size-3.5" />
-                            )}
-                          </Button>
+                  {/* Voucher Sessions and Quick Redeem (if voucher) */}
+                  {isVoucher && (
+                    <div className="rounded-2xl border border-amber-200/70 bg-amber-50/40 p-3 space-y-2 dark:border-amber-900/40 dark:bg-amber-950/20">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-amber-900 dark:text-amber-300">
+                          {isFullyUsed
+                            ? "Всички тренировки са отчетени"
+                            : `${remaining} от ${total} оставащи тренировки`}
+                        </span>
+                        <span className="text-[11px] font-semibold text-zinc-500">
+                          {Math.round((used / total) * 100)}%
+                        </span>
+                      </div>
 
-                          {/* Public Page Link */}
-                          <a
-                            href={`/cert/${cert.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex size-8 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-                            title="Отвори публичната страница"
-                          >
-                            <ExternalLink className="size-3.5" />
-                          </a>
+                      {/* Mini progress bar */}
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                        <div
+                          className="h-full rounded-full bg-linear-to-r from-amber-500 to-emerald-500"
+                          style={{
+                            width: `${Math.min(100, (used / total) * 100)}%`,
+                          }}
+                        />
+                      </div>
 
-                          {/* Delete Button */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(cert)}
-                            disabled={deletingId === cert.id}
-                            className="size-8 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
-                            title="Изтриване от регистъра"
-                          >
-                            {deletingId === cert.id ? (
-                              <Loader2 className="size-3.5 animate-spin" />
-                            ) : (
-                              <Trash2 className="size-3.5" />
-                            )}
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      <Button
+                        size="sm"
+                        onClick={() => setRedeemCert(cert)}
+                        disabled={isFullyUsed}
+                        className="h-9 w-full rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs"
+                      >
+                        <UserCheck className="mr-1.5 size-4" />
+                        {isFullyUsed
+                          ? "Напълно изразходен"
+                          : "Отчети тренировка / присъствие"}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Action Bar: Touch-friendly grid buttons */}
+                  <div className="grid grid-cols-4 gap-1.5 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShareCert(cert)}
+                      className="h-9 rounded-xl text-blue-600 border-zinc-200 hover:bg-blue-50 text-[11px] font-bold dark:border-zinc-800"
+                      title="Сподели"
+                    >
+                      <Share2 className="mr-1 size-3.5" />
+                      Сподели
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPreviewCert(cert)}
+                      className="h-9 rounded-xl text-zinc-700 border-zinc-200 hover:bg-zinc-100 text-[11px] font-bold dark:border-zinc-800 dark:text-zinc-300"
+                      title="Преглед"
+                    >
+                      <Eye className="mr-1 size-3.5" />
+                      Преглед
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCopyLink(cert)}
+                      className="h-9 rounded-xl text-zinc-700 border-zinc-200 hover:bg-zinc-100 text-[11px] font-bold dark:border-zinc-800 dark:text-zinc-300"
+                      title="Копирай линк"
+                    >
+                      {copiedId === cert.id ? (
+                        <>
+                          <Check className="mr-1 size-3.5 text-emerald-600" />
+                          ОК
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-1 size-3.5" />
+                          Линк
+                        </>
+                      )}
+                    </Button>
+
+                    <a
+                      href={`/cert/${cert.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-9 items-center justify-center gap-1 rounded-xl border border-zinc-200 bg-white text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                      title="Отвори публично"
+                    >
+                      <ExternalLink className="size-3.5" />
+                      Отвори
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </Card>
+
+          {/* 2. Desktop Table View (>= md) */}
+          <Card className="hidden md:block overflow-hidden rounded-3xl border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-zinc-200 bg-zinc-50/70 text-[11px] font-bold tracking-wider text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-950">
+                  <tr>
+                    <th className="py-3.5 pr-2 pl-4 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={
+                          filteredCertificates.length > 0 &&
+                          selectedCertIds.length === filteredCertificates.length
+                        }
+                        onChange={handleToggleSelectAll}
+                        className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </th>
+                    <th className="px-3 py-3.5">Сериен № & QR</th>
+                    <th className="px-3 py-3.5">Получател & Институция</th>
+                    <th className="px-3 py-3.5">Тип & Отличие</th>
+                    <th className="px-3 py-3.5">Дата на издаване</th>
+                    <th className="px-3 py-3.5">Статус / Процедури</th>
+                    <th className="py-3.5 pr-6 pl-3 text-right">Действия</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 font-medium dark:divide-zinc-800/80">
+                  {filteredCertificates.map((cert) => {
+                    const isVoucher = cert.type === "voucher";
+                    const total = cert.details.totalSessions || 1;
+                    const used = cert.details.usedSessions || 0;
+                    const remaining = Math.max(0, total - used);
+                    const isFullyUsed =
+                      cert.details.voucherStatus === "fully_used" ||
+                      remaining === 0;
+                    const isSelected = selectedCertIds.includes(cert.id);
+
+                    return (
+                      <tr
+                        key={cert.id}
+                        className={`transition-colors ${
+                          isSelected
+                            ? "bg-blue-50/50 dark:bg-blue-950/20"
+                            : "hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50"
+                        }`}
+                      >
+                        {/* Checkbox */}
+                        <td className="py-4 pr-2 pl-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleCert(cert.id)}
+                            className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        </td>
+
+                        {/* Serial Number & QR Icon */}
+                        <td className="px-3 py-4">
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewCert(cert)}
+                              className="relative flex size-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white p-0.5 shadow-xs hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950"
+                              title="Кликнете за предварителен преглед"
+                            >
+                              {cert.qrCodeDataUrl ? (
+                                <Image
+                                  src={cert.qrCodeDataUrl}
+                                  alt="QR"
+                                  width={36}
+                                  height={36}
+                                  className="size-full object-contain"
+                                  style={{ width: "auto", height: "auto" }}
+                                  unoptimized
+                                />
+                              ) : (
+                                <QrCode className="size-5 text-zinc-400" />
+                              )}
+                            </button>
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono font-bold text-zinc-900 dark:text-white">
+                                  {cert.serialNumber}
+                                </span>
+                                {cert.uploadedDocument && (
+                                  <Badge
+                                    variant="outline"
+                                    className="rounded-lg border-blue-200 bg-blue-50/70 px-1.5 py-0 text-[9px] font-bold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
+                                  >
+                                    📎{" "}
+                                    {cert.uploadedDocument.fileType === "pdf"
+                                      ? "PDF"
+                                      : "Снимка"}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-zinc-400">
+                                {cert.visualSnapshot?.templateTitle}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Recipient & School */}
+                        <td className="px-3 py-4">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-white">
+                              <User className="size-3.5 text-zinc-400" />
+                              <span>{cert.recipient.name}</span>
+                            </div>
+                            {cert.recipient.institution && (
+                              <div className="text-[11px] text-zinc-500">
+                                {cert.recipient.institution}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Type & Award Rank */}
+                        <td className="px-3 py-4">
+                          <div className="space-y-1">
+                            <Badge
+                              variant="outline"
+                              className={`rounded-xl border px-2 py-0.5 text-[10px] font-bold ${
+                                cert.type === "award"
+                                  ? "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                  : cert.type === "voucher"
+                                    ? "border-teal-300 bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
+                                    : "border-blue-300 bg-blue-50 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
+                              }`}
+                            >
+                              {getCertificateTypeLabel(cert.type)}
+                            </Badge>
+
+                            {cert.type === "award" && cert.details.rank && (
+                              <div className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">
+                                {getRankLabel(cert.details.rank)}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Date */}
+                        <td className="px-3 py-4">
+                          <div className="text-zinc-600 dark:text-zinc-300">
+                            {new Date(cert.issuedAt).toLocaleDateString(
+                              "bg-BG"
+                            )}
+                          </div>
+                          <div className="text-[10px] text-zinc-400">
+                            {cert.issuedByName || "Администратор"}
+                          </div>
+                        </td>
+
+                        {/* Voucher Sessions / Status */}
+                        <td className="px-3 py-4">
+                          {isVoucher ? (
+                            <div className="min-w-[130px] space-y-1.5">
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span
+                                  className={`font-bold ${
+                                    isFullyUsed
+                                      ? "text-zinc-400"
+                                      : "text-amber-600 dark:text-amber-400"
+                                  }`}
+                                >
+                                  {isFullyUsed
+                                    ? "Изразходен"
+                                    : `${remaining} от ${total} оставащи`}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setRedeemCert(cert)}
+                                  disabled={isFullyUsed}
+                                  className="h-6 rounded-lg border-amber-300/80 px-2 text-[10px] font-bold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300"
+                                >
+                                  Отчети
+                                </Button>
+                              </div>
+
+                              {/* Mini progress bar */}
+                              <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                                <div
+                                  className="h-full rounded-full bg-linear-to-r from-amber-500 to-emerald-500"
+                                  style={{
+                                    width: `${Math.min(100, (used / total) * 100)}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="rounded-xl border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                            >
+                              <CheckCircle2 className="mr-1 size-3" />
+                              Валиден
+                            </Badge>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-4 pr-6 pl-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {/* Share Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setShareCert(cert)}
+                              className="size-8 rounded-xl text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/50"
+                              title="Дигитално споделяне (Viber, WhatsApp, Email)"
+                            >
+                              <Share2 className="size-3.5" />
+                            </Button>
+
+                            {/* Preview Modal Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setPreviewCert(cert)}
+                              className="size-8 rounded-xl text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+                              title="Преглед на документа"
+                            >
+                              <Eye className="size-3.5" />
+                            </Button>
+
+                            {/* Copy Link Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleCopyLink(cert)}
+                              className="size-8 rounded-xl text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+                              title="Копирай линк"
+                            >
+                              {copiedId === cert.id ? (
+                                <Check className="size-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="size-3.5" />
+                              )}
+                            </Button>
+
+                            {/* Public Page Link */}
+                            <a
+                              href={`/cert/${cert.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex size-8 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+                              title="Отвори публичната страница"
+                            >
+                              <ExternalLink className="size-3.5" />
+                            </a>
+
+                            {/* Delete Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(cert)}
+                              disabled={deletingId === cert.id}
+                              className="size-8 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
+                              title="Изтриване от регистъра"
+                            >
+                              {deletingId === cert.id ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="size-3.5" />
+                              )}
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
       )}
 
       {/* Hidden batch render container for multi-page PDF generation */}

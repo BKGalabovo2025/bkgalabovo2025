@@ -163,84 +163,84 @@ export function SponsorsTab({
   return (
     <div className="space-y-6">
       {/* 1. Header KPI Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
+        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 Общо партньори
               </span>
-              <div className="text-2xl font-black text-zinc-900 dark:text-white">
+              <div className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white">
                 {stats.total}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-              <Handshake className="size-5" />
+            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+              <Handshake className="size-4 sm:size-5" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 Активни в документи
               </span>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+              <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
                 {stats.active}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
-              <CheckCircle2 className="size-5" />
+            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <CheckCircle2 className="size-4 sm:size-5" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 Институционални
               </span>
-              <div className="text-2xl font-black text-sky-600 dark:text-sky-400">
+              <div className="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400">
                 {stats.institutional}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
-              <Building2 className="size-5" />
+            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
+              <Building2 className="size-4 sm:size-5" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 Спонсори & Партньори
               </span>
-              <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
+              <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">
                 {stats.commercial}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
-              <Sparkles className="size-5" />
+            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+              <Sparkles className="size-4 sm:size-5" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* 2. Filter Bar and Actions */}
-      <Card className="rounded-3xl border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
             {/* Search */}
-            <div className="relative max-w-sm flex-1">
+            <div className="relative w-full max-w-sm">
               <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-400" />
               <Input
                 placeholder="Търсене по име или описание..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 rounded-2xl border-zinc-200 bg-zinc-50/50 pl-10 text-xs dark:border-zinc-800 dark:bg-zinc-950"
+                className="h-10 w-full rounded-2xl border-zinc-200 bg-zinc-50/50 pl-10 text-xs dark:border-zinc-800 dark:bg-zinc-950"
               />
             </div>
 
@@ -271,13 +271,13 @@ export function SponsorsTab({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex w-full sm:w-auto items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={onRefresh}
               disabled={isLoading}
-              className="h-10 rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+              className="h-10 flex-1 sm:flex-initial rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             >
               <RefreshCw
                 className={`mr-1.5 size-3.5 ${isLoading ? "animate-spin" : ""}`}
@@ -287,7 +287,7 @@ export function SponsorsTab({
 
             <Button
               onClick={handleOpenCreate}
-              className="h-10 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+              className="h-10 flex-1 sm:flex-initial rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
             >
               <Plus className="mr-1.5 size-4" />
               Нов партньор
