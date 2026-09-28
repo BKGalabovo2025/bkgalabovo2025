@@ -3,8 +3,10 @@
 
 import confetti from "canvas-confetti";
 import {
+  Bookmark,
   Check,
   CheckCircle2,
+  CheckSquare,
   ChevronRight,
   Copy,
   ExternalLink,
@@ -13,19 +15,29 @@ import {
   FileText,
   Handshake,
   ImageIcon,
+  ListPlus,
   Loader2,
   Maximize2,
   Plus,
-  QrCode,
+  Printer,
+  Save,
   ShieldCheck,
   Sparkles,
+  Square,
   Ticket,
   Upload,
   User,
+  Users,
   X,
 } from "lucide-react";
 import Image from "next/image";
-import React, { useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -41,11 +53,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
 import { useMembers } from "@/hooks/useMembers";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
+import { certificateTemplateService } from "@/services/certificate-template-service";
 import { uploadFile } from "@/services/storage-service";
 import {
+  CertificateTemplate,
+  CertificateTemplateCreateInput,
   CertificateType,
   IssueCertificateInput,
   IssuedCertificate,
@@ -58,6 +74,8 @@ interface UploadVoucherTabProps {
   onIssuedSuccess: () => Promise<void>;
   onSwitchToRegistry: () => void;
 }
+
+type IssuanceTargetMode = "single" | "club_multi" | "class_list";
 
 export function UploadVoucherTab({
   siteId,
@@ -73,13 +91,13 @@ export function UploadVoucherTab({
     ? "/recovery-zone/rz-icon-square.png"
     : "/icons/LOGO.webp";
 
-  // --- Document File State ---
+  // --- Document File State (Шаблон) ---
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<"pdf" | "image">("pdf");
   const [remoteFileUrl, setRemoteFileUrl] = useState<string | null>(null);
 
-  // --- Details State ---
+  // --- Details State (Шаблон) ---
   const [docType, setDocType] = useState<CertificateType>("voucher");
   const [purpose, setPurpose] = useState("8 безплатни тренировки по бадминтон");
   const [totalSessions, setTotalSessions] = useState<number>(8);
@@ -91,35 +109,12 @@ export function UploadVoucherTab({
     d.setDate(d.getDate() + 60);
     return d.toISOString().split("T")[0];
   });
-
-  // --- Recipient State ---
-  const [recipientMode, setRecipientMode] = useState<"manual" | "member">(
-    "manual"
-  );
-  const [recipientName, setRecipientName] = useState("");
   const [recipientInstitution, setRecipientInstitution] = useState(
     'Второ ОУ "Христо Ботев" град Гълъбово'
   );
-  const [memberSearch, setMemberSearch] = useState("");
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
-  // --- Branding State ---
+  // --- Branding State (Шаблон) ---
   const [clubLogoUrl, setClubLogoUrl] = useState(defaultClubLogo);
-  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
-
-  const previewUrl = useMemo(() => {
-    if (filePreviewUrl) return filePreviewUrl;
-    if (remoteFileUrl) return remoteFileUrl;
-    if (uploadedFile) {
-      try {
-        return URL.createObjectURL(uploadedFile);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }, [filePreviewUrl, remoteFileUrl, uploadedFile]);
-
   const [selectedSponsorIds, setSelectedSponsorIds] = useState<string[]>(() =>
     sponsors.filter((s) => s.isActive).map((s) => s.id)
   );
@@ -127,18 +122,54 @@ export function UploadVoucherTab({
     Array<{ name: string; logoUrl: string }>
   >([]);
 
-  // --- Loading / Submission State ---
+  // --- Template Management State ---
+  const [savedTemplates, setSavedTemplates] = useState<CertificateTemplate[]>(
+    []
+  );
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [templateTitleInput, setTemplateTitleInput] = useState("");
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+
+  // --- Recipient Issuance Modes ---
+  const [targetMode, setTargetMode] = useState<IssuanceTargetMode>("single");
+
+  // Mode 1: Single Recipient
+  const [recipientMode, setRecipientMode] = useState<"manual" | "member">(
+    "manual"
+  );
+  const [recipientName, setRecipientName] = useState("");
+  const [memberSearch, setMemberSearch] = useState("");
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+
+  // Mode 2: Club Multi Selection
+  const [selectedClubMemberIds, setSelectedClubMemberIds] = useState<string[]>(
+    []
+  );
+  const [clubMemberSearch, setClubMemberSearch] = useState("");
+
+  // Mode 3: Class List (Bulk Text)
+  const [classListText, setClassListText] = useState("");
+
+  // --- Submission & Batch State ---
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
   const [issuedSuccessCert, setIssuedSuccessCert] =
     useState<IssuedCertificate | null>(null);
+  const [batchResults, setBatchResults] = useState<IssuedCertificate[]>([]);
+  const [isBatchResultsOpen, setIsBatchResultsOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
 
   // File Inputs Refs
   const voucherFileInputRef = useRef<HTMLInputElement>(null);
   const clubLogoInputRef = useRef<HTMLInputElement>(null);
   const partnerLogoInputRef = useRef<HTMLInputElement>(null);
 
-  // Preset Institutions (4 default + free custom entry)
+  // Preset Institutions
   const PRESET_INSTITUTIONS = [
     'Второ ОУ "Христо Ботев" град Гълъбово',
     'СУ "Васил Левски" град Гълъбово',
@@ -160,8 +191,139 @@ export function UploadVoucherTab({
     ];
   }, [totalSessions]);
 
-  // Filtered members for quick pick
-  const filteredMembers = useMemo(() => {
+  // Preview URL memo
+  const previewUrl = useMemo(() => {
+    if (filePreviewUrl) return filePreviewUrl;
+    if (remoteFileUrl) return remoteFileUrl;
+    if (uploadedFile) {
+      try {
+        return URL.createObjectURL(uploadedFile);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }, [filePreviewUrl, remoteFileUrl, uploadedFile]);
+
+  // Load Saved Templates
+  const loadTemplates = useCallback(async () => {
+    try {
+      const data = await certificateTemplateService.getTemplates(siteId);
+      setSavedTemplates(data || []);
+    } catch (err) {
+      console.warn("Could not load templates:", err);
+    }
+  }, [siteId]);
+
+  useEffect(() => {
+    loadTemplates();
+  }, [loadTemplates]);
+
+  // Select / Apply Template
+  const handleSelectTemplate = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    if (!templateId) return;
+    const found = savedTemplates.find((t) => t.id === templateId);
+    if (!found) return;
+
+    setDocType(found.type);
+    if (found.defaultPurpose) {
+      setPurpose(found.defaultPurpose);
+    } else if (found.description) {
+      setPurpose(found.description);
+    }
+    if (found.recipientInstitution) {
+      setRecipientInstitution(found.recipientInstitution);
+    }
+    if (found.defaultTotalSessions) {
+      setTotalSessions(found.defaultTotalSessions);
+    }
+    if (found.uploadedDocument?.fileUrl) {
+      setRemoteFileUrl(found.uploadedDocument.fileUrl);
+      setFileType(found.uploadedDocument.fileType);
+    }
+    if (
+      found.visualConfig?.selectedSponsorIds &&
+      found.visualConfig.selectedSponsorIds.length > 0
+    ) {
+      setSelectedSponsorIds(found.visualConfig.selectedSponsorIds);
+    }
+    if (found.branding?.clubLogoUrl) {
+      setClubLogoUrl(found.branding.clubLogoUrl);
+    }
+    toast.info(`Зареден шаблон: „${found.title}“`);
+  };
+
+  // Save current setup as a reusable template
+  const handleSaveCurrentAsTemplate = async () => {
+    const title =
+      templateTitleInput.trim() ||
+      `${docType === "voucher" ? "Ваучер" : "Грамота"} – ${recipientInstitution || "Образователна институция"}`;
+    try {
+      setIsSavingTemplate(true);
+      const activeSponsors = sponsors.filter((s) =>
+        selectedSponsorIds.includes(s.id)
+      );
+
+      const payload: CertificateTemplateCreateInput = {
+        title,
+        type: docType,
+        description: purpose,
+        status: "approved",
+        defaultValidityDays:
+          validityMode === "30" ? 30 : validityMode === "60" ? 60 : undefined,
+        defaultTotalSessions: docType === "voucher" ? totalSessions : undefined,
+        uploadedDocument: remoteFileUrl
+          ? {
+              fileUrl: remoteFileUrl,
+              fileType,
+              fileName: uploadedFile?.name,
+              fileSize: uploadedFile?.size,
+            }
+          : undefined,
+        recipientInstitution,
+        defaultPurpose: purpose,
+        branding: {
+          clubLogoUrl: clubLogoUrl || defaultClubLogo,
+          partnerLogos: activeSponsors.map((s) => ({
+            name: s.name,
+            logoUrl: s.logoUrl,
+            websiteUrl: s.websiteUrl,
+          })),
+        },
+        visualConfig: {
+          layoutTemplate: "sports_voucher",
+          orientation: "landscape",
+          themeColor: "#1E3A8A",
+          secondaryColor: "#D97706",
+          backgroundColor: "#FFFFFF",
+          frameStyle: "classic_gold",
+          selectedSponsorIds,
+          signatoryName: "Димитър Иванов",
+          signatoryTitle: "Председател на БК Гълъбово",
+          showBadge: true,
+        },
+      };
+
+      const newId = await certificateTemplateService.createTemplate(
+        siteId,
+        payload
+      );
+      toast.success(`Шаблонът „${title}“ е запазен успешно!`);
+      setIsSaveModalOpen(false);
+      setTemplateTitleInput("");
+      await loadTemplates();
+      setSelectedTemplateId(newId);
+    } catch (err) {
+      console.error(err);
+      toast.error("Грешка при запис на шаблона.");
+    } finally {
+      setIsSavingTemplate(false);
+    }
+  };
+
+  // Filtered members for single pick
+  const filteredSingleMembers = useMemo(() => {
     if (!memberSearch.trim()) return members.slice(0, 8);
     const q = memberSearch.toLowerCase();
     return members.filter(
@@ -171,6 +333,40 @@ export function UploadVoucherTab({
         m.email?.toLowerCase().includes(q)
     );
   }, [members, memberSearch]);
+
+  // Filtered members for multi pick
+  const filteredMultiMembers = useMemo(() => {
+    if (!clubMemberSearch.trim()) return members;
+    const q = clubMemberSearch.toLowerCase();
+    return members.filter(
+      (m) =>
+        m.name?.toLowerCase().includes(q) ||
+        m.ageGroup?.toLowerCase().includes(q) ||
+        m.phone?.includes(q)
+    );
+  }, [members, clubMemberSearch]);
+
+  const toggleSelectClubMember = (id: string) => {
+    setSelectedClubMemberIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllClubMembers = () => {
+    setSelectedClubMemberIds(filteredMultiMembers.map((m) => m.id));
+  };
+
+  const handleClearAllClubMembers = () => {
+    setSelectedClubMemberIds([]);
+  };
+
+  // Parsed class list names from textarea
+  const parsedClassListNames = useMemo(() => {
+    return classListText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length >= 2);
+  }, [classListText]);
 
   // Handle voucher file selection
   const handleVoucherFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,10 +394,8 @@ export function UploadVoucherTab({
 
     setUploadedFile(file);
     setFileType(isPdf ? "pdf" : "image");
-    setRemoteFileUrl(null); // Will upload upon submit or immediately
-
-    const objectUrl = URL.createObjectURL(file);
-    setFilePreviewUrl(objectUrl);
+    setFilePreviewUrl(URL.createObjectURL(file));
+    setRemoteFileUrl(null);
     toast.success(`Избран е файл: ${file.name}`);
   };
 
@@ -244,39 +438,30 @@ export function UploadVoucherTab({
     }
   };
 
-  // Member selection
-  const handleSelectMember = (member: { id: string; name: string }) => {
-    setSelectedMemberId(member.id);
-    setRecipientName(member.name);
-    setMemberSearch("");
-    toast.success(`Избран състезател: ${member.name}`);
-  };
-
-  // Toggle partner sponsor from list
-  const toggleSponsor = (sponsorId: string) => {
+  // Toggle sponsor selection
+  const toggleSponsor = (id: string) => {
     setSelectedSponsorIds((prev) =>
-      prev.includes(sponsorId)
-        ? prev.filter((id) => id !== sponsorId)
-        : [...prev, sponsorId]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
-  // Dynamically update sessions count & sync with purpose text
+  // Handle single member selection
+  const handleSelectMember = (m: (typeof members)[0]) => {
+    setSelectedMemberId(m.id);
+    setRecipientName(m.name || "");
+  };
+
+  // Handle number of sessions pick
   const handleSelectSessions = (num: number) => {
     setTotalSessions(num);
     const sessionWord =
       num === 1 ? "безплатна тренировка" : "безплатни тренировки";
-    const defaultSport = isRecoveryZone
-      ? "възстановителна процедура"
-      : "по бадминтон";
+    const defaultSport = "по бадминтон";
 
-    const leadingSessionRegex = /^\d+\s+безплатн[аи]\s+тренировк[аи]/i;
-
-    if (leadingSessionRegex.test(purpose.trim())) {
-      setPurpose(purpose.replace(leadingSessionRegex, `${num} ${sessionWord}`));
-    } else if (
-      !purpose.trim() ||
-      purpose.includes("тренировк") ||
+    if (
+      !purpose ||
+      purpose.includes("безплатни тренировки") ||
+      purpose.includes("безплатна тренировка") ||
       purpose.includes("тренировки")
     ) {
       setPurpose(`${num} ${sessionWord} ${defaultSport}`);
@@ -285,18 +470,54 @@ export function UploadVoucherTab({
     }
   };
 
-  // Execute Issuance
-  const handleIssueVoucher = async () => {
+  // Core helper to issue certificate for a single child
+  const issueSingleRecipient = async (
+    recipient: { name: string; memberId?: string },
+    finalFileUrl: string,
+    allPartnerLogos: Array<{
+      name: string;
+      logoUrl: string;
+      websiteUrl?: string;
+    }>,
+    validUntilIso?: string
+  ): Promise<IssuedCertificate> => {
+    const input: IssueCertificateInput = {
+      templateId: selectedTemplateId || "uploaded_voucher",
+      type: docType,
+      recipient: {
+        memberId: recipient.memberId,
+        name: recipient.name.trim(),
+        institution: recipientInstitution.trim() || undefined,
+      },
+      details: {
+        voucherServiceType: purpose.trim(),
+        eventTitle: purpose.trim(),
+        totalSessions: docType === "voucher" ? totalSessions || 8 : undefined,
+        validUntil: validUntilIso,
+      },
+      uploadedDocument: {
+        fileUrl: finalFileUrl,
+        fileType,
+        fileName: uploadedFile?.name,
+        fileSize: uploadedFile?.size,
+      },
+      branding: {
+        clubLogoUrl: clubLogoUrl || defaultClubLogo,
+        institutionLogoUrl: undefined,
+        partnerLogos: allPartnerLogos.length > 0 ? allPartnerLogos : undefined,
+      },
+    };
+
+    return await certificateIssuanceService.issueCertificate(siteId, input);
+  };
+
+  // Execute Issuance (Single or Batch)
+  const handleExecuteIssuance = async () => {
     if (!uploadedFile && !remoteFileUrl) {
       toast.error(
-        "Моля, качете файл на ваучера / документа (PDF или изображение)!"
+        "Моля, качете файл на ваучера / документа (PDF или изображение) в Стъпка 1!"
       );
       voucherFileInputRef.current?.click();
-      return;
-    }
-
-    if (!recipientName.trim()) {
-      toast.error("Моля, въведете или изберете име на детето / получателя!");
       return;
     }
 
@@ -305,10 +526,51 @@ export function UploadVoucherTab({
       return;
     }
 
+    // Determine list of recipients to issue for
+    type RecipientItem = { name: string; memberId?: string };
+    const recipientsToIssue: RecipientItem[] = [];
+
+    if (targetMode === "single") {
+      if (!recipientName.trim()) {
+        toast.error("Моля, въведете или изберете име на детето / получателя!");
+        return;
+      }
+      recipientsToIssue.push({
+        name: recipientName.trim(),
+        memberId: selectedMemberId || undefined,
+      });
+    } else if (targetMode === "club_multi") {
+      if (selectedClubMemberIds.length === 0) {
+        toast.error("Моля, отбележете поне едно дете от клуба за издаване!");
+        return;
+      }
+      const selectedMembers = members.filter((m) =>
+        selectedClubMemberIds.includes(m.id)
+      );
+      for (const m of selectedMembers) {
+        if (m.name?.trim()) {
+          recipientsToIssue.push({ name: m.name.trim(), memberId: m.id });
+        }
+      }
+    } else if (targetMode === "class_list") {
+      if (parsedClassListNames.length === 0) {
+        toast.error("Моля, въведете поне едно име в списъка за класа!");
+        return;
+      }
+      for (const name of parsedClassListNames) {
+        recipientsToIssue.push({ name: name.trim() });
+      }
+    }
+
+    if (recipientsToIssue.length === 0) {
+      toast.error("Няма валидни получатели за издаване.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
-      // 1. Upload voucher file if not uploaded yet
+      // 1. Upload file if needed
       let finalFileUrl = remoteFileUrl;
       if (!finalFileUrl && uploadedFile) {
         toast.loading("Качване на документа в защитено хранилище...", {
@@ -320,9 +582,9 @@ export function UploadVoucherTab({
         setRemoteFileUrl(finalFileUrl);
       }
 
-      toast.loading("Генериране на електронен валидатор и QR код...", {
-        id: "issuing",
-      });
+      if (!finalFileUrl) {
+        throw new Error("Неуспешно качване на документа.");
+      }
 
       // 2. Prepare partners logos
       const activeSponsorObjects = sponsors
@@ -375,45 +637,30 @@ export function UploadVoucherTab({
         }
       }
 
-      const input: IssueCertificateInput = {
-        templateId: "uploaded_voucher",
-        type: docType,
-        recipient: {
-          memberId: selectedMemberId || undefined,
-          name: recipientName.trim(),
-          institution: recipientInstitution.trim() || undefined,
-        },
-        details: {
-          voucherServiceType: purpose.trim(),
-          eventTitle: purpose.trim(),
-          totalSessions: docType === "voucher" ? totalSessions || 8 : undefined,
-          validUntil: validUntilIso,
-        },
-        uploadedDocument: {
-          fileUrl: finalFileUrl || "",
-          fileType,
-          fileName: uploadedFile?.name,
-          fileSize: uploadedFile?.size,
-        },
-        branding: {
-          clubLogoUrl: clubLogoUrl || defaultClubLogo,
-          institutionLogoUrl: undefined,
-          partnerLogos:
-            allPartnerLogos.length > 0 ? allPartnerLogos : undefined,
-        },
-      };
+      // 4. Sequential generation of individual certificates
+      const issuedResults: IssuedCertificate[] = [];
+      const total = recipientsToIssue.length;
 
-      const issued = await certificateIssuanceService.issueCertificate(
-        siteId,
-        input
-      );
+      for (let i = 0; i < total; i++) {
+        const item = recipientsToIssue[i];
+        setBatchProgress({ current: i + 1, total });
+        toast.loading(
+          total === 1
+            ? "Генериране на електронен валидатор и QR код..."
+            : `Издаване на ваучер ${i + 1} от ${total} (${item.name})...`,
+          { id: "issuing" }
+        );
 
-      toast.success(
-        `Документ № ${issued.serialNumber} е издаден и валидиран успешно!`,
-        { id: "issuing" }
-      );
+        const issued = await issueSingleRecipient(
+          item,
+          finalFileUrl,
+          allPartnerLogos,
+          validUntilIso
+        );
+        issuedResults.push(issued);
+      }
 
-      // Trigger celebration
+      // Success celebration
       try {
         confetti({
           particleCount: 90,
@@ -421,11 +668,25 @@ export function UploadVoucherTab({
           origin: { y: 0.5 },
         });
       } catch {
-        // confetti fallback
+        // Ignored
       }
 
-      setIssuedSuccessCert(issued);
       await onIssuedSuccess();
+
+      if (total === 1) {
+        setIssuedSuccessCert(issuedResults[0]);
+        toast.success(
+          `Документ № ${issuedResults[0].serialNumber} е издаден и валидиран успешно!`,
+          { id: "issuing" }
+        );
+      } else {
+        setBatchResults(issuedResults);
+        setIsBatchResultsOpen(true);
+        toast.success(
+          `Успешно бяха издадени ${total} персонални ваучера с уникални QR кодове!`,
+          { id: "issuing" }
+        );
+      }
     } catch (error) {
       console.error("Грешка при издаване на ваучер:", error);
       toast.error(
@@ -436,71 +697,109 @@ export function UploadVoucherTab({
       );
     } finally {
       setIsSubmitting(false);
+      setBatchProgress(null);
     }
   };
 
   // Copy Direct Link
-  const handleCopyDirectLink = () => {
-    if (!issuedSuccessCert) return;
+  const handleCopyDirectLink = (certId: string) => {
     const origin =
       typeof window !== "undefined"
         ? window.location.origin
         : "http://localhost:3000";
-    const url = `${origin}/cert/${issuedSuccessCert.id}`;
+    const url = `${origin}/cert/${certId}`;
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
-    toast.success("Директният линк за проверка е копиран в клипборда!");
-    setTimeout(() => setCopiedLink(false), 2500);
+    toast.success("Линкът за проверка е копиран!");
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  // Reset form for next voucher
+  // Reset for next
   const handleResetForNext = () => {
-    setUploadedFile(null);
-    setFilePreviewUrl(null);
-    setRemoteFileUrl(null);
+    setIssuedSuccessCert(null);
     setRecipientName("");
     setSelectedMemberId(null);
-    setIssuedSuccessCert(null);
-    if (voucherFileInputRef.current) {
-      voucherFileInputRef.current.value = "";
-    }
+    setSelectedClubMemberIds([]);
+    setClassListText("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <div className="space-y-8">
-      {/* 1. Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-blue-200/80 bg-linear-to-br from-blue-900 via-indigo-900 to-zinc-950 p-4 sm:p-6 md:p-8 text-white shadow-xl dark:border-blue-900/60">
-        <div className="relative z-10 max-w-3xl space-y-2.5 sm:space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-2xl bg-white/10 px-3.5 py-1 text-xs font-bold text-blue-200 backdrop-blur-md">
-            <Sparkles className="size-3.5 text-amber-300" />
-            <span>Нов универсален модул за ваучери и грамоти</span>
+    <div className="space-y-6">
+      {/* ===================================================================== */}
+      {/* TEMPLATE ACTION BAR: Quick Load or Save Current Configuration         */}
+      {/* ===================================================================== */}
+      <div className="flex flex-col gap-2.5 rounded-2xl border border-blue-200/80 bg-blue-50/50 p-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-blue-900/50 dark:bg-blue-950/30">
+        <div className="flex items-center gap-2.5">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+            <Bookmark className="size-4" />
+          </span>
+          <div>
+            <span className="block text-xs sm:text-sm font-black text-zinc-900 dark:text-white">
+              Шаблони за кампания & училища
+            </span>
+            <span className="text-[11px] text-zinc-500">
+              Заредете съхранен шаблон за секунди или запазете текущите
+              настройки
+            </span>
           </div>
-
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
-            Качване на готов ваучер с електронна валидация
-          </h2>
-
-          <p className="text-xs leading-relaxed text-blue-100/90 sm:text-sm">
-            Качете готов дизайн (PDF или снимка), посочете името на детето и
-            образователната институция. Системата автоматично издава уникален
-            сериен номер, защитен QR код и директен линк с пълна клубна система
-            за отчитане на тренировките и присъствията.
-          </p>
         </div>
 
-        {/* Decorative background glow */}
-        <div className="pointer-events-none absolute -top-24 -right-24 size-96 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 right-48 size-80 rounded-full bg-amber-500/10 blur-3xl" />
+        <div className="flex flex-wrap items-center gap-2">
+          {savedTemplates.length > 0 && (
+            <div className="relative">
+              <select
+                value={selectedTemplateId}
+                onChange={(e) => handleSelectTemplate(e.target.value)}
+                className="h-8.5 rounded-xl border border-zinc-200 bg-white px-3 pr-8 text-xs font-bold text-zinc-700 shadow-2xs transition-colors hover:border-blue-400 focus:outline-hidden dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+              >
+                <option value="">📂 Зареди готов шаблон...</option>
+                {savedTemplates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setTemplateTitleInput(
+                `${docType === "voucher" ? "Ваучер" : "Грамота"} – ${recipientInstitution || "Образователна институция"}`
+              );
+              setIsSaveModalOpen(true);
+            }}
+            className="h-8.5 gap-1.5 rounded-xl border-blue-300 bg-white px-3 text-xs font-bold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-300"
+          >
+            <Save className="size-3.5" />
+            Запази като шаблон
+          </Button>
+        </div>
       </div>
 
-      {/* 2. Main Issuance Layout: Left Form + Right Live Preview */}
-      <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-12">
-        {/* LEFT COLUMN: Data Entry & Upload (7 cols) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* LEFT COLUMN: 2 STAGES (7 cols) */}
         <div className="space-y-6 lg:col-span-7">
-          {/* STEP 1: Upload Ready Voucher */}
-          <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
-              <div className="flex items-center gap-2.5">
+          {/* ================================================================= */}
+          {/* ЕТАП 1: КОНФИГУРАЦИЯ НА ШАБЛОНА                                   */}
+          {/* ================================================================= */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black tracking-wider text-blue-600 uppercase dark:text-blue-400">
+                Етап 1: Конфигурация на Шаблона (Основа)
+              </span>
+              <Badge variant="outline" className="text-[10px] font-bold">
+                Готов за преизползване
+              </Badge>
+            </div>
+
+            {/* 1.1 Upload Document */}
+            <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
                 <div className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
                   <Upload className="size-4" />
                 </div>
@@ -514,626 +813,792 @@ export function UploadVoucherTab({
                 </div>
               </div>
 
-              {uploadedFile && (
-                <Badge className="bg-emerald-500/10 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                  <Check className="mr-1 size-3" /> Качен
-                </Badge>
-              )}
-            </div>
-
-            {/* Dropzone */}
-            <input
-              ref={voucherFileInputRef}
-              type="file"
-              accept=".pdf,image/png,image/jpeg,image/webp"
-              onChange={handleVoucherFileChange}
-              className="hidden"
-            />
-
-            {!uploadedFile ? (
-              <button
-                type="button"
-                onClick={() => voucherFileInputRef.current?.click()}
-                className="group flex min-h-40 w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/60 p-6 text-center transition-all hover:border-blue-400 hover:bg-blue-50/40 dark:border-zinc-800 dark:bg-zinc-950/50 dark:hover:border-blue-700"
-              >
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-white text-zinc-400 shadow-sm transition-transform group-hover:scale-110 group-hover:text-blue-600 dark:bg-zinc-900 dark:text-zinc-500">
-                  <Upload className="size-6" />
+              {!uploadedFile && !remoteFileUrl ? (
+                <div
+                  onClick={() => voucherFileInputRef.current?.click()}
+                  className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/60 p-6 text-center transition-colors hover:border-blue-500 hover:bg-blue-50/40 dark:border-zinc-700 dark:bg-zinc-950/60"
+                >
+                  <input
+                    ref={voucherFileInputRef}
+                    type="file"
+                    accept=".pdf,image/png,image/jpeg,image/webp"
+                    onChange={handleVoucherFileChange}
+                    className="hidden"
+                  />
+                  <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-white shadow-xs dark:bg-zinc-800">
+                    <FileText className="size-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                    Кликнете за избор на файл
+                  </span>
+                  <span className="mt-0.5 text-[11px] text-zinc-400">
+                    Дизайн на ваучера, грамотата или благодарствения лист
+                  </span>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                    Натиснете за избор на файл или го пуснете тук
-                  </p>
-                  <p className="mt-1 text-[11px] text-zinc-400">
-                    PDF документ или качествено графично изображение
-                  </p>
-                </div>
-              </button>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300">
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                        {fileType === "pdf" ? (
+                          <FileText className="size-5" />
+                        ) : (
+                          <ImageIcon className="size-5" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-bold text-zinc-900 dark:text-white">
+                          {uploadedFile?.name || "Качен файл на документа"}
+                        </span>
+                        <span className="text-[10px] text-zinc-400">
+                          {fileType === "pdf" ? "PDF Документ" : "Изображение"}
+                          {uploadedFile &&
+                            ` • ${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        ref={voucherFileInputRef}
+                        type="file"
+                        accept=".pdf,image/png,image/jpeg,image/webp"
+                        onChange={handleVoucherFileChange}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => voucherFileInputRef.current?.click()}
+                        className="h-8 rounded-xl text-xs font-semibold"
+                      >
+                        Смени
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setUploadedFile(null);
+                          setFilePreviewUrl(null);
+                          setRemoteFileUrl(null);
+                        }}
+                        className="size-8 rounded-xl text-zinc-400 hover:text-red-500"
+                      >
+                        <X className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Live Visualizer Box */}
+                  {previewUrl && (
+                    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-950/5 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                      <div className="flex items-center justify-between pb-2 text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                        <span className="flex items-center gap-1.5">
+                          <Eye className="size-4 text-blue-600" />
+                          Визуализация на документа:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsDocumentModalOpen(true)}
+                            className="h-7 gap-1 rounded-lg text-[11px]"
+                          >
+                            <Maximize2 className="size-3" />
+                            Цял екран
+                          </Button>
+                          <a
+                            href={previewUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex h-7 items-center gap-1 rounded-lg bg-zinc-100 px-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                          >
+                            <ExternalLink className="size-3" />
+                            Нов таб
+                          </a>
+                        </div>
+                      </div>
+
                       {fileType === "pdf" ? (
-                        <FileText className="size-6" />
+                        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-inner dark:border-zinc-800">
+                          <iframe
+                            src={previewUrl}
+                            title="PDF Преглед"
+                            className="h-80 w-full border-0"
+                          />
+                        </div>
                       ) : (
-                        <ImageIcon className="size-6" />
+                        <div className="flex max-h-80 w-full items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-zinc-900 p-2 dark:border-zinc-800">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={previewUrl}
+                            alt="Качен документ"
+                            className="max-h-76 w-auto rounded-lg object-contain shadow-lg"
+                          />
+                        </div>
                       )}
                     </div>
-                    <div className="min-w-0 space-y-0.5">
-                      <p className="truncate text-xs font-bold text-zinc-900 dark:text-white">
-                        {uploadedFile.name}
-                      </p>
-                      <p className="text-[11px] text-zinc-400">
-                        {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB •{" "}
-                        {fileType === "pdf" ? "PDF Документ" : "Изображение"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => voucherFileInputRef.current?.click()}
-                      className="h-8 rounded-xl text-xs"
-                    >
-                      Смени
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setUploadedFile(null);
-                        setFilePreviewUrl(null);
-                        setRemoteFileUrl(null);
-                        if (voucherFileInputRef.current) {
-                          voucherFileInputRef.current.value = "";
-                        }
-                      }}
-                      className="size-8 rounded-xl text-zinc-400 hover:text-red-500"
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  </div>
+                  )}
                 </div>
+              )}
+            </Card>
 
-                {/* Live Document Visualizer Box */}
-                {previewUrl && (
-                  <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-950/5 p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="flex items-center justify-between pb-2 text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      <span className="flex items-center gap-1.5">
-                        <Eye className="size-4 text-blue-600" />
-                        Визуализация на документа:
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsDocumentModalOpen(true)}
-                          className="h-7 gap-1 rounded-lg text-[11px]"
-                        >
-                          <Maximize2 className="size-3" />
-                          Цял екран
-                        </Button>
-                        <a
-                          href={previewUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex h-7 items-center gap-1 rounded-lg bg-zinc-100 px-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
-                        >
-                          <ExternalLink className="size-3" />
-                          Нов таб
-                        </a>
-                      </div>
-                    </div>
-
-                    {fileType === "pdf" ? (
-                      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-inner dark:border-zinc-800">
-                        <iframe
-                          src={previewUrl}
-                          title="PDF Преглед"
-                          className="h-80 w-full border-0"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex max-h-80 w-full items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-zinc-900 p-2 dark:border-zinc-800">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={previewUrl}
-                          alt="Качен документ"
-                          className="max-h-76 w-auto rounded-lg object-contain shadow-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </Card>
-
-          {/* STEP 2: Recipient Child & Educational Institution */}
-          <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
-              <div className="flex items-center gap-2.5">
+            {/* 1.2 Educational Institution */}
+            <Card className="space-y-3.5 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
                 <div className="flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
                   <User className="size-4" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                    2. Получател & Образователна институция
+                    2. Образователна институция / Училище / Детска градина
                   </h3>
                   <p className="text-[11px] text-zinc-500">
-                    Име на детето / ученика и училище, детска градина или школа
+                    Показва се върху документа и определя училищната
+                    принадлежност
                   </p>
                 </div>
               </div>
 
-              {/* Mode switch */}
-              <div className="flex items-center rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-800">
-                <button
-                  type="button"
-                  onClick={() => setRecipientMode("manual")}
-                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
-                    recipientMode === "manual"
-                      ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
-                      : "text-zinc-500"
-                  }`}
-                >
-                  Ръчно
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRecipientMode("member")}
-                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
-                    recipientMode === "member"
-                      ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
-                      : "text-zinc-500"
-                  }`}
-                >
-                  От клуба ({members.length})
-                </button>
-              </div>
-            </div>
-
-            {/* Recipient Name Field */}
-            {recipientMode === "member" ? (
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  Изберете състезател / член от клуба
-                </Label>
                 <Input
-                  placeholder="Търсене по име на дете..."
-                  value={memberSearch}
-                  onChange={(e) => setMemberSearch(e.target.value)}
-                  className="h-9 rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
+                  placeholder='напр. Второ ОУ "Христо Ботев" град Гълъбово'
+                  value={recipientInstitution}
+                  onChange={(e) => setRecipientInstitution(e.target.value)}
+                  className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
                 />
-                <div className="max-h-36 space-y-1 overflow-y-auto pr-1">
-                  {filteredMembers.map((m) => (
+
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  {PRESET_INSTITUTIONS.map((inst) => (
                     <button
-                      key={m.id}
+                      key={inst}
                       type="button"
-                      onClick={() => handleSelectMember(m)}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition-colors ${
-                        selectedMemberId === m.id
-                          ? "bg-blue-50 font-bold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300"
-                          : "hover:bg-zinc-100 text-zinc-700 dark:hover:bg-zinc-800 dark:text-zinc-300"
+                      onClick={() => setRecipientInstitution(inst)}
+                      className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                        recipientInstitution === inst
+                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:border-blue-600 dark:bg-blue-950/60 dark:text-blue-300"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
                       }`}
                     >
-                      <span>{m.name}</span>
-                      {m.ageGroup && (
-                        <span className="text-[10px] text-zinc-400">
-                          {m.ageGroup}
-                        </span>
-                      )}
+                      {inst}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-zinc-400">
+                  💡 Изберете от 4-те институции по подразбиране или изпишете
+                  ръчно друга институция директно в полето.
+                </p>
+              </div>
+            </Card>
+
+            {/* 1.3 Purpose, Sessions, Validity */}
+            <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                <div className="flex size-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 dark:bg-teal-950/60 dark:text-teal-400">
+                  <Ticket className="size-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                    3. За какво е този ваучер / документ
+                  </h3>
+                  <p className="text-[11px] text-zinc-500">
+                    Услуга, брой безплатни тренировки и срок за ползване
+                  </p>
+                </div>
+              </div>
+
+              {/* Document Type Selector */}
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                {[
+                  { id: "voucher", label: "🎟️ Ваучер", desc: "С отчитане" },
+                  { id: "award", label: "🏆 Грамота", desc: "За отличие" },
+                  {
+                    id: "certificate",
+                    label: "📜 Сертификат",
+                    desc: "За участие",
+                  },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setDocType(t.id as CertificateType)}
+                    className={`flex flex-col items-center justify-center rounded-2xl border p-2 sm:p-3 text-center transition-all ${
+                      docType === t.id
+                        ? "border-blue-600 bg-blue-50/60 font-bold text-blue-900 shadow-xs dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-200"
+                        : "border-zinc-200 bg-zinc-50/50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                    }`}
+                  >
+                    <span className="text-xs font-bold">{t.label}</span>
+                    <span className="text-[10px] text-zinc-400">{t.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Purpose input */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  За какво е предназначен (Описание на услугата / Отличието){" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  placeholder="напр. 8 безплатни тренировки по бадминтон"
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                />
+
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  {presetPurposes.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPurpose(p)}
+                      className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-medium text-zinc-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                    >
+                      {p}
                     </button>
                   ))}
                 </div>
               </div>
-            ) : (
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  Име на детето / получателя{" "}
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  placeholder="напр. Александър Георгиев Иванов"
-                  value={recipientName}
-                  onChange={(e) => setRecipientName(e.target.value)}
-                  className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-                />
-              </div>
-            )}
 
-            {/* Educational Institution Field */}
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  Образователна институция / Училище / Детска градина
-                </Label>
-                <span className="text-[10px] text-zinc-400">
-                  Показва се върху документа
-                </span>
-              </div>
-              <Input
-                placeholder='напр. Второ ОУ "Христо Ботев" град Гълъбово'
-                value={recipientInstitution}
-                onChange={(e) => setRecipientInstitution(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
-              />
-
-              {/* Quick Preset Buttons for Institutions */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                {PRESET_INSTITUTIONS.map((inst) => (
-                  <button
-                    key={inst}
-                    type="button"
-                    onClick={() => setRecipientInstitution(inst)}
-                    className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
-                      recipientInstitution === inst
-                        ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:border-blue-600 dark:bg-blue-950/60 dark:text-blue-300"
-                        : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
-                    }`}
-                  >
-                    {inst}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[10px] text-zinc-400">
-                💡 Изберете от 4-те институции по подразбиране или изпишете
-                ръчно друга институция директно в полето.
-              </p>
-            </div>
-          </Card>
-
-          {/* STEP 3: Document Purpose & Attendance Details */}
-          <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
-              <div className="flex size-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 dark:bg-teal-950/60 dark:text-teal-400">
-                <Ticket className="size-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                  3. За какво е този ваучер / документ
-                </h3>
-                <p className="text-[11px] text-zinc-500">
-                  Услуга, брой безплатни тренировки и срок за ползване
-                </p>
-              </div>
-            </div>
-
-            {/* Document Type Selector */}
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-              {[
-                { id: "voucher", label: "🎟️ Ваучер", desc: "С отчитане" },
-                { id: "award", label: "🏆 Грамота", desc: "За отличие" },
-                {
-                  id: "certificate",
-                  label: "📜 Сертификат",
-                  desc: "За участие",
-                },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setDocType(t.id as CertificateType)}
-                  className={`flex flex-col items-center justify-center rounded-2xl border p-2 sm:p-3 text-center transition-all ${
-                    docType === t.id
-                      ? "border-blue-600 bg-blue-50/60 font-bold text-blue-900 shadow-xs dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-200"
-                      : "border-zinc-200 bg-zinc-50/50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
-                  }`}
-                >
-                  <span className="text-xs font-bold">{t.label}</span>
-                  <span className="text-[10px] text-zinc-400">{t.desc}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Purpose input */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                За какво е предназначен (Описание на услугата / Отличието){" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                placeholder="напр. 8 безплатни тренировки по бадминтон"
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-              />
-
-              {/* Quick Preset Buttons for Purposes */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                {presetPurposes.map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPurpose(p)}
-                    className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-medium text-zinc-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[10px] text-zinc-400">
-                💡 Текстът се обновява автоматично спрямо броя тренировки, като
-                можете свободно да допишете допълнителен текст (напр. повод,
-                награда или училище).
-              </p>
-            </div>
-
-            {/* Attendance & Session settings (If Voucher) */}
-            {docType === "voucher" && (
-              <div className="grid grid-cols-1 gap-4 pt-2 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Брой безплатни тренировки
-                    </Label>
-                    <span className="font-mono text-xs font-black text-amber-600 dark:text-amber-400">
-                      {totalSessions}{" "}
-                      {totalSessions === 1 ? "тренировка" : "тренировки"}
-                    </span>
+              {/* Attendance & Session settings (If Voucher) */}
+              {docType === "voucher" && (
+                <div className="grid grid-cols-1 gap-4 pt-2 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                        Брой безплатни тренировки
+                      </Label>
+                      <span className="font-mono text-xs font-black text-amber-600 dark:text-amber-400">
+                        {totalSessions}{" "}
+                        {totalSessions === 1 ? "тренировка" : "тренировки"}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {[1, 2, 4, 8, 10, 12, 14].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => handleSelectSessions(num)}
+                          className={`min-w-8 flex-1 rounded-xl border py-1.5 text-xs font-bold transition-all ${
+                            totalSessions === num
+                              ? "border-amber-400 bg-amber-500 text-white shadow-xs"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                          }`}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {[1, 2, 4, 8, 10, 12, 14].map((num) => (
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                        Срок на валидност
+                      </Label>
+                      <span className="text-[10px] font-bold text-zinc-500">
+                        {validityMode === "custom_date"
+                          ? `до ${new Date(customExpiryDate).toLocaleDateString("bg-BG")}`
+                          : validityMode === "30"
+                            ? "30 дни (1 месец)"
+                            : "60 дни (2 месеца)"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
                       <button
-                        key={num}
                         type="button"
-                        onClick={() => handleSelectSessions(num)}
-                        className={`min-w-8 flex-1 rounded-xl border py-1.5 text-xs font-bold transition-all ${
-                          totalSessions === num
-                            ? "border-amber-400 bg-amber-500 text-white shadow-xs"
+                        onClick={() => setValidityMode("30")}
+                        className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                          validityMode === "30"
+                            ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
                             : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
                         }`}
                       >
-                        {num}
+                        30 дни (1 м.)
                       </button>
-                    ))}
+
+                      <button
+                        type="button"
+                        onClick={() => setValidityMode("60")}
+                        className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                          validityMode === "60"
+                            ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                        }`}
+                      >
+                        60 дни (2 м.)
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setValidityMode("custom_date")}
+                        className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                          validityMode === "custom_date"
+                            ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                        }`}
+                      >
+                        📅 Точна дата
+                      </button>
+                    </div>
+
+                    {validityMode === "custom_date" && (
+                      <div className="pt-2">
+                        <Input
+                          type="date"
+                          value={customExpiryDate}
+                          onChange={(e) => setCustomExpiryDate(e.target.value)}
+                          className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
+              )}
+            </Card>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Срок на валидност
-                    </Label>
-                    <span className="text-[10px] font-bold text-zinc-500">
-                      {validityMode === "custom_date"
-                        ? `до ${new Date(customExpiryDate).toLocaleDateString("bg-BG")}`
-                        : validityMode === "30"
-                          ? "30 дни (1 месец)"
-                          : "60 дни (2 месеца)"}
-                    </span>
-                  </div>
+            {/* 1.4 Branding & Partners */}
+            <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                <div className="flex size-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                  <Handshake className="size-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                    4. Логота и брандиране
+                  </h3>
+                  <p className="text-[11px] text-zinc-500">
+                    Официално лого на клуба и избрани партньори / спонсори
+                  </p>
+                </div>
+              </div>
 
-                  {/* 3 Quick Options: 30 days, 60 days, exact date */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setValidityMode("30")}
-                      className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
-                        validityMode === "30"
-                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
-                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
-                      }`}
-                    >
-                      30 дни (1 м.)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setValidityMode("60")}
-                      className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
-                        validityMode === "60"
-                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
-                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
-                      }`}
-                    >
-                      60 дни (2 м.)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setValidityMode("custom_date")}
-                      className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
-                        validityMode === "custom_date"
-                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
-                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
-                      }`}
-                    >
-                      📅 Точна дата
-                    </button>
-                  </div>
-
-                  {/* Date Picker if custom_date is selected */}
-                  {validityMode === "custom_date" && (
-                    <div className="pt-1.5">
-                      <Input
-                        type="date"
-                        min={new Date().toISOString().split("T")[0]}
-                        value={customExpiryDate}
-                        onChange={(e) => setCustomExpiryDate(e.target.value)}
-                        className="h-9 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+              {/* Club Logo */}
+              <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
+                <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                  🛡️ Лого на клуба
+                </Label>
+                <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3.5">
+                    <div className="relative flex size-14 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                      <Image
+                        src={clubLogoUrl}
+                        alt={
+                          isRecoveryZone
+                            ? "RECOVERY ZONE BY ZM"
+                            : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"
+                        }
+                        width={52}
+                        height={52}
+                        className="size-full object-contain"
+                        unoptimized
                       />
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </Card>
-
-          {/* STEP 4: Logos & Branding (Club, Institution, Partners) */}
-          <Card className="space-y-5 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
-              <div className="flex size-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
-                <Handshake className="size-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                  4. Логота и брандиране
-                </h3>
-                <p className="text-[11px] text-zinc-500">
-                  Официално лого на клуба и избрани партньори / спонсори
-                </p>
-              </div>
-            </div>
-
-            {/* Club Logo */}
-            <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
-              <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                🛡️ Лого на клуба
-              </Label>
-              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3.5">
-                  <div className="relative flex size-14 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                    <Image
-                      src={clubLogoUrl}
-                      alt={
-                        isRecoveryZone
+                    <div className="space-y-0.5">
+                      <h4 className="text-xs font-black tracking-tight text-zinc-900 sm:text-sm dark:text-white">
+                        {isRecoveryZone
                           ? "RECOVERY ZONE BY ZM"
-                          : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"
-                      }
-                      width={52}
-                      height={52}
-                      className="size-full object-contain"
-                      unoptimized
-                    />
+                          : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
+                      </h4>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                        Официален издател
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-0.5">
-                    <h4 className="text-xs font-black tracking-tight text-zinc-900 sm:text-sm dark:text-white">
-                      {isRecoveryZone
-                        ? "RECOVERY ZONE BY ZM"
-                        : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
-                    </h4>
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                      Официален издател
-                    </p>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={clubLogoInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleClubLogoUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => clubLogoInputRef.current?.click()}
+                      className="h-8 rounded-xl px-3 text-xs font-semibold"
+                    >
+                      Качи друго
+                    </Button>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex items-center gap-2">
+              {/* Partners & Sponsors Checklist */}
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                    🤝 Партньори и Спонсори (включени във ваучера)
+                  </Label>
                   <input
-                    ref={clubLogoInputRef}
+                    ref={partnerLogoInputRef}
                     type="file"
                     accept="image/*"
-                    onChange={handleClubLogoUpload}
+                    onChange={handlePartnerLogoUpload}
                     className="hidden"
                   />
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    onClick={() => clubLogoInputRef.current?.click()}
-                    className="h-8 rounded-xl px-3 text-xs font-semibold"
+                    onClick={() => partnerLogoInputRef.current?.click()}
+                    className="h-6 text-[10px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
                   >
-                    Качи друго
+                    <Plus className="mr-1 size-3" /> Добави ново партньорско
+                    лого
                   </Button>
                 </div>
-              </div>
-            </div>
 
-            {/* Partners & Sponsors Checklist */}
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                  🤝 Партньори и Спонсори (включени във ваучера)
-                </Label>
-                <input
-                  ref={partnerLogoInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePartnerLogoUpload}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => partnerLogoInputRef.current?.click()}
-                  className="h-6 text-[10px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
-                >
-                  <Plus className="mr-1 size-3" /> Добави ново партньорско лого
-                </Button>
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {sponsors.map((s) => {
+                    const isChecked = selectedSponsorIds.includes(s.id);
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => toggleSponsor(s.id)}
+                        className={`flex items-center gap-2 rounded-xl border p-2 text-left transition-all ${
+                          isChecked
+                            ? "border-blue-500 bg-blue-50/50 dark:border-blue-600 dark:bg-blue-950/40"
+                            : "border-zinc-200 bg-white opacity-60 dark:border-zinc-800 dark:bg-zinc-900"
+                        }`}
+                      >
+                        <div className="relative size-6 shrink-0 rounded-md bg-white p-0.5 shadow-xs">
+                          <Image
+                            src={s.logoUrl}
+                            alt={s.name}
+                            width={24}
+                            height={24}
+                            className="size-full object-contain"
+                            unoptimized
+                          />
+                        </div>
+                        <span className="line-clamp-1 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+                          {s.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {sponsors.map((s) => {
-                  const isChecked = selectedSponsorIds.includes(s.id);
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => toggleSponsor(s.id)}
-                      className={`flex items-center gap-2 rounded-xl border p-2 text-left transition-all ${
-                        isChecked
-                          ? "border-blue-500 bg-blue-50/50 dark:border-blue-600 dark:bg-blue-950/40"
-                          : "border-zinc-200 bg-white opacity-60 dark:border-zinc-800 dark:bg-zinc-900"
-                      }`}
-                    >
-                      <div className="relative size-6 shrink-0 rounded-md bg-white p-0.5 shadow-xs">
+                {additionalPartnerLogos.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 pt-2">
+                    {additionalPartnerLogos.map((pl, idx) => (
+                      <Badge
+                        key={idx}
+                        variant="outline"
+                        className="gap-1.5 rounded-xl border-purple-300 bg-purple-50 py-1 text-xs text-purple-800 dark:bg-purple-950/50 dark:text-purple-300"
+                      >
                         <Image
-                          src={s.logoUrl}
-                          alt={s.name}
-                          width={24}
-                          height={24}
-                          className="size-full object-contain"
+                          src={pl.logoUrl}
+                          alt="p"
+                          width={14}
+                          height={14}
+                          className="rounded-full"
                           unoptimized
                         />
-                      </div>
-                      <span className="line-clamp-1 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
-                        {s.name}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span>{pl.name}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* ================================================================= */}
+          {/* ЕТАП 2: ПОЛУЧАТЕЛИ & ИЗДАВАНЕ ПО ШАБЛОНА                          */}
+          {/* ================================================================= */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
+                Етап 2: Получатели & Издаване по Шаблона
+              </span>
+              <span className="text-[11px] text-zinc-400">
+                Генерира персонален QR код за всяко дете
+              </span>
+            </div>
+
+            <Card className="space-y-5 rounded-3xl border-2 border-emerald-200/80 bg-white p-4 sm:p-6 shadow-md shadow-emerald-500/5 dark:border-emerald-900/50 dark:bg-zinc-900">
+              {/* Mode Selector (3 options) */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                  Изберете начин за издаване:
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTargetMode("single")}
+                    className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs font-bold transition-all ${
+                      targetMode === "single"
+                        ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/50 dark:text-emerald-200"
+                        : "border-zinc-200 bg-zinc-50/60 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                    }`}
+                  >
+                    <User className="size-4 shrink-0" />
+                    <span>👤 Единично дете</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTargetMode("club_multi")}
+                    className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs font-bold transition-all ${
+                      targetMode === "club_multi"
+                        ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/50 dark:text-emerald-200"
+                        : "border-zinc-200 bg-zinc-50/60 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                    }`}
+                  >
+                    <Users className="size-4 shrink-0" />
+                    <span>👥 От клуба ({members.length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTargetMode("class_list")}
+                    className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs font-bold transition-all ${
+                      targetMode === "class_list"
+                        ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/50 dark:text-emerald-200"
+                        : "border-zinc-200 bg-zinc-50/60 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                    }`}
+                  >
+                    <ListPlus className="size-4 shrink-0" />
+                    <span>📝 Списък на класа</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Render custom additional logos */}
-              {additionalPartnerLogos.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 pt-2">
-                  {additionalPartnerLogos.map((pl, idx) => (
-                    <Badge
-                      key={idx}
-                      variant="outline"
-                      className="gap-1.5 rounded-xl border-purple-300 bg-purple-50 py-1 text-xs text-purple-800 dark:bg-purple-950/50 dark:text-purple-300"
-                    >
-                      <Image
-                        src={pl.logoUrl}
-                        alt="p"
-                        width={14}
-                        height={14}
-                        className="rounded-full"
-                        unoptimized
+              {/* Mode 1 Content: Single Child */}
+              {targetMode === "single" && (
+                <div className="space-y-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                      Получател (Единично дете):
+                    </Label>
+                    <div className="flex items-center rounded-xl bg-zinc-200/70 p-0.5 dark:bg-zinc-800">
+                      <button
+                        type="button"
+                        onClick={() => setRecipientMode("manual")}
+                        className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
+                          recipientMode === "manual"
+                            ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
+                            : "text-zinc-500"
+                        }`}
+                      >
+                        Ръчно
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRecipientMode("member")}
+                        className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
+                          recipientMode === "member"
+                            ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
+                            : "text-zinc-500"
+                        }`}
+                      >
+                        От клуба ({members.length})
+                      </button>
+                    </div>
+                  </div>
+
+                  {recipientMode === "member" ? (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Търсене по име на дете..."
+                        value={memberSearch}
+                        onChange={(e) => setMemberSearch(e.target.value)}
+                        className="h-9 rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
                       />
-                      <span>{pl.name}</span>
-                    </Badge>
-                  ))}
+                      <div className="max-h-40 space-y-1 overflow-y-auto pr-1">
+                        {filteredSingleMembers.map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => handleSelectMember(m)}
+                            className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition-colors ${
+                              selectedMemberId === m.id
+                                ? "bg-blue-50 font-bold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300"
+                                : "hover:bg-zinc-100 text-zinc-700 dark:hover:bg-zinc-800 dark:text-zinc-300"
+                            }`}
+                          >
+                            <span>{m.name}</span>
+                            {m.ageGroup && (
+                              <span className="text-[10px] text-zinc-400">
+                                {m.ageGroup}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                        Име на детето / получателя{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        placeholder="напр. Габриела Митева"
+                        value={recipientName}
+                        onChange={(e) => setRecipientName(e.target.value)}
+                        className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          </Card>
 
-          {/* SUBMIT BUTTON */}
-          <div className="pt-2">
-            <Button
-              type="button"
-              disabled={isSubmitting}
-              onClick={handleIssueVoucher}
-              className="h-12 sm:h-14 w-full rounded-2xl bg-linear-to-r from-blue-600 via-indigo-600 to-blue-700 text-xs sm:text-sm font-black text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-1.01 hover:from-blue-700 hover:to-indigo-800"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 size-5 animate-spin" />
-                  Генериране и валидиране на документа...
-                </>
-              ) : (
-                <>
-                  <ShieldCheck className="mr-2 size-5" />
-                  Издай и валидирай документ
-                </>
+              {/* Mode 2 Content: Club Multi-Select */}
+              {targetMode === "club_multi" && (
+                <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                        Отбележете децата от клуба:
+                      </Label>
+                      <span className="ml-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        (Избрани: {selectedClubMemberIds.length} от{" "}
+                        {members.length})
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSelectAllClubMembers}
+                        className="h-7 text-[11px] font-bold"
+                      >
+                        <CheckSquare className="mr-1 size-3" />
+                        Избери всички ({filteredMultiMembers.length})
+                      </Button>
+                      {selectedClubMemberIds.length > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleClearAllClubMembers}
+                          className="h-7 text-[11px] text-zinc-400 hover:text-red-500"
+                        >
+                          Изчисти
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  <Input
+                    placeholder="Бързо търсене по име или възраст..."
+                    value={clubMemberSearch}
+                    onChange={(e) => setClubMemberSearch(e.target.value)}
+                    className="h-9 rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
+                  />
+
+                  <div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
+                    {filteredMultiMembers.map((m) => {
+                      const isSelected = selectedClubMemberIds.includes(m.id);
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => toggleSelectClubMember(m.id)}
+                          className={`flex w-full items-center justify-between rounded-xl border p-2.5 text-left text-xs transition-all ${
+                            isSelected
+                              ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-950 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200"
+                              : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            {isSelected ? (
+                              <CheckSquare className="size-4 text-emerald-600" />
+                            ) : (
+                              <Square className="size-4 text-zinc-300" />
+                            )}
+                            <span>{m.name}</span>
+                          </div>
+                          {m.ageGroup && (
+                            <Badge variant="outline" className="text-[10px]">
+                              {m.ageGroup}
+                            </Badge>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
-            </Button>
+
+              {/* Mode 3 Content: Class List (Bulk Text) */}
+              {targetMode === "class_list" && (
+                <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                      Списък с имена на децата (по едно име на ред):
+                    </Label>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs font-bold ${
+                        parsedClassListNames.length > 0
+                          ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                          : "text-zinc-400"
+                      }`}
+                    >
+                      Разпознати: {parsedClassListNames.length} деца
+                    </Badge>
+                  </div>
+
+                  <Textarea
+                    rows={6}
+                    placeholder={`Габриела Митева\nНикола Стоянов\nЕлена Василева\nГеорги Димитров...`}
+                    value={classListText}
+                    onChange={(e) => setClassListText(e.target.value)}
+                    className="rounded-xl font-mono text-xs"
+                  />
+                  <p className="text-[11px] text-zinc-400">
+                    💡 Можете директно да копирате и поставите списък с имена от
+                    Excel, Word или училищен дневник. Системата автоматично ще
+                    създаде индивидуален ваучер с QR код за всяко отделно дете.
+                  </p>
+                </div>
+              )}
+
+              {/* FINAL ACTION BUTTON */}
+              <div className="pt-2">
+                <Button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleExecuteIssuance}
+                  className="h-12 sm:h-14 w-full rounded-2xl bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 text-xs sm:text-sm font-black text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-1.01 hover:from-emerald-700 hover:to-teal-800"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 size-5 animate-spin" />
+                      {batchProgress
+                        ? `Издаване на ваучер ${batchProgress.current} от ${batchProgress.total}...`
+                        : "Генериране и валидиране на документите..."}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 size-5" />
+                      {targetMode === "single"
+                        ? recipientName
+                          ? `🎟️ Издай ваучер за „${recipientName}“`
+                          : "🎟️ Издай ваучер за това дете"
+                        : targetMode === "club_multi"
+                          ? `⚡ Издай ${selectedClubMemberIds.length} индивидуални ваучера за избраните деца`
+                          : `⚡ Издай ${parsedClassListNames.length} персонални ваучера по списъка`}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </Card>
           </div>
         </div>
 
@@ -1195,7 +1660,11 @@ export function UploadVoucherTab({
                         : "Клубен Сертификат"}
                   </span>
                   <h3 className="text-lg font-black text-zinc-900 dark:text-white">
-                    {recipientName || "Име на детето..."}
+                    {targetMode === "single"
+                      ? recipientName || "Име на детето..."
+                      : targetMode === "club_multi"
+                        ? `${selectedClubMemberIds.length} избрани деца от клуба`
+                        : `${parsedClassListNames.length} деца от списъка на класа`}
                   </h3>
                   <p className="text-xs text-zinc-500">
                     {recipientInstitution || "Образователна институция"}
@@ -1250,65 +1719,42 @@ export function UploadVoucherTab({
                         className="h-6 gap-1 px-2 text-[10px] font-bold text-blue-600 hover:text-blue-700"
                       >
                         <Maximize2 className="size-3" />
-                        Цял екран
+                        Увеличи
                       </Button>
                     </div>
 
-                    {fileType === "image" ? (
-                      <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800">
-                        <Image
-                          src={previewUrl}
-                          alt="Voucher Preview"
-                          fill
-                          className="object-contain"
-                          unoptimized
-                        />
-                      </div>
-                    ) : (
-                      <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-inner dark:border-zinc-800">
+                    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-zinc-900 dark:border-zinc-800">
+                      {fileType === "pdf" ? (
                         <iframe
-                          src={`${previewUrl}#toolbar=0`}
+                          src={previewUrl}
                           title="PDF Preview"
-                          className="h-64 w-full border-0"
+                          className="size-full border-0 pointer-events-none"
                         />
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between px-1 text-[10px] text-zinc-500">
-                      <span className="truncate">
-                        {uploadedFile?.name || "Дигитален ваучер"}
-                      </span>
-                      {uploadedFile?.size ? (
-                        <span>
-                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                        </span>
-                      ) : null}
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={previewUrl}
+                          alt="Миниатюра"
+                          className="size-full object-contain"
+                        />
+                      )}
                     </div>
                   </div>
                 ) : (
-                  <div className="flex h-24 flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-xs text-zinc-400 dark:border-zinc-800 dark:bg-zinc-950/30">
-                    <Upload className="mb-1 size-5 opacity-40" />
-                    <span>Все още не е качен файл</span>
+                  <div className="flex h-28 items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 text-center text-xs text-zinc-400 dark:border-zinc-800 dark:bg-zinc-950">
+                    Все още не е качен файл на документа
                   </div>
                 )}
+              </div>
 
-                {/* Electronic QR Code Watermark */}
-                <div className="flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-800/80 dark:bg-zinc-950">
-                  <div className="space-y-0.5">
-                    <div className="text-[10px] font-bold text-zinc-400 uppercase">
-                      Електронна валидация
-                    </div>
-                    <div className="font-mono text-xs font-black text-zinc-800 dark:text-zinc-200">
-                      {isRecoveryZone ? "RZ-2026-XXXX" : "BKG-2026-XXXX"}
-                    </div>
-                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400">
-                      ✓ Автоматичен QR & присъствен дневник
-                    </p>
-                  </div>
-
-                  <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white p-1 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                    <QrCode className="size-full text-zinc-800 dark:text-zinc-200" />
-                  </div>
+              {/* Footer Partners / Authentic Seal */}
+              <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                <div className="flex items-center justify-between text-[11px] text-zinc-500">
+                  <span className="flex items-center gap-1 font-bold text-amber-700 dark:text-amber-400">
+                    <ShieldCheck className="size-3.5" />
+                    Заверен в клубния регистър
+                  </span>
+                  <span>{new Date().toLocaleDateString("bg-BG")}</span>
                 </div>
               </div>
             </Card>
@@ -1316,37 +1762,102 @@ export function UploadVoucherTab({
         </div>
       </div>
 
-      {/* 3. Post-Issue Celebratory Modal */}
+      {/* ===================================================================== */}
+      {/* DIALOG 1: SAVE CURRENT AS TEMPLATE                                    */}
+      {/* ===================================================================== */}
+      <Dialog open={isSaveModalOpen} onOpenChange={setIsSaveModalOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-black">
+              <Save className="size-4 text-blue-600" />
+              Запазване на Шаблон
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500">
+              Шаблонът ще съхрани качения документ, училището, повода, броя
+              тренировки и избраните спонсори за бързо издаване по всяко време.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">
+                Наименование на шаблона *
+              </Label>
+              <Input
+                value={templateTitleInput}
+                onChange={(e) => setTemplateTitleInput(e.target.value)}
+                placeholder="напр. Ваучер Второ ОУ – 8 тренировки"
+                className="h-10 rounded-xl text-xs font-bold"
+                autoFocus
+              />
+            </div>
+
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+              <p>
+                <strong>Институция:</strong> {recipientInstitution}
+              </p>
+              <p>
+                <strong>Услуга:</strong> {purpose}
+              </p>
+              <p>
+                <strong>Тренировки:</strong> {totalSessions}
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="grid grid-cols-2 gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsSaveModalOpen(false)}
+              className="h-9 rounded-xl text-xs font-bold"
+            >
+              Отказ
+            </Button>
+            <Button
+              type="button"
+              disabled={isSavingTemplate}
+              onClick={handleSaveCurrentAsTemplate}
+              className="h-9 rounded-xl bg-blue-600 text-xs font-black text-white hover:bg-blue-700"
+            >
+              {isSavingTemplate ? (
+                <Loader2 className="mr-1 size-3.5 animate-spin" />
+              ) : (
+                <Check className="mr-1 size-3.5" />
+              )}
+              Запази шаблона
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===================================================================== */}
+      {/* DIALOG 2: SINGLE ISSUANCE SUCCESS MODAL                               */}
+      {/* ===================================================================== */}
       {issuedSuccessCert && (
         <Dialog
-          open={!!issuedSuccessCert}
-          onOpenChange={(open) => {
-            if (!open) setIssuedSuccessCert(null);
-          }}
+          open={Boolean(issuedSuccessCert)}
+          onOpenChange={(open) => !open && setIssuedSuccessCert(null)}
         >
-          <DialogContent className="max-h-[92vh] w-[95vw] max-w-md overflow-x-hidden overflow-y-auto rounded-3xl border-zinc-200 p-4 shadow-2xl sm:p-5 dark:border-zinc-800">
-            <DialogHeader className="pb-1 text-center">
-              <div className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950/60 dark:text-emerald-400">
+          <DialogContent className="max-w-md rounded-3xl border border-zinc-200 bg-zinc-50 p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+            <DialogHeader className="text-center">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-400">
                 <CheckCircle2 className="size-6" />
               </div>
-              <DialogTitle className="mt-2 text-lg font-black text-zinc-900 dark:text-white">
+              <DialogTitle className="mt-3 text-lg font-black text-zinc-900 dark:text-white">
                 Документът е издаден успешно!
               </DialogTitle>
               <DialogDescription className="text-xs text-zinc-500">
-                Заверен с електронен сериен номер и активен за отчитане на
-                тренировките
+                Ваучерът е вписан в електронния регистър с генериран
+                верификационен QR код.
               </DialogDescription>
             </DialogHeader>
 
-            {/* Serial & QR card */}
-            <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-3 text-center sm:p-4 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="space-y-0.5">
-                <div className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
-                  Сериен номер на документа
-                </div>
-                <div className="font-mono text-xl font-black text-blue-600 dark:text-blue-400">
-                  {issuedSuccessCert.serialNumber}
-                </div>
+            <div className="space-y-3 py-2 text-center">
+              <div className="space-y-1 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                <span className="font-mono text-xs font-black tracking-wider text-emerald-600 dark:text-emerald-400">
+                  № {issuedSuccessCert.serialNumber}
+                </span>
                 <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                   {issuedSuccessCert.recipient.name}
                 </div>
@@ -1381,7 +1892,7 @@ export function UploadVoucherTab({
                 />
                 <Button
                   size="sm"
-                  onClick={handleCopyDirectLink}
+                  onClick={() => handleCopyDirectLink(issuedSuccessCert.id)}
                   className="h-7 shrink-0 rounded-lg bg-blue-600 px-2.5 text-xs font-bold text-white hover:bg-blue-700"
                 >
                   {copiedLink ? (
@@ -1465,7 +1976,114 @@ export function UploadVoucherTab({
         </Dialog>
       )}
 
-      {/* 4. Fullscreen Document View Modal */}
+      {/* ===================================================================== */}
+      {/* DIALOG 3: BATCH ISSUANCE RESULTS MODAL                                */}
+      {/* ===================================================================== */}
+      <Dialog open={isBatchResultsOpen} onOpenChange={setIsBatchResultsOpen}>
+        <DialogContent className="max-w-2xl overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="border-b border-zinc-200 bg-white/90 px-6 py-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-400">
+                <CheckCircle2 className="size-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-base sm:text-lg font-black text-zinc-900 dark:text-white">
+                  🎉 Успешно издадени {batchResults.length} ваучера!
+                </DialogTitle>
+                <DialogDescription className="text-xs text-zinc-500">
+                  Институция: {recipientInstitution} • Всяко дете разполага със
+                  собствен QR код и сериен номер.
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          {/* List of issued children */}
+          <div className="max-h-[60vh] space-y-2 overflow-y-auto p-4 sm:p-6 overscroll-contain">
+            {batchResults.map((c, idx) => (
+              <div
+                key={c.id || idx}
+                className="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-900"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-black text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                      {idx + 1}
+                    </span>
+                    <h4 className="truncate text-xs sm:text-sm font-black text-zinc-900 dark:text-white">
+                      {c.recipient.name}
+                    </h4>
+                  </div>
+                  <span className="font-mono text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                    № {c.serialNumber}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5 pt-1 sm:pt-0">
+                  <a
+                    href={`/cert/${c.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-8 items-center gap-1 rounded-xl bg-blue-50 px-2.5 text-xs font-bold text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300"
+                  >
+                    <ExternalLink className="size-3" />
+                    <span>Преглед</span>
+                  </a>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCopyDirectLink(c.id)}
+                    className="h-8 gap-1 rounded-xl text-xs font-semibold"
+                  >
+                    <Copy className="size-3" />
+                    <span>Копирай</span>
+                  </Button>
+
+                  <a
+                    href={`/cert/${c.id}?print=true`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-8 items-center gap-1 rounded-xl bg-zinc-100 px-2.5 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                  >
+                    <Printer className="size-3" />
+                    <span>Печат</span>
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-zinc-200 bg-zinc-100/90 px-6 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/90">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleResetForNext}
+              className="h-9 rounded-xl text-xs font-bold"
+            >
+              <Plus className="mr-1.5 size-3.5" />
+              Издай за други деца
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => {
+                setIsBatchResultsOpen(false);
+                onSwitchToRegistry();
+              }}
+              className="h-9 rounded-xl bg-zinc-900 px-4 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
+            >
+              Към регистъра
+              <ChevronRight className="ml-1 size-3.5" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===================================================================== */}
+      {/* DIALOG 4: FULLSCREEN DOCUMENT PREVIEW                                 */}
+      {/* ===================================================================== */}
       {previewUrl && (
         <Dialog
           open={isDocumentModalOpen}

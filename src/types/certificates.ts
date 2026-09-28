@@ -215,6 +215,30 @@ export const CertificateTemplateSchema = z.object({
   visualConfig: VisualConfigSchema,
   defaultValidityDays: z.number().int().positive().optional(),
   defaultTotalSessions: z.number().int().positive().optional(),
+  uploadedDocument: z
+    .object({
+      fileUrl: z.string(),
+      fileType: z.enum(["pdf", "image"]),
+      fileName: z.string().optional(),
+      fileSize: z.number().optional(),
+    })
+    .optional(),
+  recipientInstitution: z.string().optional(),
+  defaultPurpose: z.string().optional(),
+  branding: z
+    .object({
+      clubLogoUrl: z.string().optional(),
+      partnerLogos: z
+        .array(
+          z.object({
+            name: z.string(),
+            logoUrl: z.string().optional(),
+            websiteUrl: z.string().optional(),
+          })
+        )
+        .optional(),
+    })
+    .optional(),
   createdAt: z.string(),
   updatedAt: z.string().optional(),
 });
