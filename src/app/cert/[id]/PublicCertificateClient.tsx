@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity, @next/next/no-img-element */
+/* eslint-disable react/forbid-dom-props, sonarjs/no-nested-conditional, sonarjs/cognitive-complexity, @next/next/no-img-element */
 "use client";
 
 import confetti from "canvas-confetti";
@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { PDFDocument } from "pdf-lib";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -40,8 +41,6 @@ import { useAuth } from "@/context/auth-context";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
 import { IssuedCertificate } from "@/types/certificates";
 
-import { PdfVoucherCanvas } from "./PdfVoucherCanvas";
-
 interface PublicCertificateClientProps {
   certificate: IssuedCertificate;
 }
@@ -54,6 +53,7 @@ export function PublicCertificateClient({
   const [copiedLink, setCopiedLink] = useState(false);
   const [showRedeemDialog, setShowRedeemDialog] = useState(false);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [pdfAspectRatio, setPdfAspectRatio] = useState<number>(1260 / 708);
 
   useEffect(() => {
     try {
@@ -124,6 +124,26 @@ export function PublicCertificateClient({
   const clubName = isRecoveryZone ? "Recovery Zone by ZM" : "БК Гълъбово 2025";
 
   const uploadedDoc = cert.uploadedDocument;
+
+  useEffect(() => {
+    if (uploadedDoc?.fileType === "pdf" && uploadedDoc.fileUrl) {
+      fetch(uploadedDoc.fileUrl)
+        .then((res) => res.arrayBuffer())
+        .then(async (buf) => {
+          const doc = await PDFDocument.load(buf, { ignoreEncryption: true });
+          const firstPage = doc.getPages()[0];
+          if (firstPage) {
+            const { width, height } = firstPage.getSize();
+            if (width > 0 && height > 0) {
+              setPdfAspectRatio(width / height);
+            }
+          }
+        })
+        .catch((err) => {
+          console.warn("Could not determine PDF aspect ratio:", err);
+        });
+    }
+  }, [uploadedDoc]);
 
   const formattedValidUntil = cert.details.validUntil
     ? new Date(cert.details.validUntil).toLocaleDateString("bg-BG", {
@@ -401,11 +421,16 @@ export function PublicCertificateClient({
                 </a>
               </div>
 
-              {/* Native flush presentation: zero black bars, zero margins */}
+              {/* Native flush presentation: exact aspect ratio, zero black bars, zero margins */}
               {uploadedDoc.fileType === "pdf" ? (
-                <PdfVoucherCanvas
-                  fileUrl={uploadedDoc.fileUrl}
-                  fileName={uploadedDoc.fileName}
+                <iframe
+                  src={`${uploadedDoc.fileUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                  title="Официален клубен ваучер"
+                  className="block w-full border-0 bg-white"
+                  style={{
+                    aspectRatio: `${pdfAspectRatio}`,
+                    width: "100%",
+                  }}
                 />
               ) : (
                 <img
@@ -654,9 +679,15 @@ export function PublicCertificateClient({
 
             <div className="max-h-[85vh] w-full overflow-y-auto rounded-xl bg-white p-2 dark:bg-zinc-900">
               {uploadedDoc.fileType === "pdf" ? (
-                <PdfVoucherCanvas
-                  fileUrl={uploadedDoc.fileUrl}
-                  fileName={uploadedDoc.fileName}
+                <iframe
+                  src={`${uploadedDoc.fileUrl}#toolbar=0&navpanes=0&view=FitH`}
+                  title="Ваучер пълен екран"
+                  className="block w-full border-0"
+                  style={{
+                    aspectRatio: `${pdfAspectRatio}`,
+                    width: "100%",
+                    minHeight: "480px",
+                  }}
                 />
               ) : (
                 <div className="flex size-full items-center justify-center p-2">

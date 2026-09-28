@@ -9,6 +9,7 @@ const publicPrefixes = [
   "/club",
   "/recovery-zone",
   "/feedback/",
+  "/cert/",
 ];
 
 export function proxy(request: NextRequest) {

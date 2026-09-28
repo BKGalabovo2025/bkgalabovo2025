@@ -13,6 +13,10 @@ describe("Edge Proxy (src/proxy.ts - Next.js 16)", () => {
       "public feedback survey path",
       "http://localhost:3000/feedback/PqRkjq8bh0J6iEkF9bHC",
     ],
+    [
+      "public certificate voucher path",
+      "http://localhost:3000/cert/PvHMvhPj5kv6lIeGEQv5",
+    ],
   ])("should allow public %s without session", (_name, url) => {
     const req = new NextRequest(url);
     const res = proxy(req);
