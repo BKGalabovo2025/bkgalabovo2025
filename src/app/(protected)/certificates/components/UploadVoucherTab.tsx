@@ -39,13 +39,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuth } from "@/context/auth-context";
 import { useMembers } from "@/hooks/useMembers";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
@@ -88,7 +81,14 @@ export function UploadVoucherTab({
   const [docType, setDocType] = useState<CertificateType>("voucher");
   const [purpose, setPurpose] = useState("8 безплатни тренировки по бадминтон");
   const [totalSessions, setTotalSessions] = useState<number>(8);
-  const [validityDays, setValidityDays] = useState<number>(180);
+  const [validityMode, setValidityMode] = useState<"30" | "60" | "custom_date">(
+    "60"
+  );
+  const [customExpiryDate, setCustomExpiryDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 60);
+    return d.toISOString().split("T")[0];
+  });
 
   // --- Recipient State ---
   const [recipientMode, setRecipientMode] = useState<"manual" | "member">(
@@ -322,8 +322,19 @@ export function UploadVoucherTab({
       ];
 
       // 3. Prepare valid until date
-      const expDate = new Date();
-      expDate.setDate(expDate.getDate() + (validityDays || 180));
+      let validUntilIso: string | undefined;
+      if (docType === "voucher") {
+        if (validityMode === "custom_date" && customExpiryDate) {
+          const customD = new Date(customExpiryDate);
+          customD.setHours(23, 59, 59, 999);
+          validUntilIso = customD.toISOString();
+        } else {
+          const days = validityMode === "30" ? 30 : 60;
+          const expDate = new Date();
+          expDate.setDate(expDate.getDate() + days);
+          validUntilIso = expDate.toISOString();
+        }
+      }
 
       const input: IssueCertificateInput = {
         templateId: "uploaded_voucher",
@@ -337,7 +348,7 @@ export function UploadVoucherTab({
           voucherServiceType: purpose.trim(),
           eventTitle: purpose.trim(),
           totalSessions: docType === "voucher" ? totalSessions || 8 : undefined,
-          validUntil: docType === "voucher" ? expDate.toISOString() : undefined,
+          validUntil: validUntilIso,
         },
         uploadedDocument: {
           fileUrl: finalFileUrl || "",
@@ -756,16 +767,17 @@ export function UploadVoucherTab({
                       Брой безплатни тренировки
                     </Label>
                     <span className="font-mono text-xs font-black text-amber-600 dark:text-amber-400">
-                      {totalSessions} сесии
+                      {totalSessions}{" "}
+                      {totalSessions === 1 ? "тренировка" : "тренировки"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    {[1, 4, 8, 12, 16].map((num) => (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {[1, 2, 4, 8, 10, 12, 14].map((num) => (
                       <button
                         key={num}
                         type="button"
                         onClick={() => setTotalSessions(num)}
-                        className={`flex-1 rounded-xl border py-1.5 text-xs font-bold transition-all ${
+                        className={`min-w-8 flex-1 rounded-xl border py-1.5 text-xs font-bold transition-all ${
                           totalSessions === num
                             ? "border-amber-400 bg-amber-500 text-white shadow-xs"
                             : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
@@ -778,24 +790,68 @@ export function UploadVoucherTab({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                    Срок на валидност
-                  </Label>
-                  <Select
-                    value={validityDays.toString()}
-                    onValueChange={(val) => setValidityDays(Number(val))}
-                  >
-                    <SelectTrigger className="h-10 rounded-xl border-zinc-200 text-xs dark:border-zinc-800">
-                      <SelectValue placeholder="Изберете срок" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 дни (1 месец)</SelectItem>
-                      <SelectItem value="60">60 дни (2 месеца)</SelectItem>
-                      <SelectItem value="90">90 дни (3 месеца)</SelectItem>
-                      <SelectItem value="180">180 дни (6 месеца)</SelectItem>
-                      <SelectItem value="365">1 година (365 дни)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                      Срок на валидност
+                    </Label>
+                    <span className="text-[10px] font-bold text-zinc-500">
+                      {validityMode === "custom_date"
+                        ? `до ${new Date(customExpiryDate).toLocaleDateString("bg-BG")}`
+                        : validityMode === "30"
+                          ? "30 дни (1 месец)"
+                          : "60 дни (2 месеца)"}
+                    </span>
+                  </div>
+
+                  {/* 3 Quick Options: 30 days, 60 days, exact date */}
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setValidityMode("30")}
+                      className={`rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                        validityMode === "30"
+                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                      }`}
+                    >
+                      30 дни (1 м.)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setValidityMode("60")}
+                      className={`rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                        validityMode === "60"
+                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                      }`}
+                    >
+                      60 дни (2 м.)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setValidityMode("custom_date")}
+                      className={`rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                        validityMode === "custom_date"
+                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                      }`}
+                    >
+                      📅 Точна дата
+                    </button>
+                  </div>
+
+                  {/* Date Picker if custom_date is selected */}
+                  {validityMode === "custom_date" && (
+                    <div className="pt-1.5">
+                      <Input
+                        type="date"
+                        min={new Date().toISOString().split("T")[0]}
+                        value={customExpiryDate}
+                        onChange={(e) => setCustomExpiryDate(e.target.value)}
+                        className="h-9 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1092,10 +1148,21 @@ export function UploadVoucherTab({
                   {docType === "voucher" && (
                     <div className="mt-2.5 flex items-center justify-between border-t border-amber-200/60 pt-2 text-[11px] text-amber-900 dark:border-amber-900/50 dark:text-amber-300">
                       <span>
-                        Оставащи: <strong>{totalSessions} тренировки</strong>
+                        Оставащи:{" "}
+                        <strong>
+                          {totalSessions}{" "}
+                          {totalSessions === 1 ? "тренировка" : "тренировки"}
+                        </strong>
                       </span>
                       <span>
-                        Срок: <strong>{validityDays} дни</strong>
+                        Срок:{" "}
+                        <strong>
+                          {validityMode === "custom_date" && customExpiryDate
+                            ? `до ${new Date(customExpiryDate).toLocaleDateString("bg-BG")}`
+                            : validityMode === "30"
+                              ? "30 дни (1 месец)"
+                              : "60 дни (2 месеца)"}
+                        </strong>
                       </span>
                     </div>
                   )}
