@@ -16,6 +16,7 @@ import {
   getAuthUserFromSessionCookie,
 } from "@/lib/auth-utils";
 import { getCachedSalesForBranch } from "@/lib/db/sales";
+import { writeWithFallback } from "@/lib/db-failover";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import { ClubService, Family, Member, Sale } from "@/types";
@@ -39,7 +40,6 @@ export async function createSaleAction(
   try {
     const targetSiteId = (saleData?.siteId as string) || undefined;
     const user = await ensureAdminWithSite(idToken, targetSiteId);
-    const adminDb = getAdminDb();
 
     // Validation
     const validatedFields = SaleSchema.omit({
@@ -56,78 +56,85 @@ export async function createSaleAction(
     }
 
     const data = validatedFields.data;
-    const newSaleRef = adminDb.collection("sales").doc();
 
-    await adminDb.runTransaction(async (transaction) => {
-      // 1. Perform all reads first
-      const productUpdates = [];
-      for (const item of data.items) {
-        const productRef = adminDb.collection("products").doc(item.productId);
-        const productDoc = await transaction.get(productRef);
+    const newSaleId: string = await writeWithFallback(async (db) => {
+      const newSaleRef = db.collection("sales").doc();
+      await db.runTransaction(async (transaction) => {
+        // 1. Perform all reads first
+        const productUpdates = [];
+        for (const item of data.items) {
+          const productRef = db.collection("products").doc(item.productId);
+          const productDoc = await transaction.get(productRef);
 
-        if (!productDoc.exists) {
-          throw new Error(`Продуктът с ID ${item.productId} не бе намерен.`);
+          if (!productDoc.exists) {
+            throw new Error(`Продуктът с ID ${item.productId} не бе намерен.`);
+          }
+
+          const productData = productDoc.data()!;
+          const currentStock = productData.stock || 0;
+          const newStock = currentStock - item.quantity;
+
+          if (newStock < 0) {
+            throw new Error(`Недостатъчна наличност за ${item.name}.`);
+          }
+
+          productUpdates.push({
+            ref: productRef,
+            stock: newStock,
+            item,
+          });
         }
 
-        const productData = productDoc.data()!;
-        const currentStock = productData.stock || 0;
-        const newStock = currentStock - item.quantity;
-
-        if (newStock < 0) {
-          throw new Error(`Недостатъчна наличност за ${item.name}.`);
-        }
-
-        productUpdates.push({
-          ref: productRef,
-          stock: newStock,
-          item,
+        // 2. Perform all writes next
+        // a. Create the Sale record
+        transaction.set(newSaleRef, {
+          ...data,
+          saleDate: Timestamp.fromDate(new Date(data.saleDate)),
+          createdAt: FieldValue.serverTimestamp(),
+          createdBy: { uid: user.uid, email: user.email },
         });
-      }
 
-      // 2. Perform all writes next
-      // a. Create the Sale record
-      transaction.set(newSaleRef, {
-        ...data,
-        saleDate: Timestamp.fromDate(new Date(data.saleDate)),
-        createdAt: FieldValue.serverTimestamp(),
-        createdBy: { uid: user.uid, email: user.email },
+        // b. Update products stock and create inventory events
+        for (const update of productUpdates) {
+          transaction.update(update.ref, { stock: update.stock });
+
+          const eventRef = db.collection("inventory_events").doc();
+          transaction.set(eventRef, {
+            id: eventRef.id,
+            productId: update.item.productId,
+            productName: update.item.name,
+            type: "sale",
+            quantityChange: -update.item.quantity,
+            createdAt: new Date().toISOString(),
+            userId: user.uid,
+            userName: user.displayName || user.email,
+            relatedSaleId: newSaleRef.id,
+            clientName: data.clientName || "Неизвестен клиент",
+          });
+        }
+
+        // c. Update member's lastPaymentDate if sale is paid and not a guest sale
+        if (
+          data.isPaid &&
+          data.memberId &&
+          data.memberId !== "GUEST_EXTERNAL"
+        ) {
+          const memberRef = db.collection("members").doc(data.memberId);
+          transaction.update(memberRef, {
+            lastPaymentDate: new Date(data.saleDate).toISOString(),
+          });
+        }
       });
-
-      // b. Update products stock and create inventory events
-      for (const update of productUpdates) {
-        transaction.update(update.ref, { stock: update.stock });
-
-        const eventRef = adminDb.collection("inventory_events").doc();
-        transaction.set(eventRef, {
-          id: eventRef.id,
-          productId: update.item.productId,
-          productName: update.item.name,
-          type: "sale",
-          quantityChange: -update.item.quantity,
-          createdAt: new Date().toISOString(),
-          userId: user.uid,
-          userName: user.displayName || user.email,
-          relatedSaleId: newSaleRef.id,
-          clientName: data.clientName || "Неизвестен клиент",
-        });
-      }
-
-      // c. Update member's lastPaymentDate if sale is paid and not a guest sale
-      if (data.isPaid && data.memberId && data.memberId !== "GUEST_EXTERNAL") {
-        const memberRef = adminDb.collection("members").doc(data.memberId);
-        transaction.update(memberRef, {
-          lastPaymentDate: new Date(data.saleDate).toISOString(),
-        });
-      }
-    });
+      return newSaleRef.id; // Възвръщаме ID за да може да се използва навън
+    }, "createSaleAction");
 
     // Audit log
     await logAuditEvent({
       action: "create_sale",
       targetCollection: "sales",
-      targetId: newSaleRef.id,
+      targetId: newSaleId,
       siteId: (data.siteId as string) || "bkgalabovo",
-      details: `Регистрирана продажба № ${newSaleRef.id} за ${data.totalAmount || 0} лв. (${data.paymentMethod || "В брой"})`,
+      details: `Регистрирана продажба № ${newSaleId} за ${data.totalAmount || 0} лв. (${data.paymentMethod || "В брой"})`,
       userId: user.uid,
       userEmail: user.email || undefined,
       metadata: {
@@ -147,7 +154,7 @@ export async function createSaleAction(
     return {
       success: true,
       message: "Продажбата бе регистрирана успешно.",
-      data: { id: newSaleRef.id },
+      data: { id: newSaleId },
     };
   } catch (error: unknown) {
     console.error("createSaleAction Error:", error);

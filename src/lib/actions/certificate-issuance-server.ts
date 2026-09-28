@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 
 import { logAuditEvent } from "@/lib/audit-logger";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { writeWithFallback } from "@/lib/db-failover";
 import { getAdminDb } from "@/lib/firebase-admin";
 import {
   CertificateTemplate,
@@ -193,7 +194,15 @@ export async function issueCertificateAction(
     // 7. Запис в базата данни (санизиране на undefined стойности за Firestore Admin)
     try {
       const sanitizedCertificate = JSON.parse(JSON.stringify(newCertificate));
-      await docRef.set(sanitizedCertificate);
+      // Използваме writeWithFallback: при quota грешка пише в резервната база
+      await writeWithFallback(
+        async (db) =>
+          db
+            .collection(CERTIFICATES_COLLECTION)
+            .doc(certificateId)
+            .set(sanitizedCertificate),
+        "issueCertificateAction"
+      );
 
       // 8. Логване в одит системата
       let docTypeLabel = "сертификат";
