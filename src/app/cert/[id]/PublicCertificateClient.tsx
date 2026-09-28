@@ -233,11 +233,19 @@ export function PublicCertificateClient({
     : null;
 
   const formattedIssuedAt = cert.issuedAt
-    ? new Date(cert.issuedAt).toLocaleDateString("bg-BG", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })
+    ? (() => {
+        const d = new Date(cert.issuedAt);
+        const dateStr = d.toLocaleDateString("bg-BG", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+        const timeStr = d.toLocaleTimeString("bg-BG", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return `${dateStr}, ${timeStr} ч.`;
+      })()
     : null;
 
   return (
@@ -608,7 +616,7 @@ export function PublicCertificateClient({
                 <div className="space-y-1.5 text-center sm:text-left">
                   <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-100/90 px-3.5 py-1 text-xs font-bold text-amber-900 shadow-2xs dark:bg-amber-950/80 dark:text-amber-300">
                     <Award className="size-4 text-amber-600" />
-                    <span>Заверен клубен регистър</span>
+                    <span>Заверен в клубния регистър</span>
                   </div>
                   {formattedIssuedAt && (
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
