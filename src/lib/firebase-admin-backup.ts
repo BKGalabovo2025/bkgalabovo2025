@@ -31,7 +31,14 @@ function initBackupAdmin(): admin.firestore.Firestore | null {
     const app =
       existing ??
       (() => {
-        const sa = JSON.parse(serviceAccountJson);
+        let raw = serviceAccountJson.trim();
+        if (
+          (raw.startsWith("'") && raw.endsWith("'")) ||
+          (raw.startsWith('"') && raw.endsWith('"'))
+        ) {
+          raw = raw.slice(1, -1);
+        }
+        const sa = JSON.parse(raw);
         if (sa.private_key) {
           sa.private_key = sa.private_key.replace(/\\n/g, "\n");
         }
