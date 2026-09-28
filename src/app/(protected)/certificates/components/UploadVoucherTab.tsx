@@ -8,10 +8,13 @@ import {
   ChevronRight,
   Copy,
   ExternalLink,
+  Eye,
+  FileCheck,
   FileText,
   Handshake,
   ImageIcon,
   Loader2,
+  Maximize2,
   Plus,
   QrCode,
   School,
@@ -104,8 +107,23 @@ export function UploadVoucherTab({
   // --- Branding State ---
   const [clubLogoUrl, setClubLogoUrl] = useState(defaultClubLogo);
   const [institutionLogoUrl, setInstitutionLogoUrl] = useState<string | null>(
-    "https://upload.wikimedia.org/wikipedia/commons/e/e0/Coat_of_arms_of_Galabovo.png"
+    null
   );
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+
+  const previewUrl = useMemo(() => {
+    if (filePreviewUrl) return filePreviewUrl;
+    if (remoteFileUrl) return remoteFileUrl;
+    if (uploadedFile) {
+      try {
+        return URL.createObjectURL(uploadedFile);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }, [filePreviewUrl, remoteFileUrl, uploadedFile]);
+
   const [selectedSponsorIds, setSelectedSponsorIds] = useState<string[]>(() =>
     sponsors.filter((s) => s.isActive).map((s) => s.id)
   );
@@ -510,53 +528,107 @@ export function UploadVoucherTab({
                 </div>
               </button>
             ) : (
-              <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300">
-                    {fileType === "pdf" ? (
-                      <FileText className="size-6" />
-                    ) : (
-                      <ImageIcon className="size-6" />
-                    )}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300">
+                      {fileType === "pdf" ? (
+                        <FileText className="size-6" />
+                      ) : (
+                        <ImageIcon className="size-6" />
+                      )}
+                    </div>
+                    <div className="min-w-0 space-y-0.5">
+                      <p className="truncate text-xs font-bold text-zinc-900 dark:text-white">
+                        {uploadedFile.name}
+                      </p>
+                      <p className="text-[11px] text-zinc-400">
+                        {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB •{" "}
+                        {fileType === "pdf" ? "PDF Документ" : "Изображение"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 space-y-0.5">
-                    <p className="truncate text-xs font-bold text-zinc-900 dark:text-white">
-                      {uploadedFile.name}
-                    </p>
-                    <p className="text-[11px] text-zinc-400">
-                      {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB •{" "}
-                      {fileType === "pdf" ? "PDF Документ" : "Изображение"}
-                    </p>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => voucherFileInputRef.current?.click()}
+                      className="h-8 rounded-xl text-xs"
+                    >
+                      Смени
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setUploadedFile(null);
+                        setFilePreviewUrl(null);
+                        setRemoteFileUrl(null);
+                        if (voucherFileInputRef.current) {
+                          voucherFileInputRef.current.value = "";
+                        }
+                      }}
+                      className="size-8 rounded-xl text-zinc-400 hover:text-red-500"
+                    >
+                      <X className="size-4" />
+                    </Button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => voucherFileInputRef.current?.click()}
-                    className="h-8 rounded-xl text-xs"
-                  >
-                    Смени
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setUploadedFile(null);
-                      setFilePreviewUrl(null);
-                      setRemoteFileUrl(null);
-                      if (voucherFileInputRef.current) {
-                        voucherFileInputRef.current.value = "";
-                      }
-                    }}
-                    className="size-8 rounded-xl text-zinc-400 hover:text-red-500"
-                  >
-                    <X className="size-4" />
-                  </Button>
-                </div>
+                {/* Live Document Visualizer Box */}
+                {previewUrl && (
+                  <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-950/5 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                    <div className="flex items-center justify-between pb-2 text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                      <span className="flex items-center gap-1.5">
+                        <Eye className="size-4 text-blue-600" />
+                        Визуализация на документа:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsDocumentModalOpen(true)}
+                          className="h-7 gap-1 rounded-lg text-[11px]"
+                        >
+                          <Maximize2 className="size-3" />
+                          Цял екран
+                        </Button>
+                        <a
+                          href={previewUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex h-7 items-center gap-1 rounded-lg bg-zinc-100 px-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                        >
+                          <ExternalLink className="size-3" />
+                          Нов таб
+                        </a>
+                      </div>
+                    </div>
+
+                    {fileType === "pdf" ? (
+                      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-inner dark:border-zinc-800">
+                        <iframe
+                          src={previewUrl}
+                          title="PDF Преглед"
+                          className="h-80 w-full border-0"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex max-h-80 w-full items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-zinc-900 p-2 dark:border-zinc-800">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={previewUrl}
+                          alt="Качен документ"
+                          className="max-h-76 w-auto rounded-lg object-contain shadow-lg"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </Card>
@@ -943,15 +1015,28 @@ export function UploadVoucherTab({
                       onChange={handleInstitutionLogoUpload}
                       className="hidden"
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => institutionLogoInputRef.current?.click()}
-                      className="h-7 rounded-lg text-[11px]"
-                    >
-                      {institutionLogoUrl ? "Смени лого" : "Качи лого"}
-                    </Button>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => institutionLogoInputRef.current?.click()}
+                        className="h-7 rounded-lg text-[11px]"
+                      >
+                        {institutionLogoUrl ? "Смени лого" : "Качи лого"}
+                      </Button>
+                      {institutionLogoUrl && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setInstitutionLogoUrl(null)}
+                          className="h-7 px-2 text-[11px] text-zinc-400 hover:text-red-500"
+                        >
+                          Премахни
+                        </Button>
+                      )}
+                    </div>
                     <p className="text-[10px] text-zinc-400">
                       Училище или община
                     </p>
@@ -1113,6 +1198,7 @@ export function UploadVoucherTab({
                       height={32}
                       className="size-full object-contain"
                       unoptimized
+                      onError={() => setInstitutionLogoUrl(null)}
                     />
                   </div>
                 )}
@@ -1168,20 +1254,30 @@ export function UploadVoucherTab({
                   )}
                 </div>
 
-                {/* Document Thumbnail Preview */}
-                {filePreviewUrl ? (
+                {/* Document Thumbnail / Live Preview */}
+                {previewUrl ? (
                   <div className="space-y-2 rounded-2xl border border-zinc-200 bg-zinc-100/50 p-2 dark:border-zinc-800 dark:bg-zinc-950">
                     <div className="flex items-center justify-between px-2 pt-1 text-[11px] font-bold text-zinc-600 dark:text-zinc-400">
-                      <span>📎 Качен файл:</span>
-                      <span className="truncate text-[10px] text-zinc-400">
-                        {uploadedFile?.name}
+                      <span className="flex items-center gap-1.5">
+                        <FileCheck className="size-3.5 text-emerald-600" />
+                        Визуализация на документа:
                       </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsDocumentModalOpen(true)}
+                        className="h-6 gap-1 px-2 text-[10px] font-bold text-blue-600 hover:text-blue-700"
+                      >
+                        <Maximize2 className="size-3" />
+                        Цял екран
+                      </Button>
                     </div>
 
                     {fileType === "image" ? (
                       <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800">
                         <Image
-                          src={filePreviewUrl}
+                          src={previewUrl}
                           alt="Voucher Preview"
                           fill
                           className="object-contain"
@@ -1189,13 +1285,25 @@ export function UploadVoucherTab({
                         />
                       </div>
                     ) : (
-                      <div className="flex h-32 w-full flex-col items-center justify-center gap-2 rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
-                        <FileText className="size-10" />
-                        <span className="text-xs font-bold">
-                          PDF Документ готов за валидация
-                        </span>
+                      <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-inner dark:border-zinc-800">
+                        <iframe
+                          src={`${previewUrl}#toolbar=0`}
+                          title="PDF Preview"
+                          className="h-64 w-full border-0"
+                        />
                       </div>
                     )}
+
+                    <div className="flex items-center justify-between px-1 text-[10px] text-zinc-500">
+                      <span className="truncate">
+                        {uploadedFile?.name || "Дигитален ваучер"}
+                      </span>
+                      {uploadedFile?.size ? (
+                        <span>
+                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 ) : (
                   <div className="flex h-24 flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 text-center text-xs text-zinc-400 dark:border-zinc-800 dark:bg-zinc-950/30">
@@ -1373,6 +1481,55 @@ export function UploadVoucherTab({
                 <ChevronRight className="ml-1 size-3.5" />
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* 4. Fullscreen Document View Modal */}
+      {previewUrl && (
+        <Dialog
+          open={isDocumentModalOpen}
+          onOpenChange={setIsDocumentModalOpen}
+        >
+          <DialogContent className="max-w-4xl rounded-3xl p-4 sm:p-6">
+            <DialogHeader className="flex flex-row items-center justify-between border-b pb-3">
+              <div>
+                <DialogTitle className="text-base font-bold">
+                  {uploadedFile?.name || "Преглед на документа"}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-zinc-500">
+                  {fileType === "pdf" ? "PDF Документ" : "Графично изображение"}
+                </DialogDescription>
+              </div>
+              <a
+                href={previewUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mr-6 inline-flex h-8 items-center gap-1.5 rounded-xl bg-zinc-100 px-3 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+              >
+                <ExternalLink className="size-3.5" />
+                <span>Отвори в нов таб</span>
+              </a>
+            </DialogHeader>
+
+            <div className="mt-4 flex max-h-[75vh] w-full items-center justify-center overflow-auto rounded-2xl bg-zinc-100 p-2 dark:bg-zinc-950">
+              {fileType === "pdf" ? (
+                <iframe
+                  src={previewUrl}
+                  title="PDF Fullscreen"
+                  className="h-[70vh] w-full rounded-xl border border-zinc-200 bg-white"
+                />
+              ) : (
+                <div className="flex w-full items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={previewUrl}
+                    alt="Документ"
+                    className="max-h-[70vh] w-auto rounded-xl object-contain shadow-md"
+                  />
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       )}
