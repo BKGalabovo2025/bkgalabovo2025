@@ -29,6 +29,16 @@ export async function getAllMembersServer(siteId?: string): Promise<Member[]> {
       (a.lastName || "").localeCompare(b.lastName || "", "bg")
     );
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    const isQuota =
+      msg.includes("RESOURCE_EXHAUSTED") || msg.includes("Quota exceeded");
+    if (isQuota) {
+      // Quota изчерпана — връщаме [] мълчаливо (MembersPage показва fallback UI)
+      console.warn(
+        "[member-service] Firestore quota exhausted — returning empty members list"
+      );
+      return [];
+    }
     console.error("Error fetching members on server:", error);
     throw error;
   }

@@ -154,351 +154,431 @@ export async function getDashboardDataServerAction(activeBranch: string) {
     const cacheKey = `dashboard:${activeBranch}:${todayKey}`;
     const TTL_MS = 5 * 60 * 1000; // 5 minutes — reduces repeat reads and saves Firebase Quota
 
+    // Празни данни по подразбиране — връщат се при quota exhaustion
+    const EMPTY_DASHBOARD = {
+      success: true,
+      data: {
+        stats: {
+          totalMembers: 0,
+          activeMembersCount: 0,
+          totalRevenue: {},
+          unpaidSales: 0,
+          revenueLast30Days: 0,
+          revenueCurrentMonth: 0,
+          revenueChange: 0,
+          newMembersCount: 0,
+          newMembersLast30Days: 0,
+          newMembersChange: 0,
+          salesLast30Days: 0,
+          salesChange: 0,
+          lowStockCount: 0,
+          lowStockProducts: [],
+          trainingsToday: 0,
+          totalGuests: 0,
+          totalFamilies: 0,
+          totalClubMembers: 0,
+          totalRecovery: 0,
+          inactiveMembersCount: 0,
+          revenueTrainings: 0,
+          revenueServices: 0,
+          revenueCourts: 0,
+          revenueRecovery: 0,
+          revenueShop: 0,
+          revenueCamps: 0,
+          todayTrainingsCount: 0,
+          todayCompetitionsCount: 0,
+          todayCampsCount: 0,
+          todayOtherEventsCount: 0,
+          todayEventsCount: 0,
+          todayRecoveryCount: 0,
+          todayCourtCount: 0,
+          todayEventsList: [],
+        },
+        revenueChartData: [],
+        reminders: [],
+        recentSales: [],
+        todayTrainings: [],
+      },
+      quotaExhausted: true,
+    };
+
     return await serverCache.get(
       cacheKey,
+      // eslint-disable-next-line sonarjs/cognitive-complexity
       async () => {
-        // Base collection references
-        const siteFilter = activeBranch && activeBranch !== "bkgalabovo";
+        // ВЪТРЕШЕН try/catch — никога не хвърляме нагоре от fetchFn
+        try {
+          // Base collection references
+          const siteFilter = activeBranch && activeBranch !== "bkgalabovo";
 
-        const col = (name: string): admin.firestore.Query => {
-          const ref = adminDb.collection(name);
-          if (name === "members" || name === "families") {
-            return ref;
-          }
-          return siteFilter ? ref.where("siteId", "==", activeBranch) : ref;
-        };
+          const col = (name: string): admin.firestore.Query => {
+            const ref = adminDb.collection(name);
+            if (name === "members" || name === "families") {
+              return ref;
+            }
+            return siteFilter ? ref.where("siteId", "==", activeBranch) : ref;
+          };
 
-        // в”Ђв”Ђ AGGREGATION QUERIES (count only вЂ” each costs 1 read) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-        const [
-          totalMembersCount,
-          activeMembersCount,
-          newMembersThisMonthCount,
-          newMembersPrevMonthCount,
-          unpaidSalesCount,
-          trainingsCount,
-          guestsCount,
-          familiesCount,
-          recoveryMembersCount,
-        ] = await Promise.all([
-          col("members").count().get(),
-          col("members").where("status", "==", "active").count().get(),
-          col("members")
-            .where("registrationDate", ">=", thirtyDaysAgoStr)
-            .count()
-            .get(),
-          col("members")
-            .where("registrationDate", ">=", sixtyDaysAgoStr)
-            .where("registrationDate", "<", thirtyDaysAgoStr)
-            .count()
-            .get(),
-          // Count sales that are NOT completed (pending/overdue)
-          col("sales").where("status", "==", "pending").count().get(),
-          col("events")
-            .where("startDate", ">=", startStr)
-            .where("startDate", "<=", endStr)
-            .where("type", "==", "training")
-            .count()
-            .get(),
-          col("members").where("isGuest", "==", true).count().get(),
-          col("families").count().get(),
-          col("members").where("isRecoveryMember", "==", true).count().get(),
-        ]);
+          // в”Ђв”Ђ AGGREGATION QUERIES (count only вЂ” each costs 1 read) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
+          const [
+            totalMembersCount,
+            activeMembersCount,
+            newMembersThisMonthCount,
+            newMembersPrevMonthCount,
+            unpaidSalesCount,
+            trainingsCount,
+            guestsCount,
+            familiesCount,
+            recoveryMembersCount,
+          ] = await Promise.all([
+            col("members").count().get(),
+            col("members").where("status", "==", "active").count().get(),
+            col("members")
+              .where("registrationDate", ">=", thirtyDaysAgoStr)
+              .count()
+              .get(),
+            col("members")
+              .where("registrationDate", ">=", sixtyDaysAgoStr)
+              .where("registrationDate", "<", thirtyDaysAgoStr)
+              .count()
+              .get(),
+            // Count sales that are NOT completed (pending/overdue)
+            col("sales").where("status", "==", "pending").count().get(),
+            col("events")
+              .where("startDate", ">=", startStr)
+              .where("startDate", "<=", endStr)
+              .where("type", "==", "training")
+              .count()
+              .get(),
+            col("members").where("isGuest", "==", true).count().get(),
+            col("families").count().get(),
+            col("members").where("isRecoveryMember", "==", true).count().get(),
+          ]);
 
-        // в”Ђв”Ђ DOCUMENT QUERIES (only what must be displayed) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-        const adminStartOfDay = admin.firestore.Timestamp.fromDate(startOfDay);
-        const adminEndOfDay = admin.firestore.Timestamp.fromDate(endOfDay);
+          // в”Ђв”Ђ DOCUMENT QUERIES (only what must be displayed) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
+          const adminStartOfDay =
+            admin.firestore.Timestamp.fromDate(startOfDay);
+          const adminEndOfDay = admin.firestore.Timestamp.fromDate(endOfDay);
 
-        const [
-          recentSalesSnap,
-          salesFor6MonthsSnap,
-          activeMembersSnap,
-          activeSubsSnap,
-          eventsSnap,
-          productsSnap,
-          reservationsSnap,
-          recentTrainingsSnap,
-        ] = await Promise.all([
-          // Last 5 sales for the "Recent Sales" widget
-          col("sales").orderBy("saleDate", "desc").limit(5).get(),
+          const [
+            recentSalesSnap,
+            salesFor6MonthsSnap,
+            activeMembersSnap,
+            activeSubsSnap,
+            eventsSnap,
+            productsSnap,
+            reservationsSnap,
+            recentTrainingsSnap,
+          ] = await Promise.all([
+            // Last 5 sales for the "Recent Sales" widget
+            col("sales").orderBy("saleDate", "desc").limit(5).get(),
 
-          // Up to 6 months of completed+paid sales for revenue stats & chart
-          col("sales").where("status", "==", "completed").limit(500).get(),
+            // Up to 6 months of completed+paid sales for revenue stats & chart
+            col("sales").where("status", "==", "completed").limit(500).get(),
 
-          // Active members (needed for overdue reminder generation)
-          col("members").where("status", "==", "active").limit(300).get(),
+            // Active members (needed for overdue reminder generation)
+            col("members").where("status", "==", "active").limit(300).get(),
 
-          // Unpaid sales (needed for overdue check)
-          col("sales").where("isPaid", "==", false).limit(300).get(),
+            // Unpaid sales (needed for overdue check)
+            col("sales").where("isPaid", "==", false).limit(300).get(),
 
-          // Today's events for display
-          col("events")
-            .where("startDate", ">=", startStr)
-            .where("startDate", "<=", endStr)
-            .limit(30)
-            .get(),
+            // Today's events for display
+            col("events")
+              .where("startDate", ">=", startStr)
+              .where("startDate", "<=", endStr)
+              .limit(30)
+              .get(),
 
-          // Products (small collection, needed for low-stock list)
-          col("products").limit(200).get(),
+            // Products (small collection, needed for low-stock list)
+            col("products").limit(200).get(),
 
-          // Today's reservations (both court and recovery)
-          col("reservations")
-            .where("startTime", ">=", adminStartOfDay)
-            .where("startTime", "<=", adminEndOfDay)
-            .limit(100)
-            .get(),
+            // Today's reservations (both court and recovery)
+            col("reservations")
+              .where("startTime", ">=", adminStartOfDay)
+              .where("startTime", "<=", adminEndOfDay)
+              .limit(100)
+              .get(),
 
-          // Recent trainings for unpaid attendance tracking (last 60 days up to today)
-          col("events")
-            .where("startDate", ">=", sixtyDaysAgoStr)
-            .where("startDate", "<=", endStr)
-            .where("type", "==", "training")
-            .get(),
-        ]);
+            // Recent trainings for unpaid attendance tracking (last 60 days up to today)
+            col("events")
+              .where("startDate", ">=", sixtyDaysAgoStr)
+              .where("startDate", "<=", endStr)
+              .where("type", "==", "training")
+              .get(),
+          ]);
 
-        // Map documents
-        const recentSales = recentSalesSnap.docs.map((d) =>
-          snapToData<Sale>(d)
-        );
-        const salesFor6Months = salesFor6MonthsSnap.docs
-          .map((d) => snapToData<Sale>(d))
-          .filter((s): s is Sale => s !== null)
-          .filter((s) => new Date(s.saleDate) >= sixMonthsAgo)
-          .sort(
-            (a, b) =>
-              new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+          // Map documents
+          const recentSales = recentSalesSnap.docs.map((d) =>
+            snapToData<Sale>(d)
           );
-        const activeMembers = activeMembersSnap.docs.map((d) =>
-          snapToData<Member>(d)
-        );
-        const unpaidSales = activeSubsSnap.docs.map((d) => snapToData<Sale>(d));
-        const events = eventsSnap.docs.map((d) => snapToData<ScheduleEvent>(d));
-        const reservations = reservationsSnap.docs.map((d) =>
-          snapToData<any>(d)
-        );
-        const recentTrainings = recentTrainingsSnap.docs.map((d) =>
-          snapToData<ScheduleEvent>(d)
-        );
+          const salesFor6Months = salesFor6MonthsSnap.docs
+            .map((d) => snapToData<Sale>(d))
+            .filter((s): s is Sale => s !== null)
+            .filter((s) => new Date(s.saleDate) >= sixMonthsAgo)
+            .sort(
+              (a, b) =>
+                new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+            );
+          const activeMembers = activeMembersSnap.docs.map((d) =>
+            snapToData<Member>(d)
+          );
+          const unpaidSales = activeSubsSnap.docs.map((d) =>
+            snapToData<Sale>(d)
+          );
+          const events = eventsSnap.docs.map((d) =>
+            snapToData<ScheduleEvent>(d)
+          );
+          const reservations = reservationsSnap.docs.map((d) =>
+            snapToData<any>(d)
+          );
+          const recentTrainings = recentTrainingsSnap.docs.map((d) =>
+            snapToData<ScheduleEvent>(d)
+          );
 
-        // Sort events by start date
-        const sortedEvents = [...events].sort(
-          (a, b) =>
-            new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-        );
+          // Sort events by start date
+          const sortedEvents = [...events].sort(
+            (a, b) =>
+              new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+          );
 
-        const todayTrainingsCount = events.filter(
-          (e) => e.type === "training"
-        ).length;
-        const todayCompetitionsCount = events.filter(
-          (e) => e.type === "competition"
-        ).length;
-        const todayCampsCount = events.filter((e) => e.type === "camp").length;
-        const todayOtherEventsCount = events.filter(
-          (e) =>
-            e.type !== "training" &&
-            e.type !== "competition" &&
-            e.type !== "camp"
-        ).length;
-        const todayEventsCount = events.length;
+          const todayTrainingsCount = events.filter(
+            (e) => e.type === "training"
+          ).length;
+          const todayCompetitionsCount = events.filter(
+            (e) => e.type === "competition"
+          ).length;
+          const todayCampsCount = events.filter(
+            (e) => e.type === "camp"
+          ).length;
+          const todayOtherEventsCount = events.filter(
+            (e) =>
+              e.type !== "training" &&
+              e.type !== "competition" &&
+              e.type !== "camp"
+          ).length;
+          const todayEventsCount = events.length;
 
-        const todayRecoveryCount = reservations.filter(
-          (r) => !r.courtId
-        ).length;
-        const todayCourtCount = reservations.filter((r) => r.courtId).length;
+          const todayRecoveryCount = reservations.filter(
+            (r) => !r.courtId
+          ).length;
+          const todayCourtCount = reservations.filter((r) => r.courtId).length;
 
-        const allProducts = productsSnap.docs.map((d) => snapToData<any>(d));
+          const allProducts = productsSnap.docs.map((d) => snapToData<any>(d));
 
-        // Low-stock products (client-side filter вЂ” products collection is small)
-        const lowStockProducts = allProducts.filter((p) => {
-          const threshold =
-            typeof p.restockThreshold === "number" ? p.restockThreshold : 5;
-          return p.stock <= threshold;
-        });
+          // Low-stock products (client-side filter вЂ” products collection is small)
+          const lowStockProducts = allProducts.filter((p) => {
+            const threshold =
+              typeof p.restockThreshold === "number" ? p.restockThreshold : 5;
+            return p.stock <= threshold;
+          });
 
-        // Revenue calculations for current calendar month (excluding camp fees, which belong to camps module)
-        const calcRevenue = (list: Sale[]) =>
-          list
-            .filter((s) => s.isPaid === true && s.type !== "camp_fee")
+          // Revenue calculations for current calendar month (excluding camp fees, which belong to camps module)
+          const calcRevenue = (list: Sale[]) =>
+            list
+              .filter((s) => s.isPaid === true && s.type !== "camp_fee")
+              .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+          const salesCurrentMonth = salesFor6Months.filter(
+            (s) => new Date(s.saleDate) >= startOfMonth && s.type !== "camp_fee"
+          );
+          const salesPrevMonth = salesFor6Months.filter(
+            (s) =>
+              new Date(s.saleDate) >= startOfPrevMonth &&
+              new Date(s.saleDate) < startOfMonth &&
+              s.type !== "camp_fee"
+          );
+
+          const revenueCurrentMonth = calcRevenue(salesCurrentMonth);
+          const revenuePrevMonth = calcRevenue(salesPrevMonth);
+          const revenueChange =
+            revenuePrevMonth > 0
+              ? ((revenueCurrentMonth - revenuePrevMonth) / revenuePrevMonth) *
+                100
+              : revenueCurrentMonth > 0
+                ? 100
+                : 0;
+
+          const revenueTrainings = salesCurrentMonth
+            .filter((s) => s.isPaid === true && s.type === "training_service")
             .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const salesCurrentMonth = salesFor6Months.filter(
-          (s) => new Date(s.saleDate) >= startOfMonth && s.type !== "camp_fee"
-        );
-        const salesPrevMonth = salesFor6Months.filter(
-          (s) =>
-            new Date(s.saleDate) >= startOfPrevMonth &&
-            new Date(s.saleDate) < startOfMonth &&
-            s.type !== "camp_fee"
-        );
+          const revenueCourts = salesCurrentMonth
+            .filter(
+              (s) =>
+                s.isPaid === true &&
+                s.type === "general_service" &&
+                s.items?.some((i) => i.productId?.startsWith("court_rental_"))
+            )
+            .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const revenueCurrentMonth = calcRevenue(salesCurrentMonth);
-        const revenuePrevMonth = calcRevenue(salesPrevMonth);
-        const revenueChange =
-          revenuePrevMonth > 0
-            ? ((revenueCurrentMonth - revenuePrevMonth) / revenuePrevMonth) *
-              100
-            : revenueCurrentMonth > 0
-              ? 100
-              : 0;
-
-        const revenueTrainings = salesCurrentMonth
-          .filter((s) => s.isPaid === true && s.type === "training_service")
-          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
-
-        const revenueCourts = salesCurrentMonth
-          .filter(
-            (s) =>
-              s.isPaid === true &&
-              s.type === "general_service" &&
-              s.items?.some((i) => i.productId?.startsWith("court_rental_"))
-          )
-          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
-
-        const revenueRecovery = salesCurrentMonth
-          .filter(
-            (s) =>
-              s.isPaid === true &&
-              s.type === "general_service" &&
-              s.items?.some((i) => i.productId?.startsWith("recovery_session_"))
-          )
-          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
-
-        const revenueServices = salesCurrentMonth
-          .filter(
-            (s) =>
-              s.isPaid === true &&
-              s.type === "general_service" &&
-              !s.items?.some(
-                (i) =>
-                  i.productId?.startsWith("court_rental_") ||
+          const revenueRecovery = salesCurrentMonth
+            .filter(
+              (s) =>
+                s.isPaid === true &&
+                s.type === "general_service" &&
+                s.items?.some((i) =>
                   i.productId?.startsWith("recovery_session_")
-              )
-          )
-          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+                )
+            )
+            .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const revenueShop = salesCurrentMonth
-          .filter(
-            (s) => s.isPaid === true && (s.type === "inventory" || !s.type)
-          )
-          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+          const revenueServices = salesCurrentMonth
+            .filter(
+              (s) =>
+                s.isPaid === true &&
+                s.type === "general_service" &&
+                !s.items?.some(
+                  (i) =>
+                    i.productId?.startsWith("court_rental_") ||
+                    i.productId?.startsWith("recovery_session_")
+                )
+            )
+            .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const revenueCamps = salesFor6Months
-          .filter(
-            (s) =>
-              s.isPaid === true &&
-              s.type === "camp_fee" &&
-              new Date(s.saleDate) >= startOfMonth
-          )
-          .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+          const revenueShop = salesCurrentMonth
+            .filter(
+              (s) => s.isPaid === true && (s.type === "inventory" || !s.type)
+            )
+            .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
 
-        const totalRevenue = salesFor6Months
-          .filter((s) => s.isPaid === true && s.type !== "camp_fee")
-          .reduce(
-            (acc, s) => {
-              const cur = s.currency || "EUR";
-              acc[cur] = (acc[cur] || 0) + (s.totalAmount || 0);
-              return acc;
+          const revenueCamps = salesFor6Months
+            .filter(
+              (s) =>
+                s.isPaid === true &&
+                s.type === "camp_fee" &&
+                new Date(s.saleDate) >= startOfMonth
+            )
+            .reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+          const totalRevenue = salesFor6Months
+            .filter((s) => s.isPaid === true && s.type !== "camp_fee")
+            .reduce(
+              (acc, s) => {
+                const cur = s.currency || "EUR";
+                acc[cur] = (acc[cur] || 0) + (s.totalAmount || 0);
+                return acc;
+              },
+              {} as Record<string, number>
+            );
+
+          const salesCountCurrentMonth = salesCurrentMonth.length;
+          const salesCountPrevMonth = salesPrevMonth.length;
+          const salesChange =
+            salesCountPrevMonth > 0
+              ? ((salesCountCurrentMonth - salesCountPrevMonth) /
+                  salesCountPrevMonth) *
+                100
+              : salesCountCurrentMonth > 0
+                ? 100
+                : 0;
+
+          const tMem = totalMembersCount.data().count;
+          const aMem = activeMembersCount.data().count;
+          const newMemThis = newMembersThisMonthCount.data().count;
+          const newMemPrev = newMembersPrevMonthCount.data().count;
+          const newMembersChange =
+            newMemPrev > 0
+              ? ((newMemThis - newMemPrev) / newMemPrev) * 100
+              : newMemThis > 0
+                ? 100
+                : 0;
+
+          const totalGuests = guestsCount.data().count;
+          const totalFamilies = familiesCount.data().count;
+          const totalRecovery = recoveryMembersCount.data().count;
+          const totalClubMembers = await col("members")
+            .where("isClubMember", "==", true)
+            .count()
+            .get()
+            .then((s) => s.data().count);
+
+          const stats = {
+            totalMembers: tMem,
+            activeMembersCount: aMem,
+            totalRevenue,
+            unpaidSales: unpaidSalesCount.data().count,
+            revenueLast30Days: revenueCurrentMonth,
+            revenueCurrentMonth,
+            revenueChange,
+            newMembersCount: newMemThis,
+            newMembersLast30Days: newMemThis,
+            newMembersChange,
+            salesLast30Days: salesCountCurrentMonth,
+            salesChange,
+            lowStockCount: lowStockProducts.length,
+            lowStockProducts: lowStockProducts.map((p) => ({
+              id: p.id,
+              name: p.name || "",
+              stock: p.stock || 0,
+              restockThreshold: p.restockThreshold || 0,
+            })),
+            trainingsToday: trainingsCount.data().count,
+            totalGuests,
+            totalFamilies,
+            totalClubMembers,
+            totalRecovery,
+            inactiveMembersCount: tMem - aMem,
+            revenueTrainings,
+            revenueServices,
+            revenueCourts,
+            revenueRecovery,
+            revenueShop,
+            revenueCamps,
+            todayTrainingsCount,
+            todayCompetitionsCount,
+            todayCampsCount,
+            todayOtherEventsCount,
+            todayEventsCount,
+            todayRecoveryCount,
+            todayCourtCount,
+            todayEventsList: sortedEvents.map((e) => ({
+              id: e.id,
+              title: e.title,
+              startDate: e.startDate,
+              type: e.type,
+              attendeesCount: e.attendees?.length || 0,
+            })),
+          };
+
+          const revenueChartData = getRevenueTrendData(salesFor6Months);
+          const reminders =
+            activeBranch === "recoveryzone"
+              ? []
+              : [
+                  ...getOverdueReminders(activeMembers, unpaidSales),
+                  ...getUnpaidTrainingReminders(recentTrainings),
+                ];
+
+          return {
+            success: true,
+            data: {
+              stats,
+              revenueChartData,
+              reminders,
+              recentSales,
+              todayTrainings: events.filter((e) => e.type === "training"),
             },
-            {} as Record<string, number>
-          );
-
-        const salesCountCurrentMonth = salesCurrentMonth.length;
-        const salesCountPrevMonth = salesPrevMonth.length;
-        const salesChange =
-          salesCountPrevMonth > 0
-            ? ((salesCountCurrentMonth - salesCountPrevMonth) /
-                salesCountPrevMonth) *
-              100
-            : salesCountCurrentMonth > 0
-              ? 100
-              : 0;
-
-        const tMem = totalMembersCount.data().count;
-        const aMem = activeMembersCount.data().count;
-        const newMemThis = newMembersThisMonthCount.data().count;
-        const newMemPrev = newMembersPrevMonthCount.data().count;
-        const newMembersChange =
-          newMemPrev > 0
-            ? ((newMemThis - newMemPrev) / newMemPrev) * 100
-            : newMemThis > 0
-              ? 100
-              : 0;
-
-        const totalGuests = guestsCount.data().count;
-        const totalFamilies = familiesCount.data().count;
-        const totalRecovery = recoveryMembersCount.data().count;
-        const totalClubMembers = await col("members")
-          .where("isClubMember", "==", true)
-          .count()
-          .get()
-          .then((s) => s.data().count);
-
-        const stats = {
-          totalMembers: tMem,
-          activeMembersCount: aMem,
-          totalRevenue,
-          unpaidSales: unpaidSalesCount.data().count,
-          revenueLast30Days: revenueCurrentMonth,
-          revenueCurrentMonth,
-          revenueChange,
-          newMembersCount: newMemThis,
-          newMembersLast30Days: newMemThis,
-          newMembersChange,
-          salesLast30Days: salesCountCurrentMonth,
-          salesChange,
-          lowStockCount: lowStockProducts.length,
-          lowStockProducts: lowStockProducts.map((p) => ({
-            id: p.id,
-            name: p.name || "",
-            stock: p.stock || 0,
-            restockThreshold: p.restockThreshold || 0,
-          })),
-          trainingsToday: trainingsCount.data().count,
-          totalGuests,
-          totalFamilies,
-          totalClubMembers,
-          totalRecovery,
-          inactiveMembersCount: tMem - aMem,
-          revenueTrainings,
-          revenueServices,
-          revenueCourts,
-          revenueRecovery,
-          revenueShop,
-          revenueCamps,
-          todayTrainingsCount,
-          todayCompetitionsCount,
-          todayCampsCount,
-          todayOtherEventsCount,
-          todayEventsCount,
-          todayRecoveryCount,
-          todayCourtCount,
-          todayEventsList: sortedEvents.map((e) => ({
-            id: e.id,
-            title: e.title,
-            startDate: e.startDate,
-            type: e.type,
-            attendeesCount: e.attendees?.length || 0,
-          })),
-        };
-
-        const revenueChartData = getRevenueTrendData(salesFor6Months);
-        const reminders =
-          activeBranch === "recoveryzone"
-            ? []
-            : [
-                ...getOverdueReminders(activeMembers, unpaidSales),
-                ...getUnpaidTrainingReminders(recentTrainings),
-              ];
-
-        return {
-          success: true,
-          data: {
-            stats,
-            revenueChartData,
-            reminders,
-            recentSales,
-            todayTrainings: events.filter((e) => e.type === "training"),
-          },
-        };
+          };
+        } catch (fetchErr: unknown) {
+          // Хващаме quota и всякакви Firestore грешки — НИКОГА не хвърляме нагоре
+          const errMsg =
+            fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+          const isQuota =
+            errMsg.includes("RESOURCE_EXHAUSTED") ||
+            errMsg.includes("Quota exceeded");
+          if (isQuota) {
+            console.warn(
+              "[Dashboard] Firestore quota exhausted — returning empty dashboard:",
+              errMsg
+            );
+          } else {
+            console.error(
+              "[Dashboard] Firestore fetch error — returning empty dashboard:",
+              fetchErr
+            );
+          }
+          return EMPTY_DASHBOARD;
+        }
       },
       TTL_MS
     );

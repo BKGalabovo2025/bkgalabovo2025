@@ -272,22 +272,41 @@ export async function GET(request: Request) {
       query = query.where("siteId", "==", siteId);
     }
 
-    const snapshot = await query.get();
+    try {
+      const snapshot = await query.get();
 
-    const inquiries = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+      const inquiries = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-    // Sort descending by createdAt
-    inquiries.sort(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (a: any, b: any) =>
-        new Date(b.createdAt || 0).getTime() -
-        new Date(a.createdAt || 0).getTime()
-    );
+      // Sort descending by createdAt
+      inquiries.sort(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (a: any, b: any) =>
+          new Date(b.createdAt || 0).getTime() -
+          new Date(a.createdAt || 0).getTime()
+      );
 
-    return NextResponse.json({ inquiries, siteId });
+      return NextResponse.json({ inquiries, siteId });
+    } catch (dbError: unknown) {
+      const dbMsg =
+        dbError instanceof Error ? dbError.message : String(dbError);
+      const isQuota =
+        dbMsg.includes("RESOURCE_EXHAUSTED") ||
+        dbMsg.includes("Quota exceeded");
+      if (isQuota) {
+        console.warn(
+          "[inquiries-api] Firestore quota exhausted — returning empty list"
+        );
+        return NextResponse.json({
+          inquiries: [],
+          siteId,
+          quotaExhausted: true,
+        });
+      }
+      throw dbError; // Re-throw non-quota errors to outer catch
+    }
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : "";
     if (
