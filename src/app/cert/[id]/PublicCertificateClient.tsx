@@ -469,14 +469,14 @@ export function PublicCertificateClient({
                   </span>
                 </div>
 
-                {/* 2. Prominent Validity Badge - Highly visible validity date */}
+                {/* 2. Prominent Validity Badge - Distinct without underline */}
                 {formattedValidUntil && (
-                  <div className="inline-flex items-center gap-2 rounded-xl border-2 border-amber-300/90 bg-white/95 px-4 py-1.5 shadow-xs dark:border-amber-600 dark:bg-zinc-800">
-                    <span className="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-200">
-                      Срок на валидност:{" "}
-                      <span className="font-black text-amber-950 dark:text-amber-300 underline decoration-amber-400 decoration-2 underline-offset-2">
-                        до {formattedValidUntil}
-                      </span>
+                  <div className="inline-flex items-center gap-2 rounded-2xl border border-amber-300 bg-amber-50/90 px-4 py-1.5 shadow-2xs dark:border-amber-700 dark:bg-amber-950/60">
+                    <span className="text-xs sm:text-sm font-bold text-amber-900 dark:text-amber-200">
+                      Срок на валидност:
+                    </span>
+                    <span className="rounded-lg bg-amber-200/90 px-2.5 py-0.5 text-xs sm:text-sm font-black text-amber-950 dark:bg-amber-900 dark:text-amber-100">
+                      до {formattedValidUntil}
                     </span>
                   </div>
                 )}
@@ -773,18 +773,9 @@ export function PublicCertificateClient({
                 гр. Гълъбово
               </span>
               <span>•</span>
-              <a
-                href="https://galabovo.bg"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:underline"
-              >
-                Община Гълъбово
-              </a>
-              <span>•</span>
               <Link
-                href="/"
-                className="text-blue-600 hover:underline dark:text-blue-400"
+                href={isRecoveryZone ? "/recovery-zone" : "/club"}
+                className="font-semibold text-blue-600 hover:underline dark:text-blue-400"
               >
                 Официален уебсайт
               </Link>
