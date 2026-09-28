@@ -1383,12 +1383,12 @@ export function UploadVoucherTab({
             if (!open) setIssuedSuccessCert(null);
           }}
         >
-          <DialogContent className="max-w-md rounded-3xl border-zinc-200 p-6 dark:border-zinc-800">
-            <DialogHeader className="text-center">
-              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950/60 dark:text-emerald-400">
-                <CheckCircle2 className="size-8" />
+          <DialogContent className="max-h-[92vh] w-[95vw] max-w-md overflow-x-hidden overflow-y-auto rounded-3xl border-zinc-200 p-4 shadow-2xl sm:p-5 dark:border-zinc-800">
+            <DialogHeader className="pb-1 text-center">
+              <div className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950/60 dark:text-emerald-400">
+                <CheckCircle2 className="size-6" />
               </div>
-              <DialogTitle className="mt-3 text-xl font-black text-zinc-900 dark:text-white">
+              <DialogTitle className="mt-2 text-lg font-black text-zinc-900 dark:text-white">
                 Документът е издаден успешно!
               </DialogTitle>
               <DialogDescription className="text-xs text-zinc-500">
@@ -1398,9 +1398,9 @@ export function UploadVoucherTab({
             </DialogHeader>
 
             {/* Serial & QR card */}
-            <div className="space-y-4 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 text-center dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="space-y-1">
-                <div className="text-[10px] font-bold text-zinc-400 uppercase">
+            <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-3 text-center sm:p-4 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="space-y-0.5">
+                <div className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                   Сериен номер на документа
                 </div>
                 <div className="font-mono text-xl font-black text-blue-600 dark:text-blue-400">
@@ -1413,14 +1413,14 @@ export function UploadVoucherTab({
 
               {/* QR Image */}
               {issuedSuccessCert.qrCodeDataUrl && (
-                <div className="flex justify-center">
+                <div className="flex justify-center py-0.5">
                   <div className="rounded-2xl border border-zinc-200 bg-white p-2 shadow-xs dark:border-zinc-800">
                     <Image
                       src={issuedSuccessCert.qrCodeDataUrl}
                       alt="Verification QR"
-                      width={140}
-                      height={140}
-                      className="size-36 object-contain"
+                      width={112}
+                      height={112}
+                      className="size-28 object-contain"
                       unoptimized
                     />
                   </div>
@@ -1428,7 +1428,7 @@ export function UploadVoucherTab({
               )}
 
               {/* Direct Verification Link Box */}
-              <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-900">
                 <input
                   readOnly
                   value={
@@ -1436,12 +1436,12 @@ export function UploadVoucherTab({
                       ? `${window.location.origin}/cert/${issuedSuccessCert.id}`
                       : `/cert/${issuedSuccessCert.id}`
                   }
-                  className="w-full bg-transparent px-2 font-mono text-[11px] text-zinc-600 outline-none dark:text-zinc-300"
+                  className="w-full min-w-0 bg-transparent px-2 font-mono text-[11px] text-zinc-600 outline-none dark:text-zinc-300"
                 />
                 <Button
                   size="sm"
                   onClick={handleCopyDirectLink}
-                  className="h-8 shrink-0 rounded-lg bg-blue-600 px-3 text-xs font-bold text-white hover:bg-blue-700"
+                  className="h-7 shrink-0 rounded-lg bg-blue-600 px-2.5 text-xs font-bold text-white hover:bg-blue-700"
                 >
                   {copiedLink ? (
                     <>
@@ -1459,7 +1459,7 @@ export function UploadVoucherTab({
             </div>
 
             {/* Quick Share buttons */}
-            <div className="flex items-center justify-center gap-2 pt-1">
+            <div className="grid grid-cols-3 gap-2">
               <a
                 href={`viber://forward?text=${encodeURIComponent(
                   `Официален ваучер № ${issuedSuccessCert.serialNumber} за ${issuedSuccessCert.recipient.name}: ` +
@@ -1469,7 +1469,7 @@ export function UploadVoucherTab({
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-purple-50 px-3 text-xs font-bold text-purple-700 hover:bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300"
+                className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-purple-50 px-2 text-xs font-bold text-purple-700 hover:bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300"
               >
                 <span>📱 Viber</span>
               </a>
@@ -1483,7 +1483,7 @@ export function UploadVoucherTab({
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-50 px-3 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300"
+                className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-emerald-50 px-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300"
               >
                 <span>💬 WhatsApp</span>
               </a>
@@ -1492,21 +1492,21 @@ export function UploadVoucherTab({
                 href={`/cert/${issuedSuccessCert.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-zinc-100 px-3 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-zinc-100 px-2 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
               >
                 <ExternalLink className="size-3" />
-                <span>Отвори страницата</span>
+                <span className="truncate">Отвори линк</span>
               </a>
             </div>
 
-            <DialogFooter className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-between">
+            <DialogFooter className="grid grid-cols-2 gap-2 pt-1 sm:space-x-0">
               <Button
                 variant="outline"
                 onClick={handleResetForNext}
-                className="rounded-xl text-xs font-bold"
+                className="h-9 rounded-xl text-xs font-bold"
               >
                 <Plus className="mr-1.5 size-3.5" />
-                Издай следващ ваучер
+                Издай следващ
               </Button>
 
               <Button
@@ -1514,9 +1514,9 @@ export function UploadVoucherTab({
                   setIssuedSuccessCert(null);
                   onSwitchToRegistry();
                 }}
-                className="rounded-xl bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
+                className="h-9 rounded-xl bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
               >
-                Към регистъра на издадените
+                Към регистъра
                 <ChevronRight className="ml-1 size-3.5" />
               </Button>
             </DialogFooter>
