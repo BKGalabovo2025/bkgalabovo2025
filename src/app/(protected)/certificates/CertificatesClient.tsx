@@ -107,7 +107,9 @@ export function CertificatesClient() {
           >
             <Sparkles className="mr-1.5 inline size-3.5" />
             <span>
-              {isRecoveryZone ? "Recovery Zone by ZM" : "БК Гълъбово 2025"}
+              {isRecoveryZone
+                ? "Recovery Zone by ZM"
+                : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
             </span>
           </Badge>
         </div>

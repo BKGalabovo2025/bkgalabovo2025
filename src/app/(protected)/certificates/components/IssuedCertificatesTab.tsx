@@ -1119,7 +1119,7 @@ export function IssuedCertificatesTab({
                         <h4 className="text-xs font-black text-zinc-900 dark:text-white">
                           {previewCert.siteId === "recoveryzone"
                             ? "Recovery Zone by ZM"
-                            : "БК Гълъбово 2025"}
+                            : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
                         </h4>
                         <p className="text-[10px] text-zinc-400">
                           {previewCert.recipient.institution ||

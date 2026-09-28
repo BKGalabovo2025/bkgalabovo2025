@@ -3,7 +3,6 @@
 
 import confetti from "canvas-confetti";
 import {
-  Bookmark,
   Check,
   CheckCircle2,
   CheckSquare,
@@ -20,7 +19,6 @@ import {
   Maximize2,
   Plus,
   Printer,
-  Save,
   ShieldCheck,
   Sparkles,
   Square,
@@ -31,13 +29,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -57,11 +49,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
 import { useMembers } from "@/hooks/useMembers";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
-import { certificateTemplateService } from "@/services/certificate-template-service";
 import { uploadFile } from "@/services/storage-service";
 import {
-  CertificateTemplate,
-  CertificateTemplateCreateInput,
   CertificateType,
   IssueCertificateInput,
   IssuedCertificate,
@@ -122,14 +111,10 @@ export function UploadVoucherTab({
     Array<{ name: string; logoUrl: string }>
   >([]);
 
-  // --- Template Management State ---
-  const [savedTemplates, setSavedTemplates] = useState<CertificateTemplate[]>(
-    []
+  // --- Active Studio Step (1: Създай шаблон -> 2: Издай за деца) ---
+  const [activeStep, setActiveStep] = useState<"template" | "issue">(
+    "template"
   );
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
-  const [templateTitleInput, setTemplateTitleInput] = useState("");
-  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
 
   // --- Recipient Issuance Modes ---
   const [targetMode, setTargetMode] = useState<IssuanceTargetMode>("single");
@@ -205,121 +190,18 @@ export function UploadVoucherTab({
     return null;
   }, [filePreviewUrl, remoteFileUrl, uploadedFile]);
 
-  // Load Saved Templates
-  const loadTemplates = useCallback(async () => {
-    try {
-      const data = await certificateTemplateService.getTemplates(siteId);
-      setSavedTemplates(data || []);
-    } catch (err) {
-      console.warn("Could not load templates:", err);
-    }
-  }, [siteId]);
-
-  useEffect(() => {
-    loadTemplates();
-  }, [loadTemplates]);
-
-  // Select / Apply Template
-  const handleSelectTemplate = (templateId: string) => {
-    setSelectedTemplateId(templateId);
-    if (!templateId) return;
-    const found = savedTemplates.find((t) => t.id === templateId);
-    if (!found) return;
-
-    setDocType(found.type);
-    if (found.defaultPurpose) {
-      setPurpose(found.defaultPurpose);
-    } else if (found.description) {
-      setPurpose(found.description);
-    }
-    if (found.recipientInstitution) {
-      setRecipientInstitution(found.recipientInstitution);
-    }
-    if (found.defaultTotalSessions) {
-      setTotalSessions(found.defaultTotalSessions);
-    }
-    if (found.uploadedDocument?.fileUrl) {
-      setRemoteFileUrl(found.uploadedDocument.fileUrl);
-      setFileType(found.uploadedDocument.fileType);
-    }
-    if (
-      found.visualConfig?.selectedSponsorIds &&
-      found.visualConfig.selectedSponsorIds.length > 0
-    ) {
-      setSelectedSponsorIds(found.visualConfig.selectedSponsorIds);
-    }
-    if (found.branding?.clubLogoUrl) {
-      setClubLogoUrl(found.branding.clubLogoUrl);
-    }
-    toast.info(`Зареден шаблон: „${found.title}“`);
-  };
-
-  // Save current setup as a reusable template
-  const handleSaveCurrentAsTemplate = async () => {
-    const title =
-      templateTitleInput.trim() ||
-      `${docType === "voucher" ? "Ваучер" : "Грамота"} – ${recipientInstitution || "Образователна институция"}`;
-    try {
-      setIsSavingTemplate(true);
-      const activeSponsors = sponsors.filter((s) =>
-        selectedSponsorIds.includes(s.id)
+  // Proceed from Template Creation to Issuance Step
+  const handleProceedToIssuance = () => {
+    if (!uploadedFile && !remoteFileUrl && !previewUrl) {
+      toast.warning(
+        "Моля, първо качете документ (ваучер, грамота или сертификат)!"
       );
-
-      const payload: CertificateTemplateCreateInput = {
-        title,
-        type: docType,
-        description: purpose,
-        status: "approved",
-        defaultValidityDays:
-          validityMode === "30" ? 30 : validityMode === "60" ? 60 : undefined,
-        defaultTotalSessions: docType === "voucher" ? totalSessions : undefined,
-        uploadedDocument: remoteFileUrl
-          ? {
-              fileUrl: remoteFileUrl,
-              fileType,
-              fileName: uploadedFile?.name,
-              fileSize: uploadedFile?.size,
-            }
-          : undefined,
-        recipientInstitution,
-        defaultPurpose: purpose,
-        branding: {
-          clubLogoUrl: clubLogoUrl || defaultClubLogo,
-          partnerLogos: activeSponsors.map((s) => ({
-            name: s.name,
-            logoUrl: s.logoUrl,
-            websiteUrl: s.websiteUrl,
-          })),
-        },
-        visualConfig: {
-          layoutTemplate: "sports_voucher",
-          orientation: "landscape",
-          themeColor: "#1E3A8A",
-          secondaryColor: "#D97706",
-          backgroundColor: "#FFFFFF",
-          frameStyle: "classic_gold",
-          selectedSponsorIds,
-          signatoryName: "Димитър Иванов",
-          signatoryTitle: "Председател на БК Гълъбово",
-          showBadge: true,
-        },
-      };
-
-      const newId = await certificateTemplateService.createTemplate(
-        siteId,
-        payload
-      );
-      toast.success(`Шаблонът „${title}“ е запазен успешно!`);
-      setIsSaveModalOpen(false);
-      setTemplateTitleInput("");
-      await loadTemplates();
-      setSelectedTemplateId(newId);
-    } catch (err) {
-      console.error(err);
-      toast.error("Грешка при запис на шаблона.");
-    } finally {
-      setIsSavingTemplate(false);
+      return;
     }
+    toast.success(
+      `Шаблонът за ${recipientInstitution || "събитието"} е готов! Зареден е табът за издаване.`
+    );
+    setActiveStep("issue");
   };
 
   // Filtered members for single pick
@@ -482,7 +364,7 @@ export function UploadVoucherTab({
     validUntilIso?: string
   ): Promise<IssuedCertificate> => {
     const input: IssueCertificateInput = {
-      templateId: selectedTemplateId || "uploaded_voucher",
+      templateId: "uploaded_voucher",
       type: docType,
       recipient: {
         memberId: recipient.memberId,
@@ -727,879 +609,932 @@ export function UploadVoucherTab({
   return (
     <div className="space-y-6">
       {/* ===================================================================== */}
-      {/* TEMPLATE ACTION BAR: Quick Load or Save Current Configuration         */}
       {/* ===================================================================== */}
-      <div className="flex flex-col gap-2.5 rounded-2xl border border-blue-200/80 bg-blue-50/50 p-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-blue-900/50 dark:bg-blue-950/30">
-        <div className="flex items-center gap-2.5">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
-            <Bookmark className="size-4" />
-          </span>
-          <div>
-            <span className="block text-xs sm:text-sm font-black text-zinc-900 dark:text-white">
-              Шаблони за кампания & училища
-            </span>
-            <span className="text-[11px] text-zinc-500">
-              Заредете съхранен шаблон за секунди или запазете текущите
-              настройки
-            </span>
-          </div>
-        </div>
+      {/* 2-STEP STUDIO WORKFLOW: 1. Създай шаблон -> 2. Издай за децата        */}
+      {/* ===================================================================== */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-2xl border border-zinc-200 bg-zinc-100/90 p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+        <button
+          type="button"
+          onClick={() => setActiveStep("template")}
+          className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
+            activeStep === "template"
+              ? "bg-white text-blue-600 shadow-xs dark:bg-zinc-800 dark:text-white"
+              : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+          }`}
+        >
+          <FileText className="size-4 shrink-0" />
+          <span>1. 🎨 Създай шаблон на документа</span>
+        </button>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {savedTemplates.length > 0 && (
-            <div className="relative">
-              <select
-                value={selectedTemplateId}
-                onChange={(e) => handleSelectTemplate(e.target.value)}
-                className="h-8.5 rounded-xl border border-zinc-200 bg-white px-3 pr-8 text-xs font-bold text-zinc-700 shadow-2xs transition-colors hover:border-blue-400 focus:outline-hidden dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
-              >
-                <option value="">📂 Зареди готов шаблон...</option>
-                {savedTemplates.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setTemplateTitleInput(
-                `${docType === "voucher" ? "Ваучер" : "Грамота"} – ${recipientInstitution || "Образователна институция"}`
+        <button
+          type="button"
+          onClick={() => {
+            if (!uploadedFile && !remoteFileUrl && !previewUrl) {
+              toast.warning(
+                "Моля, първо качете документ (ваучер или грамота) в Стъпка 1."
               );
-              setIsSaveModalOpen(true);
-            }}
-            className="h-8.5 gap-1.5 rounded-xl border-blue-300 bg-white px-3 text-xs font-bold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-300"
-          >
-            <Save className="size-3.5" />
-            Запази като шаблон
-          </Button>
-        </div>
+            }
+            setActiveStep("issue");
+          }}
+          className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
+            activeStep === "issue"
+              ? "bg-white text-emerald-600 shadow-xs dark:bg-zinc-800 dark:text-emerald-400"
+              : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+          }`}
+        >
+          <Users className="size-4 shrink-0" />
+          <span>2. 👥 Издай за деца по шаблона</span>
+          {(uploadedFile || remoteFileUrl) && (
+            <span className="ml-1 inline-flex size-2 rounded-full bg-emerald-500" />
+          )}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* LEFT COLUMN: 2 STAGES (7 cols) */}
         <div className="space-y-6 lg:col-span-7">
           {/* ================================================================= */}
-          {/* ЕТАП 1: КОНФИГУРАЦИЯ НА ШАБЛОНА                                   */}
+          {/* СТЪПКА 1: СЪЗДАВАНЕ НА ШАБЛОНА НА ДОКУМЕНТА                       */}
           {/* ================================================================= */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black tracking-wider text-blue-600 uppercase dark:text-blue-400">
-                Етап 1: Конфигурация на Шаблона (Основа)
-              </span>
-              <Badge variant="outline" className="text-[10px] font-bold">
-                Готов за преизползване
-              </Badge>
-            </div>
-
-            {/* 1.1 Upload Document */}
-            <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                <div className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
-                  <Upload className="size-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                    1. Качете готов ваучер / документ
-                  </h3>
-                  <p className="text-[11px] text-zinc-500">
-                    Поддържани формати: PDF, PNG, JPG, WEBP (до 25MB)
-                  </p>
-                </div>
+          {activeStep === "template" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black tracking-wider text-blue-600 uppercase dark:text-blue-400">
+                  Стъпка 1: Настройка на шаблона за събитието
+                </span>
+                <Badge variant="outline" className="text-[10px] font-bold">
+                  Основа за кампанията
+                </Badge>
               </div>
 
-              {!uploadedFile && !remoteFileUrl ? (
-                <div
-                  onClick={() => voucherFileInputRef.current?.click()}
-                  className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/60 p-6 text-center transition-colors hover:border-blue-500 hover:bg-blue-50/40 dark:border-zinc-700 dark:bg-zinc-950/60"
-                >
-                  <input
-                    ref={voucherFileInputRef}
-                    type="file"
-                    accept=".pdf,image/png,image/jpeg,image/webp"
-                    onChange={handleVoucherFileChange}
-                    className="hidden"
-                  />
-                  <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-white shadow-xs dark:bg-zinc-800">
-                    <FileText className="size-6 text-blue-600 dark:text-blue-400" />
+              {/* 1.1 Upload Document */}
+              <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+                    <Upload className="size-4" />
                   </div>
-                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                    Кликнете за избор на файл
-                  </span>
-                  <span className="mt-0.5 text-[11px] text-zinc-400">
-                    Дизайн на ваучера, грамотата или благодарствения лист
-                  </span>
+                  <div>
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                      1. Качете готов ваучер / документ
+                    </h3>
+                    <p className="text-[11px] text-zinc-500">
+                      Поддържани формати: PDF, PNG, JPG, WEBP (до 25MB)
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                        {fileType === "pdf" ? (
-                          <FileText className="size-5" />
-                        ) : (
-                          <ImageIcon className="size-5" />
-                        )}
+
+                {!uploadedFile && !remoteFileUrl ? (
+                  <div
+                    onClick={() => voucherFileInputRef.current?.click()}
+                    className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/60 p-6 text-center transition-colors hover:border-blue-500 hover:bg-blue-50/40 dark:border-zinc-700 dark:bg-zinc-950/60"
+                  >
+                    <input
+                      ref={voucherFileInputRef}
+                      type="file"
+                      accept=".pdf,image/png,image/jpeg,image/webp"
+                      onChange={handleVoucherFileChange}
+                      className="hidden"
+                    />
+                    <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-white shadow-xs dark:bg-zinc-800">
+                      <FileText className="size-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                      Кликнете за избор на файл
+                    </span>
+                    <span className="mt-0.5 text-[11px] text-zinc-400">
+                      Дизайн на ваучера, грамотата или благодарствения лист
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                          {fileType === "pdf" ? (
+                            <FileText className="size-5" />
+                          ) : (
+                            <ImageIcon className="size-5" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="block truncate text-xs font-bold text-zinc-900 dark:text-white">
+                            {uploadedFile?.name || "Качен файл на документа"}
+                          </span>
+                          <span className="text-[10px] text-zinc-400">
+                            {fileType === "pdf"
+                              ? "PDF Документ"
+                              : "Изображение"}
+                            {uploadedFile &&
+                              ` • ${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`}
+                          </span>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="block truncate text-xs font-bold text-zinc-900 dark:text-white">
-                          {uploadedFile?.name || "Качен файл на документа"}
-                        </span>
-                        <span className="text-[10px] text-zinc-400">
-                          {fileType === "pdf" ? "PDF Документ" : "Изображение"}
-                          {uploadedFile &&
-                            ` • ${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`}
-                        </span>
+
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          ref={voucherFileInputRef}
+                          type="file"
+                          accept=".pdf,image/png,image/jpeg,image/webp"
+                          onChange={handleVoucherFileChange}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => voucherFileInputRef.current?.click()}
+                          className="h-8 rounded-xl text-xs font-semibold"
+                        >
+                          Смени
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setUploadedFile(null);
+                            setFilePreviewUrl(null);
+                            setRemoteFileUrl(null);
+                          }}
+                          className="size-8 rounded-xl text-zinc-400 hover:text-red-500"
+                        >
+                          <X className="size-4" />
+                        </Button>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    {/* Live Visualizer Box */}
+                    {previewUrl && (
+                      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-950/5 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                        <div className="flex items-center justify-between pb-2 text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                          <span className="flex items-center gap-1.5">
+                            <Eye className="size-4 text-blue-600" />
+                            Визуализация на документа:
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setIsDocumentModalOpen(true)}
+                              className="h-7 gap-1 rounded-lg text-[11px]"
+                            >
+                              <Maximize2 className="size-3" />
+                              Цял екран
+                            </Button>
+                            <a
+                              href={previewUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex h-7 items-center gap-1 rounded-lg bg-zinc-100 px-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                            >
+                              <ExternalLink className="size-3" />
+                              Нов таб
+                            </a>
+                          </div>
+                        </div>
+
+                        {fileType === "pdf" ? (
+                          <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-inner dark:border-zinc-800">
+                            <iframe
+                              src={previewUrl}
+                              title="PDF Преглед"
+                              className="h-80 w-full border-0"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex max-h-80 w-full items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-zinc-900 p-2 dark:border-zinc-800">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={previewUrl}
+                              alt="Качен документ"
+                              className="max-h-76 w-auto rounded-lg object-contain shadow-lg"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Card>
+
+              {/* 1.2 Educational Institution */}
+              <Card className="space-y-3.5 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+                    <User className="size-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                      2. Образователна институция / Училище / Детска градина
+                    </h3>
+                    <p className="text-[11px] text-zinc-500">
+                      Показва се върху документа и определя училищната
+                      принадлежност
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Input
+                    placeholder='напр. Второ ОУ "Христо Ботев" град Гълъбово'
+                    value={recipientInstitution}
+                    onChange={(e) => setRecipientInstitution(e.target.value)}
+                    className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                  />
+
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    {PRESET_INSTITUTIONS.map((inst) => (
+                      <button
+                        key={inst}
+                        type="button"
+                        onClick={() => setRecipientInstitution(inst)}
+                        className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                          recipientInstitution === inst
+                            ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:border-blue-600 dark:bg-blue-950/60 dark:text-blue-300"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                        }`}
+                      >
+                        {inst}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-zinc-400">
+                    💡 Изберете от 4-те институции по подразбиране или изпишете
+                    ръчно друга институция директно в полето.
+                  </p>
+                </div>
+              </Card>
+
+              {/* 1.3 Purpose, Sessions, Validity */}
+              <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 dark:bg-teal-950/60 dark:text-teal-400">
+                    <Ticket className="size-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                      3. За какво е този ваучер / документ
+                    </h3>
+                    <p className="text-[11px] text-zinc-500">
+                      Услуга, брой безплатни тренировки и срок за ползване
+                    </p>
+                  </div>
+                </div>
+
+                {/* Document Type Selector */}
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                  {[
+                    { id: "voucher", label: "🎟️ Ваучер", desc: "С отчитане" },
+                    { id: "award", label: "🏆 Грамота", desc: "За отличие" },
+                    {
+                      id: "certificate",
+                      label: "📜 Сертификат",
+                      desc: "За участие",
+                    },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setDocType(t.id as CertificateType)}
+                      className={`flex flex-col items-center justify-center rounded-2xl border p-2 sm:p-3 text-center transition-all ${
+                        docType === t.id
+                          ? "border-blue-600 bg-blue-50/60 font-bold text-blue-900 shadow-xs dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-200"
+                          : "border-zinc-200 bg-zinc-50/50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                      }`}
+                    >
+                      <span className="text-xs font-bold">{t.label}</span>
+                      <span className="text-[10px] text-zinc-400">
+                        {t.desc}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Purpose input */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    За какво е предназначен (Описание на услугата / Отличието){" "}
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    placeholder="напр. 8 безплатни тренировки по бадминтон"
+                    value={purpose}
+                    onChange={(e) => setPurpose(e.target.value)}
+                    className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                  />
+
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    {presetPurposes.map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPurpose(p)}
+                        className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-medium text-zinc-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Attendance & Session settings (If Voucher) */}
+                {docType === "voucher" && (
+                  <div className="grid grid-cols-1 gap-4 pt-2 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                          Брой безплатни тренировки
+                        </Label>
+                        <span className="font-mono text-xs font-black text-amber-600 dark:text-amber-400">
+                          {totalSessions}{" "}
+                          {totalSessions === 1 ? "тренировка" : "тренировки"}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {[1, 2, 4, 8, 10, 12, 14].map((num) => (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => handleSelectSessions(num)}
+                            className={`min-w-8 flex-1 rounded-xl border py-1.5 text-xs font-bold transition-all ${
+                              totalSessions === num
+                                ? "border-amber-400 bg-amber-500 text-white shadow-xs"
+                                : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                            }`}
+                          >
+                            {num}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                          Срок на валидност
+                        </Label>
+                        <span className="text-[10px] font-bold text-zinc-500">
+                          {validityMode === "custom_date"
+                            ? `до ${new Date(customExpiryDate).toLocaleDateString("bg-BG")}`
+                            : validityMode === "30"
+                              ? "30 дни (1 месец)"
+                              : "60 дни (2 месеца)"}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setValidityMode("30")}
+                          className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                            validityMode === "30"
+                              ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                          }`}
+                        >
+                          30 дни (1 м.)
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setValidityMode("60")}
+                          className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                            validityMode === "60"
+                              ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                          }`}
+                        >
+                          60 дни (2 м.)
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setValidityMode("custom_date")}
+                          className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
+                            validityMode === "custom_date"
+                              ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                          }`}
+                        >
+                          📅 Точна дата
+                        </button>
+                      </div>
+
+                      {validityMode === "custom_date" && (
+                        <div className="pt-2">
+                          <Input
+                            type="date"
+                            value={customExpiryDate}
+                            onChange={(e) =>
+                              setCustomExpiryDate(e.target.value)
+                            }
+                            className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              {/* 1.4 Branding & Partners */}
+              <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                    <Handshake className="size-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                      4. Логота и брандиране
+                    </h3>
+                    <p className="text-[11px] text-zinc-500">
+                      Официално лого на клуба и избрани партньори / спонсори
+                    </p>
+                  </div>
+                </div>
+
+                {/* Club Logo */}
+                <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
+                  <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                    🛡️ Лого на клуба
+                  </Label>
+                  <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3.5">
+                      <div className="relative flex size-14 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <Image
+                          src={clubLogoUrl}
+                          alt={
+                            isRecoveryZone
+                              ? "RECOVERY ZONE BY ZM"
+                              : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"
+                          }
+                          width={52}
+                          height={52}
+                          className="size-full object-contain"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="space-y-0.5">
+                        <h4 className="text-xs font-black tracking-tight text-zinc-900 sm:text-sm dark:text-white">
+                          {isRecoveryZone
+                            ? "RECOVERY ZONE BY ZM"
+                            : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
+                        </h4>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                          Официален издател
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
                       <input
-                        ref={voucherFileInputRef}
+                        ref={clubLogoInputRef}
                         type="file"
-                        accept=".pdf,image/png,image/jpeg,image/webp"
-                        onChange={handleVoucherFileChange}
+                        accept="image/*"
+                        onChange={handleClubLogoUpload}
                         className="hidden"
                       />
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => voucherFileInputRef.current?.click()}
-                        className="h-8 rounded-xl text-xs font-semibold"
+                        onClick={() => clubLogoInputRef.current?.click()}
+                        className="h-8 rounded-xl px-3 text-xs font-semibold"
                       >
-                        Смени
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setUploadedFile(null);
-                          setFilePreviewUrl(null);
-                          setRemoteFileUrl(null);
-                        }}
-                        className="size-8 rounded-xl text-zinc-400 hover:text-red-500"
-                      >
-                        <X className="size-4" />
+                        Качи друго
                       </Button>
                     </div>
                   </div>
+                </div>
 
-                  {/* Live Visualizer Box */}
-                  {previewUrl && (
-                    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-950/5 p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                      <div className="flex items-center justify-between pb-2 text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                        <span className="flex items-center gap-1.5">
-                          <Eye className="size-4 text-blue-600" />
-                          Визуализация на документа:
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsDocumentModalOpen(true)}
-                            className="h-7 gap-1 rounded-lg text-[11px]"
-                          >
-                            <Maximize2 className="size-3" />
-                            Цял екран
-                          </Button>
-                          <a
-                            href={previewUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex h-7 items-center gap-1 rounded-lg bg-zinc-100 px-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
-                          >
-                            <ExternalLink className="size-3" />
-                            Нов таб
-                          </a>
-                        </div>
-                      </div>
+                {/* Partners & Sponsors Checklist */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                      🤝 Партньори и Спонсори (включени във ваучера)
+                    </Label>
+                    <input
+                      ref={partnerLogoInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePartnerLogoUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => partnerLogoInputRef.current?.click()}
+                      className="h-6 text-[10px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                    >
+                      <Plus className="mr-1 size-3" /> Добави ново партньорско
+                      лого
+                    </Button>
+                  </div>
 
-                      {fileType === "pdf" ? (
-                        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-inner dark:border-zinc-800">
-                          <iframe
-                            src={previewUrl}
-                            title="PDF Преглед"
-                            className="h-80 w-full border-0"
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {sponsors.map((s) => {
+                      const isChecked = selectedSponsorIds.includes(s.id);
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => toggleSponsor(s.id)}
+                          className={`flex items-center gap-2 rounded-xl border p-2 text-left transition-all ${
+                            isChecked
+                              ? "border-blue-500 bg-blue-50/50 dark:border-blue-600 dark:bg-blue-950/40"
+                              : "border-zinc-200 bg-white opacity-60 dark:border-zinc-800 dark:bg-zinc-900"
+                          }`}
+                        >
+                          <div className="relative size-6 shrink-0 rounded-md bg-white p-0.5 shadow-xs">
+                            <Image
+                              src={s.logoUrl}
+                              alt={s.name}
+                              width={24}
+                              height={24}
+                              className="size-full object-contain"
+                              unoptimized
+                            />
+                          </div>
+                          <span className="line-clamp-1 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+                            {s.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {additionalPartnerLogos.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2 pt-2">
+                      {additionalPartnerLogos.map((pl, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="outline"
+                          className="gap-1.5 rounded-xl border-purple-300 bg-purple-50 py-1 text-xs text-purple-800 dark:bg-purple-950/50 dark:text-purple-300"
+                        >
+                          <Image
+                            src={pl.logoUrl}
+                            alt="p"
+                            width={14}
+                            height={14}
+                            className="rounded-full"
+                            unoptimized
                           />
-                        </div>
-                      ) : (
-                        <div className="flex max-h-80 w-full items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-zinc-900 p-2 dark:border-zinc-800">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={previewUrl}
-                            alt="Качен документ"
-                            className="max-h-76 w-auto rounded-lg object-contain shadow-lg"
-                          />
-                        </div>
-                      )}
+                          <span>{pl.name}</span>
+                        </Badge>
+                      ))}
                     </div>
                   )}
                 </div>
-              )}
-            </Card>
+              </Card>
 
-            {/* 1.2 Educational Institution */}
-            <Card className="space-y-3.5 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                <div className="flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
-                  <User className="size-4" />
+              {/* Бутон за преминаване към таба за издаване */}
+              <div className="pt-2">
+                <Button
+                  type="button"
+                  size="lg"
+                  onClick={handleProceedToIssuance}
+                  className="h-12 sm:h-14 w-full rounded-2xl bg-linear-to-r from-blue-600 via-indigo-600 to-blue-700 text-xs sm:text-sm font-black text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-1.01"
+                >
+                  <Sparkles className="mr-2 size-5" />
+                  🚀 Зареди шаблона & Премини към издаване за деца ➔
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* ================================================================= */}
+          {/* СТЪПКА 2: ИЗДАВАНЕ ЗА ДЕЦАТА ПО ШАБЛОНА                           */}
+          {/* ================================================================= */}
+          {activeStep === "issue" && (
+            <div className="space-y-4">
+              {/* Активно събитие / Шаблон инфо плашка */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-emerald-200/90 bg-emerald-50/60 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/40">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
+                    <Ticket className="size-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold tracking-wider text-emerald-700 uppercase dark:text-emerald-300">
+                      Зареден шаблон за събитието
+                    </span>
+                    <h4 className="text-sm font-black text-zinc-900 dark:text-white">
+                      {recipientInstitution || "Образователна институция"}
+                    </h4>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      {docType === "voucher"
+                        ? `${totalSessions} безплатни тренировки • Валидност: ${
+                            validityMode === "custom_date" && customExpiryDate
+                              ? new Date(customExpiryDate).toLocaleDateString(
+                                  "bg-BG"
+                                )
+                              : validityMode === "30"
+                                ? "30 дни (1 месец)"
+                                : "60 дни (2 месеца)"
+                          }`
+                        : docType === "award"
+                          ? "Официална грамота за постижения"
+                          : "Клубен сертификат"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                    2. Образователна институция / Училище / Детска градина
-                  </h3>
-                  <p className="text-[11px] text-zinc-500">
-                    Показва се върху документа и определя училищната
-                    принадлежност
-                  </p>
-                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActiveStep("template")}
+                  className="h-8 shrink-0 gap-1.5 rounded-xl border-emerald-300 bg-white text-xs font-bold text-emerald-800 hover:bg-emerald-100/60 dark:border-emerald-800 dark:bg-zinc-900 dark:text-emerald-300"
+                >
+                  ✏️ Редактирай шаблона
+                </Button>
               </div>
 
-              <div className="space-y-2">
-                <Input
-                  placeholder='напр. Второ ОУ "Христо Ботев" град Гълъбово'
-                  value={recipientInstitution}
-                  onChange={(e) => setRecipientInstitution(e.target.value)}
-                  className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-                />
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
+                  Издаване по Шаблона
+                </span>
+                <span className="text-[11px] text-zinc-400">
+                  Генерира персонален QR код за всяко дете
+                </span>
+              </div>
 
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  {PRESET_INSTITUTIONS.map((inst) => (
+              <Card className="space-y-5 rounded-3xl border-2 border-emerald-200/80 bg-white p-4 sm:p-6 shadow-md shadow-emerald-500/5 dark:border-emerald-900/50 dark:bg-zinc-900">
+                {/* Mode Selector (3 options) */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                    Изберете начин за издаване:
+                  </Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <button
-                      key={inst}
                       type="button"
-                      onClick={() => setRecipientInstitution(inst)}
-                      className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
-                        recipientInstitution === inst
-                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:border-blue-600 dark:bg-blue-950/60 dark:text-blue-300"
-                          : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                      onClick={() => setTargetMode("single")}
+                      className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs font-bold transition-all ${
+                        targetMode === "single"
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/50 dark:text-emerald-200"
+                          : "border-zinc-200 bg-zinc-50/60 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
                       }`}
                     >
-                      {inst}
+                      <User className="size-4 shrink-0" />
+                      <span>👤 Единично дете</span>
                     </button>
-                  ))}
-                </div>
-                <p className="text-[10px] text-zinc-400">
-                  💡 Изберете от 4-те институции по подразбиране или изпишете
-                  ръчно друга институция директно в полето.
-                </p>
-              </div>
-            </Card>
 
-            {/* 1.3 Purpose, Sessions, Validity */}
-            <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                <div className="flex size-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 dark:bg-teal-950/60 dark:text-teal-400">
-                  <Ticket className="size-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                    3. За какво е този ваучер / документ
-                  </h3>
-                  <p className="text-[11px] text-zinc-500">
-                    Услуга, брой безплатни тренировки и срок за ползване
-                  </p>
-                </div>
-              </div>
-
-              {/* Document Type Selector */}
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                {[
-                  { id: "voucher", label: "🎟️ Ваучер", desc: "С отчитане" },
-                  { id: "award", label: "🏆 Грамота", desc: "За отличие" },
-                  {
-                    id: "certificate",
-                    label: "📜 Сертификат",
-                    desc: "За участие",
-                  },
-                ].map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setDocType(t.id as CertificateType)}
-                    className={`flex flex-col items-center justify-center rounded-2xl border p-2 sm:p-3 text-center transition-all ${
-                      docType === t.id
-                        ? "border-blue-600 bg-blue-50/60 font-bold text-blue-900 shadow-xs dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-200"
-                        : "border-zinc-200 bg-zinc-50/50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
-                    }`}
-                  >
-                    <span className="text-xs font-bold">{t.label}</span>
-                    <span className="text-[10px] text-zinc-400">{t.desc}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Purpose input */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  За какво е предназначен (Описание на услугата / Отличието){" "}
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  placeholder="напр. 8 безплатни тренировки по бадминтон"
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value)}
-                  className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-                />
-
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  {presetPurposes.map((p) => (
                     <button
-                      key={p}
                       type="button"
-                      onClick={() => setPurpose(p)}
-                      className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-medium text-zinc-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                      onClick={() => setTargetMode("club_multi")}
+                      className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs font-bold transition-all ${
+                        targetMode === "club_multi"
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/50 dark:text-emerald-200"
+                          : "border-zinc-200 bg-zinc-50/60 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                      }`}
                     >
-                      {p}
+                      <Users className="size-4 shrink-0" />
+                      <span>👥 От клуба ({members.length})</span>
                     </button>
-                  ))}
-                </div>
-              </div>
 
-              {/* Attendance & Session settings (If Voucher) */}
-              {docType === "voucher" && (
-                <div className="grid grid-cols-1 gap-4 pt-2 sm:grid-cols-2">
-                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setTargetMode("class_list")}
+                      className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs font-bold transition-all ${
+                        targetMode === "class_list"
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/50 dark:text-emerald-200"
+                          : "border-zinc-200 bg-zinc-50/60 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                      }`}
+                    >
+                      <ListPlus className="size-4 shrink-0" />
+                      <span>📝 Списък на класа</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mode 1 Content: Single Child */}
+                {targetMode === "single" && (
+                  <div className="space-y-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                        Брой безплатни тренировки
+                        Получател (Единично дете):
                       </Label>
-                      <span className="font-mono text-xs font-black text-amber-600 dark:text-amber-400">
-                        {totalSessions}{" "}
-                        {totalSessions === 1 ? "тренировка" : "тренировки"}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {[1, 2, 4, 8, 10, 12, 14].map((num) => (
+                      <div className="flex items-center rounded-xl bg-zinc-200/70 p-0.5 dark:bg-zinc-800">
                         <button
-                          key={num}
                           type="button"
-                          onClick={() => handleSelectSessions(num)}
-                          className={`min-w-8 flex-1 rounded-xl border py-1.5 text-xs font-bold transition-all ${
-                            totalSessions === num
-                              ? "border-amber-400 bg-amber-500 text-white shadow-xs"
-                              : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                          onClick={() => setRecipientMode("manual")}
+                          className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
+                            recipientMode === "manual"
+                              ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
+                              : "text-zinc-500"
                           }`}
                         >
-                          {num}
+                          Ръчно
                         </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                        Срок на валидност
-                      </Label>
-                      <span className="text-[10px] font-bold text-zinc-500">
-                        {validityMode === "custom_date"
-                          ? `до ${new Date(customExpiryDate).toLocaleDateString("bg-BG")}`
-                          : validityMode === "30"
-                            ? "30 дни (1 месец)"
-                            : "60 дни (2 месеца)"}
-                      </span>
+                        <button
+                          type="button"
+                          onClick={() => setRecipientMode("member")}
+                          className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
+                            recipientMode === "member"
+                              ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
+                              : "text-zinc-500"
+                          }`}
+                        >
+                          От клуба ({members.length})
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setValidityMode("30")}
-                        className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
-                          validityMode === "30"
-                            ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
-                            : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
-                        }`}
-                      >
-                        30 дни (1 м.)
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setValidityMode("60")}
-                        className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
-                          validityMode === "60"
-                            ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
-                            : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
-                        }`}
-                      >
-                        60 дни (2 м.)
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setValidityMode("custom_date")}
-                        className={`min-h-[38px] rounded-xl border py-2 text-center text-xs font-bold transition-all ${
-                          validityMode === "custom_date"
-                            ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:bg-blue-950/60 dark:text-blue-300"
-                            : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
-                        }`}
-                      >
-                        📅 Точна дата
-                      </button>
-                    </div>
-
-                    {validityMode === "custom_date" && (
-                      <div className="pt-2">
+                    {recipientMode === "member" ? (
+                      <div className="space-y-2">
                         <Input
-                          type="date"
-                          value={customExpiryDate}
-                          onChange={(e) => setCustomExpiryDate(e.target.value)}
+                          placeholder="Търсене по име на дете..."
+                          value={memberSearch}
+                          onChange={(e) => setMemberSearch(e.target.value)}
+                          className="h-9 rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
+                        />
+                        <div className="max-h-40 space-y-1 overflow-y-auto pr-1">
+                          {filteredSingleMembers.map((m) => (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => handleSelectMember(m)}
+                              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition-colors ${
+                                selectedMemberId === m.id
+                                  ? "bg-blue-50 font-bold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300"
+                                  : "hover:bg-zinc-100 text-zinc-700 dark:hover:bg-zinc-800 dark:text-zinc-300"
+                              }`}
+                            >
+                              <span>{m.name}</span>
+                              {m.ageGroup && (
+                                <span className="text-[10px] text-zinc-400">
+                                  {m.ageGroup}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                          Име на детето / получателя{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          placeholder="напр. Габриела Митева"
+                          value={recipientName}
+                          onChange={(e) => setRecipientName(e.target.value)}
                           className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
                         />
                       </div>
                     )}
                   </div>
-                </div>
-              )}
-            </Card>
-
-            {/* 1.4 Branding & Partners */}
-            <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                <div className="flex size-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
-                  <Handshake className="size-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                    4. Логота и брандиране
-                  </h3>
-                  <p className="text-[11px] text-zinc-500">
-                    Официално лого на клуба и избрани партньори / спонсори
-                  </p>
-                </div>
-              </div>
-
-              {/* Club Logo */}
-              <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
-                <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                  🛡️ Лого на клуба
-                </Label>
-                <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-3.5">
-                    <div className="relative flex size-14 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                      <Image
-                        src={clubLogoUrl}
-                        alt={
-                          isRecoveryZone
-                            ? "RECOVERY ZONE BY ZM"
-                            : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"
-                        }
-                        width={52}
-                        height={52}
-                        className="size-full object-contain"
-                        unoptimized
-                      />
-                    </div>
-                    <div className="space-y-0.5">
-                      <h4 className="text-xs font-black tracking-tight text-zinc-900 sm:text-sm dark:text-white">
-                        {isRecoveryZone
-                          ? "RECOVERY ZONE BY ZM"
-                          : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
-                      </h4>
-                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                        Официален издател
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      ref={clubLogoInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleClubLogoUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => clubLogoInputRef.current?.click()}
-                      className="h-8 rounded-xl px-3 text-xs font-semibold"
-                    >
-                      Качи друго
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Partners & Sponsors Checklist */}
-              <div className="space-y-2 pt-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                    🤝 Партньори и Спонсори (включени във ваучера)
-                  </Label>
-                  <input
-                    ref={partnerLogoInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePartnerLogoUpload}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => partnerLogoInputRef.current?.click()}
-                    className="h-6 text-[10px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
-                  >
-                    <Plus className="mr-1 size-3" /> Добави ново партньорско
-                    лого
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {sponsors.map((s) => {
-                    const isChecked = selectedSponsorIds.includes(s.id);
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => toggleSponsor(s.id)}
-                        className={`flex items-center gap-2 rounded-xl border p-2 text-left transition-all ${
-                          isChecked
-                            ? "border-blue-500 bg-blue-50/50 dark:border-blue-600 dark:bg-blue-950/40"
-                            : "border-zinc-200 bg-white opacity-60 dark:border-zinc-800 dark:bg-zinc-900"
-                        }`}
-                      >
-                        <div className="relative size-6 shrink-0 rounded-md bg-white p-0.5 shadow-xs">
-                          <Image
-                            src={s.logoUrl}
-                            alt={s.name}
-                            width={24}
-                            height={24}
-                            className="size-full object-contain"
-                            unoptimized
-                          />
-                        </div>
-                        <span className="line-clamp-1 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
-                          {s.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {additionalPartnerLogos.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2 pt-2">
-                    {additionalPartnerLogos.map((pl, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="outline"
-                        className="gap-1.5 rounded-xl border-purple-300 bg-purple-50 py-1 text-xs text-purple-800 dark:bg-purple-950/50 dark:text-purple-300"
-                      >
-                        <Image
-                          src={pl.logoUrl}
-                          alt="p"
-                          width={14}
-                          height={14}
-                          className="rounded-full"
-                          unoptimized
-                        />
-                        <span>{pl.name}</span>
-                      </Badge>
-                    ))}
-                  </div>
                 )}
-              </div>
-            </Card>
-          </div>
 
-          {/* ================================================================= */}
-          {/* ЕТАП 2: ПОЛУЧАТЕЛИ & ИЗДАВАНЕ ПО ШАБЛОНА                          */}
-          {/* ================================================================= */}
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
-                Етап 2: Получатели & Издаване по Шаблона
-              </span>
-              <span className="text-[11px] text-zinc-400">
-                Генерира персонален QR код за всяко дете
-              </span>
-            </div>
+                {/* Mode 2 Content: Club Multi-Select */}
+                {targetMode === "club_multi" && (
+                  <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                          Отбележете децата от клуба:
+                        </Label>
+                        <span className="ml-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                          (Избрани: {selectedClubMemberIds.length} от{" "}
+                          {members.length})
+                        </span>
+                      </div>
 
-            <Card className="space-y-5 rounded-3xl border-2 border-emerald-200/80 bg-white p-4 sm:p-6 shadow-md shadow-emerald-500/5 dark:border-emerald-900/50 dark:bg-zinc-900">
-              {/* Mode Selector (3 options) */}
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                  Изберете начин за издаване:
-                </Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTargetMode("single")}
-                    className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs font-bold transition-all ${
-                      targetMode === "single"
-                        ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/50 dark:text-emerald-200"
-                        : "border-zinc-200 bg-zinc-50/60 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
-                    }`}
-                  >
-                    <User className="size-4 shrink-0" />
-                    <span>👤 Единично дете</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setTargetMode("club_multi")}
-                    className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs font-bold transition-all ${
-                      targetMode === "club_multi"
-                        ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/50 dark:text-emerald-200"
-                        : "border-zinc-200 bg-zinc-50/60 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
-                    }`}
-                  >
-                    <Users className="size-4 shrink-0" />
-                    <span>👥 От клуба ({members.length})</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setTargetMode("class_list")}
-                    className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs font-bold transition-all ${
-                      targetMode === "class_list"
-                        ? "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/50 dark:text-emerald-200"
-                        : "border-zinc-200 bg-zinc-50/60 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
-                    }`}
-                  >
-                    <ListPlus className="size-4 shrink-0" />
-                    <span>📝 Списък на класа</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Mode 1 Content: Single Child */}
-              {targetMode === "single" && (
-                <div className="space-y-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Получател (Единично дете):
-                    </Label>
-                    <div className="flex items-center rounded-xl bg-zinc-200/70 p-0.5 dark:bg-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => setRecipientMode("manual")}
-                        className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
-                          recipientMode === "manual"
-                            ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
-                            : "text-zinc-500"
-                        }`}
-                      >
-                        Ръчно
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRecipientMode("member")}
-                        className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
-                          recipientMode === "member"
-                            ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
-                            : "text-zinc-500"
-                        }`}
-                      >
-                        От клуба ({members.length})
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleSelectAllClubMembers}
+                          className="h-7 text-[11px] font-bold"
+                        >
+                          <CheckSquare className="mr-1 size-3" />
+                          Избери всички ({filteredMultiMembers.length})
+                        </Button>
+                        {selectedClubMemberIds.length > 0 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleClearAllClubMembers}
+                            className="h-7 text-[11px] text-zinc-400 hover:text-red-500"
+                          >
+                            Изчисти
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {recipientMode === "member" ? (
-                    <div className="space-y-2">
-                      <Input
-                        placeholder="Търсене по име на дете..."
-                        value={memberSearch}
-                        onChange={(e) => setMemberSearch(e.target.value)}
-                        className="h-9 rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
-                      />
-                      <div className="max-h-40 space-y-1 overflow-y-auto pr-1">
-                        {filteredSingleMembers.map((m) => (
+                    <Input
+                      placeholder="Бързо търсене по име или възраст..."
+                      value={clubMemberSearch}
+                      onChange={(e) => setClubMemberSearch(e.target.value)}
+                      className="h-9 rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
+                    />
+
+                    <div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
+                      {filteredMultiMembers.map((m) => {
+                        const isSelected = selectedClubMemberIds.includes(m.id);
+                        return (
                           <button
                             key={m.id}
                             type="button"
-                            onClick={() => handleSelectMember(m)}
-                            className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition-colors ${
-                              selectedMemberId === m.id
-                                ? "bg-blue-50 font-bold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300"
-                                : "hover:bg-zinc-100 text-zinc-700 dark:hover:bg-zinc-800 dark:text-zinc-300"
+                            onClick={() => toggleSelectClubMember(m.id)}
+                            className={`flex w-full items-center justify-between rounded-xl border p-2.5 text-left text-xs transition-all ${
+                              isSelected
+                                ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-950 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200"
+                                : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                             }`}
                           >
-                            <span>{m.name}</span>
+                            <div className="flex items-center gap-2.5">
+                              {isSelected ? (
+                                <CheckSquare className="size-4 text-emerald-600" />
+                              ) : (
+                                <Square className="size-4 text-zinc-300" />
+                              )}
+                              <span>{m.name}</span>
+                            </div>
                             {m.ageGroup && (
-                              <span className="text-[10px] text-zinc-400">
+                              <Badge variant="outline" className="text-[10px]">
                                 {m.ageGroup}
-                              </span>
+                              </Badge>
                             )}
                           </button>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
-                  ) : (
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                        Име на детето / получателя{" "}
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        placeholder="напр. Габриела Митева"
-                        value={recipientName}
-                        onChange={(e) => setRecipientName(e.target.value)}
-                        className="h-10 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
 
-              {/* Mode 2 Content: Club Multi-Select */}
-              {targetMode === "club_multi" && (
-                <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                {/* Mode 3 Content: Class List (Bulk Text) */}
+                {targetMode === "class_list" && (
+                  <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
+                    <div className="flex items-center justify-between">
                       <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                        Отбележете децата от клуба:
+                        Списък с имена на децата (по едно име на ред):
                       </Label>
-                      <span className="ml-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                        (Избрани: {selectedClubMemberIds.length} от{" "}
-                        {members.length})
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <Button
-                        type="button"
+                      <Badge
                         variant="outline"
-                        size="sm"
-                        onClick={handleSelectAllClubMembers}
-                        className="h-7 text-[11px] font-bold"
+                        className={`text-xs font-bold ${
+                          parsedClassListNames.length > 0
+                            ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                            : "text-zinc-400"
+                        }`}
                       >
-                        <CheckSquare className="mr-1 size-3" />
-                        Избери всички ({filteredMultiMembers.length})
-                      </Button>
-                      {selectedClubMemberIds.length > 0 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleClearAllClubMembers}
-                          className="h-7 text-[11px] text-zinc-400 hover:text-red-500"
-                        >
-                          Изчисти
-                        </Button>
-                      )}
+                        Разпознати: {parsedClassListNames.length} деца
+                      </Badge>
                     </div>
-                  </div>
 
-                  <Input
-                    placeholder="Бързо търсене по име или възраст..."
-                    value={clubMemberSearch}
-                    onChange={(e) => setClubMemberSearch(e.target.value)}
-                    className="h-9 rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
-                  />
-
-                  <div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
-                    {filteredMultiMembers.map((m) => {
-                      const isSelected = selectedClubMemberIds.includes(m.id);
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => toggleSelectClubMember(m.id)}
-                          className={`flex w-full items-center justify-between rounded-xl border p-2.5 text-left text-xs transition-all ${
-                            isSelected
-                              ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-950 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200"
-                              : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            {isSelected ? (
-                              <CheckSquare className="size-4 text-emerald-600" />
-                            ) : (
-                              <Square className="size-4 text-zinc-300" />
-                            )}
-                            <span>{m.name}</span>
-                          </div>
-                          {m.ageGroup && (
-                            <Badge variant="outline" className="text-[10px]">
-                              {m.ageGroup}
-                            </Badge>
-                          )}
-                        </button>
-                      );
-                    })}
+                    <Textarea
+                      rows={6}
+                      placeholder={`Габриела Митева\nНикола Стоянов\nЕлена Василева\nГеорги Димитров...`}
+                      value={classListText}
+                      onChange={(e) => setClassListText(e.target.value)}
+                      className="rounded-xl font-mono text-xs"
+                    />
+                    <p className="text-[11px] text-zinc-400">
+                      💡 Можете директно да копирате и поставите списък с имена
+                      от Excel, Word или училищен дневник. Системата автоматично
+                      ще създаде индивидуален ваучер с QR код за всяко отделно
+                      дете.
+                    </p>
                   </div>
+                )}
+
+                {/* FINAL ACTION BUTTON */}
+                <div className="pt-2">
+                  <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={handleExecuteIssuance}
+                    className="h-12 sm:h-14 w-full rounded-2xl bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 text-xs sm:text-sm font-black text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-1.01 hover:from-emerald-700 hover:to-teal-800"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 size-5 animate-spin" />
+                        {batchProgress
+                          ? `Издаване на ваучер ${batchProgress.current} от ${batchProgress.total}...`
+                          : "Генериране и валидиране на документите..."}
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 size-5" />
+                        {targetMode === "single"
+                          ? recipientName
+                            ? `🎟️ Издай ваучер за „${recipientName}“`
+                            : "🎟️ Издай ваучер за това дете"
+                          : targetMode === "club_multi"
+                            ? `⚡ Издай ${selectedClubMemberIds.length} индивидуални ваучера за избраните деца`
+                            : `⚡ Издай ${parsedClassListNames.length} персонални ваучера по списъка`}
+                      </>
+                    )}
+                  </Button>
                 </div>
-              )}
-
-              {/* Mode 3 Content: Class List (Bulk Text) */}
-              {targetMode === "class_list" && (
-                <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Списък с имена на децата (по едно име на ред):
-                    </Label>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs font-bold ${
-                        parsedClassListNames.length > 0
-                          ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                          : "text-zinc-400"
-                      }`}
-                    >
-                      Разпознати: {parsedClassListNames.length} деца
-                    </Badge>
-                  </div>
-
-                  <Textarea
-                    rows={6}
-                    placeholder={`Габриела Митева\nНикола Стоянов\nЕлена Василева\nГеорги Димитров...`}
-                    value={classListText}
-                    onChange={(e) => setClassListText(e.target.value)}
-                    className="rounded-xl font-mono text-xs"
-                  />
-                  <p className="text-[11px] text-zinc-400">
-                    💡 Можете директно да копирате и поставите списък с имена от
-                    Excel, Word или училищен дневник. Системата автоматично ще
-                    създаде индивидуален ваучер с QR код за всяко отделно дете.
-                  </p>
-                </div>
-              )}
-
-              {/* FINAL ACTION BUTTON */}
-              <div className="pt-2">
-                <Button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={handleExecuteIssuance}
-                  className="h-12 sm:h-14 w-full rounded-2xl bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 text-xs sm:text-sm font-black text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-1.01 hover:from-emerald-700 hover:to-teal-800"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 size-5 animate-spin" />
-                      {batchProgress
-                        ? `Издаване на ваучер ${batchProgress.current} от ${batchProgress.total}...`
-                        : "Генериране и валидиране на документите..."}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 size-5" />
-                      {targetMode === "single"
-                        ? recipientName
-                          ? `🎟️ Издай ваучер за „${recipientName}“`
-                          : "🎟️ Издай ваучер за това дете"
-                        : targetMode === "club_multi"
-                          ? `⚡ Издай ${selectedClubMemberIds.length} индивидуални ваучера за избраните деца`
-                          : `⚡ Издай ${parsedClassListNames.length} персонални ваучера по списъка`}
-                    </>
-                  )}
-                </Button>
-              </div>
-            </Card>
-          </div>
+              </Card>
+            </div>
+          )}
         </div>
 
         {/* RIGHT COLUMN: Live Interactive Electronic Card (5 cols) */}
@@ -1660,11 +1595,13 @@ export function UploadVoucherTab({
                         : "Клубен Сертификат"}
                   </span>
                   <h3 className="text-lg font-black text-zinc-900 dark:text-white">
-                    {targetMode === "single"
-                      ? recipientName || "Име на детето..."
-                      : targetMode === "club_multi"
-                        ? `${selectedClubMemberIds.length} избрани деца от клуба`
-                        : `${parsedClassListNames.length} деца от списъка на класа`}
+                    {activeStep === "template"
+                      ? "Име на детето (Шаблон)"
+                      : targetMode === "single"
+                        ? recipientName || "Име на детето..."
+                        : targetMode === "club_multi"
+                          ? `${selectedClubMemberIds.length} избрани деца от клуба`
+                          : `${parsedClassListNames.length} деца от списъка на класа`}
                   </h3>
                   <p className="text-xs text-zinc-500">
                     {recipientInstitution || "Образователна институция"}
@@ -1761,75 +1698,6 @@ export function UploadVoucherTab({
           </div>
         </div>
       </div>
-
-      {/* ===================================================================== */}
-      {/* DIALOG 1: SAVE CURRENT AS TEMPLATE                                    */}
-      {/* ===================================================================== */}
-      <Dialog open={isSaveModalOpen} onOpenChange={setIsSaveModalOpen}>
-        <DialogContent className="max-w-md rounded-3xl p-6">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-black">
-              <Save className="size-4 text-blue-600" />
-              Запазване на Шаблон
-            </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-500">
-              Шаблонът ще съхрани качения документ, училището, повода, броя
-              тренировки и избраните спонсори за бързо издаване по всяко време.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3 py-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">
-                Наименование на шаблона *
-              </Label>
-              <Input
-                value={templateTitleInput}
-                onChange={(e) => setTemplateTitleInput(e.target.value)}
-                placeholder="напр. Ваучер Второ ОУ – 8 тренировки"
-                className="h-10 rounded-xl text-xs font-bold"
-                autoFocus
-              />
-            </div>
-
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-              <p>
-                <strong>Институция:</strong> {recipientInstitution}
-              </p>
-              <p>
-                <strong>Услуга:</strong> {purpose}
-              </p>
-              <p>
-                <strong>Тренировки:</strong> {totalSessions}
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter className="grid grid-cols-2 gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsSaveModalOpen(false)}
-              className="h-9 rounded-xl text-xs font-bold"
-            >
-              Отказ
-            </Button>
-            <Button
-              type="button"
-              disabled={isSavingTemplate}
-              onClick={handleSaveCurrentAsTemplate}
-              className="h-9 rounded-xl bg-blue-600 text-xs font-black text-white hover:bg-blue-700"
-            >
-              {isSavingTemplate ? (
-                <Loader2 className="mr-1 size-3.5 animate-spin" />
-              ) : (
-                <Check className="mr-1 size-3.5" />
-              )}
-              Запази шаблона
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* ===================================================================== */}
       {/* DIALOG 2: SINGLE ISSUANCE SUCCESS MODAL                               */}
