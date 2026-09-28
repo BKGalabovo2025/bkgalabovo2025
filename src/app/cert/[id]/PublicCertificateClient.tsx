@@ -250,13 +250,21 @@ export function PublicCertificateClient({
 
   return (
     <div className="min-h-screen bg-linear-to-b from-amber-50/40 via-zinc-100/50 to-zinc-50 px-3 py-6 sm:px-6 lg:px-8 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-      {/* Explicit Print CSS so the voucher document prints with full color and no blank pages */}
+      {/* Explicit Print CSS guaranteeing fit on exactly 1 single A4 sheet */}
       <style>{`
         @media print {
-          body, html {
+          @page {
+            size: A4 portrait;
+            margin: 5mm 6mm;
+          }
+          html, body {
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           body * {
             visibility: hidden !important;
@@ -270,19 +278,84 @@ export function PublicCertificateClient({
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
+            max-width: 100% !important;
             margin: 0 !important;
-            padding: 0 !important;
+            padding: 2.5mm 4mm !important;
             box-shadow: none !important;
-            border: none !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 12px !important;
             background: white !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            box-sizing: border-box !important;
+          }
+          .printable-voucher .border-b {
+            padding-bottom: 2mm !important;
+          }
+          .printable-voucher .size-14 {
+            width: 36px !important;
+            height: 36px !important;
+          }
+          .printable-voucher h2 {
+            font-size: 11pt !important;
+          }
+          .printable-voucher .my-6 {
+            margin-top: 2.5mm !important;
+            margin-bottom: 2.5mm !important;
+            padding: 2.5mm 4mm !important;
+          }
+          .printable-voucher h1 {
+            font-size: 15pt !important;
+            margin: 1mm 0 !important;
+          }
+          .printable-voucher .mt-6 {
+            margin-top: 2mm !important;
+            gap: 1.5mm !important;
+          }
+          .printable-voucher .px-6 {
+            padding: 1.5mm 4mm !important;
+          }
+          .printable-voucher .my-4 {
+            margin-top: 2mm !important;
+            margin-bottom: 2mm !important;
+          }
+          .printable-voucher canvas,
+          .printable-voucher img {
+            max-height: 98mm !important;
+            width: auto !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            object-fit: contain !important;
+          }
+          .printable-voucher .mt-8 {
+            margin-top: 2.5mm !important;
+            padding: 2mm 3mm !important;
+          }
+          .printable-voucher .mb-3\\.5 {
+            margin-bottom: 1.5mm !important;
+          }
+          .printable-voucher .size-12,
+          .printable-voucher .size-14 {
+            width: 32px !important;
+            height: 32px !important;
+          }
+          .printable-voucher .px-5 {
+            padding: 1.5mm 3mm !important;
+          }
+          .printable-voucher .mt-6.border-t-2 {
+            margin-top: 2mm !important;
+            padding-top: 2mm !important;
+          }
+          .printable-voucher .size-18,
+          .printable-voucher .size-20 {
+            width: 48px !important;
+            height: 48px !important;
           }
           .no-print,
           .print\\:hidden {
             display: none !important;
-          }
-          @page {
-            size: auto;
-            margin: 8mm;
           }
         }
       `}</style>
