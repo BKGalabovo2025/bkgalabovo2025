@@ -167,7 +167,9 @@ export async function GET(request: NextRequest) {
       fileDoc?.contentType?.startsWith("image/") ||
       fileDoc?.path?.includes("avatars") ||
       fileDoc?.path?.includes("sponsors") ||
-      fileDoc?.path?.includes("media");
+      fileDoc?.path?.includes("media") ||
+      fileDoc?.path?.includes("certificates") ||
+      fileDoc?.path?.includes("vouchers");
 
     if (!user && !isPublicMedia) {
       return NextResponse.json(
@@ -257,6 +259,7 @@ export async function POST(request: NextRequest) {
       `avatars/${decodedToken.uid}/`,
       `avatars/${decodedToken.uid}`,
       `sites/${userSiteId}/`,
+      `certificates/`,
     ];
 
     const { valid, normalizedPath } = sanitizeAndValidateStoragePath(
@@ -365,6 +368,7 @@ export async function DELETE(request: NextRequest) {
       `avatars/${decodedToken.uid}/`,
       `avatars/${decodedToken.uid}`,
       `sites/${userSiteId}/`,
+      `certificates/`,
     ];
 
     const { valid, normalizedPath } = sanitizeAndValidateStoragePath(

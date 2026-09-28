@@ -218,7 +218,7 @@ export function UploadVoucherTab({
       toast.loading("Качване на лого на институцията...", {
         id: "inst-upload",
       });
-      const path = `certificates/branding/inst_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const path = `sites/${siteId}/certificates/branding/inst_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
       const url = await uploadFile(path, file, idToken);
       setInstitutionLogoUrl(url);
       toast.success("Логото на институцията е качено успешно!", {
@@ -238,7 +238,7 @@ export function UploadVoucherTab({
     if (!file) return;
     try {
       toast.loading("Качване на клубно лого...", { id: "club-upload" });
-      const path = `certificates/branding/club_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const path = `sites/${siteId}/certificates/branding/club_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
       const url = await uploadFile(path, file, idToken);
       setClubLogoUrl(url);
       toast.success("Клубното лого е качено успешно!", { id: "club-upload" });
@@ -256,7 +256,7 @@ export function UploadVoucherTab({
     if (!file) return;
     try {
       toast.loading("Качване на партньорско лого...", { id: "partner-upload" });
-      const path = `certificates/branding/partner_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const path = `sites/${siteId}/certificates/branding/partner_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
       const url = await uploadFile(path, file, idToken);
       const name = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
       setAdditionalPartnerLogos((prev) => [...prev, { name, logoUrl: url }]);
@@ -316,7 +316,7 @@ export function UploadVoucherTab({
           id: "issuing",
         });
         const safeName = uploadedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const path = `certificates/vouchers/${Date.now()}_${safeName}`;
+        const path = `sites/${siteId}/certificates/vouchers/${Date.now()}_${safeName}`;
         finalFileUrl = await uploadFile(path, uploadedFile, idToken);
         setRemoteFileUrl(finalFileUrl);
       }
