@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity, @next/next/no-img-element */
+/* eslint-disable sonarjs/cognitive-complexity, @next/next/no-img-element */
 "use client";
 
 import confetti from "canvas-confetti";
@@ -172,7 +172,17 @@ export function PublicCertificateClient({
   const uniquePartners = Array.from(
     new Map(
       rawPartners
-        .filter((p) => Boolean(p?.name?.trim()))
+        .filter((p) => {
+          if (!p?.name?.trim()) return false;
+          if (
+            cert.recipient.institution &&
+            p.name.trim().toLowerCase() ===
+              cert.recipient.institution.trim().toLowerCase()
+          ) {
+            return false;
+          }
+          return true;
+        })
         .map((p) => {
           const trimmedName = p.name.trim();
           let logo = p.logoUrl || "";
@@ -382,11 +392,11 @@ export function PublicCertificateClient({
             <div className="pointer-events-none absolute -top-12 -right-12 size-52 rounded-full bg-amber-400/5 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-12 -left-12 size-52 rounded-full bg-blue-500/5 blur-3xl" />
 
-            {/* Document Header: Club crest, official badge & partner logo */}
+            {/* Document Header: Club crest & official voucher stamp badge */}
             <div className="flex flex-col gap-4 border-b border-amber-100 pb-5 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
               {/* Club Emblem & Title */}
-              <div className="flex items-center gap-3">
-                <div className="relative size-14 shrink-0 overflow-hidden rounded-2xl border border-amber-200/80 bg-white p-1.5 shadow-sm dark:border-zinc-800">
+              <div className="flex items-center gap-3.5">
+                <div className="relative size-14 shrink-0 overflow-hidden rounded-2xl border-2 border-amber-200/90 bg-white p-1.5 shadow-sm dark:border-zinc-800">
                   <Image
                     src={clubLogo}
                     alt="Club Crest"
@@ -400,50 +410,19 @@ export function PublicCertificateClient({
                   <h2 className="text-base font-black tracking-tight text-zinc-900 sm:text-lg dark:text-white">
                     {clubName}
                   </h2>
-                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                  <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
                     Официален клубен издател
                   </p>
                 </div>
               </div>
 
-              {/* Central Official Stamp Badge */}
-              <div className="flex items-center justify-center">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50/90 px-3.5 py-1 text-xs font-extrabold tracking-wider text-amber-900 uppercase shadow-2xs dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                  <Sparkles className="size-3.5 text-amber-600" />
+              {/* Official Voucher Badge on the Right */}
+              <div className="flex items-center sm:justify-end">
+                <div className="inline-flex items-center gap-2 rounded-2xl border-2 border-amber-300 bg-amber-50/95 px-4 py-2 text-xs font-black tracking-wider text-amber-950 uppercase shadow-xs dark:border-amber-700 dark:bg-amber-950/70 dark:text-amber-200">
+                  <Sparkles className="size-4 text-amber-600" />
                   <span>★ Официален Ваучер ★</span>
                 </div>
               </div>
-
-              {/* Educational Institution Logo / Name */}
-              {cert.branding?.institutionLogoUrl ? (
-                <div className="flex items-center gap-2.5 sm:text-right">
-                  <div>
-                    <h3 className="text-xs font-bold text-zinc-900 sm:text-sm dark:text-white">
-                      {cert.recipient.institution || "Партньорска институция"}
-                    </h3>
-                    <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-                      Образователен партньор
-                    </p>
-                  </div>
-                  <div className="relative size-12 shrink-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xs dark:border-zinc-800">
-                    <Image
-                      src={cert.branding.institutionLogoUrl}
-                      alt="Institution Logo"
-                      width={42}
-                      height={42}
-                      className="size-full object-contain"
-                      unoptimized
-                    />
-                  </div>
-                </div>
-              ) : cert.recipient.institution ? (
-                <div className="flex items-center gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50 px-3.5 py-2 sm:text-right dark:border-zinc-800 dark:bg-zinc-800/60">
-                  <School className="size-4.5 text-amber-700 dark:text-amber-400" />
-                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                    {cert.recipient.institution}
-                  </span>
-                </div>
-              ) : null}
             </div>
 
             {/* Recipient & Honor Banner */}
@@ -553,6 +532,36 @@ export function PublicCertificateClient({
                 </span>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+                {/* Educational Institution Card (with logo or school icon) */}
+                {cert.recipient.institution && (
+                  <div className="flex items-center gap-3.5 rounded-2xl border-2 border-zinc-200/90 bg-white px-5 py-3 shadow-sm hover:border-blue-400 hover:shadow-md transition-all dark:border-zinc-700 dark:bg-zinc-800">
+                    {cert.branding?.institutionLogoUrl ? (
+                      <div className="relative size-12 sm:size-14 shrink-0 overflow-hidden rounded-xl bg-white p-1">
+                        <Image
+                          src={cert.branding.institutionLogoUrl}
+                          alt={cert.recipient.institution}
+                          width={56}
+                          height={56}
+                          className="size-full object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex size-12 sm:size-14 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 text-white shadow-inner">
+                        <School className="size-6 sm:size-7 text-white" />
+                      </div>
+                    )}
+                    <div className="text-left">
+                      <span className="block text-sm sm:text-base font-black tracking-tight text-zinc-900 dark:text-white">
+                        {cert.recipient.institution}
+                      </span>
+                      <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400">
+                        Образователна институция
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {uniquePartners.map((p, idx) => (
                   <div
                     key={idx}
