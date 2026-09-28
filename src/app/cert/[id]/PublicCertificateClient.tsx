@@ -434,35 +434,42 @@ export function PublicCertificateClient({
             </div>
 
             {/* Recipient & Honor Banner */}
-            <div className="my-6 rounded-2xl bg-linear-to-r from-amber-500/10 via-amber-400/5 to-blue-500/10 p-5 text-center sm:p-6">
-              <span className="text-[11px] font-extrabold tracking-widest text-amber-800 uppercase sm:text-xs dark:text-amber-300">
+            <div className="my-6 rounded-3xl bg-linear-to-b from-amber-500/10 via-amber-400/5 to-blue-500/10 p-5 text-center sm:p-7 shadow-xs">
+              <span className="text-xs font-black tracking-widest text-amber-900 uppercase sm:text-sm dark:text-amber-300">
                 Настоящият ваучер се предоставя на
               </span>
 
-              <h1 className="mt-1 text-2xl font-black tracking-tight text-zinc-900 sm:text-3xl md:text-4xl dark:text-white">
+              <h1 className="mt-1.5 text-2xl font-black tracking-tight text-zinc-900 sm:text-3xl md:text-4xl dark:text-white">
                 {cert.recipient.name}
               </h1>
 
               {cert.recipient.institution && (
-                <p className="mt-1 text-xs font-bold text-zinc-600 sm:text-sm dark:text-zinc-300">
+                <p className="mt-1 text-sm font-bold text-zinc-600 sm:text-base dark:text-zinc-300">
                   {cert.recipient.institution}
                 </p>
               )}
 
-              {/* Service ribbon & validity */}
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
-                <div className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/90 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-blue-900 shadow-2xs dark:border-blue-900 dark:bg-blue-950/70 dark:text-blue-300">
-                  <Gift className="size-4 text-blue-600" />
-                  <span>
+              {/* HIGH-IMPACT SPOTLIGHT: Service Purpose & Validity Date */}
+              <div className="mt-6 flex flex-col items-center justify-center gap-3">
+                {/* 1. Primary Service Title - Large, bold, attracts attention immediately */}
+                <div className="inline-flex items-center gap-2.5 rounded-2xl border-2 border-blue-400/90 bg-linear-to-r from-blue-600 via-indigo-600 to-blue-700 px-6 py-3 text-white shadow-md sm:px-8 sm:py-3.5">
+                  <Gift className="size-5 sm:size-6 text-amber-300 shrink-0" />
+                  <span className="text-base sm:text-lg md:text-xl font-black tracking-tight uppercase">
                     {cert.details.voucherServiceType ||
                       cert.visualSnapshot?.templateTitle ||
-                      "Тренировки по бадминтон"}
+                      "2 безплатни тренировки по бадминтон"}
                   </span>
                 </div>
 
+                {/* 2. Prominent Validity Badge - Highly visible validity date */}
                 {formattedValidUntil && (
-                  <div className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white/90 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-zinc-700 shadow-2xs dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
-                    <span>Срок на валидност: до {formattedValidUntil}</span>
+                  <div className="inline-flex items-center gap-2 rounded-xl border-2 border-amber-300/90 bg-white/95 px-4 py-1.5 shadow-xs dark:border-amber-600 dark:bg-zinc-800">
+                    <span className="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-200">
+                      Срок на валидност:{" "}
+                      <span className="font-black text-amber-950 dark:text-amber-300 underline decoration-amber-400 decoration-2 underline-offset-2">
+                        до {formattedValidUntil}
+                      </span>
+                    </span>
                   </div>
                 )}
               </div>
