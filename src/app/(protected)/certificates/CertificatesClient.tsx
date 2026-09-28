@@ -20,6 +20,8 @@ import { IssuedCertificatesTab } from "./components/IssuedCertificatesTab";
 import { SponsorsTab } from "./components/SponsorsTab";
 import { UploadVoucherTab } from "./components/UploadVoucherTab";
 
+const SPONSORS_TTL_MS = 24 * 60 * 60 * 1000; // 24 ч.
+
 function readLocalCache<T>(key: string): T[] | null {
   if (typeof window === "undefined") return null;
   try {
@@ -38,6 +40,29 @@ function writeLocalCache<T>(key: string, data: T[]): void {
     localStorage.setItem(key, JSON.stringify(data));
   } catch {
     // ignore quota/full storage
+  }
+}
+
+/** Прочита кеш само ако е по-нов от TTL ms */
+function readCacheWithTTL<T>(key: string, ttlMs: number): T[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw) as { ts: number; data: T[] };
+    if (Date.now() - ts > ttlMs) return null; // изтекъл кеш
+    return Array.isArray(data) && data.length > 0 ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCacheWithTTL<T>(key: string, data: T[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
+  } catch {
+    // ignore storage full
   }
 }
 
@@ -60,31 +85,50 @@ export function CertificatesClient() {
   >([]);
   const [isLoadingCertificates, setIsLoadingCertificates] = useState(true);
 
-  // 1. Load Sponsors with local cache fallback
-  const loadSponsors = useCallback(async () => {
-    const cached = readLocalCache<SponsorPartner>(
-      `bkg_cached_sponsors_${siteId}`
-    );
-    if (cached) {
-      setSponsors(cached);
-      setIsLoadingSponsors(false);
-    }
+  // 1. Load Sponsors — с 24-часов TTL кеш (0 Firestore четения ако кешът е свеж)
+  const loadSponsors = useCallback(
+    async (forceRefresh = false) => {
+      const ttlKey = `bkg_cached_sponsors_ttl_${siteId}`;
 
-    try {
-      const data = await sponsorService.getSponsors(siteId);
-      if (data && data.length > 0) {
-        setSponsors(data);
-        writeLocalCache(`bkg_cached_sponsors_${siteId}`, data);
+      if (!forceRefresh) {
+        // Провери TTL кеша — ако е свеж, СПРИ тук (без Firestore)
+        const fresh = readCacheWithTTL<SponsorPartner>(ttlKey, SPONSORS_TTL_MS);
+        if (fresh) {
+          setSponsors(fresh);
+          setIsLoadingSponsors(false);
+          return; // ← 0 Firestore четения!
+        }
       }
-    } catch (error) {
-      console.warn("Notice loading sponsors from Firestore:", error);
-    } finally {
-      setIsLoadingSponsors(false);
-    }
-  }, [siteId]);
 
-  // 2. Load Issued Documents Registry with local cache fallback
+      // Покажи веднага от стар кеш (без TTL) докато зареждаме
+      const stale = readLocalCache<SponsorPartner>(
+        `bkg_cached_sponsors_${siteId}`
+      );
+      if (stale) {
+        setSponsors(stale);
+        setIsLoadingSponsors(false);
+      }
+
+      try {
+        const data = await sponsorService.getSponsors(siteId);
+        if (data && data.length > 0) {
+          setSponsors(data);
+          writeCacheWithTTL(ttlKey, data); // запиши с TTL
+          writeLocalCache(`bkg_cached_sponsors_${siteId}`, data); // запиши и без TTL като fallback
+        }
+      } catch (error) {
+        console.warn("Notice loading sponsors from Firestore:", error);
+      } finally {
+        setIsLoadingSponsors(false);
+      }
+    },
+    [siteId]
+  );
+
+  // 2. Load Issued Documents Registry — САМО при явно действие от потребителя
+  // НЕ зарежда автоматично при mount за да пести Firestore четения!
   const loadIssuedCertificates = useCallback(async () => {
+    // Покажи веднага от кеш
     const cached = readLocalCache<IssuedCertificate>(
       `bkg_cached_certificates_${siteId}`
     );
@@ -107,9 +151,21 @@ export function CertificatesClient() {
     }
   }, [siteId]);
 
+  // Зарежда спонсорите при mount — с TTL кеш (без Firestore ако е свеж)
   useEffect(() => {
     loadSponsors();
   }, [loadSponsors]);
+
+  // Зарежда кешираните сертификати от localStorage при mount (0 Firestore четения)
+  useEffect(() => {
+    const cached = readLocalCache<IssuedCertificate>(
+      `bkg_cached_certificates_${siteId}`
+    );
+    if (cached) {
+      setIssuedCertificates(cached);
+    }
+    setIsLoadingCertificates(false);
+  }, [siteId]);
 
   const isRecoveryZone = siteId === "recoveryzone";
 
@@ -158,7 +214,9 @@ export function CertificatesClient() {
         onValueChange={(val) => {
           const tab = val as "issue" | "issued" | "sponsors";
           setActiveTab(tab);
-          if (tab === "sponsors") loadSponsors();
+          // Sponsors: принудително опресняване само ако потребителят кликне таба
+          if (tab === "sponsors") loadSponsors(true);
+          // Issued: зарежда от Firestore само при явен клик
           if (tab === "issued") loadIssuedCertificates();
         }}
         className="space-y-6"

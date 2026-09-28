@@ -12,13 +12,42 @@ import {
 
 const SPONSORS_COLLECTION = "sponsors";
 
-/**
- * Връща всички спонсори за даден клуб (siteId) чрез Admin SDK
- */
+// ━━ Сървърен in-memory кеш (1 час TTL) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SPONSORS_MEMORY_TTL_MS = 60 * 60 * 1000; // 1 час
+const sponsorsMemoryCache = new Map<
+  string,
+  { ts: number; data: SponsorPartner[] }
+>();
+
+function getMemoryCached(siteId: string): SponsorPartner[] | null {
+  const entry = sponsorsMemoryCache.get(siteId);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > SPONSORS_MEMORY_TTL_MS) {
+    sponsorsMemoryCache.delete(siteId);
+    return null;
+  }
+  return entry.data;
+}
+
+function setMemoryCache(siteId: string, data: SponsorPartner[]): void {
+  sponsorsMemoryCache.set(siteId, { ts: Date.now(), data });
+}
+
+/** Изчиства сървърния кеш (при промяна на спонсор) */
+export async function invalidateSponsorsCache(siteId: string): Promise<void> {
+  sponsorsMemoryCache.delete(siteId);
+}
+
 export async function getSponsorsAction(
   siteId: "bkgalabovo" | "recoveryzone"
 ): Promise<{ success: boolean; data: SponsorPartner[]; error?: string }> {
   try {
+    // Провери сървърния in-memory кеш първо
+    const memoryCached = getMemoryCached(siteId);
+    if (memoryCached) {
+      return { success: true, data: memoryCached };
+    }
+
     const adminDb = getAdminDb();
     const snapshot = await adminDb
       .collection(SPONSORS_COLLECTION)
@@ -26,7 +55,7 @@ export async function getSponsorsAction(
       .get();
 
     if (snapshot.empty) {
-      // Връщаме начални партньори, ако няма налични записи в базата
+      // Върщаме начални партньори, ако няма налични записи в базата
       const defaults = DEFAULT_INITIAL_SPONSORS.filter(
         (s) => s.siteId === siteId
       ).map((s, idx) => ({
@@ -34,6 +63,7 @@ export async function getSponsorsAction(
         id: `${siteId}_sponsor_default_${idx}`,
         createdAt: new Date().toISOString(),
       }));
+      setMemoryCache(siteId, defaults);
       return { success: true, data: defaults };
     }
 
@@ -57,10 +87,13 @@ export async function getSponsorsAction(
     // Сортиране по order възходящо
     items.sort((a, b) => (a.order || 0) - (b.order || 0));
 
+    // Запиши в сървърния кеш
+    setMemoryCache(siteId, items);
+
     return { success: true, data: items };
   } catch (error) {
     console.error("Грешка при getSponsorsAction:", error);
-    // Връщаме начални данни като безотказен fallback
+    // Върщаме начални данни като безотказен fallback
     const defaults = DEFAULT_INITIAL_SPONSORS.filter(
       (s) => s.siteId === siteId
     ).map((s, idx) => ({
@@ -93,7 +126,7 @@ export async function createSponsorAction(
       })
     );
     const docRef = await adminDb.collection(SPONSORS_COLLECTION).add(cleanData);
-
+    invalidateSponsorsCache(siteId); // Изчисти кеша след запис
     return { success: true, id: docRef.id };
   } catch (error) {
     console.error("Грешка при createSponsorAction:", error);
@@ -125,7 +158,7 @@ export async function updateSponsorAction(
       .collection(SPONSORS_COLLECTION)
       .doc(id)
       .set(cleanData, { merge: true });
-
+    invalidateSponsorsCache(siteId); // Изчисти кеша след обновяване
     return { success: true };
   } catch (error) {
     console.error("Грешка при updateSponsorAction:", error);
@@ -154,7 +187,7 @@ export async function toggleSponsorActiveAction(
       },
       { merge: true }
     );
-
+    invalidateSponsorsCache(siteId); // Изчисти кеша
     return { success: true };
   } catch (error) {
     console.error("Грешка при toggleSponsorActiveAction:", error);
@@ -172,7 +205,8 @@ export async function toggleSponsorActiveAction(
  * Изтрива партньор през Admin SDK
  */
 export async function deleteSponsorAction(
-  id: string
+  id: string,
+  siteId: "bkgalabovo" | "recoveryzone" = "bkgalabovo"
 ): Promise<{ success: boolean; error?: string }> {
   try {
     if (id.includes("_sponsor_default_")) {
@@ -181,6 +215,7 @@ export async function deleteSponsorAction(
 
     const adminDb = getAdminDb();
     await adminDb.collection(SPONSORS_COLLECTION).doc(id).delete();
+    invalidateSponsorsCache(siteId); // Изчисти кеша след изтриване
     return { success: true };
   } catch (error) {
     console.error("Грешка при deleteSponsorAction:", error);

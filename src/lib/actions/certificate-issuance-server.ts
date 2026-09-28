@@ -52,22 +52,29 @@ export async function issueCertificateAction(
     // 2. Генериране на уникален сериен номер за текущата година (BKG-2026-XXXX / RZ-2026-XXXX)
     const serialNumber = generateCertificateSerialNumber(siteId);
 
-    // 3. Извличане на спонсорите за замразяване в snapshot
+    // 3. Спонсори: използваме вече предадените от клиента (branding.partnerLogos)
+    // НЕ правим допълнително четене от Firestore за sponsors!
     let allSponsors: SponsorPartner[] = [];
-    try {
-      const sponsorsSnapshot = await adminDb
-        .collection(SPONSORS_COLLECTION)
-        .where("siteId", "==", siteId)
-        .get();
-      allSponsors = sponsorsSnapshot.docs.map((d) => ({
-        id: d.id,
-        ...(d.data() as Omit<SponsorPartner, "id">),
-      }));
-    } catch (spErr) {
-      console.warn(
-        "Notice: sponsors snapshot bypassed during quota reset:",
-        spErr
-      );
+    if (
+      !input.branding?.partnerLogos ||
+      input.branding.partnerLogos.length === 0
+    ) {
+      // Само ако клиентът не е предал логота, зареждаме от Firestore като резерва
+      try {
+        const sponsorsSnapshot = await adminDb
+          .collection(SPONSORS_COLLECTION)
+          .where("siteId", "==", siteId)
+          .get();
+        allSponsors = sponsorsSnapshot.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<SponsorPartner, "id">),
+        }));
+      } catch (spErr) {
+        console.warn(
+          "Notice: sponsors snapshot bypassed during quota reset:",
+          spErr
+        );
+      }
     }
 
     // Филтриране на активните спонсори от визуалната конфигурация
