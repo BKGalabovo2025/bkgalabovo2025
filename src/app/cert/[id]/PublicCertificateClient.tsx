@@ -1,4 +1,4 @@
-/* eslint-disable react/forbid-dom-props, sonarjs/no-nested-conditional, sonarjs/cognitive-complexity, @next/next/no-img-element */
+/* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity, @next/next/no-img-element */
 "use client";
 
 import confetti from "canvas-confetti";
@@ -40,6 +40,8 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
 import { IssuedCertificate } from "@/types/certificates";
+
+import { PdfToImageCanvas } from "./PdfToImageCanvas";
 
 interface PublicCertificateClientProps {
   certificate: IssuedCertificate;
@@ -423,14 +425,9 @@ export function PublicCertificateClient({
 
               {/* Native flush presentation: exact aspect ratio, zero black bars, zero margins */}
               {uploadedDoc.fileType === "pdf" ? (
-                <iframe
-                  src={`${uploadedDoc.fileUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                  title="Официален клубен ваучер"
-                  className="block w-full border-0 bg-white"
-                  style={{
-                    aspectRatio: `${pdfAspectRatio}`,
-                    width: "100%",
-                  }}
+                <PdfToImageCanvas
+                  fileUrl={uploadedDoc.fileUrl}
+                  fallbackAspect={pdfAspectRatio}
                 />
               ) : (
                 <img
@@ -679,15 +676,9 @@ export function PublicCertificateClient({
 
             <div className="max-h-[85vh] w-full overflow-y-auto rounded-xl bg-white p-2 dark:bg-zinc-900">
               {uploadedDoc.fileType === "pdf" ? (
-                <iframe
-                  src={`${uploadedDoc.fileUrl}#toolbar=0&navpanes=0&view=FitH`}
-                  title="Ваучер пълен екран"
-                  className="block w-full border-0"
-                  style={{
-                    aspectRatio: `${pdfAspectRatio}`,
-                    width: "100%",
-                    minHeight: "480px",
-                  }}
+                <PdfToImageCanvas
+                  fileUrl={uploadedDoc.fileUrl}
+                  fallbackAspect={pdfAspectRatio}
                 />
               ) : (
                 <div className="flex size-full items-center justify-center p-2">
