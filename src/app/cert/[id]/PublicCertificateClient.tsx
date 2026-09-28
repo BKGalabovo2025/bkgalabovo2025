@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Copy,
   Download,
+  ExternalLink,
   Gift,
   MapPin,
   Maximize2,
@@ -23,6 +24,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { PDFDocument } from "pdf-lib";
+import QRCode from "qrcode";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -123,7 +125,72 @@ export function PublicCertificateClient({
       ? "/recovery-zone/rz-icon-square.png"
       : "/icons/badge-option-3-light-squircle.png");
 
-  const clubName = isRecoveryZone ? "Recovery Zone by ZM" : "БК Гълъбово 2025";
+  const clubName = isRecoveryZone
+    ? "Recovery Zone by ZM"
+    : "БАДМИНТОН КЛУБ ГЪЛЪБОВО";
+
+  const [dynamicQrUrl, setDynamicQrUrl] = useState<string>("");
+
+  useEffect(() => {
+    const targetUrl =
+      typeof window !== "undefined" && window.location.href
+        ? window.location.href
+        : cert.qrCodeDataUrl || "";
+
+    if (targetUrl) {
+      QRCode.toDataURL(targetUrl, {
+        margin: 1,
+        width: 320,
+        color: {
+          dark: "#09090b",
+          light: "#ffffff",
+        },
+      })
+        .then((url) => setDynamicQrUrl(url))
+        .catch((err) => {
+          console.warn("Could not generate client QR code:", err);
+        });
+    }
+  }, [cert.qrCodeDataUrl]);
+
+  // Deduplicate and enrich partner logos
+  const rawPartners =
+    cert.branding?.partnerLogos && cert.branding.partnerLogos.length > 0
+      ? cert.branding.partnerLogos
+      : [
+          {
+            name: "Община Гълъбово",
+            logoUrl:
+              "https://upload.wikimedia.org/wikipedia/commons/e/e0/Coat_of_arms_of_Galabovo.png",
+          },
+          {
+            name: "Be Active",
+            logoUrl: "",
+          },
+        ];
+
+  const uniquePartners = Array.from(
+    new Map(
+      rawPartners
+        .filter((p) => Boolean(p?.name?.trim()))
+        .map((p) => {
+          const trimmedName = p.name.trim();
+          let logo = p.logoUrl || "";
+          if (!logo && trimmedName.toLowerCase().includes("гълъбово")) {
+            logo =
+              "https://upload.wikimedia.org/wikipedia/commons/e/e0/Coat_of_arms_of_Galabovo.png";
+          }
+          return [
+            trimmedName.toLowerCase(),
+            {
+              name: trimmedName,
+              logoUrl: logo,
+              websiteUrl: p.websiteUrl,
+            },
+          ];
+        })
+    ).values()
+  );
 
   const uploadedDoc = cert.uploadedDocument;
 
@@ -476,85 +543,100 @@ export function PublicCertificateClient({
             </div>
 
             {/* ============================================================= */}
-            {/* DOCUMENT FOOTER: Partners, Official Seal & Digital QR Code   */}
+            {/* 1. OFFICIAL PARTNERS & SPONSORS SHOWCASE                     */}
+            {/* Prominent, Centered, Large Logos & Clear Importance           */}
             {/* ============================================================= */}
-            <div className="mt-8 border-t-2 border-amber-100 pt-6 dark:border-zinc-800">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:items-center">
-                {/* 1. Official Partners & Sponsors */}
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black tracking-wider text-zinc-400 uppercase">
-                    Партньори & Подкрепа
-                  </span>
-                  {cert.branding?.partnerLogos &&
-                  cert.branding.partnerLogos.length > 0 ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      {cert.branding.partnerLogos.map((p, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-2 rounded-xl border border-zinc-200/80 bg-zinc-50 px-2.5 py-1.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-800/80"
-                        >
-                          <div className="relative size-6 shrink-0">
-                            <Image
-                              src={p.logoUrl}
-                              alt={p.name}
-                              width={24}
-                              height={24}
-                              className="size-full object-contain"
-                              unoptimized
-                            />
-                          </div>
-                          <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                            {p.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                        Община Гълъбово
+            <div className="mt-8 rounded-2xl border-2 border-amber-200/80 bg-linear-to-b from-amber-50/60 via-white to-amber-50/30 p-5 text-center shadow-xs sm:p-6 dark:border-zinc-800 dark:from-zinc-900/60 dark:to-zinc-950">
+              <div className="mb-3.5 inline-flex items-center gap-2">
+                <span className="text-xs font-black tracking-widest text-amber-900 uppercase dark:text-amber-300">
+                  Партньори & Подкрепа
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+                {uniquePartners.map((p, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3.5 rounded-2xl border-2 border-zinc-200/90 bg-white px-5 py-3 shadow-sm hover:border-amber-400 hover:shadow-md transition-all dark:border-zinc-700 dark:bg-zinc-800"
+                  >
+                    {p.logoUrl ? (
+                      <div className="relative size-12 sm:size-14 shrink-0 overflow-hidden rounded-xl bg-white p-1">
+                        <Image
+                          src={p.logoUrl}
+                          alt={p.name}
+                          width={56}
+                          height={56}
+                          className="size-full object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex size-12 sm:size-14 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-amber-600 text-white font-black text-lg shadow-inner">
+                        {p.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="text-left">
+                      <span className="block text-sm sm:text-base font-black tracking-tight text-zinc-900 dark:text-white">
+                        {p.name}
                       </span>
-                      <span className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                        #BeActive
+                      <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                        Официален партньор
                       </span>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-                {/* 2. Official Seal & Issuance Date */}
-                <div className="text-center space-y-1">
-                  <div className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-amber-100/80 px-3 py-1 text-[11px] font-bold text-amber-900 dark:bg-amber-950/80 dark:text-amber-300">
-                    <Award className="size-3.5 text-amber-600" />
+            {/* ============================================================= */}
+            {/* 2. DOCUMENT AUTHENTICITY BAR: Seal & Electronic QR Validator */}
+            {/* ============================================================= */}
+            <div className="mt-6 border-t-2 border-amber-100 pt-6 dark:border-zinc-800">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                {/* Official Seal & Club Full Name */}
+                <div className="space-y-1.5 text-center sm:text-left">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-100/90 px-3.5 py-1 text-xs font-bold text-amber-900 shadow-2xs dark:bg-amber-950/80 dark:text-amber-300">
+                    <Award className="size-4 text-amber-600" />
                     <span>Заверен клубен регистър</span>
                   </div>
                   {formattedIssuedAt && (
-                    <p className="text-[11px] text-zinc-500">
-                      Издаден на: {formattedIssuedAt}
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      Издаден на:{" "}
+                      <span className="font-semibold text-zinc-900 dark:text-white">
+                        {formattedIssuedAt}
+                      </span>
                     </p>
                   )}
-                  <p className="text-[10px] text-zinc-400">
-                    {clubName} • СК „Енергетик“
+                  <p className="text-sm font-black tracking-wide text-zinc-900 dark:text-zinc-100">
+                    {clubName}
                   </p>
                 </div>
 
-                {/* 3. Electronic QR Verification & Serial Number */}
-                <div className="flex items-center gap-3 sm:justify-end">
+                {/* Electronic QR Verification & Serial Number (Clickable & Scannable) */}
+                <a
+                  href={currentUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-between sm:justify-end gap-4 rounded-2xl border-2 border-emerald-300/90 bg-emerald-50/60 p-3 shadow-xs transition-all hover:bg-emerald-100/70 hover:shadow-md dark:border-emerald-800/80 dark:bg-emerald-950/40"
+                  title="Кликни или сканирай с камера за електронна валидация"
+                >
                   <div className="text-right">
-                    <span className="text-[10px] font-black tracking-wider text-zinc-400 uppercase">
+                    <span className="text-[10px] font-black tracking-wider text-emerald-800 uppercase dark:text-emerald-300">
                       Електронна валидация
                     </span>
                     <div className="font-mono text-xs font-black text-zinc-900 sm:text-sm dark:text-white">
                       № {cert.serialNumber}
                     </div>
-                    <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                      ✓ Сканирай за проверка
+                    <div className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-700 underline underline-offset-2 dark:text-emerald-400">
+                      <CheckCircle2 className="size-3.5 text-emerald-600" />
+                      <span>Сканирай или кликни</span>
+                      <ExternalLink className="size-3 opacity-70 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>
 
-                  <div className="size-16 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 shadow-xs dark:border-zinc-700">
-                    {cert.qrCodeDataUrl ? (
+                  <div className="relative size-18 sm:size-20 shrink-0 overflow-hidden rounded-xl border-2 border-emerald-400 bg-white p-1 shadow-xs transition-transform group-hover:scale-105 dark:border-emerald-700">
+                    {dynamicQrUrl || cert.qrCodeDataUrl ? (
                       <img
-                        src={cert.qrCodeDataUrl}
+                        src={dynamicQrUrl || cert.qrCodeDataUrl}
                         alt="QR код за проверка"
                         className="size-full object-contain"
                       />
@@ -564,7 +646,7 @@ export function PublicCertificateClient({
                       </div>
                     )}
                   </div>
-                </div>
+                </a>
               </div>
             </div>
           </div>
@@ -668,7 +750,7 @@ export function PublicCertificateClient({
             <div className="flex flex-wrap items-center justify-center gap-3 text-zinc-400">
               <span className="flex items-center gap-1">
                 <MapPin className="size-3 text-red-500" />
-                Спортен Комплекс „Енергетик“, гр. Гълъбово
+                гр. Гълъбово
               </span>
               <span>•</span>
               <a

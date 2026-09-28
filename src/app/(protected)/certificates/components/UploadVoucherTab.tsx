@@ -360,10 +360,32 @@ export function UploadVoucherTab({
           websiteUrl: s.websiteUrl,
         }));
 
-      const allPartnerLogos = [
+      const rawPartnerLogos = [
         ...activeSponsorObjects,
         ...additionalPartnerLogos,
       ];
+
+      const seenPartnerNames = new Set<string>();
+      const allPartnerLogos: Array<{
+        name: string;
+        logoUrl: string;
+        websiteUrl?: string;
+      }> = [];
+
+      for (const p of rawPartnerLogos) {
+        const norm = p.name.trim().toLowerCase();
+        if (norm && !seenPartnerNames.has(norm)) {
+          seenPartnerNames.add(norm);
+          allPartnerLogos.push({
+            name: p.name.trim(),
+            logoUrl: p.logoUrl || "",
+            websiteUrl:
+              "websiteUrl" in p
+                ? (p as { websiteUrl?: string }).websiteUrl
+                : undefined,
+          });
+        }
+      }
 
       // 3. Prepare valid until date
       let validUntilIso: string | undefined;
