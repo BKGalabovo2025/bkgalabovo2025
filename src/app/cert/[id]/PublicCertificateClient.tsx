@@ -299,7 +299,15 @@ export function PublicCertificateClient({
                       variant="outline"
                       className="border-amber-400 bg-amber-100 font-mono text-[10px] font-bold text-amber-900 dark:bg-amber-900/60 dark:text-amber-200"
                     >
-                      {remaining} от {total} оставащи
+                      <Ticket className="mr-1 size-3 text-amber-700" />
+                      Пакет: {remaining} от {total} оставащи
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-400 bg-emerald-100 font-mono text-[10px] font-bold text-emerald-900 dark:bg-emerald-900/60 dark:text-emerald-200"
+                    >
+                      <CheckCircle2 className="mr-1 size-3 text-emerald-600" />
+                      Заверен & Валиден
                     </Badge>
                   </div>
                   <p className="text-[11px] text-amber-800/80 dark:text-amber-400">
@@ -441,10 +449,10 @@ export function PublicCertificateClient({
                 </p>
               )}
 
-              {/* Service ribbon & metadata badge */}
+              {/* Service ribbon & validity */}
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
-                <div className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/90 px-3 py-1 text-xs font-bold text-blue-900 shadow-2xs dark:border-blue-900 dark:bg-blue-950/70 dark:text-blue-300">
-                  <Gift className="size-3.5 text-blue-600" />
+                <div className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/90 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-blue-900 shadow-2xs dark:border-blue-900 dark:bg-blue-950/70 dark:text-blue-300">
+                  <Gift className="size-4 text-blue-600" />
                   <span>
                     {cert.details.voucherServiceType ||
                       cert.visualSnapshot?.templateTitle ||
@@ -452,23 +460,11 @@ export function PublicCertificateClient({
                   </span>
                 </div>
 
-                {isVoucher && (
-                  <div className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/90 px-3 py-1 text-xs font-bold text-amber-900 shadow-2xs dark:border-amber-900 dark:bg-amber-950/70 dark:text-amber-300">
-                    <Ticket className="size-3.5 text-amber-600" />
-                    <span>Пакет от {total} безплатни тренировки</span>
-                  </div>
-                )}
-
                 {formattedValidUntil && (
-                  <div className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white/90 px-3 py-1 text-xs font-semibold text-zinc-700 shadow-2xs dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
+                  <div className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white/90 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-zinc-700 shadow-2xs dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
                     <span>Срок на валидност: до {formattedValidUntil}</span>
                   </div>
                 )}
-
-                <div className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/90 px-3 py-1 text-xs font-bold text-emerald-800 shadow-2xs dark:border-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-300">
-                  <CheckCircle2 className="size-3.5 text-emerald-600" />
-                  <span>Заверен & Валиден</span>
-                </div>
               </div>
             </div>
 
