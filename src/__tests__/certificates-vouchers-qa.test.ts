@@ -43,9 +43,11 @@ describe("Certificates & Vouchers Studio QA Suite", () => {
     });
 
     it("correctly maps sponsor categories", () => {
+      expect(getSponsorCategoryLabel("educational")).toContain("Образователна");
       expect(getSponsorCategoryLabel("institutional")).toContain(
         "Институционален"
       );
+      expect(getSponsorCategoryLabel("sports")).toContain("Спортен");
       expect(getSponsorCategoryLabel("gold")).toContain("Златен");
       expect(getSponsorCategoryLabel("partner")).toContain("Партньор");
     });

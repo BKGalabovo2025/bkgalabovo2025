@@ -193,42 +193,42 @@ export function SponsorWizardDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+      <DialogContent className="flex max-h-[92dvh] w-[95vw] max-w-2xl flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-0 shadow-2xl sm:max-h-[88vh] sm:rounded-3xl dark:border-zinc-800 dark:bg-zinc-950">
         {/* Header with Stepper */}
-        <div className="shrink-0 border-b border-zinc-200 bg-white/90 px-6 py-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
-          <DialogTitle className="flex items-center gap-2.5 text-lg font-black text-zinc-900 dark:text-white">
-            <span className="flex size-8 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
-              <Handshake className="size-4" />
+        <div className="shrink-0 border-b border-zinc-200 bg-white/90 px-4 py-3.5 backdrop-blur-md sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/90">
+          <DialogTitle className="flex items-center gap-2 text-base font-black text-zinc-900 sm:text-lg dark:text-white">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs sm:size-8">
+              <Handshake className="size-3.5 sm:size-4" />
             </span>
-            <span>
+            <span className="truncate">
               {sponsorToEdit
                 ? "Редактиране на Партньор (Wizard)"
                 : "Нов Спонсор / Институция (Wizard)"}
             </span>
           </DialogTitle>
-          <DialogDescription className="mt-0.5 text-xs text-zinc-500">
+          <DialogDescription className="mt-0.5 text-[11px] text-zinc-500 sm:text-xs">
             Стъпка по стъпка добавяне на официални спонсори с проверка на
             визуален контраст.
           </DialogDescription>
 
           {/* Stepper Pills */}
-          <div className="mt-3 flex items-center gap-2 overflow-x-auto">
+          <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1 sm:gap-2 overscroll-contain">
             {WIZARD_STEPS.map((step) => {
               const isActiveStep = currentStep === step.id;
               const isCompleted = currentStep > step.id;
               return (
                 <div
                   key={step.id}
-                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold transition-all ${
+                  className={`flex shrink-0 items-center gap-1.5 rounded-xl px-2.5 py-1 text-[11px] font-bold transition-all sm:px-3 sm:text-xs ${
                     isActiveStep
-                      ? "bg-blue-600 text-white shadow-sm"
+                      ? "bg-blue-600 text-white shadow-xs"
                       : isCompleted
                         ? "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
                         : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"
                   }`}
                 >
                   <span
-                    className={`flex size-4 items-center justify-center rounded-full text-[9px] font-black ${
+                    className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[9px] font-black ${
                       isActiveStep
                         ? "bg-white text-blue-600"
                         : isCompleted
@@ -238,7 +238,7 @@ export function SponsorWizardDialog({
                   >
                     {isCompleted ? "✓" : step.id}
                   </span>
-                  <span className="truncate">{step.title}</span>
+                  <span className="whitespace-nowrap">{step.title}</span>
                 </div>
               );
             })}
@@ -246,10 +246,10 @@ export function SponsorWizardDialog({
         </div>
 
         {/* Step Body */}
-        <div className="space-y-6 p-6">
+        <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:space-y-6 sm:p-6 overscroll-contain">
           {/* STEP 1: CATEGORY */}
           {currentStep === 1 && (
-            <div className="space-y-4 duration-200 animate-in fade-in">
+            <div className="space-y-3 sm:space-y-4 duration-200 animate-in fade-in">
               <div>
                 <h3 className="text-sm font-black text-zinc-900 dark:text-white">
                   1. Изберете Роля & Категория
@@ -260,77 +260,86 @@ export function SponsorWizardDialog({
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
                 <button
                   type="button"
-                  onClick={() => setCategory("institutional")}
-                  className={`rounded-2xl border p-3.5 text-left transition-all ${
-                    category === "institutional"
-                      ? "border-blue-500 bg-blue-50/60 shadow-sm ring-2 ring-blue-500/30 dark:bg-blue-950/30"
-                      : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800"
+                  onClick={() => setCategory("educational")}
+                  className={`flex items-start gap-3 rounded-2xl border p-3 text-left transition-all active:scale-95 sm:p-3.5 ${
+                    category === "educational"
+                      ? "border-blue-500 bg-blue-50/70 shadow-xs ring-2 ring-blue-500/30 dark:bg-blue-950/40"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/60"
                   }`}
                 >
-                  <span className="mb-1 block text-2xl">🏛️</span>
-                  <span className="block text-xs font-black text-zinc-900 dark:text-white">
-                    Институция / Федерация
-                  </span>
-                  <span className="mt-0.5 line-clamp-2 text-[11px] text-zinc-500">
-                    Община Гълъбово, БФБ, Министерства.
-                  </span>
+                  <span className="shrink-0 text-2xl sm:text-3xl">🏫</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-xs font-black text-zinc-900 sm:text-sm dark:text-white">
+                      Образователна институция
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-zinc-500 leading-tight sm:text-xs">
+                      Училища и детски градини (напр. Второ ОУ, ДГ „Радост“).
+                    </span>
+                  </div>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setCategory("gold")}
-                  className={`rounded-2xl border p-3.5 text-left transition-all ${
-                    category === "gold"
-                      ? "border-amber-500 bg-amber-50/60 shadow-sm ring-2 ring-amber-500/30 dark:bg-amber-950/30"
-                      : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800"
+                  onClick={() => setCategory("institutional")}
+                  className={`flex items-start gap-3 rounded-2xl border p-3 text-left transition-all active:scale-95 sm:p-3.5 ${
+                    category === "institutional"
+                      ? "border-sky-500 bg-sky-50/70 shadow-xs ring-2 ring-sky-500/30 dark:bg-sky-950/40"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/60"
                   }`}
                 >
-                  <span className="mb-1 block text-2xl">💎</span>
-                  <span className="block text-xs font-black text-zinc-900 dark:text-white">
-                    Генерален / Златен Спонсор
-                  </span>
-                  <span className="mt-0.5 line-clamp-2 text-[11px] text-zinc-500">
-                    Основни индустриални и корпоративни дарители.
-                  </span>
+                  <span className="shrink-0 text-2xl sm:text-3xl">🏛️</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-xs font-black text-zinc-900 sm:text-sm dark:text-white">
+                      Институционален партньор
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-zinc-500 leading-tight sm:text-xs">
+                      Община Гълъбово, Българска Федерация Бадминтон (БФБ).
+                    </span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCategory("sports")}
+                  className={`flex items-start gap-3 rounded-2xl border p-3 text-left transition-all active:scale-95 sm:p-3.5 ${
+                    category === "sports"
+                      ? "border-emerald-500 bg-emerald-50/70 shadow-xs ring-2 ring-emerald-500/30 dark:bg-emerald-950/40"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/60"
+                  }`}
+                >
+                  <span className="shrink-0 text-2xl sm:text-3xl">🏸</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-xs font-black text-zinc-900 sm:text-sm dark:text-white">
+                      Спортен партньор
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-zinc-500 leading-tight sm:text-xs">
+                      Спортни брандове, екипировка и зали (напр. Babolat,
+                      Yonex).
+                    </span>
+                  </div>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setCategory("partner")}
-                  className={`rounded-2xl border p-3.5 text-left transition-all ${
+                  className={`flex items-start gap-3 rounded-2xl border p-3 text-left transition-all active:scale-95 sm:p-3.5 ${
                     category === "partner"
-                      ? "border-purple-500 bg-purple-50/60 shadow-sm ring-2 ring-purple-500/30 dark:bg-purple-950/30"
-                      : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800"
+                      ? "border-purple-500 bg-purple-50/70 shadow-xs ring-2 ring-purple-500/30 dark:bg-purple-950/40"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/60"
                   }`}
                 >
-                  <span className="mb-1 block text-2xl">🤝</span>
-                  <span className="block text-xs font-black text-zinc-900 dark:text-white">
-                    Официален Партньор
-                  </span>
-                  <span className="mt-0.5 line-clamp-2 text-[11px] text-zinc-500">
-                    Спортни зали, оборудване и логистика.
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setCategory("silver")}
-                  className={`rounded-2xl border p-3.5 text-left transition-all ${
-                    category === "silver"
-                      ? "border-zinc-500 bg-zinc-100 shadow-sm ring-2 ring-zinc-500/30 dark:bg-zinc-800"
-                      : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800"
-                  }`}
-                >
-                  <span className="mb-1 block text-2xl">🏅</span>
-                  <span className="block text-xs font-black text-zinc-900 dark:text-white">
-                    Сребърен / Бронзов
-                  </span>
-                  <span className="mt-0.5 line-clamp-2 text-[11px] text-zinc-500">
-                    Регионални компании и локален бизнес.
-                  </span>
+                  <span className="shrink-0 text-2xl sm:text-3xl">🤝</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-xs font-black text-zinc-900 sm:text-sm dark:text-white">
+                      Партньор
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-zinc-500 leading-tight sm:text-xs">
+                      Предприятия, фирми, медии и проекти (Be Active, вестник).
+                    </span>
+                  </div>
                 </button>
               </div>
             </div>
@@ -338,7 +347,7 @@ export function SponsorWizardDialog({
 
           {/* STEP 2: DETAILS */}
           {currentStep === 2 && (
-            <div className="space-y-4 duration-200 animate-in fade-in">
+            <div className="space-y-3.5 sm:space-y-4 duration-200 animate-in fade-in">
               <div>
                 <h3 className="text-sm font-black text-zinc-900 dark:text-white">
                   2. Данни за Организацията
@@ -357,8 +366,8 @@ export function SponsorWizardDialog({
                     id="spName"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="напр. Мини Марица-изток ЕАД или Община Гълъбово"
-                    className="rounded-xl font-medium"
+                    placeholder="напр. Второ ОУ „Христо Ботев“, Община Гълъбово или Babolat"
+                    className="h-10 rounded-xl font-medium sm:h-11 text-xs sm:text-sm"
                     autoFocus
                   />
                 </div>
@@ -372,7 +381,7 @@ export function SponsorWizardDialog({
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                     placeholder="https://example.com"
-                    className="rounded-xl font-mono text-xs"
+                    className="h-10 rounded-xl font-mono text-xs sm:h-11"
                   />
                 </div>
 
@@ -386,7 +395,7 @@ export function SponsorWizardDialog({
                     onChange={(e) => setDescription(e.target.value)}
                     rows={2}
                     placeholder="Подкрепа за детско-юношеския отбор по бадминтон..."
-                    className="resize-none rounded-xl text-xs"
+                    className="resize-none rounded-xl text-xs sm:text-sm"
                   />
                 </div>
               </div>
@@ -395,7 +404,7 @@ export function SponsorWizardDialog({
 
           {/* STEP 3: LOGO & CONTRAST TEST */}
           {currentStep === 3 && (
-            <div className="space-y-4 duration-200 animate-in fade-in">
+            <div className="space-y-3.5 sm:space-y-4 duration-200 animate-in fade-in">
               <div>
                 <h3 className="text-sm font-black text-zinc-900 dark:text-white">
                   3. Качване на Лого & Тест Превю
@@ -417,59 +426,64 @@ export function SponsorWizardDialog({
 
               {/* Live Contrast Tester Box */}
               {logoUrl && (
-                <div className="space-y-2 rounded-2xl border border-zinc-200 bg-zinc-100/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/70">
-                  <span className="block text-[11px] font-bold tracking-wider text-zinc-500 uppercase">
-                    Интерактивен Тест на Контраста:
-                  </span>
+                <div className="space-y-2.5 rounded-2xl border border-zinc-200 bg-zinc-100/70 p-3.5 sm:p-4 dark:border-zinc-800 dark:bg-zinc-900/70">
+                  <div className="flex items-center justify-between">
+                    <span className="block text-[11px] font-bold tracking-wider text-zinc-500 uppercase">
+                      Интерактивен Тест на Контраста:
+                    </span>
+                    <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      ✓ Проверка на четливост
+                    </span>
+                  </div>
 
                   <div className="grid grid-cols-3 gap-2 text-center">
                     {/* Test 1: Light Canvas */}
-                    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white p-3 shadow-xs">
-                      <div className="relative h-10 w-24">
+                    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white p-2.5 sm:p-3 shadow-2xs">
+                      <div className="relative h-9 w-20 sm:h-11 sm:w-24">
                         <Image
                           src={logoUrl}
                           alt="Светъл фон тест"
                           fill
-                          sizes="96px"
+                          sizes="(max-width: 640px) 80px, 96px"
                           className="object-contain"
                           unoptimized
                         />
                       </div>
-                      <span className="text-[9px] font-bold text-zinc-500">
+                      <span className="text-[9px] font-bold text-zinc-600 sm:text-[10px] dark:text-zinc-300">
                         Светла грамота
                       </span>
                     </div>
 
                     {/* Test 2: Luxury Dark Canvas */}
-                    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-amber-500/40 bg-[#09090b] p-3 shadow-xs">
-                      <div className="relative h-10 w-24">
+                    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-amber-500/40 bg-[#09090b] p-2.5 sm:p-3 shadow-2xs">
+                      <div className="relative h-9 w-20 sm:h-11 sm:w-24">
                         <Image
                           src={logoUrl}
                           alt="Тъмен фон тест"
                           fill
-                          sizes="96px"
-                          className="object-contain brightness-125"
+                          sizes="(max-width: 640px) 80px, 96px"
+                          className="object-contain brightness-110"
                           unoptimized
                         />
                       </div>
-                      <span className="text-[9px] font-bold text-amber-400">
+                      <span className="text-[9px] font-bold text-amber-400 sm:text-[10px]">
                         Тъмен лукс
                       </span>
                     </div>
 
                     {/* Test 3: AI Certificate Footer */}
-                    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-purple-500/40 bg-zinc-900 p-3 shadow-xs">
-                      <div className="relative h-10 w-24">
+                    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-purple-500/40 bg-zinc-900 p-2.5 sm:p-3 shadow-2xs">
+                      <div className="relative h-9 w-20 sm:h-11 sm:w-24">
                         <Image
                           src={logoUrl}
                           alt="AI платно тест"
                           fill
-                          sizes="96px"
-                          className="object-contain brightness-200 grayscale filter"
+                          sizes="(max-width: 640px) 80px, 96px"
+                          className="object-contain brightness-150 grayscale filter"
                           unoptimized
                         />
                       </div>
-                      <span className="text-[9px] font-bold text-purple-300">
+                      <span className="text-[9px] font-bold text-purple-300 sm:text-[10px]">
                         Футер лента
                       </span>
                     </div>
@@ -481,7 +495,7 @@ export function SponsorWizardDialog({
 
           {/* STEP 4: ORDER & ACTIVATION */}
           {currentStep === 4 && (
-            <div className="space-y-4 duration-200 animate-in fade-in">
+            <div className="space-y-3.5 sm:space-y-4 duration-200 animate-in fade-in">
               <div>
                 <h3 className="text-sm font-black text-zinc-900 dark:text-white">
                   4. Поредност & Активация
@@ -493,10 +507,10 @@ export function SponsorWizardDialog({
               </div>
 
               {/* Summary Card */}
-              <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="space-y-2.5 rounded-2xl border border-zinc-200 bg-white p-3.5 shadow-2xs sm:p-4 dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="flex items-center gap-3">
                   {logoUrl && (
-                    <div className="relative flex size-12 shrink-0 items-center justify-center rounded-xl border bg-zinc-50 p-1">
+                    <div className="relative flex size-11 shrink-0 items-center justify-center rounded-xl border bg-zinc-50 p-1 sm:size-12">
                       <Image
                         src={logoUrl}
                         alt={name}
@@ -507,8 +521,8 @@ export function SponsorWizardDialog({
                       />
                     </div>
                   )}
-                  <div>
-                    <h4 className="text-sm font-black text-zinc-900 dark:text-white">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate text-xs font-black text-zinc-900 sm:text-sm dark:text-white">
                       {name}
                     </h4>
                     <Badge variant="outline" className="mt-0.5 text-[10px]">
@@ -519,14 +533,14 @@ export function SponsorWizardDialog({
 
                 {websiteUrl && (
                   <div className="flex items-center gap-1.5 font-mono text-xs text-blue-600 dark:text-blue-400">
-                    <Globe className="size-3" />
-                    <span>{websiteUrl}</span>
+                    <Globe className="size-3 shrink-0" />
+                    <span className="truncate">{websiteUrl}</span>
                   </div>
                 )}
               </div>
 
               {/* Order and Active Switch */}
-              <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2 sm:gap-4 sm:pt-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="spOrder" className="text-xs font-bold">
                     Поредност (Order)
@@ -538,12 +552,12 @@ export function SponsorWizardDialog({
                     max={50}
                     value={order}
                     onChange={(e) => setOrder(Number(e.target.value) || 1)}
-                    className="rounded-xl font-bold"
+                    className="h-10 rounded-xl font-bold sm:h-11"
                   />
                 </div>
 
                 <div className="flex flex-col justify-end space-y-1.5">
-                  <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-2.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="flex min-h-10 sm:min-h-11 items-center justify-between rounded-xl border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900">
                     <span className="text-xs font-bold text-zinc-900 dark:text-white">
                       Активен в студиото
                     </span>
@@ -560,7 +574,7 @@ export function SponsorWizardDialog({
                       }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                        className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
                           isActive ? "translate-x-5" : "translate-x-0"
                         }`}
                       />
@@ -573,13 +587,13 @@ export function SponsorWizardDialog({
         </div>
 
         {/* Footer Nav Controls */}
-        <div className="flex shrink-0 items-center justify-between border-t border-zinc-200 bg-zinc-100/80 px-6 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/80">
+        <div className="flex shrink-0 items-center justify-between border-t border-zinc-200 bg-zinc-100/90 px-4 py-3 backdrop-blur-md sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/90">
           <Button
             type="button"
             variant="outline"
             onClick={handlePrevStep}
             disabled={currentStep === 1}
-            className="gap-1.5 rounded-xl text-xs font-bold"
+            className="h-10 gap-1.5 rounded-xl px-3 text-xs font-bold sm:h-10 sm:px-4"
           >
             <ArrowLeft className="size-4" />
             Назад
@@ -594,7 +608,7 @@ export function SponsorWizardDialog({
               type="button"
               onClick={handleNextStep}
               disabled={!canProceedNext()}
-              className="gap-1.5 rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
+              className="h-10 gap-1.5 rounded-xl bg-blue-600 px-4 text-xs font-bold text-white hover:bg-blue-700"
             >
               Напред
               <ArrowRight className="size-4" />
@@ -604,7 +618,7 @@ export function SponsorWizardDialog({
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="gap-1.5 rounded-xl bg-emerald-600 text-xs font-black text-white shadow-md shadow-emerald-500/20 hover:bg-emerald-700"
+              className="h-10 gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-black text-white shadow-md shadow-emerald-500/20 hover:bg-emerald-700"
             >
               {isSaving ? (
                 <Loader2 className="size-4 animate-spin" />

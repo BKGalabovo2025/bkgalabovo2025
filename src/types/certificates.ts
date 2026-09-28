@@ -5,11 +5,13 @@ import { z } from "zod";
 // ============================================================================
 
 export const SponsorCategoryEnum = z.enum([
-  "institutional", // Общини, Министерства, БФБ
+  "educational", // Образователна институция (училища, детски градини)
+  "institutional", // Институционален партньор (Община Гълъбово, БФБ)
+  "sports", // Спортни партньори (Babolat, спортни фирми & екипировка)
+  "partner", // Партньори (предприятия, фирми, медии, Be Active)
   "gold", // Генерални / Златни спонсори
   "silver", // Сребърни спонсори
   "bronze", // Бронзови спонсори
-  "partner", // Търговски & логистични партньори
   "general", // Общи дарители
 ]);
 export type SponsorCategory = z.infer<typeof SponsorCategoryEnum>;
@@ -592,18 +594,22 @@ export function getRankLabel(rank?: AwardRank): string {
 
 export function getSponsorCategoryLabel(category: SponsorCategory): string {
   switch (category) {
+    case "educational":
+      return "🏫 Образователна институция";
     case "institutional":
       return "🏛️ Институционален партньор";
+    case "sports":
+      return "🏸 Спортен партньор";
+    case "partner":
+      return "🤝 Партньор";
     case "gold":
       return "🥇 Генерален / Златен спонсор";
     case "silver":
       return "🥈 Сребърен спонсор";
     case "bronze":
       return "🥉 Бронзов спонсор";
-    case "partner":
-      return "🤝 Партньор";
     default:
-      return "🌟 Спонсор";
+      return "🤝 Партньор";
   }
 }
 

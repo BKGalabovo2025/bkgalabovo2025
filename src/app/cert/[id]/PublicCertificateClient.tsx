@@ -101,13 +101,39 @@ function PartnerLogoOrEmblem({
 
 function getPartnerSubtitle(name: string): string {
   const norm = name.toLowerCase();
-  if (norm.includes("община")) {
+  if (
+    norm.includes("община") ||
+    norm.includes("федерация") ||
+    norm.includes("бфб") ||
+    norm.includes("министерство")
+  ) {
     return "Институционален партньор";
   }
-  if (norm.includes("active") || norm.includes("актив")) {
+  if (
+    norm.includes("babolat") ||
+    norm.includes("yonex") ||
+    norm.includes("victor") ||
+    norm.includes("баболат") ||
+    norm.includes("йонекс") ||
+    norm.includes("екипировка")
+  ) {
     return "Спортен партньор";
   }
-  return "Официален партньор";
+  if (
+    norm.includes("училищ") ||
+    norm.includes("детск") ||
+    norm.includes(" оу ") ||
+    norm.startsWith("оу ") ||
+    norm.includes(" су ") ||
+    norm.startsWith("су ") ||
+    norm.includes(" дг ") ||
+    norm.startsWith("дг ") ||
+    norm.includes("ботев") ||
+    norm.includes("левски")
+  ) {
+    return "Образователна институция";
+  }
+  return "Партньор";
 }
 
 export function PublicCertificateClient({

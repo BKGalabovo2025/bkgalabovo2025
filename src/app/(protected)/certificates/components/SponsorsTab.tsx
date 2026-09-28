@@ -136,18 +136,22 @@ export function SponsorsTab({
     const total = sponsors.length;
     const active = sponsors.filter((s) => s.isActive).length;
     const institutional = sponsors.filter(
-      (s) => s.category === "institutional"
+      (s) => s.category === "institutional" || s.category === "educational"
     ).length;
     const commercial = sponsors.filter((s) =>
-      ["gold", "silver", "bronze", "partner"].includes(s.category)
+      ["gold", "silver", "bronze", "partner", "sports"].includes(s.category)
     ).length;
     return { total, active, institutional, commercial };
   }, [sponsors]);
 
   const getCategoryBadgeClass = (cat: SponsorCategory) => {
     switch (cat) {
+      case "educational":
+        return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800";
       case "institutional":
         return "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800";
+      case "sports":
+        return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800";
       case "gold":
         return "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800";
       case "silver":
@@ -248,11 +252,10 @@ export function SponsorsTab({
             <div className="flex flex-wrap items-center gap-1.5">
               {[
                 { id: "all", label: "🌟 Всички" },
-                { id: "institutional", label: "🏛️ Институции" },
-                { id: "gold", label: "🥇 Златни" },
-                { id: "silver", label: "🥈 Сребърни" },
-                { id: "bronze", label: "🥉 Бронзови" },
-                { id: "partner", label: "🤝 Партньори" },
+                { id: "educational", label: "🏫 Образователни" },
+                { id: "institutional", label: "🏛️ Институции & Федерация" },
+                { id: "sports", label: "🏸 Спортни партньори" },
+                { id: "partner", label: "🤝 Партньори (Фирми & Медии)" },
               ].map((pill) => (
                 <button
                   key={pill.id}
