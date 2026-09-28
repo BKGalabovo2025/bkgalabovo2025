@@ -99,7 +99,7 @@ export function UploadVoucherTab({
   );
   const [recipientName, setRecipientName] = useState("");
   const [recipientInstitution, setRecipientInstitution] = useState(
-    "СУ „Христо Ботев“, гр. Гълъбово"
+    'Второ ОУ "Христо Ботев" град Гълъбово'
   );
   const [memberSearch, setMemberSearch] = useState("");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
@@ -143,14 +143,12 @@ export function UploadVoucherTab({
   const clubLogoInputRef = useRef<HTMLInputElement>(null);
   const partnerLogoInputRef = useRef<HTMLInputElement>(null);
 
-  // Preset Institutions
+  // Preset Institutions (4 default + free custom entry)
   const PRESET_INSTITUTIONS = [
-    "СУ „Христо Ботев“, гр. Гълъбово",
-    "ДГ „Радост“, гр. Гълъбово",
-    "ОУ „Св. Паисий Хилендарски“, гр. Гълъбово",
-    "ПГЕТ „Г. С. Раковски“, гр. Гълъбово",
-    "ДГ „Енергетиче“, гр. Гълъбово",
-    "Община Гълъбово",
+    'Второ ОУ "Христо Ботев" град Гълъбово',
+    'СУ "Васил Левски" град Гълъбово',
+    'ДГ "Радост" град Гълъбово',
+    'ДГ "Наталия" град Гълъбово',
   ];
 
   // Dynamic Preset Purposes
@@ -765,7 +763,7 @@ export function UploadVoucherTab({
                 </span>
               </div>
               <Input
-                placeholder="напр. СУ „Христо Ботев“, гр. Гълъбово"
+                placeholder='напр. Второ ОУ "Христо Ботев" град Гълъбово'
                 value={recipientInstitution}
                 onChange={(e) => setRecipientInstitution(e.target.value)}
                 className="h-10 rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
@@ -778,12 +776,20 @@ export function UploadVoucherTab({
                     key={inst}
                     type="button"
                     onClick={() => setRecipientInstitution(inst)}
-                    className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-medium text-zinc-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                    className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                      recipientInstitution === inst
+                        ? "border-blue-500 bg-blue-50 text-blue-700 shadow-xs dark:border-blue-600 dark:bg-blue-950/60 dark:text-blue-300"
+                        : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+                    }`}
                   >
                     {inst}
                   </button>
                 ))}
               </div>
+              <p className="text-[10px] text-zinc-400">
+                💡 Изберете от 4-те институции по подразбиране или изпишете
+                ръчно друга институция директно в полето.
+              </p>
             </div>
           </Card>
 
