@@ -1,7 +1,7 @@
 "use server";
 import "server-only";
 
-import { getAdminDb } from "@/lib/firebase-admin";
+import { readWithFallback, writeWithFallback } from "@/lib/db-failover";
 import {
   DEFAULT_INITIAL_SPONSORS,
   SponsorCategory,
@@ -48,11 +48,11 @@ export async function getSponsorsAction(
       return { success: true, data: memoryCached };
     }
 
-    const adminDb = getAdminDb();
-    const snapshot = await adminDb
-      .collection(SPONSORS_COLLECTION)
-      .where("siteId", "==", siteId)
-      .get();
+    const snapshot = await readWithFallback(
+      (db) =>
+        db.collection(SPONSORS_COLLECTION).where("siteId", "==", siteId).get(),
+      "getSponsors"
+    );
 
     if (snapshot.empty) {
       // Върщаме начални партньори, ако няма налични записи в базата
@@ -117,7 +117,6 @@ export async function createSponsorAction(
   data: SponsorPartnerCreateInput
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
-    const adminDb = getAdminDb();
     const cleanData = JSON.parse(
       JSON.stringify({
         ...data,
@@ -125,7 +124,10 @@ export async function createSponsorAction(
         createdAt: new Date().toISOString(),
       })
     );
-    const docRef = await adminDb.collection(SPONSORS_COLLECTION).add(cleanData);
+    const docRef = await writeWithFallback(
+      (db) => db.collection(SPONSORS_COLLECTION).add(cleanData),
+      "createSponsor"
+    );
     invalidateSponsorsCache(siteId); // Изчисти кеша след запис
     return { success: true, id: docRef.id };
   } catch (error) {
@@ -146,7 +148,6 @@ export async function updateSponsorAction(
   siteId: "bkgalabovo" | "recoveryzone" = "bkgalabovo"
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const adminDb = getAdminDb();
     const cleanData = JSON.parse(
       JSON.stringify({
         ...data,
@@ -154,10 +155,14 @@ export async function updateSponsorAction(
         updatedAt: new Date().toISOString(),
       })
     );
-    await adminDb
-      .collection(SPONSORS_COLLECTION)
-      .doc(id)
-      .set(cleanData, { merge: true });
+    await writeWithFallback(
+      (db) =>
+        db
+          .collection(SPONSORS_COLLECTION)
+          .doc(id)
+          .set(cleanData, { merge: true }),
+      "updateSponsor"
+    );
     invalidateSponsorsCache(siteId); // Изчисти кеша след обновяване
     return { success: true };
   } catch (error) {
@@ -178,14 +183,17 @@ export async function toggleSponsorActiveAction(
   siteId: "bkgalabovo" | "recoveryzone" = "bkgalabovo"
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const adminDb = getAdminDb();
-    await adminDb.collection(SPONSORS_COLLECTION).doc(id).set(
-      {
-        isActive,
-        siteId,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true }
+    await writeWithFallback(
+      (db) =>
+        db.collection(SPONSORS_COLLECTION).doc(id).set(
+          {
+            isActive,
+            siteId,
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        ),
+      "toggleSponsorActive"
     );
     invalidateSponsorsCache(siteId); // Изчисти кеша
     return { success: true };
@@ -213,8 +221,10 @@ export async function deleteSponsorAction(
       return { success: true };
     }
 
-    const adminDb = getAdminDb();
-    await adminDb.collection(SPONSORS_COLLECTION).doc(id).delete();
+    await writeWithFallback(
+      (db) => db.collection(SPONSORS_COLLECTION).doc(id).delete(),
+      "deleteSponsor"
+    );
     invalidateSponsorsCache(siteId); // Изчисти кеша след изтриване
     return { success: true };
   } catch (error) {
@@ -233,16 +243,19 @@ export async function seedInitialSponsorsAction(
   siteId: "bkgalabovo" | "recoveryzone"
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   try {
-    const adminDb = getAdminDb();
     const list = DEFAULT_INITIAL_SPONSORS.filter((s) => s.siteId === siteId);
     const now = new Date().toISOString();
 
     for (const item of list) {
-      await adminDb.collection(SPONSORS_COLLECTION).add({
-        ...item,
-        siteId,
-        createdAt: now,
-      });
+      await writeWithFallback(
+        (db) =>
+          db.collection(SPONSORS_COLLECTION).add({
+            ...item,
+            siteId,
+            createdAt: now,
+          }),
+        "seedInitialSponsors"
+      );
     }
 
     return { success: true, count: list.length };
