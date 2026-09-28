@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 "use server";
 import "server-only";
 
@@ -32,18 +33,20 @@ export async function issueCertificateAction(
     const issuerEmail = user?.email || "admin@bkgalabovo.bg";
     const issuerName = user?.name || "Клубен Администратор";
 
-    // 1. Извличане на шаблона
+    // 1. Извличане на шаблона (ако е посочен)
     let templateData: CertificateTemplate | null = null;
-    const templateDoc = await adminDb
-      .collection(TEMPLATES_COLLECTION)
-      .doc(input.templateId)
-      .get();
+    if (input.templateId && input.templateId !== "uploaded_voucher") {
+      const templateDoc = await adminDb
+        .collection(TEMPLATES_COLLECTION)
+        .doc(input.templateId)
+        .get();
 
-    if (templateDoc.exists) {
-      templateData = {
-        id: templateDoc.id,
-        ...(templateDoc.data() as Omit<CertificateTemplate, "id">),
-      };
+      if (templateDoc.exists) {
+        templateData = {
+          id: templateDoc.id,
+          ...(templateDoc.data() as Omit<CertificateTemplate, "id">),
+        };
+      }
     }
 
     // 2. Генериране на уникален сериен номер за текущата година (BKG-2026-XXXX / RZ-2026-XXXX)
@@ -75,16 +78,13 @@ export async function issueCertificateAction(
     const docRef = adminDb.collection(CERTIFICATES_COLLECTION).doc();
     const certificateId = docRef.id;
 
-    // Публичен URL за верификация: напр. /recovery-zone?verify=... или /club?verify=...
+    // Публичен URL за верификация: води право към страницата за проверка на този конкретен документ /cert/[id]
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
       process.env.NEXTAUTH_URL ||
       "https://bkgalabovo2025.vercel.app";
     const cleanBaseUrl = baseUrl.replace(/\/$/, "");
-    const publicValidationUrl =
-      siteId === "recoveryzone" || input.type === "voucher"
-        ? `${cleanBaseUrl}/recovery-zone?verify=${encodeURIComponent(serialNumber)}`
-        : `${cleanBaseUrl}/club?verify=${encodeURIComponent(serialNumber)}`;
+    const publicValidationUrl = `${cleanBaseUrl}/cert/${encodeURIComponent(certificateId)}`;
 
     // 5. Генериране на QR код като base64 Data URL с библиотеката qrcode
     let qrCodeDataUrl = "";
@@ -124,7 +124,7 @@ export async function issueCertificateAction(
     const newCertificate: IssuedCertificate = {
       id: certificateId,
       siteId,
-      templateId: input.templateId,
+      templateId: input.templateId || "uploaded_voucher",
       type: input.type,
       serialNumber,
       recipient: input.recipient,
@@ -137,25 +137,38 @@ export async function issueCertificateAction(
         voucherStatus,
         usageLog: [],
       },
+      uploadedDocument: input.uploadedDocument,
+      branding: input.branding,
       visualSnapshot: {
         ...(templateData?.visualConfig || {
           orientation: "landscape",
-          themeColor: "#1E3A8A",
-          secondaryColor: "#D97706",
+          themeColor: siteId === "recoveryzone" ? "#0F766E" : "#1E3A8A",
+          secondaryColor: siteId === "recoveryzone" ? "#EAB308" : "#D97706",
           backgroundColor: "#FFFFFF",
-          frameStyle: "classic_gold",
-          layoutTemplate: "official_award",
+          frameStyle: "clean_border",
+          layoutTemplate: "sports_voucher",
           selectedSponsorIds: [],
-          signatoryName: "Димитър Иванов",
-          signatoryTitle: "Председател",
+          signatoryName:
+            siteId === "recoveryzone" ? "Recovery Zone by ZM" : "БК Гълъбово",
+          signatoryTitle: "Клубна администрация",
           showBadge: true,
         }),
-        templateTitle: templateData?.title || "Официален Клубен Документ",
-        sponsors: selectedSponsors.map((s) => ({
-          name: s.name,
-          logoUrl: s.logoUrl,
-          websiteUrl: s.websiteUrl,
-        })),
+        templateTitle:
+          input.details.voucherServiceType ||
+          input.details.eventTitle ||
+          templateData?.title ||
+          "Официален Ваучер / Сертификат",
+        sponsors: input.branding?.partnerLogos
+          ? input.branding.partnerLogos.map((s) => ({
+              name: s.name,
+              logoUrl: s.logoUrl,
+              websiteUrl: s.websiteUrl,
+            }))
+          : selectedSponsors.map((s) => ({
+              name: s.name,
+              logoUrl: s.logoUrl,
+              websiteUrl: s.websiteUrl,
+            })),
       },
       qrCodeDataUrl,
       issuedAt: now,

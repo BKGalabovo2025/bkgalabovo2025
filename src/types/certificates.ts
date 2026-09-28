@@ -466,6 +466,33 @@ export const IssuedCertificateSchema = z.object({
       .default([]),
   }),
 
+  // Качен оригинален документ (PDF или снимка)
+  uploadedDocument: z
+    .object({
+      fileUrl: z.string(),
+      fileType: z.enum(["pdf", "image"]),
+      fileName: z.string().optional(),
+      fileSize: z.number().optional(),
+    })
+    .optional(),
+
+  // Логота и брандиране (Клуб, Институция, Партньори)
+  branding: z
+    .object({
+      clubLogoUrl: z.string().optional(),
+      institutionLogoUrl: z.string().optional(),
+      partnerLogos: z
+        .array(
+          z.object({
+            name: z.string(),
+            logoUrl: z.string(),
+            websiteUrl: z.string().optional(),
+          })
+        )
+        .optional(),
+    })
+    .optional(),
+
   qrCodeDataUrl: z.string().optional(),
   issuedAt: z.string(),
   issuedByEmail: z.string(),
@@ -474,7 +501,7 @@ export const IssuedCertificateSchema = z.object({
 export type IssuedCertificate = z.infer<typeof IssuedCertificateSchema>;
 
 export type IssueCertificateInput = {
-  templateId: string;
+  templateId?: string;
   type: CertificateType;
   recipient: {
     memberId?: string;
@@ -506,6 +533,21 @@ export type IssueCertificateInput = {
     backsideTitle?: string;
     backsideMessage?: string;
     backsideSignatory?: string;
+  };
+  uploadedDocument?: {
+    fileUrl: string;
+    fileType: "pdf" | "image";
+    fileName?: string;
+    fileSize?: number;
+  };
+  branding?: {
+    clubLogoUrl?: string;
+    institutionLogoUrl?: string;
+    partnerLogos?: Array<{
+      name: string;
+      logoUrl: string;
+      websiteUrl?: string;
+    }>;
   };
 };
 

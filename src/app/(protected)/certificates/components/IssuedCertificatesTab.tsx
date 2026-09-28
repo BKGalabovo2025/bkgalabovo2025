@@ -1,4 +1,4 @@
-/* eslint-disable react/forbid-dom-props, sonarjs/no-nested-conditional, @typescript-eslint/no-unused-vars, sonarjs/no-unused-vars, sonarjs/no-dead-store */
+/* eslint-disable react/forbid-dom-props, sonarjs/no-nested-conditional, sonarjs/cognitive-complexity, @next/next/no-img-element, @typescript-eslint/no-unused-vars, sonarjs/no-unused-vars, sonarjs/no-dead-store */
 "use client";
 
 import {
@@ -577,9 +577,22 @@ export function IssuedCertificatesTab({
                             )}
                           </button>
                           <div className="space-y-0.5">
-                            <span className="font-mono font-bold text-zinc-900 dark:text-white">
-                              {cert.serialNumber}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono font-bold text-zinc-900 dark:text-white">
+                                {cert.serialNumber}
+                              </span>
+                              {cert.uploadedDocument && (
+                                <Badge
+                                  variant="outline"
+                                  className="rounded-lg border-blue-200 bg-blue-50/70 px-1.5 py-0 text-[9px] font-bold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
+                                >
+                                  📎{" "}
+                                  {cert.uploadedDocument.fileType === "pdf"
+                                    ? "PDF"
+                                    : "Снимка"}
+                                </Badge>
+                              )}
+                            </div>
                             <div className="text-[10px] text-zinc-400">
                               {cert.visualSnapshot?.templateTitle}
                             </div>
@@ -872,43 +885,156 @@ export function IssuedCertificatesTab({
 
           {previewCert && (
             <div className="flex flex-col items-center justify-center py-2">
-              <div className="flex w-full items-center justify-center overflow-hidden">
-                <CertificateDocumentPreview
-                  data={{
-                    siteId: previewCert.siteId,
-                    type: previewCert.type,
-                    title: previewCert.visualSnapshot.templateTitle,
-                    visualConfig: previewCert.visualSnapshot,
-                    serialNumber: previewCert.serialNumber,
-                    qrCodeDataUrl: previewCert.qrCodeDataUrl,
-                    recipientName: previewCert.recipient.name,
-                    recipientInstitution: previewCert.recipient.institution,
-                    rank: previewCert.details.rank,
-                    nomination: previewCert.details.nomination,
-                    eventTitle: previewCert.details.eventTitle,
-                    eventDate: previewCert.details.eventDate,
-                    eventLocation: previewCert.details.eventLocation,
-                    totalSessions: previewCert.details.totalSessions,
-                    remainingSessions: previewCert.details.remainingSessions,
-                    validUntil: previewCert.details.validUntil,
-                    skillsSummary: previewCert.details.skillsSummary,
-                    hoursTrained: previewCert.details.hoursTrained,
-                    sponsors: previewCert.visualSnapshot.sponsors.map(
-                      (s, idx) => ({
-                        id: `snap_${idx}`,
-                        siteId: previewCert.siteId,
-                        name: s.name,
-                        category: "general",
-                        logoUrl: s.logoUrl,
-                        websiteUrl: s.websiteUrl,
-                        isActive: true,
-                        order: idx,
-                        createdAt: previewCert.issuedAt,
-                      })
-                    ),
-                  }}
-                />
-              </div>
+              {previewCert.uploadedDocument ? (
+                <div className="w-full space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+                  {/* Branding Header in Preview */}
+                  <div className="flex flex-col gap-3 border-b border-zinc-100 pb-3 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
+                    <div className="flex items-center gap-2.5">
+                      <div className="relative size-10 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 dark:border-zinc-800">
+                        <Image
+                          src={
+                            previewCert.branding?.clubLogoUrl ||
+                            (previewCert.siteId === "recoveryzone"
+                              ? "/recovery-zone/rz-icon-square.png"
+                              : "/icons/badge-option-3-light-squircle.png")
+                          }
+                          alt="Club"
+                          width={36}
+                          height={36}
+                          className="size-full object-contain"
+                          unoptimized
+                        />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-zinc-900 dark:text-white">
+                          {previewCert.siteId === "recoveryzone"
+                            ? "Recovery Zone by ZM"
+                            : "БК Гълъбово 2025"}
+                        </h4>
+                        <p className="text-[10px] text-zinc-400">
+                          {previewCert.recipient.institution ||
+                            "Клубен партньор"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={previewCert.uploadedDocument.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                      >
+                        <ExternalLink className="size-3" />
+                        Отвори файл
+                      </a>
+                      <a
+                        href={previewCert.uploadedDocument.fileUrl}
+                        download={
+                          previewCert.uploadedDocument.fileName || "document"
+                        }
+                        className="inline-flex items-center gap-1 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700"
+                      >
+                        <Download className="size-3" />
+                        Свали
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Recipient & Metadata */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div>
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                        Получател:{" "}
+                      </span>
+                      <span className="font-bold text-zinc-900 dark:text-white">
+                        {previewCert.recipient.name}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                        Предназначение:{" "}
+                      </span>
+                      <span className="font-bold text-blue-600 dark:text-blue-400">
+                        {previewCert.details.voucherServiceType ||
+                          previewCert.visualSnapshot.templateTitle}
+                      </span>
+                    </div>
+                    {previewCert.type === "voucher" && (
+                      <div>
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                          Оставащи:{" "}
+                        </span>
+                        <span className="font-bold text-amber-600 dark:text-amber-400">
+                          {Math.max(
+                            0,
+                            (previewCert.details.totalSessions || 1) -
+                              (previewCert.details.usedSessions || 0)
+                          )}{" "}
+                          от {previewCert.details.totalSessions || 1}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Document Viewer Frame */}
+                  <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-950 dark:border-zinc-800">
+                    {previewCert.uploadedDocument.fileType === "pdf" ? (
+                      <iframe
+                        src={previewCert.uploadedDocument.fileUrl}
+                        title="PDF Документ"
+                        className="h-125 w-full border-0 bg-white"
+                      />
+                    ) : (
+                      <div className="flex max-h-[550px] w-full items-center justify-center p-3">
+                        <img
+                          src={previewCert.uploadedDocument.fileUrl}
+                          alt="Документ"
+                          className="max-h-125 w-auto rounded-lg object-contain"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex w-full items-center justify-center overflow-hidden">
+                  <CertificateDocumentPreview
+                    data={{
+                      siteId: previewCert.siteId,
+                      type: previewCert.type,
+                      title: previewCert.visualSnapshot.templateTitle,
+                      visualConfig: previewCert.visualSnapshot,
+                      serialNumber: previewCert.serialNumber,
+                      qrCodeDataUrl: previewCert.qrCodeDataUrl,
+                      recipientName: previewCert.recipient.name,
+                      recipientInstitution: previewCert.recipient.institution,
+                      rank: previewCert.details.rank,
+                      nomination: previewCert.details.nomination,
+                      eventTitle: previewCert.details.eventTitle,
+                      eventDate: previewCert.details.eventDate,
+                      eventLocation: previewCert.details.eventLocation,
+                      totalSessions: previewCert.details.totalSessions,
+                      remainingSessions: previewCert.details.remainingSessions,
+                      validUntil: previewCert.details.validUntil,
+                      skillsSummary: previewCert.details.skillsSummary,
+                      hoursTrained: previewCert.details.hoursTrained,
+                      sponsors: previewCert.visualSnapshot.sponsors.map(
+                        (s, idx) => ({
+                          id: `snap_${idx}`,
+                          siteId: previewCert.siteId,
+                          name: s.name,
+                          category: "general",
+                          logoUrl: s.logoUrl,
+                          websiteUrl: s.websiteUrl,
+                          isActive: true,
+                          order: idx,
+                          createdAt: previewCert.issuedAt,
+                        })
+                      ),
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
