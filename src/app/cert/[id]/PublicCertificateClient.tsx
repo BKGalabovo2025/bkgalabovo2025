@@ -49,6 +49,67 @@ interface PublicCertificateClientProps {
   certificate: IssuedCertificate;
 }
 
+function PartnerLogoOrEmblem({
+  name,
+  logoUrl,
+}: {
+  name: string;
+  logoUrl?: string;
+}) {
+  const [imageError, setImageError] = useState(false);
+  const norm = name.toLowerCase();
+
+  // If valid image provided and hasn't errored
+  if (logoUrl && !imageError && !logoUrl.includes("wikipedia.org")) {
+    return (
+      <div className="relative size-10 sm:size-11 shrink-0 overflow-hidden rounded-xl bg-white p-1">
+        <img
+          src={logoUrl}
+          alt={name}
+          className="size-full object-contain"
+          onError={() => setImageError(true)}
+        />
+      </div>
+    );
+  }
+
+  // Civic institution / Obshtina Galabovo
+  if (norm.includes("гълъбово") || norm.includes("община")) {
+    return (
+      <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-amber-700 text-white shadow-xs">
+        <ShieldCheck className="size-5 sm:size-6 text-white" />
+      </div>
+    );
+  }
+
+  // Sports partner / Be Active
+  if (norm.includes("active") || norm.includes("актив")) {
+    return (
+      <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-red-600 via-amber-500 to-emerald-600 text-white font-black text-[11px] shadow-xs tracking-tight">
+        #BA
+      </div>
+    );
+  }
+
+  // Educational institution
+  return (
+    <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 text-white shadow-xs">
+      <School className="size-5 sm:size-6 text-white" />
+    </div>
+  );
+}
+
+function getPartnerSubtitle(name: string): string {
+  const norm = name.toLowerCase();
+  if (norm.includes("община")) {
+    return "Институционален партньор";
+  }
+  if (norm.includes("active") || norm.includes("актив")) {
+    return "Спортен партньор";
+  }
+  return "Официален партньор";
+}
+
 export function PublicCertificateClient({
   certificate: initialCertificate,
 }: PublicCertificateClientProps) {
@@ -235,11 +296,13 @@ export function PublicCertificateClient({
   const formattedIssuedAt = cert.issuedAt
     ? (() => {
         const d = new Date(cert.issuedAt);
-        const dateStr = d.toLocaleDateString("bg-BG", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        });
+        const dateStr = d
+          .toLocaleDateString("bg-BG", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })
+          .trim();
         const timeStr = d.toLocaleTimeString("bg-BG", {
           hour: "2-digit",
           minute: "2-digit",
@@ -250,12 +313,12 @@ export function PublicCertificateClient({
 
   return (
     <div className="min-h-screen bg-linear-to-b from-amber-50/40 via-zinc-100/50 to-zinc-50 px-3 py-6 sm:px-6 lg:px-8 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-      {/* Explicit Print CSS guaranteeing fit on exactly 1 single A4 sheet */}
+      {/* Explicit Print CSS guaranteeing fit on exactly 1 single A4 sheet with full vertical balance */}
       <style>{`
         @media print {
           @page {
             size: A4 portrait;
-            margin: 5mm 6mm;
+            margin: 6mm 8mm;
           }
           html, body {
             background: white !important;
@@ -280,7 +343,7 @@ export function PublicCertificateClient({
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 !important;
-            padding: 2.5mm 4mm !important;
+            padding: 3mm 5mm !important;
             box-shadow: none !important;
             border: 1px solid #e5e7eb !important;
             border-radius: 12px !important;
@@ -292,66 +355,65 @@ export function PublicCertificateClient({
             box-sizing: border-box !important;
           }
           .printable-voucher .border-b {
-            padding-bottom: 2mm !important;
+            padding-bottom: 2.5mm !important;
           }
           .printable-voucher .size-14 {
-            width: 36px !important;
-            height: 36px !important;
+            width: 40px !important;
+            height: 40px !important;
           }
           .printable-voucher h2 {
-            font-size: 11pt !important;
+            font-size: 13pt !important;
           }
           .printable-voucher .my-6 {
-            margin-top: 2.5mm !important;
-            margin-bottom: 2.5mm !important;
-            padding: 2.5mm 4mm !important;
+            margin-top: 3mm !important;
+            margin-bottom: 3mm !important;
+            padding: 3.5mm 5mm !important;
           }
           .printable-voucher h1 {
-            font-size: 15pt !important;
-            margin: 1mm 0 !important;
+            font-size: 18pt !important;
+            margin: 1.5mm 0 !important;
           }
           .printable-voucher .mt-6 {
-            margin-top: 2mm !important;
-            gap: 1.5mm !important;
+            margin-top: 2.5mm !important;
+            gap: 2mm !important;
           }
           .printable-voucher .px-6 {
-            padding: 1.5mm 4mm !important;
+            padding: 2mm 5mm !important;
           }
           .printable-voucher .my-4 {
-            margin-top: 2mm !important;
-            margin-bottom: 2mm !important;
+            margin-top: 3mm !important;
+            margin-bottom: 3mm !important;
           }
           .printable-voucher canvas,
           .printable-voucher img {
-            max-height: 98mm !important;
+            max-height: 122mm !important;
             width: auto !important;
             max-width: 100% !important;
             margin: 0 auto !important;
             object-fit: contain !important;
           }
-          .printable-voucher .mt-8 {
-            margin-top: 2.5mm !important;
-            padding: 2mm 3mm !important;
+          .printable-voucher .mt-8,
+          .printable-voucher .mt-6 {
+            margin-top: 3mm !important;
+            padding: 2.5mm 4mm !important;
           }
-          .printable-voucher .mb-3\\.5 {
-            margin-bottom: 1.5mm !important;
+          .printable-voucher .partner-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 3mm !important;
           }
-          .printable-voucher .size-12,
-          .printable-voucher .size-14 {
-            width: 32px !important;
-            height: 32px !important;
-          }
-          .printable-voucher .px-5 {
-            padding: 1.5mm 3mm !important;
+          .printable-voucher .partner-card {
+            padding: 2mm 2.5mm !important;
+            gap: 2mm !important;
           }
           .printable-voucher .mt-6.border-t-2 {
-            margin-top: 2mm !important;
-            padding-top: 2mm !important;
+            margin-top: 3mm !important;
+            padding-top: 2.5mm !important;
           }
           .printable-voucher .size-18,
           .printable-voucher .size-20 {
-            width: 48px !important;
-            height: 48px !important;
+            width: 54px !important;
+            height: 54px !important;
           }
           .no-print,
           .print\\:hidden {
@@ -607,72 +669,53 @@ export function PublicCertificateClient({
 
             {/* ============================================================= */}
             {/* 1. OFFICIAL PARTNERS & SPONSORS SHOWCASE                     */}
-            {/* Prominent, Centered, Large Logos & Clear Importance           */}
+            {/* Balanced 3-column single row with crisp SVG badges            */}
             {/* ============================================================= */}
-            <div className="mt-8 rounded-2xl border-2 border-amber-200/80 bg-linear-to-b from-amber-50/60 via-white to-amber-50/30 p-5 text-center shadow-xs sm:p-6 dark:border-zinc-800 dark:from-zinc-900/60 dark:to-zinc-950">
-              <div className="mb-3.5 inline-flex items-center gap-2">
-                <span className="text-xs font-black tracking-widest text-amber-900 uppercase dark:text-amber-300">
+            <div className="mt-6 rounded-2xl border border-amber-200/90 bg-linear-to-b from-amber-50/50 via-white to-amber-50/20 p-4 text-center shadow-xs sm:p-5 dark:border-zinc-800 dark:from-zinc-900/60 dark:to-zinc-950">
+              <div className="mb-3 inline-flex items-center gap-2">
+                <span className="text-[11px] sm:text-xs font-black tracking-widest text-amber-900 uppercase dark:text-amber-300">
                   Партньори & Подкрепа
                 </span>
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-                {/* Educational Institution Card (with logo or school icon) */}
+
+              <div className="partner-grid grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+                {/* 1. Educational Institution Card */}
                 {cert.recipient.institution && (
-                  <div className="flex items-center gap-3.5 rounded-2xl border-2 border-zinc-200/90 bg-white px-5 py-3 shadow-sm hover:border-blue-400 hover:shadow-md transition-all dark:border-zinc-700 dark:bg-zinc-800">
-                    {cert.branding?.institutionLogoUrl ? (
-                      <div className="relative size-12 sm:size-14 shrink-0 overflow-hidden rounded-xl bg-white p-1">
-                        <Image
-                          src={cert.branding.institutionLogoUrl}
-                          alt={cert.recipient.institution}
-                          width={56}
-                          height={56}
-                          className="size-full object-contain"
-                          unoptimized
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex size-12 sm:size-14 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 text-white shadow-inner">
-                        <School className="size-6 sm:size-7 text-white" />
-                      </div>
-                    )}
-                    <div className="text-left">
-                      <span className="block text-sm sm:text-base font-black tracking-tight text-zinc-900 dark:text-white">
+                  <div className="partner-card flex items-center gap-3 rounded-2xl border-2 border-blue-200/90 bg-white p-3 shadow-xs hover:border-blue-400 transition-all dark:border-zinc-700 dark:bg-zinc-800">
+                    <PartnerLogoOrEmblem
+                      name={cert.recipient.institution}
+                      logoUrl={cert.branding?.institutionLogoUrl}
+                    />
+                    <div className="text-left min-w-0 flex-1">
+                      <span
+                        className="block text-xs sm:text-sm font-black tracking-tight text-zinc-900 truncate dark:text-white"
+                        title={cert.recipient.institution}
+                      >
                         {cert.recipient.institution}
                       </span>
-                      <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400">
+                      <span className="text-[10px] sm:text-[11px] font-bold text-blue-700 dark:text-blue-400">
                         Образователна институция
                       </span>
                     </div>
                   </div>
                 )}
 
+                {/* 2. Official Partners Cards */}
                 {uniquePartners.map((p, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-3.5 rounded-2xl border-2 border-zinc-200/90 bg-white px-5 py-3 shadow-sm hover:border-amber-400 hover:shadow-md transition-all dark:border-zinc-700 dark:bg-zinc-800"
+                    className="partner-card flex items-center gap-3 rounded-2xl border-2 border-zinc-200/90 bg-white p-3 shadow-xs hover:border-amber-400 transition-all dark:border-zinc-700 dark:bg-zinc-800"
                   >
-                    {p.logoUrl ? (
-                      <div className="relative size-12 sm:size-14 shrink-0 overflow-hidden rounded-xl bg-white p-1">
-                        <Image
-                          src={p.logoUrl}
-                          alt={p.name}
-                          width={56}
-                          height={56}
-                          className="size-full object-contain"
-                          unoptimized
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex size-12 sm:size-14 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-amber-600 text-white font-black text-lg shadow-inner">
-                        {p.name.charAt(0)}
-                      </div>
-                    )}
-                    <div className="text-left">
-                      <span className="block text-sm sm:text-base font-black tracking-tight text-zinc-900 dark:text-white">
+                    <PartnerLogoOrEmblem name={p.name} logoUrl={p.logoUrl} />
+                    <div className="text-left min-w-0 flex-1">
+                      <span
+                        className="block text-xs sm:text-sm font-black tracking-tight text-zinc-900 truncate dark:text-white"
+                        title={p.name}
+                      >
                         {p.name}
                       </span>
-                      <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                        Официален партньор
+                      <span className="text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                        {getPartnerSubtitle(p.name)}
                       </span>
                     </div>
                   </div>
