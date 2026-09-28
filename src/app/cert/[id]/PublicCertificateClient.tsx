@@ -588,7 +588,7 @@ export function PublicCertificateClient({
                     {clubName}
                   </h2>
                   <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
-                    Официален клубен издател
+                    Официален издател
                   </p>
                 </div>
               </div>

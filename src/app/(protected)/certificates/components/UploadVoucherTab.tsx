@@ -17,7 +17,6 @@ import {
   Maximize2,
   Plus,
   QrCode,
-  School,
   ShieldCheck,
   Sparkles,
   Ticket,
@@ -72,7 +71,7 @@ export function UploadVoucherTab({
   const isRecoveryZone = siteId === "recoveryzone";
   const defaultClubLogo = isRecoveryZone
     ? "/recovery-zone/rz-icon-square.png"
-    : "/icons/badge-option-3-light-squircle.png";
+    : "/icons/LOGO.webp";
 
   // --- Document File State ---
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -106,9 +105,6 @@ export function UploadVoucherTab({
 
   // --- Branding State ---
   const [clubLogoUrl, setClubLogoUrl] = useState(defaultClubLogo);
-  const [institutionLogoUrl, setInstitutionLogoUrl] = useState<string | null>(
-    null
-  );
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
 
   const previewUrl = useMemo(() => {
@@ -139,7 +135,6 @@ export function UploadVoucherTab({
 
   // File Inputs Refs
   const voucherFileInputRef = useRef<HTMLInputElement>(null);
-  const institutionLogoInputRef = useRef<HTMLInputElement>(null);
   const clubLogoInputRef = useRef<HTMLInputElement>(null);
   const partnerLogoInputRef = useRef<HTMLInputElement>(null);
 
@@ -208,28 +203,6 @@ export function UploadVoucherTab({
     const objectUrl = URL.createObjectURL(file);
     setFilePreviewUrl(objectUrl);
     toast.success(`Избран е файл: ${file.name}`);
-  };
-
-  // Upload institution logo
-  const handleInstitutionLogoUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      toast.loading("Качване на лого на институцията...", {
-        id: "inst-upload",
-      });
-      const path = `sites/${siteId}/certificates/branding/inst_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-      const url = await uploadFile(path, file, idToken);
-      setInstitutionLogoUrl(url);
-      toast.success("Логото на институцията е качено успешно!", {
-        id: "inst-upload",
-      });
-    } catch (err) {
-      console.error(err);
-      toast.error("Грешка при качване на логото.", { id: "inst-upload" });
-    }
   };
 
   // Upload custom club logo
@@ -424,7 +397,7 @@ export function UploadVoucherTab({
         },
         branding: {
           clubLogoUrl: clubLogoUrl || defaultClubLogo,
-          institutionLogoUrl: institutionLogoUrl || undefined,
+          institutionLogoUrl: undefined,
           partnerLogos:
             allPartnerLogos.length > 0 ? allPartnerLogos : undefined,
         },
@@ -998,110 +971,64 @@ export function UploadVoucherTab({
               </div>
               <div>
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                  4. Логота и институционално брандиране
+                  4. Логота и брандиране
                 </h3>
                 <p className="text-[11px] text-zinc-500">
-                  Лого на клуба, герб на институцията и спонсори / партньори
+                  Официално лого на клуба и избрани партньори / спонсори
                 </p>
               </div>
             </div>
 
-            {/* 3 Columns for 3 Types of Logos */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {/* Club Logo */}
-              <div className="space-y-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
-                <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                  🛡️ Лого на клуба
-                </Label>
-                <div className="flex items-center gap-3">
-                  <div className="relative flex size-12 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white p-1 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+            {/* Club Logo */}
+            <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
+              <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                🛡️ Лого на клуба
+              </Label>
+              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3.5">
+                  <div className="relative flex size-14 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
                     <Image
                       src={clubLogoUrl}
-                      alt="Club Logo"
-                      width={44}
-                      height={44}
+                      alt={
+                        isRecoveryZone
+                          ? "RECOVERY ZONE BY ZM"
+                          : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"
+                      }
+                      width={52}
+                      height={52}
                       className="size-full object-contain"
                       unoptimized
                     />
                   </div>
-                  <div className="space-y-1">
-                    <input
-                      ref={clubLogoInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleClubLogoUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => clubLogoInputRef.current?.click()}
-                      className="h-7 rounded-lg text-[11px]"
-                    >
-                      Качи друго
-                    </Button>
-                    <p className="text-[10px] text-zinc-400">
-                      {isRecoveryZone ? "Recovery Zone" : "БК Гълъбово 2025"}
+                  <div className="space-y-0.5">
+                    <h4 className="text-xs font-black tracking-tight text-zinc-900 sm:text-sm dark:text-white">
+                      {isRecoveryZone
+                        ? "RECOVERY ZONE BY ZM"
+                        : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
+                    </h4>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Официален издател
                     </p>
                   </div>
                 </div>
-              </div>
 
-              {/* Educational Institution Logo */}
-              <div className="space-y-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
-                <Label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                  🏛️ Герб / Лого на институцията
-                </Label>
-                <div className="flex items-center gap-3">
-                  <div className="relative flex size-12 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white p-1 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                    {institutionLogoUrl ? (
-                      <Image
-                        src={institutionLogoUrl}
-                        alt="Institution Logo"
-                        width={44}
-                        height={44}
-                        className="size-full object-contain"
-                        unoptimized
-                      />
-                    ) : (
-                      <School className="size-6 text-zinc-400" />
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <input
-                      ref={institutionLogoInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleInstitutionLogoUpload}
-                      className="hidden"
-                    />
-                    <div className="flex items-center gap-1.5">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => institutionLogoInputRef.current?.click()}
-                        className="h-7 rounded-lg text-[11px]"
-                      >
-                        {institutionLogoUrl ? "Смени лого" : "Качи лого"}
-                      </Button>
-                      {institutionLogoUrl && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setInstitutionLogoUrl(null)}
-                          className="h-7 px-2 text-[11px] text-zinc-400 hover:text-red-500"
-                        >
-                          Премахни
-                        </Button>
-                      )}
-                    </div>
-                    <p className="text-[10px] text-zinc-400">
-                      Училище или община
-                    </p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={clubLogoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleClubLogoUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => clubLogoInputRef.current?.click()}
+                    className="h-8 rounded-xl px-3 text-xs font-semibold"
+                  >
+                    Качи друго
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1233,7 +1160,11 @@ export function UploadVoucherTab({
                   <div className="relative size-10 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 shadow-xs dark:border-zinc-800">
                     <Image
                       src={clubLogoUrl}
-                      alt="Club"
+                      alt={
+                        isRecoveryZone
+                          ? "Recovery Zone by ZM"
+                          : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"
+                      }
                       width={36}
                       height={36}
                       className="size-full object-contain"
@@ -1242,27 +1173,15 @@ export function UploadVoucherTab({
                   </div>
                   <div>
                     <h4 className="text-xs font-black text-zinc-900 dark:text-white">
-                      {isRecoveryZone ? "Recovery Zone by ZM" : "БК Гълъбово"}
+                      {isRecoveryZone
+                        ? "Recovery Zone by ZM"
+                        : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
                     </h4>
                     <p className="text-[10px] text-zinc-400">
-                      Официален клубен издател
+                      Официален издател
                     </p>
                   </div>
                 </div>
-
-                {institutionLogoUrl && (
-                  <div className="relative size-9 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 shadow-xs dark:border-zinc-800">
-                    <Image
-                      src={institutionLogoUrl}
-                      alt="Inst"
-                      width={32}
-                      height={32}
-                      className="size-full object-contain"
-                      unoptimized
-                      onError={() => setInstitutionLogoUrl(null)}
-                    />
-                  </div>
-                )}
               </div>
 
               {/* Main Voucher Info */}
