@@ -8,7 +8,6 @@ import {
   UploadCloud,
 } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +19,27 @@ import { IssuedCertificate, SponsorPartner } from "@/types/certificates";
 import { IssuedCertificatesTab } from "./components/IssuedCertificatesTab";
 import { SponsorsTab } from "./components/SponsorsTab";
 import { UploadVoucherTab } from "./components/UploadVoucherTab";
+
+function readLocalCache<T>(key: string): T[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const cached = localStorage.getItem(key);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalCache<T>(key: string, data: T[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch {
+    // ignore quota/full storage
+  }
+}
 
 export function CertificatesClient() {
   const { activeBranch } = useAppStore();
@@ -40,30 +60,48 @@ export function CertificatesClient() {
   >([]);
   const [isLoadingCertificates, setIsLoadingCertificates] = useState(true);
 
-  // 1. Load Sponsors
+  // 1. Load Sponsors with local cache fallback
   const loadSponsors = useCallback(async () => {
+    const cached = readLocalCache<SponsorPartner>(
+      `bkg_cached_sponsors_${siteId}`
+    );
+    if (cached) {
+      setSponsors(cached);
+      setIsLoadingSponsors(false);
+    }
+
     try {
-      setIsLoadingSponsors(true);
       const data = await sponsorService.getSponsors(siteId);
-      setSponsors(data);
+      if (data && data.length > 0) {
+        setSponsors(data);
+        writeLocalCache(`bkg_cached_sponsors_${siteId}`, data);
+      }
     } catch (error) {
-      console.error("Грешка при зареждане на спонсори:", error);
-      toast.error("Неуспешно зареждане на списъка със спонсори.");
+      console.warn("Notice loading sponsors from Firestore:", error);
     } finally {
       setIsLoadingSponsors(false);
     }
   }, [siteId]);
 
-  // 2. Load Issued Documents Registry
+  // 2. Load Issued Documents Registry with local cache fallback
   const loadIssuedCertificates = useCallback(async () => {
+    const cached = readLocalCache<IssuedCertificate>(
+      `bkg_cached_certificates_${siteId}`
+    );
+    if (cached) {
+      setIssuedCertificates(cached);
+      setIsLoadingCertificates(false);
+    }
+
     try {
-      setIsLoadingCertificates(true);
       const data =
         await certificateIssuanceService.getIssuedCertificates(siteId);
-      setIssuedCertificates(data);
+      if (data && data.length > 0) {
+        setIssuedCertificates(data);
+        writeLocalCache(`bkg_cached_certificates_${siteId}`, data);
+      }
     } catch (error) {
-      console.error("Грешка при зареждане на регистъра:", error);
-      toast.error("Неуспешно зареждане на издадените документи.");
+      console.warn("Notice loading certificates from Firestore:", error);
     } finally {
       setIsLoadingCertificates(false);
     }

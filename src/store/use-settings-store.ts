@@ -80,30 +80,128 @@ interface SettingsState {
   removeAttachment: (siteId: string, index: number) => void;
 }
 
+const SETTINGS_CACHE_KEY = "bkg_cached_sites_settings";
+
+function readSettingsCache(): { [key: string]: Partial<Site> } {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      Object.keys(parsed).length > 0
+    ) {
+      return parsed;
+    }
+  } catch {
+    // ignore parsing errors
+  }
+  return {};
+}
+
+function writeSettingsCache(data: { [key: string]: Partial<Site> }): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(data));
+  } catch {
+    // ignore quota/full storage
+  }
+}
+
+const DEFAULT_SITES_FALLBACK: { [key: string]: Partial<Site> } = {
+  bkgalabovo: {
+    id: "bkgalabovo",
+    name: "БАДМИНТОН КЛУБ ГЪЛЪБОВО",
+    description: "Официален клуб по бадминтон гр. Гълъбово",
+    isActive: true,
+    recoveryEnabled: false,
+    inventory: { courts: 4, machines: 0 },
+    therapists: [
+      {
+        id: "coach-simeon",
+        name: "Симеон Попов",
+        role: "Главен треньор",
+        bio: "Лицензиран треньор по бадминтон.",
+        image: "/icons/LOGO.webp",
+        isActive: true,
+      },
+    ],
+  },
+  recoveryzone: {
+    id: "recoveryzone",
+    name: "Recovery Zone",
+    description: "Възстановителен център",
+    isActive: true,
+    recoveryEnabled: true,
+    inventory: {
+      compressors: 2,
+      attachments: { arms: 1, hips: 1, legs: 2 },
+    },
+    therapists: [
+      {
+        id: "therapist-zdravko",
+        name: "Здравко Михайлов",
+        role: "Специалист възстановяване",
+        bio: "Сертифициран специалист по възстановяване и рехабилитация.",
+        image: "/recovery-zone/rz-icon-square.png",
+        isActive: true,
+      },
+    ],
+  },
+};
+
 export const useSettingsStore = create<SettingsState>((set) => ({
-  formData: {},
+  formData: typeof window !== "undefined" ? readSettingsCache() : {},
   auditLogs: [],
   loadingLogs: false,
   isLoading: true,
   isSaving: false,
 
-  setFormData: (data) => set({ formData: data }),
+  setFormData: (data) => {
+    set({ formData: data });
+    writeSettingsCache(data);
+  },
   setIsSaving: (isSaving) => set({ isSaving }),
 
   fetchSettings: async () => {
-    set({ isLoading: true });
+    // 1. Immediately hydrate from localStorage if available
+    const cached = readSettingsCache();
+    if (Object.keys(cached).length > 0) {
+      set({ formData: cached, isLoading: false });
+    }
+
     try {
       const allSites = await getAllSites();
-      const initialFormData: { [key: string]: Partial<Site> } = {};
-      allSites.forEach((site) => {
-        initialFormData[site.id] = { ...site };
-      });
-      set({ formData: initialFormData });
+      if (allSites && allSites.length > 0) {
+        const initialFormData: { [key: string]: Partial<Site> } = {};
+        allSites.forEach((site) => {
+          initialFormData[site.id] = { ...site };
+        });
+        set({ formData: initialFormData, isLoading: false });
+        writeSettingsCache(initialFormData);
+        return;
+      }
     } catch (error) {
-      console.error("Error fetching settings:", error);
+      console.warn(
+        "Notice: Using cached sites data due to Firestore quota/network status:",
+        error
+      );
     } finally {
       set({ isLoading: false });
     }
+
+    // 2. If completely empty, fallback to cached or default
+    set((state) => {
+      if (Object.keys(state.formData).length === 0) {
+        const fallback =
+          Object.keys(cached).length > 0 ? cached : DEFAULT_SITES_FALLBACK;
+        writeSettingsCache(fallback);
+        return { formData: fallback, isLoading: false };
+      }
+      return state;
+    });
   },
 
   fetchLogs: async () => {

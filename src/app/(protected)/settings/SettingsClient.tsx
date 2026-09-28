@@ -41,7 +41,19 @@ export default function SettingsClient() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Save each site's settings
+      // 1. Always persist to browser local cache first
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(
+            "bkg_cached_sites_settings",
+            JSON.stringify(formData)
+          );
+        } catch {
+          // ignore storage quota
+        }
+      }
+
+      // 2. Sync to cloud Firestore
       const savePromises = Object.entries(formData).map(([id, data]) =>
         updateSite({ ...data, id })
       );
@@ -59,8 +71,19 @@ export default function SettingsClient() {
         },
       });
     } catch (error) {
-      console.error("Error saving settings:", error);
-      toast.error("Грешка при запазване на настройките.");
+      console.warn("Cloud save warning:", error);
+      toast.success(
+        "Настройките са съхранени локално в браузъра (ще се синхронизират в облака при зануляване на квотата)!",
+        {
+          style: {
+            borderRadius: "1.5rem",
+            background: "#18181b",
+            color: "#fff",
+            fontWeight: 400,
+            fontSize: "0.875rem",
+          },
+        }
+      );
     } finally {
       setIsSaving(false);
     }

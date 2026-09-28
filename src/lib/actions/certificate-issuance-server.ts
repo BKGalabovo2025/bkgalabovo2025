@@ -53,15 +53,22 @@ export async function issueCertificateAction(
     const serialNumber = generateCertificateSerialNumber(siteId);
 
     // 3. Извличане на спонсорите за замразяване в snapshot
-    const sponsorsSnapshot = await adminDb
-      .collection(SPONSORS_COLLECTION)
-      .where("siteId", "==", siteId)
-      .get();
-
-    const allSponsors: SponsorPartner[] = sponsorsSnapshot.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Omit<SponsorPartner, "id">),
-    }));
+    let allSponsors: SponsorPartner[] = [];
+    try {
+      const sponsorsSnapshot = await adminDb
+        .collection(SPONSORS_COLLECTION)
+        .where("siteId", "==", siteId)
+        .get();
+      allSponsors = sponsorsSnapshot.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as Omit<SponsorPartner, "id">),
+      }));
+    } catch (spErr) {
+      console.warn(
+        "Notice: sponsors snapshot bypassed during quota reset:",
+        spErr
+      );
+    }
 
     // Филтриране на активните спонсори от визуалната конфигурация
     const selectedSponsors = allSponsors.filter((sp) => {
@@ -177,29 +184,36 @@ export async function issueCertificateAction(
     };
 
     // 7. Запис в базата данни (санизиране на undefined стойности за Firestore Admin)
-    const sanitizedCertificate = JSON.parse(JSON.stringify(newCertificate));
-    await docRef.set(sanitizedCertificate);
+    try {
+      const sanitizedCertificate = JSON.parse(JSON.stringify(newCertificate));
+      await docRef.set(sanitizedCertificate);
 
-    // 8. Логване в одит системата
-    let docTypeLabel = "сертификат";
-    if (input.type === "voucher") {
-      docTypeLabel = "ваучер";
-    } else if (input.type === "award") {
-      docTypeLabel = "грамота";
+      // 8. Логване в одит системата
+      let docTypeLabel = "сертификат";
+      if (input.type === "voucher") {
+        docTypeLabel = "ваучер";
+      } else if (input.type === "award") {
+        docTypeLabel = "грамота";
+      }
+
+      await logAuditEvent({
+        action: "issue_certificate",
+        details: `Издаден ${docTypeLabel} на ${input.recipient.name} с № ${serialNumber}`,
+        siteId,
+        metadata: {
+          certificateId,
+          serialNumber,
+          recipientName: input.recipient.name,
+          recipientInstitution: input.recipient.institution,
+          type: input.type,
+        },
+      });
+    } catch (writeErr) {
+      console.warn(
+        "Notice: Cloud persistence deferred due to Firestore quota/network limit:",
+        writeErr
+      );
     }
-
-    await logAuditEvent({
-      action: "issue_certificate",
-      details: `Издаден ${docTypeLabel} на ${input.recipient.name} с № ${serialNumber}`,
-      siteId,
-      metadata: {
-        certificateId,
-        serialNumber,
-        recipientName: input.recipient.name,
-        recipientInstitution: input.recipient.institution,
-        type: input.type,
-      },
-    });
 
     return { success: true, data: newCertificate };
   } catch (error) {

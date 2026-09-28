@@ -57,6 +57,50 @@ import {
   SponsorPartner,
 } from "@/types/certificates";
 
+interface CachedVoucherTemplate {
+  filePreviewUrl?: string | null;
+  remoteFileUrl?: string | null;
+  fileName?: string;
+  fileType?: "pdf" | "image";
+  docType?: CertificateType;
+  purpose?: string;
+  totalSessions?: number;
+  validityMode?: "30" | "60" | "custom_date";
+  customExpiryDate?: string;
+  recipientInstitution?: string;
+  clubLogoUrl?: string;
+  selectedSponsorIds?: string[];
+  additionalPartnerLogos?: Array<{ name: string; logoUrl: string }>;
+}
+
+function readTemplateCache(siteId: string): CachedVoucherTemplate | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(`bkg_cached_voucher_template_${siteId}`);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function writeTemplateCache(
+  siteId: string,
+  data: Partial<CachedVoucherTemplate>
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = readTemplateCache(siteId) || {};
+    const updated = { ...existing, ...data };
+    localStorage.setItem(
+      `bkg_cached_voucher_template_${siteId}`,
+      JSON.stringify(updated)
+    );
+  } catch {
+    // ignore quota
+  }
+}
+
 interface UploadVoucherTabProps {
   siteId: "bkgalabovo" | "recoveryzone";
   sponsors: SponsorPartner[];
@@ -79,6 +123,9 @@ export function UploadVoucherTab({
   const defaultClubLogo = isRecoveryZone
     ? "/recovery-zone/rz-icon-square.png"
     : "/icons/LOGO.webp";
+
+  // --- Persistent Cache Restoration State ---
+  const [isRestoredFromCache, setIsRestoredFromCache] = useState(false);
 
   // --- Document File State (Шаблон) ---
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -110,6 +157,31 @@ export function UploadVoucherTab({
   const [additionalPartnerLogos, setAdditionalPartnerLogos] = useState<
     Array<{ name: string; logoUrl: string }>
   >([]);
+
+  // Hydrate template from local cache on mount
+  React.useEffect(() => {
+    const cached = readTemplateCache(siteId);
+    if (cached) {
+      if (cached.filePreviewUrl) setFilePreviewUrl(cached.filePreviewUrl);
+      if (cached.remoteFileUrl) setRemoteFileUrl(cached.remoteFileUrl);
+      if (cached.fileType) setFileType(cached.fileType);
+      if (cached.docType) setDocType(cached.docType);
+      if (cached.purpose) setPurpose(cached.purpose);
+      if (cached.totalSessions) setTotalSessions(cached.totalSessions);
+      if (cached.validityMode) setValidityMode(cached.validityMode);
+      if (cached.customExpiryDate) setCustomExpiryDate(cached.customExpiryDate);
+      if (cached.recipientInstitution)
+        setRecipientInstitution(cached.recipientInstitution);
+      if (cached.clubLogoUrl) setClubLogoUrl(cached.clubLogoUrl);
+      if (cached.selectedSponsorIds)
+        setSelectedSponsorIds(cached.selectedSponsorIds);
+      if (cached.additionalPartnerLogos)
+        setAdditionalPartnerLogos(cached.additionalPartnerLogos);
+      if (cached.filePreviewUrl || cached.remoteFileUrl) {
+        setIsRestoredFromCache(true);
+      }
+    }
+  }, [siteId]);
 
   // --- Active Studio Step (1: Създай шаблон -> 2: Издай за деца) ---
   const [activeStep, setActiveStep] = useState<"template" | "issue">(
@@ -190,6 +262,18 @@ export function UploadVoucherTab({
     return null;
   }, [filePreviewUrl, remoteFileUrl, uploadedFile]);
 
+  // Clear template cache helper
+  const handleClearTemplateCache = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`bkg_cached_voucher_template_${siteId}`);
+    }
+    setUploadedFile(null);
+    setFilePreviewUrl(null);
+    setRemoteFileUrl(null);
+    setIsRestoredFromCache(false);
+    toast.info("Кешът на шаблона е изчистен.");
+  };
+
   // Proceed from Template Creation to Issuance Step
   const handleProceedToIssuance = () => {
     if (!uploadedFile && !remoteFileUrl && !previewUrl) {
@@ -198,8 +282,25 @@ export function UploadVoucherTab({
       );
       return;
     }
+
+    // Save template configuration to local cache
+    writeTemplateCache(siteId, {
+      filePreviewUrl: filePreviewUrl || remoteFileUrl,
+      remoteFileUrl,
+      fileType,
+      docType,
+      purpose,
+      totalSessions,
+      validityMode,
+      customExpiryDate,
+      recipientInstitution,
+      clubLogoUrl,
+      selectedSponsorIds,
+      additionalPartnerLogos,
+    });
+
     toast.success(
-      `Шаблонът за ${recipientInstitution || "събитието"} е готов! Зареден е табът за издаване.`
+      `Шаблонът за ${recipientInstitution || "събитието"} е готов и запазен в локалния кеш! Зареден е табът за издаване.`
     );
     setActiveStep("issue");
   };
@@ -275,10 +376,35 @@ export function UploadVoucherTab({
     }
 
     setUploadedFile(file);
-    setFileType(isPdf ? "pdf" : "image");
+    const chosenType = isPdf ? "pdf" : "image";
+    setFileType(chosenType);
     setFilePreviewUrl(URL.createObjectURL(file));
     setRemoteFileUrl(null);
+    setIsRestoredFromCache(false);
     toast.success(`Избран е файл: ${file.name}`);
+
+    // If small enough (< 5MB), convert to data URL for persistent cache
+    if (file.size < 5 * 1024 * 1024) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        writeTemplateCache(siteId, {
+          filePreviewUrl: dataUrl,
+          fileType: chosenType,
+          fileName: file.name,
+          docType,
+          purpose,
+          totalSessions,
+          validityMode,
+          customExpiryDate,
+          recipientInstitution,
+          clubLogoUrl,
+          selectedSponsorIds,
+          additionalPartnerLogos,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Upload custom club logo
@@ -395,7 +521,7 @@ export function UploadVoucherTab({
 
   // Execute Issuance (Single or Batch)
   const handleExecuteIssuance = async () => {
-    if (!uploadedFile && !remoteFileUrl) {
+    if (!uploadedFile && !remoteFileUrl && !previewUrl) {
       toast.error(
         "Моля, качете файл на ваучера / документа (PDF или изображение) в Стъпка 1!"
       );
@@ -452,16 +578,32 @@ export function UploadVoucherTab({
     try {
       setIsSubmitting(true);
 
-      // 1. Upload file if needed
+      // 1. Upload file if needed, or fallback to filePreviewUrl / previewUrl
       let finalFileUrl = remoteFileUrl;
       if (!finalFileUrl && uploadedFile) {
-        toast.loading("Качване на документа в защитено хранилище...", {
-          id: "issuing",
-        });
-        const safeName = uploadedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const path = `sites/${siteId}/certificates/vouchers/${Date.now()}_${safeName}`;
-        finalFileUrl = await uploadFile(path, uploadedFile, idToken);
-        setRemoteFileUrl(finalFileUrl);
+        try {
+          toast.loading("Качване на документа в защитено хранилище...", {
+            id: "issuing",
+          });
+          const safeName = uploadedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+          const path = `sites/${siteId}/certificates/vouchers/${Date.now()}_${safeName}`;
+          finalFileUrl = await uploadFile(path, uploadedFile, idToken);
+          setRemoteFileUrl(finalFileUrl);
+        } catch (uploadErr) {
+          console.warn(
+            "Storage upload notice (using local voucher canvas):",
+            uploadErr
+          );
+          if (filePreviewUrl || previewUrl) {
+            finalFileUrl = (filePreviewUrl || previewUrl) as string;
+          } else {
+            throw uploadErr;
+          }
+        }
+      }
+
+      if (!finalFileUrl && (filePreviewUrl || previewUrl)) {
+        finalFileUrl = (filePreviewUrl || previewUrl) as string;
       }
 
       if (!finalFileUrl) {
@@ -667,6 +809,38 @@ export function UploadVoucherTab({
                 </Badge>
               </div>
 
+              {/* Cache status banner */}
+              {isRestoredFromCache && (filePreviewUrl || remoteFileUrl) && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-2xl border border-emerald-200/90 bg-emerald-50/80 p-3.5 text-xs text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                    <span>
+                      <strong>Зареден от локалния кеш:</strong> Вашият документ
+                      и настройки са запазени. Не е нужно да качвате отново!
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => setActiveStep("issue")}
+                      className="h-7 rounded-lg bg-emerald-600 px-3 text-[11px] font-bold text-white hover:bg-emerald-700"
+                    >
+                      Към издаване ➔
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearTemplateCache}
+                      className="h-7 rounded-lg px-2 text-[11px] text-zinc-500 hover:text-red-500"
+                    >
+                      Изчисти
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* 1.1 Upload Document */}
               <Card className="space-y-4 rounded-3xl border-zinc-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="flex items-center gap-2.5 border-b border-zinc-100 pb-3 dark:border-zinc-800">
@@ -683,7 +857,7 @@ export function UploadVoucherTab({
                   </div>
                 </div>
 
-                {!uploadedFile && !remoteFileUrl ? (
+                {!uploadedFile && !remoteFileUrl && !filePreviewUrl ? (
                   <div
                     onClick={() => voucherFileInputRef.current?.click()}
                     className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/60 p-6 text-center transition-colors hover:border-blue-500 hover:bg-blue-50/40 dark:border-zinc-700 dark:bg-zinc-950/60"
@@ -718,7 +892,10 @@ export function UploadVoucherTab({
                         </div>
                         <div className="min-w-0 flex-1">
                           <span className="block truncate text-xs font-bold text-zinc-900 dark:text-white">
-                            {uploadedFile?.name || "Качен файл на документа"}
+                            {uploadedFile?.name ||
+                              (isRestoredFromCache
+                                ? "Запазен в кеша документ"
+                                : "Качен файл на документа")}
                           </span>
                           <span className="text-[10px] text-zinc-400">
                             {fileType === "pdf"
@@ -726,6 +903,9 @@ export function UploadVoucherTab({
                               : "Изображение"}
                             {uploadedFile &&
                               ` • ${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`}
+                            {isRestoredFromCache &&
+                              !uploadedFile &&
+                              " • запазен локално"}
                           </span>
                         </div>
                       </div>
@@ -751,11 +931,7 @@ export function UploadVoucherTab({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            setUploadedFile(null);
-                            setFilePreviewUrl(null);
-                            setRemoteFileUrl(null);
-                          }}
+                          onClick={handleClearTemplateCache}
                           className="size-8 rounded-xl text-zinc-400 hover:text-red-500"
                         >
                           <X className="size-4" />
