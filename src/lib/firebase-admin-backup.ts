@@ -55,7 +55,7 @@ function initBackupAdmin(): admin.firestore.Firestore | null {
       // Ignore if already set
     }
     console.log(
-      `[backup-db] ✅ Backup Firestore initialized (${app.options.credential ? "service account" : "unknown"})`
+      "[backup-db] ✅ Backup Firestore initialized with service account."
     );
     return backupDb;
   } catch (err) {

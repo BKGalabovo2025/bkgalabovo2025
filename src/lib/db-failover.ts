@@ -57,19 +57,21 @@ export async function withFailover<T>(
     const backupDb = getBackupDb();
     if (!backupDb) {
       console.error(
-        `[${label}] Primary quota exceeded AND no backup DB configured! ` +
-          "Add FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON to env vars."
+        "Primary quota exceeded AND no backup DB configured! Add FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON to env vars. Caller:",
+        label
       );
       throw primaryErr; // Нямаме резервна — хвърляме оригиналната грешка
     }
 
     if (writeOperation) {
       console.warn(
-        `[${label}] ⚠️ Primary quota exceeded — redirecting WRITE to backup Firestore`
+        "⚠️ Primary quota exceeded — redirecting WRITE to backup Firestore. Caller:",
+        label
       );
     } else {
       console.warn(
-        `[${label}] ⚠️ Primary quota exceeded — falling back to backup Firestore for read`
+        "⚠️ Primary quota exceeded — falling back to backup Firestore for read. Caller:",
+        label
       );
     }
 
@@ -120,10 +122,19 @@ export async function syncFromBackupToMain(
       .doc(docId)
       .set(backupSnap.data()!, { merge: true });
 
-    console.log(`[sync] ✅ Synced ${collection}/${docId} from backup to main`);
+    console.log(
+      "[sync] ✅ Synced document from backup to main:",
+      collection,
+      docId
+    );
     return true;
   } catch (err) {
-    console.error(`[sync] ❌ Failed to sync ${collection}/${docId}:`, err);
+    console.error(
+      "[sync] ❌ Failed to sync document from backup to main:",
+      collection,
+      docId,
+      err
+    );
     return false;
   }
 }

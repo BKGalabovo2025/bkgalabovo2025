@@ -72,15 +72,15 @@ const COLLECTIONS_TO_MIGRATE = [
 ];
 
 async function migrateCollection(primaryDb, backupDb, collectionName) {
-  console.log(`\n📦 Мигриране на колекция: "${collectionName}"...`);
+  console.log('\n📦 Мигриране на колекция:', collectionName);
   try {
     const snapshot = await primaryDb.collection(collectionName).get();
     if (snapshot.empty) {
-      console.log(`   (Колекцията "${collectionName}" е празна — прескача се)`);
+      console.log('   (Колекцията е празна — прескача се):', collectionName);
       return;
     }
 
-    console.log(`   Намерени ${snapshot.size} документа в "${collectionName}". Копиране...`);
+    console.log('   Намерени документи в колекцията:', snapshot.size, collectionName);
     
     // Писане на партиди по 400 документа (Firestore лимит на batch е 500)
     let batch = backupDb.batch();
@@ -96,7 +96,7 @@ async function migrateCollection(primaryDb, backupDb, collectionName) {
 
       if (count >= 400) {
         await batch.commit();
-        console.log(`   Записани ${totalWritten}/${snapshot.size} документа...`);
+        console.log('   Записани документи:', totalWritten, '/', snapshot.size);
         batch = backupDb.batch();
         count = 0;
       }
@@ -105,13 +105,13 @@ async function migrateCollection(primaryDb, backupDb, collectionName) {
     if (count > 0) {
       await batch.commit();
     }
-    console.log(`   ✅ Успешно копирани всички ${totalWritten} документа в "${collectionName}".`);
+    console.log('   ✅ Успешно копирани документи:', totalWritten, collectionName);
   } catch (err) {
     if (err.message && err.message.includes('RESOURCE_EXHAUSTED')) {
-      console.error(`   ❌ Квотата на основната база е изчерпана за "${collectionName}"!`);
+      console.error('   ❌ Квотата на основната база е изчерпана за колекция:', collectionName);
       throw err;
     }
-    console.error(`   ❌ Грешка при колекция "${collectionName}":`, err.message);
+    console.error('   ❌ Грешка при колекция:', collectionName, err.message);
   }
 }
 
