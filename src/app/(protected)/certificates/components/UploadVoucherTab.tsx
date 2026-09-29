@@ -370,8 +370,11 @@ export function UploadVoucherTab({
       return;
     }
 
-    if (file.size > 25 * 1024 * 1024) {
-      toast.error("Файлът е твърде голям! Максималният размер е 25MB.");
+    // Vercel Hobby план ограничава до 4.5MB per request — запазваме буфер
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error(
+        "Файлът е твърде голям! Максималният размер е 4 MB (ограничение на сървъра)."
+      );
       return;
     }
 

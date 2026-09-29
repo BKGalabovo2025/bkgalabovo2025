@@ -24,8 +24,23 @@ export const uploadFile = async (
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to upload file");
+    // 413 = Payload Too Large — Vercel връща HTML, не JSON
+    if (response.status === 413) {
+      throw new Error(
+        "Файлът е прекалено голям за качване (максимум 4 MB). Моля намалете размера на файла и опитайте отново."
+      );
+    }
+    let errorMessage = "Failed to upload file";
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        // Ignore JSON parse failure
+      }
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
