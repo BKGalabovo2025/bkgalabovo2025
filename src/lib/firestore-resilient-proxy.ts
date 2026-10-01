@@ -6,7 +6,9 @@
  * If the primary Firestore database throws a quota / RESOURCE_EXHAUSTED error:
  *   1. Trips the circuit breaker to route subsequent calls to the backup DB.
  *   2. Automatically replays the failed operation on the backup Firestore database.
- *   3. Returns the backup result seamlessly to the caller without crashing.
+ *   3. If the query requires an index not yet built (FAILED_PRECONDITION),
+ *      performs in-memory sorting/filtering fallback so user requests never crash.
+ *   4. Returns the backup result seamlessly to the caller.
  */
 
 import * as admin from "firebase-admin";
@@ -46,6 +48,32 @@ export function isQuotaError(err: unknown): boolean {
     }
   }
   return false;
+}
+
+/**
+ * Checks whether an error is due to a missing Firestore composite index.
+ */
+export function isIndexRequiredError(err: unknown): boolean {
+  if (!err) return false;
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.includes("requires an index") ||
+    msg.includes("The query requires an index") ||
+    (typeof err === "object" &&
+      err !== null &&
+      (err as Record<string, unknown>).code === 9 &&
+      msg.includes("index"))
+  );
+}
+
+/**
+ * Extracts the Firebase Console index creation URL from the error message, if present.
+ */
+export function extractIndexUrl(err: unknown): string | null {
+  if (!err) return null;
+  const msg = err instanceof Error ? err.message : String(err);
+  const match = msg.match(/https:\/\/console\.firebase\.google\.com[^\s\)]+/);
+  return match ? match[0] : null;
 }
 
 export function markPrimaryQuotaExhausted(): void {
@@ -142,18 +170,175 @@ function replayChain(
   return current;
 }
 
+interface OrderBySpec {
+  field: string;
+  dir: "asc" | "desc";
+}
+
+function sortDocsInMemory(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  docs: any[],
+  orderBys: OrderBySpec[],
+  limit?: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any[] {
+  const sorted = [...docs].sort((a, b) => {
+    const dataA = typeof a.data === "function" ? a.data() : a;
+    const dataB = typeof b.data === "function" ? b.data() : b;
+    for (const { field, dir } of orderBys) {
+      const valA = dataA?.[field];
+      const valB = dataB?.[field];
+      if (valA === valB) continue;
+      if (valA === undefined || valA === null) return 1;
+      if (valB === undefined || valB === null) return -1;
+      const cmp = valA > valB ? 1 : -1;
+      return dir === "desc" ? -cmp : cmp;
+    }
+    return 0;
+  });
+
+  return typeof limit === "number" && limit > 0
+    ? sorted.slice(0, limit)
+    : sorted;
+}
+
+function wrapInMemorySnapshot(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rawSnapshot: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sortedDocs: any[]
+): unknown {
+  return new Proxy(rawSnapshot, {
+    get(target, prop, receiver) {
+      if (prop === "docs") return sortedDocs;
+      if (prop === "empty") return sortedDocs.length === 0;
+      if (prop === "size") return sortedDocs.length;
+      if (prop === "forEach") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (cb: (doc: any, index: number) => void) =>
+          sortedDocs.forEach(cb);
+      }
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+}
+
+/**
+ * Attempts an in-memory sort/limit fallback when a query throws a missing index error.
+ */
+async function tryInMemoryIndexFallback(
+  db: admin.firestore.Firestore,
+  steps: ChainStep[],
+  originalErr: unknown
+): Promise<unknown | null> {
+  const url = extractIndexUrl(originalErr);
+  console.warn(
+    `[firestore-failover] ⚠️ Missing composite index detected! Applying in-memory sort fallback.\nIndex URL: ${url ?? "N/A"}`
+  );
+
+  const orderBys: OrderBySpec[] = steps
+    .filter((s) => s.method === "orderBy")
+    .map((s) => ({
+      field: String(s.args[0]),
+      dir: (String(s.args[1] || "asc").toLowerCase() === "desc"
+        ? "desc"
+        : "asc") as "asc" | "desc",
+    }));
+
+  const limitStep = steps.find((s) => s.method === "limit");
+  const limit = limitStep ? (limitStep.args[0] as number) : undefined;
+
+  // Filter out orderBy and limit so Firestore will execute without composite index
+  const relaxedSteps = steps.filter(
+    (s) => s.method !== "orderBy" && s.method !== "limit"
+  );
+
+  try {
+    const target = replayChain(db, relaxedSteps) as Record<string, unknown>;
+    const fn = target.get;
+    if (typeof fn !== "function") return null;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rawSnapshot = (await (fn as AnyFn)()) as any;
+    if (!rawSnapshot || !Array.isArray(rawSnapshot.docs)) {
+      return rawSnapshot;
+    }
+
+    const sortedDocs = sortDocsInMemory(rawSnapshot.docs, orderBys, limit);
+    return wrapInMemorySnapshot(rawSnapshot, sortedDocs);
+  } catch (fallbackErr) {
+    console.error(
+      "[firestore-failover] In-memory index fallback failed:",
+      fallbackErr
+    );
+    return null;
+  }
+}
+
 async function executeOnBackup(
   backupDb: admin.firestore.Firestore,
   steps: ChainStep[],
   prop: string,
   args: unknown[]
 ): Promise<unknown> {
-  const backupTarget = replayChain(backupDb, steps) as Record<string, unknown>;
-  const fn = backupTarget[prop];
-  if (typeof fn === "function") {
-    return await (fn as AnyFn)(...args);
+  try {
+    const backupTarget = replayChain(backupDb, steps) as Record<
+      string,
+      unknown
+    >;
+    const fn = backupTarget[prop];
+    if (typeof fn === "function") {
+      return await (fn as AnyFn)(...args);
+    }
+    return undefined;
+  } catch (err) {
+    if (prop === "get" && isIndexRequiredError(err)) {
+      const fallbackSnap = await tryInMemoryIndexFallback(backupDb, steps, err);
+      if (fallbackSnap) return fallbackSnap;
+    }
+    throw err;
   }
-  return undefined;
+}
+
+async function handleQuotaExhaustionOnExecution(
+  err: unknown,
+  steps: ChainStep[],
+  prop: string,
+  args: unknown[],
+  getBackupDb: () => admin.firestore.Firestore | null
+): Promise<unknown> {
+  markPrimaryQuotaExhausted();
+  const backupDb = getBackupDb();
+  if (!backupDb) {
+    console.error(
+      `[firestore-failover] ❌ Primary Firestore quota exceeded on ${steps
+        .map((s) => s.method)
+        .join(".")}.${prop}(), but no backup DB is available!`
+    );
+    throw err;
+  }
+
+  console.warn(
+    `[firestore-failover] 🔀 Primary quota exceeded. Replaying ${steps
+      .map((s) => s.method)
+      .join(".")}.${prop}() on backup Firestore...`
+  );
+  return await executeOnBackup(backupDb, steps, prop, args);
+}
+
+async function handleIndexErrorOnExecution(
+  err: unknown,
+  obj: object,
+  steps: ChainStep[],
+  prop: string
+): Promise<unknown | null> {
+  if (prop !== "get" || !isIndexRequiredError(err)) {
+    return null;
+  }
+  const baseDb = (obj as Record<string, unknown>).firestore as
+    admin.firestore.Firestore | undefined;
+  if (!baseDb) return null;
+  return await tryInMemoryIndexFallback(baseDb, steps, err);
 }
 
 async function handleExecutionMethod(
@@ -175,24 +360,25 @@ async function handleExecutionMethod(
     return await origFn.apply(obj, args);
   } catch (err) {
     if (isQuotaError(err)) {
-      markPrimaryQuotaExhausted();
-      const backupDb = getBackupDb();
-      if (!backupDb) {
-        console.error(
-          `[firestore-failover] ❌ Primary Firestore quota exceeded on ${steps
-            .map((s) => s.method)
-            .join(".")}.${prop}(), but no backup DB is available!`
-        );
-        throw err;
-      }
-
-      console.warn(
-        `[firestore-failover] 🔀 Primary quota exceeded. Replaying ${steps
-          .map((s) => s.method)
-          .join(".")}.${prop}() on backup Firestore...`
+      return await handleQuotaExhaustionOnExecution(
+        err,
+        steps,
+        prop,
+        args,
+        getBackupDb
       );
-      return await executeOnBackup(backupDb, steps, prop, args);
     }
+
+    const indexFallback = await handleIndexErrorOnExecution(
+      err,
+      obj,
+      steps,
+      prop
+    );
+    if (indexFallback) {
+      return indexFallback;
+    }
+
     throw err;
   }
 }

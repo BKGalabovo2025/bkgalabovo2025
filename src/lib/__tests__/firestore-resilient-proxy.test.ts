@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createResilientFirestoreProxy,
+  extractIndexUrl,
+  isIndexRequiredError,
   isPrimaryQuotaCurrentlyExhausted,
   isQuotaError,
   markPrimaryQuotaExhausted,
@@ -324,6 +326,98 @@ describe("firestore-resilient-proxy", () => {
       expect(backupRunTx).toHaveBeenCalledWith(txFn, undefined);
       expect(res).toBe("tx-success");
       expect(isPrimaryQuotaCurrentlyExhausted()).toBe(true);
+    });
+  });
+
+  describe("isIndexRequiredError and extractIndexUrl", () => {
+    it("detects missing composite index error and extracts URL", () => {
+      const err = new Error(
+        "9 FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/bkgalabovo-backup/firestore/indexes?create_composite=..."
+      );
+      expect(isIndexRequiredError(err)).toBe(true);
+      expect(extractIndexUrl(err)).toBe(
+        "https://console.firebase.google.com/v1/r/project/bkgalabovo-backup/firestore/indexes?create_composite=..."
+      );
+    });
+
+    it("returns false for non-index errors", () => {
+      expect(isIndexRequiredError(new Error("Document not found"))).toBe(false);
+      expect(extractIndexUrl(new Error("Document not found"))).toBeNull();
+    });
+  });
+
+  describe("createResilientFirestoreProxy - Missing index in-memory fallback", () => {
+    it("transparently falls back to in-memory sorting when backup returns missing index error", async () => {
+      const quotaError = new Error("RESOURCE_EXHAUSTED");
+      const indexError = new Error(
+        "9 FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.firebase.google.com/indexes"
+      );
+
+      const primaryGet = vi.fn().mockRejectedValue(quotaError);
+
+      const mockDocs = [
+        {
+          id: "e1",
+          data: () => ({ title: "Event B", startDate: "2026-05-10" }),
+        },
+        {
+          id: "e2",
+          data: () => ({ title: "Event A", startDate: "2026-05-01" }),
+        },
+        {
+          id: "e3",
+          data: () => ({ title: "Event C", startDate: "2026-05-20" }),
+        },
+      ];
+
+      // Backup query with orderBy fails with index error
+      const backupOrderByGet = vi.fn().mockRejectedValue(indexError);
+      // Relaxed backup query (without orderBy) succeeds
+      const backupRelaxedGet = vi.fn().mockResolvedValue({
+        docs: mockDocs,
+        size: 3,
+        empty: false,
+      });
+
+      const primaryDb = {
+        collection: vi.fn(() => ({
+          where: vi.fn(() => ({
+            orderBy: vi.fn(() => ({
+              get: primaryGet,
+            })),
+          })),
+        })),
+      } as unknown as admin.firestore.Firestore;
+
+      const backupDb = {
+        collection: vi.fn(() => ({
+          where: vi.fn(() => ({
+            // If orderBy is called:
+            orderBy: vi.fn(() => ({
+              get: backupOrderByGet,
+            })),
+            // If relaxed query (no orderBy) is called:
+            get: backupRelaxedGet,
+          })),
+        })),
+      } as unknown as admin.firestore.Firestore;
+
+      const proxy = createResilientFirestoreProxy(primaryDb, () => backupDb);
+      const snapshot = (await proxy
+        .collection("events")
+        .where("siteId", "==", "bkgalabovo")
+        .orderBy("startDate", "asc")
+        .get()) as unknown as {
+        docs: Array<{ data: () => { startDate: string } }>;
+      };
+
+      expect(backupOrderByGet).toHaveBeenCalled();
+      expect(backupRelaxedGet).toHaveBeenCalled();
+      expect(snapshot.docs).toHaveLength(3);
+      // Verify sorted in-memory ascending by startDate
+      expect(snapshot.docs[0].data().startDate).toBe("2026-05-01");
+      expect(snapshot.docs[1].data().startDate).toBe("2026-05-10");
+      expect(snapshot.docs[2].data().startDate).toBe("2026-05-20");
     });
   });
 });
