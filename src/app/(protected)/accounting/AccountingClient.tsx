@@ -463,7 +463,7 @@ export default function AccountingClient() {
           `pdf-statement-template-${tId}`
         );
         if (statementEl) {
-          const blob = await getPdfBlobFromElement(statementEl, "portrait");
+          const blob = await getPdfBlobFromElement(statementEl, "landscape");
           tripFolder.file(`02_Ведомост_${safeTitle}.pdf`, blob);
         }
 
@@ -479,7 +479,7 @@ export default function AccountingClient() {
           `pdf-fuel-report-template-${tId}`
         );
         if (fuelEl) {
-          const blob = await getPdfBlobFromElement(fuelEl, "portrait");
+          const blob = await getPdfBlobFromElement(fuelEl, "landscape");
           tripFolder.file(`04_Пътен_лист_${safeTitle}.pdf`, blob);
         }
 

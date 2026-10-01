@@ -436,7 +436,7 @@ export function BusinessTripPdfTemplates({
           <p style={{ marginBottom: "4pt" }}>
             {sn("diem")}. Дневни на <strong>{totalPeople}</strong>{" "}
             {totalPeople === 1 ? "човек" : "човека"} по{" "}
-            <strong>{perDiemBGN.toFixed(2)} лв.</strong> ({fmtEUR(perDiemEUR)})
+            <strong>{fmtEUR(perDiemEUR)}</strong> ({perDiemBGN.toFixed(2)} лв.)
             за <strong>{numDays}</strong> {numDays === 1 ? "ден" : "дни"}.
           </p>
         )}
@@ -462,8 +462,8 @@ export function BusinessTripPdfTemplates({
             {totalPeople === 1 ? "човек" : "човека"}{" "}
             {trip.financials.accommodationRateEUR > 0 ? (
               <>
-                по <strong>{accomBGN.toFixed(2)} лв.</strong> (
-                {fmtEUR(accomEUR)}) (срещу фактура){" "}
+                по <strong>{fmtEUR(accomEUR)}</strong> ({accomBGN.toFixed(2)}{" "}
+                лв.) (срещу фактура){" "}
               </>
             ) : (
               <>(срещу фактура) </>
@@ -658,12 +658,23 @@ export function BusinessTripPdfTemplates({
           >
             В Е Д О М О С Т
           </p>
+          <p
+            style={{
+              fontSize: "8pt",
+              color: "#64748b",
+              margin: "2pt 0 0 0",
+              fontWeight: "500",
+            }}
+          >
+            за изплатени суми за командировка (Основна валута: EUR € | Втора
+            валута: BGN лв., фиксиран курс 1.95583)
+          </p>
         </div>
         <table
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            marginBottom: "10pt",
+            marginBottom: "8pt",
           }}
         >
           <thead>
@@ -681,84 +692,316 @@ export function BusinessTripPdfTemplates({
                 Маршрут
               </th>
               <th colSpan={2} style={TH}>
-                Пътни пари
+                Пътни пари (EUR / лв.)
               </th>
               <th colSpan={3} style={TH}>
-                Дневни пари
+                Дневни пари (EUR / лв.)
               </th>
               <th colSpan={3} style={TH}>
-                Кв. пари
+                Кв. пари (EUR / лв.)
               </th>
-              <th rowSpan={2} style={{ ...TH, width: "65pt" }}>
-                Общо
+              <th rowSpan={2} style={{ ...TH, width: "68pt" }}>
+                Общо (EUR / лв.)
               </th>
               <th rowSpan={2} style={{ ...TH, width: "48pt" }}>
                 Подпис
               </th>
             </tr>
             <tr>
-              <th style={{ ...TH, width: "28pt" }}>отиване</th>
-              <th style={{ ...TH, width: "28pt" }}>връщане</th>
-              <th style={{ ...TH, width: "22pt" }}>дни</th>
-              <th style={{ ...TH, width: "38pt" }}>за 1 ден</th>
-              <th style={{ ...TH, width: "42pt" }}>сума</th>
-              <th style={{ ...TH, width: "22pt" }}>нощ</th>
-              <th style={{ ...TH, width: "38pt" }}>за 1 нощ</th>
-              <th style={{ ...TH, width: "42pt" }}>сума</th>
+              <th style={{ ...TH, width: "32pt" }}>отиване</th>
+              <th style={{ ...TH, width: "32pt" }}>връщане</th>
+              <th style={{ ...TH, width: "20pt" }}>дни</th>
+              <th style={{ ...TH, width: "44pt" }}>за 1 ден</th>
+              <th style={{ ...TH, width: "48pt" }}>сума</th>
+              <th style={{ ...TH, width: "20pt" }}>нощ</th>
+              <th style={{ ...TH, width: "44pt" }}>за 1 нощ</th>
+              <th style={{ ...TH, width: "48pt" }}>сума</th>
             </tr>
           </thead>
           <tbody>
-            {allPeople.map((p, i) => (
-              <tr key={i}>
-                <td style={{ ...TD, textAlign: "center" }}>{i + 1}.</td>
-                <td style={TD}>{p.name}</td>
-                <td style={{ ...TD, textAlign: "center" }}>{p.role}</td>
-                <td style={{ ...TD, textAlign: "center" }}>{routeLabel}</td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {i === 0 && transportTotalBGN > 0
-                    ? (transportTotalBGN / 2).toFixed(2)
-                    : ""}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {i === 0 && transportTotalBGN > 0
-                    ? (transportTotalBGN / 2).toFixed(2)
-                    : ""}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {hasPerDiem ? numDays : "—"}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {hasPerDiem ? `${perDiemBGN.toFixed(2)} лв.` : "—"}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {hasPerDiem ? `${dTotalBGNppRounded.toFixed(2)} лв.` : "—"}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {hasAccom ? numNights : "—"}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {hasAccom
-                    ? `${(aTotalBGNppRounded / (numNights || 1)).toFixed(2)} лв.`
-                    : "—"}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {hasAccom ? `${aTotalBGNppRounded.toFixed(2)} лв.` : "—"}
-                </td>
-                <td style={{ ...TD, textAlign: "center", fontWeight: "bold" }}>
-                  {(
-                    ppTotalBGNRounded + (i === 0 ? transportTotalBGN : 0)
-                  ).toFixed(2)}{" "}
-                  лв.
-                </td>
-                <td style={TD}>&nbsp;</td>
-              </tr>
-            ))}
+            {allPeople.map((p, i) => {
+              const personTransportEUR = i === 0 ? transportTotalEUR : 0;
+              const personTransportBGN = i === 0 ? transportTotalBGN : 0;
+              const personTotalEUR = ppTotalEUR + personTransportEUR;
+              const personTotalBGN = ppTotalBGNRounded + personTransportBGN;
+
+              return (
+                <tr key={i}>
+                  <td style={{ ...TD, textAlign: "center" }}>{i + 1}.</td>
+                  <td style={TD}>{p.name}</td>
+                  <td style={{ ...TD, textAlign: "center" }}>{p.role}</td>
+                  <td style={{ ...TD, textAlign: "center" }}>{routeLabel}</td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {i === 0 && transportTotalEUR > 0 ? (
+                      <div>
+                        <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                          {(transportTotalEUR / 2).toFixed(2)} €
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "7pt",
+                            color: "#64748b",
+                            lineHeight: "1.1",
+                          }}
+                        >
+                          ({(transportTotalBGN / 2).toFixed(2)} лв.)
+                        </div>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {i === 0 && transportTotalEUR > 0 ? (
+                      <div>
+                        <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                          {(transportTotalEUR / 2).toFixed(2)} €
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "7pt",
+                            color: "#64748b",
+                            lineHeight: "1.1",
+                          }}
+                        >
+                          ({(transportTotalBGN / 2).toFixed(2)} лв.)
+                        </div>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {hasPerDiem ? numDays : "—"}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {hasPerDiem ? (
+                      <div>
+                        <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                          {perDiemEUR.toFixed(2)} €
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "7pt",
+                            color: "#64748b",
+                            lineHeight: "1.1",
+                          }}
+                        >
+                          ({perDiemBGN.toFixed(2)} лв.)
+                        </div>
+                      </div>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {hasPerDiem ? (
+                      <div>
+                        <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                          {dTotalEURpp.toFixed(2)} €
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "7pt",
+                            color: "#64748b",
+                            lineHeight: "1.1",
+                          }}
+                        >
+                          ({dTotalBGNppRounded.toFixed(2)} лв.)
+                        </div>
+                      </div>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {hasAccom ? numNights : "—"}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {hasAccom ? (
+                      <div>
+                        <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                          {(aTotalEURpp / (numNights || 1)).toFixed(2)} €
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "7pt",
+                            color: "#64748b",
+                            lineHeight: "1.1",
+                          }}
+                        >
+                          ({(aTotalBGNppRounded / (numNights || 1)).toFixed(2)}{" "}
+                          лв.)
+                        </div>
+                      </div>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {hasAccom ? (
+                      <div>
+                        <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                          {aTotalEURpp.toFixed(2)} €
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "7pt",
+                            color: "#64748b",
+                            lineHeight: "1.1",
+                          }}
+                        >
+                          ({aTotalBGNppRounded.toFixed(2)} лв.)
+                        </div>
+                      </div>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    <div>
+                      <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                        {personTotalEUR.toFixed(2)} €
+                      </span>
+                      <div
+                        style={{
+                          fontSize: "7pt",
+                          color: "#64748b",
+                          lineHeight: "1.1",
+                        }}
+                      >
+                        ({personTotalBGN.toFixed(2)} лв.)
+                      </div>
+                    </div>
+                  </td>
+                  <td style={TD}>&nbsp;</td>
+                </tr>
+              );
+            })}
+            <tr style={{ fontWeight: "bold", backgroundColor: "#f8fafc" }}>
+              <td
+                colSpan={4}
+                style={{ ...TD, textAlign: "right", paddingRight: "8pt" }}
+              >
+                ВСИЧКО:
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {transportTotalEUR > 0 ? (
+                  <div>
+                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                      {(transportTotalEUR / 2).toFixed(2)} €
+                    </span>
+                    <div
+                      style={{
+                        fontSize: "7pt",
+                        color: "#64748b",
+                        fontWeight: "normal",
+                        lineHeight: "1.1",
+                      }}
+                    >
+                      ({(transportTotalBGN / 2).toFixed(2)} лв.)
+                    </div>
+                  </div>
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {transportTotalEUR > 0 ? (
+                  <div>
+                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                      {(transportTotalEUR / 2).toFixed(2)} €
+                    </span>
+                    <div
+                      style={{
+                        fontSize: "7pt",
+                        color: "#64748b",
+                        fontWeight: "normal",
+                        lineHeight: "1.1",
+                      }}
+                    >
+                      ({(transportTotalBGN / 2).toFixed(2)} лв.)
+                    </div>
+                  </div>
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {hasPerDiem ? numDays * totalPeople : "—"}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>—</td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {hasPerDiem ? (
+                  <div>
+                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                      {(dTotalEURpp * totalPeople).toFixed(2)} €
+                    </span>
+                    <div
+                      style={{
+                        fontSize: "7pt",
+                        color: "#64748b",
+                        fontWeight: "normal",
+                        lineHeight: "1.1",
+                      }}
+                    >
+                      ({(dTotalBGNppRounded * totalPeople).toFixed(2)} лв.)
+                    </div>
+                  </div>
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {hasAccom ? numNights * totalPeople : "—"}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>—</td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {hasAccom ? (
+                  <div>
+                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                      {(aTotalEURpp * totalPeople).toFixed(2)} €
+                    </span>
+                    <div
+                      style={{
+                        fontSize: "7pt",
+                        color: "#64748b",
+                        fontWeight: "normal",
+                        lineHeight: "1.1",
+                      }}
+                    >
+                      ({(aTotalBGNppRounded * totalPeople).toFixed(2)} лв.)
+                    </div>
+                  </div>
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                <div>
+                  <span style={{ fontWeight: "800", color: "#0f172a" }}>
+                    {grandEUR.toFixed(2)} €
+                  </span>
+                  <div
+                    style={{
+                      fontSize: "7pt",
+                      color: "#64748b",
+                      fontWeight: "normal",
+                      lineHeight: "1.1",
+                    }}
+                  >
+                    ({grandBGN.toFixed(2)} лв.)
+                  </div>
+                </div>
+              </td>
+              <td style={TD}>&nbsp;</td>
+            </tr>
           </tbody>
         </table>
-        <p style={{ fontSize: "9pt" }}>
+        <p style={{ fontSize: "9pt", margin: "8pt 0" }}>
           <strong>Словом: </strong>
-          {grandBGN > 0
-            ? `${numToWordsBG(grandBGN, false)} (${numToWordsBG(grandEUR, true)})`
+          {grandEUR > 0
+            ? `${numToWordsBG(grandEUR, true)} (${numToWordsBG(grandBGN, false)})`
             : "...................."}
         </p>
         <div
@@ -1062,10 +1305,10 @@ export function BusinessTripPdfTemplates({
                 <th style={{ ...TH, width: "50pt" }}>Норма за 100 км</th>
                 <th style={{ ...TH, width: "55pt" }}>Общо разход литри</th>
                 <th style={{ ...TH, width: "80pt" }}>
-                  Единична цена за 1 л в лв. и (EUR)
+                  Единична цена за 1 л в EUR (лв.)
                 </th>
                 <th style={{ ...TH, width: "70pt" }}>
-                  За изплащане лв. и (EUR)
+                  За изплащане в EUR (лв.)
                 </th>
               </tr>
             </thead>
@@ -1089,13 +1332,13 @@ export function BusinessTripPdfTemplates({
                   {totalLiters > 0 ? totalLiters.toFixed(2) : ""}
                 </td>
                 <td style={{ ...TD, textAlign: "center" }}>
-                  {avgPricePerLiterBGN > 0
-                    ? `${avgPricePerLiterBGN.toFixed(2)} лв. (€${avgPricePerLiterEUR.toFixed(2)})`
+                  {avgPricePerLiterEUR > 0
+                    ? `€${avgPricePerLiterEUR.toFixed(2)} (${avgPricePerLiterBGN.toFixed(2)} лв.)`
                     : ""}
                 </td>
                 <td style={{ ...TD, textAlign: "center", fontWeight: "bold" }}>
-                  {finalFuelBGN > 0
-                    ? `${finalFuelBGN.toFixed(2)} лв. (€${finalFuelEUR.toFixed(2)})`
+                  {finalFuelEUR > 0
+                    ? `€${finalFuelEUR.toFixed(2)} (${finalFuelBGN.toFixed(2)} лв.)`
                     : ""}
                 </td>
               </tr>
@@ -1112,8 +1355,8 @@ export function BusinessTripPdfTemplates({
                 </td>
                 <td style={TD}>&nbsp;</td>
                 <td style={{ ...TD, textAlign: "center", fontWeight: "bold" }}>
-                  {finalFuelBGN > 0
-                    ? `${finalFuelBGN.toFixed(2)} лв. (€${finalFuelEUR.toFixed(2)})`
+                  {finalFuelEUR > 0
+                    ? `€${finalFuelEUR.toFixed(2)} (${finalFuelBGN.toFixed(2)} лв.)`
                     : ""}
                 </td>
               </tr>
