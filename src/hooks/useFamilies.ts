@@ -3,6 +3,7 @@
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
+import { getFamiliesFeedAction } from "@/lib/actions/families";
 import { db } from "@/lib/firebase";
 import { useAppStore } from "@/store/use-app-store";
 
@@ -34,9 +35,24 @@ export function useFamilies() {
         setLoading(false);
       },
       (err) => {
-        console.error("Error fetching families:", err);
-        setError("Failed to fetch families.");
-        setLoading(false);
+        console.warn(
+          "Client onSnapshot for families failed, falling back to server feed:",
+          err
+        );
+        getFamiliesFeedAction()
+          .then((res) => {
+            if (res.success && res.families.length > 0) {
+              setFamilies(res.families as Family[]);
+              setError(null);
+            } else {
+              setError("Failed to fetch families.");
+            }
+            setLoading(false);
+          })
+          .catch(() => {
+            setError("Failed to fetch families.");
+            setLoading(false);
+          });
       }
     );
 

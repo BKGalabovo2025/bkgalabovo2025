@@ -174,3 +174,110 @@ export async function updateAttendeesAction(
     };
   }
 }
+
+export async function getEventsFeedAction(params: {
+  siteId: string;
+  timeframe?: "today" | "upcoming" | "past" | "all";
+}) {
+  try {
+    const db = getAdminDb();
+    const { siteId, timeframe = "all" } = params;
+    let eventsQuery = db.collection("events").where("siteId", "==", siteId);
+
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(now);
+    endOfToday.setHours(23, 59, 59, 999);
+    const startOfTomorrow = new Date(now);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+    startOfTomorrow.setHours(0, 0, 0, 0);
+
+    if (timeframe === "today") {
+      eventsQuery = eventsQuery
+        .where("startDate", ">=", startOfToday.toISOString())
+        .where("startDate", "<=", endOfToday.toISOString())
+        .orderBy("startDate", "asc");
+    } else if (timeframe === "upcoming") {
+      eventsQuery = eventsQuery
+        .where("startDate", ">=", startOfTomorrow.toISOString())
+        .orderBy("startDate", "asc");
+    } else if (timeframe === "past") {
+      eventsQuery = eventsQuery
+        .where("startDate", "<", startOfToday.toISOString())
+        .orderBy("startDate", "desc");
+    } else {
+      eventsQuery = eventsQuery.orderBy("startDate", "desc");
+    }
+
+    const snap = await eventsQuery.get();
+    const events = snap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+
+    return { success: true, events };
+  } catch (error) {
+    console.error("getEventsFeedAction Error:", error);
+    return { success: false, events: [] };
+  }
+}
+
+export async function createEventAction(
+  idToken: string,
+  eventData: Record<string, unknown>
+) {
+  try {
+    await getAuthUser(idToken);
+    const db = getAdminDb();
+    const ref = await db.collection("events").add({
+      ...eventData,
+      createdAt: new Date().toISOString(),
+    });
+    return {
+      success: true,
+      id: ref.id,
+      message: "Събитието е създадено успешно.",
+    };
+  } catch (err) {
+    console.error("createEventAction Error:", err);
+    return {
+      success: false,
+      message: "Грешка при създаване на събитие.",
+    };
+  }
+}
+
+export async function updateEventAction(
+  idToken: string,
+  eventId: string,
+  eventData: Record<string, unknown>
+) {
+  try {
+    await getAuthUser(idToken);
+    const db = getAdminDb();
+    await db
+      .collection("events")
+      .doc(eventId)
+      .update({
+        ...eventData,
+        updatedAt: new Date().toISOString(),
+      });
+    return { success: true, message: "Събитието е обновено успешно." };
+  } catch (err) {
+    console.error("updateEventAction Error:", err);
+    return { success: false, message: "Грешка при обновяване на събитие." };
+  }
+}
+
+export async function deleteEventAction(idToken: string, eventId: string) {
+  try {
+    await getAuthUser(idToken);
+    const db = getAdminDb();
+    await db.collection("events").doc(eventId).delete();
+    return { success: true, message: "Събитието е изтрито успешно." };
+  } catch (err) {
+    console.error("deleteEventAction Error:", err);
+    return { success: false, message: "Грешка при изтриване на събитие." };
+  }
+}

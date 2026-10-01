@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { getReservationsFeedAction } from "@/lib/actions/reservations";
 import { getDb } from "@/lib/firebase";
 import { Reservation } from "@/types/reservation";
 
@@ -59,10 +60,29 @@ export const useReservations = (siteId?: string, date?: Date) => {
         setIsLoading(false);
       },
       (err) => {
-        console.error("Error fetching reservations:", err);
-        setError(err);
-        setIsLoading(false);
-        toast.error("Грешка при зареждане на резервациите");
+        console.warn(
+          "Client onSnapshot for reservations failed, falling back to server action:",
+          err
+        );
+        getReservationsFeedAction({
+          siteId,
+          dateIso: date ? date.toISOString() : undefined,
+        })
+          .then((res) => {
+            if (res.success && res.reservations.length > 0) {
+              setReservations(res.reservations as unknown as Reservation[]);
+              setError(null);
+            } else {
+              setError(err);
+              toast.error("Грешка при зареждане на резервациите");
+            }
+            setIsLoading(false);
+          })
+          .catch(() => {
+            setError(err);
+            setIsLoading(false);
+            toast.error("Грешка при зареждане на резервациите");
+          });
       }
     );
 

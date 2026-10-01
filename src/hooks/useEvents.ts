@@ -2,6 +2,7 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  DocumentSnapshot,
   onSnapshot,
   setDoc,
   Timestamp,
@@ -27,7 +28,13 @@ type NewEvent = Omit<ScheduleEvent, "id">;
 
 import { useAuth } from "@/context/auth-context";
 import { invalidateDashboardCacheAction } from "@/lib/actions/dashboard";
-import { updateAttendeesAction } from "@/lib/actions/events";
+import {
+  createEventAction,
+  deleteEventAction,
+  getEventsFeedAction,
+  updateAttendeesAction,
+  updateEventAction,
+} from "@/lib/actions/events";
 import { useAppStore } from "@/store/use-app-store";
 
 /**
@@ -116,10 +123,35 @@ export const useEvents = () => {
         setIsLoading(false); // Unblock the UI as soon as today is ready!
       },
       (err) => {
-        console.error("Error fetching today events:", err);
-        setError(err);
-        setIsLoading(false);
-        toast.error("Грешка при зареждане на днешните събития");
+        console.warn(
+          "Client onSnapshot for today events failed, falling back to server feed:",
+          err
+        );
+        getEventsFeedAction({ siteId: activeBranch, timeframe: "today" })
+          .then((res) => {
+            if (res.success && res.events.length > 0) {
+              const enriched = res.events
+                .map((ev) =>
+                  docToEnrichedEvent({
+                    id: ev.id,
+                    exists: () => true,
+                    data: () => ev,
+                  } as unknown as DocumentSnapshot)
+                )
+                .filter(Boolean) as ScheduleEvent[];
+              setTodayEvents(enriched);
+              setError(null);
+            } else {
+              setError(err);
+              toast.error("Грешка при зареждане на днешните събития");
+            }
+            setIsLoading(false);
+          })
+          .catch(() => {
+            setError(err);
+            setIsLoading(false);
+            toast.error("Грешка при зареждане на днешните събития");
+          });
       }
     );
 
@@ -140,8 +172,29 @@ export const useEvents = () => {
         setIsUpcomingLoading(false);
       },
       (err) => {
-        console.error("Error fetching upcoming events:", err);
-        setIsUpcomingLoading(false);
+        console.warn(
+          "Client onSnapshot for upcoming events failed, falling back to server feed:",
+          err
+        );
+        getEventsFeedAction({ siteId: activeBranch, timeframe: "upcoming" })
+          .then((res) => {
+            if (res.success && res.events.length > 0) {
+              const enriched = res.events
+                .map((ev) =>
+                  docToEnrichedEvent({
+                    id: ev.id,
+                    exists: () => true,
+                    data: () => ev,
+                  } as unknown as DocumentSnapshot)
+                )
+                .filter(Boolean) as ScheduleEvent[];
+              setUpcomingEvents(enriched);
+            }
+            setIsUpcomingLoading(false);
+          })
+          .catch(() => {
+            setIsUpcomingLoading(false);
+          });
       }
     );
 
@@ -166,8 +219,29 @@ export const useEvents = () => {
           setIsPastLoading(false);
         },
         (err) => {
-          console.error("Error fetching past events:", err);
-          setIsPastLoading(false);
+          console.warn(
+            "Client onSnapshot for past events failed, falling back to server feed:",
+            err
+          );
+          getEventsFeedAction({ siteId: activeBranch, timeframe: "past" })
+            .then((res) => {
+              if (res.success && res.events.length > 0) {
+                const enriched = res.events
+                  .map((ev) =>
+                    docToEnrichedEvent({
+                      id: ev.id,
+                      exists: () => true,
+                      data: () => ev,
+                    } as unknown as DocumentSnapshot)
+                  )
+                  .filter(Boolean) as ScheduleEvent[];
+                setPastEvents(enriched);
+              }
+              setIsPastLoading(false);
+            })
+            .catch(() => {
+              setIsPastLoading(false);
+            });
         }
       );
     }, 300);
@@ -185,23 +259,51 @@ export const useEvents = () => {
 
   // --- Mutations (unchanged from original) ---
 
-  const addEvent = useCallback(async (event: NewEvent) => {
-    try {
-      await addDoc(getEventsCollection(), event as ScheduleEvent);
-      toast.success("Събитието е създадено успешно", {
-        description: `"${event.title}" беше добавено към графика.`,
-      });
-      invalidateDashboardCacheAction().catch((err) =>
-        console.error("Cache invalidation failed", err)
-      );
-    } catch (err) {
-      console.error("Error adding event:", err);
-      toast.error("Грешка при добавяне на събитие", {
-        description: "Действието се провали. Моля, опитайте отново.",
-      });
-      throw err;
-    }
-  }, []);
+  const addEvent = useCallback(
+    async (event: NewEvent) => {
+      try {
+        await addDoc(getEventsCollection(), event as ScheduleEvent);
+        toast.success("Събитието е създадено успешно", {
+          description: `"${event.title}" беше добавено към графика.`,
+        });
+        invalidateDashboardCacheAction().catch((err) =>
+          console.error("Cache invalidation failed", err)
+        );
+      } catch (err) {
+        console.warn(
+          "Client addDoc failed, attempting server action fallback:",
+          err
+        );
+        try {
+          const token = await getFreshToken();
+          if (token) {
+            const res = await createEventAction(
+              token,
+              event as Record<string, unknown>
+            );
+            if (res.success) {
+              toast.success(
+                "Събитието е създадено успешно (чрез резервен сървър)",
+                {
+                  description: `"${event.title}" беше добавено към графика.`,
+                }
+              );
+              invalidateDashboardCacheAction().catch(() => {});
+              return;
+            }
+          }
+        } catch (fallbackErr) {
+          console.error("Fallback createEventAction failed:", fallbackErr);
+        }
+        console.error("Error adding event:", err);
+        toast.error("Грешка при добавяне на събитие", {
+          description: "Действието се провали. Моля, опитайте отново.",
+        });
+        throw err;
+      }
+    },
+    [getFreshToken]
+  );
 
   const addMultipleEvents = useCallback(async (events: NewEvent[]) => {
     const db = getDb();
@@ -277,6 +379,29 @@ export const useEvents = () => {
           console.error("Cache invalidation failed", err)
         );
       } catch (err) {
+        console.warn(
+          "Client setDoc failed, attempting server action fallback:",
+          err
+        );
+        try {
+          const token = await getFreshToken();
+          if (token) {
+            const res = await updateEventAction(
+              token,
+              eventId,
+              eventData as Record<string, unknown>
+            );
+            if (res.success) {
+              toast.success(
+                "Графикът е обновен успешно (чрез резервен сървър)"
+              );
+              return;
+            }
+          }
+        } catch (fallbackErr) {
+          console.error("Fallback updateEventAction failed:", fallbackErr);
+        }
+
         setTodayEvents(originalToday);
         setUpcomingEvents(originalUpcoming);
         setPastEvents(originalPast);
@@ -287,53 +412,73 @@ export const useEvents = () => {
         throw err;
       }
     },
-    []
+    [getFreshToken]
   );
 
-  const deleteEvent = useCallback(async (eventId: string) => {
-    const db = getDb();
-    let originalToday: ScheduleEvent[] = [];
-    let originalUpcoming: ScheduleEvent[] = [];
-    let originalPast: ScheduleEvent[] = [];
-    let eventTitle: string | undefined = "";
+  const deleteEvent = useCallback(
+    async (eventId: string) => {
+      const db = getDb();
+      let originalToday: ScheduleEvent[] = [];
+      let originalUpcoming: ScheduleEvent[] = [];
+      let originalPast: ScheduleEvent[] = [];
+      let eventTitle: string | undefined = "";
 
-    const filterFn = (currentEvents: ScheduleEvent[]) => {
-      const found = currentEvents.find((e) => e.id === eventId);
-      if (found && !eventTitle) eventTitle = found.title;
-      return currentEvents.filter((e) => e.id !== eventId);
-    };
+      const filterFn = (currentEvents: ScheduleEvent[]) => {
+        const found = currentEvents.find((e) => e.id === eventId);
+        if (found && !eventTitle) eventTitle = found.title;
+        return currentEvents.filter((e) => e.id !== eventId);
+      };
 
-    setTodayEvents((c) => {
-      originalToday = c;
-      return filterFn(c);
-    });
-    setUpcomingEvents((c) => {
-      originalUpcoming = c;
-      return filterFn(c);
-    });
-    setPastEvents((c) => {
-      originalPast = c;
-      return filterFn(c);
-    });
-
-    try {
-      const eventRef = doc(db, "events", eventId);
-      await deleteDoc(eventRef);
-      toast.success("Събитието е изтрито", {
-        description: eventTitle ? `"${eventTitle}" беше премахнато.` : "",
+      setTodayEvents((c) => {
+        originalToday = c;
+        return filterFn(c);
       });
-      invalidateDashboardCacheAction().catch((err) =>
-        console.error("Cache invalidation failed", err)
-      );
-    } catch (err) {
-      setTodayEvents(originalToday);
-      setUpcomingEvents(originalUpcoming);
-      setPastEvents(originalPast);
-      console.error("Error deleting event:", err);
-      toast.error("Грешка при изтриване");
-      throw err;
-    }
-  }, []);
+      setUpcomingEvents((c) => {
+        originalUpcoming = c;
+        return filterFn(c);
+      });
+      setPastEvents((c) => {
+        originalPast = c;
+        return filterFn(c);
+      });
+
+      try {
+        const eventRef = doc(db, "events", eventId);
+        await deleteDoc(eventRef);
+        toast.success("Събитието е изтрито", {
+          description: eventTitle ? `"${eventTitle}" беше премахнато.` : "",
+        });
+        invalidateDashboardCacheAction().catch((err) =>
+          console.error("Cache invalidation failed", err)
+        );
+      } catch (err) {
+        console.warn(
+          "Client deleteDoc failed, attempting server action fallback:",
+          err
+        );
+        try {
+          const token = await getFreshToken();
+          if (token) {
+            const res = await deleteEventAction(token, eventId);
+            if (res.success) {
+              toast.success("Събитието е изтрито (чрез резервен сървър)");
+              return;
+            }
+          }
+        } catch (fallbackErr) {
+          console.error("Fallback deleteEventAction failed:", fallbackErr);
+        }
+
+        setTodayEvents(originalToday);
+        setUpcomingEvents(originalUpcoming);
+        setPastEvents(originalPast);
+        console.error("Error deleting event:", err);
+        toast.error("Грешка при изтриване");
+        throw err;
+      }
+    },
+    [getFreshToken]
+  );
 
   const updateAttendees = useCallback(
     async (eventId: string, newAttendees: Attendee[]) => {

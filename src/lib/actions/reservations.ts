@@ -1417,3 +1417,53 @@ export async function checkRecoveryInventoryAction(
     return { success: false, message: "Грешка при проверка на наличността." };
   }
 }
+
+export async function getReservationsFeedAction(params: {
+  siteId: string;
+  dateIso?: string;
+}) {
+  try {
+    const db = getAdminDb();
+    const { siteId, dateIso } = params;
+    let reservationsQuery = db
+      .collection("reservations")
+      .where("siteId", "==", siteId);
+
+    if (dateIso) {
+      const d = new Date(dateIso);
+      const startOfDay = new Date(d);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(d);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      reservationsQuery = reservationsQuery
+        .where("startTime", ">=", Timestamp.fromDate(startOfDay))
+        .where("startTime", "<=", Timestamp.fromDate(endOfDay))
+        .orderBy("startTime", "asc");
+    } else {
+      reservationsQuery = reservationsQuery.orderBy("startTime", "desc");
+    }
+
+    const snap = await reservationsQuery.get();
+    const reservations = snap.docs.map((docSnap) => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        ...data,
+        startTime:
+          data.startTime && typeof data.startTime.toDate === "function"
+            ? data.startTime.toDate().toISOString()
+            : data.startTime,
+        endTime:
+          data.endTime && typeof data.endTime.toDate === "function"
+            ? data.endTime.toDate().toISOString()
+            : data.endTime,
+      };
+    });
+
+    return { success: true, reservations };
+  } catch (error) {
+    console.error("getReservationsFeedAction Error:", error);
+    return { success: false, reservations: [] };
+  }
+}

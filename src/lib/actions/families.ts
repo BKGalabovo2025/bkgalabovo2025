@@ -162,3 +162,18 @@ export async function updateFamilyNameAction(
     };
   }
 }
+
+export async function getFamiliesFeedAction() {
+  try {
+    const adminDb = getAdminDb();
+    const snap = await adminDb.collection("families").get();
+    const families = snap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+    return { success: true, families };
+  } catch (error) {
+    console.error("getFamiliesFeedAction Error:", error);
+    return { success: false, families: [] };
+  }
+}
