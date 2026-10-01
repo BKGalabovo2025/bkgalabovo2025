@@ -278,7 +278,20 @@ export function BusinessTripPdfTemplates({
     actualAccomTotalEUR > 0
       ? actualAccomTotalEUR / totalPeople
       : accomEUR * numNights;
-  const hasAccom = (accomEUR > 0 && numNights > 0) || actualAccomTotalEUR > 0;
+  const coverage = trip.expensesCoverage;
+  const coverageHasAccom =
+    coverage === "food_and_sleep" || coverage === "transport_food_sleep";
+  const coverageExcludesAccom =
+    coverage === "food_only" ||
+    coverage === "transport_only" ||
+    coverage === "transport_and_food";
+
+  const hasAccom =
+    (coverageHasAccom && numNights > 0) ||
+    (!coverageExcludesAccom &&
+      ((accomEUR > 0 && numNights > 0) ||
+        actualAccomTotalEUR > 0 ||
+        (numNights > 0 && (trip.financials.perDiemRateEUR ?? 0) >= 20)));
 
   const dTotalBGNppRounded = Math.round(eurToBgn(dTotalEURpp) * 100) / 100;
   const aTotalBGNppRounded = Math.round(eurToBgn(aTotalEURpp) * 100) / 100;
@@ -725,6 +738,59 @@ export function BusinessTripPdfTemplates({
               const personTotalEUR = ppTotalEUR + personTransportEUR;
               const personTotalBGN = ppTotalBGNRounded + personTransportBGN;
 
+              let accomRateCell: React.ReactNode = "—";
+              let accomTotalCell: React.ReactNode = "—";
+
+              if (hasAccom) {
+                if (aTotalEURpp > 0) {
+                  const rateEUR = aTotalEURpp / (numNights || 1);
+                  const rateBGN = aTotalBGNppRounded / (numNights || 1);
+                  accomRateCell = (
+                    <div>
+                      <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                        {rateEUR.toFixed(2)} €
+                      </span>
+                      <div
+                        style={{
+                          fontSize: "7pt",
+                          color: "#64748b",
+                          lineHeight: "1.1",
+                        }}
+                      >
+                        ({rateBGN.toFixed(2)} лв.)
+                      </div>
+                    </div>
+                  );
+                  accomTotalCell = (
+                    <div>
+                      <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                        {aTotalEURpp.toFixed(2)} €
+                      </span>
+                      <div
+                        style={{
+                          fontSize: "7pt",
+                          color: "#64748b",
+                          lineHeight: "1.1",
+                        }}
+                      >
+                        ({aTotalBGNppRounded.toFixed(2)} лв.)
+                      </div>
+                    </div>
+                  );
+                } else {
+                  accomRateCell = (
+                    <span style={{ fontSize: "7.5pt", color: "#64748b" }}>
+                      (по фактура)
+                    </span>
+                  );
+                  accomTotalCell = (
+                    <span style={{ fontSize: "7.5pt", color: "#64748b" }}>
+                      (по фактура)
+                    </span>
+                  );
+                }
+              }
+
               return (
                 <tr key={i}>
                   <td style={{ ...TD, textAlign: "center" }}>{i + 1}.</td>
@@ -818,45 +884,10 @@ export function BusinessTripPdfTemplates({
                     {hasAccom ? numNights : "—"}
                   </td>
                   <td style={{ ...TD, textAlign: "center" }}>
-                    {hasAccom ? (
-                      <div>
-                        <span style={{ fontWeight: "600", color: "#0f172a" }}>
-                          {(aTotalEURpp / (numNights || 1)).toFixed(2)} €
-                        </span>
-                        <div
-                          style={{
-                            fontSize: "7pt",
-                            color: "#64748b",
-                            lineHeight: "1.1",
-                          }}
-                        >
-                          ({(aTotalBGNppRounded / (numNights || 1)).toFixed(2)}{" "}
-                          лв.)
-                        </div>
-                      </div>
-                    ) : (
-                      "—"
-                    )}
+                    {accomRateCell}
                   </td>
                   <td style={{ ...TD, textAlign: "center" }}>
-                    {hasAccom ? (
-                      <div>
-                        <span style={{ fontWeight: "600", color: "#0f172a" }}>
-                          {aTotalEURpp.toFixed(2)} €
-                        </span>
-                        <div
-                          style={{
-                            fontSize: "7pt",
-                            color: "#64748b",
-                            lineHeight: "1.1",
-                          }}
-                        >
-                          ({aTotalBGNppRounded.toFixed(2)} лв.)
-                        </div>
-                      </div>
-                    ) : (
-                      "—"
-                    )}
+                    {accomTotalCell}
                   </td>
                   <td style={{ ...TD, textAlign: "center" }}>
                     <div>
@@ -957,25 +988,39 @@ export function BusinessTripPdfTemplates({
               </td>
               <td style={{ ...TD, textAlign: "center" }}>—</td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasAccom ? (
-                  <div>
-                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
-                      {(aTotalEURpp * totalPeople).toFixed(2)} €
-                    </span>
-                    <div
+                {(() => {
+                  if (!hasAccom) return "—";
+                  if (aTotalEURpp > 0) {
+                    return (
+                      <div>
+                        <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                          {(aTotalEURpp * totalPeople).toFixed(2)} €
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "7pt",
+                            color: "#64748b",
+                            fontWeight: "normal",
+                            lineHeight: "1.1",
+                          }}
+                        >
+                          ({(aTotalBGNppRounded * totalPeople).toFixed(2)} лв.)
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <span
                       style={{
-                        fontSize: "7pt",
+                        fontSize: "7.5pt",
                         color: "#64748b",
                         fontWeight: "normal",
-                        lineHeight: "1.1",
                       }}
                     >
-                      ({(aTotalBGNppRounded * totalPeople).toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  "—"
-                )}
+                      (по фактура)
+                    </span>
+                  );
+                })()}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 <div>

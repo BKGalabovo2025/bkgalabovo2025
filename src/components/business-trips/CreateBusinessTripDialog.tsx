@@ -104,7 +104,8 @@ export function CreateBusinessTripDialog({
       ? {
           // Режим Редактиране — презареждаме съществуващите стойности
           ...initialData,
-          expensesCoverage: getInitialExpensesCoverage(),
+          expensesCoverage:
+            initialData.expensesCoverage || getInitialExpensesCoverage(),
           hasEntryFee: !!initialData.financials.entryFeeEUR,
           entryFeePerPersonEUR:
             initialData.financials.entryFeeEUR && participantsCount > 0

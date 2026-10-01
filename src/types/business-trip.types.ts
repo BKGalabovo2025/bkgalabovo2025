@@ -95,6 +95,7 @@ export const BusinessTripSchema = z.object({
   coachRole: z.string().optional(),
   participantsIds: z.array(z.string()).default([]), // Списък с IDs на избраните състезатели
   transportType: TransportTypeEnum,
+  expensesCoverage: z.string().optional(),
   vehicle: VehicleInfoSchema.optional(),
   financials: TripFinancialsSchema,
   status: BusinessTripStatusEnum.default("draft"),
