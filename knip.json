@@ -9,7 +9,8 @@
   "ignore": [
     "scripts/**/*.cjs",
     "scripts/**/*.mjs",
-    "src/components/ui/calendar.tsx"
+    "src/components/ui/calendar.tsx",
+    "public/vendor/pdfjs/**"
   ],
   "ignoreDependencies": ["stylelint-config-tailwindcss", "@storybook/nextjs"],
   "ignoreExportsUsedInFile": true,
