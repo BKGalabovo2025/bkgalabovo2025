@@ -15,19 +15,12 @@ import * as admin from "firebase-admin";
 
 import { getAdminDb } from "./firebase-admin";
 import { getBackupDb, isBackupAvailable } from "./firebase-admin-backup";
-
-/** Дали грешката е quota/resource exhausted */
-function isQuotaError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err);
-  return (
-    msg.includes("RESOURCE_EXHAUSTED") ||
-    msg.includes("Quota exceeded") ||
-    msg.includes("quota") ||
-    (err instanceof Error &&
-      "code" in err &&
-      (err as unknown as { code: number }).code === 8)
-  );
-}
+import {
+  isPrimaryQuotaCurrentlyExhausted,
+  isQuotaError,
+  markPrimaryQuotaExhausted,
+  resetPrimaryQuotaStatus,
+} from "./firestore-resilient-proxy";
 
 export type DbFn<T> = (db: admin.firestore.Firestore) => Promise<T>;
 
@@ -44,6 +37,14 @@ export async function withFailover<T>(
 ): Promise<T> {
   const { label = "db-failover", writeOperation = false } = options;
 
+  // Ако квотата вече е известна като изчерпана, директно използваме backup
+  if (isPrimaryQuotaCurrentlyExhausted()) {
+    const backupDb = getBackupDb();
+    if (backupDb) {
+      return await fn(backupDb);
+    }
+  }
+
   try {
     const primaryDb = getAdminDb();
     return await fn(primaryDb);
@@ -52,6 +53,8 @@ export async function withFailover<T>(
       // Не е quota грешка — хвърляме нагоре
       throw primaryErr;
     }
+
+    markPrimaryQuotaExhausted();
 
     // Quota грешка от основна база
     const backupDb = getBackupDb();
@@ -139,4 +142,10 @@ export async function syncFromBackupToMain(
   }
 }
 
-export { isBackupAvailable };
+export {
+  isBackupAvailable,
+  isPrimaryQuotaCurrentlyExhausted,
+  isQuotaError,
+  markPrimaryQuotaExhausted,
+  resetPrimaryQuotaStatus,
+};

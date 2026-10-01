@@ -1,6 +1,10 @@
 import * as admin from "firebase-admin";
 
+import { getBackupDb } from "./firebase-admin-backup";
+import { createResilientFirestoreProxy } from "./firestore-resilient-proxy";
+
 let adminDb: admin.firestore.Firestore;
+let resilientAdminDb: admin.firestore.Firestore | null = null;
 let adminAuth: admin.auth.Auth;
 let adminStorage: admin.storage.Storage;
 
@@ -155,11 +159,21 @@ const getAdminDb = () => {
     initializeFirebaseAdmin();
   }
   if (!adminDb) {
+    const backup = getBackupDb();
+    if (backup) {
+      console.warn(
+        "Primary Firebase Admin uninitialized, falling back to backup DB."
+      );
+      return backup;
+    }
     throw new Error(
       "Firebase Admin Firestore is not initialized. Check your credentials."
     );
   }
-  return adminDb;
+  if (!resilientAdminDb) {
+    resilientAdminDb = createResilientFirestoreProxy(adminDb, getBackupDb);
+  }
+  return resilientAdminDb;
 };
 
 const getAdminAuth = () => {
