@@ -128,60 +128,60 @@ export default function PublicCatalogTabs({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3.5 sm:space-y-4">
       {/* Search and Navigation Bar */}
-      <div className="flex flex-col items-center justify-center gap-6 rounded-3xl border border-zinc-800/80 bg-zinc-900/50 p-4 backdrop-blur-md md:flex-row">
+      <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-1.5 backdrop-blur-md md:flex-row">
         {/* Tabs switcher */}
-        <div className="grid w-full grid-cols-2 gap-1 rounded-2xl border border-zinc-800/50 bg-zinc-950/80 p-1 lg:flex lg:w-auto lg:items-center">
+        <div className="grid w-full grid-cols-2 gap-1 rounded-xl border border-zinc-800/50 bg-zinc-950/80 p-1 lg:flex lg:w-auto lg:items-center">
           {allowedTabs.includes("trainings") && (
             <button
               onClick={() => handleTabChange("trainings")}
-              className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs ${
+              className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
                 activeTab === "trainings"
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Trophy size={16} className="sm:size-4" />{" "}
+              <Trophy size={14} className="sm:size-3.5" />{" "}
               {t("Тренировки", "Trainings", lang)}{" "}
             </button>
           )}
           {allowedTabs.includes("general") && (
             <button
               onClick={() => handleTabChange("general")}
-              className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs ${
+              className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
                 activeTab === "general"
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Activity size={16} className="sm:size-4" />{" "}
+              <Activity size={14} className="sm:size-3.5" />{" "}
               {t("Клубни Услуги", "Club Services", lang)}{" "}
             </button>
           )}
           {allowedTabs.includes("products") && (
             <button
               onClick={() => handleTabChange("products")}
-              className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs ${
+              className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
                 activeTab === "products"
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Package size={16} className="sm:size-4" />{" "}
+              <Package size={14} className="sm:size-3.5" />{" "}
               {t("Магазин", "Shop", lang)}{" "}
             </button>
           )}
           {allowedTabs.includes("recovery") && (
             <button
               onClick={() => handleTabChange("recovery")}
-              className={`flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-2 sm:px-6 sm:py-3 sm:text-xs ${
+              className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
                 activeTab === "recovery"
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
                   : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
-              <Zap size={16} className="sm:size-4" />{" "}
+              <Zap size={14} className="sm:size-3.5" />{" "}
               {t("Възстановяване", "Recovery", lang)}{" "}
             </button>
           )}
@@ -190,8 +190,8 @@ export default function PublicCatalogTabs({
 
       {/* Category Pills */}
       {categories.length > 2 && (
-        <div className="flex flex-wrap items-center gap-2 px-1">
-          <span className="mr-2 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+        <div className="flex flex-wrap items-center gap-1.5 px-1">
+          <span className="mr-1 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
             {" "}
             {t("Категория:", "Category:", lang)}{" "}
           </span>
@@ -199,7 +199,7 @@ export default function PublicCatalogTabs({
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`rounded-full border px-4 py-1.5 text-[10px] font-semibold tracking-wider uppercase transition-all ${
+              className={`rounded-full border px-3 py-1 text-[10px] font-semibold tracking-wider uppercase transition-all ${
                 selectedCategory === cat
                   ? "border-white bg-white text-zinc-950"
                   : "border-zinc-800/80 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-white"
@@ -213,7 +213,7 @@ export default function PublicCatalogTabs({
 
       {/* Catalog Grid View */}
       {filteredItems.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filteredItems.map((item) => (
             <CatalogCard
               key={item.id}
@@ -421,20 +421,20 @@ function CatalogCard({
   };
 
   return (
-    <BentoCard className="group relative flex h-full min-h-105 flex-col overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900 shadow-none transition-all duration-500 hover:border-zinc-700/80 hover:shadow-2xl hover:shadow-blue-900/5">
+    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900 shadow-none transition-all duration-500 hover:border-zinc-700/80 hover:shadow-xl hover:shadow-blue-900/5 sm:rounded-3xl">
       {/* Product Image section with navigation */}
-      <div className="relative flex h-56 w-full shrink-0 items-center justify-center overflow-hidden border-b border-zinc-800/60 bg-zinc-950">
+      <div className="relative flex h-40 w-full shrink-0 items-center justify-center overflow-hidden border-b border-zinc-800/60 bg-zinc-950 sm:h-44 md:h-48">
         {renderImages()}
 
         {/* Top Floating Badge */}
-        <div className="absolute top-4 left-4 z-10">{renderBadges()}</div>
+        <div className="absolute top-3 left-3 z-10">{renderBadges()}</div>
       </div>
 
       {/* Product Content Details */}
-      <div className="flex flex-1 flex-col justify-between p-6">
+      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
         <div>
           {(item.category || item.sessionType) && (
-            <div className="mb-2 flex flex-wrap gap-1.5">
+            <div className="mb-1.5 flex flex-wrap gap-1">
               {item.category && (
                 <span className="rounded-md bg-zinc-800/50 px-2 py-0.5 text-[9px] font-black tracking-widest text-zinc-400 uppercase">
                   {item.category}
@@ -447,10 +447,10 @@ function CatalogCard({
               )}
             </div>
           )}
-          <h2 className="flex min-h-10 items-center text-base leading-snug font-semibold text-white transition-colors duration-300 group-hover:text-blue-400">
+          <h2 className="flex min-h-8 items-center text-sm leading-snug font-semibold text-white transition-colors duration-300 group-hover:text-blue-400 sm:text-base">
             <span>{renderTranslatedText(item.name, lang)}</span>
           </h2>
-          <p className="mt-3 line-clamp-3 min-h-14 text-xs leading-relaxed font-light text-zinc-400">
+          <p className="mt-1.5 line-clamp-2 min-h-9 text-xs leading-relaxed font-light text-zinc-400">
             <span>
               {renderTranslatedText(item.description, lang) ||
                 t(

@@ -13,7 +13,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-400/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
+    <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-400/30 bg-black/80 px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 backdrop-blur-xl">
       <div className="flex items-center justify-between">
         <Link href="/club" className="flex items-center gap-2">
           <div className="relative size-8 overflow-hidden rounded-xl shadow-[0_0_10px_rgba(30,58,138,0.5)]">
@@ -107,9 +107,9 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="-mx-6 mt-4 overflow-hidden border-t border-blue-900/30 bg-black/95 px-6 backdrop-blur-xl md:hidden"
+            className="-mx-4 sm:-mx-6 mt-3 sm:mt-4 overflow-hidden border-t border-blue-900/30 bg-black/95 px-4 sm:px-6 backdrop-blur-xl md:hidden"
           >
-            <div className="flex flex-col gap-6 py-6 text-sm font-bold tracking-widest text-zinc-300 uppercase">
+            <div className="flex flex-col gap-4 py-4 text-xs font-bold tracking-widest text-zinc-300 uppercase sm:gap-6 sm:py-6 sm:text-sm">
               <Link
                 href="/club#about"
                 onClick={() => setMobileMenuOpen(false)}

@@ -290,21 +290,21 @@ export default async function TeamPage() {
       <PublicNav clubSite={clubSite} />
 
       {/* Hero Section */}
-      <section className="relative flex min-h-[50vh] items-center overflow-hidden px-6 pt-40 pb-20">
+      <section className="relative flex items-center overflow-hidden px-4 pt-14 pb-2 sm:px-6 sm:pt-16 sm:pb-3">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 z-10 bg-linear-to-b from-blue-900/20 via-black/80 to-black" />
           <div className="pointer-events-none absolute top-1/2 left-1/2 size-[1000px] -translate-1/2 rounded-full bg-blue-500/20 blur-[120px]" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-7xl text-center">
-          <span className="mb-6 block text-[11px] font-bold tracking-[0.4em] text-blue-400 uppercase drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">
+        <div className="relative z-10 m-auto max-w-7xl text-center">
+          <span className="mb-1 block text-[10px] font-bold tracking-[0.4em] text-blue-400 uppercase drop-shadow-[0_0_8px_rgba(59,130,246,0.8)] sm:text-[11px]">
             Лицата на клуба
           </span>
-          <h1 className="mb-8 text-5xl font-light tracking-tight md:text-7xl lg:text-8xl">
+          <h1 className="mb-2 text-2xl font-light tracking-tight sm:text-3xl md:text-4xl">
             Нашият <span className="font-semibold text-blue-400">Отбор</span>
           </h1>
           {clubSite?.teamIntro && (
-            <p className="mx-auto max-w-3xl text-lg leading-relaxed font-light text-zinc-400 md:text-xl">
+            <p className="m-auto max-w-3xl text-xs leading-relaxed font-light text-zinc-400 sm:text-sm">
               {clubSite.teamIntro}
             </p>
           )}
@@ -313,13 +313,13 @@ export default async function TeamPage() {
 
       {/* Coaches Section */}
       {clubSite?.therapists && clubSite.therapists.length > 0 && (
-        <section className="relative px-6 py-24">
-          <div className="relative z-10 mx-auto max-w-7xl">
-            <div className="mb-16 flex items-center gap-4">
-              <div className="flex size-12 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-400">
-                <Medal size={24} />
+        <section className="relative px-4 pt-2 pb-6 sm:px-6 sm:pt-3 sm:pb-8">
+          <div className="relative z-10 m-auto max-w-7xl">
+            <div className="mb-4 flex items-center gap-2.5 sm:gap-3">
+              <div className="flex size-9 items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 text-blue-400 sm:size-10">
+                <Medal size={18} className="sm:size-5" />
               </div>
-              <h2 className="text-4xl font-light tracking-tight md:text-5xl">
+              <h2 className="text-xl font-light tracking-tight sm:text-2xl md:text-3xl">
                 Ръководство и Треньори
               </h2>
             </div>
@@ -327,8 +327,8 @@ export default async function TeamPage() {
             <div
               className={
                 clubSite.therapists.length === 1
-                  ? "mx-auto max-w-md"
-                  : "grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
+                  ? "m-auto max-w-md"
+                  : "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
               }
             >
               {clubSite.therapists.map((coach, idx) => {
@@ -338,15 +338,15 @@ export default async function TeamPage() {
                 return (
                   <div
                     key={idx}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-5xl border border-zinc-800/50 bg-black/40 p-8 backdrop-blur-xl transition-all duration-500 hover:border-blue-500/30"
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-800/50 bg-black/40 p-4 backdrop-blur-xl transition-all duration-500 hover:border-blue-500/30 sm:rounded-3xl sm:p-5"
                   >
                     <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-blue-500/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-500/10" />
 
                     <CoachPhotoGallery coach={coach}>
-                      <h3 className="mb-2 text-2xl font-medium text-white">
+                      <h3 className="mb-1 text-lg font-medium text-white sm:text-xl">
                         {coach.name}
                       </h3>
-                      <p className="mb-6 text-[11px] font-semibold tracking-widest text-blue-400 uppercase">
+                      <p className="mb-2.5 text-[10px] font-semibold tracking-widest text-blue-400 uppercase sm:mb-3 sm:text-[11px]">
                         <Translate
                           bg={coach.role || "Треньор"}
                           en={
@@ -358,7 +358,7 @@ export default async function TeamPage() {
                         />
                       </p>
                       {cleanBio && (
-                        <p className="mb-6 text-sm leading-relaxed text-zinc-400">
+                        <p className="mb-2 text-xs leading-relaxed text-zinc-400 sm:text-xs">
                           {cleanBio}
                         </p>
                       )}
@@ -372,15 +372,15 @@ export default async function TeamPage() {
       )}
 
       {/* Athletes Section */}
-      <section className="relative border-t border-zinc-900/50 px-6 py-24">
+      <section className="relative border-t border-zinc-900/50 px-4 py-8 sm:px-6 sm:py-10 md:py-12">
         <div className="pointer-events-none absolute top-0 right-0 size-[800px] rounded-full bg-blue-500/5 blur-[150px]" />
 
-        <div className="relative z-10 mx-auto max-w-7xl">
-          <div className="mb-20 flex items-center gap-4">
-            <div className="flex size-12 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-400">
-              <Trophy size={24} />
+        <div className="relative z-10 m-auto max-w-7xl">
+          <div className="mb-8 flex items-center gap-3 sm:gap-4 md:mb-10">
+            <div className="flex size-11 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-400 sm:size-12">
+              <Trophy size={22} className="sm:size-6" />
             </div>
-            <h2 className="text-4xl font-light tracking-tight md:text-5xl">
+            <h2 className="text-2xl font-light tracking-tight sm:text-3xl md:text-4xl">
               Нашите Състезатели
             </h2>
           </div>

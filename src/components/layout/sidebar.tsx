@@ -11,6 +11,7 @@ import {
   Dumbbell,
   FileSignature,
   GraduationCap,
+  Handshake,
   Home,
   Inbox,
   ListTree,
@@ -199,6 +200,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <Award size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">Сертификати & Ваучери</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/partners")}
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+              >
+                <Link
+                  href="/partners"
+                  className="flex w-full items-center gap-3"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <Handshake size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Партньори & Спонсори</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

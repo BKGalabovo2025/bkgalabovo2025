@@ -9,7 +9,7 @@ export function PublicFooter({
   clubSite?: Site | null;
 }) {
   return (
-    <footer className="border-t border-zinc-900 bg-black px-6 py-10">
+    <footer className="border-t border-zinc-900 bg-black px-6 py-5 sm:py-6">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
         <div className="flex items-center gap-2">
           <div className="flex size-7 items-center justify-center rounded-xl bg-blue-400">

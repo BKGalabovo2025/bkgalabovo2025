@@ -156,37 +156,37 @@ export function CoachPhotoGallery({
         className={`relative flex w-full flex-col items-center text-center ${className}`}
       >
         {/* Main Coach Avatar / Featured Photo */}
-        <div className="relative mb-6">
+        <div className="relative mb-3 sm:mb-4">
           {primaryUrl ? (
             <div
               onClick={() => handleOpenLightbox(0)}
               title="Кликнете за преглед на цял екран"
-              className="group/avatar relative size-44 cursor-pointer overflow-hidden rounded-full border-2 border-zinc-800 bg-zinc-900 shadow-2xl transition-all duration-300 hover:scale-105 hover:border-blue-500/80 hover:shadow-[0_0_30px_rgba(59,130,246,0.25)]"
+              className="group/avatar relative size-28 cursor-pointer overflow-hidden rounded-full border-2 border-zinc-800 bg-zinc-900 shadow-xl transition-all duration-300 hover:scale-105 hover:border-blue-500/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] sm:size-32"
             >
               <Image
                 src={primaryUrl}
                 alt={coach.name}
                 fill
-                sizes="176px"
+                sizes="128px"
                 unoptimized
                 className="object-cover transition-transform duration-500 group-hover/avatar:scale-105"
               />
               {/* Fullscreen icon on hover */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover/avatar:opacity-100">
-                <Maximize2 className="size-6 text-white drop-shadow-md" />
+                <Maximize2 className="size-5 text-white drop-shadow-md" />
               </div>
 
               {/* Total photos badge */}
               {allPhotos.length > 1 && (
-                <div className="absolute inset-x-0 bottom-2.5 mx-auto flex w-fit items-center gap-1 rounded-full border border-white/20 bg-black/80 px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-lg backdrop-blur-md">
-                  <Camera className="size-3 text-blue-400" />
+                <div className="absolute inset-x-0 bottom-1.5 mx-auto flex w-fit items-center gap-1 rounded-full border border-white/20 bg-black/80 px-2 py-0.5 text-[9px] font-semibold text-white shadow-lg backdrop-blur-md">
+                  <Camera className="size-2.5 text-blue-400" />
                   <span>{allPhotos.length} снимки</span>
                 </div>
               )}
             </div>
           ) : (
-            <div className="flex size-44 items-center justify-center rounded-full border-2 border-zinc-800 bg-zinc-900 text-zinc-700 shadow-2xl">
-              <UserIcon size={64} />
+            <div className="flex size-28 items-center justify-center rounded-full border-2 border-zinc-800 bg-zinc-900 text-zinc-700 shadow-xl sm:size-32">
+              <UserIcon size={44} />
             </div>
           )}
         </div>

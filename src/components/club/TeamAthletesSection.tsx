@@ -57,10 +57,10 @@ function TeamAthletesContent({
 
   return (
     <>
-      <div className="space-y-24">
+      <div className="space-y-10 sm:space-y-12">
         {sortedAgeGroups.map((group) => (
           <div key={group}>
-            <h3 className="mb-10 flex items-center gap-4 text-2xl font-light text-white md:text-3xl">
+            <h3 className="mb-6 flex items-center gap-3 text-xl font-light text-white sm:gap-4 sm:text-2xl">
               <span className="block h-px w-8 bg-blue-500/50" />
               Възрастова група {group}
               <span className="block h-px flex-1 bg-linear-to-r from-blue-500/50 to-transparent" />
@@ -85,7 +85,7 @@ function TeamAthletesContent({
                   <div
                     key={member.id}
                     id={`athlete-${member.id}`}
-                    className="group relative flex h-full flex-col overflow-hidden rounded-4xl border border-zinc-800/50 bg-black/40 backdrop-blur-xl transition-all duration-500 hover:border-blue-500/40 hover:shadow-[0_0_30px_rgba(30,58,138,0.15)]"
+                    className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800/50 bg-black/40 backdrop-blur-xl transition-all duration-500 hover:border-blue-500/40 hover:shadow-[0_0_30px_rgba(30,58,138,0.15)]"
                   >
                     {/* Athlete Photo Container */}
                     <div className="relative aspect-4/5 overflow-hidden bg-zinc-900">
@@ -110,19 +110,19 @@ function TeamAthletesContent({
                         onClick={() => setSelectedAthlete(member)}
                         title="Сподели картичка на състезателя"
                         aria-label={`Сподели картичка на ${athleteName}`}
-                        className="absolute top-4 right-4 z-20 flex size-10 items-center justify-center rounded-2xl border border-white/20 bg-black/60 text-white shadow-lg backdrop-blur-md transition-all hover:scale-110 hover:border-blue-400 hover:bg-blue-600 hover:text-white"
+                        className="absolute top-3.5 right-3.5 z-20 flex size-9 items-center justify-center rounded-xl border border-white/20 bg-black/60 text-white shadow-lg backdrop-blur-md transition-all hover:scale-110 hover:border-blue-400 hover:bg-blue-600 hover:text-white sm:top-4 sm:right-4 sm:size-10 sm:rounded-2xl"
                       >
-                        <Share2 size={16} />
+                        <Share2 size={15} />
                       </button>
 
                       {/* Name & Badges Overlay */}
-                      <div className="absolute inset-x-0 bottom-0 z-20 p-6">
-                        <h4 className="mb-1 text-xl font-medium text-white drop-shadow-md">
+                      <div className="absolute inset-x-0 bottom-0 z-20 p-4 sm:p-5">
+                        <h4 className="mb-1 text-lg font-medium text-white drop-shadow-md sm:text-xl">
                           {athleteName}
                         </h4>
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <span
-                            className={`rounded-md px-2 py-0.5 text-[11px] font-semibold tracking-wider uppercase ${
+                            className={`rounded-md px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase ${
                               isCompetitor
                                 ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
                                 : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
@@ -130,7 +130,7 @@ function TeamAthletesContent({
                           >
                             {levelText}
                           </span>
-                          <span className="rounded-md border border-zinc-700 bg-black/50 px-2 py-0.5 text-[11px] text-zinc-300">
+                          <span className="rounded-md border border-zinc-700 bg-black/50 px-2 py-0.5 text-[10px] text-zinc-300 sm:text-[11px]">
                             {member.ageGroupDisplay}
                           </span>
                         </div>
@@ -138,7 +138,7 @@ function TeamAthletesContent({
                     </div>
 
                     {/* Athlete Details & School */}
-                    <div className="flex flex-1 flex-col justify-between border-t border-zinc-800/50 bg-zinc-950/60 p-6">
+                    <div className="flex flex-1 flex-col justify-between border-t border-zinc-800/50 bg-zinc-950/60 p-4 sm:p-5">
                       <div className="space-y-4">
                         {/* School / Kindergarten */}
                         {member.educationInstitution && (

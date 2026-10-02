@@ -130,11 +130,11 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
       transition={{ delay: index * 0.05 }}
       className="h-full"
     >
-      <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-zinc-800/80 bg-linear-to-b from-zinc-900/95 via-zinc-900/80 to-zinc-950/95 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-blue-500/50 hover:shadow-blue-500/10 sm:p-7">
+      <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-zinc-800/80 bg-linear-to-b from-zinc-900/95 via-zinc-900/80 to-zinc-950/95 p-5 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-blue-500/50 hover:shadow-blue-500/10 sm:rounded-3xl sm:p-6">
         {/* Top ambient glow */}
         <div className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-blue-500/10 blur-2xl transition-all group-hover:bg-blue-500/20" />
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* 1. Header: Stars with rating score & Event Badge */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -356,27 +356,26 @@ export default function ClubReviewsClient() {
     <div className="min-h-screen bg-black text-white selection:bg-blue-500 selection:text-white">
       <PublicNav />
 
-      <main className="relative mx-auto max-w-7xl space-y-16 px-4 pt-32 pb-24 sm:px-6">
+      <main className="relative m-auto max-w-7xl space-y-4 px-4 pt-14 pb-8 sm:space-y-5 sm:px-6 sm:pt-16 sm:pb-12">
         {/* Glow Effects */}
-        <div className="pointer-events-none absolute top-20 left-1/2 size-96 -translate-x-1/2 rounded-full bg-blue-600/20 blur-[120px]" />
-        <div className="pointer-events-none absolute top-80 right-10 size-80 rounded-full bg-indigo-600/15 blur-[100px]" />
+        <div className="pointer-events-none absolute top-16 left-1/2 size-72 -translate-x-1/2 rounded-full bg-blue-600/20 blur-[100px]" />
 
         {/* Hero Section */}
-        <div className="relative z-10 mx-auto max-w-3xl space-y-4 text-center">
+        <div className="relative z-10 m-auto max-w-3xl space-y-1.5 text-center sm:space-y-2">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-bold tracking-widest text-blue-400 uppercase"
+            className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-blue-400 uppercase sm:text-xs"
           >
-            <Sparkles className="size-3.5" />
+            <Sparkles className="size-3" />
             Реални отзиви и препоръки
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-3xl font-black tracking-tight text-white uppercase sm:text-5xl"
+            transition={{ delay: 0.08 }}
+            className="text-xl font-black tracking-tight text-white uppercase sm:text-2xl md:text-3xl"
           >
             Какво казват{" "}
             <span className="bg-linear-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
@@ -385,10 +384,10 @@ export default function ClubReviewsClient() {
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-sm leading-relaxed text-zinc-400 sm:text-base"
+            transition={{ delay: 0.15 }}
+            className="text-xs leading-relaxed text-zinc-400 sm:text-sm"
           >
             Споделените преживявания и обратна връзка за нашите летни лагери,
             състезателни турнири и целогодишни тренировки в БК Гълъбово.
@@ -397,27 +396,27 @@ export default function ClubReviewsClient() {
           {/* Direct Public Review Button when any standing campaign is active */}
           {standingCampaigns.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="pt-2"
+              transition={{ delay: 0.2 }}
+              className="pt-0.5"
             >
               {standingCampaigns.length === 1 ? (
                 <Button
                   asChild
-                  className="rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
+                  className="h-auto rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500 sm:rounded-2xl sm:px-5 sm:py-2.5 sm:text-sm"
                 >
                   <Link href={`/feedback/${standingCampaigns[0].id}`}>
-                    <PenLine className="mr-2 size-4.5" />
+                    <PenLine className="mr-1.5 size-4" />
                     ✍️ Споделете Вашия отзив за клуба
                   </Link>
                 </Button>
               ) : (
                 <Button
                   onClick={() => setIsSurveyPickerOpen(true)}
-                  className="rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 p-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500"
+                  className="h-auto rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500 sm:rounded-2xl sm:px-5 sm:py-2.5 sm:text-sm"
                 >
-                  <PenLine className="mr-2 size-4.5" />
+                  <PenLine className="mr-1.5 size-4" />
                   ✍️ Споделете Вашия отзив ({standingCampaigns.length} анкети)
                 </Button>
               )}
@@ -427,19 +426,19 @@ export default function ClubReviewsClient() {
 
         {/* Rating Metrics Showcase Bar */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-          className="relative z-10 rounded-3xl border border-blue-500/20 bg-zinc-900/60 p-6 shadow-2xl backdrop-blur-xl sm:p-8"
+          transition={{ delay: 0.25 }}
+          className="relative z-10 rounded-xl border border-blue-500/20 bg-zinc-900/60 p-2.5 shadow-lg backdrop-blur-xl sm:rounded-2xl sm:p-3 sm:py-3.5"
         >
           <div className="grid grid-cols-1 divide-y divide-zinc-800 text-center sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {/* Avg Stars */}
-            <div className="space-y-1 sm:px-4">
-              <div className="flex items-center justify-center gap-1.5 text-amber-400">
+            <div className="space-y-0.5 sm:px-4">
+              <div className="flex items-center justify-center gap-1 text-amber-400">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
-                    className={`size-6 ${
+                    className={`size-4 ${
                       stats.total > 0
                         ? "fill-amber-400 text-amber-400"
                         : "fill-zinc-800 text-zinc-700"
@@ -447,14 +446,14 @@ export default function ClubReviewsClient() {
                   />
                 ))}
               </div>
-              <div className="mt-2 text-3xl font-black text-white">
+              <div className="mt-0.5 text-xl font-black text-white sm:text-2xl">
                 {stats.total > 0 ? stats.avg : "—"}{" "}
-                <span className="text-sm text-zinc-500">/ 5.0</span>
+                <span className="text-xs text-zinc-500">/ 5.0</span>
               </div>
-              <p className="text-xs font-bold text-zinc-300">
+              <p className="text-[11px] font-bold text-zinc-300">
                 Обща удовлетвореност
               </p>
-              <p className="text-[11px] text-zinc-500">
+              <p className="text-[10px] text-zinc-500">
                 {stats.total > 0
                   ? "От родители и състезатели"
                   : "Очакваме първите отзиви"}
@@ -462,14 +461,14 @@ export default function ClubReviewsClient() {
             </div>
 
             {/* Recommendation rate */}
-            <div className="space-y-1 pt-4 sm:px-4 sm:pt-0">
-              <div className="text-3xl font-black text-blue-400">
+            <div className="space-y-0.5 pt-2 sm:px-4 sm:pt-0">
+              <div className="text-xl font-black text-blue-400 sm:text-2xl">
                 {stats.total > 0 ? `${stats.recommendRate}%` : "—"}
               </div>
-              <p className="text-xs font-bold tracking-wider text-zinc-300 uppercase">
+              <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">
                 Препоръчват клуба
               </p>
-              <p className="text-[11px] text-zinc-500">
+              <p className="text-[10px] text-zinc-500">
                 {stats.total > 0
                   ? "Бихте ли препоръчали на приятели"
                   : "Оценка от попълнените анкети"}
@@ -477,14 +476,14 @@ export default function ClubReviewsClient() {
             </div>
 
             {/* Total reviews */}
-            <div className="space-y-1 pt-4 sm:px-4 sm:pt-0">
-              <div className="text-3xl font-black text-indigo-400">
+            <div className="space-y-0.5 pt-2 sm:px-4 sm:pt-0">
+              <div className="text-xl font-black text-indigo-400 sm:text-2xl">
                 {stats.total}
               </div>
-              <p className="text-xs font-bold tracking-wider text-zinc-300 uppercase">
+              <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">
                 {stats.total === 1 ? "Проверен отзив" : "Проверени отзива"}
               </p>
-              <p className="text-[11px] text-zinc-500">
+              <p className="text-[10px] text-zinc-500">
                 От тренировки, лагери и турнири
               </p>
             </div>
@@ -515,7 +514,7 @@ export default function ClubReviewsClient() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold tracking-wider uppercase transition-all ${
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold tracking-wider uppercase transition-all sm:gap-2 sm:rounded-2xl sm:px-4 sm:py-2 ${
                 selectedCategory === cat.id
                   ? "scale-105 bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                   : "border border-zinc-800 bg-zinc-900/80 text-zinc-400 hover:border-zinc-700 hover:text-white"
@@ -523,7 +522,7 @@ export default function ClubReviewsClient() {
             >
               <span>{cat.label}</span>
               <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-black sm:px-2 ${
                   selectedCategory === cat.id
                     ? "bg-white/20 text-white"
                     : "bg-zinc-800 text-zinc-300"

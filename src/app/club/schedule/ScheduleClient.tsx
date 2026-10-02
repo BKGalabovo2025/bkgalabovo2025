@@ -170,15 +170,15 @@ export default function ScheduleClient({ schedule }: Props) {
   return (
     <div className="min-h-screen bg-zinc-950 font-sans text-white">
       {/* Nav */}
-      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-900/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
+      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-900/30 bg-black/80 px-4 py-2.5 backdrop-blur-xl sm:px-6 sm:py-3">
         <Link
           href="/club"
-          className="flex items-center gap-2 text-sm font-medium text-zinc-300 transition-all hover:text-blue-400"
+          className="flex items-center gap-2 text-xs font-medium text-zinc-300 transition-all hover:text-blue-400 sm:text-sm"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={15} />
           Назад към клуба
         </Link>
-        <span className="text-sm font-bold tracking-widest text-blue-400 uppercase">
+        <span className="text-xs font-bold tracking-widest text-blue-400 uppercase sm:text-sm">
           Календар
         </span>
         <div className="flex items-center gap-4">
@@ -186,37 +186,37 @@ export default function ScheduleClient({ schedule }: Props) {
         </div>
       </nav>
 
-      <main className="px-6 pt-28 pb-32">
-        <div className="mx-auto max-w-4xl">
+      <main className="px-4 pt-20 pb-16 sm:px-6 sm:pt-24 sm:pb-20">
+        <div className="m-auto max-w-4xl">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-8 w-full"
+            className="mb-6 w-full sm:mb-8"
           >
-            <div className="flex w-full flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-5">
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-blue-800/50 bg-black text-blue-400 shadow-[0_0_20px_rgba(30,58,138,0.25)]">
-                  <CalendarIcon size={30} />
+            <div className="flex w-full flex-col items-start justify-between gap-4 sm:flex-row sm:items-center sm:gap-5">
+              <div className="flex items-center gap-4 sm:gap-5">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-blue-800/50 bg-black text-blue-400 shadow-[0_0_20px_rgba(30,58,138,0.25)] sm:size-14">
+                  <CalendarIcon size={24} className="sm:size-7" />
                 </div>
                 <div>
-                  <p className="mb-1 text-[11px] font-bold tracking-[0.4em] text-blue-400 uppercase">
+                  <p className="mb-0.5 text-[10px] font-bold tracking-[0.4em] text-blue-400 uppercase sm:mb-1 sm:text-[11px]">
                     График
                   </p>
-                  <h1 className="text-4xl font-black tracking-tight">
+                  <h1 className="text-2xl font-black tracking-tight sm:text-3xl md:text-4xl">
                     Календар и Събития
                   </h1>
-                  <p className="mt-1 text-sm text-zinc-400">
+                  <p className="mt-0.5 text-xs text-zinc-400 sm:mt-1 sm:text-sm">
                     Вижте всички тренировки, лагери и турнири на клуба.
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleShare}
-                className="flex shrink-0 items-center gap-2 rounded-xl border border-blue-800/30 bg-blue-600/10 px-5 py-2.5 text-sm font-semibold text-blue-400 transition-all hover:border-blue-500/50 hover:bg-blue-600/20"
+                className="flex shrink-0 items-center gap-2 rounded-xl border border-blue-800/30 bg-blue-600/10 px-4 py-2 text-xs font-semibold text-blue-400 transition-all hover:border-blue-500/50 hover:bg-blue-600/20 sm:px-5 sm:py-2.5 sm:text-sm"
               >
-                <Share2 size={16} />
+                <Share2 size={15} />
                 <span>Сподели Графика</span>
               </button>
             </div>

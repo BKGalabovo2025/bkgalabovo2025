@@ -2,14 +2,17 @@
 
 import {
   Award,
+  ExternalLink,
   FileCheck2,
   Handshake,
   Sparkles,
   UploadCloud,
 } from "lucide-react";
+import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
 import { sponsorService } from "@/services/sponsor-service";
@@ -17,7 +20,6 @@ import { useAppStore } from "@/store/use-app-store";
 import { IssuedCertificate, SponsorPartner } from "@/types/certificates";
 
 import { IssuedCertificatesTab } from "./components/IssuedCertificatesTab";
-import { SponsorsTab } from "./components/SponsorsTab";
 import { UploadVoucherTab } from "./components/UploadVoucherTab";
 
 const SPONSORS_TTL_MS = 24 * 60 * 60 * 1000; // 24 ч.
@@ -71,14 +73,10 @@ export function CertificatesClient() {
   const siteId =
     activeBranch === "recoveryzone" ? "recoveryzone" : "bkgalabovo";
 
-  const [activeTab, setActiveTab] = useState<"issue" | "issued" | "sponsors">(
-    "issue"
-  );
+  const [activeTab, setActiveTab] = useState<"issue" | "issued">("issue");
 
   // Sponsors State
   const [sponsors, setSponsors] = useState<SponsorPartner[]>([]);
-  const [isLoadingSponsors, setIsLoadingSponsors] = useState(true);
-
   // Issued Documents Registry State
   const [issuedCertificates, setIssuedCertificates] = useState<
     IssuedCertificate[]
@@ -95,7 +93,6 @@ export function CertificatesClient() {
         const fresh = readCacheWithTTL<SponsorPartner>(ttlKey, SPONSORS_TTL_MS);
         if (fresh) {
           setSponsors(fresh);
-          setIsLoadingSponsors(false);
           return; // ← 0 Firestore четения!
         }
       }
@@ -106,7 +103,6 @@ export function CertificatesClient() {
       );
       if (stale) {
         setSponsors(stale);
-        setIsLoadingSponsors(false);
       }
 
       try {
@@ -118,8 +114,6 @@ export function CertificatesClient() {
         }
       } catch (error) {
         console.warn("Notice loading sponsors from Firestore:", error);
-      } finally {
-        setIsLoadingSponsors(false);
       }
     },
     [siteId]
@@ -212,40 +206,44 @@ export function CertificatesClient() {
       <Tabs
         value={activeTab}
         onValueChange={(val) => {
-          const tab = val as "issue" | "issued" | "sponsors";
+          const tab = val as "issue" | "issued";
           setActiveTab(tab);
-          // Sponsors: принудително опресняване само ако потребителят кликне таба
-          if (tab === "sponsors") loadSponsors(true);
           // Issued: зарежда от Firestore само при явен клик
           if (tab === "issued") loadIssuedCertificates();
         }}
         className="space-y-6"
       >
-        <TabsList className="grid grid-cols-1 sm:grid-cols-3 h-auto sm:h-12 w-full gap-1.5 sm:gap-1 rounded-2xl border border-zinc-200 bg-zinc-100/90 p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
-          <TabsTrigger
-            value="issue"
-            className="flex min-h-11 sm:min-h-0 items-center justify-center gap-2 rounded-xl text-xs sm:text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
-          >
-            <UploadCloud className="size-4 shrink-0" />
-            <span>📤 Издай ваучер / документ</span>
-          </TabsTrigger>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <TabsList className="grid grid-cols-1 sm:grid-cols-2 h-auto sm:h-12 flex-1 gap-1.5 sm:gap-1 rounded-2xl border border-zinc-200 bg-zinc-100/90 p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+            <TabsTrigger
+              value="issue"
+              className="flex min-h-11 sm:min-h-0 items-center justify-center gap-2 rounded-xl text-xs sm:text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            >
+              <UploadCloud className="size-4 shrink-0" />
+              <span>📤 Издай ваучер / документ</span>
+            </TabsTrigger>
 
-          <TabsTrigger
-            value="issued"
-            className="flex min-h-11 sm:min-h-0 items-center justify-center gap-2 rounded-xl text-xs sm:text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
-          >
-            <FileCheck2 className="size-4 shrink-0" />
-            <span>📜 Издадени ({issuedCertificates.length})</span>
-          </TabsTrigger>
+            <TabsTrigger
+              value="issued"
+              className="flex min-h-11 sm:min-h-0 items-center justify-center gap-2 rounded-xl text-xs sm:text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            >
+              <FileCheck2 className="size-4 shrink-0" />
+              <span>📜 Издадени ({issuedCertificates.length})</span>
+            </TabsTrigger>
+          </TabsList>
 
-          <TabsTrigger
-            value="sponsors"
-            className="flex min-h-11 sm:min-h-0 items-center justify-center gap-2 rounded-xl text-xs sm:text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+          <Button
+            asChild
+            variant="outline"
+            className="h-11 sm:h-12 rounded-2xl border-zinc-200 bg-white px-4 text-xs font-bold text-zinc-700 shadow-xs hover:border-blue-500 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:text-blue-400"
           >
-            <Handshake className="size-4 shrink-0" />
-            <span>🤝 Партньори ({sponsors.length})</span>
-          </TabsTrigger>
-        </TabsList>
+            <Link href="/partners" className="flex items-center gap-2">
+              <Handshake className="size-4 text-blue-600 dark:text-blue-400" />
+              <span>🤝 Партньори ({sponsors.length})</span>
+              <ExternalLink className="size-3.5 opacity-60" />
+            </Link>
+          </Button>
+        </div>
 
         {/* Tab 1: Upload Voucher & Issue Electronic Document */}
         <TabsContent value="issue" className="mt-0 outline-none">
@@ -267,16 +265,6 @@ export function CertificatesClient() {
             isLoading={isLoadingCertificates}
             onRefresh={loadIssuedCertificates}
             onSwitchToIssue={() => setActiveTab("issue")}
-          />
-        </TabsContent>
-
-        {/* Tab 3: Partners & Sponsors */}
-        <TabsContent value="sponsors" className="mt-0 outline-none">
-          <SponsorsTab
-            siteId={siteId}
-            sponsors={sponsors}
-            isLoading={isLoadingSponsors}
-            onRefresh={loadSponsors}
           />
         </TabsContent>
       </Tabs>

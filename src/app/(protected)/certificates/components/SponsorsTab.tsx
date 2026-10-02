@@ -11,19 +11,17 @@ import {
   Pencil,
   Plus,
   RefreshCw,
-  Search,
   Sparkles,
   Trash2,
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { sponsorService } from "@/services/sponsor-service";
 import {
   getSponsorCategoryLabel,
@@ -46,8 +44,6 @@ export function SponsorsTab({
   isLoading,
   onRefresh,
 }: SponsorsTabProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<SponsorPartner | null>(
     null
@@ -115,35 +111,6 @@ export function SponsorsTab({
     }
   };
 
-  // Filtered sponsors
-  const filteredSponsors = useMemo(() => {
-    return sponsors.filter((sponsor) => {
-      const matchesCategory =
-        selectedCategory === "all" || sponsor.category === selectedCategory;
-      const matchesSearch =
-        searchQuery === "" ||
-        sponsor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (sponsor.description &&
-          sponsor.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesSearch;
-    });
-  }, [sponsors, selectedCategory, searchQuery]);
-
-  // Statistics
-  const stats = useMemo(() => {
-    const total = sponsors.length;
-    const active = sponsors.filter((s) => s.isActive).length;
-    const institutional = sponsors.filter(
-      (s) => s.category === "institutional" || s.category === "educational"
-    ).length;
-    const commercial = sponsors.filter((s) =>
-      ["gold", "silver", "bronze", "partner", "sports"].includes(s.category)
-    ).length;
-    return { total, active, institutional, commercial };
-  }, [sponsors]);
-
   const getCategoryBadgeClass = (cat: SponsorCategory) => {
     switch (cat) {
       case "educational":
@@ -166,138 +133,37 @@ export function SponsorsTab({
 
   return (
     <div className="space-y-6">
-      {/* 1. Header KPI Cards */}
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-                Общо партньори
-              </span>
-              <div className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white">
-                {stats.total}
-              </div>
-            </div>
-            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-              <Handshake className="size-4 sm:size-5" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-                Активни в документи
-              </span>
-              <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                {stats.active}
-              </div>
-            </div>
-            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
-              <CheckCircle2 className="size-4 sm:size-5" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-                Институционални
-              </span>
-              <div className="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400">
-                {stats.institutional}
-              </div>
-            </div>
-            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
-              <Building2 className="size-4 sm:size-5" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-                Спонсори & Партньори
-              </span>
-              <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">
-                {stats.commercial}
-              </div>
-            </div>
-            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
-              <Sparkles className="size-4 sm:size-5" />
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* 2. Filter Bar and Actions */}
-      <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Search */}
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-400" />
-              <Input
-                placeholder="Търсене по име или описание..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 w-full rounded-2xl border-zinc-200 bg-zinc-50/50 pl-10 text-xs dark:border-zinc-800 dark:bg-zinc-950"
-              />
-            </div>
-
-            {/* Category Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              {[
-                { id: "all", label: "🌟 Всички" },
-                { id: "educational", label: "🏫 Образователни" },
-                { id: "institutional", label: "🏛️ Институции & Федерация" },
-                { id: "sports", label: "🏸 Спортни партньори" },
-                { id: "partner", label: "🤝 Партньори (Фирми & Медии)" },
-              ].map((pill) => (
-                <button
-                  key={pill.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(pill.id)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
-                    selectedCategory === pill.id
-                      ? "bg-zinc-900 text-white shadow-xs dark:bg-zinc-100 dark:text-zinc-900"
-                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200/70 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                  }`}
-                >
-                  {pill.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex w-full sm:w-auto items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRefresh}
-              disabled={isLoading}
-              className="h-10 flex-1 sm:flex-initial rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-            >
-              <RefreshCw
-                className={`mr-1.5 size-3.5 ${isLoading ? "animate-spin" : ""}`}
-              />
-              Обнови
-            </Button>
-
-            <Button
-              onClick={handleOpenCreate}
-              className="h-10 flex-1 sm:flex-initial rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
-            >
-              <Plus className="mr-1.5 size-4" />
-              Нов партньор
-            </Button>
-          </div>
+      {/* 2. Actions Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+            Списък с официални партньори ({sponsors.length})
+          </span>
         </div>
-      </Card>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isLoading}
+            className="h-9 sm:h-10 rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+          >
+            <RefreshCw
+              className={`mr-1.5 size-3.5 ${isLoading ? "animate-spin" : ""}`}
+            />
+            Обнови
+          </Button>
+
+          <Button
+            onClick={handleOpenCreate}
+            className="h-9 sm:h-10 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+          >
+            <Plus className="mr-1.5 size-4" />
+            Нов партньор
+          </Button>
+        </div>
+      </div>
 
       {/* 3. Sponsor Cards Grid */}
       {isLoading ? (
@@ -307,19 +173,18 @@ export function SponsorsTab({
             Зареждане на партньори...
           </p>
         </div>
-      ) : filteredSponsors.length === 0 ? (
+      ) : sponsors.length === 0 ? (
         <div className="flex min-h-75 flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex size-16 items-center justify-center rounded-3xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
             <Handshake className="size-8" />
           </div>
           <div className="max-w-md space-y-1">
             <h3 className="text-base font-bold text-zinc-900 dark:text-white">
-              Няма намерени партньори или спонсори
+              Няма регистрирани партньори или спонсори
             </h3>
             <p className="text-xs text-zinc-500">
-              {searchQuery || selectedCategory !== "all"
-                ? "Опитайте да промените филтрите за търсене или категорията."
-                : "Все още няма регистрирани партньори в базата. Можете да добавите нов или да заредите препоръчителните партньори за клуба."}
+              Все още няма регистрирани партньори в базата. Можете да добавите
+              нов или да заредите препоръчителните партньори за клуба.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 pt-2">
@@ -345,7 +210,7 @@ export function SponsorsTab({
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {filteredSponsors.map((sponsor) => (
+          {sponsors.map((sponsor) => (
             <Card
               key={sponsor.id}
               className={`group flex flex-col justify-between overflow-hidden rounded-3xl border transition-all duration-200 hover:shadow-md ${

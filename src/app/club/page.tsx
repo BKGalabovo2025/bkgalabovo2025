@@ -8,7 +8,18 @@ import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 
 import ClubClient from "./ClubClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
+const withTimeout = <T,>(
+  promise: Promise<T>,
+  ms: number,
+  fallback: T
+): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+};
 
 export const metadata: Metadata = {
   title: "БК Гълъбово | Бадминтон клуб Гълъбово",
@@ -62,8 +73,6 @@ export default async function ClubMainPage(props: {
       addressCountry: "BG",
     },
   };
-  const clubSite = await getSiteByIdAdmin("bkgalabovo");
-
   const now = new Date();
   const startOfDay = new Date(now);
   startOfDay.setHours(0, 0, 0, 0);
@@ -71,18 +80,30 @@ export default async function ClubMainPage(props: {
   endOf7Days.setDate(now.getDate() + 7);
   endOf7Days.setHours(23, 59, 59, 999);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let scheduleSnapshot: { docs: any[] } = { docs: [] };
-  try {
-    const adminDb = getAdminDb();
-    scheduleSnapshot = await adminDb
-      .collection("events")
-      .where("siteId", "==", "bkgalabovo")
-      .get();
-  } catch (error) {
-    console.error("Failed to fetch events for club page:", error);
-    scheduleSnapshot = { docs: [] };
-  }
+  // Fetch site info and schedule in parallel with timeout protection
+  const [clubSite, scheduleSnapshot] = await Promise.all([
+    withTimeout(
+      getSiteByIdAdmin("bkgalabovo").catch(() => null),
+      3500,
+      null
+    ),
+    withTimeout(
+      (async () => {
+        try {
+          const adminDb = getAdminDb();
+          return await adminDb
+            .collection("events")
+            .where("siteId", "==", "bkgalabovo")
+            .get();
+        } catch (error) {
+          console.error("Failed to fetch events for club page:", error);
+          return { docs: [] };
+        }
+      })(),
+      3500,
+      { docs: [] }
+    ),
+  ]);
 
   const scheduleRaw = scheduleSnapshot.docs.map((doc) => {
     const data = doc.data();
@@ -128,11 +149,12 @@ export default async function ClubMainPage(props: {
     };
   });
 
-  // Full upcoming schedule for all events
+  // Next 7 days upcoming schedule for club homepage
   const schedule = scheduleRaw
     .filter((event) => {
       const eventStart = new Date(event.startTime);
-      return eventStart >= startOfDay;
+      const eventEnd = event.endTime ? new Date(event.endTime) : eventStart;
+      return eventEnd >= startOfDay && eventStart <= endOf7Days;
     })
     .sort(
       (a, b) =>

@@ -96,7 +96,7 @@ export default async function CatalogPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
-      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-400/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
+      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-400/30 bg-black/80 px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 backdrop-blur-xl">
         <Link
           href="/club"
           className="flex items-center gap-2 text-sm text-zinc-400 transition-all hover:text-blue-400 hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
@@ -113,25 +113,25 @@ export default async function CatalogPage() {
       </nav>
 
       {/* Hero / Header */}
-      <div className="relative overflow-hidden px-6 pt-32 pb-20">
+      <div className="relative overflow-hidden px-4 pt-14 pb-2 sm:px-6 sm:pt-16 sm:pb-3">
         <div className="pointer-events-none absolute top-0 left-1/2 h-96 w-full max-w-3xl -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
-        <div className="relative z-10 mx-auto max-w-6xl text-center">
-          <h1 className="mb-6 text-4xl font-light tracking-tight md:text-6xl">
+        <div className="relative z-10 m-auto max-w-6xl text-center">
+          <h1 className="mb-1 text-2xl font-light tracking-tight sm:text-3xl">
             Клубни{" "}
             <span className="bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text font-bold text-transparent drop-shadow-[0_0_12px_rgba(59,130,246,0.4)]">
               Каталози
             </span>
           </h1>
-          <p className="mx-auto max-w-2xl text-lg text-zinc-400">
+          <p className="m-auto max-w-2xl text-xs text-zinc-400 sm:text-sm">
             Тук ще намерите всички наши тренировки, клубни услуги и продукти.
           </p>
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="relative z-10 px-6 pb-32">
-        <div className="mx-auto max-w-6xl">
-          <div className="glassmorphism rounded-3xl border border-blue-400/20 bg-black/80 p-6 md:p-10">
+      <main className="relative z-10 px-3 pb-8 sm:px-6 sm:pb-12">
+        <div className="m-auto max-w-6xl">
+          <div className="glassmorphism rounded-2xl border border-blue-400/20 bg-black/80 p-3 sm:rounded-3xl sm:p-5">
             <PublicCatalogTabs
               trainings={services}
               generalServices={generalServices}
