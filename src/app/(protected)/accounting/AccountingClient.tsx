@@ -17,6 +17,8 @@ import JSZip from "jszip";
 import {
   Bed,
   Calculator,
+  Calendar,
+  CalendarPlus,
   Car,
   ChevronDown,
   ChevronLeft,
@@ -25,6 +27,8 @@ import {
   FileDown,
   Mail,
   Pizza,
+  Plus,
+  Search,
   Ticket,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -37,11 +41,19 @@ import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -92,6 +104,8 @@ export default function AccountingClient() {
     null
   );
   const [isTripManagerOpen, setIsTripManagerOpen] = useState(false);
+  const [isSelectEventOpen, setIsSelectEventOpen] = useState(false);
+  const [eventSearchQuery, setEventSearchQuery] = useState("");
 
   // Filters
   const [selectedMonth, setSelectedMonth] = useState<Date>(
@@ -206,6 +220,26 @@ export default function AccountingClient() {
       return true;
     });
   }, [trips, selectedMonth, activityFilter, statusFilter]);
+
+  const existingTripEventIds = useMemo(() => {
+    return new Set(trips.map((t) => t.eventId).filter(Boolean));
+  }, [trips]);
+
+  const selectableEvents = useMemo(() => {
+    return events
+      .filter((ev) => {
+        if (!eventSearchQuery.trim()) return true;
+        const q = eventSearchQuery.toLowerCase();
+        return (
+          ev.title.toLowerCase().includes(q) ||
+          (ev.location && ev.location.toLowerCase().includes(q))
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      );
+  }, [events, eventSearchQuery]);
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -451,6 +485,15 @@ export default function AccountingClient() {
         const tripFolder = zip.folder(`Командировка_${i + 1}_${safeTitle}`);
         if (!tripFolder) continue;
 
+        // 0. Board Decision
+        const decisionEl = document.getElementById(
+          `pdf-board-decision-template-${tId}`
+        );
+        if (decisionEl) {
+          const blob = await getPdfBlobFromElement(decisionEl, "portrait");
+          tripFolder.file(`00_Решение_УС_${safeTitle}.pdf`, blob);
+        }
+
         // Order
         const orderEl = document.getElementById(`pdf-order-template-${tId}`);
         if (orderEl) {
@@ -622,6 +665,16 @@ export default function AccountingClient() {
         ]}
       >
         <div className="flex items-center gap-2">
+          <Button
+            onClick={() => {
+              setEventSearchQuery("");
+              setIsSelectEventOpen(true);
+            }}
+            className="rounded-xl bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+          >
+            <Plus className="mr-2 size-4" />
+            Нова командировка
+          </Button>
           <Button
             variant="outline"
             onClick={handleExportExcel}
@@ -1463,6 +1516,106 @@ export default function AccountingClient() {
           </div>
         </div>
       </div>
+
+      {/* Dialog for selecting an event to create/manage business trip */}
+      <Dialog open={isSelectEventOpen} onOpenChange={setIsSelectEventOpen}>
+        <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col overflow-hidden p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <CalendarPlus className="size-5 text-emerald-600" />
+              Създаване / Управление на командировка
+            </DialogTitle>
+            <DialogDescription>
+              Изберете събитие (турнир или лагер) от календара, за което да
+              създадете или управлявате командировка, разходи и ведомости.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative mt-2">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Търсене по име на събитие или град..."
+              value={eventSearchQuery}
+              onChange={(e) => setEventSearchQuery(e.target.value)}
+              className="rounded-xl pl-9"
+            />
+          </div>
+
+          <div className="mt-4 max-h-[50vh] flex-1 space-y-2 overflow-y-auto pr-1">
+            {selectableEvents.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Няма намерени събития.
+              </div>
+            ) : (
+              selectableEvents.map((ev) => {
+                const hasTrip = existingTripEventIds.has(ev.id);
+                return (
+                  <div
+                    key={ev.id}
+                    onClick={() => {
+                      setSelectedEvent(ev);
+                      setIsSelectEventOpen(false);
+                      setIsTripManagerOpen(true);
+                    }}
+                    className="group flex cursor-pointer items-center justify-between rounded-xl border border-slate-100 p-3.5 transition-colors hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/60"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-slate-800 transition-colors group-hover:text-emerald-600 dark:text-zinc-100 dark:group-hover:text-emerald-400">
+                          {ev.title}
+                        </span>
+                        {hasTrip ? (
+                          <Badge
+                            variant="secondary"
+                            className="bg-blue-50 text-xs text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                          >
+                            Има командировка
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="border-emerald-300 text-xs text-emerald-700 dark:text-emerald-400"
+                          >
+                            + Нова
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="size-3.5" />
+                          {format(parseISO(ev.startDate), "dd.MM.yyyy", {
+                            locale: bg,
+                          })}
+                          {ev.endDate && ev.endDate !== ev.startDate && (
+                            <>
+                              {" "}
+                              -{" "}
+                              {format(parseISO(ev.endDate), "dd.MM.yyyy", {
+                                locale: bg,
+                              })}
+                            </>
+                          )}
+                        </span>
+                        {ev.location && <span>📍 {ev.location}</span>}
+                        <span>
+                          👥 {ev.attendeeMemberIds?.length || 0} участници
+                        </span>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="rounded-lg text-xs group-hover:bg-emerald-50 group-hover:text-emerald-700 dark:group-hover:bg-emerald-950/50"
+                    >
+                      {hasTrip ? "Преглед" : "Създай"}
+                    </Button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Reused Trip Manager Dialog from Schedule route */}
       {selectedEvent && (

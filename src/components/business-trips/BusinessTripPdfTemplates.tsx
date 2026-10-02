@@ -335,8 +335,400 @@ export function BusinessTripPdfTemplates({
   const sn = (s: string) => secs.indexOf(s) + 1;
   const mol = site.contact.mol || "М. Георгиева";
 
+  const renderDecisionTransportText = () => {
+    if (hasFuel) {
+      return (
+        <span style={{ marginLeft: "15pt", display: "inline-block" }}>
+          На основание чл. 13 от НКС разрешава пътуването да се извърши с:{" "}
+          <strong>лично МПС</strong>, марка{" "}
+          <strong>{trip.vehicle?.brand || "неопределена"}</strong>, рег. №{" "}
+          <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>, при
+          разходна норма{" "}
+          <strong>{fuelNorm > 0 ? fuelNorm : "0"} л/100 км</strong>. Разходите
+          за изразходвано гориво за маршрута <em>{routeLabel}</em> (
+          {distKm > 0 ? `${distKm} км` : "по отчет"}) да се възстановят на
+          водача срещу представен фискален бон и Отчет за гориво.
+        </span>
+      );
+    }
+    if (trip.transportType === "free") {
+      return (
+        <span style={{ marginLeft: "15pt", display: "inline-block" }}>
+          Транспортът е организиран и осигурен безплатно. Не се начисляват пътни
+          пари на командированите лица.
+        </span>
+      );
+    }
+    return (
+      <span style={{ marginLeft: "15pt", display: "inline-block" }}>
+        Пътуването да се осъществи с: <strong>{tShort}</strong> срещу
+        представени билети или първични транспортни документи.
+      </span>
+    );
+  };
+
+  const renderOrderTransportText = () => {
+    if (hasFuel) {
+      return (
+        <p style={{ marginBottom: "4pt" }}>
+          {sn("transport")}. Пътуването да се извърши с: лек автомобил
+          <br />
+          &nbsp;&nbsp;&nbsp;&nbsp;а/ лично МПС, вид лек, марка{" "}
+          <strong>{trip.vehicle?.brand || "неопределена"}</strong>, рег. №{" "}
+          <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>, с разход
+          на <strong>{fuelNorm > 0 ? fuelNorm : "0"} л/100 км.</strong> (срещу
+          фактура)
+        </p>
+      );
+    }
+    if (trip.transportType === "free") {
+      return (
+        <p style={{ marginBottom: "4pt" }}>
+          {sn("transport")}. Транспортът е организиран и осигурен безплатно. Не
+          се начисляват пътни пари на командированите лица.
+        </p>
+      );
+    }
+    return (
+      <p style={{ marginBottom: "4pt" }}>
+        {sn("transport")}. Пътуването да се извърши с: <strong>{tShort}</strong>{" "}
+        (срещу фактура или билет).
+      </p>
+    );
+  };
+
   return (
     <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+      {/* ══════════════════════════════════════════════════════
+          DOC 0: РЕШЕНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ (BOARD DECISION)
+      ══════════════════════════════════════════════════════ */}
+      <div id={`pdf-board-decision-template${idSuffix}`} style={PAGE_A4}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "2px solid #e2e8f0",
+            paddingBottom: "10pt",
+            marginBottom: "12pt",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+            <img
+              src="/icons/LOGO.jpg"
+              alt="Logo"
+              style={{ height: "45pt", objectFit: "contain" }}
+            />
+            <div>
+              <p
+                style={{
+                  fontWeight: "700",
+                  fontSize: "14pt",
+                  margin: 0,
+                  color: "#0f172a",
+                }}
+              >
+                „{site.shortName.toUpperCase()}"
+              </p>
+              {site.bulstat && (
+                <p
+                  style={{
+                    fontSize: "9pt",
+                    margin: "2pt 0 0 0",
+                    color: "#64748b",
+                  }}
+                >
+                  БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: "center", marginBottom: "14pt" }}>
+          <p
+            style={{
+              fontWeight: "800",
+              fontSize: "13pt",
+              letterSpacing: "3px",
+              margin: 0,
+              color: "#0f172a",
+            }}
+          >
+            Р Е Ш Е Н И Е
+          </p>
+          <p
+            style={{
+              fontSize: "11pt",
+              fontWeight: "700",
+              marginTop: "4pt",
+              color: "#0f172a",
+            }}
+          >
+            НА УПРАВИТЕЛНИЯ СЪВЕТ НА „{site.name.toUpperCase()}“
+          </p>
+          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
+            {trip.usDecision ? (
+              <span>
+                {trip.usDecision.startsWith("№")
+                  ? trip.usDecision
+                  : `№ ${trip.usDecision}`}
+              </span>
+            ) : (
+              <span>
+                № {orderNum}-УС / {orderDate} г.
+              </span>
+            )}
+          </p>
+        </div>
+
+        <p
+          style={{
+            marginBottom: "8pt",
+            textAlign: "justify",
+            textIndent: "15pt",
+            lineHeight: "1.5",
+          }}
+        >
+          Днес, <strong>{orderDate} г.</strong>, Управителният съвет на „
+          {site.name}“, на основание чл. 20 от Устава на сдружението, Държавния
+          спортен календар на БФ Бадминтон и разпоредбите на Наредбата за
+          командировките в страната (НКС), проведе заседание относно
+          финансовото, организационното и транспортното обезпечаване на
+          предстоящо спортно участие.
+        </p>
+
+        <p
+          style={{
+            textAlign: "center",
+            fontWeight: "700",
+            fontSize: "11pt",
+            margin: "12pt 0 8pt 0",
+            letterSpacing: "2px",
+            color: "#0f172a",
+          }}
+        >
+          УПРАВИТЕЛНИЯТ СЪВЕТ РЕШИ:
+        </p>
+
+        <div style={{ lineHeight: "1.6", textAlign: "justify" }}>
+          <p style={{ marginBottom: "6pt" }}>
+            <strong>1.</strong> Одобрява участието на състезатели и треньори на
+            „{site.name}“ в: <strong>{trip.title}</strong>, провеждащо се в
+            периода{" "}
+            <strong>
+              {fmtDate(trip.startDate)} г.
+              {trip.startDate !== trip.endDate
+                ? ` — ${fmtDate(trip.endDate)} г.`
+                : ""}
+            </strong>{" "}
+            в гр./място <strong>{destCity}</strong>.
+          </p>
+
+          <p style={{ marginBottom: "6pt" }}>
+            <strong>2.</strong> Утвърждава състава на официалната клубна
+            делегация в общ брой от <strong>{totalPeople}</strong>{" "}
+            {totalPeople === 1 ? "човек" : "души"}:
+          </p>
+          <div style={{ marginLeft: "18pt", marginBottom: "8pt" }}>
+            <p style={{ margin: "2pt 0" }}>
+              • Ръководител / Треньор: <strong>{coachName}</strong> ({coachRole}
+              )
+            </p>
+            <p style={{ margin: "2pt 0" }}>
+              • Състезатели:{" "}
+              <strong>
+                {allPeople
+                  .filter(
+                    (p) => p.role !== "Треньор" && p.role !== "Ръководител"
+                  )
+                  .map((p) => p.name)
+                  .join(", ") || "—"}
+              </strong>
+            </p>
+          </div>
+
+          <p style={{ marginBottom: "6pt" }}>
+            <strong>3.</strong> Транспортни условия и придвижване:
+            <br />
+            {renderDecisionTransportText()}
+          </p>
+
+          <p style={{ marginBottom: "6pt" }}>
+            <strong>4.</strong> Финансово осигуряване на командированите лица:
+            <br />
+            <span
+              style={{ marginLeft: "15pt", display: "block", marginTop: "2pt" }}
+            >
+              а/ <strong>Дневни пари:</strong>{" "}
+              {hasPerDiem ? (
+                <>
+                  по <strong>{fmtEUR(perDiemEUR)}</strong> (
+                  {perDiemBGN.toFixed(2)} лв.) на лице за{" "}
+                  <strong>{numDays}</strong> {numDays === 1 ? "ден" : "дни"}.
+                </>
+              ) : (
+                "не се дължат (осигурена храна)."
+              )}
+            </span>
+            <span
+              style={{ marginLeft: "15pt", display: "block", marginTop: "2pt" }}
+            >
+              б/ <strong>Нощувки / Квартирни:</strong>{" "}
+              {!hasAccom && "не се предвиждат нощувки."}
+              {hasAccom && trip.financials.accommodationRateEUR > 0 && (
+                <>
+                  по <strong>{fmtEUR(accomEUR)}</strong> ({accomBGN.toFixed(2)}{" "}
+                  лв.) на лице за <strong>{numNights}</strong>{" "}
+                  {numNights === 1 ? "нощ" : "нощи"} (срещу фактура).
+                </>
+              )}
+              {hasAccom && trip.financials.accommodationRateEUR <= 0 && (
+                <>
+                  настаняване срещу представена фактура на името на клуба за{" "}
+                  <strong>{numNights}</strong>{" "}
+                  {numNights === 1 ? "нощ" : "нощи"}.
+                </>
+              )}
+            </span>
+            <span
+              style={{ marginLeft: "15pt", display: "block", marginTop: "2pt" }}
+            >
+              в/ <strong>Входни такси за турнира:</strong>{" "}
+              {trip.financials.entryFeeEUR ? (
+                <>
+                  в размер на{" "}
+                  <strong>{fmtEUR(trip.financials.entryFeeEUR)}</strong> за
+                  отбора срещу официална квитанция/фактура от организатора.
+                </>
+              ) : (
+                "съгласно наредбата на БФ Бадминтон срещу представен документ."
+              )}
+            </span>
+          </p>
+
+          <p style={{ marginBottom: "10pt" }}>
+            <strong>5.</strong> Възлага на Председателя на Управителния съвет (
+            <strong>{mol}</strong>) да издаде писмена Заповед (Нареждане за
+            командировка) на основание настоящото Решение и да организира
+            финансовото отчитане.
+          </p>
+        </div>
+
+        <p
+          style={{
+            marginTop: "14pt",
+            marginBottom: "18pt",
+            fontSize: "10pt",
+            fontWeight: "600",
+            color: "#0f172a",
+          }}
+        >
+          Разходите по настоящото решение са изцяло за сметка на „
+          {site.shortName}“ гр. Гълъбово.
+        </p>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "20pt",
+            gap: "20pt",
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              border: "1px solid #cbd5e1",
+              borderRadius: "8px",
+              padding: "10pt",
+              textAlign: "center",
+              minHeight: "60pt",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: "700",
+                fontSize: "9pt",
+                margin: 0,
+                color: "#64748b",
+                textTransform: "uppercase",
+              }}
+            >
+              Председател на УС
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "45pt",
+              }}
+            >
+              {trip.signatures?.chairman ? (
+                <img
+                  src={trip.signatures.chairman}
+                  alt="signature"
+                  style={{ height: "40pt", objectFit: "contain" }}
+                />
+              ) : (
+                <span style={{ color: "#cbd5e1" }}>
+                  ..................................
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+              / {mol} /
+            </p>
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              border: "1px solid #cbd5e1",
+              borderRadius: "8px",
+              padding: "10pt",
+              textAlign: "center",
+              minHeight: "60pt",
+              backgroundColor: "#f8fafc",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: "700",
+                fontSize: "9pt",
+                margin: 0,
+                color: "#64748b",
+                textTransform: "uppercase",
+              }}
+            >
+              Членове на Управителния съвет
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "45pt",
+                fontSize: "8.5pt",
+                color: "#64748b",
+              }}
+            >
+              <p style={{ margin: "2pt 0" }}>
+                1. ........................................ (подпис)
+              </p>
+              <p style={{ margin: "2pt 0" }}>
+                2. ........................................ (подпис)
+              </p>
+            </div>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+              Протокол от заседание на УС
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div id={`pdf-order-template${idSuffix}`} style={PAGE_A4}>
         <div
           style={{
@@ -453,22 +845,7 @@ export function BusinessTripPdfTemplates({
             за <strong>{numDays}</strong> {numDays === 1 ? "ден" : "дни"}.
           </p>
         )}
-        {hasFuel ? (
-          <p style={{ marginBottom: "4pt" }}>
-            {sn("transport")}. Пътуването да се извърши с: лек автомобил
-            <br />
-            &nbsp;&nbsp;&nbsp;&nbsp;а/ лично МПС, вид лек, марка{" "}
-            <strong>{trip.vehicle?.brand || "неопределена"}</strong>, рег. №{" "}
-            <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>, с
-            разход на <strong>{fuelNorm > 0 ? fuelNorm : "0"} л/100 км.</strong>{" "}
-            (срещу фактура)
-          </p>
-        ) : (
-          <p style={{ marginBottom: "4pt" }}>
-            {sn("transport")}. Пътуването да се извърши с:{" "}
-            <strong>{tShort}</strong> (срещу фактура или билет).
-          </p>
-        )}
+        {renderOrderTransportText()}
         {hasAccom && (
           <p style={{ marginBottom: "4pt" }}>
             {sn("accom")}. Нощувки — <strong>{totalPeople}</strong>{" "}

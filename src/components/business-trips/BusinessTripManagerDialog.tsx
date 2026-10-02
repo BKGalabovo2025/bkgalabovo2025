@@ -3,16 +3,23 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { format } from "date-fns";
 import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Eye,
   FileDown,
+  Info,
   Mail,
   Pencil,
   Plus,
   ShieldAlert,
   Trash2,
   UserPlus,
+  XCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useState as useLocalState } from "react";
 import { toast } from "sonner";
 
 import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
@@ -27,12 +34,142 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/context/auth-context";
+import {
+  checkTripCompleteness,
+  countBySeverity,
+} from "@/lib/business-trip-checklist";
 import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
 import { getAllMembers } from "@/services/member-service";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
+
+// ─── Collapsible checklist panel ─────────────────────────────────────────────
+
+const SEVERITY_STYLES: Record<
+  string,
+  { bg: string; border: string; text: string; icon: React.ReactNode }
+> = {
+  error: {
+    bg: "bg-red-50 dark:bg-red-950/30",
+    border: "border-red-200 dark:border-red-900/60",
+    text: "text-red-700 dark:text-red-300",
+    icon: <XCircle className="size-3.5 shrink-0 text-red-500" />,
+  },
+  warning: {
+    bg: "bg-amber-50 dark:bg-amber-950/30",
+    border: "border-amber-200 dark:border-amber-900/60",
+    text: "text-amber-700 dark:text-amber-300",
+    icon: <AlertTriangle className="size-3.5 shrink-0 text-amber-500" />,
+  },
+  info: {
+    bg: "bg-sky-50 dark:bg-sky-950/30",
+    border: "border-sky-200 dark:border-sky-900/60",
+    text: "text-sky-700 dark:text-sky-300",
+    icon: <Info className="size-3.5 shrink-0 text-sky-500" />,
+  },
+};
+
+function TripChecklistPanel({
+  trip,
+  expenses,
+}: {
+  trip: BusinessTrip;
+  expenses: TripExpense[];
+}) {
+  const [expanded, setExpanded] = useLocalState(false);
+  const [expandedHint, setExpandedHint] = useLocalState<string | null>(null);
+
+  const issues = useMemo(
+    () => checkTripCompleteness(trip, expenses),
+    [trip, expenses]
+  );
+  const counts = countBySeverity(issues);
+
+  if (issues.length === 0) {
+    return (
+      <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400">
+        <CheckCircle2 className="size-4 shrink-0" />
+        Документите на командировката са пълни
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-800">
+      {/* Header / summary bar */}
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900/60"
+      >
+        <div className="flex items-center gap-2 text-xs">
+          {counts.errors > 0 && (
+            <span className="flex items-center gap-1 font-semibold text-red-600 dark:text-red-400">
+              <XCircle className="size-3.5" />
+              {counts.errors} грешки
+            </span>
+          )}
+          {counts.warnings > 0 && (
+            <span className="flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="size-3.5" />
+              {counts.warnings} предупреждения
+            </span>
+          )}
+          {counts.infos > 0 && (
+            <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400">
+              <Info className="size-3.5" />
+              {counts.infos} информация
+            </span>
+          )}
+        </div>
+        {expanded ? (
+          <ChevronUp className="size-4 text-zinc-400" />
+        ) : (
+          <ChevronDown className="size-4 text-zinc-400" />
+        )}
+      </button>
+
+      {/* Issue list */}
+      {expanded && (
+        <div className="space-y-1.5 px-3 pb-3">
+          {issues.map((item) => {
+            const style = SEVERITY_STYLES[item.severity];
+            return (
+              <div
+                key={item.id}
+                className={`rounded-lg border p-2 text-xs ${style.bg} ${style.border}`}
+              >
+                <button
+                  type="button"
+                  className="flex w-full items-start gap-2 text-left"
+                  onClick={() =>
+                    setExpandedHint((v) => (v === item.id ? null : item.id))
+                  }
+                >
+                  {style.icon}
+                  <span className={`font-medium ${style.text}`}>
+                    {item.message}
+                  </span>
+                </button>
+                {expandedHint === item.id && item.hint && (
+                  <p
+                    className={`mt-1.5 pl-5 leading-relaxed ${style.text} opacity-80`}
+                  >
+                    💡 {item.hint}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function BusinessTripManagerDialog({
   open,
@@ -142,6 +279,27 @@ export function BusinessTripManagerDialog({
     }, 100);
   };
 
+  const handlePrintDecision = (trip: BusinessTrip) => {
+    setIsGeneratingPdf(true);
+    setSelectedTripForPdf(trip);
+    setTimeout(() => {
+      const el = document.getElementById("pdf-board-decision-template");
+      if (el) {
+        import("@/lib/html-to-pdf").then((m) => {
+          m.generatePdfFromElement(
+            el,
+            `Решение_УС_${trip.title}`,
+            "portrait"
+          ).finally(() => {
+            setIsGeneratingPdf(false);
+          });
+        });
+      } else {
+        setIsGeneratingPdf(false);
+      }
+    }, 100);
+  };
+
   const handlePrintStatement = (trip: BusinessTrip) => {
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
@@ -172,14 +330,15 @@ export function BusinessTripManagerDialog({
 
   const handlePreviewPdf = (
     trip: BusinessTrip,
-    type: "order" | "statement" | "fuel" | "attendance"
+    type: "decision" | "order" | "statement" | "fuel" | "attendance"
   ) => {
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
 
     setTimeout(() => {
       let elId = "pdf-fuel-report-template";
-      if (type === "order") elId = "pdf-order-template";
+      if (type === "decision") elId = "pdf-board-decision-template";
+      else if (type === "order") elId = "pdf-order-template";
       else if (type === "statement") elId = "pdf-statement-template";
       else if (type === "attendance") elId = "pdf-attendance-template";
 
@@ -250,7 +409,7 @@ export function BusinessTripManagerDialog({
 
   const handleEmailPdf = (
     trip: BusinessTrip,
-    type: "order" | "statement" | "fuel" | "attendance"
+    type: "decision" | "order" | "statement" | "fuel" | "attendance"
   ) => {
     const email = window.prompt(
       "Моля, въведете имейл адрес, на който да изпратим документа:",
@@ -263,7 +422,8 @@ export function BusinessTripManagerDialog({
 
     setTimeout(() => {
       let elId = "pdf-fuel-report-template";
-      if (type === "order") elId = "pdf-order-template";
+      if (type === "decision") elId = "pdf-board-decision-template";
+      else if (type === "order") elId = "pdf-order-template";
       else if (type === "statement") elId = "pdf-statement-template";
       else if (type === "attendance") elId = "pdf-attendance-template";
 
@@ -275,7 +435,10 @@ export function BusinessTripManagerDialog({
           m.getPdfBase64FromElement(el, orientation)
             .then(async (base64Data) => {
               let filename = `Отчет_Гориво_${trip.title}.pdf`;
-              if (type === "order") filename = `Нареждане_${trip.title}.pdf`;
+              if (type === "decision")
+                filename = `Решение_УС_${trip.title}.pdf`;
+              else if (type === "order")
+                filename = `Нареждане_${trip.title}.pdf`;
               else if (type === "statement")
                 filename = `Ведомост_${trip.title}.pdf`;
               else if (type === "attendance")
@@ -426,8 +589,9 @@ export function BusinessTripManagerDialog({
                 {businessTrips.map((trip) => (
                   <div
                     key={trip.id}
-                    className="flex flex-col gap-4 rounded-xl border border-zinc-100 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800"
+                    className="flex flex-col gap-3 rounded-xl border border-zinc-100 p-5 dark:border-zinc-800"
                   >
+                    {/* Trip title + info */}
                     <div>
                       <p className="font-medium">{trip.title}</p>
                       <p className="text-sm text-zinc-500">
@@ -435,7 +599,14 @@ export function BusinessTripManagerDialog({
                         {formatDateShort(trip.startDate)} -{" "}
                         {formatDateShort(trip.endDate)})
                       </p>
+                      {/* ── Checklist panel ── */}
+                      <TripChecklistPanel
+                        trip={trip}
+                        expenses={expensesMap[trip.id!] || []}
+                      />
                     </div>
+
+                    {/* Action buttons */}
                     <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
@@ -448,6 +619,41 @@ export function BusinessTripManagerDialog({
                       >
                         <Plus className="mr-2 size-4" /> Разход
                       </Button>
+
+                      {/* Решение на УС */}
+                      <div className="flex items-center">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Преглед на Решение на УС"
+                          className="size-8 rounded-r-none border-r-0 px-0"
+                          onClick={() => handlePreviewPdf(trip, "decision")}
+                          disabled={isGeneratingPdf || isSendingEmail}
+                        >
+                          <Eye className="size-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePrintDecision(trip)}
+                          disabled={isGeneratingPdf || isSendingEmail}
+                          className="rounded-none border-x-0"
+                        >
+                          <FileDown className="mr-2 size-4" />
+                          Решение на УС (PDF)
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Изпрати по имейл"
+                          className="size-8 rounded-l-none px-0"
+                          onClick={() => handleEmailPdf(trip, "decision")}
+                          disabled={isGeneratingPdf || isSendingEmail}
+                        >
+                          <Mail className="size-4" />
+                        </Button>
+                      </div>
+
                       <div className="flex items-center">
                         <Button
                           variant={
