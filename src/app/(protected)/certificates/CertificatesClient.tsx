@@ -164,35 +164,35 @@ export function CertificatesClient() {
   const isRecoveryZone = siteId === "recoveryzone";
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      {/* 1. Header Section */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-linear-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20">
-              <Award className="size-5" />
-            </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-zinc-900 dark:text-white">
+    <div className="mx-auto max-w-7xl space-y-3 sm:space-y-3.5">
+      {/* 1. Header Toolbar Bar */}
+      <div className="flex flex-col gap-2 rounded-2xl border border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 text-white shadow-xs">
+            <Award className="size-4" />
+          </div>
+          <div>
+            <h1 className="text-sm sm:text-base font-bold tracking-tight text-zinc-900 dark:text-white">
               Сертификати & Ваучери Студио
             </h1>
+            <p className="text-[11px] text-zinc-500">
+              Качване на готови ваучери и грамоти, електронна QR верификация и
+              присъствия
+            </p>
           </div>
-          <p className="text-xs text-zinc-500 md:text-sm">
-            Качване на готови ваучери и грамоти, електронна QR верификация и
-            клубен дневник за присъствия
-          </p>
         </div>
 
         {/* Branch / Club indicator */}
         <div className="flex items-center gap-2">
           <Badge
             variant="outline"
-            className={`rounded-2xl border px-3 py-1 text-xs font-bold ${
+            className={`rounded-lg border px-2.5 py-1 text-[11px] font-bold ${
               isRecoveryZone
                 ? "border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
                 : "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
             }`}
           >
-            <Sparkles className="mr-1.5 inline size-3.5" />
+            <Sparkles className="mr-1 inline size-3" />
             <span>
               {isRecoveryZone
                 ? "Recovery Zone by ZM"
@@ -211,23 +211,23 @@ export function CertificatesClient() {
           // Issued: зарежда от Firestore само при явен клик
           if (tab === "issued") loadIssuedCertificates();
         }}
-        className="space-y-6"
+        className="space-y-3 sm:space-y-3.5"
       >
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <TabsList className="grid grid-cols-1 sm:grid-cols-2 h-auto sm:h-12 flex-1 gap-1.5 sm:gap-1 rounded-2xl border border-zinc-200 bg-zinc-100/90 p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-2.5">
+          <TabsList className="grid grid-cols-2 h-9 sm:h-9.5 flex-1 gap-1 rounded-xl border border-zinc-200 bg-zinc-100/90 p-1 dark:border-zinc-800 dark:bg-zinc-900">
             <TabsTrigger
               value="issue"
-              className="flex min-h-11 sm:min-h-0 items-center justify-center gap-2 rounded-xl text-xs sm:text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+              className="flex items-center justify-center gap-1.5 rounded-lg py-1 px-2.5 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
-              <UploadCloud className="size-4 shrink-0" />
+              <UploadCloud className="size-3.5 shrink-0" />
               <span>📤 Издай ваучер / документ</span>
             </TabsTrigger>
 
             <TabsTrigger
               value="issued"
-              className="flex min-h-11 sm:min-h-0 items-center justify-center gap-2 rounded-xl text-xs sm:text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+              className="flex items-center justify-center gap-1.5 rounded-lg py-1 px-2.5 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
-              <FileCheck2 className="size-4 shrink-0" />
+              <FileCheck2 className="size-3.5 shrink-0" />
               <span>📜 Издадени ({issuedCertificates.length})</span>
             </TabsTrigger>
           </TabsList>
@@ -235,15 +235,15 @@ export function CertificatesClient() {
           <Button
             asChild
             variant="outline"
-            className="h-11 sm:h-12 w-full sm:w-auto rounded-2xl border-zinc-200 bg-white px-4 text-xs font-bold text-zinc-700 shadow-xs hover:border-blue-500 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:text-blue-400"
+            className="h-9 sm:h-9.5 w-full sm:w-auto rounded-xl border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 shadow-xs hover:border-blue-500 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:text-blue-400"
           >
             <Link
               href="/partners"
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-1.5"
             >
-              <Handshake className="size-4 text-blue-600 dark:text-blue-400" />
+              <Handshake className="size-3.5 text-blue-600 dark:text-blue-400" />
               <span>🤝 Партньори ({sponsors.length})</span>
-              <ExternalLink className="size-3.5 opacity-60" />
+              <ExternalLink className="size-3 opacity-60" />
             </Link>
           </Button>
         </div>

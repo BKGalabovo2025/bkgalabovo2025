@@ -278,91 +278,91 @@ export function IssuedCertificatesTab({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-3.5">
       {/* 1. Header KPI Cards */}
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="grid grid-cols-2 gap-2 sm:gap-2.5 lg:grid-cols-4">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Общо издадени
               </span>
-              <div className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white">
+              <div className="text-base sm:text-lg font-black text-zinc-900 dark:text-white">
                 {stats.total}
               </div>
             </div>
-            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-              <FileCheck2 className="size-4 sm:size-5" />
+            <div className="flex size-7.5 sm:size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+              <FileCheck2 className="size-3.5 sm:size-4" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Издадени грамоти
               </span>
-              <div className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400">
+              <div className="text-base sm:text-lg font-black text-blue-600 dark:text-blue-400">
                 {stats.awards}
               </div>
             </div>
-            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
-              <Award className="size-4 sm:size-5" />
+            <div className="flex size-7.5 sm:size-8 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+              <Award className="size-3.5 sm:size-4" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Активни ваучери
               </span>
-              <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
+              <div className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400">
                 {stats.activeVouchers}
               </div>
             </div>
-            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
-              <Ticket className="size-4 sm:size-5" />
+            <div className="flex size-7.5 sm:size-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <Ticket className="size-3.5 sm:size-4" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Общо ваучери
               </span>
-              <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">
+              <div className="text-base sm:text-lg font-black text-amber-600 dark:text-amber-400">
                 {stats.vouchers}
               </div>
             </div>
-            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
-              <Sparkles className="size-4 sm:size-5" />
+            <div className="flex size-7.5 sm:size-8 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+              <Sparkles className="size-3.5 sm:size-4" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* 2. Filter Bar, Quick Scanner and Actions */}
-      <Card className="space-y-3.5 rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+      <Card className="space-y-2.5 rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex flex-col gap-2.5 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
             {/* Search */}
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-400" />
+            <div className="relative w-full max-w-xs sm:max-w-sm">
+              <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
               <Input
                 placeholder="Търсене по сериен номер или име..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 w-full rounded-2xl border-zinc-200 bg-zinc-50/50 pl-10 text-xs dark:border-zinc-800 dark:bg-zinc-950"
+                className="h-8.5 w-full rounded-xl border-zinc-200 bg-zinc-50/50 pl-9 text-xs dark:border-zinc-800 dark:bg-zinc-950"
               />
             </div>
 
             {/* Type Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1">
               {[
                 { id: "all", label: "🌟 Всички" },
                 { id: "award", label: "🏆 Грамоти" },
@@ -373,7 +373,7 @@ export function IssuedCertificatesTab({
                   key={pill.id}
                   type="button"
                   onClick={() => setSelectedType(pill.id)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
                     selectedType === pill.id
                       ? "bg-zinc-900 text-white shadow-xs dark:bg-zinc-100 dark:text-zinc-900"
                       : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200/70 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
@@ -392,7 +392,7 @@ export function IssuedCertificatesTab({
               size="sm"
               onClick={onRefresh}
               disabled={isLoading}
-              className="h-10 flex-1 sm:flex-initial rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+              className="h-8.5 flex-1 sm:flex-initial rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             >
               <RefreshCw
                 className={`mr-1.5 size-3.5 ${isLoading ? "animate-spin" : ""}`}
@@ -402,34 +402,34 @@ export function IssuedCertificatesTab({
 
             <Button
               onClick={onSwitchToIssue}
-              className="h-10 flex-1 sm:flex-initial rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+              className="h-8.5 flex-1 sm:flex-initial rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-3 text-xs font-bold text-white shadow-xs hover:from-blue-700 hover:to-indigo-700"
             >
-              <Plus className="mr-1.5 size-4" />
+              <Plus className="mr-1.5 size-3.5" />
               Издай нов
             </Button>
           </div>
         </div>
 
         {/* Quick Voucher Scanner Sub-bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-zinc-100 pt-2 dark:border-zinc-800/80">
           <form
             onSubmit={handleVoucherScanSubmit}
             className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto"
           >
-            <div className="relative w-full sm:w-72">
-              <QrCode className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-amber-500" />
+            <div className="relative w-full sm:w-64">
+              <QrCode className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-amber-500" />
               <Input
                 placeholder="🎟️ Сканирай код или въведи №..."
                 value={voucherScanQuery}
                 onChange={(e) => setVoucherScanQuery(e.target.value)}
-                className="h-9 w-full rounded-xl border-amber-200/70 bg-amber-50/30 pl-8 text-xs font-mono dark:border-amber-900/40 dark:bg-amber-950/20"
+                className="h-8 w-full rounded-lg border-amber-200/70 bg-amber-50/30 pl-7 text-xs font-mono dark:border-amber-900/40 dark:bg-amber-950/20"
               />
             </div>
             <Button
               type="submit"
               size="sm"
               variant="outline"
-              className="h-9 w-full sm:w-auto rounded-xl border-amber-300 text-xs font-bold text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300"
+              className="h-8 w-full sm:w-auto rounded-lg border-amber-300 text-xs font-bold text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300"
             >
               Осребри бързо
             </Button>
@@ -446,7 +446,7 @@ export function IssuedCertificatesTab({
                 onClick={handleBatchPrint}
                 disabled={isBatchPrinting}
                 size="sm"
-                className="h-9 gap-1.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md hover:from-blue-700 hover:to-indigo-700"
+                className="h-8 gap-1.5 rounded-lg bg-linear-to-r from-blue-600 to-indigo-600 px-3 text-xs font-bold text-white shadow-xs hover:from-blue-700 hover:to-indigo-700"
               >
                 {isBatchPrinting ? (
                   <Loader2 className="size-3.5 animate-spin" />
@@ -459,7 +459,7 @@ export function IssuedCertificatesTab({
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedCertIds([])}
-                className="h-9 rounded-xl text-xs text-zinc-500"
+                className="h-8 rounded-lg text-xs text-zinc-500"
               >
                 Отмаркирай
               </Button>
@@ -470,19 +470,19 @@ export function IssuedCertificatesTab({
 
       {/* 3. Document Registry Table */}
       {isLoading ? (
-        <div className="flex min-h-75 flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
-          <Loader2 className="size-8 animate-spin text-blue-600" />
-          <p className="text-sm font-semibold text-zinc-500">
+        <div className="flex min-h-60 flex-col items-center justify-center gap-2.5 rounded-2xl border border-dashed border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+          <Loader2 className="size-7 animate-spin text-blue-600" />
+          <p className="text-xs font-semibold text-zinc-500">
             Зареждане на регистъра...
           </p>
         </div>
       ) : filteredCertificates.length === 0 ? (
-        <div className="flex min-h-75 flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex size-16 items-center justify-center rounded-3xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
-            <FileCheck2 className="size-8" />
+        <div className="flex min-h-60 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+            <FileCheck2 className="size-6" />
           </div>
           <div className="max-w-md space-y-1">
-            <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
               Няма издадени документи
             </h3>
             <p className="text-xs text-zinc-500">
@@ -493,16 +493,16 @@ export function IssuedCertificatesTab({
           </div>
           <Button
             onClick={onSwitchToIssue}
-            className="mt-2 rounded-2xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
+            className="h-8.5 rounded-xl bg-blue-600 px-3 text-xs font-bold text-white shadow-xs hover:bg-blue-700"
           >
-            <Plus className="mr-1.5 size-4" />
+            <Plus className="mr-1.5 size-3.5" />
             Издай първи документ
           </Button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Mobile Select-all Bar */}
-          <div className="flex md:hidden items-center justify-between rounded-2xl border border-zinc-200/80 bg-white px-4 py-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex md:hidden items-center justify-between rounded-xl border border-zinc-200/80 bg-white px-3 py-2 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
             <label className="flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-300 cursor-pointer">
               <input
                 type="checkbox"
@@ -511,7 +511,7 @@ export function IssuedCertificatesTab({
                   selectedCertIds.length === filteredCertificates.length
                 }
                 onChange={handleToggleSelectAll}
-                className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                className="size-3.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
               />
               <span>Избери всички ({filteredCertificates.length})</span>
             </label>
@@ -523,7 +523,7 @@ export function IssuedCertificatesTab({
           </div>
 
           {/* 1. Mobile Cards View (Phones & Small screens) */}
-          <div className="grid grid-cols-1 gap-3.5 md:hidden">
+          <div className="grid grid-cols-1 gap-2.5 md:hidden">
             {filteredCertificates.map((cert) => {
               const isVoucher = cert.type === "voucher";
               const total = cert.details.totalSessions || 1;
@@ -536,25 +536,25 @@ export function IssuedCertificatesTab({
               return (
                 <div
                   key={`mobile-${cert.id}`}
-                  className={`rounded-3xl border p-4 transition-all shadow-xs space-y-3 ${
+                  className={`rounded-2xl border p-2.5 sm:p-3 transition-all shadow-xs space-y-2 ${
                     isSelected
                       ? "border-blue-300 bg-blue-50/40 dark:border-blue-800 dark:bg-blue-950/20"
                       : "border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-900"
                   }`}
                 >
                   {/* Top Bar: Checkbox + Serial Number + Type Badge */}
-                  <div className="flex items-center justify-between gap-2 border-b border-zinc-100 pb-2.5 dark:border-zinc-800">
-                    <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-between gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-800">
+                    <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleToggleCert(cert.id)}
-                        className="size-4.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                        className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
                       />
                       <button
                         type="button"
                         onClick={() => setPreviewCert(cert)}
-                        className="flex items-center gap-1.5 text-left group"
+                        className="flex items-center gap-1 text-left group"
                       >
                         <span className="font-mono text-xs font-black text-blue-600 group-hover:underline dark:text-blue-400">
                           {cert.serialNumber}
@@ -562,7 +562,7 @@ export function IssuedCertificatesTab({
                         {cert.uploadedDocument && (
                           <Badge
                             variant="outline"
-                            className="rounded-md border-blue-200 bg-blue-50/70 px-1 py-0 text-[9px] font-bold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
+                            className="rounded-md border-blue-200 bg-blue-50/70 px-1 py-0 text-[8px] font-bold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
                           >
                             📎{" "}
                             {cert.uploadedDocument.fileType === "pdf"
@@ -575,7 +575,7 @@ export function IssuedCertificatesTab({
 
                     <Badge
                       variant="outline"
-                      className={`rounded-xl border px-2 py-0.5 text-[10px] font-bold ${
+                      className={`rounded-lg border px-1.5 py-0.5 text-[9px] font-bold ${
                         cert.type === "award"
                           ? "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
                           : cert.type === "voucher"
@@ -587,18 +587,20 @@ export function IssuedCertificatesTab({
                     </Badge>
                   </div>
 
-                  {/* Recipient & Institution */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-sm font-black text-zinc-900 dark:text-white">
-                      <User className="size-4 text-zinc-400 shrink-0" />
-                      <span>{cert.recipient.name}</span>
+                  {/* Recipient & Institution - 100% full text visible */}
+                  <div className="space-y-0.5">
+                    <div className="flex items-start gap-1.5 text-xs sm:text-sm font-bold text-zinc-900 dark:text-white wrap-break-word">
+                      <User className="size-3.5 text-zinc-400 shrink-0 mt-0.5" />
+                      <span className="wrap-break-word">
+                        {cert.recipient.name}
+                      </span>
                     </div>
                     {cert.recipient.institution && (
-                      <p className="text-xs text-blue-700 dark:text-blue-400 font-semibold pl-5">
+                      <p className="text-[11px] text-blue-700 dark:text-blue-400 font-semibold pl-5 wrap-break-word">
                         {cert.recipient.institution}
                       </p>
                     )}
-                    <div className="text-[11px] text-zinc-400 pl-5 pt-0.5">
+                    <div className="text-[10px] text-zinc-400 pl-5 pt-0.5 wrap-break-word">
                       Издаден на{" "}
                       {new Date(cert.issuedAt).toLocaleDateString("bg-BG")} •{" "}
                       {cert.details.voucherServiceType ||
@@ -609,20 +611,20 @@ export function IssuedCertificatesTab({
 
                   {/* Voucher Sessions and Quick Redeem (if voucher) */}
                   {isVoucher && (
-                    <div className="rounded-2xl border border-amber-200/70 bg-amber-50/40 p-3 space-y-2 dark:border-amber-900/40 dark:bg-amber-950/20">
+                    <div className="rounded-xl border border-amber-200/70 bg-amber-50/40 p-2 space-y-1.5 dark:border-amber-900/40 dark:bg-amber-950/20">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-amber-900 dark:text-amber-300">
+                        <span className="font-bold text-amber-900 dark:text-amber-300 text-[11px]">
                           {isFullyUsed
                             ? "Всички тренировки са отчетени"
                             : `${remaining} от ${total} оставащи тренировки`}
                         </span>
-                        <span className="text-[11px] font-semibold text-zinc-500">
+                        <span className="text-[10px] font-semibold text-zinc-500">
                           {Math.round((used / total) * 100)}%
                         </span>
                       </div>
 
                       {/* Mini progress bar */}
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
                         <div
                           className="h-full rounded-full bg-linear-to-r from-amber-500 to-emerald-500"
                           style={{
@@ -635,9 +637,9 @@ export function IssuedCertificatesTab({
                         size="sm"
                         onClick={() => setRedeemCert(cert)}
                         disabled={isFullyUsed}
-                        className="h-9 w-full rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs"
+                        className="h-7.5 w-full rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs"
                       >
-                        <UserCheck className="mr-1.5 size-4" />
+                        <UserCheck className="mr-1.5 size-3.5" />
                         {isFullyUsed
                           ? "Напълно изразходен"
                           : "Отчети тренировка / присъствие"}
@@ -645,16 +647,16 @@ export function IssuedCertificatesTab({
                     </div>
                   )}
 
-                  {/* Action Bar: Touch-friendly grid buttons */}
-                  <div className="grid grid-cols-4 gap-1.5 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+                  {/* Action Bar */}
+                  <div className="grid grid-cols-4 gap-1 pt-1 border-t border-zinc-100 dark:border-zinc-800">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setShareCert(cert)}
-                      className="h-9 rounded-xl text-blue-600 border-zinc-200 hover:bg-blue-50 text-[11px] font-bold dark:border-zinc-800"
+                      className="h-7.5 rounded-lg text-blue-600 border-zinc-200 hover:bg-blue-50 text-[10px] font-bold dark:border-zinc-800"
                       title="Сподели"
                     >
-                      <Share2 className="mr-1 size-3.5" />
+                      <Share2 className="mr-1 size-3" />
                       Сподели
                     </Button>
 
@@ -662,10 +664,10 @@ export function IssuedCertificatesTab({
                       variant="outline"
                       size="sm"
                       onClick={() => setPreviewCert(cert)}
-                      className="h-9 rounded-xl text-zinc-700 border-zinc-200 hover:bg-zinc-100 text-[11px] font-bold dark:border-zinc-800 dark:text-zinc-300"
+                      className="h-7.5 rounded-lg text-zinc-700 border-zinc-200 hover:bg-zinc-100 text-[10px] font-bold dark:border-zinc-800 dark:text-zinc-300"
                       title="Преглед"
                     >
-                      <Eye className="mr-1 size-3.5" />
+                      <Eye className="mr-1 size-3" />
                       Преглед
                     </Button>
 
@@ -673,17 +675,17 @@ export function IssuedCertificatesTab({
                       variant="outline"
                       size="sm"
                       onClick={() => handleCopyLink(cert)}
-                      className="h-9 rounded-xl text-zinc-700 border-zinc-200 hover:bg-zinc-100 text-[11px] font-bold dark:border-zinc-800 dark:text-zinc-300"
+                      className="h-7.5 rounded-lg text-zinc-700 border-zinc-200 hover:bg-zinc-100 text-[10px] font-bold dark:border-zinc-800 dark:text-zinc-300"
                       title="Копирай линк"
                     >
                       {copiedId === cert.id ? (
                         <>
-                          <Check className="mr-1 size-3.5 text-emerald-600" />
+                          <Check className="mr-1 size-3 text-emerald-600" />
                           ОК
                         </>
                       ) : (
                         <>
-                          <Copy className="mr-1 size-3.5" />
+                          <Copy className="mr-1 size-3" />
                           Линк
                         </>
                       )}
@@ -693,10 +695,10 @@ export function IssuedCertificatesTab({
                       href={`/cert/${cert.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex h-9 items-center justify-center gap-1 rounded-xl border border-zinc-200 bg-white text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                      className="inline-flex h-7.5 items-center justify-center gap-1 rounded-lg border border-zinc-200 bg-white text-[10px] font-bold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                       title="Отвори публично"
                     >
-                      <ExternalLink className="size-3.5" />
+                      <ExternalLink className="size-3" />
                       Отвори
                     </a>
                   </div>
@@ -706,12 +708,12 @@ export function IssuedCertificatesTab({
           </div>
 
           {/* 2. Desktop Table View (>= md) */}
-          <Card className="hidden md:block overflow-hidden rounded-3xl border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <Card className="hidden md:block overflow-hidden rounded-2xl border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-zinc-200 bg-zinc-50/70 text-[11px] font-bold tracking-wider text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-950">
+                <thead className="border-b border-zinc-200 bg-zinc-50/70 text-[10px] sm:text-[11px] font-bold tracking-wider text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-950">
                   <tr>
-                    <th className="py-3.5 pr-2 pl-4 w-10 text-center">
+                    <th className="py-2.5 pr-2 pl-3 w-8 text-center">
                       <input
                         type="checkbox"
                         checked={
@@ -719,15 +721,17 @@ export function IssuedCertificatesTab({
                           selectedCertIds.length === filteredCertificates.length
                         }
                         onChange={handleToggleSelectAll}
-                        className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                        className="size-3.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
                       />
                     </th>
-                    <th className="px-3 py-3.5">Сериен № & QR</th>
-                    <th className="px-3 py-3.5">Получател & Институция</th>
-                    <th className="px-3 py-3.5">Тип & Отличие</th>
-                    <th className="px-3 py-3.5">Дата на издаване</th>
-                    <th className="px-3 py-3.5">Статус / Процедури</th>
-                    <th className="py-3.5 pr-6 pl-3 text-right">Действия</th>
+                    <th className="min-w-35 p-2.5">Сериен № & QR</th>
+                    <th className="min-w-45 p-2.5">Получател & Институция</th>
+                    <th className="min-w-30 p-2.5">Тип & Отличие</th>
+                    <th className="min-w-[105px] p-2.5">Дата на издаване</th>
+                    <th className="min-w-[130px] p-2.5">Статус / Процедури</th>
+                    <th className="py-2.5 pr-3 pl-2 text-right min-w-[105px]">
+                      Действия
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 font-medium dark:divide-zinc-800/80">
@@ -751,47 +755,47 @@ export function IssuedCertificatesTab({
                         }`}
                       >
                         {/* Checkbox */}
-                        <td className="py-4 pr-2 pl-4 text-center">
+                        <td className="py-2 pr-2 pl-3 text-center">
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleCert(cert.id)}
-                            className="size-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                            className="size-3.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
                           />
                         </td>
 
                         {/* Serial Number & QR Icon */}
-                        <td className="px-3 py-4">
-                          <div className="flex items-center gap-2.5">
+                        <td className="px-2.5 py-2">
+                          <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => setPreviewCert(cert)}
-                              className="relative flex size-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white p-0.5 shadow-xs hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950"
+                              className="relative flex size-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white p-0.5 shadow-xs hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950"
                               title="Кликнете за предварителен преглед"
                             >
                               {cert.qrCodeDataUrl ? (
                                 <Image
                                   src={cert.qrCodeDataUrl}
                                   alt="QR"
-                                  width={36}
-                                  height={36}
+                                  width={28}
+                                  height={28}
                                   className="size-full object-contain"
                                   style={{ width: "auto", height: "auto" }}
                                   unoptimized
                                 />
                               ) : (
-                                <QrCode className="size-5 text-zinc-400" />
+                                <QrCode className="size-4 text-zinc-400" />
                               )}
                             </button>
                             <div className="space-y-0.5">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-mono font-bold text-zinc-900 dark:text-white">
+                              <div className="flex items-center gap-1">
+                                <span className="font-mono text-xs font-bold text-zinc-900 dark:text-white whitespace-nowrap">
                                   {cert.serialNumber}
                                 </span>
                                 {cert.uploadedDocument && (
                                   <Badge
                                     variant="outline"
-                                    className="rounded-lg border-blue-200 bg-blue-50/70 px-1.5 py-0 text-[9px] font-bold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
+                                    className="rounded border-blue-200 bg-blue-50/70 px-1 py-0 text-[8px] font-bold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
                                   >
                                     📎{" "}
                                     {cert.uploadedDocument.fileType === "pdf"
@@ -800,22 +804,24 @@ export function IssuedCertificatesTab({
                                   </Badge>
                                 )}
                               </div>
-                              <div className="text-[10px] text-zinc-400">
+                              <div className="text-[10px] text-zinc-400 wrap-break-word">
                                 {cert.visualSnapshot?.templateTitle}
                               </div>
                             </div>
                           </div>
                         </td>
 
-                        {/* Recipient & School */}
-                        <td className="px-3 py-4">
+                        {/* Recipient & School - 100% full text visible */}
+                        <td className="px-2.5 py-2">
                           <div className="space-y-0.5">
-                            <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-white">
-                              <User className="size-3.5 text-zinc-400" />
-                              <span>{cert.recipient.name}</span>
+                            <div className="flex items-start gap-1 font-bold text-zinc-900 dark:text-white wrap-break-word">
+                              <User className="size-3 text-zinc-400 shrink-0 mt-0.5" />
+                              <span className="wrap-break-word">
+                                {cert.recipient.name}
+                              </span>
                             </div>
                             {cert.recipient.institution && (
-                              <div className="text-[11px] text-zinc-500">
+                              <div className="text-[10px] sm:text-[11px] font-semibold text-blue-700 dark:text-blue-400 wrap-break-word pl-4">
                                 {cert.recipient.institution}
                               </div>
                             )}
@@ -823,11 +829,11 @@ export function IssuedCertificatesTab({
                         </td>
 
                         {/* Type & Award Rank */}
-                        <td className="px-3 py-4">
-                          <div className="space-y-1">
+                        <td className="px-2.5 py-2">
+                          <div className="space-y-0.5">
                             <Badge
                               variant="outline"
-                              className={`rounded-xl border px-2 py-0.5 text-[10px] font-bold ${
+                              className={`rounded-lg border px-1.5 py-0 text-[9px] font-bold ${
                                 cert.type === "award"
                                   ? "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
                                   : cert.type === "voucher"
@@ -839,7 +845,7 @@ export function IssuedCertificatesTab({
                             </Badge>
 
                             {cert.type === "award" && cert.details.rank && (
-                              <div className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">
+                              <div className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300">
                                 {getRankLabel(cert.details.rank)}
                               </div>
                             )}
@@ -847,22 +853,22 @@ export function IssuedCertificatesTab({
                         </td>
 
                         {/* Date */}
-                        <td className="px-3 py-4">
-                          <div className="text-zinc-600 dark:text-zinc-300">
+                        <td className="px-2.5 py-2">
+                          <div className="text-[11px] text-zinc-700 dark:text-zinc-300 whitespace-nowrap">
                             {new Date(cert.issuedAt).toLocaleDateString(
                               "bg-BG"
                             )}
                           </div>
-                          <div className="text-[10px] text-zinc-400">
+                          <div className="text-[10px] text-zinc-400 wrap-break-word">
                             {cert.issuedByName || "Администратор"}
                           </div>
                         </td>
 
                         {/* Voucher Sessions / Status */}
-                        <td className="px-3 py-4">
+                        <td className="px-2.5 py-2">
                           {isVoucher ? (
-                            <div className="min-w-[130px] space-y-1.5">
-                              <div className="flex items-center justify-between text-[11px]">
+                            <div className="min-w-30 space-y-1">
+                              <div className="flex items-center justify-between text-[10px]">
                                 <span
                                   className={`font-bold ${
                                     isFullyUsed
@@ -879,14 +885,14 @@ export function IssuedCertificatesTab({
                                   variant="outline"
                                   onClick={() => setRedeemCert(cert)}
                                   disabled={isFullyUsed}
-                                  className="h-6 rounded-lg border-amber-300/80 px-2 text-[10px] font-bold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300"
+                                  className="h-5 rounded-md border-amber-300/80 px-1.5 text-[9px] font-bold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300"
                                 >
                                   Отчети
                                 </Button>
                               </div>
 
                               {/* Mini progress bar */}
-                              <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                              <div className="h-1 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
                                 <div
                                   className="h-full rounded-full bg-linear-to-r from-amber-500 to-emerald-500"
                                   style={{
@@ -898,26 +904,26 @@ export function IssuedCertificatesTab({
                           ) : (
                             <Badge
                               variant="outline"
-                              className="rounded-xl border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                              className="rounded-lg border-emerald-200 bg-emerald-50 px-1.5 py-0 text-[9px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                             >
-                              <CheckCircle2 className="mr-1 size-3" />
+                              <CheckCircle2 className="mr-0.5 size-2.5" />
                               Валиден
                             </Badge>
                           )}
                         </td>
 
                         {/* Actions */}
-                        <td className="py-4 pr-6 pl-3 text-right">
-                          <div className="flex items-center justify-end gap-1">
+                        <td className="py-2 pr-3 pl-2 text-right">
+                          <div className="flex items-center justify-end gap-0.5">
                             {/* Share Button */}
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => setShareCert(cert)}
-                              className="size-8 rounded-xl text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/50"
+                              className="size-7 rounded-lg text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/50"
                               title="Дигитално споделяне (Viber, WhatsApp, Email)"
                             >
-                              <Share2 className="size-3.5" />
+                              <Share2 className="size-3" />
                             </Button>
 
                             {/* Preview Modal Button */}
@@ -925,10 +931,10 @@ export function IssuedCertificatesTab({
                               variant="ghost"
                               size="icon"
                               onClick={() => setPreviewCert(cert)}
-                              className="size-8 rounded-xl text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+                              className="size-7 rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
                               title="Преглед на документа"
                             >
-                              <Eye className="size-3.5" />
+                              <Eye className="size-3" />
                             </Button>
 
                             {/* Copy Link Button */}
@@ -936,13 +942,13 @@ export function IssuedCertificatesTab({
                               variant="ghost"
                               size="icon"
                               onClick={() => handleCopyLink(cert)}
-                              className="size-8 rounded-xl text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-                              title="Копирай линк"
+                              className="size-7 rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+                              title="Копирай публичен линк"
                             >
                               {copiedId === cert.id ? (
-                                <Check className="size-3.5 text-emerald-600" />
+                                <Check className="size-3 text-emerald-600" />
                               ) : (
-                                <Copy className="size-3.5" />
+                                <Copy className="size-3" />
                               )}
                             </Button>
 
@@ -951,10 +957,10 @@ export function IssuedCertificatesTab({
                               href={`/cert/${cert.id}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex size-8 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-                              title="Отвори публичната страница"
+                              className="inline-flex size-7 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+                              title="Отвори страница за проверка"
                             >
-                              <ExternalLink className="size-3.5" />
+                              <ExternalLink className="size-3" />
                             </a>
 
                             {/* Delete Button */}
@@ -963,13 +969,13 @@ export function IssuedCertificatesTab({
                               size="icon"
                               onClick={() => handleDelete(cert)}
                               disabled={deletingId === cert.id}
-                              className="size-8 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
+                              className="size-7 rounded-lg text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50"
                               title="Изтриване от регистъра"
                             >
                               {deletingId === cert.id ? (
-                                <Loader2 className="size-3.5 animate-spin" />
+                                <Loader2 className="size-3 animate-spin" />
                               ) : (
-                                <Trash2 className="size-3.5" />
+                                <Trash2 className="size-3" />
                               )}
                             </Button>
                           </div>
@@ -1034,22 +1040,24 @@ export function IssuedCertificatesTab({
         open={Boolean(previewCert)}
         onOpenChange={(open) => !open && setPreviewCert(null)}
       >
-        <DialogContent className="max-w-5xl rounded-3xl border-zinc-200 p-6 dark:border-zinc-800">
+        <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto rounded-2xl border-zinc-200 p-3.5 sm:p-5 dark:border-zinc-800">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
-                <FileCheck2 className="size-5 text-blue-600" />
-                <span>Документ № {previewCert?.serialNumber}</span>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
+                <FileCheck2 className="size-4.5 text-blue-600" />
+                <span className="wrap-break-word">
+                  Документ № {previewCert?.serialNumber}
+                </span>
               </DialogTitle>
               {previewCert && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => printCertificate()}
-                    className="gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+                    className="h-8 gap-1 rounded-lg border-zinc-200 text-xs font-bold dark:border-zinc-800"
                   >
-                    <Printer className="size-3.5" />
+                    <Printer className="size-3" />
                     Принтирай
                   </Button>
                   <Button
@@ -1057,12 +1065,12 @@ export function IssuedCertificatesTab({
                     variant="outline"
                     onClick={() => handleExportPdf(previewCert)}
                     disabled={isExportingPdf}
-                    className="gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+                    className="h-8 gap-1 rounded-lg border-zinc-200 text-xs font-bold dark:border-zinc-800"
                   >
                     {isExportingPdf ? (
-                      <Loader2 className="size-3.5 animate-spin" />
+                      <Loader2 className="size-3 animate-spin" />
                     ) : (
-                      <FileDown className="size-3.5" />
+                      <FileDown className="size-3" />
                     )}
                     PDF
                   </Button>
@@ -1070,12 +1078,12 @@ export function IssuedCertificatesTab({
                     size="sm"
                     onClick={() => handleExportPng(previewCert)}
                     disabled={isExportingPng}
-                    className="gap-1.5 rounded-xl bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
+                    className="h-8 gap-1 rounded-lg bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
                   >
                     {isExportingPng ? (
-                      <Loader2 className="size-3.5 animate-spin" />
+                      <Loader2 className="size-3 animate-spin" />
                     ) : (
-                      <Download className="size-3.5" />
+                      <Download className="size-3" />
                     )}
                     PNG
                   </Button>
@@ -1083,9 +1091,9 @@ export function IssuedCertificatesTab({
                     size="sm"
                     variant="outline"
                     onClick={() => setShareCert(previewCert)}
-                    className="gap-1.5 rounded-xl border-blue-200 text-xs font-bold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300"
+                    className="h-8 gap-1 rounded-lg border-blue-200 text-xs font-bold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300"
                   >
-                    <Share2 className="size-3.5" />
+                    <Share2 className="size-3" />
                     Сподели
                   </Button>
                 </div>

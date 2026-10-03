@@ -781,11 +781,11 @@ export function IssueDocumentTab({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3.5 sm:space-y-4">
       {/* If no approved templates exist */}
       {approvedTemplates.length === 0 ? (
-        <Card className="flex min-h-75 flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <Award className="size-10 text-amber-500" />
+        <Card className="flex min-h-75 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-900">
+          <Award className="size-8 text-amber-500" />
           <h3 className="text-base font-bold text-zinc-900 dark:text-white">
             Няма одобрени шаблони за издаване
           </h3>
@@ -805,12 +805,12 @@ export function IssueDocumentTab({
           )}
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
           {/* LEFT: Issuance Form (5 cols) */}
-          <div className="space-y-6 lg:col-span-5">
-            <Card className="space-y-5 rounded-3xl border-zinc-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                <h3 className="flex items-center gap-2 text-base font-bold text-zinc-900 dark:text-white">
+          <div className="space-y-3.5 lg:col-span-5">
+            <Card className="space-y-3.5 rounded-2xl border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="border-b border-zinc-100 pb-2.5 dark:border-zinc-800">
+                <h3 className="flex items-center gap-2 text-sm sm:text-base font-bold text-zinc-900 dark:text-white">
                   <Printer className="size-4 text-blue-600" />
                   <span>Издаване на Персонален Документ</span>
                 </h3>
@@ -819,9 +819,9 @@ export function IssueDocumentTab({
                 </p>
               </div>
 
-              <form onSubmit={handleIssueSubmit} className="space-y-4">
+              <form onSubmit={handleIssueSubmit} className="space-y-3">
                 {/* 1. Template Selector */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                     Избор на одобрен шаблон{" "}
                     <span className="text-red-500">*</span>
@@ -830,7 +830,7 @@ export function IssueDocumentTab({
                     value={selectedTemplateId}
                     onValueChange={(val) => setSelectedTemplateId(val)}
                   >
-                    <SelectTrigger className="h-10 rounded-2xl border-zinc-200 text-xs dark:border-zinc-800">
+                    <SelectTrigger className="h-8.5 rounded-xl border-zinc-200 text-xs dark:border-zinc-800">
                       <SelectValue placeholder="Изберете шаблон" />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-zinc-200 dark:border-zinc-800">
@@ -1365,20 +1365,20 @@ export function IssueDocumentTab({
                 )}
 
                 {/* Submit Button */}
-                <div className="pt-2">
+                <div className="pt-1.5">
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="h-11 w-full rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 text-xs font-black text-white shadow-lg shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700"
+                    className="h-9 sm:h-9.5 w-full rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-xs font-black text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="mr-2 size-4 animate-spin" />
+                        <Loader2 className="mr-2 size-3.5 animate-spin" />
                         Генериране на QR код & Издаване...
                       </>
                     ) : (
                       <>
-                        <Sparkles className="mr-2 size-4" />
+                        <Sparkles className="mr-1.5 size-3.5" />
                         Издай официален документ
                       </>
                     )}
@@ -1795,7 +1795,7 @@ export function IssueDocumentTab({
                     <span className="inline-block text-[11px] font-black uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
                       {rankIcon}
                     </span>
-                    <h5 className="truncate text-sm font-bold text-zinc-900 dark:text-white">
+                    <h5 className="wrap-break-word text-sm font-bold text-zinc-900 dark:text-white">
                       {doc.recipient?.name || "Състезател"}
                     </h5>
                     <p className="text-[10px] text-zinc-500 font-mono">

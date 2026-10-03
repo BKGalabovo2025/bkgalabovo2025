@@ -2197,7 +2197,9 @@ export function TemplateWizardDialog({
                             >
                               {isChecked && <Check className="size-3" />}
                             </div>
-                            <span className="truncate text-xs">{sp.name}</span>
+                            <span className="wrap-break-word text-xs text-left">
+                              {sp.name}
+                            </span>
                           </button>
                         );
                       })}

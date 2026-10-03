@@ -522,7 +522,7 @@ export function SponsorWizardDialog({
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <h4 className="truncate text-xs font-black text-zinc-900 sm:text-sm dark:text-white">
+                    <h4 className="wrap-break-word text-xs font-black text-zinc-900 sm:text-sm dark:text-white">
                       {name}
                     </h4>
                     <Badge variant="outline" className="mt-0.5 text-[10px]">

@@ -132,34 +132,34 @@ export function SponsorsTab({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-3.5">
       {/* 2. Actions Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
             Списък с официални партньори ({sponsors.length})
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
             variant="outline"
             size="sm"
             onClick={onRefresh}
             disabled={isLoading}
-            className="h-9 sm:h-10 rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+            className="h-8.5 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
           >
             <RefreshCw
-              className={`mr-1.5 size-3.5 ${isLoading ? "animate-spin" : ""}`}
+              className={`mr-1 size-3 ${isLoading ? "animate-spin" : ""}`}
             />
             Обнови
           </Button>
 
           <Button
             onClick={handleOpenCreate}
-            className="h-9 sm:h-10 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+            className="h-8.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-3 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
           >
-            <Plus className="mr-1.5 size-4" />
+            <Plus className="mr-1 size-3.5" />
             Нов партньор
           </Button>
         </div>
@@ -209,22 +209,22 @@ export function SponsorsTab({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {sponsors.map((sponsor) => (
             <Card
               key={sponsor.id}
-              className={`group flex flex-col justify-between overflow-hidden rounded-3xl border transition-all duration-200 hover:shadow-md ${
+              className={`group flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-200 hover:shadow-md ${
                 sponsor.isActive
                   ? "border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900"
                   : "border-zinc-200/50 bg-zinc-50/70 opacity-75 dark:border-zinc-800/50 dark:bg-zinc-950"
               }`}
             >
-              <div className="space-y-4 p-5">
+              <div className="space-y-2.5 p-3 sm:p-3.5">
                 {/* Top Row: Category Badge & Order Badge */}
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-1.5">
                   <Badge
                     variant="outline"
-                    className={`shrink-0 rounded-xl border px-2.5 py-0.5 text-[11px] font-bold whitespace-nowrap ${getCategoryBadgeClass(
+                    className={`shrink-0 rounded-lg border px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${getCategoryBadgeClass(
                       sponsor.category
                     )}`}
                     title={getSponsorCategoryLabel(sponsor.category)}
@@ -235,7 +235,7 @@ export function SponsorsTab({
                   </Badge>
 
                   <span
-                    className="shrink-0 rounded-lg border border-zinc-200/60 bg-zinc-100 px-2 py-0.5 font-mono text-[10px] font-bold whitespace-nowrap text-zinc-500 dark:border-zinc-700/60 dark:bg-zinc-800 dark:text-zinc-400"
+                    className="shrink-0 rounded-md border border-zinc-200/60 bg-zinc-100 px-1.5 py-0.5 font-mono text-[9.5px] font-bold whitespace-nowrap text-zinc-500 dark:border-zinc-700/60 dark:bg-zinc-800 dark:text-zinc-400"
                     title={`Пореден номер на визуализация: ${sponsor.order || 0}`}
                   >
                     № {sponsor.order || 0}
@@ -243,34 +243,34 @@ export function SponsorsTab({
                 </div>
 
                 {/* Logo Box */}
-                <div className="relative flex h-28 w-full items-center justify-center overflow-hidden rounded-2xl border border-zinc-100 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="relative flex h-20 sm:h-22 w-full items-center justify-center overflow-hidden rounded-xl border border-zinc-100 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-950">
                   {sponsor.logoUrl ? (
                     <Image
                       src={sponsor.logoUrl}
                       alt={sponsor.name}
-                      width={180}
-                      height={90}
-                      className="max-h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                      width={160}
+                      height={75}
+                      className="max-h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                       style={{ width: "auto", height: "auto" }}
                       loading="eager"
                       unoptimized
                     />
                   ) : (
-                    <Building2 className="size-10 text-zinc-300" />
+                    <Building2 className="size-8 text-zinc-300" />
                   )}
                 </div>
 
                 {/* Info */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <h4
-                    className="text-sm leading-snug font-bold text-zinc-900 dark:text-white"
+                    className="wrap-break-word text-xs sm:text-sm leading-snug font-bold text-zinc-900 dark:text-white"
                     title={sponsor.name}
                   >
                     {sponsor.name}
                   </h4>
                   {sponsor.description ? (
                     <p
-                      className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400"
+                      className="wrap-break-word text-xs leading-relaxed text-zinc-500 dark:text-zinc-400"
                       title={sponsor.description}
                     >
                       {sponsor.description}
@@ -290,24 +290,24 @@ export function SponsorsTab({
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 transition-colors hover:text-blue-700 hover:underline dark:text-blue-400"
                   >
-                    <Globe className="size-3.5 shrink-0" />
-                    <span className="max-w-50 truncate">
+                    <Globe className="size-3 shrink-0" />
+                    <span className="break-all text-[11px]">
                       {sponsor.websiteUrl
                         .replace(/^https?:\/\/(www\.)?/, "")
                         .replace(/\/$/, "")}
                     </span>
-                    <ExternalLink className="size-3 shrink-0 opacity-70" />
+                    <ExternalLink className="size-2.5 shrink-0 opacity-70" />
                   </a>
                 )}
               </div>
 
               {/* Bottom Actions Row */}
-              <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/60 px-4 py-2.5 dark:border-zinc-800/80 dark:bg-zinc-950/40">
+              <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/60 px-3 py-2 dark:border-zinc-800/80 dark:bg-zinc-950/40">
                 {/* Active Toggle Switch as Interactive Pill */}
                 <button
                   type="button"
                   onClick={() => handleToggleActive(sponsor)}
-                  className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1 text-xs font-bold shadow-2xs transition-all ${
+                  className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-xs font-bold shadow-2xs transition-all ${
                     sponsor.isActive
                       ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-950"
                       : "border-zinc-200 bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
@@ -320,40 +320,40 @@ export function SponsorsTab({
                 >
                   {sponsor.isActive ? (
                     <>
-                      <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" />
                       <span>Активен</span>
                     </>
                   ) : (
                     <>
-                      <XCircle className="size-3.5 text-zinc-400" />
+                      <XCircle className="size-3 text-zinc-400" />
                       <span>Скрит</span>
                     </>
                   )}
                 </button>
 
                 {/* Edit & Delete Buttons */}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => handleOpenEdit(sponsor)}
-                    className="size-8 rounded-xl border-zinc-200/80 bg-white text-zinc-600 shadow-2xs transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-blue-800 dark:hover:bg-blue-950/50 dark:hover:text-blue-400"
+                    className="size-7 rounded-lg border-zinc-200/80 bg-white text-zinc-600 shadow-2xs transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-blue-800 dark:hover:bg-blue-950/50 dark:hover:text-blue-400"
                     title="Редактиране на партньора"
                   >
-                    <Pencil className="size-3.5" />
+                    <Pencil className="size-3" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => handleDelete(sponsor.id, sponsor.name)}
                     disabled={deletingId === sponsor.id}
-                    className="size-8 rounded-xl border-zinc-200/80 bg-white text-red-500 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-red-800 dark:hover:bg-red-950/50"
+                    className="size-7 rounded-lg border-zinc-200/80 bg-white text-red-500 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-red-800 dark:hover:bg-red-950/50"
                     title="Изтриване на партньора"
                   >
                     {deletingId === sponsor.id ? (
-                      <Loader2 className="size-3.5 animate-spin" />
+                      <Loader2 className="size-3 animate-spin" />
                     ) : (
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-3" />
                     )}
                   </Button>
                 </div>

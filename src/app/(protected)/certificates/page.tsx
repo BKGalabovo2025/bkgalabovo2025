@@ -12,10 +12,11 @@ export const metadata: Metadata = {
 
 export default function CertificatesPage() {
   return (
-    <div className="space-y-8 pb-12 duration-500 animate-in fade-in">
+    <div className="space-y-3 sm:space-y-4 pb-6 duration-500 animate-in fade-in">
       <PageHeader
+        className="mb-2 sm:mb-3 space-y-1.5 sm:space-y-2"
         title="Сертификати, Грамоти & Ваучери"
-        description="Генериране, споделяне, QR верификация и отчитане на персонални клубни сертификати и ваучери."
+        description="Генериране, споделяне, QR верификация и отчитане на клубни сертификати и ваучери."
         breadcrumbs={[
           { label: "Начало", href: "/" },
           { label: "Управление" },

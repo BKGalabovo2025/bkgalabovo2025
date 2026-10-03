@@ -163,91 +163,91 @@ export function TemplatesTab({
   }, [templates]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-3.5">
       {/* 1. Header KPI Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+        <Card className="rounded-xl border-zinc-200/80 bg-white p-3 shadow-2xs sm:rounded-2xl sm:p-3.5 dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Общо шаблони
               </span>
-              <div className="text-2xl font-black text-zinc-900 dark:text-white">
+              <div className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white">
                 {stats.total}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-              <Palette className="size-5" />
+            <div className="flex size-8 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+              <Palette className="size-4" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl border-zinc-200/80 bg-white p-3 shadow-2xs sm:rounded-2xl sm:p-3.5 dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-                Одобрени (Approved)
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
+                Одобрени
               </span>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+              <div className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
                 {stats.approved}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
-              <CheckCircle2 className="size-5" />
+            <div className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <CheckCircle2 className="size-4" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl border-zinc-200/80 bg-white p-3 shadow-2xs sm:rounded-2xl sm:p-3.5 dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-                Грамоти за класиране
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
+                Грамоти
               </span>
-              <div className="text-2xl font-black text-blue-600 dark:text-blue-400">
+              <div className="text-lg sm:text-xl font-black text-blue-600 dark:text-blue-400">
                 {stats.awards}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
-              <Award className="size-5" />
+            <div className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+              <Award className="size-4" />
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl border-zinc-200/80 bg-white p-3 shadow-2xs sm:rounded-2xl sm:p-3.5 dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-                Подаръчни Ваучери
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
+                Ваучери
               </span>
-              <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
+              <div className="text-lg sm:text-xl font-black text-amber-600 dark:text-amber-400">
                 {stats.vouchers}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
-              <Ticket className="size-5" />
+            <div className="flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+              <Ticket className="size-4" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* 2. Filter Bar and Actions */}
-      <Card className="rounded-3xl border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+      <Card className="rounded-xl border-zinc-200/80 bg-white p-2.5 shadow-2xs sm:rounded-2xl sm:p-3 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex flex-col gap-2.5 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
             {/* Search */}
             <div className="relative max-w-sm flex-1">
-              <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-400" />
+              <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
               <Input
                 placeholder="Търсене на шаблон..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 rounded-2xl border-zinc-200 bg-zinc-50/50 pl-10 text-xs dark:border-zinc-800 dark:bg-zinc-950"
+                className="h-8.5 rounded-xl border-zinc-200 bg-zinc-50/50 pl-9 text-xs dark:border-zinc-800 dark:bg-zinc-950"
               />
             </div>
 
             {/* Type Filters */}
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1">
               {[
                 { id: "all", label: "🌟 Всички" },
                 { id: "award", label: "🏆 Грамоти" },
@@ -258,7 +258,7 @@ export function TemplatesTab({
                   key={pill.id}
                   type="button"
                   onClick={() => setSelectedType(pill.id)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
                     selectedType === pill.id
                       ? "bg-zinc-900 text-white shadow-xs dark:bg-zinc-100 dark:text-zinc-900"
                       : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200/70 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
@@ -270,9 +270,9 @@ export function TemplatesTab({
             </div>
 
             {/* Status Filters */}
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1">
               {[
-                { id: "all", label: "Всички статуси" },
+                { id: "all", label: "Всички" },
                 { id: "approved", label: "✅ Одобрени" },
                 { id: "draft", label: "📝 Чернови" },
               ].map((pill) => (
@@ -280,7 +280,7 @@ export function TemplatesTab({
                   key={pill.id}
                   type="button"
                   onClick={() => setSelectedStatus(pill.id)}
-                  className={`rounded-xl px-2.5 py-1 text-[11px] font-bold transition-all ${
+                  className={`rounded-lg px-2 py-0.5 text-[11px] font-bold transition-all ${
                     selectedStatus === pill.id
                       ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
                       : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200/70 dark:bg-zinc-800 dark:text-zinc-400"
@@ -293,25 +293,25 @@ export function TemplatesTab({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               size="sm"
               onClick={onRefresh}
               disabled={isLoading}
-              className="h-10 rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+              className="h-8.5 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             >
               <RefreshCw
-                className={`mr-1.5 size-3.5 ${isLoading ? "animate-spin" : ""}`}
+                className={`mr-1 size-3 ${isLoading ? "animate-spin" : ""}`}
               />
               Обнови
             </Button>
 
             <Button
               onClick={handleOpenCreate}
-              className="h-10 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+              className="h-8.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-3 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
             >
-              <Plus className="mr-1.5 size-4" />
+              <Plus className="mr-1 size-3.5" />
               Нов шаблон
             </Button>
           </div>
@@ -361,7 +361,7 @@ export function TemplatesTab({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredTemplates.map((template) => {
             const isApproved = template.status === "approved";
             const vc = template.visualConfig;
@@ -370,18 +370,18 @@ export function TemplatesTab({
             return (
               <Card
                 key={template.id}
-                className={`group flex flex-col justify-between overflow-hidden rounded-3xl border transition-all duration-200 hover:shadow-lg ${
+                className={`group flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-200 hover:shadow-md ${
                   isApproved
                     ? "border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900"
                     : "border-amber-200/60 bg-amber-50/20 dark:border-amber-900/40 dark:bg-zinc-950"
                 }`}
               >
-                <div className="space-y-4 p-5">
+                <div className="space-y-2.5 p-3 sm:p-3.5">
                   {/* Top Row: Type Badge + Status Pill */}
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between gap-1.5">
                     <Badge
                       variant="outline"
-                      className="rounded-xl border bg-zinc-100 px-2.5 py-0.5 text-[11px] font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                      className="rounded-lg border bg-zinc-100 px-2 py-0.5 text-[10.5px] font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                     >
                       {getCertificateTypeLabel(template.type)}
                     </Badge>
@@ -389,7 +389,7 @@ export function TemplatesTab({
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(template)}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold transition-all ${
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold transition-all ${
                         isApproved
                           ? "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                           : "border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
@@ -398,29 +398,37 @@ export function TemplatesTab({
                     >
                       {isApproved ? (
                         <>
-                          <CheckCircle2 className="size-3 text-emerald-600" />
+                          <CheckCircle2 className="size-2.5 text-emerald-600" />
                           <span>Одобрен</span>
                         </>
                       ) : (
                         <>
-                          <XCircle className="size-3 text-amber-600" />
+                          <XCircle className="size-2.5 text-amber-600" />
                           <span>Чернова</span>
                         </>
                       )}
                     </button>
                   </div>
 
+                  {/* Template Title */}
+                  <h3
+                    className="wrap-break-word text-xs sm:text-sm font-black text-zinc-900 dark:text-white"
+                    title={template.title}
+                  >
+                    {template.title}
+                  </h3>
+
                   {/* Real Miniature Certificate Preview */}
                   <div
                     onClick={() => setPreviewTemplate(template)}
-                    className="group/preview relative flex h-48 w-full cursor-pointer items-center justify-center overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-100/80 p-2 transition-all hover:border-blue-500 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-950"
+                    className="group/preview relative flex h-36 sm:h-40 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-100/80 p-1.5 transition-all hover:border-blue-500 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
                     title="Кликнете за пълен предварителен преглед на грамотата"
                   >
                     <div
                       className={`group-hover/preview:scale-1.03 pointer-events-none flex shrink-0 origin-center items-center justify-center transition-transform duration-300 select-none ${
                         vc.orientation === "landscape"
-                          ? "scale-0.31 h-[565px] w-200"
-                          : "scale-0.20 h-212 w-150"
+                          ? "scale-0.27 h-[565px] w-200"
+                          : "scale-0.18 h-212 w-150"
                       }`}
                     >
                       <CertificateDocumentPreview
@@ -455,10 +463,10 @@ export function TemplatesTab({
                     </div>
 
                     {/* Frame/Style badge in top left */}
-                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded-md bg-black/60 px-2 py-0.5 text-[9px] font-bold text-white backdrop-blur-xs">
+                    <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[8.5px] font-bold text-white backdrop-blur-xs">
                       {isAiBackground ? (
                         <>
-                          <Sparkles className="size-2.5 text-purple-300" />
+                          <Sparkles className="size-2 text-purple-300" />
                           <span>AI Арт</span>
                         </>
                       ) : (
@@ -467,23 +475,23 @@ export function TemplatesTab({
                     </div>
 
                     {/* Orientation badge in top right */}
-                    <div className="absolute top-2 right-2 z-10 rounded-md bg-black/60 px-2 py-0.5 text-[9px] font-bold text-white backdrop-blur-xs">
+                    <div className="absolute top-1.5 right-1.5 z-10 rounded-md bg-black/60 px-1.5 py-0.5 text-[8.5px] font-bold text-white backdrop-blur-xs">
                       {vc.orientation === "landscape" ? "Пейзаж" : "Портрет"}
                     </div>
 
                     {/* Hover Action Pill */}
                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[1px] transition-opacity duration-200 group-hover/preview:opacity-100">
-                      <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xl transition-transform group-hover/preview:scale-105">
-                        <Eye className="size-3.5" />
-                        <span>Преглед на живо</span>
+                      <div className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-bold text-white shadow-xl transition-transform group-hover/preview:scale-105">
+                        <Eye className="size-3" />
+                        <span>Преглед</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Description & Signatory info */}
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     {template.description ? (
-                      <p className="line-clamp-2 text-xs leading-relaxed text-zinc-500">
+                      <p className="wrap-break-word text-xs leading-relaxed text-zinc-500">
                         {template.description}
                       </p>
                     ) : (
@@ -492,8 +500,8 @@ export function TemplatesTab({
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between border-t border-zinc-100 pt-1 text-[11px] text-zinc-500 dark:border-zinc-800/60">
-                      <span>
+                    <div className="flex items-center justify-between border-t border-zinc-100 pt-1 text-[10.5px] text-zinc-500 dark:border-zinc-800/60">
+                      <span className="wrap-break-word">
                         Подпис: <strong>{vc.signatoryName}</strong>
                       </span>
                       {template.type === "voucher" &&
@@ -507,14 +515,14 @@ export function TemplatesTab({
                 </div>
 
                 {/* Bottom Actions Footer */}
-                <div className="flex flex-col gap-2.5 border-t border-zinc-100 bg-zinc-50/70 p-3.5 dark:border-zinc-800/80 dark:bg-zinc-950/40">
-                  <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-2 border-t border-zinc-100 bg-zinc-50/70 p-2.5 dark:border-zinc-800/80 dark:bg-zinc-950/40">
+                  <div className="grid grid-cols-2 gap-1.5">
                     <Button
                       size="sm"
                       onClick={() => onSelectForIssuance(template.id)}
-                      className="flex h-9 items-center justify-center gap-1.5 rounded-xl bg-blue-600 text-xs font-bold text-white shadow-xs hover:bg-blue-700"
+                      className="flex h-8 items-center justify-center gap-1 rounded-lg bg-blue-600 text-xs font-bold text-white shadow-xs hover:bg-blue-700"
                     >
-                      <Printer className="size-3.5" />
+                      <Printer className="size-3" />
                       Издай
                     </Button>
 
@@ -522,22 +530,22 @@ export function TemplatesTab({
                       variant="outline"
                       size="sm"
                       onClick={() => setPreviewTemplate(template)}
-                      className="flex h-9 items-center justify-center gap-1.5 rounded-xl border-zinc-200 bg-white text-xs font-bold text-zinc-700 shadow-2xs hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-blue-950/50"
+                      className="flex h-8 items-center justify-center gap-1 rounded-lg border-zinc-200 bg-white text-xs font-bold text-zinc-700 shadow-2xs hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-blue-950/50"
                       title="Виж предварителен преглед на грамотата"
                     >
-                      <Eye className="size-3.5 text-blue-600 dark:text-blue-400" />
+                      <Eye className="size-3 text-blue-600 dark:text-blue-400" />
                       Преглед
                     </Button>
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-zinc-200/60 pt-1.5 text-xs dark:border-zinc-800/60">
+                  <div className="flex items-center justify-between border-t border-zinc-200/60 pt-1 text-xs dark:border-zinc-800/60">
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(template)}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-semibold text-zinc-600 transition-colors hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold text-zinc-600 transition-colors hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
                       title="Редактиране на шаблон"
                     >
-                      <Pencil className="size-3.5 text-zinc-500" />
+                      <Pencil className="size-3 text-zinc-500" />
                       <span>Редактирай</span>
                     </button>
 
@@ -545,13 +553,13 @@ export function TemplatesTab({
                       type="button"
                       onClick={() => handleDelete(template.id, template.title)}
                       disabled={deletingId === template.id}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-semibold text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/50"
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/50"
                       title="Изтриване на шаблон"
                     >
                       {deletingId === template.id ? (
-                        <Loader2 className="size-3.5 animate-spin" />
+                        <Loader2 className="size-3 animate-spin" />
                       ) : (
-                        <Trash2 className="size-3.5" />
+                        <Trash2 className="size-3" />
                       )}
                       <span>Изтрий</span>
                     </button>

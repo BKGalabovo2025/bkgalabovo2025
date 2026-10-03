@@ -141,7 +141,7 @@ export function RedeemVoucherDialog({
                         Процедура #{log.sessionNumber}
                       </span>
                       {log.note && (
-                        <p className="line-clamp-1 text-[10px] text-zinc-400">
+                        <p className="wrap-break-word text-[10px] text-zinc-400">
                           {log.note}
                         </p>
                       )}
