@@ -564,7 +564,7 @@ export function BusinessTripManagerDialog({
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-row items-center justify-between rounded-xl bg-zinc-50/50 p-6 dark:bg-zinc-900/50">
+          <div className="flex flex-col items-start justify-between gap-3 rounded-xl bg-zinc-50/50 p-4 sm:flex-row sm:items-center sm:p-6 dark:bg-zinc-900/50">
             <div>
               <p className="text-sm font-light text-zinc-400">
                 Управление на Решения на УС, Заповеди и финансово отчитане за

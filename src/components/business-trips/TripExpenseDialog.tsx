@@ -262,7 +262,7 @@ export function TripExpenseDialog({
             onSubmit={form.handleSubmit(onSubmit as any)}
             className="space-y-6"
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-4">
               <FormField
                 control={form.control as any}
                 name="expenseType"
@@ -465,7 +465,7 @@ export function TripExpenseDialog({
                 control={form.control as any}
                 name="supplierName"
                 render={({ field }: any) => (
-                  <FormItem className="col-span-2">
+                  <FormItem className="col-span-1 sm:col-span-2">
                     <FormLabel>
                       Име на доставчик (Хотел, Бензиностанция и др.)
                     </FormLabel>
@@ -481,7 +481,7 @@ export function TripExpenseDialog({
                 control={form.control as any}
                 name="attachmentFile"
                 render={({ field: { value, onChange, ...field } }) => (
-                  <FormItem className="col-span-2">
+                  <FormItem className="col-span-1 sm:col-span-2">
                     <FormLabel>Прикачи снимка/скан (опционално)</FormLabel>
                     <FormControl>
                       <div className="flex items-center gap-4">

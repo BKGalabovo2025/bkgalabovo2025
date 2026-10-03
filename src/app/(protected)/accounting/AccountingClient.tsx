@@ -189,6 +189,105 @@ function getTripStatusBadge(status?: string) {
   };
 }
 
+interface TripMobileCardProps {
+  trip: BusinessTrip;
+  coachName: string;
+  total: number;
+  expensesCount: number;
+  statusBadge: {
+    variant: "default" | "secondary" | "outline";
+    className: string;
+    text: string;
+  };
+  onManage: (trip: BusinessTrip) => void;
+}
+
+function TripMobileCard({
+  trip,
+  coachName,
+  total,
+  expensesCount,
+  statusBadge,
+  onManage,
+}: TripMobileCardProps) {
+  return (
+    <div className="space-y-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 transition-colors dark:border-zinc-800/80 dark:bg-zinc-800/30">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+            📅 {formatDateShort(trip.startDate)}
+          </span>
+          <h4
+            className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100"
+            title={trip.title}
+          >
+            {trip.title}
+          </h4>
+          {trip.destination && (
+            <p
+              className="truncate text-xs text-zinc-500 dark:text-zinc-400"
+              title={trip.destination}
+            >
+              📍 {trip.destination}
+            </p>
+          )}
+        </div>
+        <Badge
+          variant={statusBadge.variant}
+          className={`shrink-0 px-1.5 py-0.5 text-[10px] font-medium capitalize ${statusBadge.className}`}
+        >
+          {statusBadge.text}
+        </Badge>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200/60 pt-1.5 text-xs dark:border-zinc-800/60">
+        <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
+          <span className="max-w-35 truncate">👤 {coachName}</span>
+          <span>•</span>
+          {trip.financials.isCommercialActivity ? (
+            <Badge
+              variant="outline"
+              className="border-orange-200 bg-orange-50 px-1.5 py-0.2 text-[10px] font-medium text-orange-600 dark:border-orange-900/60 dark:bg-orange-950/40 dark:text-orange-400"
+            >
+              Стопанска
+            </Badge>
+          ) : (
+            <Badge
+              variant="outline"
+              className="border-green-200 bg-green-50 px-1.5 py-0.2 text-[10px] font-medium text-green-700 dark:border-green-900/60 dark:bg-green-950/40 dark:text-green-400"
+            >
+              Нестопанска
+            </Badge>
+          )}
+        </div>
+
+        <div className="text-right">
+          <span className="font-bold text-zinc-900 dark:text-white">
+            €{total.toFixed(2)}
+          </span>
+          <span className="ml-1 text-[10px] text-zinc-400">
+            ({convertEurToBgn(total).toFixed(2)} лв.)
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-1">
+        <span className="text-[11px] text-zinc-500">
+          {expensesCount > 0 ? `🧾 ${expensesCount} фактури` : "Няма фактури"}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 border-zinc-200 px-3 text-xs hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
+          onClick={() => onManage(trip)}
+        >
+          Управление
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 const ITEMS_PER_PAGE = 8;
 
 export default function AccountingClient() {
@@ -807,14 +906,14 @@ export default function AccountingClient() {
           { label: "Отчети" },
         ]}
       >
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <div className="grid w-full grid-cols-2 items-center gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2">
           <Button
             size="sm"
             onClick={() => {
               setEventSearchQuery("");
               setIsSelectEventOpen(true);
             }}
-            className="h-8 rounded-lg bg-emerald-600 px-2.5 text-xs text-white shadow-xs hover:bg-emerald-700"
+            className="col-span-2 h-8 justify-center rounded-lg bg-emerald-600 px-2.5 text-xs text-white shadow-xs hover:bg-emerald-700 sm:col-span-1"
           >
             <Plus className="mr-1.5 size-3.5" />
             Нова командировка
@@ -823,7 +922,7 @@ export default function AccountingClient() {
             variant="outline"
             size="sm"
             onClick={handleExportExcel}
-            className="h-8 rounded-lg border-slate-200 px-2.5 text-xs"
+            className="h-8 justify-center rounded-lg border-slate-200 px-2.5 text-xs"
           >
             <FileDown className="mr-1.5 size-3.5" /> Excel
           </Button>
@@ -832,7 +931,7 @@ export default function AccountingClient() {
             size="sm"
             onClick={handleDownloadAll}
             disabled={isZipping || filteredTrips.length === 0}
-            className="h-8 rounded-lg border-indigo-200 bg-indigo-50/60 px-2.5 text-xs text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200"
+            className="h-8 justify-center rounded-lg border-indigo-200 bg-indigo-50/60 px-2.5 text-xs text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200"
           >
             <FileDown className="mr-1.5 size-3.5" />
             {isZipping ? "Генериране..." : "ZIP Пакет"}
@@ -844,7 +943,7 @@ export default function AccountingClient() {
                 variant="default"
                 size="sm"
                 disabled={isGeneratingPdf}
-                className="h-8 rounded-lg bg-zinc-950 px-2.5 text-xs text-white shadow-xs hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                className="col-span-2 h-8 justify-center rounded-lg bg-zinc-950 px-2.5 text-xs text-white shadow-xs hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 sm:col-span-1"
               >
                 {isGeneratingPdf ? "Зареждане..." : "Протокол"}
                 <ChevronDown className="ml-1 size-3.5" />
@@ -878,18 +977,18 @@ export default function AccountingClient() {
       </PageHeader>
 
       {/* ── Compact Streamlined Toolbar (Month + Search + Filters) ── */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200/80 bg-white p-2 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
-        <div className="flex items-center gap-1.5">
+      <div className="flex flex-col gap-2 rounded-xl border border-zinc-200/80 bg-white p-2 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center justify-between gap-1.5 md:justify-start">
           <Button
             variant="outline"
             size="icon"
             onClick={prevMonth}
             aria-label="Предишен месец"
-            className="size-7.5 rounded-lg"
+            className="size-7.5 shrink-0 rounded-lg"
           >
             <ChevronLeft className="size-3.5" />
           </Button>
-          <div className="min-w-28 text-center text-xs font-semibold text-zinc-900 capitalize dark:text-zinc-100">
+          <div className="min-w-28 text-center text-xs font-semibold capitalize text-zinc-900 dark:text-zinc-100">
             {format(selectedMonth, "MMMM yyyy", { locale: bg })}
           </div>
           <Button
@@ -897,7 +996,7 @@ export default function AccountingClient() {
             size="icon"
             onClick={nextMonth}
             aria-label="Следващ месец"
-            className="size-7.5 rounded-lg"
+            className="size-7.5 shrink-0 rounded-lg"
           >
             <ChevronRight className="size-3.5" />
           </Button>
@@ -905,20 +1004,20 @@ export default function AccountingClient() {
             variant="ghost"
             size="sm"
             onClick={goToCurrentMonth}
-            className="h-7.5 px-2 text-[11px] text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+            className="h-7.5 shrink-0 px-2 text-[11px] text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
           >
             Текущ
           </Button>
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <div className="relative">
+          <div className="relative min-w-36 flex-1 sm:w-48 sm:flex-none">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Търси събитие, треньор..."
               value={tripSearchQuery}
               onChange={(e) => setTripSearchQuery(e.target.value)}
-              className="h-7.5 w-36 pl-7 text-xs sm:w-48"
+              className="h-7.5 w-full pl-7 text-xs"
             />
           </div>
 
@@ -926,7 +1025,7 @@ export default function AccountingClient() {
             value={activityFilter}
             onValueChange={(val: any) => setActivityFilter(val)}
           >
-            <SelectTrigger className="h-7.5 w-30 text-xs">
+            <SelectTrigger className="h-7.5 min-w-28 flex-1 text-xs sm:w-30 sm:flex-none">
               <SelectValue placeholder="Дейност" />
             </SelectTrigger>
             <SelectContent>
@@ -940,7 +1039,7 @@ export default function AccountingClient() {
             value={statusFilter}
             onValueChange={(val: any) => setStatusFilter(val)}
           >
-            <SelectTrigger className="h-7.5 w-28 text-xs">
+            <SelectTrigger className="h-7.5 min-w-26 flex-1 text-xs sm:w-28 sm:flex-none">
               <SelectValue placeholder="Статус" />
             </SelectTrigger>
             <SelectContent>
@@ -953,10 +1052,10 @@ export default function AccountingClient() {
         </div>
       </div>
 
-      {/* ── 5-Metric Ribbon (Compact Single Row on Laptop) ── */}
+      {/* ── 5-Metric Ribbon (Compact Single Row on Laptop, 2-Col on Mobile) ── */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {/* Общо Разходи */}
-        <div className="flex flex-col justify-between rounded-xl border border-blue-200/70 bg-linear-to-br from-blue-50/70 to-indigo-50/40 p-2.5 shadow-2xs dark:border-blue-900/40 dark:from-blue-950/20 dark:to-indigo-950/20">
+        <div className="col-span-2 flex flex-col justify-between rounded-xl border border-blue-200/70 bg-linear-to-br from-blue-50/70 to-indigo-50/40 p-2.5 shadow-2xs dark:border-blue-900/40 dark:from-blue-950/20 dark:to-indigo-950/20 sm:col-span-1">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-blue-700 dark:text-blue-300">
               Общо Разходи
@@ -1069,7 +1168,43 @@ export default function AccountingClient() {
           </Badge>
         </div>
 
-        <div className="max-h-[calc(100vh-360px)] min-h-50 overflow-auto">
+        {/* 1. Mobile Cards View (<md) */}
+        <div className="space-y-2.5 p-2 md:hidden">
+          {filteredTrips.length === 0 ? (
+            <div className="py-8 text-center text-xs text-zinc-500">
+              Няма намерени записи за този период.
+            </div>
+          ) : (
+            paginatedTrips.map((trip) => {
+              const coach = membersDict[trip.coachId];
+              const coachName = coach
+                ? `${coach.firstName} ${coach.lastName}`
+                : "Неизвестен";
+
+              const tripExps = expenses[trip.id!] || [];
+              const { total, expensesCount } = computeTripRowTotals(
+                trip,
+                tripExps
+              );
+              const statusBadge = getTripStatusBadge(trip.status);
+
+              return (
+                <TripMobileCard
+                  key={trip.id}
+                  trip={trip}
+                  coachName={coachName}
+                  total={total}
+                  expensesCount={expensesCount}
+                  statusBadge={statusBadge}
+                  onManage={handleManageTrip}
+                />
+              );
+            })
+          )}
+        </div>
+
+        {/* 2. Desktop Table View (>=md) */}
+        <div className="hidden max-h-[calc(100vh-360px)] min-h-50 overflow-auto md:block">
           <Table className="w-full text-xs">
             <TableHeader className="sticky top-0 z-10 bg-zinc-50/95 backdrop-blur-xs dark:bg-zinc-900/95">
               <TableRow className="border-b text-[11px]">
@@ -1120,7 +1255,7 @@ export default function AccountingClient() {
                       key={trip.id}
                       className="border-b transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40"
                     >
-                      <TableCell className="px-2.5 py-1.5 font-medium whitespace-nowrap text-zinc-600 dark:text-zinc-400">
+                      <TableCell className="whitespace-nowrap px-2.5 py-1.5 font-medium text-zinc-600 dark:text-zinc-400">
                         {formatDateShort(trip.startDate)}
                       </TableCell>
                       <TableCell className="min-w-40 max-w-60 px-2.5 py-1.5">
@@ -1144,7 +1279,7 @@ export default function AccountingClient() {
                           {coachName}
                         </span>
                       </TableCell>
-                      <TableCell className="px-2 py-1.5 whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap px-2 py-1.5">
                         {trip.financials.isCommercialActivity ? (
                           <Badge
                             variant="outline"
@@ -1161,7 +1296,7 @@ export default function AccountingClient() {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="px-2 py-1.5 whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap px-2 py-1.5">
                         <Badge
                           variant={statusBadge.variant}
                           className={`px-1.5 py-0.5 text-[10px] font-medium capitalize ${statusBadge.className}`}
@@ -1169,7 +1304,7 @@ export default function AccountingClient() {
                           {statusBadge.text}
                         </Badge>
                       </TableCell>
-                      <TableCell className="px-2.5 py-1.5 text-right whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap px-2.5 py-1.5 text-right">
                         <span className="font-bold text-zinc-900 dark:text-white">
                           €{total.toFixed(2)}
                         </span>
@@ -1177,7 +1312,7 @@ export default function AccountingClient() {
                           {convertEurToBgn(total).toFixed(2)} лв.
                         </span>
                       </TableCell>
-                      <TableCell className="px-2.5 py-1.5 text-right whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap px-2.5 py-1.5 text-right">
                         {expensesCount > 0 ? (
                           <span className="text-[11px] text-zinc-500">
                             {expensesCount} фактури
@@ -1186,11 +1321,11 @@ export default function AccountingClient() {
                           <span className="text-zinc-400">-</span>
                         )}
                       </TableCell>
-                      <TableCell className="px-2.5 py-1.5 text-right whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap px-2.5 py-1.5 text-right">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-7 px-2 text-xs border-zinc-200 hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
+                          className="h-7 border-zinc-200 px-2 text-xs hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
                           onClick={() => handleManageTrip(trip)}
                         >
                           Управление
@@ -1204,9 +1339,9 @@ export default function AccountingClient() {
           </Table>
         </div>
 
-        {/* ── Compact Pagination Bar ── */}
+        {/* ── Compact Adaptive Pagination Bar ── */}
         {filteredTrips.length > 0 && (
-          <div className="flex items-center justify-between border-t border-zinc-100 px-3.5 py-1.5 text-xs text-muted-foreground dark:border-zinc-800">
+          <div className="flex flex-col items-center justify-between gap-2 border-t border-zinc-100 px-3.5 py-2 text-xs text-muted-foreground sm:flex-row dark:border-zinc-800">
             <span>
               Показване на {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
               {Math.min(currentPage * ITEMS_PER_PAGE, filteredTrips.length)} от{" "}
