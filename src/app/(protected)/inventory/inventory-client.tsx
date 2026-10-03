@@ -32,6 +32,58 @@ import { inventoryService } from "@/services/inventory-service";
 import { useAppStore } from "@/store/use-app-store";
 import { AllocationType, InventoryItem } from "@/types/inventory.types";
 
+interface InventoryMobileCardProps {
+  item: InventoryItem;
+  allocationText: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function InventoryMobileCard({
+  item,
+  allocationText,
+  onEdit,
+  onDelete,
+}: InventoryMobileCardProps) {
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h3 className="font-semibold text-zinc-900 dark:text-white">
+            {item.name}
+          </h3>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            {allocationText}
+          </p>
+        </div>
+        <div className="inline-flex shrink-0 items-center justify-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
+          {item.totalQuantity} бр.
+        </div>
+      </div>
+      <div className="mt-3 flex items-center justify-end gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-900">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onEdit}
+          className="h-8 gap-1.5 rounded-lg text-xs text-zinc-600 hover:text-indigo-600 dark:text-zinc-400"
+        >
+          <Edit className="size-3.5" />
+          Редактирай
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDelete}
+          className="h-8 gap-1.5 rounded-lg text-xs text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
+        >
+          <Trash2 className="size-3.5" />
+          Изтрий
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function InventoryClient() {
   const { activeBranch } = useAppStore();
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -155,18 +207,39 @@ export default function InventoryClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-zinc-800">Списък с уреди</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-lg font-bold text-zinc-800 dark:text-zinc-100">
+          Списък с уреди ({items.length})
+        </h2>
         <Button
           onClick={() => handleOpenForm()}
-          className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700"
+          className="w-full sm:w-auto gap-2 bg-indigo-600 text-white hover:bg-indigo-700"
         >
           <Plus className="size-4" />
           Добави уред
         </Button>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm">
+      {/* Mobile Cards (< md) */}
+      <div className="space-y-3 md:hidden">
+        {items.map((item) => (
+          <InventoryMobileCard
+            key={item.id}
+            item={item}
+            allocationText={getAllocationText(item)}
+            onEdit={() => handleOpenForm(item)}
+            onDelete={() => handleDelete(item.id)}
+          />
+        ))}
+        {items.length === 0 && (
+          <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950">
+            Няма добавено оборудване.
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table (>= md) */}
+      <div className="hidden md:block rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <Table>
           <TableHeader>
             <TableRow>

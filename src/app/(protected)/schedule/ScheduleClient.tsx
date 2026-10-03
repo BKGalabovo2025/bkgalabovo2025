@@ -579,11 +579,11 @@ export default function ScheduleClient() {
       const mode =
         activeMainTab === "recovery" || isRecoveryZone ? "recovery" : "courts";
       return (
-        <div className="flex items-center gap-3">
+        <div className="flex w-full flex-col sm:flex-row items-center gap-2 sm:gap-3 sm:w-auto">
           <ReservationDialog mode={mode} onSave={handleSaveReservation}>
-            <Button className="h-12 rounded-xl bg-primary px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90">
-              <Plus className="mr-3 size-4" strokeWidth={2.5} /> Нова Резервация{" "}
-              {mode === "recovery" ? "на ПРОЦЕДУРА" : "на КОРТ"}
+            <Button className="h-11 sm:h-12 w-full sm:w-auto rounded-xl bg-primary px-5 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90">
+              <Plus className="mr-2 sm:mr-3 size-4" strokeWidth={2.5} /> Нова
+              Резервация {mode === "recovery" ? "на ПРОЦЕДУРА" : "на КОРТ"}
             </Button>
           </ReservationDialog>
           {!isRecoveryZone && activeBranch === "bkgalabovo" && (
@@ -593,10 +593,10 @@ export default function ScheduleClient() {
             >
               <Button
                 variant="outline"
-                className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                className="h-11 sm:h-12 w-full sm:w-auto rounded-xl border-zinc-200 bg-white px-5 sm:px-6 text-[11px] font-medium tracking-widest uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
               >
                 <ShieldAlert
-                  className="mr-3 size-4 text-zinc-400"
+                  className="mr-2 sm:mr-3 size-4 text-zinc-400"
                   strokeWidth={1.5}
                 />
                 Блокирай
@@ -607,20 +607,21 @@ export default function ScheduleClient() {
       );
     } else {
       return (
-        <div className="flex flex-wrap gap-4">
+        <div className="flex w-full flex-col sm:flex-row items-center gap-2 sm:gap-4 sm:w-auto">
           <Button
             variant="outline"
             onClick={() => setMonthlyDialogOpen(true)}
-            className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+            className="h-11 sm:h-12 w-full sm:w-auto rounded-xl border-zinc-200 bg-white px-5 sm:px-6 text-[11px] font-medium tracking-widest uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
           >
-            <Repeat className="mr-3 size-4" strokeWidth={1.5} /> Шаблонен график
+            <Repeat className="mr-2 sm:mr-3 size-4" strokeWidth={1.5} />{" "}
+            Шаблонен график
           </Button>
           <Button
             onClick={() => setCreateDialogOpen(true)}
-            className="h-12 rounded-xl bg-primary px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90"
+            className="h-11 sm:h-12 w-full sm:w-auto rounded-xl bg-primary px-5 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90"
           >
-            <PlusCircle className="mr-3 size-4" strokeWidth={1.5} /> Създай
-            събитие
+            <PlusCircle className="mr-2 sm:mr-3 size-4" strokeWidth={1.5} />{" "}
+            Създай събитие
           </Button>
         </div>
       );

@@ -1025,10 +1025,26 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                   <div
                     key={member.id}
                     onClick={() => router.push(`/members/${member.id}`)}
-                    className="p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900"
+                    className={cn(
+                      "p-4 sm:p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900",
+                      selectedIds.includes(member.id) && "bg-primary/5"
+                    )}
                   >
-                    <div className="mb-4 flex items-center justify-between">
+                    <div className="mb-3 flex items-center justify-between">
                       <div className="flex items-center gap-3">
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSelect(member.id);
+                          }}
+                          className="mr-0.5"
+                        >
+                          <Checkbox
+                            checked={selectedIds.includes(member.id)}
+                            onCheckedChange={() => toggleSelect(member.id)}
+                            className="rounded-md border-zinc-200"
+                          />
+                        </div>
                         <Avatar className="size-10 shrink-0 rounded-xl border border-zinc-100 dark:border-zinc-800">
                           <AvatarImage
                             src={getValidAvatarUrl(member.avatarUrl)}
@@ -1121,7 +1137,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex flex-col items-center justify-between gap-6 border-t border-zinc-50 bg-zinc-50/50 p-5 sm:flex-row sm:p-6 dark:border-zinc-900 dark:bg-zinc-900/50">
+              <div className="flex flex-col items-center justify-between gap-3 border-t border-zinc-50 bg-zinc-50/50 p-3.5 sm:flex-row sm:p-5 dark:border-zinc-900 dark:bg-zinc-900/50">
                 <p className="order-2 text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:order-1 sm:text-[11px] dark:text-zinc-400">
                   Показани{" "}
                   <span className="text-zinc-900 dark:text-white">

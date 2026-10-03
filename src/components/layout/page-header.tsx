@@ -28,7 +28,7 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <div className={cn("mb-12 space-y-6", className)}>
+    <div className={cn("mb-6 sm:mb-8 space-y-4 sm:space-y-5", className)}>
       <Breadcrumb>
         <BreadcrumbList>
           {breadcrumbs.map((crumb, index) => (
@@ -54,18 +54,22 @@ export function PageHeader({
           ))}
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-normal tracking-tight text-zinc-900 dark:text-white">
+      <div className="flex flex-col justify-between gap-4 sm:gap-6 md:flex-row md:items-end">
+        <div className="space-y-1 sm:space-y-1.5">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-normal tracking-tight text-zinc-900 dark:text-white">
             {title}
           </h1>
           {description && (
-            <p className="max-w-2xl leading-relaxed font-light text-zinc-500 dark:text-zinc-400">
+            <p className="max-w-2xl text-xs sm:text-sm leading-relaxed font-light text-zinc-500 dark:text-zinc-400">
               {description}
             </p>
           )}
         </div>
-        {children && <div className="flex items-center gap-3">{children}</div>}
+        {children && (
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
+            {children}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -155,61 +155,61 @@ export default function TournamentsClient({
       >
         <Button
           onClick={() => setIsDialogOpen(true)}
-          className="h-12 rounded-xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+          className="h-11 sm:h-12 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
         >
           <Plus className="mr-3 size-4" strokeWidth={1.5} /> Нов турнир
         </Button>
       </PageHeader>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-        <BentoCard className="p-8">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        <BentoCard className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-100 dark:border-zinc-800">
           <div className="flex items-start justify-between">
             <div>
-              <p className="mb-1 text-4xl font-light text-zinc-900 dark:text-white">
+              <p className="mb-1 text-2xl sm:text-4xl font-light text-zinc-900 dark:text-white">
                 {activeTournaments.length}
               </p>
-              <p className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+              <p className="text-[10px] sm:text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                 Активни
               </p>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/5 text-primary">
-              <Trophy className="size-5" strokeWidth={1.5} />
+            <div className="flex size-8 sm:size-10 items-center justify-center rounded-xl bg-primary/5 text-primary">
+              <Trophy className="size-4 sm:size-5" strokeWidth={1.5} />
             </div>
           </div>
         </BentoCard>
-        <BentoCard className="p-8">
+        <BentoCard className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-100 dark:border-zinc-800">
           <div className="flex items-start justify-between">
             <div>
-              <p className="mb-1 text-4xl font-light text-zinc-900 dark:text-white">
+              <p className="mb-1 text-2xl sm:text-4xl font-light text-zinc-900 dark:text-white">
                 {completedTournaments.length}
               </p>
-              <p className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+              <p className="text-[10px] sm:text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                 Приключили
               </p>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-xl bg-zinc-50 text-zinc-400 dark:bg-zinc-900">
-              <CheckCircle2 className="size-5" strokeWidth={1.5} />
+            <div className="flex size-8 sm:size-10 items-center justify-center rounded-xl bg-zinc-50 text-zinc-400 dark:bg-zinc-900">
+              <CheckCircle2 className="size-4 sm:size-5" strokeWidth={1.5} />
             </div>
           </div>
         </BentoCard>
-        <BentoCard className="flex items-center p-4 px-8 md:col-span-2">
+        <BentoCard className="col-span-2 flex items-center p-3 sm:p-4 px-4 sm:px-6 md:col-span-2 rounded-2xl sm:rounded-3xl border border-zinc-100 dark:border-zinc-800">
           <div className="relative w-full">
             <Search
-              className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400"
+              className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-400"
               strokeWidth={1.5}
             />
             <Input
               placeholder="Търсене на турнир по име или локация..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 pl-12 text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
+              className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-zinc-100 bg-zinc-50/50 pl-10 sm:pl-11 text-xs sm:text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
             />
           </div>
         </BentoCard>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-5xl border-zinc-100 shadow-2xl">
+        <DialogContent className="max-h-[92vh] w-[calc(100%-1.5rem)] max-w-2xl overflow-y-auto rounded-2xl sm:rounded-4xl border-zinc-100 p-4 sm:p-6 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-light tracking-widest text-zinc-900 uppercase dark:text-white">
               Нов турнир
@@ -228,7 +228,7 @@ export default function TournamentsClient({
         open={!!editingTournament}
         onOpenChange={(open) => !open && setEditingTournament(null)}
       >
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-5xl border-zinc-100 shadow-2xl">
+        <DialogContent className="max-h-[92vh] w-[calc(100%-1.5rem)] max-w-2xl overflow-y-auto rounded-2xl sm:rounded-4xl border-zinc-100 p-4 sm:p-6 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-light tracking-widest text-zinc-900 uppercase dark:text-white">
               Редактиране
@@ -266,7 +266,7 @@ export default function TournamentsClient({
           </Button>
         </BentoCard>
       ) : (
-        <div className="space-y-20">
+        <div className="space-y-8 sm:space-y-12">
           {activeTournaments.length > 0 && (
             <div className="space-y-10">
               <div className="flex items-center gap-4 px-1">

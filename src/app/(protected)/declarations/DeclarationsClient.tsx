@@ -81,12 +81,11 @@ export default function DeclarationsClient() {
           { label: "Декларации" },
         ]}
       >
-        <div className="flex gap-3">
-          {/* <Button variant="outline" onClick={() => setIsEditing(!isEditing)}>
-            <Settings className="w-4 h-4 mr-2" />
-            {isEditing ? "Отказ" : "Настройки на шаблона"}
-          </Button> */}
-          <Button onClick={handlePrint} className="print:hidden">
+        <div className="flex w-full sm:w-auto">
+          <Button
+            onClick={handlePrint}
+            className="w-full sm:w-auto print:hidden"
+          >
             <Printer className="mr-2 size-4" />
             Разпечатай празен шаблон
           </Button>
@@ -95,7 +94,7 @@ export default function DeclarationsClient() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <div className="flex items-center gap-4 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm dark:border-zinc-900 dark:bg-zinc-950">
+          <div className="flex items-center gap-3 rounded-2xl border border-zinc-100 bg-white p-3.5 sm:p-4 shadow-sm dark:border-zinc-900 dark:bg-zinc-950">
             <Search className="size-5 text-zinc-400" />
             <Input
               placeholder="Търсене по име или телефон..."
@@ -133,17 +132,17 @@ export default function DeclarationsClient() {
                   {filteredDeclarations.map((decl) => (
                     <div
                       key={decl.id}
-                      className="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-zinc-50 sm:flex-row sm:items-center sm:p-6 dark:hover:bg-zinc-900/50"
+                      className="flex flex-col justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:flex-row sm:items-center sm:gap-4 sm:p-5 dark:hover:bg-zinc-900/50"
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <User className="size-5 text-primary" />
+                      <div className="flex items-start gap-3 sm:gap-4">
+                        <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <User className="size-4 sm:size-5 text-primary" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-zinc-900 dark:text-white">
+                          <h4 className="text-sm font-bold text-zinc-900 sm:text-base dark:text-white">
                             {decl.memberName}
                           </h4>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-500">
+                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 sm:gap-x-4 sm:text-sm">
                             <span className="flex items-center gap-1">
                               <Clock className="size-3.5" />
                               {format(
@@ -161,9 +160,11 @@ export default function DeclarationsClient() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex shrink-0 gap-2">
+                      <div className="flex w-full shrink-0 items-center justify-end gap-2 border-t border-zinc-50 pt-2 sm:w-auto sm:border-0 sm:pt-0 dark:border-zinc-900">
                         <Button
                           variant="outline"
+                          size="sm"
+                          className="flex-1 sm:flex-none"
                           onClick={() =>
                             window.open(
                               `/print-declaration/${decl.id}`,
@@ -176,6 +177,7 @@ export default function DeclarationsClient() {
                         </Button>
                         <Button
                           variant="ghost"
+                          size="sm"
                           className="px-3 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                           onClick={() => handleDelete(decl.id, decl.memberName)}
                         >
