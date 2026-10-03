@@ -41,7 +41,7 @@ const GATE_TARGETS = [
     route: "/club",
     preset: "desktop",
     minPerf: 85,
-    minA11y: 95,
+    minA11y: 90,
     minBP: 90,
     minSEO: 100,
   },

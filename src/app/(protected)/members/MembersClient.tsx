@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Filter,
   Mail,
   MoreVertical,
   PlusCircle,
@@ -84,49 +83,14 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
     isRecoveryBranch ? "recovery-clients" : "members"
   );
 
-  // Умни филтри
-  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
-  const [ageFilter, setAgeFilter] = useState<"all" | "under18" | "18plus">(
-    "all"
-  );
-  const [medicalFilter, setMedicalFilter] = useState<
-    "all" | "valid" | "missing"
-  >("all");
-  const [paymentFilter, setPaymentFilter] = useState<"all" | "paid" | "due">(
-    "all"
-  );
-  const [documentFilter, setDocumentFilter] = useState<
-    "all" | "missing-declaration" | "missing-safety" | "all-valid"
-  >("all");
-
   useEffect(() => {
     setMembers(initialMembers);
   }, [initialMembers]);
 
-  // Нулиране на страницата при промяна на филтри
+  // Нулиране на страницата при промяна на търсене или статус
   useEffect(() => {
     setCurrentPage(1);
-  }, [
-    searchTerm,
-    statusFilter,
-    ageFilter,
-    medicalFilter,
-    paymentFilter,
-    documentFilter,
-  ]);
-
-  const calculateAge = (dateOfBirthString?: string | null) => {
-    if (!dateOfBirthString) return null;
-    const dob = new Date(dateOfBirthString);
-    if (isNaN(dob.getTime())) return null;
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const m = today.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-      age--;
-    }
-    return age;
-  };
+  }, [searchTerm, statusFilter]);
 
   const filteredMembers = useMemo(() => {
     return members
@@ -147,117 +111,14 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         const matchesStatus =
           statusFilter === "all" || member.status === statusFilter;
 
-        // Възрастов филтър
-        const age = calculateAge(member.dateOfBirth);
-        const matchesAge =
-          ageFilter === "all" ||
-          (ageFilter === "under18" && age !== null && age < 18) ||
-          (ageFilter === "18plus" && age !== null && age >= 18);
-
-        // Филтър за медицинско
-        const matchesMedical =
-          medicalFilter === "all" ||
-          (medicalFilter === "valid" &&
-            member.hasMedicalCertificate === true) ||
-          (medicalFilter === "missing" &&
-            member.hasMedicalCertificate !== true);
-
-        // Филтър за плащания (дължимо след 30 дни от последното плащане)
-        const lastPayment = member.lastPaymentDate
-          ? new Date(member.lastPaymentDate)
-          : null;
-        const isPaymentDue =
-          !lastPayment ||
-          (new Date().getTime() - lastPayment.getTime()) / (1000 * 3600 * 24) >
-            30;
-        const matchesPayment =
-          paymentFilter === "all" ||
-          (paymentFilter === "paid" && !isPaymentDue) ||
-          (paymentFilter === "due" && isPaymentDue);
-
-        // Филтър за документи
-        const matchesDocument =
-          documentFilter === "all" ||
-          (documentFilter === "missing-declaration" &&
-            member.hasSignedDeclaration !== true) ||
-          (documentFilter === "missing-safety" &&
-            member.hasSafetyInstruction !== true) ||
-          (documentFilter === "all-valid" &&
-            member.hasSignedDeclaration === true &&
-            member.hasMedicalCertificate === true &&
-            member.hasSafetyInstruction === true);
-
-        return (
-          matchesSearch &&
-          matchesStatus &&
-          matchesAge &&
-          matchesMedical &&
-          matchesPayment &&
-          matchesDocument
-        );
+        return matchesSearch && matchesStatus;
       })
       .sort((a, b) => {
         const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
         const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
         return nameA.localeCompare(nameB, "bg");
       });
-  }, [
-    members,
-    searchTerm,
-    statusFilter,
-    ageFilter,
-    medicalFilter,
-    paymentFilter,
-    documentFilter,
-  ]);
-
-  const activeFiltersCount = useMemo(() => {
-    let count = 0;
-    if (ageFilter !== "all") count++;
-    if (medicalFilter !== "all") count++;
-    if (paymentFilter !== "all") count++;
-    if (documentFilter !== "all") count++;
-    return count;
-  }, [ageFilter, medicalFilter, paymentFilter, documentFilter]);
-
-  const applyPreset = (
-    preset:
-      | "under18-no-medical"
-      | "unpaid-fees"
-      | "missing-declarations"
-      | "all-clear"
-  ) => {
-    if (preset === "under18-no-medical") {
-      setAgeFilter("under18");
-      setMedicalFilter("missing");
-      setPaymentFilter("all");
-      setDocumentFilter("all");
-    } else if (preset === "unpaid-fees") {
-      setAgeFilter("all");
-      setMedicalFilter("all");
-      setPaymentFilter("due");
-      setDocumentFilter("all");
-    } else if (preset === "missing-declarations") {
-      setAgeFilter("all");
-      setMedicalFilter("all");
-      setPaymentFilter("all");
-      setDocumentFilter("missing-declaration");
-    } else if (preset === "all-clear") {
-      setStatusFilter("active");
-      setAgeFilter("all");
-      setMedicalFilter("valid");
-      setPaymentFilter("paid");
-      setDocumentFilter("all-valid");
-    }
-  };
-
-  const clearAllFilters = () => {
-    setStatusFilter("all");
-    setAgeFilter("all");
-    setMedicalFilter("all");
-    setPaymentFilter("all");
-    setDocumentFilter("all");
-  };
+  }, [members, searchTerm, statusFilter]);
 
   const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
   const paginatedMembers = useMemo(() => {
@@ -402,7 +263,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-3 pb-12 duration-500 animate-in fade-in sm:space-y-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl space-y-4 px-3 pb-8 duration-500 animate-in fade-in sm:space-y-5 sm:px-6 lg:px-8">
       <PageHeader
         title={isRecoveryBranch ? "Членове на зоната" : "Членове на клуба"}
         description={
@@ -415,60 +276,60 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           { label: "Членове" },
         ]}
       >
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+        <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row">
           <Button
             variant="outline"
             onClick={handleSyncStatuses}
             disabled={isSyncing}
-            className="h-10 w-full rounded-xl border-zinc-200 px-4 text-[10px] font-medium tracking-widest uppercase hover:bg-zinc-50 sm:h-11 sm:w-auto sm:px-6 sm:text-xs"
+            className="h-9 w-full rounded-xl border-zinc-200 px-3.5 text-[10px] font-medium tracking-widest uppercase hover:bg-zinc-50 sm:h-9.5 sm:w-auto sm:px-4 sm:text-xs"
           >
             <Activity
-              className={cn("mr-2 size-4", isSyncing && "animate-spin")}
+              className={cn("mr-1.5 size-3.5", isSyncing && "animate-spin")}
             />{" "}
             Синхронизирай статуси
           </Button>
           <Button
             variant="outline"
             onClick={handleExport}
-            className="h-10 w-full rounded-xl border-zinc-200 px-4 text-[10px] font-medium tracking-widest uppercase hover:bg-zinc-50 sm:h-11 sm:w-auto sm:px-6 sm:text-xs"
+            className="h-9 w-full rounded-xl border-zinc-200 px-3.5 text-[10px] font-medium tracking-widest uppercase hover:bg-zinc-50 sm:h-9.5 sm:w-auto sm:px-4 sm:text-xs"
           >
-            <Download className="mr-2 size-4" /> Експорт
+            <Download className="mr-1.5 size-3.5" /> Експорт
           </Button>
           <Button
             onClick={() => router.push("/members/new")}
-            className="h-10 w-full rounded-xl bg-zinc-950 px-4 text-[10px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-zinc-800 sm:h-11 sm:w-auto sm:px-6 sm:text-xs"
+            className="h-9 w-full rounded-xl bg-zinc-950 px-3.5 text-[10px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-zinc-800 sm:h-9.5 sm:w-auto sm:px-4 sm:text-xs"
           >
-            <PlusCircle className="mr-2 size-4" /> Нов член
+            <PlusCircle className="mr-1.5 size-3.5" /> Нов член
           </Button>
         </div>
       </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {!isRecoveryBranch && (
-          <TabsList className="no-scrollbar flex h-12 w-full justify-start overflow-x-auto rounded-2xl bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:bg-zinc-900">
+          <TabsList className="no-scrollbar flex h-10 w-full justify-start overflow-x-auto rounded-xl bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:bg-zinc-900">
             <TabsTrigger
               value="members"
-              className="flex-1 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+              className="flex-1 rounded-lg text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <Users className="mr-2 size-4" /> Членове
+              <Users className="mr-1.5 size-3.5" /> Членове
             </TabsTrigger>
             <TabsTrigger
               value="guests"
-              className="flex-1 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+              className="flex-1 rounded-lg text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <UserCog className="mr-2 size-4" /> Външни
+              <UserCog className="mr-1.5 size-3.5" /> Външни
             </TabsTrigger>
             <TabsTrigger
               value="families"
-              className="flex-1 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+              className="flex-1 rounded-lg text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <FamilyIcon className="mr-2 size-4" /> Семейства
+              <FamilyIcon className="mr-1.5 size-3.5" /> Семейства
             </TabsTrigger>
             <TabsTrigger
               value="recovery-clients"
-              className="flex-1 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+              className="flex-1 rounded-lg text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
             >
-              <Activity className="mr-2 size-4" /> Зона Възстановяване
+              <Activity className="mr-1.5 size-3.5" /> Зона Възстановяване
             </TabsTrigger>
           </TabsList>
         )}
@@ -476,116 +337,101 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         <TabsContent
           value="recovery-clients"
           className={cn(
-            isRecoveryBranch ? "mt-0" : "mt-8",
+            isRecoveryBranch ? "mt-0" : "mt-4",
             "animate-in fade-in"
           )}
         >
-          <BentoCard className="min-h-[calc(100vh-16rem)] overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
+          <BentoCard className="min-h-[calc(100vh-16rem)] overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-none">
             <RecoveryClientsList members={members} />
           </BentoCard>
         </TabsContent>
 
-        <TabsContent value="members" className="mt-8 space-y-8">
-          {/* Stats Bento Grid */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
-            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-              <div className="shrink-0 rounded-2xl bg-primary/5 p-3.5 text-primary sm:p-4">
-                <Users className="size-5 sm:size-6" strokeWidth={1.5} />
+        <TabsContent
+          value="members"
+          className="mt-3 sm:mt-3.5 space-y-3 sm:space-y-3.5"
+        >
+          {/* Stats Bar */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 rounded-xl border border-zinc-100 bg-white p-2.5 sm:gap-3 sm:p-3 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-lg bg-primary/5 p-1.5 text-primary sm:p-2">
+                <Users className="size-4" strokeWidth={1.5} />
               </div>
-              <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
-                  Общо членове
+              <div className="min-w-0">
+                <p className="truncate text-[10px] font-medium tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
+                  Общо
                 </p>
-                <p className="text-2xl font-light text-zinc-900 sm:text-3xl dark:text-white">
+                <p className="text-lg font-bold text-zinc-900 sm:text-2xl dark:text-white">
                   {stats.total}
                 </p>
               </div>
-            </BentoCard>
+            </div>
 
-            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-              <div className="shrink-0 rounded-2xl bg-emerald-500/5 p-3.5 text-emerald-600 sm:p-4">
-                <UserCheck className="size-5 sm:size-6" strokeWidth={1.5} />
+            <div className="flex items-center gap-2.5 rounded-2xl border border-zinc-100 bg-white p-3 sm:gap-3.5 sm:p-4 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-xl bg-emerald-500/5 p-2 text-emerald-600 sm:p-2.5">
+                <UserCheck className="size-4 sm:size-5" strokeWidth={1.5} />
               </div>
-              <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
+              <div className="min-w-0">
+                <p className="truncate text-[10px] font-medium tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
                   Активни
                 </p>
-                <p className="text-2xl font-light text-emerald-600 sm:text-3xl">
+                <p className="text-lg font-bold text-emerald-600 sm:text-2xl">
                   {stats.active}
                 </p>
               </div>
-            </BentoCard>
+            </div>
 
-            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:col-span-2 sm:gap-6 sm:rounded-5xl sm:p-8 lg:col-span-1 dark:border-zinc-900 dark:bg-zinc-950">
-              <div className="shrink-0 rounded-2xl bg-rose-500/5 p-3.5 text-rose-600 sm:p-4">
-                <UserMinus className="size-5 sm:size-6" strokeWidth={1.5} />
+            <div className="flex items-center gap-2.5 rounded-2xl border border-zinc-100 bg-white p-3 sm:gap-3.5 sm:p-4 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-xl bg-rose-500/5 p-2 text-rose-600 sm:p-2.5">
+                <UserMinus className="size-4 sm:size-5" strokeWidth={1.5} />
               </div>
-              <div className="space-y-0.5 sm:space-y-1">
-                <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
+              <div className="min-w-0">
+                <p className="truncate text-[10px] font-medium tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
                   Неактивни
                 </p>
-                <p className="text-2xl font-light text-rose-600 sm:text-3xl">
+                <p className="text-lg font-bold text-rose-600 sm:text-2xl">
                   {stats.inactive}
                 </p>
               </div>
-            </BentoCard>
-
-            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:col-span-2 sm:gap-6 sm:rounded-5xl sm:p-8 lg:col-span-3 dark:border-zinc-900 dark:bg-zinc-950">
-              <div className="shrink-0 rounded-2xl bg-zinc-100 p-3.5 text-zinc-500 sm:p-4 dark:bg-zinc-800">
-                <Users className="size-5 sm:size-6" strokeWidth={1.5} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:text-[11px] dark:text-zinc-400">
-                  Относно Клубни Членове
-                </p>
-                <p className="text-xs leading-relaxed font-light text-zinc-500">
-                  Клубните членове са редовни участници в клуба. Те разполагат с
-                  пълно досие, членска карта, проследяване на статус
-                  (активен/неактивен), финансова история и история на
-                  посещенията. Статусът им се обновява автоматично спрямо
-                  тяхната активност.
-                </p>
-              </div>
-            </BentoCard>
+            </div>
           </div>
 
           {/* Main Table Bento */}
-          <BentoCard className="overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none sm:rounded-5xl dark:border-zinc-900 dark:bg-zinc-950">
-            <div className="border-b border-zinc-50 p-4 sm:p-6 dark:border-zinc-900">
-              <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
-                <div className="flex w-full flex-col items-center gap-3 sm:flex-row lg:w-auto">
-                  <div className="relative w-full sm:w-72 lg:w-80 xl:w-96">
+          <BentoCard className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-none sm:rounded-3xl dark:border-zinc-900 dark:bg-zinc-950">
+            <div className="border-b border-zinc-100 p-3 sm:p-4 dark:border-zinc-900">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <div className="flex w-full flex-1 items-center gap-2.5 sm:w-auto">
+                  <div className="relative w-full sm:w-72 lg:w-80">
                     <Search
-                      className="absolute top-1/2 left-3.5 size-3.5 -translate-y-1/2 text-zinc-400"
+                      className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400"
                       strokeWidth={1.5}
                     />
                     <Input
                       placeholder="Търсене по име или имейл..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="h-10 rounded-xl border-zinc-100 bg-zinc-50/50 pl-9 text-xs font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
+                      className="h-9 rounded-xl border-zinc-100 bg-zinc-50/50 pl-8.5 text-xs font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                     />
                   </div>
 
                   {selectedIds.length > 0 && (
-                    <div className="flex items-center gap-2.5 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-1.5 animate-in fade-in slide-in-from-left-4 dark:border-zinc-800 dark:bg-zinc-900">
+                    <div className="flex items-center gap-2 rounded-xl border border-zinc-100 bg-zinc-50 px-2.5 py-1 animate-in fade-in slide-in-from-left-4 dark:border-zinc-800 dark:bg-zinc-900">
                       <span className="text-[10px] font-medium tracking-widest whitespace-nowrap text-primary uppercase">
                         {selectedIds.length} избрани
                       </span>
-                      <div className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
+                      <div className="mx-1 h-3.5 w-px bg-zinc-200 dark:bg-zinc-800" />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 rounded-lg px-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                            className="h-6 rounded-lg px-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                           >
-                            <MoreVertical size={14} className="text-zinc-500" />
+                            <MoreVertical size={13} className="text-zinc-500" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="start"
-                          className="rounded-xl border-zinc-100 p-2 shadow-xl"
+                          className="rounded-xl border-zinc-100 p-1.5 shadow-xl"
                         >
                           <DropdownMenuItem
                             onClick={() => handleBulkStatusUpdate("active")}
@@ -606,238 +452,37 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-                    className={cn(
-                      "h-10 shrink-0 rounded-xl border-zinc-200 px-3.5 text-[10px] font-semibold tracking-widest uppercase transition-all sm:px-4",
-                      isFiltersExpanded || activeFiltersCount > 0
-                        ? "hover:bg-zinc-850 border-transparent bg-zinc-950 text-white shadow-sm hover:text-white dark:bg-white dark:text-zinc-950"
-                        : "hover:bg-zinc-50"
-                    )}
-                  >
-                    <Filter
-                      className="mr-1.5 size-3.5 shrink-0"
-                      strokeWidth={1.5}
-                    />
-                    Умни филтри
-                    {activeFiltersCount > 0 && (
-                      <span
-                        className={cn(
-                          "ml-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold",
-                          isFiltersExpanded || activeFiltersCount > 0
-                            ? "bg-white text-zinc-950 dark:bg-zinc-950 dark:text-white"
-                            : "bg-zinc-100 text-zinc-900"
-                        )}
-                      >
-                        {activeFiltersCount}
-                      </span>
-                    )}
-                  </Button>
-
-                  <div className="flex h-10 shrink-0 items-center rounded-xl bg-zinc-50 p-1 dark:bg-zinc-900">
-                    {(["all", "active", "inactive"] as const).map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => setStatusFilter(f)}
-                        className={cn(
-                          "rounded-lg px-2.5 py-1.5 text-[9px] font-semibold tracking-widest whitespace-nowrap uppercase transition-all sm:px-3.5 sm:text-[10px]",
-                          statusFilter === f
-                            ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
-                            : "text-zinc-500 hover:text-zinc-700"
-                        )}
-                      >
+                <div className="flex shrink-0 items-center rounded-xl bg-zinc-50 p-1 dark:bg-zinc-900">
+                  {(["all", "active", "inactive"] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setStatusFilter(f)}
+                      className={cn(
+                        "rounded-lg px-3 py-1 text-[9px] font-semibold tracking-wider whitespace-nowrap uppercase transition-all sm:text-[10px]",
+                        statusFilter === f
+                          ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
+                          : "text-zinc-500 hover:text-zinc-700"
+                      )}
+                    >
+                      {
                         {
-                          {
-                            all: "Всички",
-                            active: "Активни",
-                            inactive: "Неактивни",
-                          }[f]
-                        }
-                      </button>
-                    ))}
-                  </div>
+                          all: "Всички",
+                          active: "Активни",
+                          inactive: "Неактивни",
+                        }[f]
+                      }
+                    </button>
+                  ))}
                 </div>
               </div>
-
-              {/* Умни филтри панел */}
-              {isFiltersExpanded && (
-                <div className="mt-6 grid grid-cols-1 gap-6 border-t border-zinc-100 pt-6 duration-300 animate-in slide-in-from-top-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-zinc-900">
-                  {/* Age Filter */}
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
-                      Възрастова група
-                    </label>
-                    <div className="flex w-full rounded-xl bg-zinc-50 p-1 dark:bg-zinc-900">
-                      {(["all", "under18", "18plus"] as const).map((a) => (
-                        <button
-                          key={a}
-                          type="button"
-                          onClick={() => setAgeFilter(a)}
-                          className={cn(
-                            "flex-1 rounded-lg py-1.5 text-center text-[9px] font-medium tracking-widest uppercase transition-all",
-                            ageFilter === a
-                              ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
-                              : "text-zinc-550 hover:text-zinc-700"
-                          )}
-                        >
-                          {
-                            {
-                              all: "Всички",
-                              under18: "под 18",
-                              "18plus": "18+",
-                            }[a]
-                          }
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Medical Filter */}
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
-                      Медицинско
-                    </label>
-                    <div className="flex w-full rounded-xl bg-zinc-50 p-1 dark:bg-zinc-900">
-                      {(["all", "valid", "missing"] as const).map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => setMedicalFilter(m)}
-                          className={cn(
-                            "flex-1 rounded-lg py-1.5 text-center text-[9px] font-medium tracking-widest uppercase transition-all",
-                            medicalFilter === m
-                              ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
-                              : "text-zinc-550 hover:text-zinc-700"
-                          )}
-                        >
-                          {
-                            {
-                              all: "Всички",
-                              valid: "Има",
-                              missing: "Няма",
-                            }[m]
-                          }
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Payment Filter */}
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
-                      Такси / Плащане
-                    </label>
-                    <div className="flex w-full rounded-xl bg-zinc-50 p-1 dark:bg-zinc-900">
-                      {(["all", "paid", "due"] as const).map((p) => (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => setPaymentFilter(p)}
-                          className={cn(
-                            "flex-1 rounded-lg py-1.5 text-center text-[9px] font-medium tracking-widest uppercase transition-all",
-                            paymentFilter === p
-                              ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
-                              : "text-zinc-550 hover:text-zinc-700"
-                          )}
-                        >
-                          {
-                            {
-                              all: "Всички",
-                              paid: "Платена",
-                              due: "Неплатена",
-                            }[p]
-                          }
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Documents Filter */}
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
-                      Документи
-                    </label>
-                    <select
-                      value={documentFilter}
-                      onChange={(e) =>
-                        setDocumentFilter(
-                          e.target.value as
-                            | "all"
-                            | "missing-declaration"
-                            | "missing-safety"
-                            | "all-valid"
-                        )
-                      }
-                      className="h-9.5 w-full rounded-xl border border-transparent bg-zinc-50 px-3 text-[10px] font-medium tracking-widest text-zinc-800 uppercase outline-none focus:border-zinc-200 focus:bg-white dark:bg-zinc-900 dark:text-zinc-200 dark:focus:bg-zinc-800"
-                    >
-                      <option value="all">Всички документи</option>
-                      <option value="missing-declaration">
-                        Без Декларация
-                      </option>
-                      <option value="missing-safety">Без Инструктаж</option>
-                      <option value="all-valid">Всичко изрядно</option>
-                    </select>
-                  </div>
-
-                  {/* Presets and Clear All row */}
-                  <div className="border-zinc-55 flex flex-wrap items-center justify-between gap-4 border-t pt-4 sm:col-span-2 lg:col-span-4 dark:border-zinc-900">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-zinc-450 mr-1 text-[10px] font-medium tracking-widest uppercase">
-                        Бързи филтри:
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => applyPreset("under18-no-medical")}
-                        className="dark:hover:bg-zinc-750 rounded-full bg-zinc-100 px-3 py-1.5 text-[9px] font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
-                      >
-                        Деца без медицинско
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyPreset("unpaid-fees")}
-                        className="dark:hover:bg-zinc-750 rounded-full bg-zinc-100 px-3 py-1.5 text-[9px] font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
-                      >
-                        С неплатени такси
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyPreset("missing-declarations")}
-                        className="dark:hover:bg-zinc-750 rounded-full bg-zinc-100 px-3 py-1.5 text-[9px] font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
-                      >
-                        Липсващи декларации
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyPreset("all-clear")}
-                        className="rounded-full bg-emerald-50 px-3 py-1.5 text-[9px] font-medium text-emerald-700 transition-colors hover:bg-emerald-100/70 dark:bg-emerald-950/20 dark:text-emerald-400"
-                      >
-                        Всичко изрядно ✨
-                      </button>
-                    </div>
-
-                    {(activeFiltersCount > 0 || statusFilter !== "all") && (
-                      <button
-                        type="button"
-                        onClick={clearAllFilters}
-                        className="dark:text-rose-450 text-[9px] font-semibold tracking-widest text-rose-600 uppercase hover:underline"
-                      >
-                        Изчисти филтрите
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Desktop View: Table */}
             <div className="custom-scrollbar hidden w-full min-w-0 overflow-x-auto md:block">
-              <Table className="min-w-175 table-fixed lg:min-w-full">
+              <Table className="w-full">
                 <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
                   <TableRow className="border-zinc-100 hover:bg-transparent dark:border-zinc-900">
-                    <TableHead className="w-[50px] px-4">
+                    <TableHead className="w-10 px-3 py-2.5">
                       <Checkbox
                         checked={
                           selectedIds.length === paginatedMembers.length &&
@@ -847,22 +492,22 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                         className="rounded-md border-zinc-200"
                       />
                     </TableHead>
-                    <TableHead className="p-4 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
+                    <TableHead className="min-w-52 px-3 py-2.5 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Член
                     </TableHead>
-                    <TableHead className="px-4 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
+                    <TableHead className="px-3 py-2.5 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Контакт
                     </TableHead>
-                    <TableHead className="w-30 px-4 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
+                    <TableHead className="w-28 px-3 py-2.5 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Група
                     </TableHead>
-                    <TableHead className="hidden w-35 px-4 text-[10px] font-medium tracking-widest text-zinc-400 uppercase lg:table-cell">
+                    <TableHead className="hidden w-32 px-3 py-2.5 text-[10px] font-medium tracking-widest text-zinc-400 uppercase lg:table-cell">
                       Регистрация
                     </TableHead>
-                    <TableHead className="w-30 px-6 text-right text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
+                    <TableHead className="w-28 px-4 py-2.5 text-right text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Статус
                     </TableHead>
-                    <TableHead className="w-15"></TableHead>
+                    <TableHead className="w-12 px-2 py-2.5"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -882,7 +527,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                           )}
                         >
                           <TableCell
-                            className="px-4"
+                            className="px-3 py-2"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Checkbox
@@ -892,11 +537,11 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             />
                           </TableCell>
                           <TableCell
-                            className="p-4"
+                            className="px-3 py-2"
                             onClick={() => router.push(`/members/${member.id}`)}
                           >
-                            <div className="flex items-center gap-3">
-                              <Avatar className="size-8 shrink-0 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                            <div className="flex items-center gap-2.5">
+                              <Avatar className="size-7.5 shrink-0 rounded-lg border border-zinc-100 dark:border-zinc-800">
                                 <AvatarImage
                                   src={getValidAvatarUrl(member.avatarUrl)}
                                   alt={`${member.firstName} ${member.lastName}`}
@@ -907,13 +552,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                                   {member.lastName[0]}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="truncate text-[13px] font-medium text-zinc-900 transition-colors group-hover:text-zinc-950 dark:text-white">
+                              <span className="font-semibold text-xs whitespace-nowrap text-zinc-900 transition-colors group-hover:text-primary sm:text-[13px] dark:text-white">
                                 {member.firstName} {member.lastName}
-                              </div>
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell
-                            className="px-4"
+                            className="px-3 py-2"
                             onClick={() => router.push(`/members/${member.id}`)}
                           >
                             <div className="flex items-center gap-2 text-zinc-500">
@@ -927,7 +572,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             </div>
                           </TableCell>
                           <TableCell
-                            className="px-4"
+                            className="px-3 py-2"
                             onClick={() => router.push(`/members/${member.id}`)}
                           >
                             {ageGrp ? (
@@ -944,7 +589,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             )}
                           </TableCell>
                           <TableCell
-                            className="hidden px-4 lg:table-cell"
+                            className="hidden px-3 py-2 lg:table-cell"
                             onClick={() => router.push(`/members/${member.id}`)}
                           >
                             <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
@@ -960,12 +605,12 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             </div>
                           </TableCell>
                           <TableCell
-                            className="px-6 text-right"
+                            className="px-4 py-2 text-right"
                             onClick={() => router.push(`/members/${member.id}`)}
                           >
                             <Badge
                               className={cn(
-                                "rounded-full border-none px-2.5 py-0.5 text-[9px] font-semibold tracking-widest uppercase shadow-none",
+                                "rounded-full border-none px-2 py-0.5 text-[9px] font-semibold tracking-widest uppercase shadow-none",
                                 member.status === "active"
                                   ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
                                   : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
@@ -976,7 +621,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                                 : "Неактивен"}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-4">
+                          <TableCell className="p-2 text-right">
                             <Button
                               variant="ghost"
                               size="icon"
@@ -988,9 +633,9 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                                 )
                               }
                               aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
-                              className="size-8 rounded-lg text-zinc-300 transition-colors hover:bg-rose-50 hover:text-rose-500"
+                              className="size-7 rounded-lg text-zinc-300 transition-colors hover:bg-rose-50 hover:text-rose-500"
                             >
-                              <Trash2 className="size-4" strokeWidth={1.5} />
+                              <Trash2 className="size-3.5" strokeWidth={1.5} />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -998,16 +643,16 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-64 text-center">
+                      <TableCell colSpan={7} className="h-48 text-center">
                         <div className="flex flex-col items-center justify-center text-zinc-400">
                           <Users
-                            className="mb-3 size-12 opacity-20"
+                            className="mb-2 size-10 opacity-20"
                             strokeWidth={1}
                           />
-                          <p className="text-xl font-light tracking-[0.2em] text-zinc-900 uppercase dark:text-white">
+                          <p className="text-base font-light tracking-[0.2em] text-zinc-900 uppercase dark:text-white">
                             Няма намерени членове
                           </p>
-                          <p className="mt-2 text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
+                          <p className="mt-1 text-[10px] font-medium tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
                             Опитайте с друго име или филтър.
                           </p>
                         </div>
@@ -1026,18 +671,18 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     key={member.id}
                     onClick={() => router.push(`/members/${member.id}`)}
                     className={cn(
-                      "p-4 sm:p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900",
+                      "p-3 sm:p-3.5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900",
                       selectedIds.includes(member.id) && "bg-primary/5"
                     )}
                   >
-                    <div className="mb-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 flex-1 items-center gap-2.5">
                         <div
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleSelect(member.id);
                           }}
-                          className="mr-0.5"
+                          className="mr-0.5 shrink-0"
                         >
                           <Checkbox
                             checked={selectedIds.includes(member.id)}
@@ -1045,36 +690,36 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             className="rounded-md border-zinc-200"
                           />
                         </div>
-                        <Avatar className="size-10 shrink-0 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                        <Avatar className="size-8.5 shrink-0 rounded-lg border border-zinc-100 dark:border-zinc-800">
                           <AvatarImage
                             src={getValidAvatarUrl(member.avatarUrl)}
                             alt={`${member.firstName} ${member.lastName}`}
                             className="object-cover"
                           />
-                          <AvatarFallback className="flex items-center justify-center rounded-xl bg-zinc-100 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                          <AvatarFallback className="flex items-center justify-center rounded-lg bg-zinc-100 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
                             {member.firstName[0]}
                             {member.lastName[0]}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="text-sm font-medium text-zinc-900 dark:text-white">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs sm:text-sm font-semibold text-zinc-900 wrap-break-word dark:text-white">
                             {member.firstName} {member.lastName}
                           </div>
-                          <div className="mt-1 flex items-center gap-1.5 text-zinc-500">
+                          <div className="mt-0.5 flex items-center gap-1.5 text-zinc-500">
                             <Mail
-                              className="size-3 text-zinc-300"
+                              className="size-3 shrink-0 text-zinc-300"
                               strokeWidth={1.5}
                             />
-                            <span className="text-[10px] font-light">
+                            <span className="truncate text-[10px] font-light">
                               {member.email || "—"}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex shrink-0 items-center gap-1.5">
                         <Badge
                           className={cn(
-                            "rounded-full border-none px-2.5 py-0.5 text-[9px] font-semibold tracking-widest uppercase shadow-none",
+                            "rounded-full border-none px-2 py-0.5 text-[9px] font-semibold tracking-widest uppercase shadow-none",
                             member.status === "active"
                               ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
                               : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
@@ -1093,13 +738,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                             )
                           }
                           aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
-                          className="size-8 rounded-lg text-zinc-300 transition-colors hover:text-rose-500"
+                          className="size-7 rounded-lg text-zinc-300 transition-colors hover:text-rose-500"
                         >
-                          <Trash2 className="size-4" strokeWidth={1.5} />
+                          <Trash2 className="size-3.5" strokeWidth={1.5} />
                         </Button>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between border-t border-zinc-50 pt-3 dark:border-zinc-900">
+                    <div className="flex items-center justify-between border-t border-zinc-50 pt-2 dark:border-zinc-900">
                       <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
                         <Calendar
                           className="size-3 text-zinc-300"
@@ -1114,7 +759,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                       {(member.ageGroup || member.dateOfBirth) && (
                         <Badge
                           variant="outline"
-                          className="h-5 rounded-lg border-zinc-100 bg-transparent px-2 py-0 text-[9px] font-medium tracking-widest uppercase"
+                          className="h-4.5 rounded-lg border-zinc-100 bg-transparent px-2 py-0 text-[9px] font-medium tracking-widest uppercase"
                         >
                           {member.ageGroup || getAgeGroup(member.dateOfBirth!)}
                         </Badge>
@@ -1123,12 +768,12 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                   </div>
                 ))
               ) : (
-                <div className="p-12 text-center">
+                <div className="p-8 text-center">
                   <Users
-                    className="mx-auto mb-3 size-12 text-zinc-400 opacity-20"
+                    className="mx-auto mb-2 size-10 text-zinc-400 opacity-20"
                     strokeWidth={1}
                   />
-                  <p className="text-sm font-medium tracking-widest text-zinc-900 uppercase dark:text-white">
+                  <p className="text-xs font-medium tracking-widest text-zinc-900 uppercase dark:text-white">
                     Няма резултати
                   </p>
                 </div>
@@ -1137,7 +782,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex flex-col items-center justify-between gap-3 border-t border-zinc-50 bg-zinc-50/50 p-3.5 sm:flex-row sm:p-5 dark:border-zinc-900 dark:bg-zinc-900/50">
+              <div className="flex flex-col items-center justify-between gap-2.5 border-t border-zinc-50 bg-zinc-50/50 p-2.5 sm:flex-row sm:p-3.5 dark:border-zinc-900 dark:bg-zinc-900/50">
                 <p className="order-2 text-[10px] font-medium tracking-widest text-zinc-600 uppercase sm:order-1 sm:text-[11px] dark:text-zinc-400">
                   Показани{" "}
                   <span className="text-zinc-900 dark:text-white">
@@ -1155,19 +800,19 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     {filteredMembers.length}
                   </span>
                 </p>
-                <div className="order-1 flex w-full items-center justify-between gap-3 sm:order-2 sm:w-auto sm:justify-end">
+                <div className="order-1 flex w-full items-center justify-between gap-2 sm:order-2 sm:w-auto sm:justify-end">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     aria-label="Предишна страница"
-                    className="size-11 rounded-xl border-zinc-100 bg-white p-0 shadow-none hover:bg-zinc-50 dark:bg-zinc-800"
+                    className="size-8.5 rounded-lg border-zinc-100 bg-white p-0 shadow-none hover:bg-zinc-50 dark:bg-zinc-800"
                   >
-                    <ChevronLeft className="size-4" />
+                    <ChevronLeft className="size-3.5" />
                   </Button>
-                  <div className="min-w-[70px] rounded-xl border border-zinc-100 bg-white px-5 py-2.5 text-center text-[10px] font-semibold tracking-widest uppercase shadow-none dark:border-zinc-700 dark:bg-zinc-800">
-                    {currentPage} {"/"} {totalPages}
+                  <div className="min-w-15 rounded-lg border border-zinc-100 bg-white px-3 py-1.5 text-center text-[10px] font-semibold tracking-widest uppercase shadow-none dark:border-zinc-700 dark:bg-zinc-800">
+                    {currentPage} / {totalPages}
                   </div>
                   <Button
                     variant="outline"
@@ -1177,9 +822,9 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                     }
                     disabled={currentPage === totalPages}
                     aria-label="Следваща страница"
-                    className="size-11 rounded-xl border-zinc-100 bg-white p-0 shadow-none hover:bg-zinc-50 dark:bg-zinc-800"
+                    className="size-8.5 rounded-lg border-zinc-100 bg-white p-0 shadow-none hover:bg-zinc-50 dark:bg-zinc-800"
                   >
-                    <ChevronRight className="size-4" />
+                    <ChevronRight className="size-3.5" />
                   </Button>
                 </div>
               </div>
