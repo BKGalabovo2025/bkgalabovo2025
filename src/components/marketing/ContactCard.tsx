@@ -65,35 +65,35 @@ export function ContactCard({
   const isRecovery = contact.siteId === "recoveryzone";
 
   return (
-    <Card className="overflow-hidden rounded-3xl border-zinc-200 bg-white transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950">
-      <CardContent className="p-6">
+    <Card className="overflow-hidden rounded-2xl border-zinc-200 bg-white transition-all hover:shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+      <CardContent className="p-3.5 sm:p-4">
         {/* Header: Name + Badges */}
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-start justify-between gap-2.5">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5">
               <span
-                className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-extrabold tracking-wider uppercase ${
+                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-extrabold tracking-wider uppercase ${
                   isRecovery
                     ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                     : "border border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400"
                 }`}
               >
-                {isRecovery ? "🌿 Recovery Zone" : "🏸 БК Гълъбово"}
+                {isRecovery ? "🌿 Recovery" : "🏸 БК Гълъбово"}
               </span>
 
               {contact.group && (
-                <span className="text-[10px] font-semibold text-zinc-400 uppercase">
+                <span className="text-[9px] font-semibold text-zinc-400 uppercase">
                   {contact.group}
                 </span>
               )}
             </div>
 
-            <h4 className="mt-1.5 text-base font-bold text-zinc-900 dark:text-white">
+            <h4 className="mt-1 text-sm font-bold text-zinc-900 truncate dark:text-white">
               {contact.name}
             </h4>
 
             {contact.parentName && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-[11px] text-zinc-500 truncate dark:text-zinc-400">
                 Родител: {contact.parentName}
                 {contact.childName && ` (на ${contact.childName})`}
               </p>
@@ -101,53 +101,55 @@ export function ContactCard({
           </div>
 
           <Badge
-            className={`shrink-0 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${badge.bg} ${badge.text} ${badge.border}`}
+            className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-semibold ${badge.bg} ${badge.text} ${badge.border}`}
           >
             {badge.label}
           </Badge>
         </div>
 
         {/* Contact Info Grid */}
-        <div className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/70 p-4 text-xs sm:grid-cols-2 dark:border-zinc-900 dark:bg-zinc-900/50">
+        <div className="mt-2.5 grid grid-cols-1 gap-2 rounded-xl border border-zinc-100 bg-zinc-50/70 p-2.5 text-xs sm:grid-cols-2 dark:border-zinc-900 dark:bg-zinc-900/50">
           {/* Phone block */}
-          <div>
-            <span className="text-[10px] font-semibold text-zinc-400 uppercase">
+          <div className="min-w-0">
+            <span className="text-[9px] font-semibold text-zinc-400 uppercase">
               Телефон
             </span>
-            <div className="mt-0.5">
+            <div className="mt-0.5 truncate">
               {contact.phone ? (
                 <a
                   href={`tel:${contact.phone.replace(/\s+/g, "")}`}
-                  className="font-bold text-blue-600 hover:underline dark:text-blue-400"
+                  className="font-bold text-xs text-blue-600 hover:underline dark:text-blue-400"
                 >
                   {contact.phone}
                 </a>
               ) : (
-                <span className="text-zinc-400 italic">
-                  Няма въведен телефон
+                <span className="text-[11px] text-zinc-400 italic">
+                  Няма телефон
                 </span>
               )}
             </div>
-            <p className="mt-0.5 text-[11px] text-zinc-500">
+            <p className="text-[10px] text-zinc-500 truncate">
               {contact.parentName ? "Номер на родител" : "Личен номер"}
             </p>
           </div>
 
           {/* Email block */}
-          <div>
-            <span className="text-[10px] font-semibold text-zinc-400 uppercase">
+          <div className="min-w-0">
+            <span className="text-[9px] font-semibold text-zinc-400 uppercase">
               Имейл
             </span>
-            <div className="mt-0.5">
+            <div className="mt-0.5 truncate">
               {contact.email ? (
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                <span className="font-semibold text-xs text-zinc-800 dark:text-zinc-200">
                   {contact.email}
                 </span>
               ) : (
-                <span className="text-zinc-400 italic">Няма въведен имейл</span>
+                <span className="text-[11px] text-zinc-400 italic">
+                  Няма имейл
+                </span>
               )}
             </div>
-            <p className="mt-0.5 text-[11px] text-zinc-500">
+            <p className="text-[10px] text-zinc-500 truncate">
               {contact.email ? "Валиден за кампании" : "Не е въведен"}
             </p>
           </div>
@@ -155,7 +157,7 @@ export function ContactCard({
 
         {/* Notes / Last contact info if present */}
         {contact.notes && (
-          <div className="mt-3 rounded-xl bg-zinc-100/70 p-3 text-xs text-zinc-700 italic dark:bg-zinc-900 dark:text-zinc-300">
+          <div className="mt-2 rounded-lg bg-zinc-100/70 p-2 text-[11px] text-zinc-700 italic line-clamp-2 dark:bg-zinc-900 dark:text-zinc-300">
             <span className="font-semibold text-zinc-500 not-italic">
               Последна бележка:{" "}
             </span>
@@ -164,16 +166,16 @@ export function ContactCard({
         )}
 
         {/* Action Buttons Footer */}
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-4 dark:border-zinc-900">
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-1.5 border-t border-zinc-100 pt-2.5 dark:border-zinc-900">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
             {/* Phone Call button */}
             {contact.phone && (
               <a
                 href={`tel:${contact.phone.replace(/\s+/g, "")}`}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                className="inline-flex h-7.5 items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2 text-[11px] font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                 title="Набиране на телефон"
               >
-                <Phone className="size-3.5 text-emerald-500" />
+                <Phone className="size-3 text-emerald-500" />
                 <span>Обади се</span>
               </a>
             )}
@@ -183,11 +185,11 @@ export function ContactCard({
               variant="outline"
               size="sm"
               onClick={() => onCallLog(contact)}
-              className="h-9 gap-1.5 rounded-xl text-xs font-semibold text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+              className="h-7.5 gap-1 rounded-lg px-2 text-[11px] font-semibold text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
               title="Запиши резултат от разговор"
             >
-              <PhoneCall className="size-3.5" />
-              <span>Лог разговор</span>
+              <PhoneCall className="size-3" />
+              <span>Лог</span>
             </Button>
 
             {/* Quick Email button */}
@@ -195,10 +197,10 @@ export function ContactCard({
               variant="outline"
               size="sm"
               onClick={() => onEmail(contact)}
-              className="h-9 gap-1.5 rounded-xl text-xs font-semibold text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30"
+              className="h-7.5 gap-1 rounded-lg px-2 text-[11px] font-semibold text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30"
               title="Изпрати имейл"
             >
-              <Mail className="size-3.5" />
+              <Mail className="size-3" />
               <span>Имейл</span>
             </Button>
           </div>
@@ -210,7 +212,7 @@ export function ContactCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => onStatusChange(contact.id, "archived")}
-                className="h-9 rounded-xl text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                className="h-7.5 rounded-lg px-2 text-[11px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                 title="Премести в архив"
               >
                 Архив
@@ -220,10 +222,10 @@ export function ContactCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => onStatusChange(contact.id, "pending")}
-                className="h-9 rounded-xl text-xs text-blue-600 hover:bg-blue-50 dark:text-blue-400"
+                className="h-7.5 rounded-lg px-2 text-[11px] text-blue-600 hover:bg-blue-50 dark:text-blue-400"
                 title="Върни в активни за контакт"
               >
-                <RotateCcw className="mr-1 size-3.5" />
+                <RotateCcw className="mr-1 size-3" />
                 Върни
               </Button>
             )}
@@ -233,10 +235,10 @@ export function ContactCard({
                 variant="ghost"
                 size="icon"
                 onClick={() => onDelete(contact.id)}
-                className="size-9 rounded-xl text-zinc-400 hover:bg-rose-500/10 hover:text-rose-600"
+                className="size-7.5 rounded-lg text-zinc-400 hover:bg-rose-500/10 hover:text-rose-600"
                 title="Изтрий от списъка"
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3" />
               </Button>
             )}
           </div>

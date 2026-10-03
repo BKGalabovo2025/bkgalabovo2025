@@ -263,13 +263,13 @@ export function MarketingComposerTab({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+    <div className="grid grid-cols-1 gap-3.5 sm:gap-4 lg:grid-cols-12">
       {/* LEFT COLUMN: Audience & Recipients (5 cols) */}
-      <div className="space-y-4 lg:col-span-5">
-        <Card className="space-y-4 rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="space-y-3 lg:col-span-5">
+        <Card className="space-y-3 rounded-2xl border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <h2 className="text-sm font-black text-zinc-900 uppercase dark:text-white">
+              <h2 className="text-xs sm:text-sm font-black text-zinc-900 uppercase dark:text-white">
                 1. Избор на получатели
               </h2>
               <p className="text-[11px] text-zinc-500">
@@ -278,14 +278,14 @@ export function MarketingComposerTab({
             </div>
             <Badge
               variant="outline"
-              className="rounded-full border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
+              className="rounded-lg border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
             >
               {selectedIds.size} маркирани
             </Badge>
           </div>
 
           {/* Quick Segment Filter Buttons */}
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1">
             {[
               { id: "all", label: "🌟 Всички" },
               { id: "parents", label: "👨‍👩‍👧 Родители" },
@@ -299,7 +299,7 @@ export function MarketingComposerTab({
                 variant="ghost"
                 size="sm"
                 onClick={() => setActiveSegment(seg.id)}
-                className={`h-7 rounded-xl px-2.5 text-[11px] font-bold transition-all ${
+                className={`h-6.5 rounded-lg px-2 text-[10px] sm:text-[11px] font-semibold transition-all ${
                   activeSegment === seg.id
                     ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
                     : "border border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
@@ -317,7 +317,7 @@ export function MarketingComposerTab({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Търсене по име, телефон или имейл..."
-              className="h-9 rounded-xl pl-8 text-xs"
+              className="h-8.5 rounded-xl pl-8 text-xs"
             />
           </div>
 
@@ -328,7 +328,7 @@ export function MarketingComposerTab({
               variant="ghost"
               size="sm"
               onClick={selectAllFiltered}
-              className="h-7 text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950"
+              className="h-6.5 text-[10px] sm:text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950 px-1.5"
             >
               <CheckSquare className="mr-1 size-3.5" />
               Избери филтрирани ({filteredRecipients.length})
@@ -338,7 +338,7 @@ export function MarketingComposerTab({
               variant="ghost"
               size="sm"
               onClick={deselectAll}
-              className="h-7 text-[11px] font-bold text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+              className="h-6.5 text-[10px] sm:text-[11px] font-bold text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 px-1.5"
             >
               <Square className="mr-1 size-3.5" />
               Изчисти
@@ -346,8 +346,8 @@ export function MarketingComposerTab({
           </div>
 
           {/* Scrollable Recipients List */}
-          <ScrollArea className="h-96 rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-2 dark:border-zinc-800 dark:bg-zinc-950/40">
-            <div className="space-y-1.5">
+          <ScrollArea className="h-72 sm:h-80 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-1.5 dark:border-zinc-800 dark:bg-zinc-950/40">
+            <div className="space-y-1">
               {filteredRecipients.map((r) => {
                 const isSelected = selectedIds.has(r.id);
 
@@ -355,24 +355,24 @@ export function MarketingComposerTab({
                   <div
                     key={r.id}
                     onClick={() => toggleSelect(r.id)}
-                    className={`flex cursor-pointer items-center justify-between gap-2 rounded-xl border p-2.5 transition-all ${
+                    className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg border p-2 transition-all ${
                       isSelected
                         ? "border-blue-300 bg-blue-50/70 dark:border-blue-900 dark:bg-blue-950/40"
                         : "border-zinc-200/60 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
                     }`}
                   >
-                    <div className="flex flex-1 items-center gap-2.5 truncate">
+                    <div className="flex flex-1 items-center gap-2 truncate">
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelect(r.id)}
-                        className="size-4 rounded text-blue-600 focus:ring-blue-500"
+                        className="size-3.5 rounded text-blue-600 focus:ring-blue-500"
                       />
                       <div className="truncate">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-white">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-900 dark:text-white">
                           <span>{r.name}</span>
                           {r.childName && (
-                            <span className="text-[11px] font-normal text-zinc-500">
+                            <span className="text-[10px] font-normal text-zinc-500">
                               (Родител на {r.childName})
                             </span>
                           )}
@@ -411,28 +411,28 @@ export function MarketingComposerTab({
       </div>
 
       {/* RIGHT COLUMN: Message Editor & Dispatcher (7 cols) */}
-      <div className="space-y-4 lg:col-span-7">
-        <Card className="space-y-4 rounded-3xl border-zinc-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
+      <div className="space-y-3 lg:col-span-7">
+        <Card className="space-y-3 rounded-2xl border-zinc-200/80 bg-white p-3.5 sm:p-4.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-center justify-between border-b border-zinc-100 pb-2.5 dark:border-zinc-800">
             <div className="space-y-0.5">
-              <h2 className="text-sm font-black text-zinc-900 uppercase dark:text-white">
+              <h2 className="text-xs sm:text-sm font-black text-zinc-900 uppercase dark:text-white">
                 2. Съдържание на кампанията
               </h2>
               <p className="text-[11px] text-zinc-500">
                 Официален имейл с брандиран вид директно от клубния сървър
               </p>
             </div>
-            <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-300">
-              <Mail className="size-4 text-blue-600" />
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <Mail className="size-3.5 text-blue-600" />
               <span>Официален SMTP имейл</span>
             </div>
           </div>
 
           {/* Sender Profile Selector */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <Label
               htmlFor="composer-sender-profile"
-              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
             >
               Изпрати кампанията от името на: *
             </Label>
@@ -444,7 +444,7 @@ export function MarketingComposerTab({
             >
               <SelectTrigger
                 id="composer-sender-profile"
-                className="h-10 rounded-xl text-xs font-semibold"
+                className="h-8.5 rounded-xl text-xs font-semibold"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -461,9 +461,9 @@ export function MarketingComposerTab({
 
           {/* Quick Template Picker strictly filtered by Sender Profile */}
           {availableTemplates.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                   Шаблони за{" "}
                   {senderProfile === "recoveryzone"
                     ? "Recovery Zone by ZM"
@@ -477,7 +477,7 @@ export function MarketingComposerTab({
                 </span>
               </div>
               <Select onValueChange={handleTemplateChange}>
-                <SelectTrigger className="h-10 rounded-xl text-xs font-medium">
+                <SelectTrigger className="h-8.5 rounded-xl text-xs font-medium">
                   <SelectValue placeholder="-- Изберете готов шаблон --" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -492,10 +492,10 @@ export function MarketingComposerTab({
           )}
 
           {/* Subject Field */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <Label
               htmlFor="email-subject-input"
-              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
             >
               Относно / Тема на имейла *
             </Label>
@@ -505,25 +505,25 @@ export function MarketingComposerTab({
               value={emailSubject}
               onChange={(e) => setEmailSubject(e.target.value)}
               placeholder="напр. Важно известие: График за тренировки и турнири"
-              className="h-10 rounded-xl text-xs font-medium"
+              className="h-8.5 rounded-xl text-xs font-medium"
             />
           </div>
 
           {/* Variable Insertion Chips */}
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1 text-[11px] font-bold text-zinc-500">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-[10px] font-semibold text-zinc-500">
               <Sparkles className="size-3 text-indigo-500" />
-              <span>Кликнете върху променлива, за да я добавите в текста:</span>
+              <span>Кликнете върху променлива за добавяне:</span>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1">
               {AVAILABLE_VARIABLES.map((v) => (
                 <button
                   key={v.tag}
                   type="button"
                   onClick={() => insertVariable(v.tag)}
-                  className="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700 transition-all hover:bg-indigo-100 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300"
+                  className="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700 transition-all hover:bg-indigo-100 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300"
                 >
-                  <Tag className="mr-1 size-2.5" />
+                  <Tag className="mr-0.5 size-2.5" />
                   {v.label} ({v.tag})
                 </button>
               ))}
@@ -531,10 +531,10 @@ export function MarketingComposerTab({
           </div>
 
           {/* Email Body Textarea */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <Label
               htmlFor="email-body-input"
-              className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
             >
               Текст на съобщението *
             </Label>
@@ -543,14 +543,14 @@ export function MarketingComposerTab({
               name="messageText"
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
-              rows={8}
+              rows={6}
               placeholder="Здравейте, {ИМЕ}!\n\nПишем Ви с актуална информация относно предстоящото събитие..."
-              className="rounded-2xl text-xs leading-relaxed"
+              className="rounded-xl text-xs leading-relaxed"
             />
           </div>
 
           {/* Dispatch Action Button (ONLY Server SMTP) */}
-          <div className="space-y-3 pt-3">
+          <div className="space-y-2 pt-1.5">
             <Button
               type="button"
               onClick={handleSendViaServer}
@@ -560,21 +560,21 @@ export function MarketingComposerTab({
                 !messageText.trim() ||
                 isSending
               }
-              className={`h-12 w-full rounded-2xl text-xs font-bold text-white shadow-md transition-all ${
+              className={`h-9.5 w-full rounded-xl text-xs font-bold text-white shadow-xs transition-all ${
                 senderProfile === "recoveryzone"
-                  ? "bg-emerald-600 shadow-emerald-200 hover:bg-emerald-700 dark:shadow-none"
-                  : "bg-blue-600 shadow-blue-200 hover:bg-blue-700 dark:shadow-none"
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
-              <Send className="mr-2 size-4" />
+              <Send className="mr-1.5 size-3.5" />
               {senderProfile === "recoveryzone"
-                ? `Изпрати кампанията от пощата на Recovery Zone (${validRecipientsWithEmail.length} получатели)`
-                : `Изпрати кампанията от клубната поща на БК Гълъбово (${validRecipientsWithEmail.length} получатели)`}
+                ? `Изпрати от Recovery Zone (${validRecipientsWithEmail.length} получатели)`
+                : `Изпрати от БК Гълъбово (${validRecipientsWithEmail.length} получатели)`}
             </Button>
 
-            <p className="text-center text-[11px] text-zinc-400">
-              💡 Всички съобщения се изпращат с официален брандиран дизайн,
-              заглавие и лого директно от официалния имейл адрес.
+            <p className="text-center text-[10px] text-zinc-400">
+              💡 Всички съобщения се изпращат с официален брандиран дизайн
+              директно от официалния имейл адрес.
             </p>
           </div>
         </Card>

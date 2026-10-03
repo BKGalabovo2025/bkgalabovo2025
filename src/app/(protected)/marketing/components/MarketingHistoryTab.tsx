@@ -131,76 +131,76 @@ export function MarketingHistoryTab({
   }, [history, searchQuery, channelFilter]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3.5 sm:space-y-4">
       {/* 1. Top KPI Analytics Bar */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {/* Total Sent */}
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Общо изпратени
               </span>
-              <div className="text-2xl font-black text-zinc-900 dark:text-white">
+              <div className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white">
                 {stats.totalSent}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400">
-              <Send className="size-5" />
+            <div className="flex size-8.5 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400">
+              <Send className="size-4" />
             </div>
           </div>
         </Card>
 
         {/* Sent This Month */}
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Изпратени този месец
               </span>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+              <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
                 {stats.sentThisMonth}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
-              <Clock className="size-5" />
+            <div className="flex size-8.5 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <Clock className="size-4" />
             </div>
           </div>
         </Card>
 
         {/* Active Recipients */}
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Уникални получатели
               </span>
-              <div className="text-2xl font-black text-blue-600 dark:text-blue-400">
+              <div className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400">
                 {stats.activeRecipientsCount}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400">
-              <Users className="size-5" />
+            <div className="flex size-8.5 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400">
+              <Users className="size-4" />
             </div>
           </div>
         </Card>
 
         {/* Channels Breakdown */}
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="space-y-2">
-            <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
               Разпределение по комуникация
             </span>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               <Badge
                 variant="outline"
-                className="rounded-lg border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300"
+                className="rounded-md border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300"
               >
                 📞 Разговори: {stats.callsCount || stats.byChannel?.phone || 0}
               </Badge>
               <Badge
                 variant="outline"
-                className="rounded-lg border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
+                className="rounded-md border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
               >
                 📧 Имейли: {stats.emailsCount || stats.byChannel?.email || 0}
               </Badge>
@@ -210,22 +210,22 @@ export function MarketingHistoryTab({
       </div>
 
       {/* 2. Search & Filters Bar */}
-      <div className="flex flex-col items-stretch justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex flex-col items-stretch justify-between gap-2.5 rounded-xl border border-zinc-200 bg-white p-2.5 shadow-2xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+          <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Търсене по име на контакт, телефон, имейл или бележка..."
-            className="h-10 rounded-xl pl-9 text-xs"
+            className="h-8.5 rounded-xl pl-8.5 text-xs"
           />
         </div>
 
         {/* Channel Filter & Clear actions */}
         <div className="flex flex-wrap items-center gap-2">
           <Select value={channelFilter} onValueChange={setChannelFilter}>
-            <SelectTrigger className="h-10 w-48 rounded-xl text-xs font-semibold">
+            <SelectTrigger className="h-8.5 w-44 rounded-xl text-xs font-semibold">
               <SelectValue placeholder="Всички видове" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -244,7 +244,7 @@ export function MarketingHistoryTab({
                 setSearchQuery("");
                 setChannelFilter("all");
               }}
-              className="h-10 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50"
+              className="h-8.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 px-2.5"
             >
               <X className="mr-1 size-3.5" />
               Изчисти филтрите
@@ -258,7 +258,7 @@ export function MarketingHistoryTab({
               size="sm"
               onClick={handleClearAll}
               disabled={isDeleting}
-              className="h-10 rounded-xl border border-rose-200 bg-rose-50/50 text-xs font-bold text-rose-600 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+              className="h-8.5 rounded-xl border border-rose-200 bg-rose-50/50 text-xs font-semibold text-rose-600 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300 px-2.5"
               title="Изчисти цялата история от базата данни"
             >
               <Trash2 className="mr-1.5 size-3.5" />
@@ -270,19 +270,19 @@ export function MarketingHistoryTab({
 
       {/* 3. History List */}
       {filteredHistory.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/70 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
-          <Inbox className="mx-auto mb-3 size-10 text-zinc-300 dark:text-zinc-700" />
-          <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/70 py-12 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
+          <Inbox className="mx-auto mb-2 size-8 text-zinc-300 dark:text-zinc-700" />
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
             Няма намерени съобщения в историята
           </h3>
-          <p className="mx-auto mt-1 max-w-sm text-xs text-zinc-500">
+          <p className="mx-auto mt-0.5 max-w-sm text-xs text-zinc-500">
             {searchQuery || channelFilter !== "all"
               ? "Опитайте да промените критериите за търсене."
-              : "Когато изпратите съобщения от таб „Бързо изпращане“, записите ще се появят тук."}
+              : "Когато изпратите съобщения, записите ще се появят тук."}
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {filteredHistory.map((log) => {
             const formattedDate = format(
               new Date(log.sentAt),
@@ -293,7 +293,7 @@ export function MarketingHistoryTab({
             return (
               <Card
                 key={log.id}
-                className="overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-2xs transition-all hover:border-indigo-200 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900"
+                className="overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 sm:p-3.5 shadow-2xs transition-all hover:border-indigo-200 dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                   <div className="flex-1 space-y-1.5">

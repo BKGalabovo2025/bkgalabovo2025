@@ -568,19 +568,19 @@ export default function MarketingClient() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
+    <div className="mx-auto max-w-7xl space-y-3.5 sm:space-y-4 px-3 sm:px-6 lg:px-8 pb-8">
       {/* 1. Page Header */}
-      <div className="flex flex-col items-start justify-between gap-4 rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-4 sm:p-6 shadow-xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="space-y-1">
+      <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white p-3 sm:p-3.5 shadow-xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-2.5">
-            <div className="flex size-11 items-center justify-center rounded-2xl bg-linear-to-br from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-200 dark:shadow-none">
-              <Megaphone className="size-5.5" />
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 text-white shadow-xs">
+              <Megaphone className="size-4.5" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-zinc-950 uppercase dark:text-white">
+              <h1 className="text-base sm:text-lg font-bold tracking-tight text-zinc-950 uppercase dark:text-white">
                 Маркетинг & CRM Център
               </h1>
-              <p className="text-xs text-zinc-500">
+              <p className="text-[11px] text-zinc-500">
                 Телефонни обаждания, брандирани имейли, дневник на комуникацията
                 и шаблони
               </p>
@@ -595,7 +595,7 @@ export default function MarketingClient() {
             size="sm"
             onClick={() => loadData()}
             disabled={isLoading}
-            className="rounded-full border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 shadow-xs hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+            className="h-8 rounded-lg border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 shadow-xs hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
             title="Презареди данни и шаблони"
           >
             <RefreshCw
@@ -605,7 +605,7 @@ export default function MarketingClient() {
           </Button>
           <Badge
             variant="outline"
-            className="rounded-full border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
+            className="rounded-lg border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
           >
             {allRecipients.length} обединени контакта
           </Badge>
@@ -613,71 +613,71 @@ export default function MarketingClient() {
       </div>
 
       {/* 2. Top KPI Analytics Bar */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {/* Total Contacts */}
-        <Card className="rounded-2xl sm:rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Общо контакти
               </span>
-              <div className="text-2xl font-black text-zinc-900 dark:text-white">
+              <div className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white">
                 {kpiData.total}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400">
-              <Users className="size-5" />
+            <div className="flex size-8.5 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400">
+              <Users className="size-4" />
             </div>
           </div>
         </Card>
 
         {/* Calls Logged */}
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Проведени разговори
               </span>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+              <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
                 {kpiData.calls}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
-              <PhoneCall className="size-5" />
+            <div className="flex size-8.5 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <PhoneCall className="size-4" />
             </div>
           </div>
         </Card>
 
         {/* Emails Sent */}
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Изпратени имейли
               </span>
-              <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
+              <div className="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400">
                 {kpiData.emails}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400">
-              <Mail className="size-5" />
+            <div className="flex size-8.5 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400">
+              <Mail className="size-4" />
             </div>
           </div>
         </Card>
 
         {/* Pending Contacts */}
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-xl sm:rounded-2xl border-zinc-200/80 bg-white p-2.5 sm:p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                 Чакащи за контакт
               </span>
-              <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
+              <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">
                 {kpiData.pending}
               </div>
             </div>
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400">
-              <Clock className="size-5" />
+            <div className="flex size-8.5 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400">
+              <Clock className="size-4" />
             </div>
           </div>
         </Card>
@@ -694,12 +694,12 @@ export default function MarketingClient() {
             loadData();
           }
         }}
-        className="space-y-6"
+        className="space-y-3 sm:space-y-3.5"
       >
-        <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-12 overflow-x-auto gap-1 rounded-2xl border border-zinc-200 bg-zinc-100/80 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+        <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-10 overflow-x-auto gap-1 rounded-xl border border-zinc-200 bg-zinc-100/80 p-1 dark:border-zinc-800 dark:bg-zinc-900">
           <TabsTrigger
             value="contacts"
-            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-30 sm:min-w-0 py-1.5 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <Phone className="size-3.5" />
             <span>📞 Контакти & Hub</span>
@@ -707,7 +707,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="composer"
-            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-30 sm:min-w-0 py-1.5 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <Send className="size-3.5" />
             <span>✉️ Имейл Кампания</span>
@@ -715,7 +715,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="templates"
-            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-30 sm:min-w-0 py-1.5 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <FileText className="size-3.5" />
             <span>📑 Шаблони ({templates.length})</span>
@@ -723,7 +723,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="history"
-            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-30 sm:min-w-0 py-1.5 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <History className="size-3.5" />
             <span>📊 История & Дневник</span>
@@ -731,7 +731,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="automations"
-            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-30 sm:min-w-0 py-1.5 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <Zap className="size-3.5" />
             <span>⚡ Автоматизации</span>
@@ -741,19 +741,19 @@ export default function MarketingClient() {
         {/* Tab 1: Contacts & CRM Hub */}
         <TabsContent
           value="contacts"
-          className="space-y-6 focus-visible:outline-hidden"
+          className="space-y-3 sm:space-y-3.5 focus-visible:outline-hidden"
         >
           {/* Controls Bar: Filters & Search */}
-          <div className="space-y-4 rounded-3xl border border-zinc-200 bg-white p-5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2.5 rounded-2xl border border-zinc-200 bg-white p-3 sm:p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
               {/* Search */}
               <div className="relative flex-1">
-                <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-400" />
+                <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
                 <Input
                   value={contactSearch}
                   onChange={(e) => setContactSearch(e.target.value)}
                   placeholder="Търсене по име, родител, дете, телефон, имейл или бележка..."
-                  className="h-10 rounded-2xl pl-10 text-xs font-medium"
+                  className="h-8.5 rounded-xl pl-8.5 text-xs font-medium"
                 />
               </div>
 
@@ -763,7 +763,7 @@ export default function MarketingClient() {
                   value={contactBranchFilter}
                   onValueChange={setContactBranchFilter}
                 >
-                  <SelectTrigger className="h-10 w-44 rounded-2xl text-xs font-semibold">
+                  <SelectTrigger className="h-8.5 w-38 sm:w-42 rounded-xl text-xs font-semibold">
                     <SelectValue placeholder="Всички бази" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -780,7 +780,7 @@ export default function MarketingClient() {
                   value={contactStatusFilter}
                   onValueChange={setContactStatusFilter}
                 >
-                  <SelectTrigger className="h-10 w-44 rounded-2xl text-xs font-semibold">
+                  <SelectTrigger className="h-8.5 w-38 sm:w-42 rounded-xl text-xs font-semibold">
                     <SelectValue placeholder="Всички статуси" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -797,17 +797,17 @@ export default function MarketingClient() {
             </div>
 
             {/* Smart Audience Segment Buttons */}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[11px] font-bold text-zinc-400 uppercase">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-2.5 dark:border-zinc-800">
+              <div className="flex flex-wrap items-center gap-1">
+                <span className="text-[10px] font-bold text-zinc-400 uppercase mr-0.5">
                   Сегмент:
                 </span>
                 {[
                   { id: "all", label: "🌟 Всички" },
-                  { id: "parents", label: "👨‍👩‍👧 Родители & Деца" },
+                  { id: "parents", label: "👨‍👩‍👧 Родители" },
                   { id: "athletes", label: "🏸 Състезатели" },
-                  { id: "recovery", label: "🌿 Recovery клиенти" },
-                  { id: "members", label: "👥 Любители & Членове" },
+                  { id: "recovery", label: "🌿 Recovery" },
+                  { id: "members", label: "👥 Членове" },
                 ].map((seg) => (
                   <Button
                     key={seg.id}
@@ -815,7 +815,7 @@ export default function MarketingClient() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setContactSegmentFilter(seg.id)}
-                    className={`h-7 rounded-xl px-2.5 text-[11px] font-bold transition-all ${
+                    className={`h-6.5 rounded-lg px-2 text-[10px] sm:text-[11px] font-semibold transition-all ${
                       contactSegmentFilter === seg.id
                         ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
                         : "border border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
@@ -827,18 +827,18 @@ export default function MarketingClient() {
               </div>
 
               {/* Bulk Email Trigger */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={toggleSelectAllFiltered}
-                  className="h-8 rounded-xl text-xs font-bold"
+                  className="h-7.5 rounded-lg text-xs font-semibold px-2.5"
                 >
                   {selectedContactIds.size === filteredContacts.length &&
                   filteredContacts.length > 0
                     ? "Отмаркирай всички"
-                    : `Маркирай всички (${filteredContacts.length})`}
+                    : `Маркирай (${filteredContacts.length})`}
                 </Button>
 
                 <Button
@@ -846,9 +846,9 @@ export default function MarketingClient() {
                   size="sm"
                   disabled={selectedContactIds.size === 0}
                   onClick={handleOpenBulkEmail}
-                  className="h-8 rounded-xl bg-blue-600 text-xs font-bold text-white shadow-xs hover:bg-blue-700"
+                  className="h-7.5 rounded-lg bg-blue-600 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 px-2.5"
                 >
-                  <Mail className="mr-1.5 size-3.5" />
+                  <Mail className="mr-1 size-3.5" />
                   Групов имейл ({selectedContactIds.size})
                 </Button>
               </div>
@@ -857,17 +857,17 @@ export default function MarketingClient() {
 
           {/* Contacts Grid */}
           {filteredContacts.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/70 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
-              <Inbox className="mx-auto mb-3 size-10 text-zinc-300 dark:text-zinc-700" />
-              <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+            <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/70 py-10 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
+              <Inbox className="mx-auto mb-2 size-8 text-zinc-300 dark:text-zinc-700" />
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
                 Няма намерени контакти
               </h3>
-              <p className="mx-auto mt-1 max-w-sm text-xs text-zinc-500">
+              <p className="mx-auto mt-0.5 max-w-sm text-xs text-zinc-500">
                 Опитайте да изчистите или промените филтрите за търсене.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2.5 sm:gap-3 md:grid-cols-2 lg:grid-cols-3">
               {filteredContacts.map((contact) => (
                 <div key={contact.id} className="group relative">
                   <ContactCard
