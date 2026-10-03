@@ -560,21 +560,23 @@ export function BusinessTripManagerDialog({
         <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-3xl border-zinc-100 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
           <DialogHeader className="mb-4">
             <DialogTitle className="text-xl font-medium tracking-wide">
-              Командировки: {event.title}
+              Решения на УС и Командировки: {event.title}
             </DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-row items-center justify-between rounded-xl bg-zinc-50/50 p-6 dark:bg-zinc-900/50">
             <div>
               <p className="text-sm font-light text-zinc-400">
-                Управление на пътуванията и разходите за това събитие
+                Управление на Решения на УС, Заповеди и финансово отчитане за
+                това събитие
               </p>
             </div>
             <Button
               onClick={() => setIsCreateDialogOpen(true)}
               className="rounded-xl bg-blue-600 text-white shadow-none hover:bg-blue-700"
             >
-              <UserPlus className="mr-2 size-4" /> Създай нова
+              <UserPlus className="mr-2 size-4" /> + Ново Решение на УС /
+              Заповед
             </Button>
           </div>
 
@@ -582,7 +584,9 @@ export function BusinessTripManagerDialog({
             {businessTrips.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground">
                 <ShieldAlert className="mx-auto mb-3 size-8 opacity-50" />
-                <p>Няма създадени командировки за това събитие.</p>
+                <p>
+                  Няма създадени Решения на УС или командировки за това събитие.
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -950,11 +954,13 @@ export function BusinessTripManagerDialog({
                       )}
                       {/* Редакция */}
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
+                        className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-900/60 dark:text-blue-300 dark:hover:bg-blue-950/40"
                         onClick={() => setTripToEdit(trip)}
                       >
-                        <Pencil className="mr-2 size-4" /> Редактирай
+                        <Pencil className="mr-2 size-4" /> Редактирай Решение /
+                        Заповед
                       </Button>
                       {/* Изтриване */}
                       <Button

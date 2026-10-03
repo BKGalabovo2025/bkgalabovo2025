@@ -314,6 +314,23 @@ export function BusinessTripPdfTemplates({
 
   const orderNum = trip.id ? trip.id.substring(0, 6).toUpperCase() : "______";
   const orderDate = fmtDate(trip.orderDate || trip.createdAt || trip.startDate);
+  const decisionDate = trip.usDecisionDate
+    ? fmtDate(trip.usDecisionDate)
+    : orderDate;
+
+  const getDecisionHeader = (): string => {
+    if (trip.usDecision) {
+      const cleanNum = trip.usDecision.startsWith("№")
+        ? trip.usDecision
+        : `№ ${trip.usDecision}`;
+      if (cleanNum.includes("/") || cleanNum.toLowerCase().includes("от")) {
+        return cleanNum;
+      }
+      return `${cleanNum} / ${decisionDate} г.`;
+    }
+    return `№ ${orderNum}-УС / ${decisionDate} г.`;
+  };
+
   const destCity = trip.destination || "___________";
   const routeLabel = `Гълъбово — ${destCity} — Гълъбово`;
 
@@ -469,17 +486,7 @@ export function BusinessTripPdfTemplates({
             НА УПРАВИТЕЛНИЯ СЪВЕТ НА „{site.name.toUpperCase()}“
           </p>
           <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
-            {trip.usDecision ? (
-              <span>
-                {trip.usDecision.startsWith("№")
-                  ? trip.usDecision
-                  : `№ ${trip.usDecision}`}
-              </span>
-            ) : (
-              <span>
-                № {orderNum}-УС / {orderDate} г.
-              </span>
-            )}
+            <span>{getDecisionHeader()}</span>
           </p>
         </div>
 
@@ -491,7 +498,7 @@ export function BusinessTripPdfTemplates({
             lineHeight: "1.5",
           }}
         >
-          Днес, <strong>{orderDate} г.</strong>, Управителният съвет на „
+          Днес, <strong>{decisionDate} г.</strong>, Управителният съвет на „
           {site.name}“, на основание чл. 20 от Устава на сдружението, Държавния
           спортен календар на БФ Бадминтон и разпоредбите на Наредбата за
           командировките в страната (НКС), проведе заседание относно
@@ -614,11 +621,27 @@ export function BusinessTripPdfTemplates({
             )}
           </p>
 
+          {trip.usDecisionNotes && (
+            <p style={{ marginBottom: "6pt" }}>
+              <strong>5.</strong> Допълнителни разпореждания на УС:
+              <br />
+              <span
+                style={{
+                  marginLeft: "15pt",
+                  display: "block",
+                  marginTop: "2pt",
+                }}
+              >
+                {trip.usDecisionNotes}
+              </span>
+            </p>
+          )}
+
           <p style={{ marginBottom: "10pt" }}>
-            <strong>5.</strong> Възлага на Председателя на Управителния съвет (
-            <strong>{mol}</strong>) да издаде писмена Заповед (Нареждане за
-            командировка) на основание настоящото Решение и да организира
-            финансовото отчитане.
+            <strong>{trip.usDecisionNotes ? "6." : "5."}</strong> Възлага на
+            Председателя на Управителния съвет (<strong>{mol}</strong>) да
+            издаде писмена Заповед (Нареждане за командировка) на основание
+            настоящото Решение и да организира финансовото отчитане.
           </p>
         </div>
 
@@ -730,7 +753,9 @@ export function BusinessTripPdfTemplates({
               </p>
             </div>
             <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
-              Протокол от заседание на УС
+              {trip.usProtocolNumber
+                ? `Протокол № ${trip.usProtocolNumber} от заседание на УС`
+                : "Протокол от заседание на УС"}
             </p>
           </div>
         </div>
@@ -794,8 +819,25 @@ export function BusinessTripPdfTemplates({
           </p>
         </div>
         <p style={{ marginBottom: "8pt", textAlign: "justify" }}>
-          На основание Наредбата за командировките в страната и Държавния
-          спортен календар на Б Ф Бадминтон,
+          На основание Наредбата за командировките в страната, Държавния спортен
+          календар на Б Ф Бадминтон
+          {trip.usDecision ? (
+            <>
+              {" "}
+              и Решение на Управителния съвет{" "}
+              <strong>
+                {trip.usDecision.startsWith("№")
+                  ? trip.usDecision
+                  : `№ ${trip.usDecision}`}
+              </strong>
+              {trip.usDecisionDate
+                ? ` от ${fmtDate(trip.usDecisionDate)} г.`
+                : ""}
+            </>
+          ) : (
+            <> и Решение на Управителния съвет № {orderNum}-УС</>
+          )}
+          ,
         </p>
         <p
           style={{

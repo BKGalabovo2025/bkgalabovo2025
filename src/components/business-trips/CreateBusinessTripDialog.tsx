@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertTriangle, Save } from "lucide-react";
+import { AlertTriangle, FileText, Save } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
 import { businessTripService } from "@/services/business-trip-service";
 import { BusinessTrip, BusinessTripSchema } from "@/types/business-trip.types";
@@ -104,6 +105,10 @@ export function CreateBusinessTripDialog({
       ? {
           // Режим Редактиране — презареждаме съществуващите стойности
           ...initialData,
+          usDecision: initialData.usDecision || "",
+          usDecisionDate: initialData.usDecisionDate || "",
+          usProtocolNumber: initialData.usProtocolNumber || "",
+          usDecisionNotes: initialData.usDecisionNotes || "",
           expensesCoverage:
             initialData.expensesCoverage || getInitialExpensesCoverage(),
           hasEntryFee:
@@ -140,6 +145,10 @@ export function CreateBusinessTripDialog({
           },
           status: "draft",
           orderDate: new Date().toISOString(),
+          usDecision: "",
+          usDecisionDate: new Date().toISOString().split("T")[0],
+          usProtocolNumber: "",
+          usDecisionNotes: "",
           hasEntryFee: false,
           entryFeePerPersonEUR: 0,
         },
@@ -200,6 +209,10 @@ export function CreateBusinessTripDialog({
         coachName,
         coachRole,
         orderDate: values.orderDate,
+        usDecision: values.usDecision?.trim() || undefined,
+        usDecisionDate: values.usDecisionDate?.trim() || undefined,
+        usProtocolNumber: values.usProtocolNumber?.trim() || undefined,
+        usDecisionNotes: values.usDecisionNotes?.trim() || undefined,
         financials: {
           ...values.financials,
           hasEntryFee: Boolean(values.hasEntryFee),
@@ -237,12 +250,13 @@ export function CreateBusinessTripDialog({
         <DialogHeader>
           <DialogTitle>
             {isEditMode
-              ? "Редактиране на Командировка"
-              : "Генериране на Командировка"}
+              ? "Редактиране на Решение на УС и Заповед за командировка"
+              : "Създаване на Решение на УС и Заповед за командировка"}
           </DialogTitle>
           <DialogDescription>
-            Системата автоматично извлече данните от турнира. Моля, прегледайте
-            и допълнете транспортните детайли. Всички суми са в Евро (€).
+            Въведете или коригирайте решението на Управителния съвет, състава на
+            делегацията, финансовите параметри и транспортните условия за това
+            състезание. Всички суми са в Евро (€).
           </DialogDescription>
         </DialogHeader>
 
@@ -316,23 +330,101 @@ export function CreateBusinessTripDialog({
                 )}
               />
 
-              <FormField
-                control={form.control as any}
-                name="usDecision"
-                render={({ field }: any) => (
-                  <FormItem>
-                    <FormLabel>Решение на УС (за Отчета)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Напр. № 12 от 15.03"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* ── РЕШЕНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ (УС) ── */}
+              <div className="col-span-2 space-y-4 rounded-xl border border-blue-100 bg-blue-50/40 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+                <div className="flex items-center gap-2">
+                  <FileText className="size-4 text-blue-600 dark:text-blue-400" />
+                  <h4 className="text-sm font-semibold text-blue-950 dark:text-blue-200">
+                    Решение на Управителния съвет (УС)
+                  </h4>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Данни за заседанието на Управителния съвет, на което е взето
+                  решението за одобряване на участието и финансовото
+                  обезпечаване.
+                </p>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <FormField
+                    control={form.control as any}
+                    name="usDecision"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel>Номер на Решение</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Напр. 12-УС или № 12"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control as any}
+                    name="usDecisionDate"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel>Дата на заседание на УС</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control as any}
+                    name="usProtocolNumber"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel>Протокол № от заседание</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Напр. 05/2026"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control as any}
+                  name="usDecisionNotes"
+                  render={({ field }: any) => (
+                    <FormItem>
+                      <FormLabel>
+                        Допълнителни решения / бележки на УС (по избор)
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Въведете допълнителни точки от решението или специални указания на УС..."
+                          rows={2}
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormDescription className="text-[11px]">
+                        Ако са въведени, ще се отпечатат като отделна точка в
+                        Решението на УС (DOC 0).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="col-span-2 flex flex-col justify-center space-y-1 rounded-md border p-3">
                 <span className="text-xs text-muted-foreground">
