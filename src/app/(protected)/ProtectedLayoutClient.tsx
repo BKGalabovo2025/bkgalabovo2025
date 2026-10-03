@@ -158,7 +158,7 @@ export default function ProtectedLayoutClient({
           <main id="main-content" className="flex-1 overflow-y-auto">
             <div
               key={`content-${activeBranch}`}
-              className="mx-auto max-w-350 p-4 duration-1000 animate-in fade-in slide-in-from-bottom-2 sm:p-6 md:p-8 lg:p-10"
+              className="mx-auto max-w-350 p-3.5 duration-1000 animate-in fade-in slide-in-from-bottom-2 sm:p-5 md:p-6 lg:p-6 xl:p-8"
             >
               {children}
             </div>

@@ -38,7 +38,6 @@ import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessT
 import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
-import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -88,6 +87,110 @@ import {
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
 
+interface TripRowCalculations {
+  total: number;
+  expensesCount: number;
+}
+
+function computeTripRowTotals(
+  trip: BusinessTrip,
+  tripExps: TripExpense[]
+): TripRowCalculations {
+  const sDate = parseISO(trip.startDate);
+  const eDate = parseISO(trip.endDate);
+  const numDays = Math.max(1, differenceInDays(eDate, sDate) + 1);
+  const numNights = Math.max(0, numDays - 1);
+  const numPeople = (trip.participantsIds?.length || 0) + 1;
+
+  const calcPerDiem = trip.financials.perDiemRateEUR * numDays * numPeople;
+  const calcAccom =
+    trip.financials.accommodationRateEUR * numNights * numPeople;
+  const calcEntry = trip.financials.entryFeeEUR || 0;
+  let calcFuel = 0;
+
+  if (trip.vehicle?.distanceKm && trip.vehicle?.fuelNorm) {
+    calcFuel = (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm * 1.35;
+  }
+
+  let expPerDiem = 0;
+  let expAccom = 0;
+  let expEntry = 0;
+  let expOther = 0;
+
+  const fuelExpenses = tripExps.filter((e) => e.expenseType === "fuel");
+  const transportExpenses = tripExps.filter(
+    (e) => e.expenseType === "transport"
+  );
+
+  const avgPricePerLiterEUR =
+    fuelExpenses.length > 0
+      ? fuelExpenses.reduce((sum, e) => sum + e.amountEUR, 0) /
+        fuelExpenses.length
+      : 0;
+
+  let finalFuelEUR = calcFuel;
+  if (
+    fuelExpenses.length > 0 &&
+    trip.vehicle?.distanceKm &&
+    trip.vehicle?.fuelNorm
+  ) {
+    const totalLiters = (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm;
+    const finalFuelBGN =
+      totalLiters * (Math.round(avgPricePerLiterEUR * 1.95583 * 100) / 100);
+    finalFuelEUR = finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
+  }
+
+  const expTransport = transportExpenses.reduce(
+    (sum, e) => sum + e.amountEUR,
+    0
+  );
+
+  tripExps.forEach((ex) => {
+    if (ex.expenseType === "accommodation") expAccom += ex.amountEUR;
+    else if (ex.expenseType === "food") expPerDiem += ex.amountEUR;
+    else if (ex.expenseType === "entry_fee") expEntry += ex.amountEUR;
+    else if (ex.expenseType !== "fuel" && ex.expenseType !== "transport") {
+      expOther += ex.amountEUR;
+    }
+  });
+
+  const total =
+    (expPerDiem > 0 ? expPerDiem : calcPerDiem) +
+    (expAccom > 0 ? expAccom : calcAccom) +
+    (expEntry > 0 ? expEntry : calcEntry) +
+    (fuelExpenses.length > 0 ? finalFuelEUR : calcFuel) +
+    expTransport +
+    expOther;
+
+  return { total, expensesCount: tripExps.length };
+}
+
+function getTripStatusBadge(status?: string) {
+  if (status === "approved") {
+    return {
+      variant: "default" as const,
+      className: "border-transparent bg-blue-600 text-white",
+      text: "Одобрена",
+    };
+  }
+  if (status === "completed") {
+    return {
+      variant: "secondary" as const,
+      className:
+        "border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
+      text: "Отчетена",
+    };
+  }
+  return {
+    variant: "outline" as const,
+    className:
+      "border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400",
+    text: "Чернова",
+  };
+}
+
+const ITEMS_PER_PAGE = 8;
+
 export default function AccountingClient() {
   const site = getSiteConfig();
   const [trips, setTrips] = useState<BusinessTrip[]>([]);
@@ -117,6 +220,8 @@ export default function AccountingClient() {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "draft" | "approved" | "completed"
   >("all");
+  const [tripSearchQuery, setTripSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const siteId = "bkgalabovo"; // Ideally from context
 
@@ -217,9 +322,42 @@ export default function AccountingClient() {
       // 3. Status filter
       if (statusFilter !== "all" && trip.status !== statusFilter) return false;
 
+      // 4. Search query
+      if (tripSearchQuery.trim()) {
+        const q = tripSearchQuery.toLowerCase();
+        const coach = membersDict[trip.coachId];
+        const coachName = coach
+          ? `${coach.firstName} ${coach.lastName}`.toLowerCase()
+          : "";
+        const titleMatches = trip.title.toLowerCase().includes(q);
+        const destMatches = (trip.destination || "").toLowerCase().includes(q);
+        const coachMatches = coachName.includes(q);
+        if (!titleMatches && !destMatches && !coachMatches) return false;
+      }
+
       return true;
     });
-  }, [trips, selectedMonth, activityFilter, statusFilter]);
+  }, [
+    trips,
+    selectedMonth,
+    activityFilter,
+    statusFilter,
+    tripSearchQuery,
+    membersDict,
+  ]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedMonth, activityFilter, statusFilter, tripSearchQuery]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTrips.length / ITEMS_PER_PAGE)
+  );
+  const paginatedTrips = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredTrips.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredTrips, currentPage]);
 
   const existingTripEventIds = useMemo(() => {
     return new Set(trips.map((t) => t.eventId).filter(Boolean));
@@ -355,6 +493,10 @@ export default function AccountingClient() {
     const d = new Date(selectedMonth);
     d.setMonth(d.getMonth() + 1);
     setSelectedMonth(d);
+  };
+
+  const goToCurrentMonth = () => {
+    setSelectedMonth(startOfMonth(new Date()));
   };
 
   const handleExportExcel = async () => {
@@ -655,74 +797,79 @@ export default function AccountingClient() {
   }
 
   return (
-    <div className="relative space-y-8 pb-12 duration-500 animate-in fade-in">
+    <div className="relative space-y-3 pb-6 duration-500 animate-in fade-in">
+      {/* ── Compact Page Header ── */}
       <PageHeader
         title="Счетоводни отчети"
-        description="Глобален преглед на всички транспортни разходи и командировки по месеци."
+        description="Глобален преглед на разходите и командировките по месеци."
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
           { label: "Отчети" },
         ]}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <Button
+            size="sm"
             onClick={() => {
               setEventSearchQuery("");
               setIsSelectEventOpen(true);
             }}
-            className="rounded-xl bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+            className="h-8 rounded-lg bg-emerald-600 px-2.5 text-xs text-white shadow-xs hover:bg-emerald-700"
           >
-            <Plus className="mr-2 size-4" />
+            <Plus className="mr-1.5 size-3.5" />
             Нова командировка
           </Button>
           <Button
             variant="outline"
+            size="sm"
             onClick={handleExportExcel}
-            className="rounded-xl border-slate-200"
+            className="h-8 rounded-lg border-slate-200 px-2.5 text-xs"
           >
-            <FileDown className="mr-2 size-4" /> Експорт (Excel)
+            <FileDown className="mr-1.5 size-3.5" /> Excel
           </Button>
           <Button
             variant="outline"
+            size="sm"
             onClick={handleDownloadAll}
             disabled={isZipping || filteredTrips.length === 0}
-            className="rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-200"
+            className="h-8 rounded-lg border-indigo-200 bg-indigo-50/60 px-2.5 text-xs text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200"
           >
-            <FileDown className="mr-2 size-4" />
-            {isZipping ? "Генериране..." : "Изтегли пълен пакет (ZIP)"}
+            <FileDown className="mr-1.5 size-3.5" />
+            {isZipping ? "Генериране..." : "ZIP Пакет"}
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="default"
+                size="sm"
                 disabled={isGeneratingPdf}
-                className="rounded-xl bg-zinc-950 text-white shadow-sm hover:bg-zinc-800"
+                className="h-8 rounded-lg bg-zinc-950 px-2.5 text-xs text-white shadow-xs hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
               >
-                {isGeneratingPdf ? "Зареждане..." : "Печат Протокол (PDF)"}
-                <ChevronDown className="ml-2 size-4" />
+                {isGeneratingPdf ? "Зареждане..." : "Протокол"}
+                <ChevronDown className="ml-1 size-3.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuItem
                 onClick={handlePreviewProtocol}
-                className="cursor-pointer"
+                className="cursor-pointer text-xs"
               >
-                <Eye className="mr-2 size-4" />
+                <Eye className="mr-2 size-3.5" />
                 <span>Преглед на протокол</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handlePrintProtocol}
-                className="cursor-pointer"
+                className="cursor-pointer text-xs"
               >
-                <FileDown className="mr-2 size-4" />
+                <FileDown className="mr-2 size-3.5" />
                 <span>Изтегли PDF</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleEmailProtocol}
-                className="cursor-pointer"
+                className="cursor-pointer text-xs"
               >
-                <Mail className="mr-2 size-4" />
+                <Mail className="mr-2 size-3.5" />
                 <span>Изпрати по имейл</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -730,19 +877,19 @@ export default function AccountingClient() {
         </div>
       </PageHeader>
 
-      {/* Filters */}
-      <BentoCard className="flex flex-wrap items-center gap-4 border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mr-4 flex items-center gap-2">
+      {/* ── Compact Streamlined Toolbar (Month + Search + Filters) ── */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200/80 bg-white p-2 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
+        <div className="flex items-center gap-1.5">
           <Button
             variant="outline"
             size="icon"
             onClick={prevMonth}
             aria-label="Предишен месец"
-            className="size-9"
+            className="size-7.5 rounded-lg"
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-3.5" />
           </Button>
-          <div className="min-w-30 text-center font-semibold text-zinc-900 capitalize">
+          <div className="min-w-28 text-center text-xs font-semibold text-zinc-900 capitalize dark:text-zinc-100">
             {format(selectedMonth, "MMMM yyyy", { locale: bg })}
           </div>
           <Button
@@ -750,19 +897,37 @@ export default function AccountingClient() {
             size="icon"
             onClick={nextMonth}
             aria-label="Следващ месец"
-            className="size-9"
+            className="size-7.5 rounded-lg"
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight className="size-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={goToCurrentMonth}
+            className="h-7.5 px-2 text-[11px] text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          >
+            Текущ
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Търси събитие, треньор..."
+              value={tripSearchQuery}
+              onChange={(e) => setTripSearchQuery(e.target.value)}
+              className="h-7.5 w-36 pl-7 text-xs sm:w-48"
+            />
+          </div>
+
           <Select
             value={activityFilter}
             onValueChange={(val: any) => setActivityFilter(val)}
           >
-            <SelectTrigger className="h-9 w-45">
-              <SelectValue placeholder="Вид дейност" />
+            <SelectTrigger className="h-7.5 w-30 text-xs">
+              <SelectValue placeholder="Дейност" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Всички дейности</SelectItem>
@@ -775,141 +940,155 @@ export default function AccountingClient() {
             value={statusFilter}
             onValueChange={(val: any) => setStatusFilter(val)}
           >
-            <SelectTrigger className="h-9 w-45">
+            <SelectTrigger className="h-7.5 w-28 text-xs">
               <SelectValue placeholder="Статус" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Всички статуси</SelectItem>
               <SelectItem value="draft">Чернови</SelectItem>
               <SelectItem value="approved">Одобрени</SelectItem>
-              <SelectItem value="completed">Приключени</SelectItem>
+              <SelectItem value="completed">Отчетени</SelectItem>
             </SelectContent>
           </Select>
         </div>
-      </BentoCard>
-
-      {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <BentoCard className="border-blue-100 bg-linear-to-br from-blue-50 to-indigo-50 p-6 dark:border-blue-900/30 dark:from-blue-950/20 dark:to-indigo-950/20">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-blue-100 p-2.5 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-              <Calculator className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                Общо Разходи (EUR)
-              </p>
-              <h4 className="text-2xl font-bold text-blue-950 dark:text-blue-100">
-                €{kpis.totalEur.toFixed(2)}
-              </h4>
-            </div>
-          </div>
-          <p className="mt-4 text-xs font-medium text-blue-600/80">
-            Равносметка: {kpis.totalBgn.toFixed(2)} BGN
-          </p>
-        </BentoCard>
-
-        <BentoCard className="p-6">
-          <div className="mb-3 flex items-center gap-3">
-            <div className="rounded-full bg-orange-100 p-2.5 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
-              <Car className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-500">
-                Транспорт & Гориво
-              </p>
-              <h4 className="text-xl font-bold text-zinc-900 dark:text-white">
-                €{kpis.totalFuelAndTransport.toFixed(2)}
-              </h4>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-col gap-1">
-            <p className="text-xs text-zinc-400">
-              Вкл. {kpis.totalKM} изминати км
-            </p>
-            <p className="text-xs font-medium text-orange-600/80">
-              Равносметка:{" "}
-              {convertEurToBgn(kpis.totalFuelAndTransport).toFixed(2)} BGN
-            </p>
-          </div>
-        </BentoCard>
-
-        <BentoCard className="p-6">
-          <div className="mb-3 flex items-center gap-3">
-            <div className="rounded-full bg-purple-100 p-2.5 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
-              <Bed className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-500">
-                Нощувки / Квартирни
-              </p>
-              <h4 className="text-xl font-bold text-zinc-900 dark:text-white">
-                €{kpis.totalAccommodation.toFixed(2)}
-              </h4>
-            </div>
-          </div>
-          <p className="mt-4 text-xs font-medium text-purple-600/80">
-            Равносметка: {convertEurToBgn(kpis.totalAccommodation).toFixed(2)}{" "}
-            BGN
-          </p>
-        </BentoCard>
-
-        <BentoCard className="p-6">
-          <div className="mb-3 flex items-center gap-3">
-            <div className="rounded-full bg-emerald-100 p-2.5 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
-              <Pizza className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-500">
-                Дневни & Храна
-              </p>
-              <h4 className="text-xl font-bold text-zinc-900 dark:text-white">
-                €{kpis.totalPerDiem.toFixed(2)}
-              </h4>
-            </div>
-          </div>
-          <p className="mt-4 text-xs font-medium text-emerald-600/80">
-            Равносметка: {convertEurToBgn(kpis.totalPerDiem).toFixed(2)} BGN
-          </p>
-        </BentoCard>
-
-        <BentoCard className="p-6">
-          <div className="mb-3 flex items-center gap-3">
-            <div className="rounded-full bg-pink-100 p-2.5 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300">
-              <Ticket className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-500">Такси участие</p>
-              <h4 className="text-xl font-bold text-zinc-900 dark:text-white">
-                €{kpis.totalEntryFees.toFixed(2)}
-              </h4>
-            </div>
-          </div>
-          <p className="mt-4 text-xs font-medium text-pink-600/80">
-            Равносметка: {convertEurToBgn(kpis.totalEntryFees).toFixed(2)} BGN
-          </p>
-        </BentoCard>
       </div>
 
-      {/* Table */}
-      <BentoCard>
-        <div className="border-b border-zinc-100 p-6 dark:border-zinc-800">
-          <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+      {/* ── 5-Metric Ribbon (Compact Single Row on Laptop) ── */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        {/* Общо Разходи */}
+        <div className="flex flex-col justify-between rounded-xl border border-blue-200/70 bg-linear-to-br from-blue-50/70 to-indigo-50/40 p-2.5 shadow-2xs dark:border-blue-900/40 dark:from-blue-950/20 dark:to-indigo-950/20">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-blue-700 dark:text-blue-300">
+              Общо Разходи
+            </span>
+            <div className="rounded-md bg-blue-100 p-1 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300">
+              <Calculator className="size-3.5" />
+            </div>
+          </div>
+          <div className="mt-1">
+            <p className="text-base font-bold tracking-tight text-blue-950 dark:text-blue-100">
+              €{kpis.totalEur.toFixed(2)}
+            </p>
+            <p className="text-[10px] font-medium text-blue-600/90 dark:text-blue-400">
+              {kpis.totalBgn.toFixed(2)} лв.
+            </p>
+          </div>
+        </div>
+
+        {/* Транспорт & Гориво */}
+        <div className="flex flex-col justify-between rounded-xl border border-orange-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-zinc-500">
+              Транспорт &amp; Гориво
+            </span>
+            <div className="rounded-md bg-orange-100 p-1 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
+              <Car className="size-3.5" />
+            </div>
+          </div>
+          <div className="mt-1">
+            <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">
+              €{kpis.totalFuelAndTransport.toFixed(2)}
+            </p>
+            <p className="text-[10px] text-orange-600 dark:text-orange-400">
+              {kpis.totalKM} км •{" "}
+              {convertEurToBgn(kpis.totalFuelAndTransport).toFixed(2)} лв.
+            </p>
+          </div>
+        </div>
+
+        {/* Нощувки / Квартирни */}
+        <div className="flex flex-col justify-between rounded-xl border border-purple-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-zinc-500">
+              Нощувки
+            </span>
+            <div className="rounded-md bg-purple-100 p-1 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+              <Bed className="size-3.5" />
+            </div>
+          </div>
+          <div className="mt-1">
+            <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">
+              €{kpis.totalAccommodation.toFixed(2)}
+            </p>
+            <p className="text-[10px] text-purple-600 dark:text-purple-400">
+              {convertEurToBgn(kpis.totalAccommodation).toFixed(2)} лв.
+            </p>
+          </div>
+        </div>
+
+        {/* Дневни & Храна */}
+        <div className="flex flex-col justify-between rounded-xl border border-emerald-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-zinc-500">
+              Дневни &amp; Храна
+            </span>
+            <div className="rounded-md bg-emerald-100 p-1 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+              <Pizza className="size-3.5" />
+            </div>
+          </div>
+          <div className="mt-1">
+            <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">
+              €{kpis.totalPerDiem.toFixed(2)}
+            </p>
+            <p className="text-[10px] text-emerald-600 dark:text-emerald-400">
+              {convertEurToBgn(kpis.totalPerDiem).toFixed(2)} лв.
+            </p>
+          </div>
+        </div>
+
+        {/* Такси турнир */}
+        <div className="flex flex-col justify-between rounded-xl border border-pink-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-zinc-500">
+              Такси турнир
+            </span>
+            <div className="rounded-md bg-pink-100 p-1 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300">
+              <Ticket className="size-3.5" />
+            </div>
+          </div>
+          <div className="mt-1">
+            <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">
+              €{kpis.totalEntryFees.toFixed(2)}
+            </p>
+            <p className="text-[10px] text-pink-600 dark:text-pink-400">
+              {convertEurToBgn(kpis.totalEntryFees).toFixed(2)} лв.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Compact Table ── */}
+      <div className="overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
+        <div className="flex items-center justify-between border-b border-zinc-100 px-3.5 py-2 dark:border-zinc-800">
+          <h3 className="text-xs font-semibold text-zinc-900 dark:text-white">
             Детайлен опис на командировките
           </h3>
+          <Badge variant="outline" className="text-[10px] font-normal">
+            {filteredTrips.length}{" "}
+            {filteredTrips.length === 1 ? "командировка" : "командировки"}
+          </Badge>
         </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Дата</TableHead>
-                <TableHead>Командировка</TableHead>
-                <TableHead>Треньор</TableHead>
-                <TableHead>Дейност</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead className="text-right">Сума (EUR)</TableHead>
-                <TableHead className="text-right">Документи</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
+
+        <div className="max-h-[calc(100vh-360px)] min-h-50 overflow-auto">
+          <Table className="w-full text-xs">
+            <TableHeader className="sticky top-0 z-10 bg-zinc-50/95 backdrop-blur-xs dark:bg-zinc-900/95">
+              <TableRow className="border-b text-[11px]">
+                <TableHead className="w-20 px-2.5 py-2">Дата</TableHead>
+                <TableHead className="min-w-40 max-w-60 px-2.5 py-2">
+                  Командировка
+                </TableHead>
+                <TableHead className="min-w-25 max-w-35 px-2.5 py-2">
+                  Треньор
+                </TableHead>
+                <TableHead className="w-24 p-2">Дейност</TableHead>
+                <TableHead className="w-24 p-2">Статус</TableHead>
+                <TableHead className="w-24 px-2.5 py-2 text-right">
+                  Сума (EUR)
+                </TableHead>
+                <TableHead className="w-20 p-2 text-right">Документи</TableHead>
+                <TableHead className="w-24 px-2.5 py-2 text-right">
+                  Действия
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -917,172 +1096,101 @@ export default function AccountingClient() {
                 <TableRow>
                   <TableCell
                     colSpan={8}
-                    className="py-8 text-center text-zinc-500"
+                    className="py-10 text-center text-xs text-zinc-500"
                   >
                     Няма намерени записи за този период.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredTrips.map((trip) => {
+                paginatedTrips.map((trip) => {
                   const coach = membersDict[trip.coachId];
                   const coachName = coach
                     ? `${coach.firstName} ${coach.lastName}`
                     : "Неизвестен";
 
-                  let total = 0;
-                  const sDate = parseISO(trip.startDate);
-                  const eDate = parseISO(trip.endDate);
-                  const numDays = Math.max(
-                    1,
-                    differenceInDays(eDate, sDate) + 1
-                  );
-                  const numNights = Math.max(0, numDays - 1);
-                  const numPeople = (trip.participantsIds?.length || 0) + 1;
-
-                  const calcPerDiem =
-                    trip.financials.perDiemRateEUR * numDays * numPeople;
-                  const calcAccom =
-                    trip.financials.accommodationRateEUR *
-                    numNights *
-                    numPeople;
-                  const calcEntry = trip.financials.entryFeeEUR || 0;
-                  let calcFuel = 0;
-
-                  if (trip.vehicle?.distanceKm && trip.vehicle?.fuelNorm) {
-                    calcFuel =
-                      (trip.vehicle.distanceKm / 100) *
-                      trip.vehicle.fuelNorm *
-                      1.35;
-                  }
-
                   const tripExps = expenses[trip.id!] || [];
-                  let expPerDiem = 0,
-                    expAccom = 0,
-                    expEntry = 0,
-                    expOther = 0;
-
-                  const fuelExpenses = tripExps.filter(
-                    (e) => e.expenseType === "fuel"
+                  const { total, expensesCount } = computeTripRowTotals(
+                    trip,
+                    tripExps
                   );
-                  const transportExpenses = tripExps.filter(
-                    (e) => e.expenseType === "transport"
-                  );
-
-                  const avgPricePerLiterEUR =
-                    fuelExpenses.length > 0
-                      ? fuelExpenses.reduce((sum, e) => sum + e.amountEUR, 0) /
-                        fuelExpenses.length
-                      : 0;
-
-                  let finalFuelEUR = calcFuel;
-                  if (
-                    fuelExpenses.length > 0 &&
-                    trip.vehicle?.distanceKm &&
-                    trip.vehicle?.fuelNorm
-                  ) {
-                    const totalLiters =
-                      (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm;
-                    const finalFuelBGN =
-                      totalLiters *
-                      (Math.round(avgPricePerLiterEUR * 1.95583 * 100) / 100);
-                    finalFuelEUR =
-                      finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
-                  }
-
-                  const expTransport = transportExpenses.reduce(
-                    (sum, e) => sum + e.amountEUR,
-                    0
-                  );
-
-                  tripExps.forEach((ex) => {
-                    if (ex.expenseType === "accommodation")
-                      expAccom += ex.amountEUR;
-                    else if (ex.expenseType === "food")
-                      expPerDiem += ex.amountEUR;
-                    else if (ex.expenseType === "entry_fee")
-                      expEntry += ex.amountEUR;
-                    else if (
-                      ex.expenseType !== "fuel" &&
-                      ex.expenseType !== "transport"
-                    )
-                      expOther += ex.amountEUR;
-                  });
-
-                  total =
-                    (expPerDiem > 0 ? expPerDiem : calcPerDiem) +
-                    (expAccom > 0 ? expAccom : calcAccom) +
-                    (expEntry > 0 ? expEntry : calcEntry) +
-                    (fuelExpenses.length > 0 ? finalFuelEUR : calcFuel) +
-                    expTransport +
-                    expOther;
-
-                  const getStatusVariant = (s: string) => {
-                    if (s === "approved") return "default";
-                    if (s === "completed") return "secondary";
-                    return "outline";
-                  };
-
-                  const getStatusClass = (s: string) => {
-                    if (s === "completed")
-                      return "border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200";
-                    return "";
-                  };
-
-                  const getStatusText = (s: string) => {
-                    if (s === "draft") return "Чернова";
-                    if (s === "approved") return "Одобрена";
-                    if (s === "completed") return "Отчетена";
-                    return s;
-                  };
+                  const statusBadge = getTripStatusBadge(trip.status);
 
                   return (
-                    <TableRow key={trip.id}>
-                      <TableCell className="font-medium">
+                    <TableRow
+                      key={trip.id}
+                      className="border-b transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40"
+                    >
+                      <TableCell className="px-2.5 py-1.5 font-medium whitespace-nowrap text-zinc-600 dark:text-zinc-400">
                         {formatDateShort(trip.startDate)}
                       </TableCell>
-                      <TableCell>{trip.title}</TableCell>
-                      <TableCell>{coachName}</TableCell>
-                      <TableCell>
+                      <TableCell className="min-w-40 max-w-60 px-2.5 py-1.5">
+                        <span
+                          className="block truncate font-medium text-zinc-900 dark:text-zinc-100"
+                          title={trip.title}
+                        >
+                          {trip.title}
+                        </span>
+                        {trip.destination && (
+                          <span
+                            className="block truncate text-[10px] text-zinc-400"
+                            title={trip.destination}
+                          >
+                            📍 {trip.destination}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="min-w-25 max-w-35 px-2.5 py-1.5">
+                        <span className="block truncate" title={coachName}>
+                          {coachName}
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-2 py-1.5 whitespace-nowrap">
                         {trip.financials.isCommercialActivity ? (
                           <Badge
                             variant="outline"
-                            className="border-orange-200 bg-orange-50 text-orange-600"
+                            className="border-orange-200 bg-orange-50 px-1.5 py-0.5 text-[10px] font-medium text-orange-600 dark:border-orange-900/60 dark:bg-orange-950/40 dark:text-orange-400"
                           >
                             Стопанска
                           </Badge>
                         ) : (
                           <Badge
                             variant="outline"
-                            className="border-green-200 bg-green-50 text-green-600"
+                            className="border-green-200 bg-green-50 px-1.5 py-0.5 text-[10px] font-medium text-green-700 dark:border-green-900/60 dark:bg-green-950/40 dark:text-green-400"
                           >
                             Нестопанска
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-2 py-1.5 whitespace-nowrap">
                         <Badge
-                          variant={getStatusVariant(trip.status || "")}
-                          className={`capitalize ${getStatusClass(trip.status || "")}`}
+                          variant={statusBadge.variant}
+                          className={`px-1.5 py-0.5 text-[10px] font-medium capitalize ${statusBadge.className}`}
                         >
-                          {getStatusText(trip.status || "")}
+                          {statusBadge.text}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-bold">
-                        €{total.toFixed(2)}
+                      <TableCell className="px-2.5 py-1.5 text-right whitespace-nowrap">
+                        <span className="font-bold text-zinc-900 dark:text-white">
+                          €{total.toFixed(2)}
+                        </span>
+                        <span className="block text-[10px] text-zinc-400">
+                          {convertEurToBgn(total).toFixed(2)} лв.
+                        </span>
                       </TableCell>
-                      <TableCell className="text-right">
-                        {tripExps.length > 0 ? (
-                          <span className="text-sm text-zinc-500">
-                            {tripExps.length} фактури
+                      <TableCell className="px-2.5 py-1.5 text-right whitespace-nowrap">
+                        {expensesCount > 0 ? (
+                          <span className="text-[11px] text-zinc-500">
+                            {expensesCount} фактури
                           </span>
                         ) : (
-                          <span className="text-sm text-zinc-400">-</span>
+                          <span className="text-zinc-400">-</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="px-2.5 py-1.5 text-right whitespace-nowrap">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
+                          className="h-7 px-2 text-xs border-zinc-200 hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
                           onClick={() => handleManageTrip(trip)}
                         >
                           Управление
@@ -1095,7 +1203,45 @@ export default function AccountingClient() {
             </TableBody>
           </Table>
         </div>
-      </BentoCard>
+
+        {/* ── Compact Pagination Bar ── */}
+        {filteredTrips.length > 0 && (
+          <div className="flex items-center justify-between border-t border-zinc-100 px-3.5 py-1.5 text-xs text-muted-foreground dark:border-zinc-800">
+            <span>
+              Показване на {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+              {Math.min(currentPage * ITEMS_PER_PAGE, filteredTrips.length)} от{" "}
+              {filteredTrips.length}
+            </span>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1}
+                  className="h-6.5 px-2 text-[11px]"
+                >
+                  Предишна
+                </Button>
+                <span className="text-[11px]">
+                  {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage >= totalPages}
+                  className="h-6.5 px-2 text-[11px]"
+                >
+                  Следваща
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Hidden PDF Template for Protocol */}
       <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
