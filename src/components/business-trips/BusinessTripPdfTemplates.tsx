@@ -263,6 +263,7 @@ export function BusinessTripPdfTemplates({
   const finalFuelEUR = finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
 
   const entryEUR = trip.financials.entryFeeEUR ?? 0;
+  const hasEntryFee = Boolean(trip.financials.hasEntryFee ?? entryEUR > 0);
 
   const dTotalEURpp = perDiemEUR * numDays;
   const accomExpenses = expenses.filter(
@@ -330,7 +331,7 @@ export function BusinessTripPdfTemplates({
     hasPerDiem && "diem",
     "transport",
     hasAccom && "accom",
-    "entry",
+    hasEntryFee && "entry",
   ].filter(Boolean);
   const sn = (s: string) => secs.indexOf(s) + 1;
   const mol = site.contact.mol || "М. Георгиева";
@@ -591,20 +592,26 @@ export function BusinessTripPdfTemplates({
                 </>
               )}
             </span>
-            <span
-              style={{ marginLeft: "15pt", display: "block", marginTop: "2pt" }}
-            >
-              в/ <strong>Входни такси за турнира:</strong>{" "}
-              {trip.financials.entryFeeEUR ? (
-                <>
-                  в размер на{" "}
-                  <strong>{fmtEUR(trip.financials.entryFeeEUR)}</strong> за
-                  отбора срещу официална квитанция/фактура от организатора.
-                </>
-              ) : (
-                "съгласно наредбата на БФ Бадминтон срещу представен документ."
-              )}
-            </span>
+            {hasEntryFee && (
+              <span
+                style={{
+                  marginLeft: "15pt",
+                  display: "block",
+                  marginTop: "2pt",
+                }}
+              >
+                в/ <strong>Входни такси за турнира:</strong>{" "}
+                {entryEUR > 0 ? (
+                  <>
+                    в размер на <strong>{fmtEUR(entryEUR)}</strong> (
+                    {eurToBgn(entryEUR).toFixed(2)} лв.) за отбора срещу
+                    официална квитанция/фактура от организатора.
+                  </>
+                ) : (
+                  "съгласно наредбата на състезанието срещу официална квитанция/фактура от организатора."
+                )}
+              </span>
+            )}
           </p>
 
           <p style={{ marginBottom: "10pt" }}>
@@ -861,9 +868,20 @@ export function BusinessTripPdfTemplates({
             за <strong>{numNights}</strong> {numNights === 1 ? "нощ" : "нощи"}.
           </p>
         )}
-        <p style={{ marginBottom: "4pt" }}>
-          {sn("entry")}. Входни такси за участие (срещу фактура, ако има).
-        </p>
+        {hasEntryFee && (
+          <p style={{ marginBottom: "4pt" }}>
+            {sn("entry")}. Входни такси за участие{" "}
+            {entryEUR > 0 ? (
+              <>
+                — общо <strong>{fmtEUR(entryEUR)}</strong> (
+                {eurToBgn(entryEUR).toFixed(2)} лв.) (срещу фактура или
+                квитанция от организатора).
+              </>
+            ) : (
+              "(срещу фактура или квитанция от организатора)."
+            )}
+          </p>
+        )}
         <p
           style={{
             marginTop: "12pt",

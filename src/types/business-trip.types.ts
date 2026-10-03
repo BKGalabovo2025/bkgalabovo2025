@@ -72,6 +72,7 @@ const TripFinancialsSchema = z.object({
   perDiemOverrideEUR: z.number().min(0).optional(), // Ръчна корекция (хибриден подход) - ако клубът реши друга сума
   accommodationRateEUR: z.number().min(0), // Квартирни пари в Евро
   entryFeeEUR: z.number().min(0).optional(), // Входна такса за турнир
+  hasEntryFee: z.boolean().optional(), // Поемане на входна такса от клуба
   isCommercialActivity: z.boolean(), // Стопанска (true) или Нестопанска (false) дейност
 });
 

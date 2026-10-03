@@ -106,11 +106,16 @@ export function CreateBusinessTripDialog({
           ...initialData,
           expensesCoverage:
             initialData.expensesCoverage || getInitialExpensesCoverage(),
-          hasEntryFee: !!initialData.financials.entryFeeEUR,
+          hasEntryFee:
+            initialData.financials.hasEntryFee ??
+            Boolean(
+              initialData.financials.entryFeeEUR &&
+              initialData.financials.entryFeeEUR > 0
+            ),
           entryFeePerPersonEUR:
             initialData.financials.entryFeeEUR && participantsCount > 0
               ? initialData.financials.entryFeeEUR / participantsCount
-              : 0,
+              : initialData.financials.entryFeeEUR || 0,
         }
       : {
           siteId: "bkgalabovo",
@@ -127,6 +132,7 @@ export function CreateBusinessTripDialog({
             perDiemRateEUR: 22,
             accommodationRateEUR: 0,
             entryFeeEUR: 0,
+            hasEntryFee: false,
             isCommercialActivity: false,
           },
           vehicle: {
@@ -163,6 +169,16 @@ export function CreateBusinessTripDialog({
       ? new Date(watchedOrderDate) > new Date(event.startDate)
       : false;
 
+  const computeTotalEntryFee = (
+    hasEntryFee: boolean,
+    perPerson: number | undefined,
+    count: number
+  ): number => {
+    if (!hasEntryFee) return 0;
+    const rate = perPerson || 0;
+    return count > 0 ? rate * count : rate;
+  };
+
   const onSubmit = async (values: FormValues) => {
     try {
       const selectedCoach = coachOptions.find(
@@ -173,35 +189,36 @@ export function CreateBusinessTripDialog({
         : user?.displayName || "Неизвестен";
       const coachRole = selectedCoach?.isCoach ? "Треньор" : "Ръководител";
 
+      const computedEntryFee = computeTotalEntryFee(
+        Boolean(values.hasEntryFee),
+        values.entryFeePerPersonEUR,
+        participantsCount
+      );
+
+      const tripPayload = {
+        ...values,
+        coachName,
+        coachRole,
+        orderDate: values.orderDate,
+        financials: {
+          ...values.financials,
+          hasEntryFee: Boolean(values.hasEntryFee),
+          entryFeeEUR: computedEntryFee,
+        },
+      };
+
       if (isEditMode && initialData?.id) {
         // Режим Редактиране
-        await businessTripService.updateTrip(initialData.id, {
-          ...values,
-          coachName,
-          coachRole,
-          orderDate: values.orderDate,
-          financials: {
-            ...values.financials,
-            entryFeeEUR: values.hasEntryFee
-              ? (values.entryFeePerPersonEUR || 0) * participantsCount
-              : 0,
-          },
-        } as any);
+        await businessTripService.updateTrip(
+          initialData.id,
+          tripPayload as any
+        );
         toast.success("Командировката е актуализирана успешно!");
       } else {
         // Режим Създаване
         await businessTripService.createTrip({
-          ...values,
-          coachName,
-          coachRole,
+          ...tripPayload,
           siteId: values.siteId || "default",
-          orderDate: values.orderDate,
-          financials: {
-            ...values.financials,
-            entryFeeEUR: values.hasEntryFee
-              ? (values.entryFeePerPersonEUR || 0) * participantsCount
-              : 0,
-          },
         } as any);
         toast.success("Командировката е създадена успешно като чернова!");
       }
