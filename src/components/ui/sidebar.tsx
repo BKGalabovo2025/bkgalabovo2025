@@ -118,7 +118,7 @@ export const Sidebar = React.forwardRef<
             role="dialog"
             aria-modal="true"
             className={cn(
-              "pointer-events-auto fixed inset-y-0 left-0 z-999 flex w-70 flex-col overflow-y-auto border-r border-zinc-100 bg-white shadow-2xl transition-all duration-300 ease-in-out dark:border-zinc-900 dark:bg-zinc-950",
+              "pointer-events-auto fixed inset-y-0 left-0 z-999 flex w-70 flex-col overflow-y-auto no-scrollbar border-r border-zinc-100 bg-white shadow-2xl transition-all duration-300 ease-in-out dark:border-zinc-900 dark:bg-zinc-950",
               open
                 ? "visible translate-x-0 opacity-100"
                 : "invisible -translate-x-full opacity-0",
@@ -136,7 +136,10 @@ export const Sidebar = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "group peer hidden border-r border-sidebar-border text-sidebar-foreground md:block",
+          "group peer hidden shrink-0 border-r border-sidebar-border bg-white text-sidebar-foreground transition-all duration-300 ease-in-out md:flex md:flex-col overflow-hidden dark:bg-zinc-950",
+          open
+            ? "w-64 min-w-64 max-w-64 opacity-100"
+            : "w-0 min-w-0 max-w-0 border-r-0 opacity-0 pointer-events-none",
           className
         )}
         data-state={open ? "expanded" : "collapsed"}
@@ -145,7 +148,9 @@ export const Sidebar = React.forwardRef<
         data-side={side}
         {...props}
       >
-        {children}
+        <div className="w-64 min-w-64 max-w-64 flex flex-col flex-1">
+          {children}
+        </div>
       </div>
     );
   }
@@ -158,10 +163,7 @@ export const SidebarContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(
-      "flex min-h-0 flex-1 flex-col gap-2 overflow-auto",
-      className
-    )}
+    className={cn("flex min-h-0 flex-1 flex-col gap-2", className)}
     {...props}
   />
 ));

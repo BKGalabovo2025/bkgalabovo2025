@@ -552,23 +552,23 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           {/* Main Table Bento */}
           <BentoCard className="overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none sm:rounded-5xl dark:border-zinc-900 dark:bg-zinc-950">
             <div className="border-b border-zinc-50 p-4 sm:p-6 dark:border-zinc-900">
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
-                <div className="flex w-full flex-col items-center gap-4 sm:flex-row lg:w-auto">
-                  <div className="relative w-full sm:w-80 lg:w-96">
+              <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
+                <div className="flex w-full flex-col items-center gap-3 sm:flex-row lg:w-auto">
+                  <div className="relative w-full sm:w-72 lg:w-80 xl:w-96">
                     <Search
-                      className="absolute top-1/2 left-4 size-3.5 -translate-y-1/2 text-zinc-400"
+                      className="absolute top-1/2 left-3.5 size-3.5 -translate-y-1/2 text-zinc-400"
                       strokeWidth={1.5}
                     />
                     <Input
                       placeholder="Търсене по име или имейл..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 pl-10 text-xs font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
+                      className="h-10 rounded-xl border-zinc-100 bg-zinc-50/50 pl-9 text-xs font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                     />
                   </div>
 
                   {selectedIds.length > 0 && (
-                    <div className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-1.5 animate-in fade-in slide-in-from-left-4 dark:border-zinc-800 dark:bg-zinc-900">
+                    <div className="flex items-center gap-2.5 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-1.5 animate-in fade-in slide-in-from-left-4 dark:border-zinc-800 dark:bg-zinc-900">
                       <span className="text-[10px] font-medium tracking-widest whitespace-nowrap text-primary uppercase">
                         {selectedIds.length} избрани
                       </span>
@@ -606,13 +606,13 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                   )}
                 </div>
 
-                <div className="custom-scrollbar no-scrollbar flex w-full items-center gap-3 overflow-x-auto pb-2 sm:w-auto sm:pb-0">
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
                     className={cn(
-                      "h-10 shrink-0 rounded-xl border-zinc-200 px-4 text-[10px] font-semibold tracking-widest uppercase transition-all",
+                      "h-10 shrink-0 rounded-xl border-zinc-200 px-3.5 text-[10px] font-semibold tracking-widest uppercase transition-all sm:px-4",
                       isFiltersExpanded || activeFiltersCount > 0
                         ? "hover:bg-zinc-850 border-transparent bg-zinc-950 text-white shadow-sm hover:text-white dark:bg-white dark:text-zinc-950"
                         : "hover:bg-zinc-50"
@@ -643,7 +643,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                         key={f}
                         onClick={() => setStatusFilter(f)}
                         className={cn(
-                          "rounded-lg px-3 py-1.5 text-[9px] font-semibold tracking-widest whitespace-nowrap uppercase transition-all sm:px-4 sm:text-[10px]",
+                          "rounded-lg px-2.5 py-1.5 text-[9px] font-semibold tracking-widest whitespace-nowrap uppercase transition-all sm:px-3.5 sm:text-[10px]",
                           statusFilter === f
                             ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white"
                             : "text-zinc-500 hover:text-zinc-700"
@@ -833,8 +833,8 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             </div>
 
             {/* Desktop View: Table */}
-            <div className="custom-scrollbar hidden overflow-x-auto md:block">
-              <Table className="min-w-225 table-fixed lg:min-w-full">
+            <div className="custom-scrollbar hidden w-full min-w-0 overflow-x-auto md:block">
+              <Table className="min-w-175 table-fixed lg:min-w-full">
                 <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
                   <TableRow className="border-zinc-100 hover:bg-transparent dark:border-zinc-900">
                     <TableHead className="w-[50px] px-4">

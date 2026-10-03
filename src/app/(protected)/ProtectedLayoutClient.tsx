@@ -144,9 +144,9 @@ export default function ProtectedLayoutClient({
 
   return (
     <SidebarProvider open={isSidebarOpen} onOpenChange={setSidebarOpen}>
-      <div className="flex min-h-screen w-full bg-slate-50/50 font-sans dark:bg-zinc-950/50">
+      <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50/50 font-sans dark:bg-zinc-950/50">
         <AppSidebar key={`sidebar-${activeBranch}`} />
-        <SidebarInset className="relative flex min-w-0 flex-1 flex-col border-l border-gray-100 bg-slate-50/50 dark:border-zinc-800 dark:bg-zinc-950/50">
+        <SidebarInset className="relative flex min-w-0 max-w-full flex-1 flex-col overflow-x-hidden border-l border-gray-100 bg-slate-50/50 dark:border-zinc-800 dark:bg-zinc-950/50">
           <Toaster position="bottom-right" />
 
           <a href="#main-content" className="skip-link">
@@ -155,7 +155,10 @@ export default function ProtectedLayoutClient({
 
           <GlobalHeader key={`header-${activeBranch}`} />
 
-          <main id="main-content" className="flex-1 overflow-y-auto">
+          <main
+            id="main-content"
+            className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 max-w-full"
+          >
             <div
               key={`content-${activeBranch}`}
               className="mx-auto max-w-350 p-3.5 duration-1000 animate-in fade-in slide-in-from-bottom-2 sm:p-5 md:p-6 lg:p-6 xl:p-8"
