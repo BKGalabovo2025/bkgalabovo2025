@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { businessTripService } from "@/services/business-trip-service";
 import {
   convertBgnToEur,
@@ -69,6 +70,8 @@ export function TripExpenseDialog({
 }: TripExpenseDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isOcrRunning, setIsOcrRunning] = useState(false);
+  const [currencyMode, setCurrencyMode] = useState<"EUR" | "BGN">("EUR");
+  const [bgnInputValue, setBgnInputValue] = useState<string>("");
 
   const form = useForm<any>({
     resolver: zodResolver(FormSchema) as any,
@@ -86,6 +89,7 @@ export function TripExpenseDialog({
 
   useEffect(() => {
     if (open) {
+      setCurrencyMode("EUR");
       if (expenseToEdit) {
         form.reset({
           tripId: expenseToEdit.tripId,
@@ -97,6 +101,11 @@ export function TripExpenseDialog({
           documentDate: expenseToEdit.documentDate || new Date().toISOString(),
           attachmentUrl: expenseToEdit.attachmentUrl || "",
         });
+        setBgnInputValue(
+          expenseToEdit.amountEUR
+            ? convertEurToBgn(expenseToEdit.amountEUR).toFixed(2)
+            : ""
+        );
       } else {
         form.reset({
           tripId,
@@ -108,6 +117,7 @@ export function TripExpenseDialog({
           documentDate: new Date().toISOString(),
           attachmentUrl: "",
         });
+        setBgnInputValue("");
       }
     }
   }, [open, expenseToEdit, form, tripId, siteId]);
@@ -162,14 +172,6 @@ export function TripExpenseDialog({
     }
   };
 
-  // Helper for fast BGN to EUR calculation
-  const handleBgnInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const bgnValue = Number(e.target.value);
-    if (!isNaN(bgnValue)) {
-      form.setValue("amountEUR", convertBgnToEur(bgnValue));
-    }
-  };
-
   // Tesseract OCR parser
   // eslint-disable-next-line sonarjs/cognitive-complexity
   const handleFileUpload = async (files: FileList | null) => {
@@ -195,7 +197,7 @@ export function TripExpenseDialog({
       console.log("OCR Extracted Text:\n", text);
 
       // Search for amounts like ОБЩО: 125.50 or TOTAL: 125.50 or СУМА: 125.50
-      const lines = text.split("\\n");
+      const lines = text.split("\n");
       let maxAmount = 0;
 
       for (const line of lines) {
@@ -208,7 +210,7 @@ export function TripExpenseDialog({
           line.includes("ЛВ")
         ) {
           // Extract numbers (e.g. 125.50, 125,50)
-          const matches = line.match(/\\d+[.,]\\d{2}/g);
+          const matches = line.match(/\b\d+[.,]\d{2}\b/g);
           if (matches) {
             for (const match of matches) {
               const num = parseFloat(match.replace(",", "."));
@@ -225,6 +227,8 @@ export function TripExpenseDialog({
         );
         // Automatically assume BGN for BG receipts, so convert to EUR
         form.setValue("amountEUR", convertBgnToEur(maxAmount));
+        setBgnInputValue(String(maxAmount));
+        setCurrencyMode("BGN");
       } else {
         toast.info(
           "OCR: Не успяхме да открием сумата. Моля, въведете я ръчно.",
@@ -296,73 +300,123 @@ export function TripExpenseDialog({
                 )}
               />
 
-              <div className="space-y-2">
-                <FormLabel>
-                  {isFuel
-                    ? "Цена за 1 литър (Бърз калкулатор в BGN)"
-                    : "Бърз калкулатор (BGN лв.)"}
-                </FormLabel>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder={
-                      isFuel ? "Напр. 2.65" : "Ако бележката е в лева..."
-                    }
-                    onChange={handleBgnInput}
-                    value={equivalentBGN || ""}
-                    className="border-blue-200 bg-blue-50/30 pr-12 text-blue-900 dark:border-blue-900 dark:bg-blue-900/30 dark:text-blue-100"
-                  />
-                  <div className="absolute inset-y-0 right-3 flex items-center text-xs font-medium text-blue-500">
-                    BGN
-                  </div>
-                </div>
-                <FormDescription className="text-[10px]">
-                  Конвертира автоматично в EUR.
-                </FormDescription>
-              </div>
-
               <FormField
                 control={form.control as any}
                 name="amountEUR"
                 render={({ field }: any) => (
                   <FormItem>
-                    <FormLabel>
-                      {isFuel ? "Цена за 1 литър (EUR €)" : "Сума (EUR €)"}
-                    </FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>
+                        {isFuel ? "Цена за 1 литър" : "Сума"}
+                      </FormLabel>
+                      <div className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-100 p-0.5 text-[11px] dark:border-zinc-800 dark:bg-zinc-800/80">
+                        <button
+                          type="button"
+                          onClick={() => setCurrencyMode("EUR")}
+                          className={cn(
+                            "px-2 py-0.5 rounded font-medium transition-colors",
+                            currencyMode === "EUR"
+                              ? "bg-white text-zinc-900 shadow-2xs dark:bg-zinc-900 dark:text-zinc-100"
+                              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                          )}
+                        >
+                          EUR € (Основна)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCurrencyMode("BGN");
+                            if (field.value && !bgnInputValue) {
+                              setBgnInputValue(
+                                convertEurToBgn(Number(field.value)).toFixed(2)
+                              );
+                            }
+                          }}
+                          className={cn(
+                            "px-2 py-0.5 rounded font-medium transition-colors",
+                            currencyMode === "BGN"
+                              ? "bg-white text-blue-600 shadow-2xs dark:bg-zinc-900 dark:text-blue-400"
+                              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                          )}
+                        >
+                          BGN лв (Калкулатор)
+                        </button>
+                      </div>
+                    </div>
                     <FormControl>
                       <div className="relative">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                          className="pr-12"
-                        />
-                        <div className="absolute inset-y-0 right-3 flex items-center text-xs font-medium text-zinc-400">
-                          EUR
+                        {currencyMode === "EUR" ? (
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={field.value ?? ""}
+                            placeholder={isFuel ? "Напр. 1.35" : "0.00"}
+                            onChange={(e) => {
+                              const val =
+                                e.target.value === ""
+                                  ? 0
+                                  : Number(e.target.value);
+                              field.onChange(val);
+                              setBgnInputValue(
+                                val ? convertEurToBgn(val).toFixed(2) : ""
+                              );
+                            }}
+                            className="pr-12"
+                          />
+                        ) : (
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={bgnInputValue}
+                            placeholder={isFuel ? "Напр. 2.65" : "0.00"}
+                            onChange={(e) => {
+                              const bgnValStr = e.target.value;
+                              setBgnInputValue(bgnValStr);
+                              const bgnNum = Number(bgnValStr);
+                              if (!isNaN(bgnNum)) {
+                                field.onChange(convertBgnToEur(bgnNum));
+                              }
+                            }}
+                            className="border-blue-200 bg-blue-50/30 pr-12 text-blue-900 dark:border-blue-900 dark:bg-blue-900/30 dark:text-blue-100"
+                          />
+                        )}
+                        <div
+                          className={cn(
+                            "absolute inset-y-0 right-3 flex items-center text-xs font-semibold",
+                            currencyMode === "EUR"
+                              ? "text-zinc-500"
+                              : "text-blue-600 dark:text-blue-400"
+                          )}
+                        >
+                          {currencyMode}
                         </div>
                       </div>
                     </FormControl>
                     <FormDescription className="text-[11px]">
                       {(() => {
-                        if (isFuel) {
-                          return `Сумата, която ще се запази (≈ ${equivalentBGN.toFixed(2)} лв).`;
-                        }
+                        const bgnText =
+                          currencyMode === "EUR"
+                            ? `Конвертира автоматично в лв. (≈ ${equivalentBGN.toFixed(2)} лв).`
+                            : `Конвертира автоматично в EUR (≈ ${amountEUR.toFixed(2)} €) — записва се в EUR.`;
+
                         const t = form.watch("expenseType");
-                        if (t === "accommodation" || t === "entry_fee") {
+                        if (
+                          !isFuel &&
+                          (t === "accommodation" || t === "entry_fee")
+                        ) {
                           return (
-                            <span className="mt-2 block rounded bg-blue-50 p-2 leading-tight text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
-                              💡 <strong>Съвет:</strong> Ако въведете{" "}
-                              <strong>0</strong>, системата автоматично ще вземе
-                              общата сума от първоначалните ви настройки в
-                              Заповедта (Нареждането).
-                            </span>
+                            <>
+                              <span>{bgnText}</span>
+                              <span className="mt-1.5 block rounded bg-blue-50 p-2 leading-tight text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+                                💡 <strong>Съвет:</strong> Ако въведете{" "}
+                                <strong>0</strong>, системата автоматично ще
+                                вземе общата сума от първоначалните ви настройки
+                                в Заповедта (Нареждането).
+                              </span>
+                            </>
                           );
                         }
-                        return `Сумата, която ще се запази (≈ ${equivalentBGN.toFixed(2)} лв).`;
+                        return bgnText;
                       })()}
                     </FormDescription>
                     <FormMessage />
@@ -395,14 +449,12 @@ export function TripExpenseDialog({
 
               <FormField
                 control={form.control as any}
-                name="supplierName"
+                name="documentNumber"
                 render={({ field }: any) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel>
-                      Име на доставчик (Хотел, Бензиностанция и др.)
-                    </FormLabel>
+                  <FormItem>
+                    <FormLabel>№ на Фактура / Касов бон</FormLabel>
                     <FormControl>
-                      <Input placeholder="Напр. Лукойл България" {...field} />
+                      <Input placeholder="0001234567" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -411,12 +463,14 @@ export function TripExpenseDialog({
 
               <FormField
                 control={form.control as any}
-                name="documentNumber"
+                name="supplierName"
                 render={({ field }: any) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>№ на Фактура / Касов бон</FormLabel>
+                    <FormLabel>
+                      Име на доставчик (Хотел, Бензиностанция и др.)
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="0001234567" {...field} />
+                      <Input placeholder="Напр. Лукойл България" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
