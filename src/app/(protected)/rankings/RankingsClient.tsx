@@ -193,12 +193,12 @@ export default function RankingsClient({
           { label: "Ранглиста" },
         ]}
       >
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
           {liveIndicator}
-          <div className="flex items-center gap-2">
-            <Calendar className="size-4 text-slate-400" />
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <Calendar className="size-4 shrink-0 text-slate-400" />
             <Select value={period} onValueChange={handlePeriodChange}>
-              <SelectTrigger className="w-full rounded-xl border-slate-200 bg-white shadow-sm md:w-55">
+              <SelectTrigger className="w-full rounded-xl border-slate-200 bg-white shadow-sm sm:w-48 md:w-55">
                 <SelectValue placeholder="Период" />
               </SelectTrigger>
               <SelectContent>
@@ -213,7 +213,7 @@ export default function RankingsClient({
             variant="outline"
             onClick={handleSyncToMembers}
             disabled={isSyncing}
-            className="rounded-xl border-slate-200 bg-white"
+            className="w-full sm:w-auto rounded-xl border-slate-200 bg-white"
           >
             {isSyncing ? (
               <Loader2 className="mr-2 size-4 animate-spin" />
@@ -350,18 +350,18 @@ export default function RankingsClient({
 
           {/* Full List Bento */}
           <BentoCard className="overflow-hidden">
-            <div className="border-b border-zinc-100 p-8">
+            <div className="border-b border-zinc-100 p-4 sm:p-8">
               <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <h3 className="text-[14px] tracking-[0.3em] text-zinc-400 uppercase">
                   Пълно класиране
                 </h3>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="h-11 rounded-xl border border-zinc-100 bg-zinc-50 p-1">
+                  <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-11 overflow-x-auto gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-1">
                     {CATEGORY_TABS.map((tab) => (
                       <TabsTrigger
                         key={tab.id}
                         value={tab.id}
-                        className="rounded-lg px-6 text-[10px] tracking-widest uppercase data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm"
+                        className="flex-1 sm:flex-none rounded-lg px-3 sm:px-6 py-2 sm:py-0 text-[10px] tracking-widest uppercase data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm"
                       >
                         {tab.label}
                       </TabsTrigger>

@@ -150,7 +150,7 @@ export default function AssessmentsClient() {
         }}
       />
 
-      <div className="mx-auto max-w-7xl p-4 sm:p-8">
+      <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "bwf" | "history")}
@@ -166,7 +166,7 @@ export default function AssessmentsClient() {
                 качества
               </p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-4">
               <TabsList className="h-10">
                 <TabsTrigger value="bwf" className="text-sm font-bold">
                   BWF Бланки
@@ -180,7 +180,7 @@ export default function AssessmentsClient() {
                 <Button
                   onClick={() => handlePrint("all")}
                   variant="outline"
-                  className="h-10 rounded-xl border-zinc-200 font-bold text-zinc-700"
+                  className="h-10 w-full sm:w-auto rounded-xl border-zinc-200 font-bold text-zinc-700"
                 >
                   <Printer className="mr-2 size-4" />
                   Принтирай ВСИЧКИ
@@ -392,7 +392,7 @@ export default function AssessmentsClient() {
                           return (
                             <div
                               key={r.id}
-                              className="group flex items-center justify-between p-4 transition-colors hover:bg-zinc-50 sm:px-6"
+                              className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:px-6"
                             >
                               <Link
                                 href={`/members/${r.memberId}?tab=assessments`}

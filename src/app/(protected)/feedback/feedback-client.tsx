@@ -121,11 +121,11 @@ function FeedbackClientContent() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <Button
             asChild
             variant="outline"
-            className="rounded-xl border-indigo-200 text-xs font-bold text-indigo-700 hover:bg-indigo-50"
+            className="w-full sm:w-auto rounded-xl border-indigo-200 text-xs font-bold text-indigo-700 hover:bg-indigo-50"
           >
             <Link
               href={
@@ -134,6 +134,7 @@ function FeedbackClientContent() {
                   : "/club/reviews"
               }
               target="_blank"
+              className="flex items-center justify-center"
             >
               <ExternalLink className="mr-1.5 size-4" />
               Публична витрина на Отзивите

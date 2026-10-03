@@ -155,7 +155,7 @@ export default function ExercisesClient() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl p-4 sm:p-8">
+    <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase">
@@ -171,13 +171,13 @@ export default function ExercisesClient() {
             )
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           {exercises.length === 0 && (
             <Button
               onClick={handleInject}
               disabled={isInjecting}
               variant="outline"
-              className="rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+              className="w-full sm:w-auto rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
             >
               {isInjecting ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -192,7 +192,7 @@ export default function ExercisesClient() {
               onClick={handleInject}
               disabled={isInjecting}
               variant="outline"
-              className="rounded-xl border-amber-200 bg-amber-50 font-bold text-amber-700 hover:bg-amber-100"
+              className="w-full sm:w-auto rounded-xl border-amber-200 bg-amber-50 font-bold text-amber-700 hover:bg-amber-100"
             >
               {isInjecting ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -204,7 +204,7 @@ export default function ExercisesClient() {
           )}
           <Button
             onClick={handleAdd}
-            className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
+            className="w-full sm:w-auto rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
           >
             <Plus className="mr-2 size-4" />
             Добави упражнение

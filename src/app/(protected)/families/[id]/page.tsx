@@ -161,7 +161,7 @@ const FamilyDetailsPage = () => {
     );
 
   return (
-    <div className="space-y-8 px-4 pb-12 duration-500 animate-in fade-in sm:px-0">
+    <div className="space-y-6 sm:space-y-8 duration-500 animate-in fade-in">
       <PageHeader
         title={family.name || "Семеен профил"}
         description={`Управление на членове и информация за семейство ${
@@ -174,9 +174,9 @@ const FamilyDetailsPage = () => {
         ]}
       />
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Family Info */}
-        <BentoCard className="h-fit space-y-6 rounded-5xl border border-zinc-100 bg-white p-8 shadow-none lg:col-span-1 dark:border-zinc-900 dark:bg-zinc-950">
+        <BentoCard className="h-fit space-y-6 rounded-2xl sm:rounded-3xl border border-zinc-100 bg-white p-5 sm:p-8 shadow-none lg:col-span-1 dark:border-zinc-900 dark:bg-zinc-950">
           <div className="flex flex-col items-center space-y-4 text-center">
             <div className="rounded-3xl bg-zinc-100 p-4 dark:bg-zinc-900">
               <FamilyIcon className="size-12 text-zinc-500" />
@@ -252,10 +252,10 @@ const FamilyDetailsPage = () => {
             <h3 className="text-sm font-bold tracking-widest text-zinc-900 uppercase dark:text-white">
               Членове на семейството
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
-                className="hidden h-9 gap-2 rounded-full border-zinc-200 text-[10px] font-bold tracking-widest uppercase sm:flex"
+                className="flex h-9 gap-2 rounded-full border-zinc-200 text-[10px] font-bold tracking-widest uppercase"
                 onClick={() =>
                   router.push(`/members/new?familyId=${family.id}`)
                 }
@@ -274,18 +274,18 @@ const FamilyDetailsPage = () => {
             {members.map((member) => (
               <BentoCard
                 key={member.id}
-                className="group flex cursor-pointer items-center justify-between rounded-3xl border border-zinc-100 bg-white p-6 shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-900 dark:bg-zinc-950 dark:hover:bg-zinc-900"
+                className="group flex cursor-pointer items-center justify-between rounded-2xl sm:rounded-3xl border border-zinc-100 bg-white p-4 sm:p-6 shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-900 dark:bg-zinc-950 dark:hover:bg-zinc-900"
                 onClick={() => router.push(`/members/${member.id}`)}
               >
-                <div className="flex items-center gap-4">
-                  <Avatar className="size-12 rounded-2xl border-2 border-white shadow-sm dark:border-zinc-800">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <Avatar className="size-10 sm:size-12 rounded-2xl border-2 border-white shadow-sm dark:border-zinc-800">
                     <AvatarImage src={member.avatarUrl || undefined} />
                     <AvatarFallback className="rounded-2xl bg-zinc-100 text-zinc-500 dark:bg-zinc-800">
                       <User className="size-5" />
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <span className="font-bold text-zinc-900 dark:text-white">
+                    <span className="font-bold text-sm sm:text-base text-zinc-900 dark:text-white">
                       {member.firstName} {member.lastName}
                     </span>
                     <span className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
@@ -297,7 +297,7 @@ const FamilyDetailsPage = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="size-8 rounded-full text-rose-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600"
+                    className="size-8 rounded-full text-rose-500 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600"
                     disabled={removingId !== null}
                     onClick={(e) => {
                       e.stopPropagation();

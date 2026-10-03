@@ -253,7 +253,7 @@ function PlannerClientContent() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl p-4 sm:p-8">
+    <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -265,11 +265,11 @@ function PlannerClientContent() {
             Планиране на лагери и целогодишни тренировки
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <Button
             asChild
             variant="outline"
-            className="rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+            className="w-full sm:w-auto rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50"
           >
             <Link href="/training/theory">
               <GraduationCap className="mr-2 size-4" />
@@ -281,7 +281,7 @@ function PlannerClientContent() {
               setEditingSession(null);
               setIsWizardOpen(true);
             }}
-            className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
+            className="w-full sm:w-auto rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
           >
             <Plus className="mr-2 size-4" />
             Планирай тренировка
@@ -605,7 +605,7 @@ function PlannerClientContent() {
                       </div>
 
                       {/* Action buttons */}
-                      <div className="flex shrink-0 items-center gap-2">
+                      <div className="flex shrink-0 flex-wrap items-center gap-2">
                         {/* Eye Button - Detailed preview */}
                         <Button
                           variant="outline"

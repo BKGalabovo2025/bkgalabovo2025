@@ -164,7 +164,7 @@ export function CertificatesClient() {
   const isRecoveryZone = siteId === "recoveryzone";
 
   return (
-    <div className="space-y-6 sm:space-y-8 p-3 sm:p-6 md:p-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* 1. Header Section */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
@@ -235,9 +235,12 @@ export function CertificatesClient() {
           <Button
             asChild
             variant="outline"
-            className="h-11 sm:h-12 rounded-2xl border-zinc-200 bg-white px-4 text-xs font-bold text-zinc-700 shadow-xs hover:border-blue-500 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:text-blue-400"
+            className="h-11 sm:h-12 w-full sm:w-auto rounded-2xl border-zinc-200 bg-white px-4 text-xs font-bold text-zinc-700 shadow-xs hover:border-blue-500 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:text-blue-400"
           >
-            <Link href="/partners" className="flex items-center gap-2">
+            <Link
+              href="/partners"
+              className="flex items-center justify-center gap-2"
+            >
               <Handshake className="size-4 text-blue-600 dark:text-blue-400" />
               <span>🤝 Партньори ({sponsors.length})</span>
               <ExternalLink className="size-3.5 opacity-60" />

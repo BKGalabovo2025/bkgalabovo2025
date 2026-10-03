@@ -59,7 +59,7 @@ export default function ServicesClientPage({
         >
           <Button
             onClick={() => setIsAddOpen(true)}
-            className="h-12 rounded-2xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-200 transition-all hover:bg-zinc-800"
+            className="h-12 w-full sm:w-auto rounded-2xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-200 transition-all hover:bg-zinc-800"
           >
             <PlusCircle className="mr-3 size-4" strokeWidth={1.5} /> Добави
             услуга
@@ -68,30 +68,42 @@ export default function ServicesClientPage({
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="mb-12 flex flex-wrap items-center justify-between gap-4 px-2">
-          <TabsList className="mb-0 w-fit rounded-2xl border border-zinc-100 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-1 sm:px-2">
+          <TabsList className="mb-0 grid grid-cols-3 w-full sm:w-fit rounded-2xl border border-zinc-100 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
             <TabsTrigger
               value="services"
-              className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
+              className="rounded-xl px-2 sm:px-8 py-2.5 sm:py-3 text-[10px] sm:text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <LayoutGrid className="mr-3 size-4" strokeWidth={1.5} /> Услуги
+              <LayoutGrid
+                className="mr-2 sm:mr-3 size-3.5 sm:size-4"
+                strokeWidth={1.5}
+              />{" "}
+              Услуги
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
+              className="rounded-xl px-2 sm:px-8 py-2.5 sm:py-3 text-[10px] sm:text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <History className="mr-3 size-4" strokeWidth={1.5} /> Движения
+              <History
+                className="mr-2 sm:mr-3 size-3.5 sm:size-4"
+                strokeWidth={1.5}
+              />{" "}
+              Движения
             </TabsTrigger>
             <TabsTrigger
               value="sales"
-              className="rounded-xl px-10 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
+              className="rounded-xl px-2 sm:px-8 py-2.5 sm:py-3 text-[10px] sm:text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-500 dark:data-[state=active]:bg-zinc-800"
             >
-              <ShoppingBag className="mr-3 size-4" strokeWidth={1.5} /> Продажби
+              <ShoppingBag
+                className="mr-2 sm:mr-3 size-3.5 sm:size-4"
+                strokeWidth={1.5}
+              />{" "}
+              Продажби
             </TabsTrigger>
           </TabsList>
 
           {activeTab === "services" && !showPageHeader && (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <Tabs
                 value={view}
                 onValueChange={(v) => setView(v as "grid" | "table")}
@@ -115,7 +127,7 @@ export default function ServicesClientPage({
 
               <Button
                 onClick={() => setIsAddOpen(true)}
-                className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+                className="h-10 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
               >
                 <PlusCircle className="mr-2 size-3.5" strokeWidth={1.5} />{" "}
                 Добави услуга

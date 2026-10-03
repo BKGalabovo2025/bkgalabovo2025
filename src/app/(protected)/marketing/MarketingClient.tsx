@@ -568,16 +568,16 @@ export default function MarketingClient() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 p-4 sm:p-8">
+    <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
       {/* 1. Page Header */}
-      <div className="flex flex-col items-start justify-between gap-4 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex flex-col items-start justify-between gap-4 rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-4 sm:p-6 shadow-xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
             <div className="flex size-11 items-center justify-center rounded-2xl bg-linear-to-br from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-200 dark:shadow-none">
               <Megaphone className="size-5.5" />
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-zinc-950 uppercase dark:text-white">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-zinc-950 uppercase dark:text-white">
                 Маркетинг & CRM Център
               </h1>
               <p className="text-xs text-zinc-500">
@@ -588,7 +588,7 @@ export default function MarketingClient() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <Button
             type="button"
             variant="outline"
@@ -613,9 +613,9 @@ export default function MarketingClient() {
       </div>
 
       {/* 2. Top KPI Analytics Bar */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Contacts */}
-        <Card className="rounded-3xl border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <Card className="rounded-2xl sm:rounded-3xl border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
@@ -696,10 +696,10 @@ export default function MarketingClient() {
         }}
         className="space-y-6"
       >
-        <TabsList className="grid h-12 w-full grid-cols-2 rounded-2xl border border-zinc-200 bg-zinc-100/80 p-1 sm:grid-cols-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-12 overflow-x-auto gap-1 rounded-2xl border border-zinc-200 bg-zinc-100/80 p-1 dark:border-zinc-800 dark:bg-zinc-900">
           <TabsTrigger
             value="contacts"
-            className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <Phone className="size-3.5" />
             <span>📞 Контакти & Hub</span>
@@ -707,7 +707,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="composer"
-            className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <Send className="size-3.5" />
             <span>✉️ Имейл Кампания</span>
@@ -715,7 +715,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="templates"
-            className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <FileText className="size-3.5" />
             <span>📑 Шаблони ({templates.length})</span>
@@ -723,7 +723,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="history"
-            className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <History className="size-3.5" />
             <span>📊 История & Дневник</span>
@@ -731,7 +731,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="automations"
-            className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-0 flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <Zap className="size-3.5" />
             <span>⚡ Автоматизации</span>

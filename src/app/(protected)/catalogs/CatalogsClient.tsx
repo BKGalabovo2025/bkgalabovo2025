@@ -92,13 +92,13 @@ export default function CatalogsClient({
           {!isRecoveryOnly && (
             <>
               <TabsContent value="services" className="mt-0 outline-none">
-                <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+                <div className="rounded-2xl sm:rounded-3xl border border-zinc-100 bg-white p-3.5 sm:p-6 shadow-xs dark:border-zinc-900 dark:bg-zinc-950">
                   <ServicesClientPage showPageHeader={false} data={services} />
                 </div>
               </TabsContent>
 
               <TabsContent value="general" className="mt-0 outline-none">
-                <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+                <div className="rounded-2xl sm:rounded-3xl border border-zinc-100 bg-white p-3.5 sm:p-6 shadow-xs dark:border-zinc-900 dark:bg-zinc-950">
                   <GeneralServicesClient showPageHeader={false} />
                 </div>
               </TabsContent>
@@ -106,7 +106,7 @@ export default function CatalogsClient({
           )}
 
           <TabsContent value="recovery" className="mt-0 outline-none">
-            <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+            <div className="rounded-2xl sm:rounded-3xl border border-zinc-100 bg-white p-3.5 sm:p-6 shadow-xs dark:border-zinc-900 dark:bg-zinc-950">
               <RecoveryClientPage
                 showPageHeader={false}
                 data={recoveryServices}
@@ -116,7 +116,7 @@ export default function CatalogsClient({
 
           {!isRecoveryOnly && (
             <TabsContent value="inventory" className="mt-0 outline-none">
-              <div className="rounded-5xl border border-zinc-100 bg-white p-6 shadow-sm sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+              <div className="rounded-2xl sm:rounded-3xl border border-zinc-100 bg-white p-3.5 sm:p-6 shadow-xs dark:border-zinc-900 dark:bg-zinc-950">
                 <ProductsCatalogClient
                   initialProducts={products}
                   activeBranch={activeBranch}

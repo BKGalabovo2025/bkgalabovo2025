@@ -58,7 +58,7 @@ export default function CampsClient() {
     }
 
     return (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
         {items.map((camp) => {
           const startDateObj = new Date(camp.startDate);
           const endDateObj = new Date(camp.endDate);
@@ -125,20 +125,20 @@ export default function CampsClient() {
   };
 
   return (
-    <div className="flex flex-1 flex-col p-6">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="flex flex-1 flex-col space-y-6">
+      <div className="mb-4 sm:mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
             Планирани лагери
           </h1>
-          <p className="mt-2 text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
             Управление на предстоящи и минали тренировъчни лагери
           </p>
         </div>
       </div>
 
       <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
+        <TabsList className="mb-6 grid w-full max-w-xs sm:max-w-md grid-cols-2">
           <TabsTrigger value="upcoming">Предстоящи</TabsTrigger>
           <TabsTrigger value="past">Минали</TabsTrigger>
         </TabsList>
@@ -147,7 +147,7 @@ export default function CampsClient() {
           className="mt-0 focus-visible:outline-none"
         >
           {loading ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-64 w-full rounded-xl" />
               ))}
@@ -158,7 +158,7 @@ export default function CampsClient() {
         </TabsContent>
         <TabsContent value="past" className="mt-0 focus-visible:outline-none">
           {loading ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-64 w-full rounded-xl" />
               ))}

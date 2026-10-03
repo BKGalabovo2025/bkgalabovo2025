@@ -33,14 +33,14 @@ export default async function SystemLogsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 p-6 md:p-8">
+    <div className="mx-auto max-w-6xl space-y-6 sm:space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="mb-2 flex items-center gap-3 text-3xl font-semibold tracking-tight text-white">
-            <TerminalSquare className="text-zinc-500" />
+          <h1 className="mb-2 flex items-center gap-3 text-2xl sm:text-3xl font-semibold tracking-tight text-white">
+            <TerminalSquare className="text-zinc-500 size-6 sm:size-7" />
             Системни Логове
           </h1>
-          <p className="text-sm text-zinc-400">
+          <p className="text-xs sm:text-sm text-zinc-400">
             Мониторинг на грешки и проблеми възникнали в системата.
           </p>
         </div>
@@ -48,7 +48,7 @@ export default async function SystemLogsPage() {
 
       <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
         {logs.length === 0 ? (
-          <div className="flex flex-col items-center p-12 text-center">
+          <div className="flex flex-col items-center p-8 sm:p-12 text-center">
             <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
               <Bug size={32} />
             </div>
@@ -62,14 +62,14 @@ export default async function SystemLogsPage() {
             {logs.map((log) => (
               <div
                 key={log.id}
-                className="p-6 transition-colors hover:bg-zinc-800/20"
+                className="p-4 sm:p-6 transition-colors hover:bg-zinc-800/20"
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3 sm:gap-4">
                   <div className="mt-1 shrink-0">
                     <AlertTriangle className="text-red-500" size={20} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex items-center justify-between gap-4">
+                    <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4">
                       <h4 className="truncate font-medium text-red-400">
                         {log.message}
                       </h4>
