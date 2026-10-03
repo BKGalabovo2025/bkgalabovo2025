@@ -19,6 +19,25 @@ export const certificateIssuanceService = {
     if (!res.success || !res.data) {
       throw new Error(res.error || "Неуспешно издаване на сертификат.");
     }
+
+    // Синхронизиране в локалния кеш за бързо визуализиране
+    if (typeof window !== "undefined" && res.data) {
+      try {
+        const cacheKey = `bkg_cached_certificates_${siteId}`;
+        const raw = localStorage.getItem(cacheKey);
+        const list: IssuedCertificate[] = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(list)) {
+          const filtered = list.filter((c) => c.id !== res.data!.id);
+          localStorage.setItem(
+            cacheKey,
+            JSON.stringify([res.data, ...filtered])
+          );
+        }
+      } catch {
+        // ignore cache write error
+      }
+    }
+
     return res.data;
   },
 
@@ -52,22 +71,77 @@ export const certificateIssuanceService = {
    */
   async redeemVoucherSession(
     certificateId: string,
-    note?: string
+    note?: string,
+    fallbackCertificate?: IssuedCertificate
   ): Promise<IssuedCertificate> {
-    const res = await redeemVoucherSessionAction(certificateId, note);
+    const res = await redeemVoucherSessionAction(
+      certificateId,
+      note,
+      fallbackCertificate
+    );
     if (!res.success || !res.updated) {
       throw new Error(res.error || "Неуспешно отчитане на процедура.");
     }
+
+    // Синхронизиране в локалния кеш веднага
+    if (typeof window !== "undefined" && res.updated) {
+      try {
+        const siteId = res.updated.siteId || "bkgalabovo";
+        const cacheKey = `bkg_cached_certificates_${siteId}`;
+        const raw = localStorage.getItem(cacheKey);
+        if (raw) {
+          const list: IssuedCertificate[] = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            const idx = list.findIndex(
+              (c) =>
+                c.id === res.updated!.id ||
+                c.serialNumber === res.updated!.serialNumber
+            );
+            if (idx >= 0) {
+              list[idx] = res.updated;
+            } else {
+              list.unshift(res.updated);
+            }
+            localStorage.setItem(cacheKey, JSON.stringify(list));
+          }
+        }
+      } catch {
+        // ignore cache write error
+      }
+    }
+
     return res.updated;
   },
 
   /**
    * Изтрива документ от регистъра
    */
-  async deleteIssuedCertificate(id: string): Promise<void> {
+  async deleteIssuedCertificate(
+    id: string,
+    siteId?: "bkgalabovo" | "recoveryzone"
+  ): Promise<void> {
     const res = await deleteIssuedCertificateAction(id);
     if (!res.success) {
       throw new Error(res.error || "Неуспешно изтриване на документ.");
+    }
+
+    // Синхронизиране в локалния кеш
+    if (typeof window !== "undefined" && siteId) {
+      try {
+        const cacheKey = `bkg_cached_certificates_${siteId}`;
+        const raw = localStorage.getItem(cacheKey);
+        if (raw) {
+          const list: IssuedCertificate[] = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            const filtered = list.filter(
+              (c) => c.id !== id && c.serialNumber !== id
+            );
+            localStorage.setItem(cacheKey, JSON.stringify(filtered));
+          }
+        }
+      } catch {
+        // ignore cache write error
+      }
     }
   },
 };

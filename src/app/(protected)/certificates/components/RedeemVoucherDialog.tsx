@@ -51,8 +51,9 @@ export function RedeemVoucherDialog({
     try {
       setIsSubmitting(true);
       await certificateIssuanceService.redeemVoucherSession(
-        certificate.id,
-        note.trim() || undefined
+        certificate.id || certificate.serialNumber,
+        note.trim() || undefined,
+        certificate
       );
 
       toast.success(
@@ -63,7 +64,11 @@ export function RedeemVoucherDialog({
       await onRedeemed();
     } catch (error) {
       console.error("Грешка при осребряване на процедура:", error);
-      toast.error("Възникна грешка при отчитането на процедурата.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Възникна грешка при отчитането на процедурата."
+      );
     } finally {
       setIsSubmitting(false);
     }
