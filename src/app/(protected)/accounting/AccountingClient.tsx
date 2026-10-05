@@ -767,6 +767,13 @@ export default function AccountingClient() {
           tripFolder.file(`04_Пътен_лист_${safeTitle}.pdf`, blob);
         }
 
+        // Report (Доклад за извършената работа чл. 29 НКС)
+        const reportEl = document.getElementById(`pdf-report-template-${tId}`);
+        if (reportEl) {
+          const blob = await getPdfBlobFromElement(reportEl, "portrait");
+          tripFolder.file(`05_Доклад_отчет_${safeTitle}.pdf`, blob);
+        }
+
         // Attachments
         const tripExps = expenses[tId!] || [];
         for (let j = 0; j < tripExps.length; j++) {

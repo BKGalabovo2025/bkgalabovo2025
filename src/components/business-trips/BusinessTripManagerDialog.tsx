@@ -9,6 +9,7 @@ import {
   ChevronUp,
   Eye,
   FileDown,
+  FileText,
   Info,
   Mail,
   Pencil,
@@ -26,6 +27,7 @@ import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTr
 import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
 import { SignaturePadDialog } from "@/components/business-trips/SignaturePadDialog";
 import { TripExpenseDialog } from "@/components/business-trips/TripExpenseDialog";
+import { TripReportDialog } from "@/components/business-trips/TripReportDialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -189,6 +191,9 @@ export function BusinessTripManagerDialog({
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [selectedTripForReport, setSelectedTripForReport] =
+    useState<BusinessTrip | null>(null);
 
   // Редакция
   const [tripToEdit, setTripToEdit] = useState<BusinessTrip | null>(null);
@@ -292,6 +297,16 @@ export function BusinessTripManagerDialog({
             "portrait"
           ).finally(() => {
             setIsGeneratingPdf(false);
+            const defaultDecision = trip.usDecision?.trim()
+              ? trip.usDecision.trim()
+              : `${(trip.id || "").substring(0, 6).toUpperCase()}-УС`;
+            businessTripService
+              .updateTrip(trip.id!, {
+                decisionDownloadedAt: new Date().toISOString(),
+                usDecision: defaultDecision,
+              })
+              .then(loadData)
+              .catch(console.error);
           });
         });
       } else {
@@ -330,7 +345,7 @@ export function BusinessTripManagerDialog({
 
   const handlePreviewPdf = (
     trip: BusinessTrip,
-    type: "decision" | "order" | "statement" | "fuel" | "attendance"
+    type: "decision" | "order" | "statement" | "fuel" | "attendance" | "report"
   ) => {
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
@@ -341,6 +356,7 @@ export function BusinessTripManagerDialog({
       else if (type === "order") elId = "pdf-order-template";
       else if (type === "statement") elId = "pdf-statement-template";
       else if (type === "attendance") elId = "pdf-attendance-template";
+      else if (type === "report") elId = "pdf-report-template";
 
       const el = document.getElementById(elId);
       if (el) {
@@ -407,9 +423,36 @@ export function BusinessTripManagerDialog({
     }, 100);
   };
 
+  const handlePrintReport = (trip: BusinessTrip) => {
+    setIsGeneratingPdf(true);
+    setSelectedTripForPdf(trip);
+    setTimeout(() => {
+      const el = document.getElementById("pdf-report-template");
+      if (el) {
+        import("@/lib/html-to-pdf").then((m) => {
+          m.generatePdfFromElement(
+            el,
+            `Доклад_Отчет_${trip.title}`,
+            "portrait"
+          ).finally(() => {
+            setIsGeneratingPdf(false);
+            businessTripService
+              .updateTrip(trip.id!, {
+                reportDownloadedAt: new Date().toISOString(),
+              })
+              .then(loadData)
+              .catch(console.error);
+          });
+        });
+      } else {
+        setIsGeneratingPdf(false);
+      }
+    }, 100);
+  };
+
   const handleEmailPdf = (
     trip: BusinessTrip,
-    type: "decision" | "order" | "statement" | "fuel" | "attendance"
+    type: "decision" | "order" | "statement" | "fuel" | "attendance" | "report"
   ) => {
     const email = window.prompt(
       "Моля, въведете имейл адрес, на който да изпратим документа:",
@@ -426,6 +469,7 @@ export function BusinessTripManagerDialog({
       else if (type === "order") elId = "pdf-order-template";
       else if (type === "statement") elId = "pdf-statement-template";
       else if (type === "attendance") elId = "pdf-attendance-template";
+      else if (type === "report") elId = "pdf-report-template";
 
       const el = document.getElementById(elId);
       if (el) {
@@ -443,6 +487,8 @@ export function BusinessTripManagerDialog({
                 filename = `Ведомост_${trip.title}.pdf`;
               else if (type === "attendance")
                 filename = `Присъствен_Лист_${trip.title}.pdf`;
+              else if (type === "report")
+                filename = `Доклад_Отчет_${trip.title}.pdf`;
 
               const attachmentContent = base64Data.split(",")[1] || base64Data; // Extract pure base64
 
@@ -627,30 +673,48 @@ export function BusinessTripManagerDialog({
                       {/* Решение на УС */}
                       <div className="flex items-center">
                         <Button
-                          variant="outline"
+                          variant={
+                            trip.decisionDownloadedAt ? "secondary" : "outline"
+                          }
                           size="icon"
                           title="Преглед на Решение на УС"
-                          className="size-8 rounded-r-none border-r-0 px-0"
+                          className={
+                            trip.decisionDownloadedAt
+                              ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "size-8 rounded-r-none border-r-0 px-0"
+                          }
                           onClick={() => handlePreviewPdf(trip, "decision")}
                           disabled={isGeneratingPdf || isSendingEmail}
                         >
                           <Eye className="size-4" />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant={
+                            trip.decisionDownloadedAt ? "secondary" : "outline"
+                          }
                           size="sm"
                           onClick={() => handlePrintDecision(trip)}
                           disabled={isGeneratingPdf || isSendingEmail}
-                          className="rounded-none border-x-0"
+                          className={
+                            trip.decisionDownloadedAt
+                              ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "rounded-none border-x-0"
+                          }
                         >
                           <FileDown className="mr-2 size-4" />
                           Решение на УС (PDF)
                         </Button>
                         <Button
-                          variant="outline"
+                          variant={
+                            trip.decisionDownloadedAt ? "secondary" : "outline"
+                          }
                           size="icon"
                           title="Изпрати по имейл"
-                          className="size-8 rounded-l-none px-0"
+                          className={
+                            trip.decisionDownloadedAt
+                              ? "size-8 rounded-l-none border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "size-8 rounded-l-none px-0"
+                          }
                           onClick={() => handleEmailPdf(trip, "decision")}
                           disabled={isGeneratingPdf || isSendingEmail}
                         >
@@ -818,6 +882,72 @@ export function BusinessTripManagerDialog({
                               : "size-8 rounded-l-none px-0"
                           }
                           onClick={() => handleEmailPdf(trip, "attendance")}
+                          disabled={isGeneratingPdf || isSendingEmail}
+                        >
+                          <Mail className="size-4" />
+                        </Button>
+                      </div>
+
+                      {/* Доклад за извършената работа (чл. 29 НКС) */}
+                      <div className="flex items-center">
+                        <Button
+                          variant={
+                            trip.reportDownloadedAt ? "secondary" : "outline"
+                          }
+                          size="icon"
+                          title="Преглед на Доклад за извършената работа"
+                          className={
+                            trip.reportDownloadedAt
+                              ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "size-8 rounded-r-none border-r-0 px-0"
+                          }
+                          onClick={() => handlePreviewPdf(trip, "report")}
+                          disabled={isGeneratingPdf || isSendingEmail}
+                        >
+                          <Eye className="size-4" />
+                        </Button>
+                        <Button
+                          variant={
+                            trip.reportDownloadedAt ? "secondary" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => handlePrintReport(trip)}
+                          disabled={isGeneratingPdf || isSendingEmail}
+                          className={
+                            trip.reportDownloadedAt
+                              ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "rounded-none border-x-0"
+                          }
+                        >
+                          <FileText className="mr-2 size-4" />
+                          {trip.reportDownloadedAt
+                            ? `Доклад (Изтеглен ${format(new Date(trip.reportDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                            : "Доклад (PDF)"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Редактирай текст на Доклада"
+                          className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                          onClick={() => {
+                            setSelectedTripForReport(trip);
+                            setIsReportDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="size-3.5" />
+                        </Button>
+                        <Button
+                          variant={
+                            trip.reportDownloadedAt ? "secondary" : "outline"
+                          }
+                          size="icon"
+                          title="Изпрати по имейл"
+                          className={
+                            trip.reportDownloadedAt
+                              ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "size-8 rounded-l-none px-0"
+                          }
+                          onClick={() => handleEmailPdf(trip, "report")}
                           disabled={isGeneratingPdf || isSendingEmail}
                         >
                           <Mail className="size-4" />
@@ -1141,6 +1271,22 @@ export function BusinessTripManagerDialog({
           onOpenChange={setSignaturePadOpen}
           title={`Подпис: ${signatureRole === "coach" ? "Командирован" : "Председател"}`}
           onSave={handleSaveSignature}
+        />
+      )}
+
+      {isReportDialogOpen && selectedTripForReport && (
+        <TripReportDialog
+          open={isReportDialogOpen}
+          onOpenChange={(v) => {
+            if (!v) setSelectedTripForReport(null);
+            setIsReportDialogOpen(v);
+          }}
+          trip={selectedTripForReport}
+          membersDict={membersDict}
+          onSuccess={() => {
+            setSelectedTripForReport(null);
+            loadData();
+          }}
         />
       )}
     </>

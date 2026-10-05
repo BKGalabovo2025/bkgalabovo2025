@@ -1,4 +1,4 @@
-﻿/**
+/**
  * business-trip-checklist.ts
  *
  * Изчислява списък с липсващи или непълни елементи за дадена командировка.
@@ -37,13 +37,18 @@ function checkGeneralData(ctx: CheckContext): TripCheckItem[] {
   const { trip } = ctx;
   const issues: TripCheckItem[] = [];
 
-  if (!trip.usDecision || trip.usDecision.trim() === "") {
+  const hasDecision = Boolean(
+    (trip.usDecision && trip.usDecision.trim() !== "") ||
+    trip.decisionDownloadedAt
+  );
+
+  if (!hasDecision) {
     issues.push({
       id: "missing_us_decision",
       severity: "error",
       category: "legal",
       message: "Липсва Решение на УС",
-      hint: "Въведете номера и датата на протокола на УС. Без него Решението на УС не може да бъде изготвено.",
+      hint: "Въведете номера и датата на протокола на УС или изтеглете Решението на УС (PDF).",
     });
   }
   if (!trip.destination || trip.destination.trim() === "") {
@@ -223,6 +228,15 @@ function checkDocuments(ctx: CheckContext): TripCheckItem[] {
   const { trip } = ctx;
   const issues: TripCheckItem[] = [];
 
+  if (!trip.decisionDownloadedAt) {
+    issues.push({
+      id: "decision_not_printed",
+      severity: "warning",
+      category: "document",
+      message: "Решението на УС не е изтеглено/отпечатано",
+      hint: 'Натиснете „Решение на УС (PDF)" и разпечатайте. Подписва се от членовете на УС.',
+    });
+  }
   if (!trip.orderDownloadedAt) {
     issues.push({
       id: "order_not_printed",
@@ -240,6 +254,32 @@ function checkDocuments(ctx: CheckContext): TripCheckItem[] {
       message: "Ведомостта не е изтеглена/отпечатана",
       hint: 'Натиснете „Ведомост (PDF)" и разпечатайте. Всички командировани лица подписват оригинала.',
     });
+  }
+  if (!trip.reportDownloadedAt) {
+    const end = trip.endDate ? new Date(trip.endDate) : null;
+    const now = new Date();
+    const daysSinceEnd = end
+      ? Math.floor((now.getTime() - end.getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
+
+    if (daysSinceEnd > 3) {
+      issues.push({
+        id: "report_overdue",
+        severity: "warning",
+        category: "document",
+        message:
+          "Изтекъл 3-дневен срок за Доклад за извършената работа (чл. 29 НКС)",
+        hint: `Събитието е приключило преди ${daysSinceEnd} дни. Командированият е длъжен да представи писмен отчет в 3-дневен срок след завръщането.`,
+      });
+    } else {
+      issues.push({
+        id: "report_not_printed",
+        severity: "info",
+        category: "document",
+        message: "Докладът за извършената работа не е изтеглен/отпечатан",
+        hint: 'Натиснете „Доклад (PDF)" и разпечатайте. Срок за отчитане: 3 дни от завръщането (чл. 29 НКС).',
+      });
+    }
   }
   return issues;
 }

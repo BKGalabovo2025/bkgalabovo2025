@@ -109,6 +109,7 @@ export function CreateBusinessTripDialog({
           usDecisionDate: initialData.usDecisionDate || "",
           usProtocolNumber: initialData.usProtocolNumber || "",
           usDecisionNotes: initialData.usDecisionNotes || "",
+          reportText: initialData.reportText || "",
           expensesCoverage:
             initialData.expensesCoverage || getInitialExpensesCoverage(),
           hasEntryFee:
@@ -149,6 +150,7 @@ export function CreateBusinessTripDialog({
           usDecisionDate: new Date().toISOString().split("T")[0],
           usProtocolNumber: "",
           usDecisionNotes: "",
+          reportText: "",
           hasEntryFee: false,
           entryFeePerPersonEUR: 0,
         },
@@ -213,6 +215,7 @@ export function CreateBusinessTripDialog({
         usDecisionDate: values.usDecisionDate?.trim() || undefined,
         usProtocolNumber: values.usProtocolNumber?.trim() || undefined,
         usDecisionNotes: values.usDecisionNotes?.trim() || undefined,
+        reportText: values.reportText?.trim() || undefined,
         financials: {
           ...values.financials,
           hasEntryFee: Boolean(values.hasEntryFee),
@@ -222,17 +225,28 @@ export function CreateBusinessTripDialog({
 
       if (isEditMode && initialData?.id) {
         // Режим Редактиране
-        await businessTripService.updateTrip(
-          initialData.id,
-          tripPayload as any
-        );
+        const defaultDecision = values.usDecision?.trim()
+          ? values.usDecision.trim()
+          : initialData.usDecision ||
+            `${initialData.id.substring(0, 6).toUpperCase()}-УС`;
+        await businessTripService.updateTrip(initialData.id, {
+          ...tripPayload,
+          usDecision: defaultDecision,
+        } as any);
         toast.success("Командировката е актуализирана успешно!");
       } else {
         // Режим Създаване
-        await businessTripService.createTrip({
+        const newTripId = await businessTripService.createTrip({
           ...tripPayload,
           siteId: values.siteId || "default",
         } as any);
+
+        if (!values.usDecision?.trim() && newTripId) {
+          const autoDecision = `${newTripId.substring(0, 6).toUpperCase()}-УС`;
+          await businessTripService.updateTrip(newTripId, {
+            usDecision: autoDecision,
+          });
+        }
         toast.success("Командировката е създадена успешно като чернова!");
       }
 
@@ -419,6 +433,33 @@ export function CreateBusinessTripDialog({
                       <FormDescription className="text-[11px]">
                         Ако са въведени, ще се отпечатат като отделна точка в
                         Решението на УС (DOC 0).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control as any}
+                  name="reportText"
+                  render={({ field }: any) => (
+                    <FormItem>
+                      <FormLabel>
+                        Доклад за извършената работа / спортни резултати (чл. 29
+                        НКС - по избор)
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="По избор въведете текст на доклада (напр. по-ранно отпадане, 1 нощувка вместо 2, постигнати резултати). Ако остане празно, ще се генерира стандартен шаблон..."
+                          rows={2}
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormDescription className="text-[11px]">
+                        Отпечатва се в Доклада за извършената работа (DOC 5).
+                        Може да се редактира и по-късно през диалога за
+                        управление.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
