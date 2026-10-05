@@ -3,7 +3,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileUp, Loader2, Save } from "lucide-react";
+import { format } from "date-fns";
+import {
+  CheckCircle2,
+  ExternalLink,
+  FileUp,
+  Loader2,
+  Save,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -36,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { businessTripService } from "@/services/business-trip-service";
 import {
@@ -72,6 +80,7 @@ export function TripExpenseDialog({
   const [isOcrRunning, setIsOcrRunning] = useState(false);
   const [currencyMode, setCurrencyMode] = useState<"EUR" | "BGN">("EUR");
   const [bgnInputValue, setBgnInputValue] = useState<string>("");
+  const { idToken } = useAuth();
 
   const form = useForm<any>({
     resolver: zodResolver(FormSchema) as any,
@@ -138,7 +147,8 @@ export function TripExpenseDialog({
           finalAttachmentUrl = await businessTripService.uploadExpenseDocument(
             siteId,
             tripId,
-            file
+            file,
+            idToken
           );
           toast.success("Документът е качен!", { id: uploadToast });
         } catch (e) {
@@ -506,6 +516,33 @@ export function TripExpenseDialog({
                     <FormDescription className="text-[10px]">
                       Снимката ще бъде качена сигурно в облака.
                     </FormDescription>
+                    {form.watch("attachmentUrl") && (
+                      <div className="mt-2 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                          <span>Прикачен документ е наличен.</span>
+                          {expenseToEdit?.attachmentDownloadedAt && (
+                            <span className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80">
+                              (Свалян на:{" "}
+                              {format(
+                                new Date(expenseToEdit.attachmentDownloadedAt),
+                                "dd.MM.yyyy HH:mm"
+                              )}
+                              )
+                            </span>
+                          )}
+                        </div>
+                        <a
+                          href={form.watch("attachmentUrl")}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-medium underline underline-offset-2 hover:text-emerald-950 dark:hover:text-emerald-100"
+                        >
+                          Преглед
+                          <ExternalLink className="size-3" />
+                        </a>
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

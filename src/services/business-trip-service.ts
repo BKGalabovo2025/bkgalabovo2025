@@ -10,10 +10,10 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { v4 as uuidv4 } from "uuid";
 
-import { db, storage } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
+import { uploadFile } from "@/services/storage-service";
 import {
   BusinessTrip,
   BusinessTripSchema,
@@ -171,6 +171,13 @@ export const businessTripService = {
     });
   },
 
+  /** Записва дата/час на сваляне на прикачен документ към разход */
+  async logExpenseAttachmentDownload(expenseId: string): Promise<void> {
+    await updateDoc(doc(db, EXPENSES_COLLECTION, expenseId), {
+      attachmentDownloadedAt: new Date().toISOString(),
+    });
+  },
+
   // ---------------------------------------------
   // ATTACHMENTS (Storage)
   // ---------------------------------------------
@@ -178,20 +185,15 @@ export const businessTripService = {
   async uploadExpenseDocument(
     siteId: string,
     tripId: string,
-    file: File
+    file: File,
+    idToken?: string | null
   ): Promise<string> {
     const fileExtension = file.name.split(".").pop();
     const fileName = `${uuidv4()}.${fileExtension}`;
 
-    // Път: sites/{siteId}/business-trips/{tripId}/{fileName}
-    const storageRef = ref(
-      storage,
-      `sites/${siteId}/business-trips/${tripId}/${fileName}`
-    );
-
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-
-    return downloadURL;
+    // Използва server-side /api/upload за да избегне CORS проблеми
+    // (същият механизъм като качването на наредби в графика)
+    const storagePath = `sites/${siteId}/business-trips/${tripId}/${fileName}`;
+    return await uploadFile(storagePath, file, idToken);
   },
 };

@@ -789,11 +789,26 @@ export default function AccountingClient() {
               }
               const filename = `05_Фактура_${exp.expenseType}_${exp.documentNumber || j + 1}.${ext}`;
               tripFolder.file(filename, blob);
+
+              if (exp.id) {
+                businessTripService
+                  .logExpenseAttachmentDownload(exp.id)
+                  .catch(() => {});
+              }
             } catch (err) {
               console.error("Failed to fetch attachment:", err);
             }
           }
         }
+
+        // Записваме времето на изтегляне на документите за командировката
+        businessTripService
+          .updateTrip(tId!, {
+            orderDownloadedAt: new Date().toISOString(),
+            statementDownloadedAt: new Date().toISOString(),
+            reportDownloadedAt: new Date().toISOString(),
+          })
+          .catch(() => {});
       }
 
       if (Object.keys(zip.files).length === 0) {

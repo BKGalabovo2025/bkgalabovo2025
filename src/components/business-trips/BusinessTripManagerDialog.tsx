@@ -28,6 +28,10 @@ import { SignaturePadDialog } from "@/components/business-trips/SignaturePadDial
 import { TripExpenseDialog } from "@/components/business-trips/TripExpenseDialog";
 import { TripReportDialog } from "@/components/business-trips/TripReportDialog";
 import { TripStatementEditDialog } from "@/components/business-trips/TripStatementEditDialog";
+import {
+  type DocumentAttachmentType,
+  DocumentViewerDialog,
+} from "@/components/schedule/DocumentViewerDialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -216,6 +220,14 @@ export function BusinessTripManagerDialog({
     {}
   );
   const [expenseToEdit, setExpenseToEdit] = useState<TripExpense | null>(null);
+
+  // Viewer за прикачени документи към разходи
+  const [expenseViewerDoc, setExpenseViewerDoc] = useState<{
+    url: string;
+    name?: string;
+    type?: DocumentAttachmentType;
+    expenseId?: string;
+  } | null>(null);
 
   // Digital Signatures
   const [signaturePadOpen, setSignaturePadOpen] = useState(false);
@@ -1196,17 +1208,64 @@ export function BusinessTripManagerDialog({
                               </div>
                               <div className="flex items-center gap-1">
                                 {exp.attachmentUrl && (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    title="Преглед/Изтегляне на прикачен документ"
-                                    className="size-7 text-zinc-400 hover:text-emerald-600"
-                                    onClick={() =>
-                                      window.open(exp.attachmentUrl, "_blank")
-                                    }
-                                  >
-                                    <FileDown className="size-3" />
-                                  </Button>
+                                  <div className="flex flex-col items-end gap-0.5">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      title="Преглед на прикачен документ"
+                                      className="size-7 text-zinc-400 hover:text-emerald-600"
+                                      onClick={() => {
+                                        const name = exp.documentNumber
+                                          ? `Фактура_${exp.documentNumber}`
+                                          : `Документ_${exp.expenseType}`;
+                                        const url = exp.attachmentUrl!;
+                                        const isPdf =
+                                          url.toLowerCase().includes(".pdf") ||
+                                          Boolean(
+                                            exp.attachmentName
+                                              ?.toLowerCase()
+                                              .endsWith(".pdf")
+                                          );
+                                        const isImg =
+                                          /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(
+                                            url
+                                          ) ||
+                                          Boolean(
+                                            exp.attachmentName &&
+                                            /\.(png|jpe?g|webp|gif|svg)$/i.test(
+                                              exp.attachmentName
+                                            )
+                                          );
+                                        let docType:
+                                          DocumentAttachmentType | undefined;
+                                        if (isPdf) {
+                                          docType = "pdf";
+                                        } else if (isImg) {
+                                          docType = "image";
+                                        }
+                                        setExpenseViewerDoc({
+                                          url,
+                                          name,
+                                          type: docType,
+                                          expenseId: exp.id,
+                                        });
+                                      }}
+                                    >
+                                      <Eye className="size-3" />
+                                    </Button>
+                                    {exp.attachmentDownloadedAt && (
+                                      <span
+                                        className="text-[9px] text-zinc-400"
+                                        title={`Свалено: ${format(new Date(exp.attachmentDownloadedAt), "dd.MM.yyyy HH:mm")}`}
+                                      >
+                                        ↓{" "}
+                                        {format(
+                                          new Date(exp.attachmentDownloadedAt),
+                                          "dd.MM HH:mm"
+                                        )}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                                 <Button
                                   variant="ghost"
@@ -1300,6 +1359,30 @@ export function BusinessTripManagerDialog({
           onSuccess={() => {
             setExpenseToEdit(null);
             loadData();
+          }}
+        />
+      )}
+
+      {/* Viewer за прикачени документи към разходи */}
+      {expenseViewerDoc && (
+        <DocumentViewerDialog
+          isOpen={!!expenseViewerDoc}
+          onClose={() => setExpenseViewerDoc(null)}
+          documentUrl={expenseViewerDoc.url}
+          documentName={expenseViewerDoc.name || "Документ"}
+          documentType={expenseViewerDoc.type}
+          subtitle="Прикачен документ към разход"
+          onDownload={async () => {
+            if (expenseViewerDoc?.expenseId) {
+              try {
+                await businessTripService.logExpenseAttachmentDownload(
+                  expenseViewerDoc.expenseId
+                );
+                loadData();
+              } catch {
+                // non-critical
+              }
+            }
           }}
         />
       )}

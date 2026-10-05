@@ -30,6 +30,8 @@ interface DocumentViewerDialogProps {
   documentName?: string | null;
   documentType?: DocumentAttachmentType | null;
   subtitle?: string | null;
+  /** Опционален callback при клик на "Изтегли" — за логване на сваляне */
+  onDownload?: () => void | Promise<void>;
 }
 
 export const getDocumentIcon = (
@@ -75,6 +77,7 @@ interface ViewerBodyProps {
   documentName?: string | null;
   documentType?: DocumentAttachmentType | null;
   officeViewerUrl: string;
+  onDownload?: () => void | Promise<void>;
 }
 
 const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
@@ -87,6 +90,7 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   documentName,
   documentType,
   officeViewerUrl,
+  onDownload,
 }) => {
   if (!documentUrl) return null;
 
@@ -168,6 +172,7 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
           download={documentName || "document"}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => onDownload?.()}
         >
           <Download className="size-4" />
           Изтегли файла
@@ -250,6 +255,7 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
   documentName = "Документ",
   documentType,
   subtitle,
+  onDownload,
 }) => {
   if (!documentUrl) return null;
 
@@ -301,6 +307,7 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
                 download={documentName || "document"}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => onDownload?.()}
               >
                 <Download className="size-3.5" />
                 <span className="hidden sm:inline">Изтегли</span>
@@ -357,6 +364,7 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
             documentName={documentName}
             documentType={effectiveType}
             officeViewerUrl={officeViewerUrl}
+            onDownload={onDownload}
           />
         </div>
       </DialogContent>

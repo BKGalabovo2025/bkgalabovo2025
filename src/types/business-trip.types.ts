@@ -141,6 +141,8 @@ export const TripExpenseSchema = z.object({
   documentDate: z.string().datetime().optional(),
   supplierName: z.string().optional(), // Име на доставчик (напр. бензиностанция, хотел)
   attachmentUrl: z.string().optional(), // URL към снимката/скана на документа
+  attachmentName: z.string().optional(), // Име на прикачения файл
+  attachmentDownloadedAt: z.string().datetime().optional(), // Дата/час на последно сваляне
   createdAt: z.string().datetime().optional(),
 });
 

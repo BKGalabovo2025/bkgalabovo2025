@@ -205,7 +205,8 @@ export async function GET(request: NextRequest) {
       fileDoc?.path?.includes("sponsors") ||
       fileDoc?.path?.includes("media") ||
       fileDoc?.path?.includes("certificates") ||
-      fileDoc?.path?.includes("vouchers");
+      fileDoc?.path?.includes("vouchers") ||
+      fileDoc?.path?.includes("events");
 
     if (!user && !isPublicMedia) {
       return NextResponse.json(
