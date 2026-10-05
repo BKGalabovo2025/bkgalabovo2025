@@ -610,7 +610,7 @@ export function BusinessTripPdfTemplates({
               {hasPerDiem ? (
                 <>
                   по <strong>{fmtEUR(perDiemEUR)}</strong> (
-                  {perDiemBGN.toFixed(2)} лв.) / на ден на лице за{" "}
+                  {perDiemBGN.toFixed(2)} лв.) / на ден за едно лице за{" "}
                   <strong>{numDays}</strong> {numDays === 1 ? "ден" : "дни"}.
                 </>
               ) : (
@@ -625,7 +625,7 @@ export function BusinessTripPdfTemplates({
               {hasAccom && trip.financials.accommodationRateEUR > 0 && (
                 <>
                   по <strong>{fmtEUR(accomEUR)}</strong> ({accomBGN.toFixed(2)}{" "}
-                  лв.) на лице за <strong>{numNights}</strong>{" "}
+                  лв.) / на нощ за едно лице за <strong>{numNights}</strong>{" "}
                   {numNights === 1 ? "нощ" : "нощи"} (срещу фактура).
                 </>
               )}
@@ -929,7 +929,7 @@ export function BusinessTripPdfTemplates({
             {sn("diem")}. Дневни на <strong>{totalPeople}</strong>{" "}
             {totalPeople === 1 ? "човек" : "човека"} по{" "}
             <strong>{fmtEUR(perDiemEUR)}</strong> ({perDiemBGN.toFixed(2)} лв.)
-            / на ден за <strong>{numDays}</strong>{" "}
+            / на ден за едно лице за <strong>{numDays}</strong>{" "}
             {numDays === 1 ? "ден" : "дни"}.
           </p>
         )}
@@ -941,7 +941,7 @@ export function BusinessTripPdfTemplates({
             {trip.financials.accommodationRateEUR > 0 ? (
               <>
                 по <strong>{fmtEUR(accomEUR)}</strong> ({accomBGN.toFixed(2)}{" "}
-                лв.) / на нощ (срещу фактура){" "}
+                лв.) / на нощ за едно лице (срещу фактура){" "}
               </>
             ) : (
               <>(срещу фактура) </>
