@@ -91,7 +91,7 @@ function checkFuelTransport(ctx: CheckContext): TripCheckItem[] {
       severity: "error",
       category: "legal",
       message: "Лично МПС: Липсват данни за автомобила (марка / рег. №)",
-      hint: "Въведете марката и регистрационния номер съгласно чл. 13 от НКС.",
+      hint: "Въведете марката и регистрационния номер на личното МПС.",
     });
   }
   if (!trip.vehicle?.fuelNorm || trip.vehicle.fuelNorm <= 0) {
@@ -100,7 +100,7 @@ function checkFuelTransport(ctx: CheckContext): TripCheckItem[] {
       severity: "warning",
       category: "legal",
       message: "Лично МПС: Не е въведена разходна норма (л/100 км)",
-      hint: "Разходната норма е необходима за Пътния лист (чл. 13 НКС).",
+      hint: "Разходната норма е необходима за отчитане на горивото по официални разходни норми (Пътен лист).",
     });
   }
   if (!trip.vehicle?.distanceKm || trip.vehicle.distanceKm <= 0) {

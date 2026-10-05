@@ -553,7 +553,7 @@ export function CreateBusinessTripDialog({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="fuel_only">
-                          🚗 Лично МПС (гориво)
+                          🚗 Лично МПС (с разрешение в Заповедта)
                         </SelectItem>
                         <SelectItem value="club_paid">
                           🚌 Клубен / Нает транспорт
@@ -562,21 +562,21 @@ export function CreateBusinessTripDialog({
                           🎫 Безплатен / Организиран транспорт
                         </SelectItem>
                         <SelectItem value="public">
-                          🚆 Обществен транспорт (автобус/влак)
+                          🚆 Обществен транспорт (влак, автобус, самолет)
                         </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription className="mt-2 rounded bg-sky-50 p-2 text-[11px] leading-relaxed text-sky-700 dark:bg-sky-950/30 dark:text-sky-400">
                       {field.value === "fuel_only" && (
                         <>
-                          🚗 <strong>Лично МПС:</strong> Избира се, когато
-                          треньорът, родител или представител на клуба пътува
-                          със собствен автомобил. В Заповедта се изписва марка,
-                          рег. №, вид гориво и норма л/100 км{" "}
-                          <strong>съгласно чл. 13 от НКС</strong>.
-                          Счетоводството изисква фактура за гориво на името на
-                          клуба и{" "}
-                          <strong>попълнен Пътен лист/Отчет за гориво</strong>.
+                          🚗 <strong>Лично МПС:</strong> Избира се при пътуване
+                          с личен автомобил. В Заповедта се вписва изрично
+                          разрешение за ползване на лично МПС с посочените данни
+                          (марка, рег. №, вид гориво и разходна норма). Разходът
+                          за гориво се отчита по официални норми срещу
+                          представен Пътен лист (Отчет за гориво) и
+                          разходооправдателен документ (фактура/касов бон за
+                          гориво на името на клуба).
                         </>
                       )}
                       {field.value === "club_paid" && (
@@ -604,14 +604,13 @@ export function CreateBusinessTripDialog({
                       )}
                       {field.value === "public" && (
                         <>
-                          🚆 <strong>Обществен транспорт:</strong> Избира се при
-                          пътуване с междуградски автобус или БДЖ. В Заповедта
-                          се изписва „обществен транспорт (автобус / влак),
-                          срещу оригинални билети&quot;. Счетоводството изисква{" "}
+                          🚆{" "}
                           <strong>
-                            физическите билети за отиване и връщане
+                            Обществен транспорт (влак, автобус, самолет):
                           </strong>{" "}
-                          от всеки участник.
+                          Избира се при пътуване с обществен транспорт. В
+                          Заповедта се разпорежда представяне на оригинални
+                          билети за отиване и връщане от командированите лица.
                         </>
                       )}
                       {!field.value && (
@@ -646,6 +645,17 @@ export function CreateBusinessTripDialog({
 
               {transportType === "fuel_only" && (
                 <>
+                  <div className="col-span-2 rounded-lg border border-sky-200 bg-sky-50/80 p-3 text-xs text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/20 dark:text-sky-200">
+                    <p className="font-semibold">
+                      ✓ Изрично разрешение за лично МПС в Заповедта:
+                    </p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-sky-800 dark:text-sky-300">
+                      В Заповедта за командировка ще бъде вписано изрично
+                      разрешение за използване на лично МПС с посочените данни.
+                      Разходът за гориво се отчита по официални разходни норми
+                      срещу пътен лист и разходооправдателен документ.
+                    </p>
+                  </div>
                   <FormField
                     control={form.control as any}
                     name="vehicle.brand"

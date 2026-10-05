@@ -349,7 +349,7 @@ export function BusinessTripPdfTemplates({
     fuel_only: trip.vehicle?.brand
       ? `Лично МПС ${trip.vehicle.brand}`
       : "Лично МПС",
-    public: "Обществен транспорт",
+    public: "Обществен транспорт (влак, автобус, самолет)",
   };
   const tShort = transportShort[trip.transportType] ?? trip.transportType;
 
@@ -366,15 +366,20 @@ export function BusinessTripPdfTemplates({
     if (hasFuel) {
       return (
         <span style={{ marginLeft: "15pt", display: "inline-block" }}>
-          На основание чл. 13 от НКС разрешава пътуването да се извърши с:{" "}
-          <strong>лично МПС</strong>, марка{" "}
+          Съгласно Наредбата за командировките в страната разрешава пътуването
+          да се извърши с: <strong>лично МПС</strong>, вид лек автомобил, марка{" "}
           <strong>{trip.vehicle?.brand || "неопределена"}</strong>, рег. №{" "}
-          <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>, при
-          разходна норма{" "}
-          <strong>{fuelNorm > 0 ? fuelNorm : "0"} л/100 км</strong>. Разходите
-          за изразходвано гориво за маршрута <em>{routeLabel}</em> (
-          {distKm > 0 ? `${distKm} км` : "по отчет"}) да се възстановят на
-          водача срещу представен фискален бон и Отчет за гориво.
+          <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>
+          {trip.vehicle?.fuelType
+            ? `, вид гориво: ${trip.vehicle.fuelType}`
+            : ""}
+          , при разходна норма{" "}
+          <strong>{fuelNorm > 0 ? fuelNorm : "0"} л/100 км</strong>. Разходът за
+          изразходвано гориво се отчита по официални разходни норми за маршрута{" "}
+          <em>{routeLabel}</em> ({distKm > 0 ? `${distKm} км` : "по отчет"}) и
+          се възстановява на водача срещу представен пътен лист (Отчет за
+          гориво) и разходооправдателен документ (фактура / фискален бон на
+          името на клуба).
         </span>
       );
     }
@@ -383,6 +388,15 @@ export function BusinessTripPdfTemplates({
         <span style={{ marginLeft: "15pt", display: "inline-block" }}>
           Транспортът е организиран и осигурен безплатно. Не се начисляват пътни
           пари на командированите лица.
+        </span>
+      );
+    }
+    if (trip.transportType === "public") {
+      return (
+        <span style={{ marginLeft: "15pt", display: "inline-block" }}>
+          Пътуването да се осъществи с:{" "}
+          <strong>обществен транспорт (влак, автобус, самолет)</strong> срещу
+          представени оригинални билети за отиване и връщане.
         </span>
       );
     }
@@ -398,28 +412,43 @@ export function BusinessTripPdfTemplates({
     if (hasFuel) {
       return (
         <p style={{ marginBottom: "4pt" }}>
-          {sn("transport")}. Пътуването да се извърши с: лек автомобил
-          <br />
-          &nbsp;&nbsp;&nbsp;&nbsp;а/ лично МПС, вид лек, марка{" "}
+          {sn("transport")}. Транспорт:{" "}
+          <strong>Разрешавам пътуването да се извърши с лично МПС</strong>, вид
+          лек автомобил, марка{" "}
           <strong>{trip.vehicle?.brand || "неопределена"}</strong>, рег. №{" "}
-          <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>, с разход
-          на <strong>{fuelNorm > 0 ? fuelNorm : "0"} л/100 км.</strong> (срещу
-          фактура)
+          <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>
+          {trip.vehicle?.fuelType
+            ? `, вид гориво: ${trip.vehicle.fuelType}`
+            : ""}
+          , с разходна норма{" "}
+          <strong>{fuelNorm > 0 ? fuelNorm : "0"} л/100 км</strong>. Разходът за
+          гориво се отчита по официални разходни норми срещу представен пътен
+          лист и разходооправдателен документ (фактура / касов бон за заредено
+          гориво на името на клуба).
         </p>
       );
     }
     if (trip.transportType === "free") {
       return (
         <p style={{ marginBottom: "4pt" }}>
-          {sn("transport")}. Транспортът е организиран и осигурен безплатно. Не
-          се начисляват пътни пари на командированите лица.
+          {sn("transport")}. Транспорт: Транспортът е организиран и осигурен
+          безплатно. Не се начисляват пътни пари на командированите лица.
+        </p>
+      );
+    }
+    if (trip.transportType === "public") {
+      return (
+        <p style={{ marginBottom: "4pt" }}>
+          {sn("transport")}. Транспорт: Пътуването да се извърши с:{" "}
+          <strong>обществен транспорт (влак, автобус, самолет)</strong> — срещу
+          представени оригинални билети за отиване и връщане.
         </p>
       );
     }
     return (
       <p style={{ marginBottom: "4pt" }}>
-        {sn("transport")}. Пътуването да се извърши с: <strong>{tShort}</strong>{" "}
-        (срещу фактура или билет).
+        {sn("transport")}. Транспорт: Пътуването да се извърши с:{" "}
+        <strong>{tShort}</strong> (срещу фактура или билет).
       </p>
     );
   };
