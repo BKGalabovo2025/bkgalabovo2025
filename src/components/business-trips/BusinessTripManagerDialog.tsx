@@ -28,6 +28,7 @@ import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusi
 import { SignaturePadDialog } from "@/components/business-trips/SignaturePadDialog";
 import { TripExpenseDialog } from "@/components/business-trips/TripExpenseDialog";
 import { TripReportDialog } from "@/components/business-trips/TripReportDialog";
+import { TripStatementEditDialog } from "@/components/business-trips/TripStatementEditDialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -193,6 +194,10 @@ export function BusinessTripManagerDialog({
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedTripForReport, setSelectedTripForReport] =
+    useState<BusinessTrip | null>(null);
+
+  const [isStatementEditOpen, setIsStatementEditOpen] = useState(false);
+  const [selectedTripForStatement, setSelectedTripForStatement] =
     useState<BusinessTrip | null>(null);
 
   // Редакция
@@ -702,7 +707,9 @@ export function BusinessTripManagerDialog({
                           }
                         >
                           <FileDown className="mr-2 size-4" />
-                          Решение на УС (PDF)
+                          {trip.decisionDownloadedAt
+                            ? `Решение на УС (Изтеглено ${format(new Date(trip.decisionDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                            : "Решение на УС (PDF)"}
                         </Button>
                         <Button
                           variant={
@@ -809,6 +816,24 @@ export function BusinessTripManagerDialog({
                           {trip.statementDownloadedAt
                             ? `Ведомост (Изтеглено ${format(new Date(trip.statementDownloadedAt), "dd.MM.yyyy, HH:mm")})`
                             : "Ведомост (PDF)"}
+                        </Button>
+                        <Button
+                          variant={
+                            trip.statementDownloadedAt ? "secondary" : "outline"
+                          }
+                          size="icon"
+                          title="Редактирай ведомост (реални дни/нощи)"
+                          className={
+                            trip.statementDownloadedAt
+                              ? "size-8 rounded-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "size-8 rounded-none border-r-0 px-0"
+                          }
+                          onClick={() => {
+                            setSelectedTripForStatement(trip);
+                            setIsStatementEditOpen(true);
+                          }}
+                        >
+                          <Pencil className="size-4" />
                         </Button>
                         <Button
                           variant={
@@ -1285,6 +1310,21 @@ export function BusinessTripManagerDialog({
           membersDict={membersDict}
           onSuccess={() => {
             setSelectedTripForReport(null);
+            loadData();
+          }}
+        />
+      )}
+
+      {isStatementEditOpen && selectedTripForStatement && (
+        <TripStatementEditDialog
+          open={isStatementEditOpen}
+          onOpenChange={(v) => {
+            if (!v) setSelectedTripForStatement(null);
+            setIsStatementEditOpen(v);
+          }}
+          trip={selectedTripForStatement}
+          onSuccess={() => {
+            setSelectedTripForStatement(null);
             loadData();
           }}
         />

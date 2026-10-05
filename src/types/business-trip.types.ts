@@ -120,6 +120,10 @@ export const BusinessTripSchema = z.object({
   reportDownloadedAt: z.string().datetime().optional(),
   reportText: z.string().optional(),
   attachMatchProtocols: z.boolean().optional(),
+  /** Реално изкарани дни (ако се различава от планираните, за ведомост) */
+  actualDays: z.number().min(0).optional(),
+  /** Реално изкарани нощи (ако се различава от планираните, за ведомост) */
+  actualNights: z.number().min(0).optional(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 });

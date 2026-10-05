@@ -215,8 +215,17 @@ export function BusinessTripPdfTemplates({
   };
   const startD = new Date(trip.startDate);
   const endD = new Date(trip.endDate);
-  const numDays = Math.max(1, differenceInCalendarDays(endD, startD) + 1);
-  const numNights = Math.max(0, differenceInCalendarDays(endD, startD));
+  const plannedDays = Math.max(1, differenceInCalendarDays(endD, startD) + 1);
+  const plannedNights = Math.max(0, differenceInCalendarDays(endD, startD));
+  // Use actual days/nights if user has set them (e.g. early return)
+  const numDays =
+    trip.actualDays != null && trip.actualDays >= 0
+      ? trip.actualDays
+      : plannedDays;
+  const numNights =
+    trip.actualNights != null && trip.actualNights >= 0
+      ? trip.actualNights
+      : plannedNights;
 
   const perDiemEUR = roundEUR(
     trip.financials.perDiemOverrideEUR || trip.financials.perDiemRateEUR
