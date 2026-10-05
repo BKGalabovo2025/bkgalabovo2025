@@ -221,12 +221,14 @@ export function BusinessTripManagerDialog({
   );
   const [expenseToEdit, setExpenseToEdit] = useState<TripExpense | null>(null);
 
-  // Viewer за прикачени документи към разходи
+  // Viewer за прикачени документи към разходи и протоколи
   const [expenseViewerDoc, setExpenseViewerDoc] = useState<{
     url: string;
     name?: string;
     type?: DocumentAttachmentType;
     expenseId?: string;
+    protocolId?: string;
+    tripId?: string;
   } | null>(null);
 
   // Digital Signatures
@@ -990,6 +992,105 @@ export function BusinessTripManagerDialog({
                         </Button>
                       </div>
 
+                      {/* Официални съдийски протоколи от срещите */}
+                      {trip.attachMatchProtocols &&
+                        trip.matchProtocols &&
+                        trip.matchProtocols.length > 0 &&
+                        trip.matchProtocols.map((proto, pIdx) => {
+                          const isProtoDownloaded = Boolean(proto.downloadedAt);
+                          const baseName =
+                            proto.name.length > 18
+                              ? `${proto.name.slice(0, 18)}...`
+                              : proto.name;
+                          let protoLabel = `Протокол (${baseName})`;
+                          if (isProtoDownloaded && proto.downloadedAt) {
+                            protoLabel += ` (Изтеглен ${format(new Date(proto.downloadedAt), "dd.MM, HH:mm")})`;
+                          }
+
+                          return (
+                            <div
+                              key={proto.id || pIdx}
+                              className="flex items-center"
+                            >
+                              <Button
+                                variant={
+                                  isProtoDownloaded ? "secondary" : "outline"
+                                }
+                                size="icon"
+                                title={`Преглед на протокол: ${proto.name}`}
+                                className={
+                                  isProtoDownloaded
+                                    ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                    : "size-8 rounded-r-none border-r-0 px-0 text-indigo-600 hover:text-indigo-700"
+                                }
+                                onClick={() => {
+                                  const isPdf =
+                                    proto.url.toLowerCase().includes(".pdf") ||
+                                    proto.name.toLowerCase().endsWith(".pdf");
+                                  const isImg =
+                                    /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(
+                                      proto.url
+                                    ) ||
+                                    /\.(png|jpe?g|webp|gif|svg)$/i.test(
+                                      proto.name
+                                    );
+                                  let docType:
+                                    DocumentAttachmentType | undefined;
+                                  if (isPdf) {
+                                    docType = "pdf";
+                                  } else if (isImg) {
+                                    docType = "image";
+                                  }
+                                  setExpenseViewerDoc({
+                                    url: proto.url,
+                                    name: proto.name,
+                                    type: docType,
+                                    protocolId: proto.id,
+                                    tripId: trip.id,
+                                  });
+                                }}
+                              >
+                                <Eye className="size-4" />
+                              </Button>
+                              <Button
+                                variant={
+                                  isProtoDownloaded ? "secondary" : "outline"
+                                }
+                                size="sm"
+                                onClick={async () => {
+                                  if (trip.id && proto.id) {
+                                    try {
+                                      await businessTripService.logTripProtocolDownload(
+                                        trip.id,
+                                        proto.id
+                                      );
+                                      loadData();
+                                    } catch {
+                                      // non-critical
+                                    }
+                                  }
+                                  const a = document.createElement("a");
+                                  a.href = proto.url;
+                                  a.download = proto.name;
+                                  a.target = "_blank";
+                                  a.rel = "noopener noreferrer";
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                }}
+                                className={
+                                  isProtoDownloaded
+                                    ? "rounded-l-none border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                    : "rounded-l-none text-indigo-700 hover:text-indigo-800"
+                                }
+                              >
+                                <FileDown className="mr-2 size-4" />
+                                {protoLabel}
+                              </Button>
+                            </div>
+                          );
+                        })}
+
                       {trip.transportType === "fuel_only" && (
                         <div className="flex items-center">
                           <Button
@@ -1371,12 +1472,29 @@ export function BusinessTripManagerDialog({
           documentUrl={expenseViewerDoc.url}
           documentName={expenseViewerDoc.name || "Документ"}
           documentType={expenseViewerDoc.type}
-          subtitle="Прикачен документ към разход"
+          subtitle={
+            expenseViewerDoc.protocolId
+              ? "Официален съдийски протокол от срещите"
+              : "Прикачен документ към разход"
+          }
           onDownload={async () => {
             if (expenseViewerDoc?.expenseId) {
               try {
                 await businessTripService.logExpenseAttachmentDownload(
                   expenseViewerDoc.expenseId
+                );
+                loadData();
+              } catch {
+                // non-critical
+              }
+            } else if (
+              expenseViewerDoc?.protocolId &&
+              expenseViewerDoc?.tripId
+            ) {
+              try {
+                await businessTripService.logTripProtocolDownload(
+                  expenseViewerDoc.tripId,
+                  expenseViewerDoc.protocolId
                 );
                 loadData();
               } catch {

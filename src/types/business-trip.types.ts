@@ -77,6 +77,19 @@ const TripFinancialsSchema = z.object({
 });
 
 /**
+ * Модел за прикачен протокол от състезание/срещи
+ */
+export const TripProtocolAttachmentSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  url: z.string(),
+  size: z.number().optional(),
+  contentType: z.string().optional(),
+  downloadedAt: z.string().datetime().optional(),
+  createdAt: z.string().datetime().optional(),
+});
+
+/**
  * Основен модел за Командировка / Пътуване
  */
 export const BusinessTripSchema = z.object({
@@ -120,6 +133,8 @@ export const BusinessTripSchema = z.object({
   reportDownloadedAt: z.string().datetime().optional(),
   reportText: z.string().optional(),
   attachMatchProtocols: z.boolean().optional(),
+  matchProtocols: z.array(TripProtocolAttachmentSchema).optional(),
+  matchProtocolDownloadedAt: z.string().datetime().optional(),
   /** Реално изкарани дни (ако се различава от планираните, за ведомост) */
   actualDays: z.number().min(0).optional(),
   /** Реално изкарани нощи (ако се различава от планираните, за ведомост) */
@@ -152,3 +167,6 @@ export const TripExpenseSchema = z.object({
 
 export type BusinessTrip = z.infer<typeof BusinessTripSchema>;
 export type TripExpense = z.infer<typeof TripExpenseSchema>;
+export type TripProtocolAttachment = z.infer<
+  typeof TripProtocolAttachmentSchema
+>;

@@ -196,4 +196,42 @@ export const businessTripService = {
     const storagePath = `sites/${siteId}/business-trips/${tripId}/${fileName}`;
     return await uploadFile(storagePath, file, idToken);
   },
+
+  /** Качване на официален протокол от срещите (съдийски протокол) */
+  async uploadTripProtocolDocument(
+    siteId: string,
+    tripId: string,
+    file: File,
+    idToken?: string | null
+  ): Promise<string> {
+    const fileExtension = file.name.split(".").pop();
+    const fileName = `${uuidv4()}.${fileExtension}`;
+    const storagePath = `sites/${siteId}/business-trips/${tripId}/protocols/${fileName}`;
+    return await uploadFile(storagePath, file, idToken);
+  },
+
+  /** Записва дата/час на сваляне на прикачен протокол към командировка */
+  async logTripProtocolDownload(
+    tripId: string,
+    protocolId?: string
+  ): Promise<void> {
+    const tripRef = doc(db, TRIPS_COLLECTION, tripId);
+    const snap = await getDoc(tripRef);
+    if (!snap.exists()) return;
+    const tripData = snap.data() as BusinessTrip;
+    const now = new Date().toISOString();
+
+    let updatedProtocols = tripData.matchProtocols;
+    if (updatedProtocols && protocolId) {
+      updatedProtocols = updatedProtocols.map((p) =>
+        p.id === protocolId ? { ...p, downloadedAt: now } : p
+      );
+    }
+
+    await updateDoc(tripRef, {
+      matchProtocolDownloadedAt: now,
+      ...(updatedProtocols ? { matchProtocols: updatedProtocols } : {}),
+      updatedAt: now,
+    });
+  },
 };

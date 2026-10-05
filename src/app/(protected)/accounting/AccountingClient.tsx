@@ -801,6 +801,32 @@ export default function AccountingClient() {
           }
         }
 
+        // Match Protocols
+        const tripProtocols = trip.matchProtocols || [];
+        for (let p = 0; p < tripProtocols.length; p++) {
+          const proto = tripProtocols[p];
+          if (proto.url) {
+            try {
+              const response = await fetch(proto.url);
+              const blob = await response.blob();
+              let ext = "pdf";
+              if (blob.type.includes("image")) {
+                ext = blob.type.split("/")[1] || "png";
+              }
+              const filename = `06_Протокол_срещи_${p + 1}_${safeTitle}.${ext}`;
+              tripFolder.file(filename, blob);
+
+              if (tId && proto.id) {
+                businessTripService
+                  .logTripProtocolDownload(tId, proto.id)
+                  .catch(() => {});
+              }
+            } catch (err) {
+              console.error("Failed to fetch protocol attachment:", err);
+            }
+          }
+        }
+
         // Записваме времето на изтегляне на документите за командировката
         businessTripService
           .updateTrip(tId!, {
