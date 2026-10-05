@@ -267,8 +267,7 @@ function checkDocuments(ctx: CheckContext): TripCheckItem[] {
         id: "report_overdue",
         severity: "warning",
         category: "document",
-        message:
-          "Изтекъл 3-дневен срок за Доклад за извършената работа (чл. 29 НКС)",
+        message: "Изтекъл 3-дневен срок за Доклад за извършената работа (НКС)",
         hint: `Събитието е приключило преди ${daysSinceEnd} дни. Командированият е длъжен да представи писмен отчет в 3-дневен срок след завръщането.`,
       });
     } else {
@@ -277,7 +276,7 @@ function checkDocuments(ctx: CheckContext): TripCheckItem[] {
         severity: "info",
         category: "document",
         message: "Докладът за извършената работа не е изтеглен/отпечатан",
-        hint: 'Натиснете „Доклад (PDF)" и разпечатайте. Срок за отчитане: 3 дни от завръщането (чл. 29 НКС).',
+        hint: 'Натиснете „Доклад (PDF)" и разпечатайте. Срок за отчитане: 3 дни от завръщането (съгласно НКС).',
       });
     }
   }

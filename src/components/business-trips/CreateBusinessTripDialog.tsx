@@ -110,6 +110,7 @@ export function CreateBusinessTripDialog({
           usProtocolNumber: initialData.usProtocolNumber || "",
           usDecisionNotes: initialData.usDecisionNotes || "",
           reportText: initialData.reportText || "",
+          attachMatchProtocols: initialData.attachMatchProtocols ?? false,
           expensesCoverage:
             initialData.expensesCoverage || getInitialExpensesCoverage(),
           hasEntryFee:
@@ -151,6 +152,7 @@ export function CreateBusinessTripDialog({
           usProtocolNumber: "",
           usDecisionNotes: "",
           reportText: "",
+          attachMatchProtocols: false,
           hasEntryFee: false,
           entryFeePerPersonEUR: 0,
         },
@@ -216,6 +218,7 @@ export function CreateBusinessTripDialog({
         usProtocolNumber: values.usProtocolNumber?.trim() || undefined,
         usDecisionNotes: values.usDecisionNotes?.trim() || undefined,
         reportText: values.reportText?.trim() || undefined,
+        attachMatchProtocols: Boolean(values.attachMatchProtocols),
         financials: {
           ...values.financials,
           hasEntryFee: Boolean(values.hasEntryFee),
@@ -445,8 +448,8 @@ export function CreateBusinessTripDialog({
                   render={({ field }: any) => (
                     <FormItem>
                       <FormLabel>
-                        Доклад за извършената работа / спортни резултати (чл. 29
-                        НКС - по избор)
+                        Доклад за извършената работа / спортни резултати (по
+                        избор)
                       </FormLabel>
                       <FormControl>
                         <Textarea
@@ -462,6 +465,32 @@ export function CreateBusinessTripDialog({
                         управление.
                       </FormDescription>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control as any}
+                  name="attachMatchProtocols"
+                  render={({ field }: any) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="cursor-pointer text-xs font-medium">
+                          Прилагам официални протоколи от срещите на
+                          състезателите
+                        </FormLabel>
+                        <FormDescription className="text-[11px]">
+                          Ако е отбелязано, протоколите от турнира се описват
+                          автоматично като приложение към Доклада за извършената
+                          работа.
+                        </FormDescription>
+                      </div>
                     </FormItem>
                   )}
                 />

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +30,8 @@ interface TripReportDialogProps {
 
 export function generateDefaultReportText(
   trip: BusinessTrip,
-  membersDict: Record<string, Member>
+  membersDict: Record<string, Member>,
+  attachMatchProtocols: boolean = false
 ): string {
   const site = getSiteConfig();
   const coach = membersDict[trip.coachId];
@@ -64,6 +66,10 @@ export function generateDefaultReportText(
   const endStr = fmtDate(trip.endDate);
   const dest = trip.destination || "мястото на състезанието";
 
+  const protocolLine = attachMatchProtocols
+    ? `\n• Официални съдийски протоколи от изиграните срещи на състезателите;`
+    : "";
+
   return `1. ПРОВЕЖДАНЕ И ОФИЦИАЛНО УЧАСТИЕ:
 В периода от ${startStr} г. до ${endStr} г. отборът на „${site.name}“ взе участие в ${trip.title}, проведено в ${dest}. В състезанието участваха ${athletesCount} състезатели под ръководството на ${coachName} (${coachRole}).
 
@@ -74,8 +80,12 @@ export function generateDefaultReportText(
 Пътуването и престоят се осъществиха съгласно предварителния план и утвърдените условия.
 (Ако състезателите са отпаднали по-рано от турнира или има промяна в броя нощувки, посочете тук: напр. „Състезателите приключиха участие в турнира на втория ден (${endStr} г.), поради което отборът се завърна същия ден. Ползвана е 1 нощувка вместо планираните 2.“)
 
-4. ЗАКЛЮЧЕНИЕ:
-Възложените задачи са изпълнени. Прилагат се оригиналните разходооправдателни документи (фактури, присъствен лист, ведомост за изплатени суми). Настоящият доклад се представя в законоустановения 3-дневен срок по чл. 29 от Наредбата за командировките в страната.`;
+4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ:
+Възложените задачи със Заповедта за командировка са изпълнени. Към настоящия доклад се прилагат следните отчетни документи:${protocolLine}
+• Присъствен списък / удостоверение за присъствие, заверено от главния съдия/домакина;
+• Финансова ведомост за изплатени средства;
+• Разходооправдателни документи (фактури за нощувки и разходи).
+Настоящият доклад се представя в законоустановения 3-дневен срок съгласно Наредбата за командировките в страната.`;
 }
 
 export function TripReportDialog({
@@ -86,21 +96,68 @@ export function TripReportDialog({
   onSuccess,
 }: TripReportDialogProps) {
   const [reportText, setReportText] = useState("");
+  const [attachMatchProtocols, setAttachMatchProtocols] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (open && trip) {
+      const hasProtocols = Boolean(trip.attachMatchProtocols);
+      setAttachMatchProtocols(hasProtocols);
+
       if (trip.reportText && trip.reportText.trim() !== "") {
         setReportText(trip.reportText);
       } else {
-        setReportText(generateDefaultReportText(trip, membersDict));
+        setReportText(
+          generateDefaultReportText(trip, membersDict, hasProtocols)
+        );
       }
     }
   }, [open, trip, membersDict]);
 
+  const handleToggleProtocols = (checked: boolean) => {
+    setAttachMatchProtocols(checked);
+    const protocolItem =
+      "• Официални съдийски протоколи от изиграните срещи на състезателите;";
+
+    if (checked) {
+      if (!reportText.includes(protocolItem)) {
+        if (reportText.includes("следните отчетни документи:")) {
+          setReportText((prev) =>
+            prev.replace(
+              "следните отчетни документи:",
+              `следните отчетни документи:\n${protocolItem}`
+            )
+          );
+        } else if (reportText.includes("прилагат:")) {
+          setReportText((prev) =>
+            prev.replace("прилагат:", `прилагат:\n${protocolItem}`)
+          );
+        } else if (reportText.includes("4. ЗАКЛЮЧЕНИЕ")) {
+          setReportText((prev) =>
+            prev.replace(
+              "4. ЗАКЛЮЧЕНИЕ",
+              `4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ\n(Приложени: ${protocolItem})\n`
+            )
+          );
+        } else {
+          setReportText((prev) => `${prev}\n\nПриложение:\n${protocolItem}`);
+        }
+      }
+    } else {
+      setReportText((prev) =>
+        prev
+          .replace(`\n${protocolItem}`, "")
+          .replace(`${protocolItem}\n`, "")
+          .replace(protocolItem, "")
+      );
+    }
+  };
+
   const handleResetToDefault = () => {
     if (!trip) return;
-    setReportText(generateDefaultReportText(trip, membersDict));
+    setReportText(
+      generateDefaultReportText(trip, membersDict, attachMatchProtocols)
+    );
   };
 
   const handleSave = async () => {
@@ -109,6 +166,7 @@ export function TripReportDialog({
     try {
       await businessTripService.updateTrip(trip.id, {
         reportText: reportText.trim(),
+        attachMatchProtocols,
       });
       toast.success("Докладът за извършената работа е записан успешно!");
       onSuccess?.();
@@ -129,16 +187,41 @@ export function TripReportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="size-5 text-indigo-600" />
-            Доклад за извършената работа (чл. 29 НКС)
+            Доклад за извършената работа (съгласно НКС)
           </DialogTitle>
           <DialogDescription>
-            Командированият е длъжен да представи писмен отчет в 3-дневен срок
-            след завръщането. Текстът по-долу се визуализира и отпечатва в
-            официалния PDF Доклад.
+            Командированият представя писмен отчет в 3-дневен срок след
+            завръщането. Текстът по-долу се визуализира и отпечатва в официалния
+            PDF Доклад.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
+          {/* Checkbox за официални съдийски протоколи */}
+          <div className="flex items-start gap-2.5 rounded-lg border border-indigo-100 bg-indigo-50/60 p-3 dark:border-indigo-950/60 dark:bg-indigo-950/20">
+            <Checkbox
+              id="attachProtocols"
+              checked={attachMatchProtocols}
+              onCheckedChange={(checked) =>
+                handleToggleProtocols(Boolean(checked))
+              }
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5">
+              <label
+                htmlFor="attachProtocols"
+                className="cursor-pointer text-xs font-semibold text-slate-800 dark:text-slate-200"
+              >
+                Прилагам официални протоколи от срещите на състезателите
+              </label>
+              <p className="text-[11px] text-muted-foreground">
+                Когато е отбелязано, протоколите от срещите автоматично се
+                включват в текста на доклада (т. 4 Приложения). При отмаркиране
+                се премахват.
+              </p>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Съдържание на доклада / спортния отчет:</span>
             <Button

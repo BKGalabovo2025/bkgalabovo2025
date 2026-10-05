@@ -888,7 +888,7 @@ export function BusinessTripManagerDialog({
                         </Button>
                       </div>
 
-                      {/* Доклад за извършената работа (чл. 29 НКС) */}
+                      {/* Доклад за извършената работа (НКС) */}
                       <div className="flex items-center">
                         <Button
                           variant={

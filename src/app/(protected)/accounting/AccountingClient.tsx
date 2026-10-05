@@ -767,7 +767,7 @@ export default function AccountingClient() {
           tripFolder.file(`04_Пътен_лист_${safeTitle}.pdf`, blob);
         }
 
-        // Report (Доклад за извършената работа чл. 29 НКС)
+        // Report (Доклад за извършената работа)
         const reportEl = document.getElementById(`pdf-report-template-${tId}`);
         if (reportEl) {
           const blob = await getPdfBlobFromElement(reportEl, "portrait");

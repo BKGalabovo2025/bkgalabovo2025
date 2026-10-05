@@ -119,6 +119,7 @@ export const BusinessTripSchema = z.object({
   attendanceDownloadedAt: z.string().datetime().optional(),
   reportDownloadedAt: z.string().datetime().optional(),
   reportText: z.string().optional(),
+  attachMatchProtocols: z.boolean().optional(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 });
