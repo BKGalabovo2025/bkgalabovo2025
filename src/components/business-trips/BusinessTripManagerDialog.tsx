@@ -9,7 +9,6 @@ import {
   ChevronUp,
   Eye,
   FileDown,
-  FileText,
   Info,
   Mail,
   Pencil,
@@ -944,7 +943,7 @@ export function BusinessTripManagerDialog({
                               : "rounded-none border-x-0"
                           }
                         >
-                          <FileText className="mr-2 size-4" />
+                          <FileDown className="mr-2 size-4" />
                           {trip.reportDownloadedAt
                             ? `Доклад (Изтеглен ${format(new Date(trip.reportDownloadedAt), "dd.MM.yyyy, HH:mm")})`
                             : "Доклад (PDF)"}
@@ -1196,9 +1195,23 @@ export function BusinessTripManagerDialog({
                                 )}
                               </div>
                               <div className="flex items-center gap-1">
+                                {exp.attachmentUrl && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    title="Преглед/Изтегляне на прикачен документ"
+                                    className="size-7 text-zinc-400 hover:text-emerald-600"
+                                    onClick={() =>
+                                      window.open(exp.attachmentUrl, "_blank")
+                                    }
+                                  >
+                                    <FileDown className="size-3" />
+                                  </Button>
+                                )}
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  title="Редактирай разход"
                                   className="size-7 text-zinc-400 hover:text-blue-600"
                                   onClick={() => {
                                     setExpenseToEdit(exp);
@@ -1211,6 +1224,7 @@ export function BusinessTripManagerDialog({
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  title="Изтрий разход"
                                   className="size-7 text-zinc-400 hover:text-red-600"
                                   onClick={() => handleDeleteExpense(exp.id!)}
                                 >
