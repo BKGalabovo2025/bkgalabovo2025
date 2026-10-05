@@ -1771,13 +1771,13 @@ export function BusinessTripPdfTemplates({
             style={{
               textAlign: "center",
               fontWeight: "800",
-              fontSize: "16pt",
-              letterSpacing: "4px",
+              fontSize: "15pt",
+              letterSpacing: "3px",
               marginBottom: "4pt",
               color: "#0f172a",
             }}
           >
-            ОТЧЕТ
+            ПЪТЕН ЛИСТ — ОТЧЕТ ЗА РАЗХОД НА ГОРИВО
           </p>
           <p
             style={{
@@ -1787,7 +1787,7 @@ export function BusinessTripPdfTemplates({
               color: "#475569",
             }}
           >
-            към Нареждане № {orderNum} от {orderDate} г.
+            към Нареждане за командировка № {orderNum} от {orderDate} г.
           </p>
           <p style={{ marginBottom: "4pt" }}>
             От <strong>{coachName}</strong>,&nbsp; длъжност{" "}

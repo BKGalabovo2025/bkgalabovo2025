@@ -1012,8 +1012,8 @@ export function BusinessTripManagerDialog({
                           >
                             <FileDown className="mr-2 size-4" />
                             {trip.fuelDownloadedAt
-                              ? `Отчет гориво (Изтеглено ${format(new Date(trip.fuelDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : "Отчет гориво (PDF)"}
+                              ? `Пътен лист / Гориво (Изтеглено ${format(new Date(trip.fuelDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                              : "Пътен лист / Отчет гориво (PDF)"}
                           </Button>
                           <Button
                             variant={
