@@ -1155,8 +1155,7 @@ export function BusinessTripPdfTemplates({
               fontWeight: "500",
             }}
           >
-            за изплатени суми за командировка (Основна валута: EUR € | Втора
-            валута: BGN лв., фиксиран курс 1.95583)
+            за изплатени суми за командировка
           </p>
         </div>
         <table
@@ -1657,7 +1656,7 @@ export function BusinessTripPdfTemplates({
               }}
             >
               <p style={{ fontWeight: "600", marginBottom: "6pt" }}>
-                Приложени разходооправдателни документи (извън гориво):
+                Приложени разходооправдателни документи:
               </p>
               {nonFuelExpenses.map((exp, idx) => {
                 const docDate = exp.documentDate
