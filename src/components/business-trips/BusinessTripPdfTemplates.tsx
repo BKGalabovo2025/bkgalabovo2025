@@ -1898,9 +1898,9 @@ export function BusinessTripPdfTemplates({
             style={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: "flex-start",
               borderBottom: "2px solid #e2e8f0",
-              paddingBottom: "6pt",
+              paddingBottom: "8pt",
               marginBottom: "8pt",
             }}
           >
@@ -1908,13 +1908,13 @@ export function BusinessTripPdfTemplates({
               <img
                 src="/icons/LOGO.jpg"
                 alt="Logo"
-                style={{ height: "24pt", objectFit: "contain" }}
+                style={{ height: "35pt", objectFit: "contain" }}
               />
               <div>
                 <p
                   style={{
                     fontWeight: "700",
-                    fontSize: "9.5pt",
+                    fontSize: "11pt",
                     margin: 0,
                     color: "#0f172a",
                   }}
@@ -1924,22 +1924,22 @@ export function BusinessTripPdfTemplates({
                 {site.bulstat && (
                   <p
                     style={{
-                      fontSize: "7pt",
-                      margin: "1pt 0 0 0",
+                      fontSize: "8pt",
+                      margin: "2pt 0 0 0",
                       color: "#64748b",
                     }}
                   >
-                    БУЛСТАТ: {site.bulstat}
+                    БУЛСТАТ: {site.bulstat} | {site.contact.address}
                   </p>
                 )}
               </div>
             </div>
-            <div style={{ textAlign: "center" }}>
+            <div style={{ textAlign: "center", padding: "0 8pt" }}>
               <p
                 style={{
                   fontWeight: "800",
-                  fontSize: "11pt",
-                  letterSpacing: "2px",
+                  fontSize: "12pt",
+                  letterSpacing: "3px",
                   margin: 0,
                   color: "#0f172a",
                 }}
@@ -1950,7 +1950,7 @@ export function BusinessTripPdfTemplates({
                 style={{
                   fontSize: "7.5pt",
                   color: "#64748b",
-                  margin: "1pt 0 0 0",
+                  margin: "2pt 0 0 0",
                   fontWeight: "600",
                 }}
               >
@@ -1958,17 +1958,20 @@ export function BusinessTripPdfTemplates({
               </p>
             </div>
             <div
-              style={{
-                textAlign: "right",
-                fontSize: "7.5pt",
-                color: "#475569",
-              }}
+              style={{ textAlign: "right", fontSize: "8pt", color: "#475569" }}
             >
               <p style={{ margin: 0 }}>
-                Нареждане № {orderNum} от {orderDate} г.
+                Спортна проява:{" "}
+                <strong style={{ color: "#0f172a" }}>
+                  {event?.title || trip.title}
+                </strong>
               </p>
-              <p style={{ margin: "1pt 0 0 0" }}>
-                {event?.title || trip.title} ({destCity})
+              <p style={{ margin: "2pt 0" }}>
+                От {fmtDate(trip.startDate)} г. до {fmtDate(trip.endDate)} г. в{" "}
+                {destCity}
+              </p>
+              <p style={{ margin: 0 }}>
+                Нареждане № {orderNum} от {orderDate} г.
               </p>
             </div>
           </div>
