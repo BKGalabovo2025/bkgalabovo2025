@@ -31,8 +31,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { getSiteConfig } from "@/config/sites";
 import { useAuth } from "@/context/auth-context";
+import {
+  buildStaySectionText,
+  generateDefaultReportText,
+  updateReportTextStaySection,
+} from "@/lib/business-trip-report";
 import { businessTripService } from "@/services/business-trip-service";
 import {
   BusinessTrip,
@@ -40,72 +44,18 @@ import {
 } from "@/types/business-trip.types";
 import { Member } from "@/types/member.types";
 
+export {
+  buildStaySectionText,
+  generateDefaultReportText,
+  updateReportTextStaySection,
+};
+
 interface TripReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   trip: BusinessTrip | null;
   membersDict: Record<string, Member>;
   onSuccess?: () => void;
-}
-
-export function generateDefaultReportText(
-  trip: BusinessTrip,
-  membersDict: Record<string, Member>,
-  attachMatchProtocols: boolean = false
-): string {
-  const site = getSiteConfig();
-  const coach = membersDict[trip.coachId];
-  const coachName =
-    trip.coachName ||
-    (coach ? `${coach.firstName} ${coach.lastName}` : "Треньор/Ръководител");
-  const coachRole =
-    trip.coachRole || (coach?.isCoach ? "Треньор" : "Ръководител");
-
-  const athletesNames = trip.participantsIds
-    .map((id) => membersDict[id])
-    .filter(Boolean)
-    .filter((m) => !m.isCoach)
-    .map((m) => `${m.firstName} ${m.lastName}`);
-
-  const athletesCount = athletesNames.length;
-  const athletesStr =
-    athletesCount > 0 ? athletesNames.join(", ") : "състезателите на клуба";
-
-  const fmtDate = (d?: string) => {
-    if (!d) return "—";
-    try {
-      const parts = d.split("T")[0].split("-");
-      if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
-      return d;
-    } catch {
-      return d;
-    }
-  };
-
-  const startStr = fmtDate(trip.startDate);
-  const endStr = fmtDate(trip.endDate);
-  const dest = trip.destination || "мястото на състезанието";
-
-  const protocolLine = attachMatchProtocols
-    ? `\n• Официални съдийски протоколи от изиграните срещи на състезателите;`
-    : "";
-
-  return `1. ПРОВЕЖДАНЕ И ОФИЦИАЛНО УЧАСТИЕ:
-В периода от ${startStr} г. до ${endStr} г. отборът на „${site.name}“ взе участие в ${trip.title}, проведено в ${dest}. В състезанието участваха ${athletesCount} състезатели под ръководството на ${coachName} (${coachRole}).
-
-2. ПОСТИГНАТИ РЕЗУЛТАТИ И СПОРТНО-ТЕХНИЧЕСКА ОЦЕНКА:
-Състезателите (${athletesStr}) се състезаваха в определените дисциплини и възрастови групи съгласно Държавния спортен календар на БФ Бадминтон. Показаха висок спортен дух, дисциплина и стриктно спазване на състезателния правилник. Поставените цели бяха изпълнени.
-
-3. ПРЕСТОЙ, НАСТАНЯВАНЕ И ТРАНСПОРТ:
-Пътуването и престоят се осъществиха съгласно предварителния план и утвърдените условия.
-(Ако състезателите са отпаднали по-рано от турнира или има промяна в броя нощувки, посочете тук: напр. „Състезателите приключиха участие в турнира на втория ден (${endStr} г.), поради което отборът се завърна същия ден. Ползвана е 1 нощувка вместо планираните 2.“)
-
-4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ:
-Възложените задачи със Заповедта за командировка са изпълнени. Към настоящия доклад се прилагат следните отчетни документи:${protocolLine}
-• Присъствен списък / удостоверение за присъствие, заверено от главния съдия/домакина;
-• Финансова ведомост за изплатени средства;
-• Разходооправдателни документи (фактури за нощувки и разходи).
-Настоящият доклад се представя в законоустановения 3-дневен срок съгласно Наредбата за командировките в страната.`;
 }
 
 export function TripReportDialog({
@@ -134,7 +84,18 @@ export function TripReportDialog({
       setAttachMatchProtocols(hasProtocols);
       setProtocols(trip.matchProtocols || []);
 
-      if (trip.reportText && trip.reportText.trim() !== "") {
+      const hasOldPlaceholder =
+        trip.reportText &&
+        (trip.reportText.includes(
+          "Ако състезателите са отпаднали по-рано от турнира"
+        ) ||
+          trip.reportText.includes("Забележка при съкращаване на престоя:"));
+
+      if (
+        trip.reportText &&
+        trip.reportText.trim() !== "" &&
+        !hasOldPlaceholder
+      ) {
         setReportText(trip.reportText);
       } else {
         setReportText(

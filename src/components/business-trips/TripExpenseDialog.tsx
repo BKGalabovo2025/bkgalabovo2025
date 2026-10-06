@@ -3,15 +3,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { addDays, differenceInCalendarDays, format } from "date-fns";
 import {
   CheckCircle2,
   ExternalLink,
   FileUp,
   Loader2,
+  Moon,
   Save,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import Tesseract from "tesseract.js";
@@ -47,6 +48,7 @@ import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { businessTripService } from "@/services/business-trip-service";
 import {
+  BusinessTrip,
   convertBgnToEur,
   convertEurToBgn,
   TripExpense,
@@ -64,6 +66,7 @@ export interface TripExpenseDialogProps {
   onOpenChange: (open: boolean) => void;
   tripId: string;
   siteId: string;
+  trip?: BusinessTrip | null;
   expenseToEdit?: TripExpense | null;
   onSuccess?: () => void;
 }
@@ -73,6 +76,7 @@ export function TripExpenseDialog({
   onOpenChange,
   tripId,
   siteId,
+  trip,
   expenseToEdit,
   onSuccess,
 }: TripExpenseDialogProps) {
@@ -92,9 +96,34 @@ export function TripExpenseDialog({
       supplierName: "",
       documentNumber: "",
       documentDate: new Date().toISOString(),
+      stayDate: "",
+      notes: "",
       attachmentUrl: "",
     },
   });
+
+  // Calculate nights of the trip if trip dates are available
+  const nightsList = useMemo(() => {
+    if (!trip?.startDate || !trip?.endDate) return [];
+    try {
+      const start = new Date(trip.startDate);
+      const end = new Date(trip.endDate);
+      const totalNights = Math.max(0, differenceInCalendarDays(end, start));
+      const items: { label: string; value: string }[] = [];
+      for (let i = 0; i < totalNights; i++) {
+        const nStart = addDays(start, i);
+        const nEnd = addDays(start, i + 1);
+        const label = `Нощ ${i + 1} (${format(nStart, "dd.MM.yyyy")} → ${format(nEnd, "dd.MM.yyyy")})`;
+        items.push({
+          label,
+          value: label,
+        });
+      }
+      return items;
+    } catch {
+      return [];
+    }
+  }, [trip]);
 
   useEffect(() => {
     if (open) {
@@ -108,6 +137,8 @@ export function TripExpenseDialog({
           supplierName: expenseToEdit.supplierName || "",
           documentNumber: expenseToEdit.documentNumber || "",
           documentDate: expenseToEdit.documentDate || new Date().toISOString(),
+          stayDate: expenseToEdit.stayDate || "",
+          notes: expenseToEdit.notes || "",
           attachmentUrl: expenseToEdit.attachmentUrl || "",
         });
         setBgnInputValue(
@@ -124,6 +155,8 @@ export function TripExpenseDialog({
           supplierName: "",
           documentNumber: "",
           documentDate: new Date().toISOString(),
+          stayDate: "",
+          notes: "",
           attachmentUrl: "",
         });
         setBgnInputValue("");
@@ -486,6 +519,108 @@ export function TripExpenseDialog({
                   </FormItem>
                 )}
               />
+
+              {form.watch("expenseType") === "accommodation" && (
+                <div className="col-span-1 sm:col-span-2 space-y-3 rounded-lg border border-indigo-200 bg-indigo-50/60 p-3.5 dark:border-indigo-900/60 dark:bg-indigo-950/30">
+                  <div className="flex items-center gap-2">
+                    <Moon className="size-4 text-indigo-600 dark:text-indigo-400" />
+                    <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
+                      Период и дати на нощувката (от състезанието)
+                    </span>
+                  </div>
+
+                  <FormField
+                    control={form.control as any}
+                    name="stayDate"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">
+                          За коя дата / нощ от състезанието е нощувката?
+                        </FormLabel>
+                        {nightsList.length > 0 ? (
+                          <div className="space-y-2">
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="bg-white dark:bg-zinc-900">
+                                  <SelectValue placeholder="Изберете конкретна нощ или период" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Всички нощувки (Обща фактура)">
+                                  Всички нощувки (Обща фактура за целия престой)
+                                </SelectItem>
+                                {nightsList.map((n) => (
+                                  <SelectItem key={n.value} value={n.value}>
+                                    {n.label}
+                                  </SelectItem>
+                                ))}
+                                <SelectItem value="Друга дата / Специфичен период">
+                                  Друга дата / Специфичен период (ръчно)
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {(field.value ===
+                              "Друга дата / Специфичен период" ||
+                              (field.value &&
+                                !nightsList.some(
+                                  (n) => n.value === field.value
+                                ) &&
+                                field.value !==
+                                  "Всички нощувки (Обща фактура)")) && (
+                              <Input
+                                placeholder="Въведете конкретна дата или нощ (напр. 11.10.2025)"
+                                value={
+                                  field.value ===
+                                  "Друга дата / Специфичен период"
+                                    ? ""
+                                    : field.value
+                                }
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="bg-white text-xs dark:bg-zinc-900"
+                              />
+                            )}
+                          </div>
+                        ) : (
+                          <FormControl>
+                            <Input
+                              placeholder="Напр. Нощ 2 (11.10 - 12.10.2025)"
+                              {...field}
+                              className="bg-white text-xs dark:bg-zinc-900"
+                            />
+                          </FormControl>
+                        )}
+                        <FormDescription className="text-[11px]">
+                          Посочете коя нощ от турнира покрива този разход.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control as any}
+                    name="notes"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">
+                          Бележки / Настанени състезатели (по избор)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Напр. За 8 състезатели (без отпадналите)"
+                            {...field}
+                            className="bg-white text-xs dark:bg-zinc-900"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
 
               <FormField
                 control={form.control as any}

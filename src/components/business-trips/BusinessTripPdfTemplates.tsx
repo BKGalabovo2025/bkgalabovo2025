@@ -9,6 +9,7 @@ import { bg } from "date-fns/locale";
 import React from "react";
 
 import { getSiteConfig } from "@/config/sites";
+import { buildStaySectionText } from "@/lib/business-trip-report";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
@@ -211,17 +212,36 @@ export function BusinessTripPdfTemplates({
   const coachRole =
     trip.coachRole || (coach?.isCoach ? "Треньор" : "Ръководител");
 
+  const participantOverrides = trip.participantOverrides ?? {};
+
   const partMembers = trip.participantsIds
     .map((id) => membersDict[id])
     .filter(Boolean) as Member[];
-  const allPeople = [
-    { name: coachName, role: coachRole, member: coach },
+
+  // Build allPeople with per-person overrides; filter out excluded participants
+  const allPeopleRaw = [
+    {
+      name: coachName,
+      role: coachRole,
+      member: coach,
+      ovKey: "coach" as string,
+    },
     ...partMembers.map((m) => ({
       name: `${m.firstName} ${m.lastName}`,
       role: m.isCoach ? "Треньор" : "Състезател",
       member: m,
+      ovKey: m.id as string,
     })),
   ];
+
+  // Първоначално планиран състав (за Решение на УС и Нареждане за командировка, издадени ПРЕДИ пътуването)
+  const plannedPeople = allPeopleRaw;
+  const totalPlannedPeople = plannedPeople.length;
+
+  // Действителен състав за финансовата ведомост (изключва лица с excluded: true)
+  const allPeople = allPeopleRaw.filter(
+    (p) => !(participantOverrides[p.ovKey]?.excluded ?? false)
+  );
   const totalPeople = allPeople.length;
 
   const fmtDate = (d?: string) => {
@@ -234,9 +254,10 @@ export function BusinessTripPdfTemplates({
   };
   const startD = new Date(trip.startDate);
   const endD = new Date(trip.endDate);
+  // Първоначално планирани дни и нощи по дати на командировката (за Решение на УС и Нареждане)
   const plannedDays = Math.max(1, differenceInCalendarDays(endD, startD) + 1);
   const plannedNights = Math.max(0, differenceInCalendarDays(endD, startD));
-  // Use actual days/nights if user has set them (e.g. early return)
+  // Действително реализирани дни/нощи на отбора (използват се САМО във Ведомостта)
   const numDays =
     trip.actualDays != null && trip.actualDays >= 0
       ? trip.actualDays
@@ -293,20 +314,14 @@ export function BusinessTripPdfTemplates({
   const entryEUR = trip.financials.entryFeeEUR ?? 0;
   const hasEntryFee = Boolean(trip.financials.hasEntryFee ?? entryEUR > 0);
 
-  const dTotalEURpp = perDiemEUR * numDays;
   const accomExpenses = expenses.filter(
     (e) => e.expenseType === "accommodation"
   );
   const actualAccomTotalEUR = accomExpenses.reduce(
-    (sum, e) =>
-      sum +
-      (e.amountEUR > 0 ? e.amountEUR : accomEUR * numNights * totalPeople),
+    (sum, e) => sum + e.amountEUR,
     0
   );
-  const aTotalEURpp =
-    actualAccomTotalEUR > 0
-      ? actualAccomTotalEUR / totalPeople
-      : accomEUR * numNights;
+
   const coverage = trip.expensesCoverage;
   const coverageHasAccom =
     coverage === "food_and_sleep" || coverage === "transport_food_sleep";
@@ -315,6 +330,14 @@ export function BusinessTripPdfTemplates({
     coverage === "transport_only" ||
     coverage === "transport_and_food";
 
+  // Планирани нощувки (за Решение на УС и Нареждане)
+  const hasPlannedAccom =
+    (coverageHasAccom && plannedNights > 0) ||
+    (!coverageExcludesAccom &&
+      ((accomEUR > 0 && plannedNights > 0) ||
+        (plannedNights > 0 && (trip.financials.perDiemRateEUR ?? 0) >= 20)));
+
+  // Действителни нощувки (за финансовата ведомост)
   const hasAccom =
     (coverageHasAccom && numNights > 0) ||
     (!coverageExcludesAccom &&
@@ -322,11 +345,6 @@ export function BusinessTripPdfTemplates({
         actualAccomTotalEUR > 0 ||
         (numNights > 0 && (trip.financials.perDiemRateEUR ?? 0) >= 20)));
 
-  const dTotalBGNppRounded = Math.round(eurToBgn(dTotalEURpp) * 100) / 100;
-  const aTotalBGNppRounded = Math.round(eurToBgn(aTotalEURpp) * 100) / 100;
-  const ppTotalBGNRounded = dTotalBGNppRounded + aTotalBGNppRounded;
-
-  const ppTotalEUR = dTotalEURpp + aTotalEURpp;
   const transportExpenses = expenses.filter(
     (e) => e.expenseType === "transport"
   );
@@ -337,8 +355,92 @@ export function BusinessTripPdfTemplates({
   const transportTotalEUR = baseTransportEUR + finalFuelEUR;
   const transportTotalBGN = eurToBgn(baseTransportEUR) + finalFuelBGN;
 
-  const grandEUR = totalPeople * ppTotalEUR + transportTotalEUR;
-  const grandBGN = totalPeople * ppTotalBGNRounded + transportTotalBGN;
+  // Person-nights and person-days across non-excluded participants
+  const totalPersonNights = allPeople.reduce((sum, p) => {
+    const pOv = participantOverrides[p.ovKey];
+    let pNights: number;
+    if (pOv?.actualNights != null && pOv.actualNights >= 0) {
+      pNights = pOv.actualNights;
+    } else if (pOv?.stayedOvernight === false) {
+      pNights = 0;
+    } else {
+      pNights = numNights;
+    }
+    return sum + pNights;
+  }, 0);
+
+  // Rate per night
+  let accomRatePerNightEUR: number;
+  if (actualAccomTotalEUR > 0) {
+    accomRatePerNightEUR =
+      totalPersonNights > 0 ? actualAccomTotalEUR / totalPersonNights : 0;
+  } else {
+    accomRatePerNightEUR = accomEUR;
+  }
+  const accomRatePerNightBGN =
+    Math.round(eurToBgn(accomRatePerNightEUR) * 100) / 100;
+
+  // Individual person calculation function
+  const getPersonCalc = (p: (typeof allPeople)[0], globalIndex: number) => {
+    const isFirstPerson = globalIndex === 0;
+    const pOv = participantOverrides[p.ovKey];
+    const pDays =
+      pOv?.actualDays != null && pOv.actualDays >= 0 ? pOv.actualDays : numDays;
+    let pNights: number;
+    if (pOv?.actualNights != null && pOv.actualNights >= 0) {
+      pNights = pOv.actualNights;
+    } else if (pOv?.stayedOvernight === false) {
+      pNights = 0;
+    } else {
+      pNights = numNights;
+    }
+
+    // Когато командированият не нощува, дневните пари са 50% от пълния размер
+    const isNoStay =
+      numNights > 0 && (pNights === 0 || pOv?.stayedOvernight === false);
+    let pPerDiemRateEUR: number;
+    if (pOv?.perDiemRateEUR != null) {
+      pPerDiemRateEUR = pOv.perDiemRateEUR;
+    } else if (isNoStay) {
+      pPerDiemRateEUR = roundEUR(perDiemEUR * 0.5);
+    } else {
+      pPerDiemRateEUR = perDiemEUR;
+    }
+    const pPerDiemRateBGN = eurToBgn(pPerDiemRateEUR);
+
+    const pDiemEURpp = hasPerDiem ? roundEUR(pPerDiemRateEUR * pDays) : 0;
+    const pDiemBGNpp = Math.round(eurToBgn(pDiemEURpp) * 100) / 100;
+
+    const pAcomEURpp = hasAccom ? roundEUR(accomRatePerNightEUR * pNights) : 0;
+    const pAcomBGNpp = Math.round(eurToBgn(pAcomEURpp) * 100) / 100;
+
+    const personTransportEUR = isFirstPerson ? transportTotalEUR : 0;
+    const personTransportBGN = isFirstPerson ? transportTotalBGN : 0;
+
+    const personTotalEUR = pDiemEURpp + pAcomEURpp + personTransportEUR;
+    const personTotalBGN = pDiemBGNpp + pAcomBGNpp + personTransportBGN;
+
+    return {
+      pDays,
+      pNights,
+      isNoStay,
+      pPerDiemRateEUR,
+      pPerDiemRateBGN,
+      pDiemEURpp,
+      pDiemBGNpp,
+      pAcomEURpp,
+      pAcomBGNpp,
+      personTransportEUR,
+      personTransportBGN,
+      personTotalEUR,
+      personTotalBGN,
+    };
+  };
+
+  const allPersonCalcs = allPeople.map((p, idx) => getPersonCalc(p, idx));
+
+  const grandEUR = allPersonCalcs.reduce((sum, c) => sum + c.personTotalEUR, 0);
+  const grandBGN = allPersonCalcs.reduce((sum, c) => sum + c.personTotalBGN, 0);
 
   const orderNum = trip.id ? trip.id.substring(0, 6).toUpperCase() : "______";
   const orderDate = fmtDate(trip.orderDate || trip.createdAt || trip.startDate);
@@ -372,13 +474,14 @@ export function BusinessTripPdfTemplates({
   };
   const tShort = transportShort[trip.transportType] ?? trip.transportType;
 
-  const secs = [
+  const plannedSecs = [
     hasPerDiem && "diem",
     "transport",
-    hasAccom && "accom",
+    hasPlannedAccom && "accom",
     hasEntryFee && "entry",
   ].filter(Boolean);
-  const sn = (s: string) => secs.indexOf(s) + 1;
+  const snPlanned = (s: string) => plannedSecs.indexOf(s) + 1;
+
   const mol = site.contact.mol || "М. Георгиева";
 
   const renderDecisionTransportText = () => {
@@ -431,7 +534,7 @@ export function BusinessTripPdfTemplates({
     if (hasFuel) {
       return (
         <p style={{ marginBottom: "4pt" }}>
-          {sn("transport")}. Транспорт:{" "}
+          {snPlanned("transport")}. Транспорт:{" "}
           <strong>Разрешавам пътуването да се извърши с лично МПС</strong>, вид
           лек автомобил, марка{" "}
           <strong>{trip.vehicle?.brand || "неопределена"}</strong>, рег. №{" "}
@@ -450,15 +553,16 @@ export function BusinessTripPdfTemplates({
     if (trip.transportType === "free") {
       return (
         <p style={{ marginBottom: "4pt" }}>
-          {sn("transport")}. Транспорт: Транспортът е организиран и осигурен
-          безплатно. Не се начисляват пътни пари на командированите лица.
+          {snPlanned("transport")}. Транспорт: Транспортът е организиран и
+          осигурен безплатно. Не се начисляват пътни пари на командированите
+          лица.
         </p>
       );
     }
     if (trip.transportType === "public") {
       return (
         <p style={{ marginBottom: "4pt" }}>
-          {sn("transport")}. Транспорт: Пътуването да се извърши с:{" "}
+          {snPlanned("transport")}. Транспорт: Пътуването да се извърши с:{" "}
           <strong>обществен транспорт (влак, автобус, самолет)</strong> — срещу
           представени оригинални билети за отиване и връщане.
         </p>
@@ -466,7 +570,7 @@ export function BusinessTripPdfTemplates({
     }
     return (
       <p style={{ marginBottom: "4pt" }}>
-        {sn("transport")}. Транспорт: Пътуването да се извърши с:{" "}
+        {snPlanned("transport")}. Транспорт: Пътуването да се извърши с:{" "}
         <strong>{tShort}</strong> (срещу фактура или билет).
       </p>
     );
@@ -592,8 +696,8 @@ export function BusinessTripPdfTemplates({
 
           <p style={{ marginBottom: "6pt" }}>
             <strong>2.</strong> Утвърждава състава на официалната клубна
-            делегация в общ брой от <strong>{totalPeople}</strong>{" "}
-            {totalPeople === 1 ? "човек" : "души"}:
+            делегация в общ брой от <strong>{totalPlannedPeople}</strong>{" "}
+            {totalPlannedPeople === 1 ? "човек" : "души"}:
           </p>
           <div style={{ marginLeft: "18pt", marginBottom: "8pt" }}>
             <p style={{ margin: "2pt 0" }}>
@@ -603,7 +707,7 @@ export function BusinessTripPdfTemplates({
             <p style={{ margin: "2pt 0" }}>
               • Състезатели:{" "}
               <strong>
-                {allPeople
+                {plannedPeople
                   .filter(
                     (p) => p.role !== "Треньор" && p.role !== "Ръководител"
                   )
@@ -630,7 +734,8 @@ export function BusinessTripPdfTemplates({
                 <>
                   по <strong>{fmtEUR(perDiemEUR)}</strong> (
                   {perDiemBGN.toFixed(2)} лв.) / на ден за едно лице за{" "}
-                  <strong>{numDays}</strong> {numDays === 1 ? "ден" : "дни"}.
+                  <strong>{plannedDays}</strong>{" "}
+                  {plannedDays === 1 ? "ден" : "дни"}.
                 </>
               ) : (
                 "не се дължат (осигурена храна)."
@@ -640,19 +745,19 @@ export function BusinessTripPdfTemplates({
               style={{ marginLeft: "15pt", display: "block", marginTop: "2pt" }}
             >
               б/ <strong>Нощувки / Квартирни:</strong>{" "}
-              {!hasAccom && "не се предвиждат нощувки."}
-              {hasAccom && trip.financials.accommodationRateEUR > 0 && (
+              {!hasPlannedAccom && "не се предвиждат нощувки."}
+              {hasPlannedAccom && trip.financials.accommodationRateEUR > 0 && (
                 <>
                   по <strong>{fmtEUR(accomEUR)}</strong> ({accomBGN.toFixed(2)}{" "}
-                  лв.) / на нощ за едно лице за <strong>{numNights}</strong>{" "}
-                  {numNights === 1 ? "нощ" : "нощи"} (срещу фактура).
+                  лв.) / на нощ за едно лице за <strong>{plannedNights}</strong>{" "}
+                  {plannedNights === 1 ? "нощ" : "нощи"} (срещу фактура).
                 </>
               )}
-              {hasAccom && trip.financials.accommodationRateEUR <= 0 && (
+              {hasPlannedAccom && trip.financials.accommodationRateEUR <= 0 && (
                 <>
                   настаняване срещу представена фактура на името на клуба за{" "}
-                  <strong>{numNights}</strong>{" "}
-                  {numNights === 1 ? "нощ" : "нощи"}.
+                  <strong>{plannedNights}</strong>{" "}
+                  {plannedNights === 1 ? "нощ" : "нощи"}.
                 </>
               )}
             </span>
@@ -919,7 +1024,7 @@ export function BusinessTripPdfTemplates({
         <div
           style={{ marginLeft: "16pt", marginBottom: "16pt", marginTop: "4pt" }}
         >
-          {allPeople.map((p, i) => (
+          {plannedPeople.map((p, i) => (
             <div
               key={i}
               style={{
@@ -939,24 +1044,25 @@ export function BusinessTripPdfTemplates({
           ))}
         </div>
         <p style={{ marginBottom: "6pt" }}>
-          На групата от <strong>{totalPeople}</strong>{" "}
-          {totalPeople === 1 ? "човек" : "човека"} да се осигурят средства,
-          както следва:
+          На групата от <strong>{totalPlannedPeople}</strong>{" "}
+          {totalPlannedPeople === 1 ? "човек" : "човека"} да се осигурят
+          средства, както следва:
         </p>
         {hasPerDiem && (
           <p style={{ marginBottom: "4pt" }}>
-            {sn("diem")}. Дневни на <strong>{totalPeople}</strong>{" "}
-            {totalPeople === 1 ? "човек" : "човека"} по{" "}
+            {snPlanned("diem")}. Дневни на <strong>{totalPlannedPeople}</strong>{" "}
+            {totalPlannedPeople === 1 ? "човек" : "човека"} по{" "}
             <strong>{fmtEUR(perDiemEUR)}</strong> ({perDiemBGN.toFixed(2)} лв.)
-            / на ден за едно лице за <strong>{numDays}</strong>{" "}
-            {numDays === 1 ? "ден" : "дни"}.
+            / на ден за едно лице за <strong>{plannedDays}</strong>{" "}
+            {plannedDays === 1 ? "ден" : "дни"}.
           </p>
         )}
         {renderOrderTransportText()}
-        {hasAccom && (
+        {hasPlannedAccom && (
           <p style={{ marginBottom: "4pt" }}>
-            {sn("accom")}. Нощувки — <strong>{totalPeople}</strong>{" "}
-            {totalPeople === 1 ? "човек" : "човека"}{" "}
+            {snPlanned("accom")}. Нощувки —{" "}
+            <strong>{totalPlannedPeople}</strong>{" "}
+            {totalPlannedPeople === 1 ? "човек" : "човека"}{" "}
             {trip.financials.accommodationRateEUR > 0 ? (
               <>
                 по <strong>{fmtEUR(accomEUR)}</strong> ({accomBGN.toFixed(2)}{" "}
@@ -965,12 +1071,13 @@ export function BusinessTripPdfTemplates({
             ) : (
               <>(срещу фактура) </>
             )}{" "}
-            за <strong>{numNights}</strong> {numNights === 1 ? "нощ" : "нощи"}.
+            за <strong>{plannedNights}</strong>{" "}
+            {plannedNights === 1 ? "нощ" : "нощи"}.
           </p>
         )}
         {hasEntryFee && (
           <p style={{ marginBottom: "4pt" }}>
-            {sn("entry")}. Входни такси за участие{" "}
+            {snPlanned("entry")}. Входни такси за участие{" "}
             {entryEUR > 0 ? (
               <>
                 — общо <strong>{fmtEUR(entryEUR)}</strong> (
@@ -1157,22 +1264,29 @@ export function BusinessTripPdfTemplates({
           globalIndex: number
         ) => {
           const isFirstPerson = globalIndex === 0;
-          const personTransportEUR = isFirstPerson ? transportTotalEUR : 0;
-          const personTransportBGN = isFirstPerson ? transportTotalBGN : 0;
-          const personTotalEUR = ppTotalEUR + personTransportEUR;
-          const personTotalBGN = ppTotalBGNRounded + personTransportBGN;
+          const {
+            pDays,
+            pNights,
+            isNoStay,
+            pPerDiemRateEUR,
+            pPerDiemRateBGN,
+            pDiemEURpp,
+            pDiemBGNpp,
+            pAcomEURpp,
+            pAcomBGNpp,
+            personTotalEUR,
+            personTotalBGN,
+          } = getPersonCalc(p, globalIndex);
 
           let accomRateCell: React.ReactNode = "—";
           let accomTotalCell: React.ReactNode = "—";
 
           if (hasAccom) {
-            if (aTotalEURpp > 0) {
-              const rateEUR = aTotalEURpp / (numNights || 1);
-              const rateBGN = aTotalBGNppRounded / (numNights || 1);
+            if (pNights > 0 && accomRatePerNightEUR > 0) {
               accomRateCell = (
                 <div>
                   <span style={{ fontWeight: "600", color: "#0f172a" }}>
-                    {rateEUR.toFixed(2)} €
+                    {accomRatePerNightEUR.toFixed(2)} €
                   </span>
                   <div
                     style={{
@@ -1181,14 +1295,14 @@ export function BusinessTripPdfTemplates({
                       lineHeight: "1.1",
                     }}
                   >
-                    ({rateBGN.toFixed(2)} лв.)
+                    ({accomRatePerNightBGN.toFixed(2)} лв.)
                   </div>
                 </div>
               );
               accomTotalCell = (
                 <div>
                   <span style={{ fontWeight: "600", color: "#0f172a" }}>
-                    {aTotalEURpp.toFixed(2)} €
+                    {pAcomEURpp.toFixed(2)} €
                   </span>
                   <div
                     style={{
@@ -1197,9 +1311,18 @@ export function BusinessTripPdfTemplates({
                       lineHeight: "1.1",
                     }}
                   >
-                    ({aTotalBGNppRounded.toFixed(2)} лв.)
+                    ({pAcomBGNpp.toFixed(2)} лв.)
                   </div>
                 </div>
+              );
+            } else if (pNights === 0) {
+              accomRateCell = (
+                <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>—</span>
+              );
+              accomTotalCell = (
+                <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>
+                  0.00 €
+                </span>
               );
             } else {
               accomRateCell = (
@@ -1262,13 +1385,13 @@ export function BusinessTripPdfTemplates({
                 )}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasPerDiem ? numDays : "—"}
+                {hasPerDiem ? pDays : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasPerDiem ? (
                   <div>
                     <span style={{ fontWeight: "600", color: "#0f172a" }}>
-                      {perDiemEUR.toFixed(2)} €
+                      {pPerDiemRateEUR.toFixed(2)} €
                     </span>
                     <div
                       style={{
@@ -1277,8 +1400,20 @@ export function BusinessTripPdfTemplates({
                         lineHeight: "1.1",
                       }}
                     >
-                      ({perDiemBGN.toFixed(2)} лв.)
+                      ({pPerDiemRateBGN.toFixed(2)} лв.)
                     </div>
+                    {isNoStay && (
+                      <div
+                        style={{
+                          fontSize: "5.5pt",
+                          color: "#b45309",
+                          fontWeight: "bold",
+                          lineHeight: "1",
+                        }}
+                      >
+                        50% без нощувка
+                      </div>
+                    )}
                   </div>
                 ) : (
                   "—"
@@ -1288,7 +1423,7 @@ export function BusinessTripPdfTemplates({
                 {hasPerDiem ? (
                   <div>
                     <span style={{ fontWeight: "600", color: "#0f172a" }}>
-                      {dTotalEURpp.toFixed(2)} €
+                      {pDiemEURpp.toFixed(2)} €
                     </span>
                     <div
                       style={{
@@ -1297,7 +1432,7 @@ export function BusinessTripPdfTemplates({
                         lineHeight: "1.1",
                       }}
                     >
-                      ({dTotalBGNppRounded.toFixed(2)} лв.)
+                      ({pDiemBGNpp.toFixed(2)} лв.)
                     </div>
                   </div>
                 ) : (
@@ -1305,7 +1440,7 @@ export function BusinessTripPdfTemplates({
                 )}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasAccom ? numNights : "—"}
+                {hasAccom ? pNights : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>{accomRateCell}</td>
               <td style={{ ...TD, textAlign: "center" }}>{accomTotalCell}</td>
@@ -1333,22 +1468,40 @@ export function BusinessTripPdfTemplates({
         const renderSubtotalRow = (
           label: string,
           slice: typeof allPeople,
-          hasTransport: boolean
+          hasTransport: boolean,
+          startIndex: number = 0
         ) => {
-          const sliceCount = slice.length;
+          const sliceCalcs = slice.map((p, idx) =>
+            getPersonCalc(p, startIndex + idx)
+          );
           const sliceTransportEUR = hasTransport ? transportTotalEUR : 0;
           const sliceTransportBGN = hasTransport ? transportTotalBGN : 0;
-          const slicePerDiemEUR = hasPerDiem ? dTotalEURpp * sliceCount : 0;
-          const slicePerDiemBGN = hasPerDiem
-            ? dTotalBGNppRounded * sliceCount
-            : 0;
-          const sliceAccomEUR =
-            hasAccom && aTotalEURpp > 0 ? aTotalEURpp * sliceCount : 0;
-          const sliceAccomBGN =
-            hasAccom && aTotalEURpp > 0 ? aTotalBGNppRounded * sliceCount : 0;
-          const sliceTotalEUR = sliceCount * ppTotalEUR + sliceTransportEUR;
-          const sliceTotalBGN =
-            sliceCount * ppTotalBGNRounded + sliceTransportBGN;
+          const sliceDays = sliceCalcs.reduce((s, c) => s + c.pDays, 0);
+          const slicePerDiemEUR = sliceCalcs.reduce(
+            (s, c) => s + c.pDiemEURpp,
+            0
+          );
+          const slicePerDiemBGN = sliceCalcs.reduce(
+            (s, c) => s + c.pDiemBGNpp,
+            0
+          );
+          const sliceNights = sliceCalcs.reduce((s, c) => s + c.pNights, 0);
+          const sliceAccomEUR = sliceCalcs.reduce(
+            (s, c) => s + c.pAcomEURpp,
+            0
+          );
+          const sliceAccomBGN = sliceCalcs.reduce(
+            (s, c) => s + c.pAcomBGNpp,
+            0
+          );
+          const sliceTotalEUR = sliceCalcs.reduce(
+            (s, c) => s + c.personTotalEUR,
+            0
+          );
+          const sliceTotalBGN = sliceCalcs.reduce(
+            (s, c) => s + c.personTotalBGN,
+            0
+          );
 
           return (
             <tr style={{ fontWeight: "bold", backgroundColor: "#f8fafc" }}>
@@ -1401,7 +1554,7 @@ export function BusinessTripPdfTemplates({
                 )}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasPerDiem ? numDays * sliceCount : "—"}
+                {hasPerDiem ? sliceDays : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>—</td>
               <td style={{ ...TD, textAlign: "center" }}>
@@ -1426,43 +1579,40 @@ export function BusinessTripPdfTemplates({
                 )}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasAccom ? numNights * sliceCount : "—"}
+                {hasAccom ? sliceNights : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>—</td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {(() => {
-                  if (!hasAccom) return "—";
-                  if (aTotalEURpp > 0) {
-                    return (
-                      <div>
-                        <span style={{ fontWeight: "700", color: "#0f172a" }}>
-                          {sliceAccomEUR.toFixed(2)} €
+                {hasAccom
+                  ? (() => {
+                      if (sliceAccomEUR > 0) {
+                        return (
+                          <div>
+                            <span
+                              style={{ fontWeight: "700", color: "#0f172a" }}
+                            >
+                              {sliceAccomEUR.toFixed(2)} €
+                            </span>
+                            <div
+                              style={{
+                                fontSize: "6.5pt",
+                                color: "#64748b",
+                                fontWeight: "normal",
+                                lineHeight: "1.1",
+                              }}
+                            >
+                              ({sliceAccomBGN.toFixed(2)} лв.)
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>
+                          0.00 €
                         </span>
-                        <div
-                          style={{
-                            fontSize: "6.5pt",
-                            color: "#64748b",
-                            fontWeight: "normal",
-                            lineHeight: "1.1",
-                          }}
-                        >
-                          ({sliceAccomBGN.toFixed(2)} лв.)
-                        </div>
-                      </div>
-                    );
-                  }
-                  return (
-                    <span
-                      style={{
-                        fontSize: "7.5pt",
-                        color: "#64748b",
-                        fontWeight: "normal",
-                      }}
-                    >
-                      (по фактура)
-                    </span>
-                  );
-                })()}
+                      );
+                    })()
+                  : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 <div>
@@ -1486,140 +1636,158 @@ export function BusinessTripPdfTemplates({
           );
         };
 
-        const renderGrandTotalRow = () => (
-          <tr style={{ fontWeight: "bold", backgroundColor: "#f8fafc" }}>
-            <td
-              colSpan={4}
-              style={{ ...TD, textAlign: "right", paddingRight: "8pt" }}
-            >
-              ВСИЧКО:
-            </td>
-            <td style={{ ...TD, textAlign: "center" }}>
-              {transportTotalEUR > 0 ? (
-                <div>
-                  <span style={{ fontWeight: "700", color: "#0f172a" }}>
-                    {(transportTotalEUR / 2).toFixed(2)} €
-                  </span>
-                  <div
-                    style={{
-                      fontSize: "6.5pt",
-                      color: "#64748b",
-                      fontWeight: "normal",
-                      lineHeight: "1.1",
-                    }}
-                  >
-                    ({(transportTotalBGN / 2).toFixed(2)} лв.)
-                  </div>
-                </div>
-              ) : (
-                "—"
-              )}
-            </td>
-            <td style={{ ...TD, textAlign: "center" }}>
-              {transportTotalEUR > 0 ? (
-                <div>
-                  <span style={{ fontWeight: "700", color: "#0f172a" }}>
-                    {(transportTotalEUR / 2).toFixed(2)} €
-                  </span>
-                  <div
-                    style={{
-                      fontSize: "6.5pt",
-                      color: "#64748b",
-                      fontWeight: "normal",
-                      lineHeight: "1.1",
-                    }}
-                  >
-                    ({(transportTotalBGN / 2).toFixed(2)} лв.)
-                  </div>
-                </div>
-              ) : (
-                "—"
-              )}
-            </td>
-            <td style={{ ...TD, textAlign: "center" }}>
-              {hasPerDiem ? numDays * totalPeople : "—"}
-            </td>
-            <td style={{ ...TD, textAlign: "center" }}>—</td>
-            <td style={{ ...TD, textAlign: "center" }}>
-              {hasPerDiem ? (
-                <div>
-                  <span style={{ fontWeight: "700", color: "#0f172a" }}>
-                    {(dTotalEURpp * totalPeople).toFixed(2)} €
-                  </span>
-                  <div
-                    style={{
-                      fontSize: "6.5pt",
-                      color: "#64748b",
-                      fontWeight: "normal",
-                      lineHeight: "1.1",
-                    }}
-                  >
-                    ({(dTotalBGNppRounded * totalPeople).toFixed(2)} лв.)
-                  </div>
-                </div>
-              ) : (
-                "—"
-              )}
-            </td>
-            <td style={{ ...TD, textAlign: "center" }}>
-              {hasAccom ? numNights * totalPeople : "—"}
-            </td>
-            <td style={{ ...TD, textAlign: "center" }}>—</td>
-            <td style={{ ...TD, textAlign: "center" }}>
-              {(() => {
-                if (!hasAccom) return "—";
-                if (aTotalEURpp > 0) {
-                  return (
-                    <div>
-                      <span style={{ fontWeight: "700", color: "#0f172a" }}>
-                        {(aTotalEURpp * totalPeople).toFixed(2)} €
-                      </span>
-                      <div
-                        style={{
-                          fontSize: "6.5pt",
-                          color: "#64748b",
-                          fontWeight: "normal",
-                          lineHeight: "1.1",
-                        }}
-                      >
-                        ({(aTotalBGNppRounded * totalPeople).toFixed(2)} лв.)
-                      </div>
+        const renderGrandTotalRow = () => {
+          const totalDays = allPersonCalcs.reduce((s, c) => s + c.pDays, 0);
+          const totalDiemEUR = allPersonCalcs.reduce(
+            (s, c) => s + c.pDiemEURpp,
+            0
+          );
+          const totalDiemBGN = allPersonCalcs.reduce(
+            (s, c) => s + c.pDiemBGNpp,
+            0
+          );
+          const totalNights = allPersonCalcs.reduce((s, c) => s + c.pNights, 0);
+          const totalAccomEUR = allPersonCalcs.reduce(
+            (s, c) => s + c.pAcomEURpp,
+            0
+          );
+          const totalAccomBGN = allPersonCalcs.reduce(
+            (s, c) => s + c.pAcomBGNpp,
+            0
+          );
+
+          return (
+            <tr style={{ fontWeight: "bold", backgroundColor: "#f8fafc" }}>
+              <td
+                colSpan={4}
+                style={{ ...TD, textAlign: "right", paddingRight: "8pt" }}
+              >
+                ВСИЧКО:
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {transportTotalEUR > 0 ? (
+                  <div>
+                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                      {(transportTotalEUR / 2).toFixed(2)} €
+                    </span>
+                    <div
+                      style={{
+                        fontSize: "6.5pt",
+                        color: "#64748b",
+                        fontWeight: "normal",
+                        lineHeight: "1.1",
+                      }}
+                    >
+                      ({(transportTotalBGN / 2).toFixed(2)} лв.)
                     </div>
-                  );
-                }
-                return (
-                  <span
+                  </div>
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {transportTotalEUR > 0 ? (
+                  <div>
+                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                      {(transportTotalEUR / 2).toFixed(2)} €
+                    </span>
+                    <div
+                      style={{
+                        fontSize: "6.5pt",
+                        color: "#64748b",
+                        fontWeight: "normal",
+                        lineHeight: "1.1",
+                      }}
+                    >
+                      ({(transportTotalBGN / 2).toFixed(2)} лв.)
+                    </div>
+                  </div>
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {hasPerDiem ? totalDays : "—"}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>—</td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {hasPerDiem ? (
+                  <div>
+                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                      {totalDiemEUR.toFixed(2)} €
+                    </span>
+                    <div
+                      style={{
+                        fontSize: "6.5pt",
+                        color: "#64748b",
+                        fontWeight: "normal",
+                        lineHeight: "1.1",
+                      }}
+                    >
+                      ({totalDiemBGN.toFixed(2)} лв.)
+                    </div>
+                  </div>
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {hasAccom ? totalNights : "—"}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>—</td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                {hasAccom
+                  ? (() => {
+                      if (totalAccomEUR > 0) {
+                        return (
+                          <div>
+                            <span
+                              style={{ fontWeight: "700", color: "#0f172a" }}
+                            >
+                              {totalAccomEUR.toFixed(2)} €
+                            </span>
+                            <div
+                              style={{
+                                fontSize: "6.5pt",
+                                color: "#64748b",
+                                fontWeight: "normal",
+                                lineHeight: "1.1",
+                              }}
+                            >
+                              ({totalAccomBGN.toFixed(2)} лв.)
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>
+                          0.00 €
+                        </span>
+                      );
+                    })()
+                  : "—"}
+              </td>
+              <td style={{ ...TD, textAlign: "center" }}>
+                <div>
+                  <span style={{ fontWeight: "800", color: "#0f172a" }}>
+                    {grandEUR.toFixed(2)} €
+                  </span>
+                  <div
                     style={{
-                      fontSize: "7.5pt",
+                      fontSize: "6.5pt",
                       color: "#64748b",
                       fontWeight: "normal",
+                      lineHeight: "1.1",
                     }}
                   >
-                    (по фактура)
-                  </span>
-                );
-              })()}
-            </td>
-            <td style={{ ...TD, textAlign: "center" }}>
-              <div>
-                <span style={{ fontWeight: "800", color: "#0f172a" }}>
-                  {grandEUR.toFixed(2)} €
-                </span>
-                <div
-                  style={{
-                    fontSize: "6.5pt",
-                    color: "#64748b",
-                    fontWeight: "normal",
-                    lineHeight: "1.1",
-                  }}
-                >
-                  ({grandBGN.toFixed(2)} лв.)
+                    ({grandBGN.toFixed(2)} лв.)
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td style={TD}>&nbsp;</td>
-          </tr>
-        );
+              </td>
+              <td style={TD}>&nbsp;</td>
+            </tr>
+          );
+        };
 
         const renderSignaturesAndDocs = () => {
           const nonFuelExpenses = expenses.filter(
@@ -1957,7 +2125,12 @@ export function BusinessTripPdfTemplates({
                       {page2People.map((p, i) =>
                         renderPersonRow(p, page1Count + i)
                       )}
-                      {renderSubtotalRow("Лист 2", page2People, false)}
+                      {renderSubtotalRow(
+                        "Лист 2",
+                        page2People,
+                        false,
+                        page1Count
+                      )}
                       {renderGrandTotalRow()}
                     </tbody>
                   </table>
@@ -2748,8 +2921,7 @@ export function BusinessTripPdfTemplates({
             }) взеха участие в предвидените дисциплини съгласно календара на БФ Бадминтон. Показаха висок спортен дух, отборен синхрон и отлична дисциплина. Поставените цели за спортно-техническо представяне бяха изпълнени.
 
 3. ПРЕСТОЙ, НАСТАНЯВАНЕ И ТРАНСПОРТ:
-Пътуването и престоят се осъществиха съгласно утвърдените финансови и организационни параметри. 
-(Забележка при съкращаване на престоя: ако състезателите са отпаднали на втори ден и престоят е съкратен, напр.: „Състезателите приключиха участие в турнира на втория ден (${fmtDate(trip.endDate)} г.), поради което отборът се завърна същия ден. Ползвана е 1 нощувка вместо планираните 2.“)
+${buildStaySectionText(trip, membersDict)}
 
 4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ:
 Възложените задачи със Заповед за командировка № ${orderNum} са изпълнени. Към настоящия доклад се прилагат следните отчетни документи:${trip.attachMatchProtocols ? "\n• Официални съдийски протоколи от изиграните срещи на състезателите;" : ""}

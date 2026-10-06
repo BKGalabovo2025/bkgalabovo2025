@@ -1306,6 +1306,16 @@ export function BusinessTripManagerDialog({
                                     Фактура/Бон: {exp.documentNumber}
                                   </span>
                                 )}
+                                {exp.stayDate && (
+                                  <span className="ml-2 inline-flex items-center gap-1 rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
+                                    🌙 {exp.stayDate}
+                                  </span>
+                                )}
+                                {exp.notes && (
+                                  <span className="ml-2 text-xs text-zinc-500">
+                                    ({exp.notes})
+                                  </span>
+                                )}
                               </div>
                               <div className="flex items-center gap-1">
                                 {exp.attachmentUrl && (
@@ -1456,6 +1466,9 @@ export function BusinessTripManagerDialog({
           }}
           tripId={selectedTripForExpense!}
           siteId="bkgalabovo" // Hardcoded active branch for now, or fetch from context
+          trip={
+            businessTrips.find((t) => t.id === selectedTripForExpense) || null
+          }
           expenseToEdit={expenseToEdit || undefined}
           onSuccess={() => {
             setExpenseToEdit(null);

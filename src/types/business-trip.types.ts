@@ -139,6 +139,23 @@ export const BusinessTripSchema = z.object({
   actualDays: z.number().min(0).optional(),
   /** Реално изкарани нощи (ако се различава от планираните, за ведомост) */
   actualNights: z.number().min(0).optional(),
+  /**
+   * Индивидуални корекции на дни/нощи по участник (ключ = ID на участника или "coach").
+   * Ако липсват — използват се глобалните actualDays/actualNights.
+   */
+  participantOverrides: z
+    .record(
+      z.string(),
+      z.object({
+        actualDays: z.number().min(0).optional(),
+        actualNights: z.number().min(0).optional(),
+        stayedOvernight: z.boolean().optional(), // дали лицето е нощувало
+        perDiemRateEUR: z.number().min(0).optional(), // дневна ставка за лицето (напр. 50% без нощувка)
+        note: z.string().optional(), // напр. "Отпаднал на ден 1", "Контузия", "Без нощувка"
+        excluded: z.boolean().optional(), // true = лицето не участва в ведомостта
+      })
+    )
+    .optional(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 });
@@ -155,10 +172,13 @@ export const TripExpenseSchema = z.object({
   documentNumber: z.string().optional(), // № на фактура / касов бон
   documentDate: z.string().datetime().optional(),
   supplierName: z.string().optional(), // Име на доставчик (напр. бензиностанция, хотел)
+  stayDate: z.string().optional(), // Дата или нощ на състезанието (напр. за нощувка)
+  notes: z.string().optional(), // Допълнителни бележки
   attachmentUrl: z.string().optional(), // URL към снимката/скана на документа
   attachmentName: z.string().optional(), // Име на прикачения файл
   attachmentDownloadedAt: z.string().datetime().optional(), // Дата/час на последно сваляне
   createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
 });
 
 // ---------------------------------------------------------
