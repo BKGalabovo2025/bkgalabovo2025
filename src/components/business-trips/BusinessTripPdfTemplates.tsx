@@ -2323,215 +2323,290 @@ export function BusinessTripPdfTemplates({
       {/* ══════════════════════════════════════════════════════
           DOC 4: ПРИСЪСТВЕН ЛИСТ (ATTENDANCE)
       ══════════════════════════════════════════════════════ */}
-      <div id={`pdf-attendance-template${idSuffix}`} style={PAGE_A4}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            borderBottom: "2px solid #e2e8f0",
-            paddingBottom: "10pt",
-            marginBottom: "12pt",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
-            <img
-              src="/icons/LOGO.jpg"
-              alt="Logo"
-              style={{ height: "45pt", objectFit: "contain" }}
-            />
+      {(() => {
+        const athletes = allPeople.filter(
+          (p) => p.role !== "Треньор" && p.role !== "Ръководител"
+        );
+        const useTwoCols = athletes.length > 8;
+
+        return (
+          <div
+            id={`pdf-attendance-template${idSuffix}`}
+            className="pdf-page"
+            style={{
+              ...PAGE_A4,
+              minHeight: "297mm",
+              maxHeight: "297mm",
+              boxSizing: "border-box",
+              padding: "10mm 15mm",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              overflow: "hidden",
+            }}
+          >
             <div>
+              {/* Хедър с лого и данни за клуба */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  borderBottom: "2px solid #e2e8f0",
+                  paddingBottom: "8pt",
+                  marginBottom: "10pt",
+                }}
+              >
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "10pt" }}
+                >
+                  <img
+                    src="/icons/LOGO.jpg"
+                    alt="Logo"
+                    style={{ height: "40pt", objectFit: "contain" }}
+                  />
+                  <div>
+                    <p
+                      style={{
+                        fontWeight: "700",
+                        fontSize: "13pt",
+                        margin: 0,
+                        color: "#0f172a",
+                      }}
+                    >
+                      „{site.shortName.toUpperCase()}"
+                    </p>
+                    {site.bulstat && (
+                      <p
+                        style={{
+                          fontSize: "8.5pt",
+                          margin: "2pt 0 0 0",
+                          color: "#64748b",
+                        }}
+                      >
+                        БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Заглавие на списъка */}
+              <div style={{ textAlign: "center", marginBottom: "10pt" }}>
+                <p
+                  style={{
+                    fontWeight: "800",
+                    fontSize: "13pt",
+                    letterSpacing: "2px",
+                    margin: 0,
+                    color: "#0f172a",
+                  }}
+                >
+                  С П И С Ъ К
+                </p>
+                <p
+                  style={{
+                    fontSize: "10.5pt",
+                    marginTop: "3pt",
+                    marginBottom: 0,
+                    color: "#0f172a",
+                    fontWeight: "600",
+                  }}
+                >
+                  на състезателите от „БАДМИНТОН КЛУБ ГЪЛЪБОВО“
+                </p>
+                <p
+                  style={{
+                    fontSize: "10pt",
+                    marginTop: "2pt",
+                    marginBottom: 0,
+                    color: "#475569",
+                  }}
+                >
+                  участници на{" "}
+                  <strong style={{ color: "#0f172a" }}>
+                    {event?.title || trip.title}
+                  </strong>
+                </p>
+                <p
+                  style={{
+                    fontSize: "9.5pt",
+                    marginTop: "2pt",
+                    marginBottom: 0,
+                    color: "#475569",
+                  }}
+                >
+                  {fmtDate(trip.startDate)} г. - {fmtDate(trip.endDate)} г. —{" "}
+                  {destCity}
+                </p>
+              </div>
+
+              {/* Организатор и клуб домакин */}
+              <div
+                style={{
+                  marginBottom: "10pt",
+                  fontSize: "9.5pt",
+                  lineHeight: "1.4",
+                }}
+              >
+                <p style={{ margin: "2pt 0" }}>
+                  <strong>Организатор:</strong>{" "}
+                  {trip.organizer ||
+                    "..............................................."}
+                </p>
+                <p style={{ margin: "2pt 0" }}>
+                  <strong>Клуб домакин:</strong>{" "}
+                  {trip.hostClub ||
+                    "..............................................."}
+                </p>
+              </div>
+
+              {/* Подзаглавие Списък на участниците */}
               <p
                 style={{
                   fontWeight: "700",
-                  fontSize: "14pt",
-                  margin: 0,
+                  fontSize: "10pt",
+                  margin: "0 0 6pt 0",
                   color: "#0f172a",
                 }}
               >
-                „{site.shortName.toUpperCase()}"
+                СПИСЪК НА УЧАСТНИЦИТЕ
               </p>
-              {site.bulstat && (
+
+              {/* Списък със състезатели */}
+              <div
+                style={{
+                  marginBottom: "10pt",
+                  fontSize: "9.5pt",
+                  lineHeight: "1.35",
+                  ...(useTwoCols
+                    ? {
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        columnGap: "30pt",
+                        rowGap: "2pt",
+                      }
+                    : {}),
+                }}
+              >
+                {athletes.map((p, i) => (
+                  <p key={i} style={{ margin: useTwoCols ? 0 : "2pt 0" }}>
+                    {i + 1}. {p.name}
+                  </p>
+                ))}
+              </div>
+
+              {/* Удостоверение от ръководителя */}
+              <div style={{ marginBottom: "10pt", fontSize: "9.5pt" }}>
                 <p
                   style={{
-                    fontSize: "9pt",
-                    margin: "2pt 0 0 0",
-                    color: "#64748b",
+                    fontWeight: "700",
+                    fontSize: "9.5pt",
+                    margin: "0 0 4pt 0",
+                    color: "#0f172a",
                   }}
                 >
-                  БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                  УДОСТОВЕРЕНИЕ ОТ РЪКОВОДИТЕЛЯ НА ГРУПАТА
                 </p>
-              )}
+                <p style={{ margin: "2pt 0" }}>
+                  Общ брой присъствали лица: <strong>{totalPeople}</strong>
+                </p>
+                <p style={{ margin: "2pt 0" }}>от които:</p>
+                <ul style={{ margin: "2pt 0 2pt 18pt", padding: 0 }}>
+                  <li style={{ margin: "1pt 0" }}>
+                    Треньорски състав / Ръководители:{" "}
+                    <strong>
+                      {
+                        allPeople.filter(
+                          (p) =>
+                            p.role === "Треньор" || p.role === "Ръководител"
+                        ).length
+                      }
+                    </strong>
+                  </li>
+                  <li style={{ margin: "1pt 0" }}>
+                    Състезатели: <strong>{athletes.length}</strong>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div style={{ textAlign: "center", marginBottom: "16pt" }}>
-          <p
-            style={{
-              fontWeight: "800",
-              fontSize: "14pt",
-              letterSpacing: "2px",
-              margin: 0,
-              color: "#0f172a",
-            }}
-          >
-            С П И С Ъ К
-          </p>
-          <p
-            style={{
-              fontSize: "11pt",
-              marginTop: "4pt",
-              color: "#0f172a",
-              fontWeight: "600",
-            }}
-          >
-            на състезателите от „БАДМИНТОН КЛУБ ГЪЛЪБОВО“
-          </p>
-          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
-            участници на{" "}
-            <strong style={{ color: "#0f172a" }}>
-              {event?.title || trip.title}
-            </strong>
-          </p>
-          <p style={{ fontSize: "11pt", marginTop: "2pt", color: "#475569" }}>
-            {fmtDate(trip.startDate)} г. - {fmtDate(trip.endDate)} г. —{" "}
-            {destCity}
-          </p>
-        </div>
+            {/* Подписи в долната част */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "12pt",
+                paddingTop: "8pt",
+                fontSize: "9pt",
+              }}
+            >
+              <div>
+                <p style={{ margin: "0 0 2pt 0" }}>
+                  Дата: {fmtDate(trip.startDate || trip.endDate)} г.
+                </p>
+                <p style={{ margin: 0 }}>гр. Гълъбово</p>
+                <div style={{ marginTop: "10pt" }}>
+                  <p style={{ margin: "0 0 2pt 0", fontWeight: "600" }}>
+                    Ръководител на групата / Треньор:
+                  </p>
+                  <p style={{ margin: "0 0 10pt 0" }}>
+                    Име и фамилия: {coachName}
+                  </p>
+                  <div style={{ display: "flex", alignItems: "flex-end" }}>
+                    <span style={{ marginRight: "10pt" }}>Подпис:</span>
+                    {trip.signatures?.coach ? (
+                      <img
+                        src={trip.signatures.coach}
+                        alt="signature"
+                        style={{ height: "35pt", objectFit: "contain" }}
+                      />
+                    ) : (
+                      <span style={{ color: "#cbd5e1" }}>
+                        ..................................
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-        <div style={{ marginBottom: "16pt", lineHeight: "1.6" }}>
-          <p>
-            <strong>Организатор:</strong>{" "}
-            {trip.organizer ||
-              "..............................................."}
-          </p>
-          <p>
-            <strong>Клуб домакин:</strong>{" "}
-            {trip.hostClub || "..............................................."}
-          </p>
-        </div>
-
-        <p
-          style={{
-            fontWeight: "700",
-            fontSize: "11pt",
-            marginBottom: "8pt",
-            color: "#0f172a",
-          }}
-        >
-          СПИСЪК НА УЧАСТНИЦИТЕ
-        </p>
-
-        <div
-          style={{ marginBottom: "20pt", lineHeight: "1.8", fontSize: "11pt" }}
-        >
-          {allPeople
-            .filter((p) => p.role !== "Треньор" && p.role !== "Ръководител")
-            .map((p, i) => (
-              <p key={i} style={{ margin: "4pt 0" }}>
-                {i + 1}. {p.name}
-              </p>
-            ))}
-        </div>
-
-        <div style={{ marginBottom: "20pt" }}>
-          <p
-            style={{
-              fontWeight: "700",
-              fontSize: "10pt",
-              marginBottom: "8pt",
-              color: "#0f172a",
-            }}
-          >
-            УДОСТОВЕРЕНИЕ ОТ РЪКОВОДИТЕЛЯ НА ГРУПАТА
-          </p>
-          <p style={{ margin: "4pt 0" }}>
-            Общ брой присъствали лица: <strong>{totalPeople}</strong>
-          </p>
-          <p style={{ margin: "4pt 0" }}>от които:</p>
-          <ul style={{ margin: "4pt 0 4pt 20pt", padding: 0 }}>
-            <li>
-              Треньорски състав / Ръководители:{" "}
-              <strong>
-                {
-                  allPeople.filter(
-                    (p) => p.role === "Треньор" || p.role === "Ръководител"
-                  ).length
-                }
-              </strong>
-            </li>
-            <li>
-              Състезатели:{" "}
-              <strong>
-                {allPeople.filter((p) => p.role === "Състезател").length}
-              </strong>
-            </li>
-          </ul>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: "30pt",
-          }}
-        >
-          <div>
-            <p style={{ margin: "0 0 4pt 0" }}>
-              Дата: {fmtDate(trip.startDate || trip.endDate)} г.
-            </p>
-            <p style={{ margin: 0 }}>гр. Гълъбово</p>
-            <div style={{ marginTop: "16pt" }}>
-              <p style={{ margin: "0 0 4pt 0", fontWeight: "600" }}>
-                Ръководител на групата / Треньор:
-              </p>
-              <p style={{ margin: "0 0 20pt 0" }}>Име и фамилия: {coachName}</p>
-              <div style={{ display: "flex", alignItems: "flex-end" }}>
-                <span style={{ marginRight: "10pt" }}>Подпис:</span>
-                {trip.signatures?.coach ? (
-                  <img
-                    src={trip.signatures.coach}
-                    alt="signature"
-                    style={{ height: "40pt", objectFit: "contain" }}
-                  />
-                ) : (
-                  <span style={{ color: "#cbd5e1" }}>
-                    ..................................
-                  </span>
-                )}
+              <div
+                style={{
+                  width: "250pt",
+                  borderLeft: "2px dashed #cbd5e1",
+                  paddingLeft: "16pt",
+                }}
+              >
+                <p style={{ margin: "0 0 6pt 0", fontWeight: "600" }}>
+                  Главен съдия / Клуб Домакин / или Организатор:
+                </p>
+                <p style={{ margin: "0 0 6pt 0" }}>
+                  Дата: {fmtDate(trip.startDate || trip.endDate)} г.
+                </p>
+                <p style={{ margin: "0 0 12pt 0" }}>
+                  Подпис: ............................................
+                </p>
+                <p style={{ margin: "0 0 3pt 0" }}>
+                  Печат: ............................................
+                </p>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "7.5pt",
+                    color: "#64748b",
+                    lineHeight: "1.2",
+                  }}
+                >
+                  (печат се поставя само ако се подписва от{" "}
+                  {trip.hostClub || "клуба домакин"} или представител на{" "}
+                  {trip.organizer || "организацията"}. При подпис от гл.съдия -
+                  печат не се изисква.)
+                </p>
               </div>
             </div>
           </div>
-
-          <div
-            style={{
-              width: "250pt",
-              borderLeft: "2px dashed #cbd5e1",
-              paddingLeft: "20pt",
-            }}
-          >
-            <p style={{ margin: "0 0 10pt 0", fontWeight: "600" }}>
-              Главен съдия / Клуб Домакин / или Организатор:
-            </p>
-            <p style={{ margin: "0 0 12pt 0" }}>
-              Дата: {fmtDate(trip.startDate || trip.endDate)} г.
-            </p>
-            <p style={{ margin: "0 0 20pt 0" }}>
-              Подпис: ............................................
-            </p>
-            <p style={{ margin: "0 0 4pt 0" }}>
-              Печат: ............................................
-            </p>
-            <p style={{ margin: 0, fontSize: "8pt", color: "#64748b" }}>
-              (печат се поставя само ако се подписва от{" "}
-              {trip.hostClub || "клуба домакин"} или представител на{" "}
-              {trip.organizer || "организацията"}. При подпис от гл.съдия -
-              печат не се изисква.)
-            </p>
-          </div>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* ══════════════════════════════════════════════════════
           DOC 5: ДОКЛАД ЗА ИЗВЪРШЕНАТА РАБОТА (REPORT)

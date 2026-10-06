@@ -313,10 +313,8 @@
     }
     .pdf-page {
       break-after: page;
-      break-after: page;
     }
     .pdf-page:last-child {
-      break-after: avoid;
       break-after: avoid;
     }
     @page {
