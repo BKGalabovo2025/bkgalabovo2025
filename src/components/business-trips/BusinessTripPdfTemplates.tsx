@@ -1806,7 +1806,7 @@ export function BusinessTripPdfTemplates({
           );
         };
 
-        const renderPage1Header = () => (
+        const renderHeader = () => (
           <div
             style={{
               display: "flex",
@@ -1867,7 +1867,7 @@ export function BusinessTripPdfTemplates({
           </div>
         );
 
-        const renderStatementTitle = () => (
+        const renderStatementTitle = (subtitle: string) => (
           <div style={{ marginBottom: "6pt", textAlign: "center" }}>
             <p
               style={{
@@ -1888,92 +1888,8 @@ export function BusinessTripPdfTemplates({
                 fontWeight: "500",
               }}
             >
-              за изплатени суми за командировка
+              {subtitle}
             </p>
-          </div>
-        );
-
-        const renderPage2Header = () => (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              borderBottom: "2px solid #e2e8f0",
-              paddingBottom: "8pt",
-              marginBottom: "8pt",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "8pt" }}>
-              <img
-                src="/icons/LOGO.jpg"
-                alt="Logo"
-                style={{ height: "35pt", objectFit: "contain" }}
-              />
-              <div>
-                <p
-                  style={{
-                    fontWeight: "700",
-                    fontSize: "11pt",
-                    margin: 0,
-                    color: "#0f172a",
-                  }}
-                >
-                  „{site.shortName.toUpperCase()}"
-                </p>
-                {site.bulstat && (
-                  <p
-                    style={{
-                      fontSize: "8pt",
-                      margin: "2pt 0 0 0",
-                      color: "#64748b",
-                    }}
-                  >
-                    БУЛСТАТ: {site.bulstat} | {site.contact.address}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div style={{ textAlign: "center", padding: "0 8pt" }}>
-              <p
-                style={{
-                  fontWeight: "800",
-                  fontSize: "12pt",
-                  letterSpacing: "3px",
-                  margin: 0,
-                  color: "#0f172a",
-                }}
-              >
-                В Е Д О М О С Т
-              </p>
-              <p
-                style={{
-                  fontSize: "7.5pt",
-                  color: "#64748b",
-                  margin: "2pt 0 0 0",
-                  fontWeight: "600",
-                }}
-              >
-                Продължение — Лист 2
-              </p>
-            </div>
-            <div
-              style={{ textAlign: "right", fontSize: "8pt", color: "#475569" }}
-            >
-              <p style={{ margin: 0 }}>
-                Спортна проява:{" "}
-                <strong style={{ color: "#0f172a" }}>
-                  {event?.title || trip.title}
-                </strong>
-              </p>
-              <p style={{ margin: "2pt 0" }}>
-                От {fmtDate(trip.startDate)} г. до {fmtDate(trip.endDate)} г. в{" "}
-                {destCity}
-              </p>
-              <p style={{ margin: 0 }}>
-                Нареждане № {orderNum} от {orderDate} г.
-              </p>
-            </div>
           </div>
         );
 
@@ -1989,8 +1905,8 @@ export function BusinessTripPdfTemplates({
               {/* ─── СТРАНИЦА 1 ─── */}
               <div className="pdf-page" style={PAGE_LAND_PAGE}>
                 <div>
-                  {renderPage1Header()}
-                  {renderStatementTitle()}
+                  {renderHeader()}
+                  {renderStatementTitle("за изплатени суми за командировка")}
                   <table
                     style={{
                       width: "100%",
@@ -2027,7 +1943,8 @@ export function BusinessTripPdfTemplates({
               {/* ─── СТРАНИЦА 2 ─── */}
               <div className="pdf-page" style={PAGE_LAND_PAGE}>
                 <div>
-                  {renderPage2Header()}
+                  {renderHeader()}
+                  {renderStatementTitle("Продължение — Лист 2")}
                   <table
                     style={{
                       width: "100%",
@@ -2078,8 +1995,8 @@ export function BusinessTripPdfTemplates({
           >
             <div className="pdf-page" style={PAGE_LAND_PAGE}>
               <div>
-                {renderPage1Header()}
-                {renderStatementTitle()}
+                {renderHeader()}
+                {renderStatementTitle("за изплатени суми за командировка")}
                 <table
                   style={{
                     width: "100%",
