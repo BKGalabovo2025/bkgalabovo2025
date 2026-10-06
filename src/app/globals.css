@@ -311,6 +311,14 @@
     .no-print-visible {
       display: flex !important; /* Keep the separator line during print */
     }
+    .pdf-page {
+      break-after: page;
+      break-after: page;
+    }
+    .pdf-page:last-child {
+      break-after: avoid;
+      break-after: avoid;
+    }
     @page {
       size: a4;
       margin: 0;

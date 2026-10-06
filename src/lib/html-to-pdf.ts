@@ -129,9 +129,9 @@ async function createPdf(
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
   // Check if the container explicitly defines multiple .pdf-page sections
-  const explicitPages = Array.from(
-    element.querySelectorAll<HTMLElement>(".pdf-page")
-  );
+  const explicitPages = element.classList.contains("pdf-page")
+    ? [element]
+    : Array.from(element.querySelectorAll<HTMLElement>(".pdf-page"));
 
   if (explicitPages.length > 0) {
     for (let i = 0; i < explicitPages.length; i++) {
@@ -140,8 +140,8 @@ async function createPdf(
         pdf.addPage();
       }
       const pageCanvas = await renderElementToCanvas(pageEl, cleanCSS);
-      const imgData = pageCanvas.toDataURL("image/jpeg", 0.95);
-      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      const imgData = pageCanvas.toDataURL("image/png");
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
     }
     return pdf;
   }
