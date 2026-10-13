@@ -13,15 +13,36 @@ function tryInitWithServiceAccount(
   serviceAccountJson: string
 ): boolean {
   try {
-    const serviceAccount = JSON.parse(serviceAccountJson);
+    let jsonStr = serviceAccountJson.trim();
+    if (
+      (jsonStr.startsWith("'") && jsonStr.endsWith("'")) ||
+      (jsonStr.startsWith('"') && jsonStr.endsWith('"'))
+    ) {
+      jsonStr = jsonStr.slice(1, -1).trim();
+    }
+    if (!jsonStr.startsWith("{") && /^[A-Za-z0-9+/=]+$/.test(jsonStr)) {
+      try {
+        jsonStr = Buffer.from(jsonStr, "base64").toString("utf-8");
+      } catch {
+        // ignore decode failure
+      }
+    }
+    const serviceAccount = JSON.parse(jsonStr);
     if (serviceAccount.private_key) {
       serviceAccount.private_key = serviceAccount.private_key.replace(
         /\\n/g,
         "\n"
       );
     }
+    const projectId =
+      serviceAccount.project_id ||
+      process.env.FIREBASE_PROJECT_ID ||
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+      "bkgalabovo2025";
+
     resolvedAdmin.initializeApp({
       credential: resolvedAdmin.credential.cert(serviceAccount),
+      projectId,
       storageBucket:
         process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
         "bkgalabovo2025.appspot.com",
@@ -35,7 +56,7 @@ function tryInitWithServiceAccount(
       "WARNING: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON.",
       parseError
     );
-    throw parseError;
+    return false;
   }
 }
 

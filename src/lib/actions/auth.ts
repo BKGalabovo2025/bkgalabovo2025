@@ -95,3 +95,44 @@ export async function loginAction(email: string, password: string) {
     };
   }
 }
+
+export async function createSessionAction(idToken: string) {
+  try {
+    if (!idToken || typeof idToken !== "string") {
+      return { success: false, error: "Липсва токен за оторизация." };
+    }
+
+    const adminAuth = getAdminAuth();
+
+    // Verify token first
+    await adminAuth.verifyIdToken(idToken);
+
+    // Create session cookie with 5 days expiration
+    const expiresIn = 60 * 60 * 24 * 5 * 1000;
+    const sessionCookie = await adminAuth.createSessionCookie(idToken, {
+      expiresIn,
+    });
+
+    const cookieStore = await cookies();
+
+    // Set cookie
+    cookieStore.set("session", sessionCookie, {
+      maxAge: expiresIn / 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      sameSite: "lax",
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("createSessionAction error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Възникна системна грешка при създаване на сесия.",
+    };
+  }
+}
