@@ -1,6 +1,7 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
-import { type Auth, getAuth } from "firebase/auth";
+import { type Auth, connectAuthEmulator, getAuth } from "firebase/auth";
 import {
+  connectFirestoreEmulator,
   Firestore,
   getFirestore,
   initializeFirestore,
@@ -124,6 +125,20 @@ const getFirebaseAuth = (): Auth => {
   if (isTestEnv) return {} as unknown as Auth;
   if (!authInstance) {
     authInstance = getAuth(app);
+    if (
+      typeof window !== "undefined" &&
+      process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true"
+    ) {
+      const authEmulatorHost =
+        process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
+      try {
+        connectAuthEmulator(authInstance, `http://${authEmulatorHost}`, {
+          disableWarnings: true,
+        });
+      } catch {
+        // Already connected
+      }
+    }
     if (typeof window !== "undefined") {
       import("firebase/auth").then(
         ({ setPersistence, browserLocalPersistence }) => {
@@ -142,35 +157,24 @@ const getFirebaseAuth = (): Auth => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const storage = isTestEnv ? ({} as any) : getStorage(app);
 
-// Connect to emulators in development or test if requested
+// Connect Firestore to emulator in development or test if requested
 if (
   typeof window !== "undefined" &&
   process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true"
 ) {
-  const authEmulatorHost =
-    process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
   const firestoreEmulatorHost =
     process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST ||
     "127.0.0.1:8081";
 
-  // Using a global variable to ensure we only connect once during HMR
   const g = window as unknown as { _firebaseEmulatorsConnected?: boolean };
   if (!g._firebaseEmulatorsConnected) {
     try {
-      const { connectAuthEmulator } = await import("firebase/auth");
-      const { connectFirestoreEmulator } = await import("firebase/firestore");
-
-      connectAuthEmulator(getFirebaseAuth(), `http://${authEmulatorHost}`, {
-        disableWarnings: true,
-      });
-
       const [fsHost, fsPort] = firestoreEmulatorHost.split(":");
-      connectFirestoreEmulator(db, fsHost, parseInt(fsPort || "8081"));
-
+      connectFirestoreEmulator(db, fsHost, parseInt(fsPort || "8081", 10));
       g._firebaseEmulatorsConnected = true;
-      console.log("🚀 Connected to Firebase Emulators");
+      console.log("🚀 Connected to Firebase Firestore Emulator");
     } catch (e: unknown) {
-      console.warn("⚠️ Could not connect to Firebase Emulators:", e);
+      console.warn("⚠️ Could not connect to Firebase Firestore Emulator:", e);
     }
   }
 }

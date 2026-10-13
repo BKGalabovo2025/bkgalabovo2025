@@ -78,13 +78,29 @@ function LoginForm() {
     }
 
     try {
-      // 1. Client-side sign-in with Firebase Auth
-      const auth = getFirebaseAuth();
-      const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
-      const idToken = await cred.user.getIdToken(true);
+      // 1. Try client-side sign-in first (ideal for Vercel/production)
+      let clientSuccess = false;
+      try {
+        const auth = getFirebaseAuth();
+        const cred = await signInWithEmailAndPassword(
+          auth,
+          cleanEmail,
+          password
+        );
+        const idToken = await cred.user.getIdToken(true);
+        await syncSessionCookie(idToken, cleanEmail, password);
+        clientSuccess = true;
+      } catch (clientAuthErr: unknown) {
+        console.warn("Client auth fallback notice:", clientAuthErr);
+      }
 
-      // 2. Establish server-side session cookie via ID token
-      await syncSessionCookie(idToken, cleanEmail, password);
+      // 2. Fall back to server action (essential for CI emulator environments)
+      if (!clientSuccess) {
+        const serverRes = await loginAction(cleanEmail, password);
+        if (!serverRes.success) {
+          throw new Error(serverRes.error || "Неуспешен вход.");
+        }
+      }
 
       toast.success("Успешен вход", {
         description: "Пренасочваме ви към системата...",
