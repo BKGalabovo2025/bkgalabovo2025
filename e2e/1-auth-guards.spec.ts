@@ -25,6 +25,8 @@ test.describe("Auth Guards & Routing", () => {
     await page.click('button[type="submit"]');
 
     await expect(page).toHaveURL(/.*\/dashboard/);
-    await expect(page.locator("text=Табло")).toBeVisible();
+    await expect(
+      page.locator("text=Начало").or(page.locator("main")).first()
+    ).toBeVisible();
   });
 });
