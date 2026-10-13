@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import path from "path";
 
+import { serverCache } from "@/lib/server-cache";
 import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 
 import RecoveryZoneClient from "./RecoveryZoneClient";
@@ -47,7 +48,11 @@ export default async function RecoveryZonePage(props: {
     redirect(`/cert/${encodeURIComponent(searchParams.verify)}`);
   }
 
-  const site = await getSiteByIdAdmin("recoveryzone");
+  const site = await serverCache.get(
+    "site:recoveryzone",
+    () => getSiteByIdAdmin("recoveryzone"),
+    300_000
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",

@@ -1,83 +1,28 @@
-"use client";
-
-import { motion, Variants } from "framer-motion";
-import { ChevronRight, Lock, ShieldCheck } from "lucide-react";
+import { ChevronRight, ShieldCheck } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
-import { useAuth } from "@/context/auth-context";
+import { BK_LOGO_DATA_URI, RZ_SQUARE_LOGO_DATA_URI } from "@/lib/logos-base64";
 
-const GoogleTranslateWidget = dynamic(
-  () =>
-    import("@/components/shared/GoogleTranslateWidget").then(
-      (mod) => mod.GoogleTranslateWidget
-    ),
-  { ssr: false }
+const GoogleTranslateWidget = dynamic(() =>
+  import("@/components/shared/GoogleTranslateWidget").then(
+    (mod) => mod.GoogleTranslateWidget
+  )
 );
 
-const containerVariants: Variants = {
-  hidden: { opacity: 1 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 1, y: 0 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.3,
-    },
-  },
-};
+const HomeAdminLink = dynamic(() =>
+  import("@/components/home/HomeAdminLink").then((mod) => mod.HomeAdminLink)
+);
 
 export default function HomePage() {
-  const { user } = useAuth();
-  const [hovered, setHovered] = useState<"bk" | "recovery" | null>(null);
-
-  const getBlobColor1 = (hoverState: string | null) => {
-    if (hoverState === "bk") return "rgba(37,99,235,0.15)";
-    if (hoverState === "recovery") return "rgba(16,185,129,0.08)";
-    return "rgba(255,255,255,0.03)";
-  };
-
-  const getBlobColor2 = (hoverState: string | null) => {
-    if (hoverState === "recovery") return "rgba(16,185,129,0.18)";
-    if (hoverState === "bk") return "rgba(37,99,235,0.08)";
-    return "rgba(255,255,255,0.03)";
-  };
-
   return (
-    <div className="relative flex min-h-screen flex-col justify-between overflow-x-hidden bg-zinc-950 text-white selection:bg-zinc-800 lg:h-screen lg:overflow-hidden">
+    <div className="relative flex min-h-screen flex-col justify-between overflow-x-hidden bg-zinc-950 bg-[radial-gradient(ellipse_80%_80%_at_0%_0%,rgba(37,99,235,0.12),transparent_50%),radial-gradient(ellipse_80%_80%_at_100%_100%,rgba(16,185,129,0.10),transparent_50%)] text-white selection:bg-zinc-800 lg:h-screen lg:overflow-hidden">
       {/* Background Grid Pattern */}
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-size-[32px_32px]" />
-
-      {/* Ambient background blobs */}
-      <div
-        className="pointer-events-none absolute top-[-20%] left-[-10%] size-[600px] rounded-full blur-[120px] transition-all duration-1000"
-        // eslint-disable-next-line react/forbid-dom-props
-        style={{ background: getBlobColor1(hovered) }}
-      />
-      <div
-        className="pointer-events-none absolute right-[-10%] bottom-[-20%] size-[600px] rounded-full blur-[120px] transition-all duration-1000"
-        // eslint-disable-next-line react/forbid-dom-props
-        style={{ background: getBlobColor2(hovered) }}
-      />
+      <div className="pointer-events-none absolute inset-0 opacity-25 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-[32px_32px]" />
 
       {/* Header */}
-      <motion.header
-        initial={false}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 flex shrink-0 flex-col items-center justify-between gap-2 border-b border-white/5 px-6 py-2 md:flex-row md:gap-0 lg:px-8 lg:py-2.5"
-      >
+      <header className="relative z-10 flex shrink-0 flex-col items-center justify-between gap-2 border-b border-white/5 px-6 py-2 md:flex-row md:gap-0 lg:px-8 lg:py-2.5">
         <div className="flex items-center gap-3">
           <ShieldCheck size={18} className="text-zinc-500" strokeWidth={1.5} />
           <span className="text-[11px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
@@ -85,89 +30,65 @@ export default function HomePage() {
           </span>
         </div>
         <div className="flex flex-col items-center gap-3 sm:gap-6 md:flex-row">
-          <div className="text-center text-[10px] font-medium tracking-widest text-zinc-500 uppercase md:text-right">
+          <div className="text-center text-[10px] font-medium tracking-widest text-zinc-400 uppercase md:text-right">
             Бадминтон клуб Гълъбово{" "}
-            <span className="text-zinc-700">(от 2014 г.)</span>
-            <span className="mx-2 hidden text-zinc-700 md:inline">•</span>
+            <span className="text-zinc-500">(от 2014 г.)</span>
+            <span className="mx-2 hidden text-zinc-500 md:inline">•</span>
             <br className="md:hidden" />
             Recovery Zone by ZM{" "}
-            <span className="text-zinc-700">(от 2026 г.)</span>
+            <span className="text-zinc-500">(от 2026 г.)</span>
           </div>
 
           <div className="hidden h-5 w-px bg-zinc-800 md:block" />
 
           <GoogleTranslateWidget />
 
-          <Link
-            href={user ? "/dashboard" : "/login"}
-            className="group flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/50 px-3.5 py-1 text-[10px] font-medium tracking-widest text-zinc-400 uppercase transition-all hover:border-zinc-600 hover:text-white"
-          >
-            <Lock
-              size={11}
-              strokeWidth={2}
-              className="transition-transform group-hover:scale-110"
-            />
-            <span>{user ? "Табло" : "Админ"}</span>
-          </Link>
+          <HomeAdminLink />
         </div>
-      </motion.header>
+      </header>
 
       {/* Main */}
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-1.5 sm:px-6 md:py-2">
-        <motion.div
-          variants={containerVariants}
-          initial={false}
-          animate="visible"
-          className="flex w-full flex-col items-center"
-        >
+        <div className="flex w-full flex-col items-center">
           {/* Tagline */}
-          <motion.h1
-            variants={itemVariants}
-            className="leading-1.05 my-1 max-w-3xl text-center text-3xl font-light tracking-tight text-white sm:text-4xl md:my-1.5 md:text-5xl"
-          >
+          <h1 className="my-2 max-w-3xl text-center text-4xl font-light tracking-tight text-white leading-tight sm:text-5xl md:my-2.5 md:text-6xl">
             Изберете
             <br />
             <span className="text-zinc-400">своя портал</span>
-          </motion.h1>
-          <motion.p
-            variants={itemVariants}
-            className="mb-3 max-w-md text-center text-xs text-zinc-300 md:mb-4 sm:text-sm"
-          >
+          </h1>
+          <p className="mb-3.5 max-w-md text-center text-xs text-zinc-300 md:mb-4 sm:text-sm">
             Добре дошли! Изберете за кой обект искате да научите повече или да
             запазите своя час.
-          </motion.p>
+          </p>
 
           {/* Cards Grid */}
           <div className="grid w-full max-w-3xl grid-cols-1 gap-3.5 md:max-w-4xl md:grid-cols-2 md:gap-5">
             {/* BK Galabovo */}
-            <motion.div
-              variants={itemVariants}
-              className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4.5 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-blue-600/50 hover:bg-zinc-900 hover:shadow-2xl hover:shadow-blue-900/20 sm:rounded-3xl sm:p-5 md:p-6"
-              onMouseEnter={() => setHovered("bk")}
-              onMouseLeave={() => setHovered(null)}
-            >
-              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-blue-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 sm:rounded-3xl" />
-              <div className="relative mb-2.5 size-13 overflow-hidden rounded-full drop-shadow-[0_0_15px_rgba(37,99,235,0.3)] sm:mb-3 sm:size-16">
+            <div className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-4.5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-600/50 hover:shadow-2xl hover:shadow-blue-900/20 sm:rounded-3xl sm:p-5 md:p-6">
+              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-blue-600/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 sm:rounded-3xl" />
+              <div className="relative mb-2.5 size-12 overflow-hidden rounded-full shadow-[0_0_15px_rgba(37,99,235,0.3)] sm:mb-3 sm:size-16">
                 <Image
-                  src="/icons/LOGO.webp"
+                  unoptimized
+                  src={BK_LOGO_DATA_URI}
                   alt="Бадминтон Клуб Гълъбово Logo"
-                  fill
-                  sizes="64px"
-                  className="object-contain transition-all duration-500 group-hover:scale-105"
+                  width={48}
+                  height={48}
                   priority
+                  className="size-full object-contain transition-all duration-300 group-hover:scale-105"
                 />
               </div>
               <h2 className="mb-1 text-base font-medium text-white sm:text-lg md:text-xl">
                 Бадминтон клуб Гълъбово
               </h2>
               <p className="mb-3.5 flex-1 text-xs leading-relaxed text-zinc-400 sm:text-sm md:mb-4">
-                Официален сайт на клуба. Запознайте се с нашите турнири,
-                ранглиста, спортен календар и възможности за членство.
+                Официален сайт на клуба с актуални турнири, ранглиста, спортен
+                календар и членство.
               </p>
               <div className="flex flex-col gap-2">
                 <Link
+                  prefetch={false}
                   href="/club"
-                  className="group/btn flex items-center justify-between rounded-xl bg-zinc-800 px-4 py-2.5 text-xs font-medium text-white transition-all duration-300 hover:bg-blue-600 sm:px-5 sm:py-2.5 sm:text-sm"
+                  className="group/btn flex items-center justify-between rounded-xl bg-zinc-800 px-4 py-2.5 text-xs font-medium text-white transition-all duration-200 hover:bg-blue-600 sm:px-5 sm:py-2.5 sm:text-sm"
                 >
                   <span>Към бадминтон клуба</span>
                   <ChevronRight
@@ -176,37 +97,34 @@ export default function HomePage() {
                   />
                 </Link>
               </div>
-            </motion.div>
+            </div>
 
             {/* Recovery Zone */}
-            <motion.div
-              variants={itemVariants}
-              className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4.5 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-emerald-600/50 hover:bg-zinc-900 hover:shadow-2xl hover:shadow-emerald-900/20 sm:rounded-3xl sm:p-5 md:p-6"
-              onMouseEnter={() => setHovered("recovery")}
-              onMouseLeave={() => setHovered(null)}
-            >
-              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-emerald-600/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 sm:rounded-3xl" />
-              <div className="relative mb-2.5 h-13 w-22 drop-shadow-[0_0_15px_rgba(16,185,129,0.15)] sm:mb-3 sm:h-16 sm:w-28">
+            <div className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900 p-4.5 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-600/50 hover:shadow-2xl hover:shadow-emerald-900/20 sm:rounded-3xl sm:p-5 md:p-6">
+              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-emerald-600/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 sm:rounded-3xl" />
+              <div className="relative mb-2.5 size-12 overflow-hidden rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-1 shadow-[0_0_15px_rgba(16,185,129,0.2)] sm:mb-3 sm:size-16 sm:rounded-2xl">
                 <Image
-                  src="/1.png"
+                  unoptimized
+                  src={RZ_SQUARE_LOGO_DATA_URI}
                   alt="Recovery Zone by ZM Logo"
-                  fill
-                  sizes="112px"
-                  className="rounded-2xl object-contain transition-all duration-500 group-hover:scale-105"
+                  width={48}
+                  height={48}
                   priority
+                  className="size-full object-contain transition-all duration-300 group-hover:scale-105"
                 />
               </div>
               <h2 className="mb-1 text-base font-medium text-white sm:text-lg md:text-xl">
                 Recovery Zone by ZM
               </h2>
               <p className="mb-3.5 flex-1 text-xs leading-relaxed text-zinc-400 sm:text-sm md:mb-4">
-                Център за професионален лимфен дренаж с Hyperice Normatec 3.
-                Ускорено възстановяване, релакс и подобряване на постиженията.
+                Център за професионален лимфен дренаж и ускорено възстановяване
+                с Hyperice Normatec 3.
               </p>
               <div className="flex flex-col gap-2">
                 <Link
+                  prefetch={false}
                   href="/recovery-zone"
-                  className="group/btn flex items-center justify-between rounded-xl bg-zinc-800 px-4 py-2.5 text-xs font-medium text-white transition-all duration-300 hover:bg-emerald-500 sm:px-5 sm:py-2.5 sm:text-sm"
+                  className="group/btn flex items-center justify-between rounded-xl bg-zinc-800 px-4 py-2.5 text-xs font-medium text-white transition-all duration-200 hover:bg-emerald-500 sm:px-5 sm:py-2.5 sm:text-sm"
                 >
                   <span>Към възстановителния център</span>
                   <ChevronRight
@@ -215,18 +133,13 @@ export default function HomePage() {
                   />
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </main>
 
       {/* Footer */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 1 }}
-        className="relative z-10 flex shrink-0 flex-col items-center justify-between gap-1.5 border-t border-white/5 px-6 py-2 text-center sm:px-8 md:flex-row md:gap-0 lg:py-2.5"
-      >
+      <footer className="relative z-10 flex shrink-0 flex-col items-center justify-between gap-1.5 border-t border-white/5 px-6 py-2 text-center sm:px-8 md:flex-row md:gap-0 lg:py-2.5">
         <span className="text-center text-[10px] font-medium tracking-[0.3em] text-zinc-400 uppercase md:text-left">
           © {new Date().getFullYear()} Бадминтон клуб Гълъбово & Recovery Zone
           by ZM
@@ -234,7 +147,7 @@ export default function HomePage() {
         <span className="text-[10px] tracking-widest text-zinc-400 uppercase">
           Град Гълъбово
         </span>
-      </motion.footer>
+      </footer>
     </div>
   );
 }

@@ -92,8 +92,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
         typeof window.localStorage.getItem === "function"
       ) {
         const savedLang = window.localStorage.getItem("app_lang") as Language;
-        if (savedLang) {
-          setTimeout(() => setLanguage(savedLang), 0);
+        if (savedLang && savedLang !== "bg") {
+          setLanguage(savedLang);
         }
       }
     } catch (e: unknown) {

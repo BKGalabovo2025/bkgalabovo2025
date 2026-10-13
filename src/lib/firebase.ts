@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { type Auth, getAuth } from "firebase/auth";
 import {
   Firestore,
   getFirestore,
@@ -118,16 +118,26 @@ if (isTestEnv) {
   }
   globalObj._firebaseDb = db;
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const auth = isTestEnv ? ({} as any) : getAuth(app);
+let authInstance: Auth | null = null;
 
-if (typeof window !== "undefined" && !isTestEnv) {
-  import("firebase/auth").then(
-    ({ setPersistence, browserLocalPersistence }) => {
-      setPersistence(auth, browserLocalPersistence).catch(() => {});
+const getFirebaseAuth = (): Auth => {
+  if (isTestEnv) return {} as unknown as Auth;
+  if (!authInstance) {
+    authInstance = getAuth(app);
+    if (typeof window !== "undefined") {
+      import("firebase/auth").then(
+        ({ setPersistence, browserLocalPersistence }) => {
+          if (authInstance) {
+            setPersistence(authInstance, browserLocalPersistence).catch(
+              () => {}
+            );
+          }
+        }
+      );
     }
-  );
-}
+  }
+  return authInstance;
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const storage = isTestEnv ? ({} as any) : getStorage(app);
@@ -150,7 +160,7 @@ if (
       const { connectAuthEmulator } = await import("firebase/auth");
       const { connectFirestoreEmulator } = await import("firebase/firestore");
 
-      connectAuthEmulator(auth, `http://${authEmulatorHost}`, {
+      connectAuthEmulator(getFirebaseAuth(), `http://${authEmulatorHost}`, {
         disableWarnings: true,
       });
 
@@ -167,6 +177,5 @@ if (
 
 // For backwards compatibility and convenience
 const getDb = () => db;
-const getFirebaseAuth = () => auth;
 
 export { db, getDb, getFirebaseAuth, storage };

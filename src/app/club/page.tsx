@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import path from "path";
 
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
 import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 
 import ClubClient from "./ClubClient";
@@ -80,74 +81,81 @@ export default async function ClubMainPage(props: {
   endOf7Days.setDate(now.getDate() + 7);
   endOf7Days.setHours(23, 59, 59, 999);
 
-  // Fetch site info and schedule in parallel with timeout protection
-  const [clubSite, scheduleSnapshot] = await Promise.all([
-    withTimeout(
-      getSiteByIdAdmin("bkgalabovo").catch(() => null),
-      3500,
-      null
-    ),
-    withTimeout(
-      (async () => {
-        try {
-          const adminDb = getAdminDb();
-          return await adminDb
-            .collection("events")
-            .where("siteId", "==", "bkgalabovo")
-            .get();
-        } catch (error) {
-          console.error("Failed to fetch events for club page:", error);
-          return { docs: [] };
+  // Fetch site info and schedule in parallel with serverCache and timeout protection
+  const { clubSite, scheduleRaw } = await serverCache.get(
+    "club:public-data",
+    async () => {
+      const [site, snap] = await Promise.all([
+        withTimeout(
+          getSiteByIdAdmin("bkgalabovo").catch(() => null),
+          3500,
+          null
+        ),
+        withTimeout(
+          (async () => {
+            try {
+              const adminDb = getAdminDb();
+              return await adminDb
+                .collection("events")
+                .where("siteId", "==", "bkgalabovo")
+                .get();
+            } catch (error) {
+              console.error("Failed to fetch events for club page:", error);
+              return { docs: [] };
+            }
+          })(),
+          3500,
+          { docs: [] }
+        ),
+      ]);
+
+      const raw = snap.docs.map((doc) => {
+        const data = doc.data();
+        let startDateStr = new Date().toISOString();
+        if (data.startDate) {
+          startDateStr =
+            typeof data.startDate === "string"
+              ? data.startDate
+              : data.startDate.toDate?.().toISOString() || data.startDate;
         }
-      })(),
-      3500,
-      { docs: [] }
-    ),
-  ]);
 
-  const scheduleRaw = scheduleSnapshot.docs.map((doc) => {
-    const data = doc.data();
+        let endDateStr = new Date().toISOString();
+        if (data.endDate) {
+          endDateStr =
+            typeof data.endDate === "string"
+              ? data.endDate
+              : data.endDate.toDate?.().toISOString() || data.endDate;
+        }
 
-    // Handle both Timestamp and string representations of date
-    let startDateStr = new Date().toISOString();
-    if (data.startDate) {
-      startDateStr =
-        typeof data.startDate === "string"
-          ? data.startDate
-          : data.startDate.toDate?.().toISOString() || data.startDate;
-    }
+        const isTournament =
+          data.type === "competition" ||
+          Boolean(data.tournamentUrl) ||
+          Boolean(data.tournamentId);
 
-    let endDateStr = new Date().toISOString();
-    if (data.endDate) {
-      endDateStr =
-        typeof data.endDate === "string"
-          ? data.endDate
-          : data.endDate.toDate?.().toISOString() || data.endDate;
-    }
+        return {
+          id: doc.id,
+          title: (data.title || "Тренировка") as string,
+          startTime: startDateStr,
+          endTime: endDateStr,
+          type: (data.type ||
+            (isTournament ? "competition" : "training")) as string,
+          isTournament,
+          isCancelled: !!data.isCancelled,
+          description: (data.description || "") as string,
+          location: (data.location || 'Спортна зала „Енергетик"') as string,
+          tournamentUrl: (data.tournamentUrl || null) as string | null,
+          tournamentId: (data.tournamentId || null) as string | null,
+          attachmentUrl: (data.attachmentUrl || null) as string | null,
+          attachmentName: (data.attachmentName || null) as string | null,
+          attachmentType: (data.attachmentType || null) as
+            "pdf" | "word" | "excel" | "other" | null,
+        };
+      });
 
-    const isTournament =
-      data.type === "competition" ||
-      Boolean(data.tournamentUrl) ||
-      Boolean(data.tournamentId);
-
-    return {
-      id: doc.id,
-      title: data.title || "Тренировка",
-      startTime: startDateStr,
-      endTime: endDateStr,
-      type: (data.type ||
-        (isTournament ? "competition" : "training")) as string,
-      isTournament,
-      isCancelled: !!data.isCancelled,
-      description: data.description || "",
-      location: data.location || 'Спортна зала „Енергетик"',
-      tournamentUrl: data.tournamentUrl || null,
-      tournamentId: data.tournamentId || null,
-      attachmentUrl: data.attachmentUrl || null,
-      attachmentName: data.attachmentName || null,
-      attachmentType: data.attachmentType || null,
-    };
-  });
+      return { clubSite: site, scheduleRaw: raw };
+    },
+    300_000 // 5 minutes in-memory cache
+  );
 
   // Next 7 days upcoming schedule for club homepage
   const schedule = scheduleRaw

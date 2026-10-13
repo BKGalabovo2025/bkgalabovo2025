@@ -155,7 +155,7 @@ export default function ClubClient({
           observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: "300px" }
+      { threshold: 0.1, rootMargin: "0px" }
     );
 
     if (widgetRef.current) {
@@ -314,12 +314,7 @@ export default function ClubClient({
           <div className="absolute inset-0 bg-linear-to-b from-black/70 via-zinc-950/75 to-zinc-950" />
         </div>
 
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative z-10 m-auto flex max-w-5xl flex-col items-center justify-center text-center"
-        >
+        <div className="relative z-10 m-auto flex max-w-5xl flex-col items-center justify-center text-center">
           <div className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-blue-400/50 bg-black/80 px-3.5 py-1.5 text-xs font-semibold tracking-widest text-blue-400 uppercase shadow-[0_0_20px_rgba(30,58,138,0.4)] sm:mb-5 sm:px-4 sm:py-2">
             <Trophy size={14} className="animate-pulse text-amber-400" />
             Основан 2014 г.
@@ -350,7 +345,7 @@ export default function ClubClient({
               График и Тренировки
             </a>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* About & Mission */}

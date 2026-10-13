@@ -314,12 +314,7 @@ export default function RecoveryZoneClient({
           <div className="absolute inset-0 bg-linear-to-b from-black/60 via-zinc-950/80 to-zinc-950" />
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative z-10 mx-auto mt-20 max-w-6xl px-6 text-center"
-        >
+        <div className="relative z-10 mx-auto mt-20 max-w-6xl px-6 text-center">
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-emerald-500/50 bg-black/80 px-4 py-2 text-xs font-medium tracking-widest text-emerald-400 uppercase shadow-[0_0_15px_rgba(16,185,129,0.3)]">
             <Trophy size={14} className="animate-pulse" />
             Професионално Възстановяване
@@ -434,7 +429,7 @@ export default function RecoveryZoneClient({
               Работно време
             </a>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Attachments Section */}

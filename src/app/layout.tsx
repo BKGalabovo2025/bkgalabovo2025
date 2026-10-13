@@ -2,17 +2,32 @@ import "./globals.css";
 
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { Inter } from "next/font/google";
-import { Toaster } from "sonner";
+
+const Toaster = dynamic(() => import("sonner").then((mod) => mod.Toaster));
+
+const OfflineStatusIndicator = dynamic(() =>
+  import("@/components/shared/OfflineStatusIndicator").then(
+    (mod) => mod.OfflineStatusIndicator
+  )
+);
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
   display: "swap",
   variable: "--font-inter",
-  preload: false,
+  preload: true,
+  fallback: [
+    "system-ui",
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "Segoe UI",
+    "Roboto",
+    "sans-serif",
+  ],
+  adjustFontFallback: true,
 });
-
-import { OfflineStatusIndicator } from "@/components/shared/OfflineStatusIndicator";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/auth-context";
 import { LanguageProvider } from "@/context/language-context";
@@ -26,9 +41,9 @@ export const metadata: Metadata = {
     "Официална спортна платформа и система за управление на Бадминтон клуб Гълъбово и Recovery Zone",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icons/LOGO.webp",
-    apple: "/icons/LOGO.webp",
-    shortcut: "/icons/LOGO.webp",
+    icon: "/icons/favicon-48.webp",
+    apple: "/icons/favicon-48.webp",
+    shortcut: "/icons/favicon-48.webp",
   },
   openGraph: {
     title: "Бадминтон Клуб Гълъбово & Recovery Zone",
@@ -92,7 +107,9 @@ export default function RootLayout({
               <Toaster richColors closeButton position="top-right" />
             </AuthProvider>
           </LanguageProvider>
-          <Analytics />
+          {process.env.NODE_ENV === "production" && process.env.VERCEL && (
+            <Analytics />
+          )}
         </ThemeProvider>
       </body>
     </html>
