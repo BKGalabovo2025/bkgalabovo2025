@@ -315,7 +315,7 @@ export default function ClubClient({
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="relative z-10 m-auto flex max-w-5xl flex-col items-center justify-center text-center"
@@ -839,10 +839,11 @@ export default function ClubClient({
                   <div className="absolute inset-x-0 bottom-3 z-10 flex justify-center gap-1.5">
                     {hallImages.map((_, i) => (
                       <button
+                        type="button"
                         key={i}
                         aria-label={`Отиди на снимка ${i + 1}`}
                         onClick={() => setActiveImage(i)}
-                        className="group/btn touch-manipulation p-1"
+                        className="group/btn flex size-7 touch-manipulation items-center justify-center p-1.5"
                       >
                         <div
                           className={`h-1.5 rounded-full transition-all duration-300 group-hover/btn:bg-white/90 ${i === activeImage ? "w-6 bg-blue-400 shadow-[0_0_8px_rgba(30,58,138,0.9)]" : "w-1.5 bg-white/70"}`}
@@ -947,7 +948,7 @@ export default function ClubClient({
                       />
                     ) : (
                       <div className="flex size-full items-center justify-center bg-zinc-900/40">
-                        <div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
+                        <div className="flex items-center gap-2 text-xs font-medium text-zinc-300">
                           <MapPin size={14} className="text-blue-500" />
                           <span>Локация: Спортна зала „Енергетик“</span>
                         </div>

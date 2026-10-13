@@ -67,7 +67,7 @@ export function PublicFooter({
           </Link>
         </div>
 
-        <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
+        <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
           © {new Date().getFullYear()} Всички права запазени
         </span>
       </div>

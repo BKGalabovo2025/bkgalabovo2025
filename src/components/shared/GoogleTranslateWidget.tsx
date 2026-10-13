@@ -22,7 +22,7 @@ export function GoogleTranslateWidget() {
   }, []);
 
   useEffect(() => {
-    if (!isClient) return;
+    if (!isClient || currentLang !== "en") return;
 
     const ensureSelectAttributes = () => {
       const select =
@@ -63,7 +63,7 @@ export function GoogleTranslateWidget() {
     return () => {
       observer.disconnect();
     };
-  }, [isClient]);
+  }, [isClient, currentLang]);
 
   const switchLanguage = (lang: string) => {
     if (lang === currentLang) return;
@@ -102,7 +102,7 @@ export function GoogleTranslateWidget() {
         id="google_translate_element"
         className="hidden size-0 overflow-hidden opacity-0"
       ></div>
-      {isClient && (
+      {isClient && currentLang === "en" && (
         <Script
           src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
           strategy="lazyOnload"

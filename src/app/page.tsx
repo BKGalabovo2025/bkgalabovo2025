@@ -18,24 +18,22 @@ const GoogleTranslateWidget = dynamic(
 );
 
 const containerVariants: Variants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15,
+      staggerChildren: 0.05,
     },
   },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 1, y: 0 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15,
+      duration: 0.3,
     },
   },
 };
@@ -156,7 +154,7 @@ export default function HomePage() {
                   fill
                   sizes="64px"
                   className="object-contain transition-all duration-500 group-hover:scale-105"
-                  loading="eager"
+                  priority
                 />
               </div>
               <h2 className="mb-1 text-base font-medium text-white sm:text-lg md:text-xl">
@@ -195,7 +193,7 @@ export default function HomePage() {
                   fill
                   sizes="112px"
                   className="rounded-2xl object-contain transition-all duration-500 group-hover:scale-105"
-                  loading="eager"
+                  priority
                 />
               </div>
               <h2 className="mb-1 text-base font-medium text-white sm:text-lg md:text-xl">

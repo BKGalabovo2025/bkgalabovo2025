@@ -102,13 +102,17 @@ export function ImageGallery({
       {images.length > 1 && (
         <>
           <button
+            type="button"
             onClick={prevImg}
+            aria-label="Предишна снимка"
             className="absolute top-1/2 left-3 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/80 text-white opacity-0 shadow-xs backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100 hover:bg-zinc-800"
           >
             <ChevronLeft size={16} />
           </button>
           <button
+            type="button"
             onClick={nextImg}
+            aria-label="Следваща снимка"
             className="absolute top-1/2 right-3 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/80 text-white opacity-0 shadow-xs backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100 hover:bg-zinc-800"
           >
             <ChevronRight size={16} />
