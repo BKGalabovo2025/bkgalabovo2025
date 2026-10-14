@@ -23,8 +23,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -450,162 +448,205 @@ export default function ProductsCatalogClient({
 
       {/* Add / Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-h-[88vh] overflow-y-auto max-w-md rounded-3xl p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">
-              {editingProduct
-                ? "Редакция на артикул"
-                : "Добавяне на нов артикул в магазина"}
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Попълнете параметрите на продукта, цена и наличност на склад.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSaveProduct} className="space-y-4 pt-2">
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="productFormName"
-                className="text-xs font-semibold"
-              >
-                Име на артикула *
-              </Label>
-              <Input
-                id="productFormName"
-                name="name"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                placeholder="напр. Грип Babolat"
-                required
-                className="rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="productFormCategory"
-                  className="text-xs font-semibold"
-                >
-                  Категория
-                </Label>
-                <Input
-                  id="productFormCategory"
-                  name="category"
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                  placeholder="Аксесоари, Пера, Ракети..."
-                  className="rounded-xl text-xs"
-                />
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          {/* Fixed Header */}
+          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="flex items-center gap-3 pr-8">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-950">
+                {editingProduct ? (
+                  <Edit2 className="size-4" />
+                ) : (
+                  <PackagePlus className="size-4" />
+                )}
               </div>
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="productFormPrice"
-                  className="text-xs font-semibold"
-                >
-                  Цена (EUR) *
-                </Label>
-                <Input
-                  id="productFormPrice"
-                  name="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formPrice}
-                  onChange={(e) => setFormPrice(e.target.value)}
-                  required
-                  className="rounded-xl text-xs"
-                />
+              <div className="min-w-0">
+                <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-zinc-100">
+                  {editingProduct
+                    ? "Редакция на артикул"
+                    : "Добавяне на нов артикул"}
+                </DialogTitle>
+                <DialogDescription className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                  {editingProduct
+                    ? `Корекция на параметри и наличности за ${editingProduct.name}`
+                    : "Попълнете параметрите на продукта, цена и наличност на склад."}
+                </DialogDescription>
               </div>
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="productFormStock"
-                  className="text-xs font-semibold"
-                >
-                  Наличност (бр.) *
-                </Label>
-                <Input
-                  id="productFormStock"
-                  name="stock"
-                  type="number"
-                  min="0"
-                  value={formStock}
-                  onChange={(e) => setFormStock(e.target.value)}
-                  required
-                  className="rounded-xl text-xs"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="productFormThreshold"
-                  className="text-xs font-semibold"
-                >
-                  Праг за напомняне (бр.)
-                </Label>
-                <Input
-                  id="productFormThreshold"
-                  name="restockThreshold"
-                  type="number"
-                  min="0"
-                  value={formRestockThreshold}
-                  onChange={(e) => setFormRestockThreshold(e.target.value)}
-                  placeholder="3"
-                  className="rounded-xl text-xs"
-                />
+          {/* Form */}
+          <form
+            onSubmit={handleSaveProduct}
+            className="flex flex-1 flex-col overflow-hidden min-h-0"
+          >
+            {/* Scrollable Body (Only middle scrolls if screen height requires it) */}
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
+                {/* Left Column: Product Data */}
+                <div className="space-y-3.5 sm:space-y-4 md:col-span-7">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="productFormName"
+                      className="text-xs font-semibold text-zinc-800 dark:text-zinc-200"
+                    >
+                      Име на артикула *
+                    </Label>
+                    <Input
+                      id="productFormName"
+                      name="name"
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                      placeholder="напр. Грип Babolat Pro Team"
+                      required
+                      className="h-9.5 rounded-xl text-xs sm:text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="productFormCategory"
+                      className="text-xs font-semibold text-zinc-800 dark:text-zinc-200"
+                    >
+                      Категория
+                    </Label>
+                    <Input
+                      id="productFormCategory"
+                      name="category"
+                      list="productCategoriesList"
+                      value={formCategory}
+                      onChange={(e) => setFormCategory(e.target.value)}
+                      placeholder="Аксесоари, Пера, Ракети..."
+                      className="h-9.5 rounded-xl text-xs sm:text-sm"
+                    />
+                    <datalist id="productCategoriesList">
+                      {categories
+                        .filter((c) => c !== "all")
+                        .map((cat) => (
+                          <option key={cat} value={cat} />
+                        ))}
+                    </datalist>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="productFormPrice"
+                        className="truncate text-[11px] sm:text-xs font-semibold text-zinc-800 dark:text-zinc-200"
+                        title="Цена в евро"
+                      >
+                        Цена (€) *
+                      </Label>
+                      <Input
+                        id="productFormPrice"
+                        name="price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formPrice}
+                        onChange={(e) => setFormPrice(e.target.value)}
+                        required
+                        className="h-9.5 rounded-xl px-2.5 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="productFormStock"
+                        className="truncate text-[11px] sm:text-xs font-semibold text-zinc-800 dark:text-zinc-200"
+                        title="Наличност в бройки"
+                      >
+                        Наличност *
+                      </Label>
+                      <Input
+                        id="productFormStock"
+                        name="stock"
+                        type="number"
+                        min="0"
+                        value={formStock}
+                        onChange={(e) => setFormStock(e.target.value)}
+                        required
+                        className="h-9.5 rounded-xl px-2.5 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="productFormThreshold"
+                        className="truncate text-[11px] sm:text-xs font-semibold text-zinc-800 dark:text-zinc-200"
+                        title="Праг за напомняне за зареждане"
+                      >
+                        Мин. праг
+                      </Label>
+                      <Input
+                        id="productFormThreshold"
+                        name="restockThreshold"
+                        type="number"
+                        min="0"
+                        value={formRestockThreshold}
+                        onChange={(e) =>
+                          setFormRestockThreshold(e.target.value)
+                        }
+                        placeholder="3"
+                        className="h-9.5 rounded-xl px-2.5 text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="productFormDescription"
+                      className="text-xs font-semibold text-zinc-800 dark:text-zinc-200"
+                    >
+                      Описание (по избор)
+                    </Label>
+                    <Textarea
+                      id="productFormDescription"
+                      name="description"
+                      value={formDescription}
+                      onChange={(e) => setFormDescription(e.target.value)}
+                      placeholder="Кратко представяне на артикула..."
+                      rows={2}
+                      className="resize-none rounded-xl text-xs sm:text-sm leading-relaxed"
+                    />
+                  </div>
+                </div>
+
+                {/* Right Column: Media / Image Upload */}
+                <div className="flex flex-col justify-start md:col-span-5">
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-3.5 dark:border-zinc-800/80 dark:bg-zinc-900/30">
+                    <UniversalMediaUpload
+                      id="productFormImageUrl"
+                      label="Снимка на артикула"
+                      description="PNG, JPG, WEBP (до 800KB)"
+                      value={formImageUrl}
+                      onChange={(url) => setFormImageUrl(url)}
+                      storageFolder="products"
+                      placeholderUrl="https://... или външен линк"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <UniversalMediaUpload
-              id="productFormImageUrl"
-              label="Снимка на артикула (по избор)"
-              description="PNG, JPG, WEBP или външен линк (до 800KB)"
-              value={formImageUrl}
-              onChange={(url) => setFormImageUrl(url)}
-              storageFolder="products"
-              placeholderUrl="https://... или външен линк"
-            />
-
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="productFormDescription"
-                className="text-xs font-semibold"
-              >
-                Описание (по избор)
-              </Label>
-              <Textarea
-                id="productFormDescription"
-                name="description"
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Кратко представяне на артикула..."
-                rows={3}
-                className="rounded-xl text-xs"
-              />
-            </div>
-
-            <DialogFooter className="pt-2">
+            {/* Fixed Sticky Footer */}
+            <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
-                className="rounded-xl text-xs"
+                className="h-9 rounded-xl border-zinc-200 px-4 text-xs font-medium text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
                 Отказ
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-xl bg-zinc-950 text-xs font-semibold text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950"
+                className="h-9 rounded-xl bg-zinc-950 px-5 text-xs font-semibold text-white shadow-xs hover:bg-zinc-800 active:scale-95 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
               >
                 {isSubmitting && (
                   <Loader2 className="mr-2 size-3.5 animate-spin" />
                 )}
                 {editingProduct ? "Запази промените" : "Добави в магазина"}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
