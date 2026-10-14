@@ -35,6 +35,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  getEffectiveTripRates,
+  isTripCoverageWithoutAccom,
+} from "@/lib/business-trip-calc";
+import {
   buildStaySectionText,
   updateReportTextStaySection,
 } from "@/lib/business-trip-report";
@@ -103,11 +107,17 @@ function computePersonRate(
   perDiemRateEUR: PersonOverride["perDiemRateEUR"],
   isNoStay: boolean,
   noStayRate: number,
-  baseRate: number
+  fullRate: number
 ): number {
-  if (perDiemRateEUR !== undefined && perDiemRateEUR !== "")
+  // Санитизация: ако е запазено старо грешно 5.50 (<= 6 при нормална ставка >= 11), го коригираме
+  if (
+    perDiemRateEUR !== undefined &&
+    perDiemRateEUR !== "" &&
+    Number(perDiemRateEUR) > 6
+  ) {
     return Number(perDiemRateEUR);
-  return isNoStay ? noStayRate : baseRate;
+  }
+  return isNoStay ? noStayRate : fullRate;
 }
 
 export function TripStatementEditDialog({
@@ -135,15 +145,22 @@ export function TripStatementEditDialog({
         ) + 1
       )
     : 0;
-  const plannedNights = trip
-    ? Math.max(
-        0,
-        differenceInCalendarDays(
-          new Date(trip.endDate),
-          new Date(trip.startDate)
-        )
-      )
-    : 0;
+  const rawAccomRate = trip?.financials.accommodationRateEUR ?? 0;
+  const rawBasePerDiem =
+    trip?.financials.perDiemOverrideEUR ?? trip?.financials.perDiemRateEUR ?? 0;
+  const coverageExcludesAccom = isTripCoverageWithoutAccom(
+    trip?.expensesCoverage,
+    rawAccomRate,
+    rawBasePerDiem
+  );
+
+  let plannedNights = 0;
+  if (trip && !coverageExcludesAccom) {
+    plannedNights = Math.max(
+      0,
+      differenceInCalendarDays(new Date(trip.endDate), new Date(trip.startDate))
+    );
+  }
 
   // Load members and init state
   useEffect(() => {
@@ -341,9 +358,11 @@ export function TripStatementEditDialog({
   // Rates
   const basePerDiemEUR =
     trip?.financials.perDiemOverrideEUR ?? trip?.financials.perDiemRateEUR ?? 0;
-  // Ставка без нощувка: 50% от дневните пари
-  const noStayPerDiemEUR = Math.round(basePerDiemEUR * 0.5 * 100) / 100;
-  const accomEUR = trip?.financials.accommodationRateEUR ?? 0;
+  const { fullRate: fullPerDiemEUR, noStayRate: noStayPerDiemEUR } =
+    getEffectiveTripRates(basePerDiemEUR);
+  const accomEUR = coverageExcludesAccom
+    ? 0
+    : (trip?.financials.accommodationRateEUR ?? 0);
 
   // Active people calculations
   const activePeople = people.filter((p) => !p.excluded);
@@ -356,14 +375,14 @@ export function TripStatementEditDialog({
     const days = p.actualDays === "" ? 0 : Number(p.actualDays);
     const nights =
       !p.stayedOvernight || p.actualNights === "" ? 0 : Number(p.actualNights);
-    const isNoStay = plannedNights > 0 && (!p.stayedOvernight || nights === 0);
+    const isNoStay = !p.stayedOvernight || nights === 0;
 
-    // Дневна ставка: ако няма нощувка при пътуване с планирани нощувки, ставката е 50%
+    // Дневна ставка: ако няма нощувка, ставката е 11 € (или 50% от пълната); при нощувка е 22 €
     const personRateEUR = computePersonRate(
       p.perDiemRateEUR,
       isNoStay,
       noStayPerDiemEUR,
-      basePerDiemEUR
+      fullPerDiemEUR
     );
 
     const diemTotal = Math.round(personRateEUR * days * 100) / 100;
@@ -386,6 +405,7 @@ export function TripStatementEditDialog({
 
   // Real-time simulated trip for report preview
   const currentOverrides = useMemo(() => {
+    const { fullRate, noStayRate } = getEffectiveTripRates(basePerDiemEUR);
     const ov: NonNullable<BusinessTrip["participantOverrides"]> = {};
     people.forEach((p) => {
       const days = p.actualDays === "" ? undefined : Number(p.actualDays);
@@ -393,13 +413,12 @@ export function TripStatementEditDialog({
         !p.stayedOvernight || p.actualNights === ""
           ? 0
           : Number(p.actualNights);
-      const isNoStay =
-        plannedNights > 0 && (!p.stayedOvernight || nights === 0);
+      const isNoStay = !p.stayedOvernight || nights === 0;
       const personRateEUR = computePersonRate(
         p.perDiemRateEUR,
         isNoStay,
-        noStayPerDiemEUR,
-        basePerDiemEUR
+        noStayRate,
+        fullRate
       );
 
       ov[p.id] = {
@@ -412,7 +431,7 @@ export function TripStatementEditDialog({
       };
     });
     return ov;
-  }, [people, plannedNights, noStayPerDiemEUR, basePerDiemEUR]);
+  }, [people, basePerDiemEUR]);
 
   const simulatedTrip = useMemo(() => {
     if (!trip) return null;
@@ -663,13 +682,12 @@ export function TripStatementEditDialog({
                 !p.stayedOvernight || p.actualNights === ""
                   ? 0
                   : Number(p.actualNights);
-              const isNoStay =
-                plannedNights > 0 && (!p.stayedOvernight || nights === 0);
+              const isNoStay = !p.stayedOvernight || nights === 0;
               const personRateEUR = computePersonRate(
                 p.perDiemRateEUR,
                 isNoStay,
                 noStayPerDiemEUR,
-                basePerDiemEUR
+                fullPerDiemEUR
               );
               const personDiem = Math.round(personRateEUR * days * 100) / 100;
               const personAccom = Math.round(accomEUR * nights * 100) / 100;
@@ -918,7 +936,9 @@ export function TripStatementEditDialog({
                           <span>
                             €{personRateEUR.toFixed(2)}{" "}
                             <span className="font-semibold text-amber-700 dark:text-amber-400">
-                              (50% без нощувка)
+                              {basePerDiemEUR > 15
+                                ? "(50% без нощувка)"
+                                : "(без нощувка)"}
                             </span>{" "}
                             × {days} д. ={" "}
                             <strong className="text-zinc-800 dark:text-zinc-200">
@@ -953,7 +973,9 @@ export function TripStatementEditDialog({
                         )}
                         {isNoStay && (
                           <span className="ml-2 inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                            Без нощувка — 50% дневни
+                            {basePerDiemEUR > 15
+                              ? "Без нощувка — 50% дневни"
+                              : "Без нощувка"}
                           </span>
                         )}
                       </div>

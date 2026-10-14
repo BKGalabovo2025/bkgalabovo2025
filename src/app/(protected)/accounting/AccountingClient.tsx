@@ -2,13 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/forbid-dom-props */
 
-import {
-  differenceInDays,
-  endOfMonth,
-  format,
-  parseISO,
-  startOfMonth,
-} from "date-fns";
+import { endOfMonth, format, parseISO, startOfMonth } from "date-fns";
 import { bg } from "date-fns/locale";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
@@ -70,6 +64,7 @@ import {
 } from "@/components/ui/table";
 import { getSiteConfig } from "@/config/sites";
 import { useAuth } from "@/context/auth-context";
+import { calculateTripStatementTotals } from "@/lib/business-trip-calc";
 import { formatDateShort } from "@/lib/date-utils";
 import { getEventsQuery } from "@/lib/firebase-collections";
 import {
@@ -96,15 +91,8 @@ function computeTripRowTotals(
   trip: BusinessTrip,
   tripExps: TripExpense[]
 ): TripRowCalculations {
-  const sDate = parseISO(trip.startDate);
-  const eDate = parseISO(trip.endDate);
-  const numDays = Math.max(1, differenceInDays(eDate, sDate) + 1);
-  const numNights = Math.max(0, numDays - 1);
-  const numPeople = (trip.participantsIds?.length || 0) + 1;
-
-  const calcPerDiem = trip.financials.perDiemRateEUR * numDays * numPeople;
-  const calcAccom =
-    trip.financials.accommodationRateEUR * numNights * numPeople;
+  const { calcPerDiemEUR: calcPerDiem, calcAccomEUR: calcAccom } =
+    calculateTripStatementTotals(trip);
   const calcEntry = trip.financials.entryFeeEUR || 0;
   let calcFuel = 0;
 
@@ -488,15 +476,8 @@ export default function AccountingClient() {
     let totalEntryFees = 0;
 
     filteredTrips.forEach((trip) => {
-      const sDate = parseISO(trip.startDate);
-      const eDate = parseISO(trip.endDate);
-      const numDays = differenceInDays(eDate, sDate) + 1;
-      const numNights = Math.max(0, numDays - 1);
-      const numPeople = (trip.participantsIds?.length || 0) + 1;
-
-      const calcPerDiem = trip.financials.perDiemRateEUR * numDays * numPeople;
-      const calcAccom =
-        trip.financials.accommodationRateEUR * numNights * numPeople;
+      const { calcPerDiemEUR: calcPerDiem, calcAccomEUR: calcAccom } =
+        calculateTripStatementTotals(trip);
       const calcEntry = trip.financials.entryFeeEUR || 0;
       let calcFuel = 0;
 
@@ -1607,14 +1588,9 @@ export default function AccountingClient() {
                 let total = 0;
                 const sDate = parseISO(trip.startDate);
                 const eDate = parseISO(trip.endDate);
-                const numDays = differenceInDays(eDate, sDate) + 1;
-                const numNights = Math.max(0, numDays - 1);
-                const numPeople = (trip.participantsIds?.length || 0) + 1;
 
-                const calcPerDiem =
-                  trip.financials.perDiemRateEUR * numDays * numPeople;
-                const calcAccom =
-                  trip.financials.accommodationRateEUR * numNights * numPeople;
+                const { calcPerDiemEUR: calcPerDiem, calcAccomEUR: calcAccom } =
+                  calculateTripStatementTotals(trip);
                 const calcEntry = trip.financials.entryFeeEUR || 0;
                 let calcFuel = 0;
 

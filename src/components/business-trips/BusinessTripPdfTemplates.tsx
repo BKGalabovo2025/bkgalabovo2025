@@ -9,6 +9,7 @@ import { bg } from "date-fns/locale";
 import React from "react";
 
 import { getSiteConfig } from "@/config/sites";
+import { getEffectiveTripRates } from "@/lib/business-trip-calc";
 import { buildStaySectionText } from "@/lib/business-trip-report";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
@@ -395,16 +396,16 @@ export function BusinessTripPdfTemplates({
       pNights = numNights;
     }
 
-    // Когато командированият не нощува, дневните пари са 50% от пълния размер
-    const isNoStay =
-      numNights > 0 && (pNights === 0 || pOv?.stayedOvernight === false);
+    // Когато командированият не нощува, дневните пари са ставката за без нощувка (11 € или 50% от пълната)
+    const { fullRate, noStayRate } = getEffectiveTripRates(perDiemEUR);
+    const isNoStay = pNights === 0 || pOv?.stayedOvernight === false;
     let pPerDiemRateEUR: number;
-    if (pOv?.perDiemRateEUR != null) {
+    if (pOv?.perDiemRateEUR != null && pOv.perDiemRateEUR > 6) {
       pPerDiemRateEUR = pOv.perDiemRateEUR;
     } else if (isNoStay) {
-      pPerDiemRateEUR = roundEUR(perDiemEUR * 0.5);
+      pPerDiemRateEUR = noStayRate;
     } else {
-      pPerDiemRateEUR = perDiemEUR;
+      pPerDiemRateEUR = fullRate;
     }
     const pPerDiemRateBGN = eurToBgn(pPerDiemRateEUR);
 
