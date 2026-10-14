@@ -159,7 +159,7 @@ export function TemplateEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-2xl overflow-hidden p-0 sm:rounded-3xl">
+      <DialogContent className="max-h-[88vh] max-w-2xl flex flex-col overflow-hidden p-0 sm:rounded-3xl">
         <DialogHeader className="border-b border-zinc-100 bg-linear-to-br from-indigo-50/70 via-white to-zinc-50/70 p-6">
           <DialogTitle className="flex items-center gap-2 text-xl font-black tracking-tight text-zinc-900">
             <Sparkles className="size-5 text-indigo-600" />

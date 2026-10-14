@@ -2021,7 +2021,7 @@ export function UploadVoucherTab({
       {/* DIALOG 3: BATCH ISSUANCE RESULTS MODAL                                */}
       {/* ===================================================================== */}
       <Dialog open={isBatchResultsOpen} onOpenChange={setIsBatchResultsOpen}>
-        <DialogContent className="max-w-2xl overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+        <DialogContent className="max-h-[88vh] max-w-2xl flex flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
           <div className="border-b border-zinc-200 bg-white/90 px-6 py-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
             <div className="flex items-center gap-3">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-400">

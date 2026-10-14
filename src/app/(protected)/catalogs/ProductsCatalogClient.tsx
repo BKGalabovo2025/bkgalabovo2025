@@ -6,13 +6,16 @@ import {
   Package,
   PackagePlus,
   Search,
+  ShoppingCart,
   Trash2,
 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
+import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSaleWizardDialog";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   createProductAction,
   deleteProductAction,
+  getProductsServerAction,
   updateProductAction,
 } from "@/lib/actions/products-server";
 import { formatPrice } from "@/lib/currency";
@@ -73,9 +77,13 @@ export default function ProductsCatalogClient({
   initialProducts,
   activeBranch,
 }: ProductsCatalogClientProps) {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  // Sale wizard state
+  const [saleProduct, setSaleProduct] = useState<Product | null>(null);
 
   // Modal states
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -249,6 +257,23 @@ export default function ProductsCatalogClient({
     }
   };
 
+  const handleSaleSuccess = async () => {
+    if (saleProduct) {
+      const pId = saleProduct.id;
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === pId ? { ...p, stock: Math.max(0, (p.stock || 0) - 1) } : p
+        )
+      );
+    }
+    setSaleProduct(null);
+    const res = await getProductsServerAction(activeBranch);
+    if (res.success && res.data) {
+      setProducts(res.data);
+    }
+    router.refresh();
+  };
+
   return (
     <div className="space-y-6">
       {/* Header & Controls */}
@@ -371,34 +396,49 @@ export default function ProductsCatalogClient({
                 </div>
 
                 {/* Bottom price and actions */}
-                <div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-900">
-                  <div>
-                    <div className="text-[10px] font-medium text-zinc-400">
-                      Цена
+                <div className="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-900">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-[10px] font-medium text-zinc-400">
+                        Цена
+                      </div>
+                      <div className="text-base font-extrabold text-zinc-900 dark:text-white">
+                        {formatPrice(p.price || 0)}
+                      </div>
                     </div>
-                    <div className="text-base font-extrabold text-zinc-900 dark:text-white">
-                      {formatPrice(p.price || 0)}
+
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEditDialog(p)}
+                        className="size-8 rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-white"
+                        title="Редактирай"
+                      >
+                        <Edit2 className="size-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(p.id, p.name)}
+                        className="size-8 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
+                        title="Изтрий"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="mt-3">
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditDialog(p)}
-                      className="size-8 rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-white"
-                      title="Редактирай"
+                      variant="outline"
+                      size="sm"
+                      disabled={(p.stock ?? 0) <= 0}
+                      onClick={() => setSaleProduct(p)}
+                      className="h-9 w-full rounded-xl border-zinc-200 text-xs font-semibold text-zinc-800 shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900 disabled:opacity-50"
                     >
-                      <Edit2 className="size-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(p.id, p.name)}
-                      className="size-8 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
-                      title="Изтрий"
-                    >
-                      <Trash2 className="size-3.5" />
+                      <ShoppingCart className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
+                      {(p.stock ?? 0) <= 0 ? "Няма наличност" : "Продажба"}
                     </Button>
                   </div>
                 </div>
@@ -410,7 +450,7 @@ export default function ProductsCatalogClient({
 
       {/* Add / Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md rounded-3xl p-6">
+        <DialogContent className="max-h-[88vh] overflow-y-auto max-w-md rounded-3xl p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
               {editingProduct
@@ -569,6 +609,16 @@ export default function ProductsCatalogClient({
           </form>
         </DialogContent>
       </Dialog>
+
+      {saleProduct && (
+        <UnifiedSaleWizardDialog
+          item={saleProduct}
+          mode="product"
+          isOpen={!!saleProduct}
+          onClose={() => setSaleProduct(null)}
+          onSaleSuccess={handleSaleSuccess}
+        />
+      )}
     </div>
   );
 }

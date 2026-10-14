@@ -166,7 +166,7 @@ export const SignatureDialog = ({
         if (!v && !isSaving) onClose();
       }}
     >
-      <DialogContent className="w-full max-w-lg overflow-hidden rounded-3xl border-zinc-100 p-0 shadow-2xl">
+      <DialogContent className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-3xl border-zinc-100 p-0 shadow-2xl">
         <DialogHeader className="px-8 pt-8 pb-4">
           <div className="mb-1 flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-zinc-950">

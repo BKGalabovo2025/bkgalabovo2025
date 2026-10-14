@@ -200,7 +200,7 @@ export function ScoreDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="border-zinc-200 bg-white sm:max-w-lg dark:border-zinc-800 dark:bg-zinc-950">
+      <DialogContent className="max-h-[88vh] overflow-y-auto border-zinc-200 bg-white sm:max-w-lg dark:border-zinc-800 dark:bg-zinc-950">
         <DialogHeader>
           <DialogTitle>Въвеждане на резултат</DialogTitle>
         </DialogHeader>

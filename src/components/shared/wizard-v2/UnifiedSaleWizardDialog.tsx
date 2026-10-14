@@ -40,14 +40,14 @@ const UnifiedSaleWizardContent = () => {
   const isReceipt = step === 6;
 
   return (
-    <div className="relative">
-      <DialogHeader className="border-b border-zinc-100 px-6 py-5 pb-4 dark:border-zinc-900">
+    <div className="relative flex flex-col max-h-[88vh] h-full overflow-hidden">
+      <DialogHeader className="shrink-0 border-b border-zinc-100 px-6 py-4 dark:border-zinc-900">
         <div className="flex items-center justify-between">
-          <div className="flex flex-col space-y-1">
-            <DialogTitle className="text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <div className="flex flex-col space-y-0.5">
+            <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
               {item.name}
             </DialogTitle>
-            <DialogDescription className="text-xs font-medium tracking-widest text-zinc-500 uppercase">
+            <DialogDescription className="text-[10px] font-medium tracking-widest text-zinc-500 uppercase">
               Продажба
             </DialogDescription>
           </div>
@@ -61,7 +61,7 @@ const UnifiedSaleWizardContent = () => {
         </div>
       </DialogHeader>
 
-      <div className="p-6">
+      <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
         <div className="w-full">
           {step === 1 && <UnifiedWizardStep1 />}
           {step === 2 &&
@@ -81,7 +81,7 @@ const UnifiedSaleWizardContent = () => {
       </div>
 
       {!isCompleted && (
-        <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/50 p-6 dark:border-zinc-900 dark:bg-zinc-900/20">
+        <div className="shrink-0 flex items-center justify-between border-t border-zinc-100 bg-zinc-50/50 p-4 sm:px-6 dark:border-zinc-900 dark:bg-zinc-900/20">
           <div className="flex items-center gap-1.5">
             {Array.from({ length: totalSteps }).map((_, i) => (
               <div
@@ -102,9 +102,9 @@ const UnifiedSaleWizardContent = () => {
                 variant="outline"
                 onClick={handlePrevStep}
                 disabled={isProcessing}
-                className="h-11 rounded-xl px-5 text-xs font-semibold tracking-wider uppercase shadow-sm hover:bg-zinc-50"
+                className="h-10 rounded-xl px-4 text-xs font-semibold tracking-wider uppercase shadow-sm hover:bg-zinc-50"
               >
-                <ArrowLeft className="mr-2 size-4" />
+                <ArrowLeft className="mr-2 size-3.5" />
                 Назад
               </Button>
             )}
@@ -112,19 +112,19 @@ const UnifiedSaleWizardContent = () => {
             {displayStep < totalSteps ? (
               <Button
                 onClick={handleNextStep}
-                className="h-11 rounded-xl bg-emerald-500 px-6 text-xs font-semibold tracking-wider text-white uppercase shadow-md shadow-emerald-500/20 transition-all hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/30"
+                className="h-10 rounded-xl bg-emerald-500 px-5 text-xs font-semibold tracking-wider text-white uppercase shadow-md shadow-emerald-500/20 transition-all hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/30"
               >
                 Напред
-                <ArrowRight className="ml-2 size-4" />
+                <ArrowRight className="ml-2 size-3.5" />
               </Button>
             ) : (
               <Button
                 onClick={handleExecuteSale}
                 disabled={isProcessing}
-                className="h-11 rounded-xl bg-emerald-500 px-6 text-xs font-semibold tracking-wider text-white uppercase shadow-md shadow-emerald-500/20 transition-all hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/30"
+                className="h-10 rounded-xl bg-emerald-500 px-5 text-xs font-semibold tracking-wider text-white uppercase shadow-md shadow-emerald-500/20 transition-all hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/30"
               >
                 {isProcessing ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
                 ) : null}
                 Завърши
               </Button>
@@ -134,11 +134,11 @@ const UnifiedSaleWizardContent = () => {
       )}
 
       {isReceipt && (
-        <div className="flex justify-center border-t border-zinc-100 bg-zinc-50/50 p-6 dark:border-zinc-900 dark:bg-zinc-900/20">
+        <div className="shrink-0 flex justify-center border-t border-zinc-100 bg-zinc-50/50 p-4 sm:px-6 dark:border-zinc-900 dark:bg-zinc-900/20">
           <Button
             onClick={handleClose}
             variant="outline"
-            className="h-11 rounded-xl border-zinc-200 bg-white px-8 text-xs font-bold text-zinc-900 shadow-sm transition-all hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
+            className="h-10 rounded-xl border-zinc-200 bg-white px-8 text-xs font-bold text-zinc-900 shadow-sm transition-all hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
           >
             Затвори
           </Button>
@@ -166,7 +166,7 @@ export const UnifiedSaleWizardDialog = ({
 }: UnifiedSaleWizardDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl gap-0 overflow-hidden border-zinc-200/50 bg-white/95 p-0 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-950/95">
+      <DialogContent className="max-w-2xl gap-0 overflow-hidden border-zinc-200/50 bg-white/95 p-0 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-950/95 max-h-[88vh] flex flex-col [&>button:last-child]:hidden">
         <UnifiedSaleWizardProvider
           item={item}
           mode={mode}

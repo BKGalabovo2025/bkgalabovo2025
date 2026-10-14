@@ -1430,7 +1430,7 @@ export function CampItineraryClient({
 
         {/* Session Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-[450px]">
             <DialogHeader>
               <DialogTitle>
                 {formId ? "Редактиране на сесия" : "Нова сесия"}

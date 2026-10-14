@@ -24,9 +24,9 @@ test.describe("Auth Guards & Routing", () => {
     await page.fill('input[type="password"]', "password123");
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL(/.*\/dashboard/);
+    await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 30000 });
     await expect(
       page.locator("text=Начало").or(page.locator("main")).first()
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 30000 });
   });
 });

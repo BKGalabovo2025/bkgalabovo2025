@@ -66,7 +66,7 @@ export default function ShareStoryDialog({ topThree }: ShareStoryDialogProps) {
             <Share2 className="mr-3 size-4" strokeWidth={1.5} /> Сподели Топ 3
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-md overflow-hidden rounded-5xl border border-zinc-100 bg-white text-zinc-950 shadow-2xl">
+        <DialogContent className="max-h-[88vh] max-w-md overflow-y-auto rounded-5xl border border-zinc-100 bg-white text-zinc-950 shadow-2xl">
           <DialogHeader className="px-8 pt-8">
             <DialogTitle className="text-center text-[11px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
               Генериране на Story

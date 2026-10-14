@@ -1579,7 +1579,7 @@ export function IssueDocumentTab({
           }
         }}
       >
-        <DialogContent className="max-w-lg space-y-4 rounded-3xl border-zinc-200 p-6 text-center dark:border-zinc-800">
+        <DialogContent className="max-h-[88vh] overflow-y-auto max-w-lg space-y-4 rounded-3xl border-zinc-200 p-6 text-center dark:border-zinc-800">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
             <CheckCircle2 className="size-8" />
           </div>
@@ -1754,7 +1754,7 @@ export function IssueDocumentTab({
           if (!open) setBulkSuccessList([]);
         }}
       >
-        <DialogContent className="max-w-xl rounded-3xl border border-emerald-100 bg-white p-6 shadow-2xl dark:border-emerald-950 dark:bg-zinc-950">
+        <DialogContent className="max-h-[88vh] overflow-y-auto max-w-xl rounded-3xl border border-emerald-100 bg-white p-6 shadow-2xl dark:border-emerald-950 dark:bg-zinc-950">
           <DialogHeader className="text-center">
             <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-400">
               <Trophy className="size-7 animate-bounce" />

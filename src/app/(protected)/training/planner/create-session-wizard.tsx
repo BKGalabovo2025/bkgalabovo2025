@@ -2801,7 +2801,7 @@ export default function CreateSessionWizard({
 
       {/* Station Modal */}
       <Dialog open={showStationModal} onOpenChange={setShowStationModal}>
-        <DialogContent>
+        <DialogContent className="max-h-[88vh] max-w-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Нова Станционна Ротация</DialogTitle>
             <DialogDescription>

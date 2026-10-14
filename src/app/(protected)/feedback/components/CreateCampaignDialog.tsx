@@ -167,7 +167,7 @@ export function CreateCampaignDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-xl sm:rounded-3xl">
+      <DialogContent className="max-h-[88vh] overflow-y-auto max-w-xl sm:rounded-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-black text-zinc-900">
             <Sparkles className="size-5 text-indigo-600" />

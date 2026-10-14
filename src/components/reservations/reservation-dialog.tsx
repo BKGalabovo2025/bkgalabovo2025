@@ -78,7 +78,7 @@ const ReservationDialogContent = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden rounded-4xl border-zinc-100 p-0 shadow-2xl sm:max-w-lg dark:border-zinc-900">
+      <DialogContent className="flex max-h-[88vh] flex-col overflow-hidden rounded-4xl border-zinc-100 p-0 shadow-2xl sm:max-w-lg dark:border-zinc-900">
         {/* Wizard Header / Progress */}
         <div className="shrink-0 border-b border-zinc-100 bg-zinc-50 p-6 sm:p-8 dark:border-zinc-900 dark:bg-zinc-900/50">
           <div className="mb-6 flex items-center justify-between">

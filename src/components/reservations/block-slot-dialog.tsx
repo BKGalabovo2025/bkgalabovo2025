@@ -162,7 +162,7 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="rounded-4xl border-zinc-100 shadow-2xl sm:max-w-md dark:border-zinc-900">
+      <DialogContent className="max-h-[88vh] overflow-y-auto rounded-4xl border-zinc-100 shadow-2xl sm:max-w-md dark:border-zinc-900">
         <DialogHeader className="pb-4">
           <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-white">
             {isEditMode

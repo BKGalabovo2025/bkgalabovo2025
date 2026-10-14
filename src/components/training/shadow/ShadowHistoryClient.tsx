@@ -537,7 +537,7 @@ export function ShadowHistoryClient({
           if (!open) setInspectSession(null);
         }}
       >
-        <DialogContent className="max-w-2xl rounded-3xl p-6">
+        <DialogContent className="max-h-[88vh] overflow-y-auto max-w-2xl rounded-3xl p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-black">
               <Zap className="size-5 text-blue-600" />

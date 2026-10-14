@@ -141,7 +141,7 @@ export function QuickAddMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-3xl p-6">
+      <DialogContent className="max-h-[88vh] overflow-y-auto max-w-md rounded-3xl p-6">
         <DialogHeader className="space-y-1 text-left">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold">
             <UserPlus className="size-5 text-blue-600" />

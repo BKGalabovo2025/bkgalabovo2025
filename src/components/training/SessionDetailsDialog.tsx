@@ -106,7 +106,7 @@ export function SessionDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-hidden p-0 sm:rounded-3xl">
+      <DialogContent className="max-h-[88vh] max-w-3xl flex flex-col overflow-hidden p-0 sm:rounded-3xl">
         {/* Header Banner */}
         <div className="border-b border-zinc-100 bg-linear-to-br from-indigo-50/80 via-white to-zinc-50/80 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">

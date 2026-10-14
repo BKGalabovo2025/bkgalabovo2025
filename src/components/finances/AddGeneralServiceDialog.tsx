@@ -106,7 +106,7 @@ export const AddGeneralServiceDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="rounded-4xl border-none bg-white p-8 shadow-xl sm:max-w-120 dark:bg-zinc-950">
+      <DialogContent className="max-h-[88vh] overflow-y-auto rounded-4xl border-none bg-white p-6 sm:p-8 shadow-xl sm:max-w-120 dark:bg-zinc-950">
         <DialogHeader>
           <DialogTitle className="text-2xl font-light text-zinc-950 dark:text-zinc-50">
             Добавяне на услуга
