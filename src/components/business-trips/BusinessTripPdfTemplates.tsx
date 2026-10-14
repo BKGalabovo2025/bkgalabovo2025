@@ -1268,7 +1268,6 @@ export function BusinessTripPdfTemplates({
           const {
             pDays,
             pNights,
-            isNoStay,
             pPerDiemRateEUR,
             pPerDiemRateBGN,
             pDiemEURpp,
@@ -1403,18 +1402,6 @@ export function BusinessTripPdfTemplates({
                     >
                       ({pPerDiemRateBGN.toFixed(2)} лв.)
                     </div>
-                    {isNoStay && (
-                      <div
-                        style={{
-                          fontSize: "5.5pt",
-                          color: "#b45309",
-                          fontWeight: "bold",
-                          lineHeight: "1",
-                        }}
-                      >
-                        50% без нощувка
-                      </div>
-                    )}
                   </div>
                 ) : (
                   "—"
