@@ -17,8 +17,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Exercise } from "@/types/planner.types";
@@ -97,32 +95,35 @@ export function ExerciseDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[88vh] w-[95vw] max-w-xl overflow-y-auto rounded-3xl p-6">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase ${getCategoryColor(
-                exercise.category
-              )}`}
-            >
-              {getCategoryLabel(exercise.category)}
-            </Badge>
-            {exercise.source && (
-              <span className="text-[11px] text-zinc-500 italic">
-                {exercise.source}
-              </span>
-            )}
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="min-w-0 pr-8">
+            <div className="flex items-center gap-2 mb-1">
+              <Badge
+                variant="outline"
+                className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase ${getCategoryColor(
+                  exercise.category
+                )}`}
+              >
+                {getCategoryLabel(exercise.category)}
+              </Badge>
+              {exercise.source && (
+                <span className="truncate text-[11px] text-zinc-500 italic">
+                  {exercise.source}
+                </span>
+              )}
+            </div>
+            <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-zinc-100">
+              {exercise.name}
+            </DialogTitle>
+            <DialogDescription className="truncate text-xs text-zinc-500">
+              Методическо описание от клубната база данни
+            </DialogDescription>
           </div>
-          <DialogTitle className="mt-2 text-lg font-bold text-zinc-950 dark:text-zinc-100">
-            {exercise.name}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-zinc-500">
-            Подробно методическо описание от клубната база данни
-          </DialogDescription>
-        </DialogHeader>
+        </div>
 
-        <div className="mt-4 space-y-4 text-xs">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 text-xs min-h-0">
           {/* Workout Prescribed Context if from active plan */}
           {workoutContext && (
             <div className="rounded-2xl border border-purple-200/80 bg-purple-50/60 p-3.5 dark:border-purple-900/40 dark:bg-purple-950/20">
@@ -270,15 +271,16 @@ export function ExerciseDetailModal({
           )}
         </div>
 
-        <DialogFooter className="mt-4">
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             onClick={onClose}
-            variant="outline"
-            className="rounded-xl text-xs"
+            variant="ghost"
+            className="h-10 rounded-xl px-5 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
           >
             Затвори
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

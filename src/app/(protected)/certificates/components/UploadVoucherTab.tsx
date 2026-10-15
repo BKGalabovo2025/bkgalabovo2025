@@ -39,8 +39,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -1875,26 +1873,31 @@ export function UploadVoucherTab({
       {/* ===================================================================== */}
       {/* DIALOG 2: SINGLE ISSUANCE SUCCESS MODAL                               */}
       {/* ===================================================================== */}
+      {/* ===================================================================== */}
+      {/* DIALOG 2: SINGLE ISSUANCE SUCCESS MODAL                               */}
+      {/* ===================================================================== */}
       {issuedSuccessCert && (
         <Dialog
           open={Boolean(issuedSuccessCert)}
           onOpenChange={(open) => !open && setIssuedSuccessCert(null)}
         >
-          <DialogContent className="max-w-md rounded-3xl border border-zinc-200 bg-zinc-50 p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
-            <DialogHeader className="text-center">
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+            {/* Fixed Sticky Header */}
+            <div className="shrink-0 border-b border-zinc-200/60 bg-white/80 p-4 sm:p-5 pr-12 text-center backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80">
               <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-400">
                 <CheckCircle2 className="size-6" />
               </div>
-              <DialogTitle className="mt-3 text-lg font-black text-zinc-900 dark:text-white">
+              <DialogTitle className="mt-3 text-base sm:text-lg font-black text-zinc-900 dark:text-white">
                 Документът е издаден успешно!
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="mt-1 text-xs text-zinc-500">
                 Ваучерът е вписан в електронния регистър с генериран
                 верификационен QR код.
               </DialogDescription>
-            </DialogHeader>
+            </div>
 
-            <div className="space-y-3 py-2 text-center">
+            {/* Scrollable Body Container */}
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0 text-center">
               <div className="space-y-1 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
                 <span className="font-mono text-xs font-black tracking-wider text-emerald-600 dark:text-emerald-400">
                   № {issuedSuccessCert.serialNumber}
@@ -1949,50 +1952,51 @@ export function UploadVoucherTab({
                   )}
                 </Button>
               </div>
+
+              {/* Quick Share buttons */}
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <a
+                  href={`viber://forward?text=${encodeURIComponent(
+                    `Официален ваучер № ${issuedSuccessCert.serialNumber} за ${issuedSuccessCert.recipient.name}: ` +
+                      (typeof window !== "undefined"
+                        ? `${window.location.origin}/cert/${issuedSuccessCert.id}`
+                        : "")
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-purple-50 px-2 text-xs font-bold text-purple-700 hover:bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300"
+                >
+                  <span>📱 Viber</span>
+                </a>
+
+                <a
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                    `Официален ваучер за ${issuedSuccessCert.recipient.name}: ` +
+                      (typeof window !== "undefined"
+                        ? `${window.location.origin}/cert/${issuedSuccessCert.id}`
+                        : "")
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-emerald-50 px-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300"
+                >
+                  <span>💬 WhatsApp</span>
+                </a>
+
+                <a
+                  href={`/cert/${issuedSuccessCert.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-zinc-100 px-2 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                >
+                  <ExternalLink className="size-3" />
+                  <span className="wrap-break-word">Отвори линк</span>
+                </a>
+              </div>
             </div>
 
-            {/* Quick Share buttons */}
-            <div className="grid grid-cols-3 gap-2">
-              <a
-                href={`viber://forward?text=${encodeURIComponent(
-                  `Официален ваучер № ${issuedSuccessCert.serialNumber} за ${issuedSuccessCert.recipient.name}: ` +
-                    (typeof window !== "undefined"
-                      ? `${window.location.origin}/cert/${issuedSuccessCert.id}`
-                      : "")
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-purple-50 px-2 text-xs font-bold text-purple-700 hover:bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300"
-              >
-                <span>📱 Viber</span>
-              </a>
-
-              <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                  `Официален ваучер за ${issuedSuccessCert.recipient.name}: ` +
-                    (typeof window !== "undefined"
-                      ? `${window.location.origin}/cert/${issuedSuccessCert.id}`
-                      : "")
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-emerald-50 px-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300"
-              >
-                <span>💬 WhatsApp</span>
-              </a>
-
-              <a
-                href={`/cert/${issuedSuccessCert.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-8 items-center justify-center gap-1 rounded-xl bg-zinc-100 px-2 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
-              >
-                <ExternalLink className="size-3" />
-                <span className="wrap-break-word">Отвори линк</span>
-              </a>
-            </div>
-
-            <DialogFooter className="grid grid-cols-2 gap-2 pt-1 sm:space-x-0">
+            {/* Fixed Sticky Footer */}
+            <div className="shrink-0 grid grid-cols-2 gap-2 border-t border-zinc-200 bg-zinc-100/90 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/90">
               <Button
                 variant="outline"
                 onClick={handleResetForNext}
@@ -2012,7 +2016,7 @@ export function UploadVoucherTab({
                 Към регистъра
                 <ChevronRight className="ml-1 size-3.5" />
               </Button>
-            </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
       )}
@@ -2021,8 +2025,9 @@ export function UploadVoucherTab({
       {/* DIALOG 3: BATCH ISSUANCE RESULTS MODAL                                */}
       {/* ===================================================================== */}
       <Dialog open={isBatchResultsOpen} onOpenChange={setIsBatchResultsOpen}>
-        <DialogContent className="max-h-[88vh] max-w-2xl flex flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="border-b border-zinc-200 bg-white/90 px-6 py-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          {/* Fixed Sticky Header */}
+          <div className="shrink-0 border-b border-zinc-200 bg-white/90 px-4 sm:px-6 py-3.5 sm:py-4 pr-12 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
             <div className="flex items-center gap-3">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-400">
                 <CheckCircle2 className="size-5" />
@@ -2031,7 +2036,7 @@ export function UploadVoucherTab({
                 <DialogTitle className="text-base sm:text-lg font-black text-zinc-900 dark:text-white">
                   🎉 Успешно издадени {batchResults.length} ваучера!
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
+                <DialogDescription className="mt-0.5 text-xs text-zinc-500">
                   Институция: {recipientInstitution} • Всяко дете разполага със
                   собствен QR код и сериен номер.
                 </DialogDescription>
@@ -2039,8 +2044,8 @@ export function UploadVoucherTab({
             </div>
           </div>
 
-          {/* List of issued children */}
-          <div className="max-h-[60vh] space-y-2 overflow-y-auto p-4 sm:p-6 overscroll-contain">
+          {/* List of issued children - Scrollable Body */}
+          <div className="custom-scrollbar flex-1 space-y-2 overflow-y-auto p-4 sm:p-6 overscroll-contain min-h-0">
             {batchResults.map((c, idx) => (
               <div
                 key={c.id || idx}
@@ -2096,7 +2101,8 @@ export function UploadVoucherTab({
             ))}
           </div>
 
-          <div className="flex items-center justify-between border-t border-zinc-200 bg-zinc-100/90 px-6 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/90">
+          {/* Fixed Sticky Footer */}
+          <div className="shrink-0 flex items-center justify-between border-t border-zinc-200 bg-zinc-100/90 px-4 sm:px-6 py-3 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/90">
             <Button
               type="button"
               variant="outline"
@@ -2130,44 +2136,64 @@ export function UploadVoucherTab({
           open={isDocumentModalOpen}
           onOpenChange={setIsDocumentModalOpen}
         >
-          <DialogContent className="max-w-4xl rounded-3xl p-4 sm:p-6">
-            <DialogHeader className="flex flex-row items-center justify-between border-b pb-3">
-              <div>
-                <DialogTitle className="text-base font-bold">
-                  {uploadedFile?.name || "Преглед на документа"}
-                </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
-                  {fileType === "pdf" ? "PDF Документ" : "Графично изображение"}
-                </DialogDescription>
-              </div>
-              <a
-                href={previewUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mr-6 inline-flex h-8 items-center gap-1.5 rounded-xl bg-zinc-100 px-3 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
-              >
-                <ExternalLink className="size-3.5" />
-                <span>Отвори в нов таб</span>
-              </a>
-            </DialogHeader>
-
-            <div className="mt-4 flex max-h-[75vh] w-full items-center justify-center overflow-auto rounded-2xl bg-zinc-100 p-2 dark:bg-zinc-950">
-              {fileType === "pdf" ? (
-                <iframe
-                  src={previewUrl}
-                  title="PDF Fullscreen"
-                  className="h-[70vh] w-full rounded-xl border border-zinc-200 bg-white"
-                />
-              ) : (
-                <div className="flex w-full items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={previewUrl}
-                    alt="Документ"
-                    className="max-h-[70vh] w-auto rounded-xl object-contain shadow-md"
-                  />
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+            {/* Fixed Sticky Header */}
+            <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
+                    {uploadedFile?.name || "Преглед на документа"}
+                  </DialogTitle>
+                  <DialogDescription className="mt-0.5 text-xs text-zinc-500">
+                    {fileType === "pdf"
+                      ? "PDF Документ"
+                      : "Графично изображение"}
+                  </DialogDescription>
                 </div>
-              )}
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-xl bg-zinc-100 px-3 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                >
+                  <ExternalLink className="size-3.5" />
+                  <span>Отвори в нов таб</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Scrollable Body Container */}
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+              <div className="flex w-full items-center justify-center rounded-2xl bg-zinc-100 p-2 dark:bg-zinc-950">
+                {fileType === "pdf" ? (
+                  <iframe
+                    src={previewUrl}
+                    title="PDF Fullscreen"
+                    className="h-[65vh] w-full rounded-xl border border-zinc-200 bg-white"
+                  />
+                ) : (
+                  <div className="flex w-full items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={previewUrl}
+                      alt="Документ"
+                      className="max-h-[65vh] w-auto rounded-xl object-contain shadow-md"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Fixed Sticky Footer */}
+            <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDocumentModalOpen(false)}
+                className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+              >
+                Затвори
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

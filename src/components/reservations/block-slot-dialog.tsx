@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -14,8 +14,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -162,112 +160,125 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-[88vh] overflow-y-auto rounded-4xl border-zinc-100 shadow-2xl sm:max-w-md dark:border-zinc-900">
-        <DialogHeader className="pb-4">
-          <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-white">
-            {isEditMode
-              ? "Редактиране на блокиран период"
-              : "Блокиране на часове"}
-          </DialogTitle>
-          <DialogDescription className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
-            {isEditMode
-              ? "Променете данните и натиснете 'Запази промените'."
-              : "Изберете период и кортове, които да бъдат блокирани."}
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-                    Причина
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Напр. Поддръжка, Турнир..."
-                      className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 font-medium transition-all focus:bg-white focus:ring-0"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <DateTimePicker
-                control={form.control}
-                name="startTime"
-                label="Начало"
-              />
-              <DateTimePicker
-                control={form.control}
-                name="endTime"
-                label="Край"
-              />
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Header */}
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="flex items-center gap-3 pr-8">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+              <ShieldAlert className="size-4.5" />
             </div>
-            <FormField
-              control={form.control}
-              name="courtIds"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="mb-2 flex items-center justify-between">
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
+                {isEditMode
+                  ? "Редактиране на блокиран период"
+                  : "Блокиране на часове"}
+              </DialogTitle>
+              <DialogDescription className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                {isEditMode
+                  ? "Променете данните и натиснете 'Запази промените'."
+                  : "Изберете период и кортове, които да бъдат блокирани."}
+              </DialogDescription>
+            </div>
+          </div>
+        </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-1 flex-col overflow-hidden min-h-0"
+          >
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5 min-h-0">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
                     <FormLabel className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-                      Избор на кортове
+                      Причина
                     </FormLabel>
-                    <div className="flex items-center space-x-2 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
-                      <Checkbox
-                        id="all-courts"
-                        checked={field.value.length === courtCount}
-                        onCheckedChange={(checked) =>
-                          field.onChange(checked ? allCourtIds : [])
-                        }
-                        className="rounded-md"
+                    <FormControl>
+                      <Input
+                        placeholder="Напр. Поддръжка, Турнир..."
+                        className="h-11 rounded-xl border-zinc-200 bg-zinc-50/50 font-medium transition-all focus:bg-white focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
+                        {...field}
                       />
-                      <label
-                        htmlFor="all-courts"
-                        className="cursor-pointer text-[10px] font-black tracking-widest text-zinc-500 uppercase"
-                      >
-                        Всички
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 pt-2">
-                    {allCourtIds.map((id) => (
-                      <div
-                        key={id}
-                        className={cn(
-                          "flex cursor-pointer items-center gap-3 rounded-2xl border p-3 transition-all",
-                          field.value?.includes(id)
-                            ? "border-primary/20 bg-primary/5 text-primary"
-                            : "border-zinc-100 bg-zinc-50/50 text-zinc-400 hover:border-zinc-200"
-                        )}
-                        onClick={() =>
-                          handleCourtToggle(id, field.value, field.onChange)
-                        }
-                      >
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DateTimePicker
+                  control={form.control}
+                  name="startTime"
+                  label="Начало"
+                />
+                <DateTimePicker
+                  control={form.control}
+                  name="endTime"
+                  label="Край"
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="courtIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="mb-2 flex items-center justify-between">
+                      <FormLabel className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
+                        Избор на кортове
+                      </FormLabel>
+                      <div className="flex items-center space-x-2 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
                         <Checkbox
-                          checked={field.value?.includes(id)}
+                          id="all-courts"
+                          checked={field.value?.length === courtCount}
+                          onCheckedChange={(checked) =>
+                            field.onChange(checked ? allCourtIds : [])
+                          }
                           className="rounded-md"
                         />
-                        <span className="text-xs font-bold tracking-wider uppercase">
-                          Корт {id}
-                        </span>
+                        <label
+                          htmlFor="all-courts"
+                          className="cursor-pointer text-[10px] font-black tracking-widest text-zinc-500 uppercase"
+                        >
+                          Всички
+                        </label>
                       </div>
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter className="gap-3 pt-4">
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                      {allCourtIds.map((id) => (
+                        <div
+                          key={id}
+                          className={cn(
+                            "flex cursor-pointer items-center gap-2.5 rounded-xl border p-2.5 transition-all text-xs font-semibold",
+                            field.value?.includes(id)
+                              ? "border-primary/30 bg-primary/5 text-primary"
+                              : "border-zinc-200 bg-zinc-50/50 text-zinc-600 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-400"
+                          )}
+                          onClick={() =>
+                            handleCourtToggle(id, field.value, field.onChange)
+                          }
+                        >
+                          <Checkbox
+                            checked={field.value?.includes(id)}
+                            className="rounded-md"
+                          />
+                          <span className="truncate">Корт {id}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Fixed Sticky Footer */}
+            <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 type="button"
                 variant="ghost"
-                className="rounded-xl px-8 text-[10px] font-bold tracking-widest text-zinc-400 uppercase transition-all hover:bg-zinc-50 hover:text-zinc-900"
+                className="h-10 rounded-xl px-5 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
                 onClick={() => setIsOpen(false)}
               >
                 Отказ
@@ -275,17 +286,17 @@ export const BlockSlotDialog: React.FC<BlockSlotDialogProps> = ({
               <Button
                 type="submit"
                 disabled={isSaving}
-                className="h-12 rounded-xl border-none bg-zinc-900 px-8 text-[10px] font-bold tracking-widest text-white uppercase shadow-lg shadow-black/10 transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+                className="h-10 rounded-xl bg-zinc-900 px-6 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
               >
                 {isSaving && (
                   <Loader2
-                    className="mr-2 size-3 animate-spin"
+                    className="mr-2 size-3.5 animate-spin"
                     strokeWidth={2}
                   />
                 )}
                 {isEditMode ? "Запази промените" : "Блокирай"}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </Form>
       </DialogContent>

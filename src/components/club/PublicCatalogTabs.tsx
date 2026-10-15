@@ -590,211 +590,214 @@ function CatalogCard({
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-zinc-800 bg-zinc-950 p-0 sm:max-w-150">
-          <div className="relative h-64 w-full bg-black">
-            <ImageGallery
-              images={images}
-              displayMode="carousel"
-              altName={item.name}
-              fallbackIcon={<Package className="size-8 opacity-40" />}
-              fallbackText={lang === "en" ? "No image" : "Няма снимка"}
-            />
-            <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
-            <div className="pointer-events-none absolute top-4 left-4">
-              {renderBadges()}
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white [&>button:last-child]:z-10">
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain min-h-0">
+            <div className="relative h-56 sm:h-64 w-full bg-black">
+              <ImageGallery
+                images={images}
+                displayMode="carousel"
+                altName={item.name}
+                fallbackIcon={<Package className="size-8 opacity-40" />}
+                fallbackText={lang === "en" ? "No image" : "Няма снимка"}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
+              <div className="pointer-events-none absolute top-4 left-4">
+                {renderBadges()}
+              </div>
             </div>
-          </div>
 
-          <div className="relative -mt-16 p-6 md:p-8">
-            <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-2xl backdrop-blur-xl">
-              <DialogHeader>
-                <DialogTitle className="mb-2 text-2xl leading-tight font-bold text-white">
-                  <span>{renderTranslatedText(item.name, lang)}</span>
-                </DialogTitle>
-                <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                  {shouldShowPrice(item, tab) && item.price > 0 && (
-                    <div className="text-xl font-medium tracking-tight text-blue-400">
-                      <span>{item.price.toFixed(2)} EUR</span>
-                    </div>
-                  )}
-                  {(() => {
-                    const showPrice =
-                      shouldShowPrice(item, tab) && item.price > 0;
-                    const btnText = showPrice
-                      ? t("Запиши се / Заяви", "Book / Request", lang)
-                      : t("Попитайте за цена", "Ask for price", lang);
+            <div className="relative -mt-16 p-5 sm:p-6 md:p-8">
+              <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5 sm:p-6 shadow-2xl backdrop-blur-xl">
+                <DialogHeader>
+                  <DialogTitle className="mb-2 text-xl sm:text-2xl leading-tight font-bold text-white">
+                    <span>{renderTranslatedText(item.name, lang)}</span>
+                  </DialogTitle>
+                  <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                    {shouldShowPrice(item, tab) && item.price > 0 && (
+                      <div className="text-xl font-medium tracking-tight text-blue-400">
+                        <span>{item.price.toFixed(2)} EUR</span>
+                      </div>
+                    )}
+                    {(() => {
+                      const showPrice =
+                        shouldShowPrice(item, tab) && item.price > 0;
+                      const btnText = showPrice
+                        ? t("Запиши се / Заяви", "Book / Request", lang)
+                        : t("Попитайте за цена", "Ask for price", lang);
 
-                    if (tab === "recovery" && onRecoveryInquiry) {
+                      if (tab === "recovery" && onRecoveryInquiry) {
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsModalOpen(false);
+                              onRecoveryInquiry(item);
+                            }}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-emerald-500/20 transition-colors hover:bg-emerald-600"
+                          >
+                            <CalendarCheck size={16} />
+                            <span>Изпрати запитване за час</span>
+                          </button>
+                        );
+                      }
+
                       return (
                         <button
                           type="button"
                           onClick={() => {
                             setIsModalOpen(false);
-                            onRecoveryInquiry(item);
+                            setIsInquiryOpen(true);
                           }}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-emerald-500/20 transition-colors hover:bg-emerald-600"
+                          className={`inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-500 ${!showPrice ? "w-full sm:w-auto" : ""}`}
                         >
-                          <CalendarCheck size={16} />
-                          <span>Изпрати запитване за час</span>
+                          <span>{btnText}</span>
                         </button>
                       );
-                    }
-
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsModalOpen(false);
-                          setIsInquiryOpen(true);
-                        }}
-                        className={`inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-500 ${!showPrice ? "w-full sm:w-auto" : ""}`}
-                      >
-                        <span>{btnText}</span>
-                      </button>
-                    );
-                  })()}
-                </div>
-              </DialogHeader>
-            </div>
-
-            <div className="custom-scrollbar max-h-75 space-y-6 overflow-y-auto pr-2">
-              {/* Additional Metadata */}
-              <div className="flex flex-wrap gap-2">
-                {(() => {
-                  const dur = Number(item.duration || item.durationMinutes);
-                  if (!dur) return null;
-                  const nameLower = (item.name || "").toLowerCase();
-                  const isExclusive =
-                    nameLower.includes("exclusive") ||
-                    nameLower.includes("ексклузивн");
-                  const displayDur =
-                    isExclusive && dur === 45 ? "15 + 30" : dur;
-
-                  let badgeClass = "border-zinc-700 bg-zinc-900 text-zinc-300";
-                  if (dur === 15)
-                    badgeClass =
-                      "border-teal-900/50 bg-teal-950/40 text-teal-400";
-                  else if (dur === 30)
-                    badgeClass =
-                      "border-blue-900/50 bg-blue-950/40 text-blue-400";
-                  else if (dur >= 45)
-                    badgeClass =
-                      "border-fuchsia-900/50 bg-fuchsia-950/40 text-fuchsia-400";
-
-                  return (
-                    <Badge
-                      variant="outline"
-                      className={`rounded-md px-3 py-1 text-xs ${badgeClass}`}
-                    >
-                      <span>
-                        {t("Продължителност: ", "Duration: ", lang)}
-                        {displayDur} {t("мин", "min", lang)}
-                      </span>
-                    </Badge>
-                  );
-                })()}
-                {item.athleteCount && (
-                  <Badge
-                    variant="outline"
-                    className={`rounded-md px-3 py-1 text-xs ${
-                      item.athleteCount >= 2
-                        ? "border-amber-900/50 bg-amber-950/40 text-amber-400"
-                        : "border-zinc-700 bg-zinc-900 text-zinc-300"
-                    }`}
-                  >
-                    <span>
-                      {t("Капацитет: ", "Capacity: ", lang)}
-                      {item.athleteCount} {t("спортисти", "athletes", lang)}
-                    </span>
-                  </Badge>
-                )}
-                {tab === "recovery" && (
-                  <Badge
-                    variant="outline"
-                    className={`rounded-md px-3 py-1 text-xs ${
-                      (item.numberOfDays || 1) >= 3
-                        ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
-                        : (item.numberOfDays || 1) === 2
-                          ? "border-sky-900/50 bg-sky-950/40 text-sky-400"
-                          : "border-zinc-700 bg-zinc-900 text-zinc-300"
-                    }`}
-                  >
-                    <span>
-                      {item.numberOfDays || 1} {t("дни", "days", lang)} /{" "}
-                      {item.proceduresPerDay || 1}{" "}
-                      {t("процедури на ден", "procedures per day", lang)}
-                    </span>
-                  </Badge>
-                )}
-                {item.zones && (
-                  <Badge
-                    variant="outline"
-                    className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                  >
-                    <span>
-                      {renderTranslatedText(getZonesDisplayText(), lang)}
-                    </span>
-                  </Badge>
-                )}
+                    })()}
+                  </div>
+                </DialogHeader>
               </div>
 
-              {/* Resources */}
-              {item.requiredResources && (
-                <div className="mt-4 rounded-xl border border-zinc-800/50 bg-zinc-900/50 p-4">
-                  <h4 className="mb-3 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
-                    {t("Ресурси", "Resources", lang)}
-                  </h4>
-                  <div className="flex flex-wrap gap-4">
-                    {(item.requiredResources.compressors ?? 0) > 0 && (
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <span className="size-1.5 rounded-full bg-emerald-400" />
-                        <span>
-                          {item.requiredResources.compressors}{" "}
-                          {t("компресора", "compressors", lang)}
-                        </span>
-                      </div>
-                    )}
-                    {(item.requiredResources.attachments?.arms ?? 0) > 0 && (
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <span className="size-1.5 rounded-full bg-blue-400" />
-                        <span>
-                          {item.requiredResources.attachments?.arms}{" "}
-                          {renderTranslatedText("РЪЦЕ", lang)}
-                        </span>
-                      </div>
-                    )}
-                    {(item.requiredResources.attachments?.legs ?? 0) > 0 && (
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <span className="size-1.5 rounded-full bg-cyan-400" />
-                        <span>
-                          {item.requiredResources.attachments?.legs}{" "}
-                          {renderTranslatedText("КРАКА", lang)}
-                        </span>
-                      </div>
-                    )}
-                    {(item.requiredResources.attachments?.hips ?? 0) > 0 && (
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <span className="size-1.5 rounded-full bg-purple-400" />
-                        <span>
-                          {item.requiredResources.attachments?.hips}{" "}
-                          {renderTranslatedText("ТАЗ", lang)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              <div className="space-y-6">
+                {/* Additional Metadata */}
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    const dur = Number(item.duration || item.durationMinutes);
+                    if (!dur) return null;
+                    const nameLower = (item.name || "").toLowerCase();
+                    const isExclusive =
+                      nameLower.includes("exclusive") ||
+                      nameLower.includes("ексклузивн");
+                    const displayDur =
+                      isExclusive && dur === 45 ? "15 + 30" : dur;
 
-              <DialogDescription className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
-                <span>
-                  {renderTranslatedText(item.description, lang) ||
-                    t(
-                      "Няма предоставено описание за този артикул.",
-                      "No description provided for this item.",
-                      lang
-                    )}
-                </span>
-              </DialogDescription>
+                    let badgeClass =
+                      "border-zinc-700 bg-zinc-900 text-zinc-300";
+                    if (dur === 15)
+                      badgeClass =
+                        "border-teal-900/50 bg-teal-950/40 text-teal-400";
+                    else if (dur === 30)
+                      badgeClass =
+                        "border-blue-900/50 bg-blue-950/40 text-blue-400";
+                    else if (dur >= 45)
+                      badgeClass =
+                        "border-fuchsia-900/50 bg-fuchsia-950/40 text-fuchsia-400";
+
+                    return (
+                      <Badge
+                        variant="outline"
+                        className={`rounded-md px-3 py-1 text-xs ${badgeClass}`}
+                      >
+                        <span>
+                          {t("Продължителност: ", "Duration: ", lang)}
+                          {displayDur} {t("мин", "min", lang)}
+                        </span>
+                      </Badge>
+                    );
+                  })()}
+                  {item.athleteCount && (
+                    <Badge
+                      variant="outline"
+                      className={`rounded-md px-3 py-1 text-xs ${
+                        item.athleteCount >= 2
+                          ? "border-amber-900/50 bg-amber-950/40 text-amber-400"
+                          : "border-zinc-700 bg-zinc-900 text-zinc-300"
+                      }`}
+                    >
+                      <span>
+                        {t("Капацитет: ", "Capacity: ", lang)}
+                        {item.athleteCount} {t("спортисти", "athletes", lang)}
+                      </span>
+                    </Badge>
+                  )}
+                  {tab === "recovery" && (
+                    <Badge
+                      variant="outline"
+                      className={`rounded-md px-3 py-1 text-xs ${
+                        (item.numberOfDays || 1) >= 3
+                          ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
+                          : (item.numberOfDays || 1) === 2
+                            ? "border-sky-900/50 bg-sky-950/40 text-sky-400"
+                            : "border-zinc-700 bg-zinc-900 text-zinc-300"
+                      }`}
+                    >
+                      <span>
+                        {item.numberOfDays || 1} {t("дни", "days", lang)} /{" "}
+                        {item.proceduresPerDay || 1}{" "}
+                        {t("процедури на ден", "procedures per day", lang)}
+                      </span>
+                    </Badge>
+                  )}
+                  {item.zones && (
+                    <Badge
+                      variant="outline"
+                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                    >
+                      <span>
+                        {renderTranslatedText(getZonesDisplayText(), lang)}
+                      </span>
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Resources */}
+                {item.requiredResources && (
+                  <div className="mt-4 rounded-xl border border-zinc-800/50 bg-zinc-900/50 p-4">
+                    <h4 className="mb-3 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+                      {t("Ресурси", "Resources", lang)}
+                    </h4>
+                    <div className="flex flex-wrap gap-4">
+                      {(item.requiredResources.compressors ?? 0) > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                          <span className="size-1.5 rounded-full bg-emerald-400" />
+                          <span>
+                            {item.requiredResources.compressors}{" "}
+                            {t("компресора", "compressors", lang)}
+                          </span>
+                        </div>
+                      )}
+                      {(item.requiredResources.attachments?.arms ?? 0) > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                          <span className="size-1.5 rounded-full bg-blue-400" />
+                          <span>
+                            {item.requiredResources.attachments?.arms}{" "}
+                            {renderTranslatedText("РЪЦЕ", lang)}
+                          </span>
+                        </div>
+                      )}
+                      {(item.requiredResources.attachments?.legs ?? 0) > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                          <span className="size-1.5 rounded-full bg-cyan-400" />
+                          <span>
+                            {item.requiredResources.attachments?.legs}{" "}
+                            {renderTranslatedText("КРАКА", lang)}
+                          </span>
+                        </div>
+                      )}
+                      {(item.requiredResources.attachments?.hips ?? 0) > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                          <span className="size-1.5 rounded-full bg-purple-400" />
+                          <span>
+                            {item.requiredResources.attachments?.hips}{" "}
+                            {renderTranslatedText("ТАЗ", lang)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <DialogDescription className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
+                  <span>
+                    {renderTranslatedText(item.description, lang) ||
+                      t(
+                        "Няма предоставено описание за този артикул.",
+                        "No description provided for this item.",
+                        lang
+                      )}
+                  </span>
+                </DialogDescription>
+              </div>
             </div>
           </div>
         </DialogContent>

@@ -26,7 +26,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { feedbackService } from "@/services/feedback-service";
@@ -561,19 +560,19 @@ export default function ClubReviewsClient() {
 
       {/* Survey Picker Dialog for Multiple Standing Surveys */}
       <Dialog open={isSurveyPickerOpen} onOpenChange={setIsSurveyPickerOpen}>
-        <DialogContent className="max-w-xl border-zinc-800 bg-zinc-950 text-white sm:rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-black text-white">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
+          <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 p-4 sm:p-5 pr-12">
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-black text-white">
               <PenLine className="size-5 text-blue-400" />
               Изберете анкета за отзив
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-400">
+            <DialogDescription className="mt-1 text-xs text-zinc-400">
               Моля, изберете за кое направление от клубната дейност желаете да
               споделите своите впечатления и препоръки:
             </DialogDescription>
-          </DialogHeader>
+          </div>
 
-          <div className="space-y-3 py-2">
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-3 min-h-0">
             {standingCampaigns.map((sc) => (
               <Link
                 key={sc.id}

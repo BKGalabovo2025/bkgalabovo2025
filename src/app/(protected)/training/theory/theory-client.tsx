@@ -32,8 +32,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -1122,15 +1120,17 @@ export default function TheoryClient() {
           if (!o) setSendQuiz(null);
         }}
       >
-        <DialogContent className="rounded-2xl sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
               <Share2 className="size-5 text-indigo-500" /> Изпрати линк към
               теста
             </DialogTitle>
-            <DialogDescription>{sendQuiz?.title}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+            <DialogDescription className="mt-1 text-xs text-zinc-500">
+              {sendQuiz?.title}
+            </DialogDescription>
+          </div>
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
             <div className="space-y-3">
               <Label className="font-bold">Търси и избери дете</Label>
               <Input
@@ -1139,7 +1139,7 @@ export default function TheoryClient() {
                 onChange={(e) => setMemberSearchQuery(e.target.value)}
                 className="rounded-xl"
               />
-              <ScrollArea className="h-40 rounded-xl border border-zinc-200 bg-white">
+              <ScrollArea className="h-40 rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="space-y-1 p-2">
                   {members
                     .filter((m) =>
@@ -1154,8 +1154,8 @@ export default function TheoryClient() {
                         onClick={() => setSelectedMemberId(m.id)}
                         className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                           selectedMemberId === m.id
-                            ? "bg-indigo-100 font-bold text-indigo-700"
-                            : "text-zinc-700 hover:bg-zinc-100"
+                            ? "bg-indigo-100 font-bold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400"
+                            : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                         }`}
                       >
                         {m.name}
@@ -1234,79 +1234,80 @@ export default function TheoryClient() {
           if (!o) setEditQuiz(null);
         }}
       >
-        <DialogContent className="rounded-2xl sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
               <Edit className="size-5 text-indigo-500" /> Редактирай Тест
             </DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[60vh]">
-            <div className="space-y-4 pr-2">
-              <Input
-                placeholder="Заглавие"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                className="rounded-xl"
-              />
-              <Textarea
-                placeholder="Описание"
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                className="rounded-xl"
-                rows={2}
-              />
-              {editQuestions.map((q, idx) => (
-                <Card key={q.id} className="rounded-xl border-zinc-200">
-                  <CardContent className="space-y-2 p-4">
-                    <Badge
-                      className={`text-[10px] ${q.type === "OPEN_TEXT" ? "bg-purple-100 text-purple-700" : "bg-indigo-100 text-indigo-700"}`}
-                    >
-                      {q.type === "OPEN_TEXT"
-                        ? "Тактическа мисия"
-                        : "Въпрос с избор"}
-                    </Badge>
-                    <Input
-                      value={q.text}
-                      onChange={(e) =>
-                        updateQuestion(idx, "text", e.target.value)
-                      }
-                      className="rounded-xl"
-                      placeholder="Текст на въпроса"
-                    />
-                    {q.type === "SINGLE_CHOICE" &&
-                      q.options?.map((opt, oi) => (
-                        <div key={oi} className="flex items-center gap-2">
-                          <span
-                            className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${q.correctAnswer === oi ? "bg-green-500 text-white" : "bg-zinc-100 text-zinc-500"}`}
-                          >
-                            {["А", "Б", "В"][oi]}
-                          </span>
-                          <Input
-                            value={opt}
-                            onChange={(e) => {
-                              const opts = [...(q.options ?? [])];
-                              opts[oi] = e.target.value;
-                              updateQuestion(idx, "options", opts);
-                            }}
-                            className="rounded-xl text-sm"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateQuestion(idx, "correctAnswer", oi)
-                            }
-                            className={`rounded-lg px-2 py-1 text-xs font-bold ${q.correctAnswer === oi ? "bg-green-100 text-green-700" : "bg-zinc-100 text-zinc-500"}`}
-                          >
-                            {q.correctAnswer === oi ? "✓" : "Верен?"}
-                          </button>
-                        </div>
-                      ))}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
-          <DialogFooter className="flex gap-2">
+          </div>
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+            <Input
+              placeholder="Заглавие"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="rounded-xl"
+            />
+            <Textarea
+              placeholder="Описание"
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              className="rounded-xl"
+              rows={2}
+            />
+            {editQuestions.map((q, idx) => (
+              <Card
+                key={q.id}
+                className="rounded-xl border-zinc-200 dark:border-zinc-800"
+              >
+                <CardContent className="space-y-2 p-4">
+                  <Badge
+                    className={`text-[10px] ${q.type === "OPEN_TEXT" ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300" : "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300"}`}
+                  >
+                    {q.type === "OPEN_TEXT"
+                      ? "Тактическа мисия"
+                      : "Въпрос с избор"}
+                  </Badge>
+                  <Input
+                    value={q.text}
+                    onChange={(e) =>
+                      updateQuestion(idx, "text", e.target.value)
+                    }
+                    className="rounded-xl"
+                    placeholder="Текст на въпроса"
+                  />
+                  {q.type === "SINGLE_CHOICE" &&
+                    q.options?.map((opt, oi) => (
+                      <div key={oi} className="flex items-center gap-2">
+                        <span
+                          className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${q.correctAnswer === oi ? "bg-green-500 text-white" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"}`}
+                        >
+                          {["А", "Б", "В"][oi]}
+                        </span>
+                        <Input
+                          value={opt}
+                          onChange={(e) => {
+                            const opts = [...(q.options ?? [])];
+                            opts[oi] = e.target.value;
+                            updateQuestion(idx, "options", opts);
+                          }}
+                          className="rounded-xl text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateQuestion(idx, "correctAnswer", oi)
+                          }
+                          className={`rounded-lg px-2 py-1 text-xs font-bold ${q.correctAnswer === oi ? "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"}`}
+                        >
+                          {q.correctAnswer === oi ? "✓" : "Верен?"}
+                        </button>
+                      </div>
+                    ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
             {editQuiz?.baseTemplateId && (
               <Button
                 variant="outline"
@@ -1322,34 +1323,34 @@ export default function TheoryClient() {
             >
               <Check className="mr-2 size-4" /> Запази
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* ══════════ QUESTION BANK MODAL ══════════════════════════════════════ */}
       <Dialog open={isBankOpen} onOpenChange={setIsBankOpen}>
-        <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden rounded-2xl p-0 sm:max-w-3xl">
-          <DialogHeader className="border-b p-6 pb-4">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-3xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
             <div className="flex items-center justify-between">
               <div>
-                <DialogTitle className="flex items-center gap-2 text-xl font-bold text-zinc-900">
+                <DialogTitle className="flex items-center gap-2 text-base sm:text-xl font-bold text-zinc-900 dark:text-white">
                   <Database className="size-5 text-indigo-600" />
                   Банка с въпроси (100 въпроса)
                 </DialogTitle>
-                <DialogDescription className="mt-1">
+                <DialogDescription className="mt-1 text-xs text-zinc-500">
                   Избери готови въпроси и ги добави наведнъж в своя тест.
                 </DialogDescription>
               </div>
               <Badge
                 variant="secondary"
-                className="bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700"
+                className="bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300"
               >
                 Избрани: {selectedBankIds.length}
               </Badge>
             </div>
 
             {/* Search & Categories */}
-            <div className="mt-4 space-y-3">
+            <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
               <div className="relative">
                 <Search className="absolute top-2.5 left-3 size-4 text-zinc-400" />
                 <Input
@@ -1381,7 +1382,7 @@ export default function TheoryClient() {
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
                       bankCategory === cat
                         ? "bg-indigo-600 text-white shadow-xs"
-                        : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                        : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                     }`}
                   >
                     {cat}
@@ -1389,10 +1390,10 @@ export default function TheoryClient() {
                 ))}
               </div>
             </div>
-          </DialogHeader>
+          </div>
 
           {/* List of questions */}
-          <ScrollArea className="flex-1 overflow-y-auto p-6">
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-3 min-h-0">
             <div className="space-y-3">
               {QUESTION_BANK.filter((item) => {
                 const matchesCat =
@@ -1482,9 +1483,9 @@ export default function TheoryClient() {
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
 
-          <DialogFooter className="flex items-center justify-between border-t bg-zinc-50 p-4 sm:justify-between">
+          <div className="shrink-0 flex items-center justify-between gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
             <div className="text-xs text-zinc-500">
               {selectedBankIds.length} маркирани въпроса
             </div>
@@ -1515,7 +1516,7 @@ export default function TheoryClient() {
                 {selectedBankIds.length})
               </Button>
             </div>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

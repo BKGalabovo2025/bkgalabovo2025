@@ -132,164 +132,108 @@ export function EntryForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Категория</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Изберете дисциплина" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent className="z-50 max-h-75 overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-                  {allowedCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {getCategoryName(cat)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 p-2 dark:border-blue-800 dark:bg-blue-900/10">
-          <div className="flex-1">
-            <h4 className="text-sm font-semibold">Групово добавяне</h4>
-            <p className="text-[10px] text-muted-foreground">
-              Избери няколко души наведнъж
-            </p>
-          </div>
-          <Checkbox
-            id="bulkMode"
-            checked={isBulkMode}
-            disabled={isDoubles}
-            onCheckedChange={(checked) => setIsBulkMode(!!checked)}
-          />
-        </div>
-
-        {isBulkMode && !isDoubles ? (
-          <div className="space-y-4 rounded-md border p-4">
-            <FormLabel>Избери участници ({selectedMemberIds.length})</FormLabel>
-            <div className="max-h-75 space-y-2 overflow-y-auto pr-2">
-              {availableMembers.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex items-center space-x-2 rounded-md border border-transparent p-2 transition-colors hover:border-border hover:bg-accent"
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-1 flex-col overflow-hidden min-h-0"
+      >
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5 min-h-0">
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Категория</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
                 >
-                  <Checkbox
-                    id={`member-${m.id}`}
-                    checked={selectedMemberIds.includes(m.id!)}
-                    onCheckedChange={(checked) => {
-                      if (checked)
-                        setSelectedMemberIds([...selectedMemberIds, m.id!]);
-                      else
-                        setSelectedMemberIds(
-                          selectedMemberIds.filter((id) => id !== m.id)
-                        );
-                    }}
-                  />
-                  <label
-                    htmlFor={`member-${m.id}`}
-                    className="flex-1 cursor-pointer text-sm"
-                  >
-                    {m.firstName} {m.lastName}
-                  </label>
-                </div>
-              ))}
-              {availableMembers.length === 0 && (
-                <p className="py-4 text-center text-sm text-muted-foreground">
-                  Няма свободни членове за тази категория.
-                </p>
-              )}
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Изберете дисциплина" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="z-50 max-h-75 overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                    {allowedCategories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {getCategoryName(cat)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 p-2 dark:border-blue-800 dark:bg-blue-900/10">
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold">Групово добавяне</h4>
+              <p className="text-[10px] text-muted-foreground">
+                Избери няколко души наведнъж
+              </p>
             </div>
+            <Checkbox
+              id="bulkMode"
+              checked={isBulkMode}
+              disabled={isDoubles}
+              onCheckedChange={(checked) => setIsBulkMode(!!checked)}
+            />
           </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Участник 1 */}
+
+          {isBulkMode && !isDoubles ? (
             <div className="space-y-4 rounded-md border p-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold">
-                  {isDoubles ? "Играч 1" : "Състезател"}
-                </h4>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="p1guest"
-                    checked={p1IsGuest}
-                    onCheckedChange={(checked) => setP1IsGuest(!!checked)}
-                  />
-                  <label
-                    htmlFor="p1guest"
-                    className="cursor-pointer text-sm leading-none font-medium"
+              <FormLabel>
+                Избери участници ({selectedMemberIds.length})
+              </FormLabel>
+              <div className="max-h-75 space-y-2 overflow-y-auto pr-2">
+                {availableMembers.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center space-x-2 rounded-md border border-transparent p-2 transition-colors hover:border-border hover:bg-accent"
                   >
-                    Гост (Външен)
-                  </label>
-                </div>
-              </div>
-
-              {!p1IsGuest ? (
-                <FormField
-                  control={form.control}
-                  name="memberId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Избери член на клуба</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Търсене..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="z-50 max-h-75 overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-                          {availableMembers.map((m) => (
-                            <SelectItem key={m.id} value={m.id as string}>
-                              {m.firstName} {m.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ) : (
-                <FormField
-                  control={form.control}
-                  name="externalName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Имена на госта</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Иван Иванов" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-
-            {/* Участник 2 (Само за двойки) */}
-            {isDoubles && (
-              <div className="space-y-4 rounded-md border bg-muted/20 p-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">Играч 2 (Партньор)</h4>
-                  <div className="flex items-center space-x-2">
                     <Checkbox
-                      id="p2guest"
-                      checked={p2IsGuest}
-                      onCheckedChange={(checked) => setP2IsGuest(!!checked)}
+                      id={`member-${m.id}`}
+                      checked={selectedMemberIds.includes(m.id!)}
+                      onCheckedChange={(checked) => {
+                        if (checked)
+                          setSelectedMemberIds([...selectedMemberIds, m.id!]);
+                        else
+                          setSelectedMemberIds(
+                            selectedMemberIds.filter((id) => id !== m.id)
+                          );
+                      }}
                     />
                     <label
-                      htmlFor="p2guest"
+                      htmlFor={`member-${m.id}`}
+                      className="flex-1 cursor-pointer text-sm"
+                    >
+                      {m.firstName} {m.lastName}
+                    </label>
+                  </div>
+                ))}
+                {availableMembers.length === 0 && (
+                  <p className="py-4 text-center text-sm text-muted-foreground">
+                    Няма свободни членове за тази категория.
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Участник 1 */}
+              <div className="space-y-4 rounded-md border p-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">
+                    {isDoubles ? "Играч 1" : "Състезател"}
+                  </h4>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="p1guest"
+                      checked={p1IsGuest}
+                      onCheckedChange={(checked) => setP1IsGuest(!!checked)}
+                    />
+                    <label
+                      htmlFor="p1guest"
                       className="cursor-pointer text-sm leading-none font-medium"
                     >
                       Гост (Външен)
@@ -297,10 +241,10 @@ export function EntryForm({
                   </div>
                 </div>
 
-                {!p2IsGuest ? (
+                {!p1IsGuest ? (
                   <FormField
                     control={form.control}
-                    name="partnerMemberId"
+                    name="memberId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Избери член на клуба</FormLabel>
@@ -328,12 +272,12 @@ export function EntryForm({
                 ) : (
                   <FormField
                     control={form.control}
-                    name="partnerExternalName"
+                    name="externalName"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Имена на госта</FormLabel>
                         <FormControl>
-                          <Input placeholder="Петър Петров" {...field} />
+                          <Input placeholder="Иван Иванов" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -341,22 +285,96 @@ export function EntryForm({
                   />
                 )}
               </div>
-            )}
-          </div>
-        )}
 
-        <div className="flex justify-end gap-2 pt-4">
+              {/* Участник 2 (Само за двойки) */}
+              {isDoubles && (
+                <div className="space-y-4 rounded-md border bg-muted/20 p-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">Играч 2 (Партньор)</h4>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="p2guest"
+                        checked={p2IsGuest}
+                        onCheckedChange={(checked) => setP2IsGuest(!!checked)}
+                      />
+                      <label
+                        htmlFor="p2guest"
+                        className="cursor-pointer text-sm leading-none font-medium"
+                      >
+                        Гост (Външен)
+                      </label>
+                    </div>
+                  </div>
+
+                  {!p2IsGuest ? (
+                    <FormField
+                      control={form.control}
+                      name="partnerMemberId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Избери член на клуба</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Търсене..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="z-50 max-h-75 overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                              {availableMembers.map((m) => (
+                                <SelectItem key={m.id} value={m.id as string}>
+                                  {m.firstName} {m.lastName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="partnerExternalName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Имена на госта</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Петър Петров" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={onClose}
             disabled={isSubmitting}
+            className="h-10 rounded-xl px-5 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
           >
-            <X className="mr-2 size-4" /> Отказ
+            <X className="mr-1.5 size-4" /> Отказ
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            <Save className="mr-2 size-4" />
-            Запиши участник
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-10 rounded-xl bg-zinc-900 px-6 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+          >
+            <Save className="mr-1.5 size-4" />
+            {isBulkMode
+              ? `Запиши ${selectedMemberIds.length} участника`
+              : "Запиши участник"}
           </Button>
         </div>
       </form>

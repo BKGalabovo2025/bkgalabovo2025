@@ -159,19 +159,19 @@ export function EventInquiryDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-lg flex-col overflow-hidden rounded-3xl border border-blue-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl sm:max-w-xl">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
         {/* Header */}
-        <div className="relative shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 p-5 pr-14 pb-3 sm:p-6 sm:pb-4">
+        <div className="relative shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 p-4 sm:p-6 pb-3 sm:pb-4 pr-12 sm:pr-14">
           <DialogHeader>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-blue-500/10 px-3 py-1 text-[11px] font-bold tracking-widest text-blue-400 uppercase">
+              <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[10px] sm:text-[11px] font-bold tracking-widest text-blue-400 uppercase">
                 Записване & Контакт
               </span>
             </div>
-            <DialogTitle className="mt-2 text-lg font-bold tracking-tight text-white sm:text-xl">
+            <DialogTitle className="mt-1.5 text-base sm:text-lg font-bold tracking-tight text-white line-clamp-1">
               ЗАПИТВАНЕ за: {event.title}
             </DialogTitle>
-            <DialogDescription className="mt-1 text-xs text-zinc-400">
+            <DialogDescription className="mt-0.5 text-xs text-zinc-400">
               Свържете се с клуба за записване, свободни места или въпроси.
             </DialogDescription>
           </DialogHeader>
@@ -227,7 +227,7 @@ export function EventInquiryDialog({
         </div>
 
         {/* Content Body */}
-        <div className="custom-scrollbar flex-1 overflow-y-auto p-5 sm:p-6">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
           <AnimatePresence mode="wait">
             {isSuccess ? (
               <motion.div

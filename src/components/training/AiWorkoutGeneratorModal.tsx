@@ -22,7 +22,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -738,27 +737,28 @@ export function AiWorkoutGeneratorModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-3xl border-zinc-200 p-0 dark:border-zinc-800">
-          <div className="border-b border-zinc-100 bg-linear-to-r from-blue-50/50 via-white to-transparent p-6 dark:border-zinc-800 dark:from-blue-950/20 dark:via-zinc-950">
-            <DialogHeader>
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-blue-600 p-2.5 text-white shadow-md shadow-blue-500/20">
-                  <Sparkles className="size-5" />
-                </div>
-                <div>
-                  <DialogTitle className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
-                    AI Генератор на Тренировки • Gemini Flash
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-zinc-500">
-                    Персонализиран микроцикъл за{" "}
-                    {member.name || `${member.firstName} ${member.lastName}`}
-                  </DialogDescription>
-                </div>
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          {/* Fixed Sticky Header */}
+          <div className="shrink-0 border-b border-zinc-100 bg-linear-to-r from-blue-50/50 via-white to-transparent p-4 sm:p-6 dark:border-zinc-800 dark:from-blue-950/20 dark:via-zinc-950">
+            <div className="flex items-center gap-3 pr-8">
+              <div className="shrink-0 rounded-2xl bg-blue-600 p-2.5 text-white shadow-md shadow-blue-500/20">
+                <Sparkles className="size-5" />
               </div>
-            </DialogHeader>
+              <div className="min-w-0">
+                <DialogTitle className="truncate text-base font-bold text-zinc-950 sm:text-lg dark:text-zinc-50">
+                  AI Генератор на Тренировки • Gemini Flash
+                </DialogTitle>
+                <DialogDescription className="truncate text-xs text-zinc-500">
+                  Персонализиран микроцикъл за{" "}
+                  {member.name || `${member.firstName} ${member.lastName}`}
+                </DialogDescription>
+              </div>
+            </div>
           </div>
 
-          <div className="p-6">{renderModalBody()}</div>
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+            {renderModalBody()}
+          </div>
         </DialogContent>
       </Dialog>
 

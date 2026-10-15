@@ -23,7 +23,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -343,22 +342,22 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent
-          className="flex max-h-[85vh] w-[92vw] flex-col overflow-hidden rounded-4xl border-none bg-white p-0 shadow-2xl sm:max-h-[90vh] sm:max-w-135 sm:rounded-5xl dark:bg-zinc-950"
+          className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4"
           aria-describedby={descriptionId}
         >
-          <div className="flex h-full flex-col overflow-hidden">
+          <div className="flex h-full flex-col overflow-hidden min-h-0">
             {/* Header */}
-            <div className="z-10 shrink-0 border-b border-zinc-100 bg-white p-6 pb-4 sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
+            <div className="z-10 shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
               <DialogHeader>
-                <DialogTitle className="flex items-center justify-between text-xl font-light tracking-tight text-zinc-950 sm:text-2xl dark:text-white">
+                <DialogTitle className="flex items-center justify-between text-lg sm:text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
                   <span>{dialogTitle}</span>
-                  <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-400 sm:text-sm dark:bg-zinc-900">
+                  <span className="rounded-full bg-zinc-200/60 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-600 sm:text-xs dark:bg-zinc-800 dark:text-zinc-400">
                     Стъпка {step} от 3
                   </span>
                 </DialogTitle>
                 <DialogDescription
                   id={descriptionId}
-                  className="mt-1 text-xs font-light text-zinc-400 sm:text-sm"
+                  className="mt-1 text-xs text-zinc-500"
                 >
                   {step === 1 && "Основна информация за събитието."}
                   {step === 2 && "Кога ще се проведе?"}
@@ -367,7 +366,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
               </DialogHeader>
 
               {/* Progress Bar */}
-              <div className="mt-6 flex gap-2">
+              <div className="mt-3 sm:mt-4 flex gap-2">
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
@@ -377,7 +376,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                         ? "bg-zinc-950 dark:bg-white"
                         : i < step
                           ? "bg-zinc-950/30 dark:bg-white/30"
-                          : "bg-zinc-100 dark:bg-zinc-800"
+                          : "bg-zinc-200 dark:bg-zinc-800"
                     )}
                   />
                 ))}
@@ -385,12 +384,12 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
             </div>
 
             {/* Form body */}
-            <div className="custom-scrollbar relative flex-1 overflow-y-auto overscroll-contain">
+            <div className="custom-scrollbar relative flex-1 overflow-y-auto overscroll-contain min-h-0">
               <form
                 id={formId}
                 onSubmit={handleSubmit}
                 onKeyDown={handleKeyDown}
-                className="space-y-6 p-6 sm:p-8"
+                className="space-y-5 p-4 sm:p-6"
               >
                 {/* STEP 1: Basic Info */}
                 <div
@@ -598,17 +597,17 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="z-10 shrink-0 border-t border-zinc-100 bg-zinc-50/30 p-6 pt-4 sm:p-8 dark:border-zinc-900 dark:bg-zinc-900/20">
-              <DialogFooter className="flex w-full flex-row items-center justify-between gap-3 sm:justify-between sm:gap-0">
+            <div className="z-10 shrink-0 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+              <div className="flex w-full items-center justify-between">
                 {step > 1 ? (
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={handlePrevStep}
                     disabled={isSubmitting}
-                    className="flex h-12 items-center gap-2 rounded-2xl px-6 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-white dark:hover:bg-zinc-900"
+                    className="flex h-9 sm:h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-medium tracking-wide uppercase transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
-                    <ArrowLeft className="size-4" /> Назад
+                    <ArrowLeft className="size-3.5" /> Назад
                   </Button>
                 ) : (
                   <Button
@@ -616,7 +615,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     variant="ghost"
                     onClick={handleClose}
                     disabled={isSubmitting}
-                    className="h-12 rounded-2xl px-6 text-[11px] font-medium tracking-widest text-zinc-400 uppercase transition-all hover:text-zinc-950"
+                    className="h-9 sm:h-10 rounded-xl px-4 text-xs font-medium tracking-wide text-zinc-500 uppercase transition-all hover:text-zinc-950 dark:hover:text-white"
                   >
                     Отказ
                   </Button>
@@ -629,20 +628,20 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                       e.preventDefault();
                       handleNextStep();
                     }}
-                    className="active:scale-0.98 flex h-12 items-center gap-2 rounded-2xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-950/10 transition-all hover:opacity-90 dark:bg-white dark:text-zinc-950"
+                    className="flex h-9 sm:h-10 items-center gap-1.5 rounded-xl bg-zinc-950 px-5 text-xs font-medium tracking-wide text-white uppercase shadow-md transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                   >
-                    Напред <ArrowRight className="size-4" />
+                    Напред <ArrowRight className="size-3.5" />
                   </Button>
                 ) : (
                   <Button
                     type="submit"
                     form={formId}
                     disabled={isSubmitting}
-                    className="active:scale-0.98 h-12 rounded-2xl bg-zinc-950 px-10 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-950/10 transition-all hover:opacity-90 dark:bg-white dark:text-zinc-950"
+                    className="h-9 sm:h-10 rounded-xl bg-zinc-950 px-6 text-xs font-medium tracking-wide text-white uppercase shadow-md transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="mr-2 size-4 animate-spin" />{" "}
+                        <Loader2 className="mr-2 size-3.5 animate-spin" />{" "}
                         Запазване...
                       </>
                     ) : (
@@ -650,7 +649,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     )}
                   </Button>
                 )}
-              </DialogFooter>
+              </div>
             </div>
           </div>
         </DialogContent>

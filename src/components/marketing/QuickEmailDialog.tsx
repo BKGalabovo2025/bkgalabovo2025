@@ -9,8 +9,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -227,17 +225,18 @@ export function QuickEmailDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
           <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-            <Mail className="size-5" />
-            <DialogTitle className="text-base font-bold text-zinc-900 dark:text-white">
+            <Mail className="size-5 shrink-0" />
+            <DialogTitle className="text-base font-bold text-zinc-900 dark:text-white line-clamp-1">
               {singleRecipient
-                ? `Изпращане на официален имейл до ${singleRecipient.name}`
-                : `Изпращане на официален имейл до ${recipients.length} получатели`}
+                ? `Изпращане на имейл до ${singleRecipient.name}`
+                : `Изпращане на имейл до ${recipients.length} получатели`}
             </DialogTitle>
           </div>
-          <DialogDescription className="text-xs text-zinc-500">
+          <DialogDescription className="mt-1 text-xs text-zinc-500">
             {singleRecipient ? (
               <span>
                 Имейл адрес:{" "}
@@ -250,9 +249,10 @@ export function QuickEmailDialog({
               </span>
             )}
           </DialogDescription>
-        </DialogHeader>
+        </div>
 
-        <div className="space-y-4 py-2">
+        {/* Scrollable Body */}
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
           {/* Sender Identity Selector */}
           <div className="space-y-1.5">
             <Label
@@ -376,13 +376,14 @@ export function QuickEmailDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between">
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex items-center justify-between gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={onClose}
             disabled={isSending}
-            className="text-xs"
+            className="h-9 sm:h-10 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
           >
             Отказ
           </Button>
@@ -392,7 +393,7 @@ export function QuickEmailDialog({
             type="button"
             onClick={handleSendViaServer}
             disabled={isSending || validRecipients.length === 0}
-            className={`h-10 gap-2 rounded-xl px-5 text-xs font-bold text-white shadow-md transition-all ${
+            className={`h-9 sm:h-10 gap-2 rounded-xl px-5 text-xs font-bold text-white shadow-md transition-all ${
               senderProfile === "recoveryzone"
                 ? "bg-emerald-600 shadow-emerald-200 hover:bg-emerald-500 dark:shadow-none"
                 : "bg-blue-600 shadow-blue-200 hover:bg-blue-500 dark:shadow-none"
@@ -400,9 +401,9 @@ export function QuickEmailDialog({
             title="Изпраща дизайнерски брандиран имейл директно от официалния сървър"
           >
             {isSending ? (
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-3.5 animate-spin" />
             ) : (
-              <Send className="size-4" />
+              <Send className="size-3.5" />
             )}
             <span>
               {senderProfile === "recoveryzone"
@@ -410,7 +411,7 @@ export function QuickEmailDialog({
                 : `Изпрати от БК Гълъбово (${validRecipients.length})`}
             </span>
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

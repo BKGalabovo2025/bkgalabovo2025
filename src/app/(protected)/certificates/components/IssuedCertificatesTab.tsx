@@ -31,12 +31,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   exportBatchMultiCertificatePdf,
@@ -1040,9 +1035,10 @@ export function IssuedCertificatesTab({
         open={Boolean(previewCert)}
         onOpenChange={(open) => !open && setPreviewCert(null)}
       >
-        <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto rounded-2xl border-zinc-200 p-3.5 sm:p-5 dark:border-zinc-800">
-          <DialogHeader>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl lg:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          {/* Fixed Sticky Header */}
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
                 <FileCheck2 className="size-4.5 text-blue-600" />
                 <span className="wrap-break-word">
@@ -1099,162 +1095,178 @@ export function IssuedCertificatesTab({
                 </div>
               )}
             </div>
-          </DialogHeader>
+          </div>
 
-          {previewCert && (
-            <div className="flex flex-col items-center justify-center py-2">
-              {previewCert.uploadedDocument ? (
-                <div className="w-full space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-                  {/* Branding Header in Preview */}
-                  <div className="flex flex-col gap-3 border-b border-zinc-100 pb-3 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
-                    <div className="flex items-center gap-2.5">
-                      <div className="relative size-10 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 dark:border-zinc-800">
-                        <Image
-                          src={
-                            previewCert.branding?.clubLogoUrl ||
-                            (previewCert.siteId === "recoveryzone"
-                              ? "/recovery-zone/rz-icon-square.png"
-                              : "/icons/badge-option-3-light-squircle.png")
+          {/* Scrollable Body Container */}
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+            {previewCert && (
+              <div className="flex flex-col items-center justify-center py-2">
+                {previewCert.uploadedDocument ? (
+                  <div className="w-full space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+                    {/* Branding Header in Preview */}
+                    <div className="flex flex-col gap-3 border-b border-zinc-100 pb-3 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
+                      <div className="flex items-center gap-2.5">
+                        <div className="relative size-10 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 dark:border-zinc-800">
+                          <Image
+                            src={
+                              previewCert.branding?.clubLogoUrl ||
+                              (previewCert.siteId === "recoveryzone"
+                                ? "/recovery-zone/rz-icon-square.png"
+                                : "/icons/badge-option-3-light-squircle.png")
+                            }
+                            alt="Club"
+                            width={36}
+                            height={36}
+                            className="size-full object-contain"
+                            unoptimized
+                          />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-black text-zinc-900 dark:text-white">
+                            {previewCert.siteId === "recoveryzone"
+                              ? "Recovery Zone by ZM"
+                              : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
+                          </h4>
+                          <p className="text-[10px] text-zinc-400">
+                            {previewCert.recipient.institution ||
+                              "Клубен партньор"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={previewCert.uploadedDocument.fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                        >
+                          <ExternalLink className="size-3" />
+                          Отвори файл
+                        </a>
+                        <a
+                          href={previewCert.uploadedDocument.fileUrl}
+                          download={
+                            previewCert.uploadedDocument.fileName || "document"
                           }
-                          alt="Club"
-                          width={36}
-                          height={36}
-                          className="size-full object-contain"
-                          unoptimized
-                        />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-black text-zinc-900 dark:text-white">
-                          {previewCert.siteId === "recoveryzone"
-                            ? "Recovery Zone by ZM"
-                            : "БАДМИНТОН КЛУБ ГЪЛЪБОВО"}
-                        </h4>
-                        <p className="text-[10px] text-zinc-400">
-                          {previewCert.recipient.institution ||
-                            "Клубен партньор"}
-                        </p>
+                          className="inline-flex items-center gap-1 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700"
+                        >
+                          <Download className="size-3" />
+                          Свали
+                        </a>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={previewCert.uploadedDocument.fileUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 rounded-xl bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
-                      >
-                        <ExternalLink className="size-3" />
-                        Отвори файл
-                      </a>
-                      <a
-                        href={previewCert.uploadedDocument.fileUrl}
-                        download={
-                          previewCert.uploadedDocument.fileName || "document"
-                        }
-                        className="inline-flex items-center gap-1 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700"
-                      >
-                        <Download className="size-3" />
-                        Свали
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Recipient & Metadata */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <div>
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase">
-                        Получател:{" "}
-                      </span>
-                      <span className="font-bold text-zinc-900 dark:text-white">
-                        {previewCert.recipient.name}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase">
-                        Предназначение:{" "}
-                      </span>
-                      <span className="font-bold text-blue-600 dark:text-blue-400">
-                        {previewCert.details.voucherServiceType ||
-                          previewCert.visualSnapshot.templateTitle}
-                      </span>
-                    </div>
-                    {previewCert.type === "voucher" && (
+                    {/* Recipient & Metadata */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
                       <div>
                         <span className="text-[10px] font-bold text-zinc-400 uppercase">
-                          Оставащи:{" "}
+                          Получател:{" "}
                         </span>
-                        <span className="font-bold text-amber-600 dark:text-amber-400">
-                          {Math.max(
-                            0,
-                            (previewCert.details.totalSessions || 1) -
-                              (previewCert.details.usedSessions || 0)
-                          )}{" "}
-                          от {previewCert.details.totalSessions || 1}
+                        <span className="font-bold text-zinc-900 dark:text-white">
+                          {previewCert.recipient.name}
                         </span>
                       </div>
-                    )}
-                  </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                          Предназначение:{" "}
+                        </span>
+                        <span className="font-bold text-blue-600 dark:text-blue-400">
+                          {previewCert.details.voucherServiceType ||
+                            previewCert.visualSnapshot.templateTitle}
+                        </span>
+                      </div>
+                      {previewCert.type === "voucher" && (
+                        <div>
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                            Оставащи:{" "}
+                          </span>
+                          <span className="font-bold text-amber-600 dark:text-amber-400">
+                            {Math.max(
+                              0,
+                              (previewCert.details.totalSessions || 1) -
+                                (previewCert.details.usedSessions || 0)
+                            )}{" "}
+                            от {previewCert.details.totalSessions || 1}
+                          </span>
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Document Viewer Frame */}
-                  <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-950 dark:border-zinc-800">
-                    {previewCert.uploadedDocument.fileType === "pdf" ? (
-                      <iframe
-                        src={previewCert.uploadedDocument.fileUrl}
-                        title="PDF Документ"
-                        className="h-125 w-full border-0 bg-white"
-                      />
-                    ) : (
-                      <div className="flex max-h-[550px] w-full items-center justify-center p-3">
-                        <img
+                    {/* Document Viewer Frame */}
+                    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-950 dark:border-zinc-800">
+                      {previewCert.uploadedDocument.fileType === "pdf" ? (
+                        <iframe
                           src={previewCert.uploadedDocument.fileUrl}
-                          alt="Документ"
-                          className="max-h-125 w-auto rounded-lg object-contain"
+                          title="PDF Документ"
+                          className="h-125 w-full border-0 bg-white"
                         />
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex max-h-[550px] w-full items-center justify-center p-3">
+                          <img
+                            src={previewCert.uploadedDocument.fileUrl}
+                            alt="Документ"
+                            className="max-h-125 w-auto rounded-lg object-contain"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="flex w-full items-center justify-center overflow-hidden">
-                  <CertificateDocumentPreview
-                    data={{
-                      siteId: previewCert.siteId,
-                      type: previewCert.type,
-                      title: previewCert.visualSnapshot.templateTitle,
-                      visualConfig: previewCert.visualSnapshot,
-                      serialNumber: previewCert.serialNumber,
-                      qrCodeDataUrl: previewCert.qrCodeDataUrl,
-                      recipientName: previewCert.recipient.name,
-                      recipientInstitution: previewCert.recipient.institution,
-                      rank: previewCert.details.rank,
-                      nomination: previewCert.details.nomination,
-                      eventTitle: previewCert.details.eventTitle,
-                      eventDate: previewCert.details.eventDate,
-                      eventLocation: previewCert.details.eventLocation,
-                      totalSessions: previewCert.details.totalSessions,
-                      remainingSessions: previewCert.details.remainingSessions,
-                      validUntil: previewCert.details.validUntil,
-                      skillsSummary: previewCert.details.skillsSummary,
-                      hoursTrained: previewCert.details.hoursTrained,
-                      sponsors: previewCert.visualSnapshot.sponsors.map(
-                        (s, idx) => ({
-                          id: `snap_${idx}`,
-                          siteId: previewCert.siteId,
-                          name: s.name,
-                          category: "general",
-                          logoUrl: s.logoUrl,
-                          websiteUrl: s.websiteUrl,
-                          isActive: true,
-                          order: idx,
-                          createdAt: previewCert.issuedAt,
-                        })
-                      ),
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+                ) : (
+                  <div className="flex w-full items-center justify-center overflow-hidden">
+                    <CertificateDocumentPreview
+                      data={{
+                        siteId: previewCert.siteId,
+                        type: previewCert.type,
+                        title: previewCert.visualSnapshot.templateTitle,
+                        visualConfig: previewCert.visualSnapshot,
+                        serialNumber: previewCert.serialNumber,
+                        qrCodeDataUrl: previewCert.qrCodeDataUrl,
+                        recipientName: previewCert.recipient.name,
+                        recipientInstitution: previewCert.recipient.institution,
+                        rank: previewCert.details.rank,
+                        nomination: previewCert.details.nomination,
+                        eventTitle: previewCert.details.eventTitle,
+                        eventDate: previewCert.details.eventDate,
+                        eventLocation: previewCert.details.eventLocation,
+                        totalSessions: previewCert.details.totalSessions,
+                        remainingSessions:
+                          previewCert.details.remainingSessions,
+                        validUntil: previewCert.details.validUntil,
+                        skillsSummary: previewCert.details.skillsSummary,
+                        hoursTrained: previewCert.details.hoursTrained,
+                        sponsors: previewCert.visualSnapshot.sponsors.map(
+                          (s, idx) => ({
+                            id: `snap_${idx}`,
+                            siteId: previewCert.siteId,
+                            name: s.name,
+                            category: "general",
+                            logoUrl: s.logoUrl,
+                            websiteUrl: s.websiteUrl,
+                            isActive: true,
+                            order: idx,
+                            createdAt: previewCert.issuedAt,
+                          })
+                        ),
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Fixed Sticky Footer */}
+          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPreviewCert(null)}
+              className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+            >
+              Затвори
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 

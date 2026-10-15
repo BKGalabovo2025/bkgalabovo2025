@@ -903,9 +903,9 @@ export function TemplateWizardDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="flex h-[94vh] max-w-[96vw] flex-col gap-0 overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 p-0 shadow-2xl xl:max-w-7xl dark:border-zinc-800 dark:bg-zinc-950">
+      <DialogContent className="flex max-h-[95dvh] sm:max-h-[92vh] h-[95dvh] sm:h-[92vh] w-[calc(100%-1rem)] sm:w-full sm:max-w-6xl xl:max-w-7xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
         {/* Header with Mode Switcher & Stepper */}
-        <div className="shrink-0 border-b border-zinc-200 bg-white/95 px-6 py-3.5 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95">
+        <div className="shrink-0 border-b border-zinc-200 bg-white/95 px-4 sm:px-6 py-3.5 pr-12 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95">
           <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
             <DialogHeader>
               <div className="flex items-center gap-3">
@@ -1006,7 +1006,7 @@ export function TemplateWizardDialog({
         {/* Dual Pane Body: Left Controls (Step View) + Right Live Document Canvas */}
         <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-12">
           {/* LEFT: STEP FORMS (5 cols) */}
-          <div className="flex flex-col justify-between space-y-6 overflow-y-auto border-r border-zinc-200 bg-white p-5 sm:p-6 lg:col-span-5 xl:col-span-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <div className="custom-scrollbar flex flex-col justify-between space-y-6 overflow-y-auto overscroll-contain border-r border-zinc-200 bg-white p-4 sm:p-6 lg:col-span-5 xl:col-span-5 min-h-0 dark:border-zinc-800 dark:bg-zinc-900/60">
             <div className="space-y-6">
               {/* STEP 1: TYPE & BASIC INFO */}
               {currentStep === 1 && (
@@ -2619,7 +2619,7 @@ export function TemplateWizardDialog({
           </div>
 
           {/* RIGHT: LIVE INTERACTIVE PREVIEW CANVAS (7 cols) */}
-          <div className="flex flex-col items-center justify-center overflow-y-auto bg-zinc-100 p-4 sm:p-6 lg:col-span-7 lg:p-8 xl:col-span-7 dark:bg-zinc-950/80">
+          <div className="custom-scrollbar flex flex-col items-center justify-center overflow-y-auto overscroll-contain bg-zinc-100 p-4 sm:p-6 lg:col-span-7 lg:p-8 xl:col-span-7 min-h-0 dark:bg-zinc-950/80">
             <div className="flex w-full max-w-4xl flex-col items-center space-y-3">
               <div className="flex w-full items-center justify-between px-2 text-xs font-bold text-zinc-400">
                 <span className="flex items-center gap-1.5">
@@ -2671,23 +2671,28 @@ export function TemplateWizardDialog({
           open={showEnglishPreviewModal}
           onOpenChange={setShowEnglishPreviewModal}
         >
-          <DialogContent className="max-w-lg rounded-3xl border-zinc-200 p-6 dark:border-zinc-800">
-            <DialogHeader>
+          <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+            {/* Fixed Sticky Header */}
+            <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
               <DialogTitle className="flex items-center gap-2 text-base font-bold text-zinc-900 dark:text-white">
                 <Languages className="size-4 text-purple-600" />
                 <span>Преведен Английски Промпт за AI Модела</span>
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="mt-1 text-xs text-zinc-500">
                 Това е оптимизираният английски текст, който системата изпраща
                 към Imagen 3 / FLUX задкулисно:
               </DialogDescription>
-            </DialogHeader>
-
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-xs leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
-              {englishPromptPreview || "—"}
             </div>
 
-            <div className="flex justify-end pt-2">
+            {/* Scrollable Body Container */}
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-xs leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+                {englishPromptPreview || "—"}
+              </div>
+            </div>
+
+            {/* Fixed Sticky Footer */}
+            <div className="shrink-0 flex items-center justify-end border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 type="button"
                 onClick={() => setShowEnglishPreviewModal(false)}

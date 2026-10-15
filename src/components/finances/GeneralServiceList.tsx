@@ -278,7 +278,7 @@ export function GeneralServiceList() {
         open={!!serviceToDelete}
         onOpenChange={(open) => !open && setServiceToDelete(null)}
       >
-        <AlertDialogContent className="max-w-md rounded-5xl border-none bg-white p-10 shadow-2xl dark:bg-zinc-950">
+        <AlertDialogContent className="max-h-[90dvh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl leading-tight font-light text-zinc-900 dark:text-white">
               Изтриване на услуга

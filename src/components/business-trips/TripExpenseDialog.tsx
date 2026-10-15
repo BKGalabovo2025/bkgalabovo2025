@@ -23,8 +23,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -288,425 +286,448 @@ export function TripExpenseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {expenseToEdit ? "Редактиране на разход" : "Добавяне на разход"}
-          </DialogTitle>
-          <DialogDescription>
-            {expenseToEdit
-              ? "Променете данните за разхода по-долу."
-              : "Въведете детайли за направен разход по време на командировката (гориво, нощувка или др.)"}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="flex items-center gap-3 pr-8">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+              <Save className="size-4.5" />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
+                {expenseToEdit ? "Редактиране на разход" : "Добавяне на разход"}
+              </DialogTitle>
+              <DialogDescription className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                {expenseToEdit
+                  ? "Променете данните за разхода по-долу."
+                  : "Детайли за направен разход по време на командировката"}
+              </DialogDescription>
+            </div>
+          </div>
+        </div>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit as any)}
-            className="space-y-6"
+            className="flex flex-1 flex-col overflow-hidden min-h-0"
           >
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-4">
-              <FormField
-                control={form.control as any}
-                name="expenseType"
-                render={({ field }: { field: any }) => (
-                  <FormItem>
-                    <FormLabel>Вид на разхода</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Изберете вид" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="fuel">Гориво</SelectItem>
-                        <SelectItem value="transport">
-                          Транспорт (Билети, Такси)
-                        </SelectItem>
-                        <SelectItem value="accommodation">
-                          Нощувка (Квартирни)
-                        </SelectItem>
-                        <SelectItem value="food">
-                          Храна (Извън дневни)
-                        </SelectItem>
-                        <SelectItem value="entry_fee">
-                          Входна такса за турнир
-                        </SelectItem>
-                        <SelectItem value="other">Други</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5 min-h-0">
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-4">
+                <FormField
+                  control={form.control as any}
+                  name="expenseType"
+                  render={({ field }: { field: any }) => (
+                    <FormItem>
+                      <FormLabel>Вид на разхода</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Изберете вид" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="fuel">Гориво</SelectItem>
+                          <SelectItem value="transport">
+                            Транспорт (Билети, Такси)
+                          </SelectItem>
+                          <SelectItem value="accommodation">
+                            Нощувка (Квартирни)
+                          </SelectItem>
+                          <SelectItem value="food">
+                            Храна (Извън дневни)
+                          </SelectItem>
+                          <SelectItem value="entry_fee">
+                            Входна такса за турнир
+                          </SelectItem>
+                          <SelectItem value="other">Други</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control as any}
-                name="amountEUR"
-                render={({ field }: any) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>
-                        {isFuel ? "Цена за 1 литър" : "Сума"}
-                      </FormLabel>
-                      <div className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-100 p-0.5 text-[11px] dark:border-zinc-800 dark:bg-zinc-800/80">
-                        <button
-                          type="button"
-                          onClick={() => setCurrencyMode("EUR")}
-                          className={cn(
-                            "px-2 py-0.5 rounded font-medium transition-colors",
-                            currencyMode === "EUR"
-                              ? "bg-white text-zinc-900 shadow-2xs dark:bg-zinc-900 dark:text-zinc-100"
-                              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
-                          )}
-                        >
-                          EUR € (Основна)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCurrencyMode("BGN");
-                            if (field.value && !bgnInputValue) {
-                              setBgnInputValue(
-                                convertEurToBgn(Number(field.value)).toFixed(2)
-                              );
-                            }
-                          }}
-                          className={cn(
-                            "px-2 py-0.5 rounded font-medium transition-colors",
-                            currencyMode === "BGN"
-                              ? "bg-white text-blue-600 shadow-2xs dark:bg-zinc-900 dark:text-blue-400"
-                              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
-                          )}
-                        >
-                          BGN лв (Калкулатор)
-                        </button>
-                      </div>
-                    </div>
-                    <FormControl>
-                      <div className="relative">
-                        {currencyMode === "EUR" ? (
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={field.value ?? ""}
-                            placeholder={isFuel ? "Напр. 1.35" : "0.00"}
-                            onChange={(e) => {
-                              const val =
-                                e.target.value === ""
-                                  ? 0
-                                  : Number(e.target.value);
-                              field.onChange(val);
-                              setBgnInputValue(
-                                val ? convertEurToBgn(val).toFixed(2) : ""
-                              );
-                            }}
-                            className="pr-12"
-                          />
-                        ) : (
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={bgnInputValue}
-                            placeholder={isFuel ? "Напр. 2.65" : "0.00"}
-                            onChange={(e) => {
-                              const bgnValStr = e.target.value;
-                              setBgnInputValue(bgnValStr);
-                              const bgnNum = Number(bgnValStr);
-                              if (!isNaN(bgnNum)) {
-                                field.onChange(convertBgnToEur(bgnNum));
+                <FormField
+                  control={form.control as any}
+                  name="amountEUR"
+                  render={({ field }: any) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>
+                          {isFuel ? "Цена за 1 литър" : "Сума"}
+                        </FormLabel>
+                        <div className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-100 p-0.5 text-[11px] dark:border-zinc-800 dark:bg-zinc-800/80">
+                          <button
+                            type="button"
+                            onClick={() => setCurrencyMode("EUR")}
+                            className={cn(
+                              "px-2 py-0.5 rounded font-medium transition-colors",
+                              currencyMode === "EUR"
+                                ? "bg-white text-zinc-900 shadow-2xs dark:bg-zinc-900 dark:text-zinc-100"
+                                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                            )}
+                          >
+                            EUR € (Основна)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrencyMode("BGN");
+                              if (field.value && !bgnInputValue) {
+                                setBgnInputValue(
+                                  convertEurToBgn(Number(field.value)).toFixed(
+                                    2
+                                  )
+                                );
                               }
                             }}
-                            className="border-blue-200 bg-blue-50/30 pr-12 text-blue-900 dark:border-blue-900 dark:bg-blue-900/30 dark:text-blue-100"
-                          />
-                        )}
-                        <div
-                          className={cn(
-                            "absolute inset-y-0 right-3 flex items-center text-xs font-semibold",
-                            currencyMode === "EUR"
-                              ? "text-zinc-500"
-                              : "text-blue-600 dark:text-blue-400"
-                          )}
-                        >
-                          {currencyMode}
+                            className={cn(
+                              "px-2 py-0.5 rounded font-medium transition-colors",
+                              currencyMode === "BGN"
+                                ? "bg-white text-blue-600 shadow-2xs dark:bg-zinc-900 dark:text-blue-400"
+                                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                            )}
+                          >
+                            BGN лв (Калкулатор)
+                          </button>
                         </div>
                       </div>
-                    </FormControl>
-                    <FormDescription className="text-[11px]">
-                      {(() => {
-                        const bgnText =
-                          currencyMode === "EUR"
-                            ? `Конвертира автоматично в лв. (≈ ${equivalentBGN.toFixed(2)} лв).`
-                            : `Конвертира автоматично в EUR (≈ ${amountEUR.toFixed(2)} €) — записва се в EUR.`;
-
-                        const t = form.watch("expenseType");
-                        if (
-                          !isFuel &&
-                          (t === "accommodation" || t === "entry_fee")
-                        ) {
-                          return (
-                            <>
-                              <span>{bgnText}</span>
-                              <span className="mt-1.5 block rounded bg-blue-50 p-2 leading-tight text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
-                                💡 <strong>Съвет:</strong> Ако въведете{" "}
-                                <strong>0</strong>, системата автоматично ще
-                                вземе общата сума от първоначалните ви настройки
-                                в Заповедта (Нареждането).
-                              </span>
-                            </>
-                          );
-                        }
-                        return bgnText;
-                      })()}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control as any}
-                name="documentDate"
-                render={({ field }: any) => (
-                  <FormItem>
-                    <FormLabel>Дата на фактурата</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        value={field.value ? field.value.split("T")[0] : ""}
-                        onChange={(e) => {
-                          const date = new Date(e.target.value);
-                          if (!isNaN(date.getTime())) {
-                            field.onChange(date.toISOString());
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control as any}
-                name="documentNumber"
-                render={({ field }: any) => (
-                  <FormItem>
-                    <FormLabel>№ на Фактура / Касов бон</FormLabel>
-                    <FormControl>
-                      <Input placeholder="0001234567" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control as any}
-                name="supplierName"
-                render={({ field }: any) => (
-                  <FormItem className="col-span-1 sm:col-span-2">
-                    <FormLabel>
-                      Име на доставчик (Хотел, Бензиностанция и др.)
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Напр. Лукойл България" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {form.watch("expenseType") === "accommodation" && (
-                <div className="col-span-1 sm:col-span-2 space-y-3 rounded-lg border border-indigo-200 bg-indigo-50/60 p-3.5 dark:border-indigo-900/60 dark:bg-indigo-950/30">
-                  <div className="flex items-center gap-2">
-                    <Moon className="size-4 text-indigo-600 dark:text-indigo-400" />
-                    <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
-                      Период и дати на нощувката (от състезанието)
-                    </span>
-                  </div>
-
-                  <FormField
-                    control={form.control as any}
-                    name="stayDate"
-                    render={({ field }: any) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">
-                          За коя дата / нощ от състезанието е нощувката?
-                        </FormLabel>
-                        {nightsList.length > 0 ? (
-                          <div className="space-y-2">
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value || ""}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="bg-white dark:bg-zinc-900">
-                                  <SelectValue placeholder="Изберете конкретна нощ или период" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="Всички нощувки (Обща фактура)">
-                                  Всички нощувки (Обща фактура за целия престой)
-                                </SelectItem>
-                                {nightsList.map((n) => (
-                                  <SelectItem key={n.value} value={n.value}>
-                                    {n.label}
-                                  </SelectItem>
-                                ))}
-                                <SelectItem value="Друга дата / Специфичен период">
-                                  Друга дата / Специфичен период (ръчно)
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            {(field.value ===
-                              "Друга дата / Специфичен период" ||
-                              (field.value &&
-                                !nightsList.some(
-                                  (n) => n.value === field.value
-                                ) &&
-                                field.value !==
-                                  "Всички нощувки (Обща фактура)")) && (
-                              <Input
-                                placeholder="Въведете конкретна дата или нощ (напр. 11.10.2025)"
-                                value={
-                                  field.value ===
-                                  "Друга дата / Специфичен период"
-                                    ? ""
-                                    : field.value
+                      <FormControl>
+                        <div className="relative">
+                          {currencyMode === "EUR" ? (
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={field.value ?? ""}
+                              placeholder={isFuel ? "Напр. 1.35" : "0.00"}
+                              onChange={(e) => {
+                                const val =
+                                  e.target.value === ""
+                                    ? 0
+                                    : Number(e.target.value);
+                                field.onChange(val);
+                                setBgnInputValue(
+                                  val ? convertEurToBgn(val).toFixed(2) : ""
+                                );
+                              }}
+                              className="pr-12"
+                            />
+                          ) : (
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={bgnInputValue}
+                              placeholder={isFuel ? "Напр. 2.65" : "0.00"}
+                              onChange={(e) => {
+                                const bgnValStr = e.target.value;
+                                setBgnInputValue(bgnValStr);
+                                const bgnNum = Number(bgnValStr);
+                                if (!isNaN(bgnNum)) {
+                                  field.onChange(convertBgnToEur(bgnNum));
                                 }
-                                onChange={(e) => field.onChange(e.target.value)}
+                              }}
+                              className="border-blue-200 bg-blue-50/30 pr-12 text-blue-900 dark:border-blue-900 dark:bg-blue-900/30 dark:text-blue-100"
+                            />
+                          )}
+                          <div
+                            className={cn(
+                              "absolute inset-y-0 right-3 flex items-center text-xs font-semibold",
+                              currencyMode === "EUR"
+                                ? "text-zinc-500"
+                                : "text-blue-600 dark:text-blue-400"
+                            )}
+                          >
+                            {currencyMode}
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormDescription className="text-[11px]">
+                        {(() => {
+                          const bgnText =
+                            currencyMode === "EUR"
+                              ? `Конвертира автоматично в лв. (≈ ${equivalentBGN.toFixed(2)} лв).`
+                              : `Конвертира автоматично в EUR (≈ ${amountEUR.toFixed(2)} €) — записва се в EUR.`;
+
+                          const t = form.watch("expenseType");
+                          if (
+                            !isFuel &&
+                            (t === "accommodation" || t === "entry_fee")
+                          ) {
+                            return (
+                              <>
+                                <span>{bgnText}</span>
+                                <span className="mt-1.5 block rounded bg-blue-50 p-2 leading-tight text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+                                  💡 <strong>Съвет:</strong> Ако въведете{" "}
+                                  <strong>0</strong>, системата автоматично ще
+                                  вземе общата сума от първоначалните ви
+                                  настройки в Заповедта (Нареждането).
+                                </span>
+                              </>
+                            );
+                          }
+                          return bgnText;
+                        })()}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control as any}
+                  name="documentDate"
+                  render={({ field }: any) => (
+                    <FormItem>
+                      <FormLabel>Дата на фактурата</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          value={field.value ? field.value.split("T")[0] : ""}
+                          onChange={(e) => {
+                            const date = new Date(e.target.value);
+                            if (!isNaN(date.getTime())) {
+                              field.onChange(date.toISOString());
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control as any}
+                  name="documentNumber"
+                  render={({ field }: any) => (
+                    <FormItem>
+                      <FormLabel>№ на Фактура / Касов бон</FormLabel>
+                      <FormControl>
+                        <Input placeholder="0001234567" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control as any}
+                  name="supplierName"
+                  render={({ field }: any) => (
+                    <FormItem className="col-span-1 sm:col-span-2">
+                      <FormLabel>
+                        Име на доставчик (Хотел, Бензиностанция и др.)
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Напр. Лукойл България" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("expenseType") === "accommodation" && (
+                  <div className="col-span-1 sm:col-span-2 space-y-3 rounded-lg border border-indigo-200 bg-indigo-50/60 p-3.5 dark:border-indigo-900/60 dark:bg-indigo-950/30">
+                    <div className="flex items-center gap-2">
+                      <Moon className="size-4 text-indigo-600 dark:text-indigo-400" />
+                      <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">
+                        Период и дати на нощувката (от състезанието)
+                      </span>
+                    </div>
+
+                    <FormField
+                      control={form.control as any}
+                      name="stayDate"
+                      render={({ field }: any) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">
+                            За коя дата / нощ от състезанието е нощувката?
+                          </FormLabel>
+                          {nightsList.length > 0 ? (
+                            <div className="space-y-2">
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="bg-white dark:bg-zinc-900">
+                                    <SelectValue placeholder="Изберете конкретна нощ или период" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Всички нощувки (Обща фактура)">
+                                    Всички нощувки (Обща фактура за целия
+                                    престой)
+                                  </SelectItem>
+                                  {nightsList.map((n) => (
+                                    <SelectItem key={n.value} value={n.value}>
+                                      {n.label}
+                                    </SelectItem>
+                                  ))}
+                                  <SelectItem value="Друга дата / Специфичен период">
+                                    Друга дата / Специфичен период (ръчно)
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {(field.value ===
+                                "Друга дата / Специфичен период" ||
+                                (field.value &&
+                                  !nightsList.some(
+                                    (n) => n.value === field.value
+                                  ) &&
+                                  field.value !==
+                                    "Всички нощувки (Обща фактура)")) && (
+                                <Input
+                                  placeholder="Въведете конкретна дата или нощ (напр. 11.10.2025)"
+                                  value={
+                                    field.value ===
+                                    "Друга дата / Специфичен период"
+                                      ? ""
+                                      : field.value
+                                  }
+                                  onChange={(e) =>
+                                    field.onChange(e.target.value)
+                                  }
+                                  className="bg-white text-xs dark:bg-zinc-900"
+                                />
+                              )}
+                            </div>
+                          ) : (
+                            <FormControl>
+                              <Input
+                                placeholder="Напр. Нощ 2 (11.10 - 12.10.2025)"
+                                {...field}
                                 className="bg-white text-xs dark:bg-zinc-900"
                               />
-                            )}
-                          </div>
-                        ) : (
+                            </FormControl>
+                          )}
+                          <FormDescription className="text-[11px]">
+                            Посочете коя нощ от турнира покрива този разход.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control as any}
+                      name="notes"
+                      render={({ field }: any) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">
+                            Бележки / Настанени състезатели (по избор)
+                          </FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Напр. Нощ 2 (11.10 - 12.10.2025)"
+                              placeholder="Напр. За 8 състезатели (без отпадналите)"
                               {...field}
                               className="bg-white text-xs dark:bg-zinc-900"
                             />
                           </FormControl>
-                        )}
-                        <FormDescription className="text-[11px]">
-                          Посочете коя нощ от турнира покрива този разход.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
 
-                  <FormField
-                    control={form.control as any}
-                    name="notes"
-                    render={({ field }: any) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">
-                          Бележки / Настанени състезатели (по избор)
-                        </FormLabel>
-                        <FormControl>
+                <FormField
+                  control={form.control as any}
+                  name="attachmentFile"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem className="col-span-1 sm:col-span-2">
+                      <FormLabel>Прикачи снимка/скан (опционално)</FormLabel>
+                      <FormControl>
+                        <div className="flex items-center gap-4">
                           <Input
-                            placeholder="Напр. За 8 състезатели (без отпадналите)"
+                            type="file"
+                            accept="image/*,.pdf"
+                            capture="environment"
+                            onChange={(e) => {
+                              onChange(e.target.files);
+                              handleFileUpload(e.target.files);
+                            }}
                             {...field}
-                            className="bg-white text-xs dark:bg-zinc-900"
+                            className="file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-1 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
-
-              <FormField
-                control={form.control as any}
-                name="attachmentFile"
-                render={({ field: { value, onChange, ...field } }) => (
-                  <FormItem className="col-span-1 sm:col-span-2">
-                    <FormLabel>Прикачи снимка/скан (опционално)</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center gap-4">
-                        <Input
-                          type="file"
-                          accept="image/*,.pdf"
-                          capture="environment"
-                          onChange={(e) => {
-                            onChange(e.target.files);
-                            handleFileUpload(e.target.files);
-                          }}
-                          {...field}
-                          className="file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-1 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
-                        />
-                        {isOcrRunning ? (
-                          <Loader2 className="size-5 animate-spin text-blue-500" />
-                        ) : (
-                          <FileUp className="size-5 text-zinc-400" />
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormDescription className="text-[10px]">
-                      Снимката ще бъде качена сигурно в облака.
-                    </FormDescription>
-                    {form.watch("attachmentUrl") && (
-                      <div className="mt-2 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
-                        <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                          <span>Прикачен документ е наличен.</span>
-                          {expenseToEdit?.attachmentDownloadedAt && (
-                            <span className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80">
-                              (Свалян на:{" "}
-                              {format(
-                                new Date(expenseToEdit.attachmentDownloadedAt),
-                                "dd.MM.yyyy HH:mm"
-                              )}
-                              )
-                            </span>
+                          {isOcrRunning ? (
+                            <Loader2 className="size-5 animate-spin text-blue-500" />
+                          ) : (
+                            <FileUp className="size-5 text-zinc-400" />
                           )}
                         </div>
-                        <a
-                          href={form.watch("attachmentUrl")}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-medium underline underline-offset-2 hover:text-emerald-950 dark:hover:text-emerald-100"
-                        >
-                          Преглед
-                          <ExternalLink className="size-3" />
-                        </a>
-                      </div>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      </FormControl>
+                      <FormDescription className="text-[10px]">
+                        Снимката ще бъде качена сигурно в облака.
+                      </FormDescription>
+                      {form.watch("attachmentUrl") && (
+                        <div className="mt-2 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                            <span>Прикачен документ е наличен.</span>
+                            {expenseToEdit?.attachmentDownloadedAt && (
+                              <span className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80">
+                                (Свалян на:{" "}
+                                {format(
+                                  new Date(
+                                    expenseToEdit.attachmentDownloadedAt
+                                  ),
+                                  "dd.MM.yyyy HH:mm"
+                                )}
+                                )
+                              </span>
+                            )}
+                          </div>
+                          <a
+                            href={form.watch("attachmentUrl")}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-medium underline underline-offset-2 hover:text-emerald-950 dark:hover:text-emerald-100"
+                          >
+                            Преглед
+                            <ExternalLink className="size-3" />
+                          </a>
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            <DialogFooter>
+            {/* Fixed Sticky Footer */}
+            <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
+                className="h-10 rounded-xl px-5 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
                 onClick={() => onOpenChange(false)}
                 disabled={isUploading}
               >
                 Отказ
               </Button>
-              <Button type="submit" disabled={isUploading}>
+              <Button
+                type="submit"
+                disabled={isUploading}
+                className="h-10 rounded-xl bg-zinc-900 px-6 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+              >
                 {isUploading ? (
                   <>
-                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    <Loader2 className="mr-2 size-3.5 animate-spin" />
                     Качване...
                   </>
                 ) : (
                   <>
-                    <Save className="mr-2 size-4" />
-                    Добави разход
+                    <Save className="mr-2 size-3.5" />
+                    {expenseToEdit ? "Запази промените" : "Добави разход"}
                   </>
                 )}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </Form>
       </DialogContent>

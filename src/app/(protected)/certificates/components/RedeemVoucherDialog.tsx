@@ -10,8 +10,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -76,118 +74,124 @@ export function RedeemVoucherDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] w-[95vw] max-w-md overflow-y-auto rounded-3xl border-zinc-200 p-4 sm:p-6 dark:border-zinc-800">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
           <div className="flex items-center gap-2.5">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 shrink-0">
               <Ticket className="size-5" />
             </div>
-            <div>
-              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white">
+            <div className="min-w-0">
+              <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white line-clamp-1">
                 Отчитане на Ваучер
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-zinc-500 truncate">
                 № {certificate.serialNumber} • {certificate.recipient.name}
               </DialogDescription>
             </div>
           </div>
-        </DialogHeader>
+        </div>
 
-        {/* Voucher Balance Card */}
-        <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-zinc-500">Оставащи сесии:</span>
-            <span className="text-base font-black text-amber-600 dark:text-amber-400">
-              {remaining} от {total}
-            </span>
-          </div>
-
-          {/* Progress bar */}
-          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-            <div
-              className="h-full rounded-full bg-linear-to-r from-amber-500 to-emerald-500 transition-all duration-300"
-              style={{ width: `${Math.min(100, (used / total) * 100)}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-zinc-400">
-            <span>Използвани: {used}</span>
-            <span>Общо в пакета: {total}</span>
-          </div>
-
-          {certificate.details.validUntil && (
-            <div className="flex items-center gap-1.5 border-t border-zinc-200/60 pt-1 text-[11px] text-zinc-500 dark:border-zinc-800/60">
-              <Calendar className="size-3 text-zinc-400" />
-              <span>
-                Валиден до:{" "}
-                {new Date(certificate.details.validUntil).toLocaleDateString(
-                  "bg-BG"
-                )}
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+          {/* Voucher Balance Card */}
+          <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-semibold text-zinc-500">
+                Оставащи сесии:
+              </span>
+              <span className="text-base font-black text-amber-600 dark:text-amber-400">
+                {remaining} от {total}
               </span>
             </div>
-          )}
-        </div>
 
-        {/* Usage Log History (if any) */}
-        {certificate.details.usageLog &&
-          certificate.details.usageLog.length > 0 && (
-            <div className="space-y-1.5">
-              <Label className="text-[11px] font-bold tracking-wider text-zinc-500 uppercase">
-                История на ползванията ({certificate.details.usageLog.length})
-              </Label>
-              <div className="max-h-24 space-y-1 overflow-y-auto pr-1 text-xs">
-                {certificate.details.usageLog.map((log, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between rounded-lg bg-zinc-100/60 p-2 dark:bg-zinc-900"
-                  >
-                    <div className="space-y-0.5">
-                      <span className="font-bold text-zinc-700 dark:text-zinc-300">
-                        Процедура #{log.sessionNumber}
-                      </span>
-                      {log.note && (
-                        <p className="wrap-break-word text-[10px] text-zinc-400">
-                          {log.note}
-                        </p>
-                      )}
-                    </div>
-                    <span className="font-mono text-[10px] text-zinc-400">
-                      {new Date(log.date).toLocaleDateString("bg-BG")}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            {/* Progress bar */}
+            <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+              <div
+                className="h-full rounded-full bg-linear-to-r from-amber-500 to-emerald-500 transition-all duration-300"
+                style={{ width: `${Math.min(100, (used / total) * 100)}%` }}
+              />
             </div>
-          )}
 
-        {/* Note input */}
-        <div className="space-y-1.5 pt-1">
-          <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-            Бележка към процедурата (по избор)
-          </Label>
-          <Textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="напр. 30 мин Normatec крака + сауна..."
-            rows={2}
-            className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
-            disabled={isFullyUsed}
-          />
+            <div className="flex items-center justify-between text-[11px] text-zinc-400">
+              <span>Използвани: {used}</span>
+              <span>Общо в пакета: {total}</span>
+            </div>
+
+            {certificate.details.validUntil && (
+              <div className="flex items-center gap-1.5 border-t border-zinc-200/60 pt-1 text-[11px] text-zinc-500 dark:border-zinc-800/60">
+                <Calendar className="size-3 text-zinc-400" />
+                <span>
+                  Валиден до:{" "}
+                  {new Date(certificate.details.validUntil).toLocaleDateString(
+                    "bg-BG"
+                  )}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Usage Log History (if any) */}
+          {certificate.details.usageLog &&
+            certificate.details.usageLog.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold tracking-wider text-zinc-500 uppercase">
+                  История на ползванията ({certificate.details.usageLog.length})
+                </Label>
+                <div className="max-h-24 space-y-1 overflow-y-auto pr-1 text-xs">
+                  {certificate.details.usageLog.map((log, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between rounded-lg bg-zinc-100/60 p-2 dark:bg-zinc-900"
+                    >
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-zinc-700 dark:text-zinc-300">
+                          Процедура #{log.sessionNumber}
+                        </span>
+                        {log.note && (
+                          <p className="wrap-break-word text-[10px] text-zinc-400">
+                            {log.note}
+                          </p>
+                        )}
+                      </div>
+                      <span className="font-mono text-[10px] text-zinc-400">
+                        {new Date(log.date).toLocaleDateString("bg-BG")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          {/* Note input */}
+          <div className="space-y-1.5 pt-1">
+            <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              Бележка към процедурата (по избор)
+            </Label>
+            <Textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="напр. 30 мин Normatec крака + сауна..."
+              rows={2}
+              className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800"
+              disabled={isFullyUsed}
+            />
+          </div>
         </div>
 
-        <DialogFooter className="grid grid-cols-2 gap-2 pt-2 sm:flex sm:justify-end">
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="rounded-2xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+            className="h-9 sm:h-10 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
           >
             Затвори
           </Button>
           <Button
             onClick={handleRedeem}
             disabled={isSubmitting || isFullyUsed}
-            className="rounded-2xl bg-amber-600 px-5 text-xs font-bold text-white shadow-sm hover:bg-amber-700"
+            className="h-9 sm:h-10 rounded-xl bg-amber-600 px-5 text-xs font-bold text-white shadow-md hover:bg-amber-700"
           >
             {isSubmitting ? (
               <>
@@ -200,7 +204,7 @@ export function RedeemVoucherDialog({
               `Отчети процедура #${used + 1}`
             )}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

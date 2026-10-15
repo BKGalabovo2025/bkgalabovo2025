@@ -27,7 +27,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -576,102 +575,120 @@ export function TemplatesTab({
         open={Boolean(previewTemplate)}
         onOpenChange={(open) => !open && setPreviewTemplate(null)}
       >
-        <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto rounded-3xl p-4 sm:p-6">
-          <DialogHeader className="flex flex-col gap-3 border-b border-zinc-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
-            <div>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className="rounded-lg border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold tracking-wider text-blue-700 uppercase dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
-                >
-                  {previewTemplate
-                    ? getCertificateTypeLabel(previewTemplate.type)
-                    : "Шаблон"}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="rounded-lg px-2 py-0.5 text-[10px] font-bold text-zinc-600 dark:text-zinc-400"
-                >
-                  {previewTemplate?.visualConfig.orientation === "portrait"
-                    ? "Портрет (Вертикален)"
-                    : "Пейзаж (Хоризонтален)"}
-                </Badge>
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl lg:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          {/* Fixed Sticky Header */}
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="rounded-lg border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold tracking-wider text-blue-700 uppercase dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
+                  >
+                    {previewTemplate
+                      ? getCertificateTypeLabel(previewTemplate.type)
+                      : "Шаблон"}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="rounded-lg px-2 py-0.5 text-[10px] font-bold text-zinc-600 dark:text-zinc-400"
+                  >
+                    {previewTemplate?.visualConfig.orientation === "portrait"
+                      ? "Портрет (Вертикален)"
+                      : "Пейзаж (Хоризонтален)"}
+                  </Badge>
+                </div>
+                <DialogTitle className="mt-1 text-base sm:text-lg font-black tracking-tight text-zinc-900 dark:text-white">
+                  {previewTemplate?.title}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-zinc-500">
+                  Реалистичен предварителен преглед на документа с примерни
+                  данни за получател, печат и спонсори.
+                </DialogDescription>
               </div>
-              <DialogTitle className="mt-1 text-lg font-black tracking-tight text-zinc-900 dark:text-white">
-                {previewTemplate?.title}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
-                Реалистичен предварителен преглед на документа с примерни данни
-                за получател, печат и спонсори.
-              </DialogDescription>
-            </div>
 
+              {previewTemplate && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const toEdit = previewTemplate;
+                      setPreviewTemplate(null);
+                      handleOpenEdit(toEdit);
+                    }}
+                    className="rounded-xl border-zinc-200 text-xs font-semibold hover:bg-zinc-100 dark:border-zinc-800"
+                  >
+                    <Pencil className="mr-1.5 size-3.5" />
+                    Редактирай
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      const id = previewTemplate.id;
+                      setPreviewTemplate(null);
+                      onSelectForIssuance(id);
+                    }}
+                    className="rounded-xl bg-blue-600 text-xs font-bold text-white shadow-xs hover:bg-blue-700"
+                  >
+                    <Printer className="mr-1.5 size-3.5" />
+                    Издай с този шаблон
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Scrollable Body Container */}
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
             {previewTemplate && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const toEdit = previewTemplate;
-                    setPreviewTemplate(null);
-                    handleOpenEdit(toEdit);
-                  }}
-                  className="rounded-xl border-zinc-200 text-xs font-semibold hover:bg-zinc-100 dark:border-zinc-800"
-                >
-                  <Pencil className="mr-1.5 size-3.5" />
-                  Редактирай
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const id = previewTemplate.id;
-                    setPreviewTemplate(null);
-                    onSelectForIssuance(id);
-                  }}
-                  className="rounded-xl bg-blue-600 text-xs font-bold text-white shadow-xs hover:bg-blue-700"
-                >
-                  <Printer className="mr-1.5 size-3.5" />
-                  Издай с този шаблон
-                </Button>
+              <div className="flex flex-col items-center justify-center py-2">
+                <div className="flex w-full items-center justify-center overflow-hidden">
+                  <CertificateDocumentPreview
+                    data={{
+                      siteId,
+                      type: previewTemplate.type,
+                      title: previewTemplate.title,
+                      visualConfig: previewTemplate.visualConfig,
+                      serialNumber: `${siteId === "recoveryzone" ? "RZ" : "BKG"}-2026-DEMO`,
+                      recipientName: "Иван Петров Димитров",
+                      recipientInstitution:
+                        siteId === "recoveryzone"
+                          ? "Спортен клуб • гр. Гълъбово"
+                          : "СУ „Васил Левски“ • гр. Гълъбово",
+                      rank: "1st",
+                      nomination: "Златен Медал & Спортен Дух",
+                      eventTitle:
+                        siteId === "recoveryzone"
+                          ? "Възстановителен протокол и рехабилитация"
+                          : "Общински Турнир по Бадминтон „Гълъбово 2026“",
+                      eventDate: new Date().toLocaleDateString("bg-BG"),
+                      eventLocation:
+                        siteId === "recoveryzone"
+                          ? "Recovery Zone Center, гр. Гълъбово"
+                          : "Спортен Комплекс „Енергетик“, гр. Гълъбово",
+                      totalSessions: previewTemplate.defaultTotalSessions || 5,
+                      remainingSessions:
+                        previewTemplate.defaultTotalSessions || 5,
+                      sponsors,
+                    }}
+                  />
+                </div>
               </div>
             )}
-          </DialogHeader>
+          </div>
 
-          {previewTemplate && (
-            <div className="flex flex-col items-center justify-center py-4">
-              <div className="flex w-full items-center justify-center overflow-hidden">
-                <CertificateDocumentPreview
-                  data={{
-                    siteId,
-                    type: previewTemplate.type,
-                    title: previewTemplate.title,
-                    visualConfig: previewTemplate.visualConfig,
-                    serialNumber: `${siteId === "recoveryzone" ? "RZ" : "BKG"}-2026-DEMO`,
-                    recipientName: "Иван Петров Димитров",
-                    recipientInstitution:
-                      siteId === "recoveryzone"
-                        ? "Спортен клуб • гр. Гълъбово"
-                        : "СУ „Васил Левски“ • гр. Гълъбово",
-                    rank: "1st",
-                    nomination: "Златен Медал & Спортен Дух",
-                    eventTitle:
-                      siteId === "recoveryzone"
-                        ? "Възстановителен протокол и рехабилитация"
-                        : "Общински Турнир по Бадминтон „Гълъбово 2026“",
-                    eventDate: new Date().toLocaleDateString("bg-BG"),
-                    eventLocation:
-                      siteId === "recoveryzone"
-                        ? "Recovery Zone Center, гр. Гълъбово"
-                        : "Спортен Комплекс „Енергетик“, гр. Гълъбово",
-                    totalSessions: previewTemplate.defaultTotalSessions || 5,
-                    remainingSessions:
-                      previewTemplate.defaultTotalSessions || 5,
-                    sponsors,
-                  }}
-                />
-              </div>
-            </div>
-          )}
+          {/* Fixed Sticky Footer */}
+          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPreviewTemplate(null)}
+              className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+            >
+              Затвори
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 

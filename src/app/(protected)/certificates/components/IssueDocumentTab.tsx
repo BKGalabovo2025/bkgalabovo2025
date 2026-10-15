@@ -29,8 +29,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -1579,161 +1577,167 @@ export function IssueDocumentTab({
           }
         }}
       >
-        <DialogContent className="max-h-[88vh] overflow-y-auto max-w-lg space-y-4 rounded-3xl border-zinc-200 p-6 text-center dark:border-zinc-800">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-            <CheckCircle2 className="size-8" />
-          </div>
-
-          <div className="space-y-1">
-            <DialogTitle className="text-xl font-black text-zinc-900 dark:text-white">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md md:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          {/* Fixed Sticky Header */}
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="mx-auto mb-2 sm:mb-3 flex size-12 sm:size-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+              <CheckCircle2 className="size-6 sm:size-7" />
+            </div>
+            <DialogTitle className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white">
               Документът е издаден успешно!
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-500">
+            <DialogDescription className="mt-1 text-xs text-zinc-500">
               Уникалният сериен номер и QR код бяха генерирани и записани в
               официалния регистър.
             </DialogDescription>
           </div>
 
-          {issuedSuccessDoc && (
-            <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-zinc-500">
-                  Сериен номер:
-                </span>
-                <span className="font-mono font-bold text-zinc-900 dark:text-white">
-                  {issuedSuccessDoc.serialNumber}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-zinc-500">Получател:</span>
-                <span className="font-bold text-zinc-900 dark:text-white">
-                  {issuedSuccessDoc.recipient.name}
-                </span>
-              </div>
-
-              {/* QR Code preview */}
-              {issuedSuccessDoc.qrCodeDataUrl && (
-                <div className="flex flex-col items-center justify-center pt-2">
-                  <div className="rounded-xl border border-zinc-200 bg-white p-2 shadow-xs">
-                    <Image
-                      src={issuedSuccessDoc.qrCodeDataUrl}
-                      alt="QR код за верификация"
-                      width={120}
-                      height={120}
-                      className="size-28 object-contain"
-                      style={{ width: "auto", height: "auto" }}
-                      unoptimized
-                    />
-                  </div>
-                  <span className="mt-1 font-mono text-[10px] text-zinc-400">
-                    {publicUrl}
+          {/* Scrollable Body Container */}
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+            {issuedSuccessDoc && (
+              <div className="space-y-3 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-zinc-500">
+                    Сериен номер:
+                  </span>
+                  <span className="font-mono font-bold text-zinc-900 dark:text-white">
+                    {issuedSuccessDoc.serialNumber}
                   </span>
                 </div>
-              )}
-            </div>
-          )}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-zinc-500">
+                    Получател:
+                  </span>
+                  <span className="font-bold text-zinc-900 dark:text-white">
+                    {issuedSuccessDoc.recipient.name}
+                  </span>
+                </div>
 
-          {/* Social Share & Copy Buttons */}
-          <div className="space-y-2 pt-2">
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                onClick={handleCopyLink}
-                className="h-10 rounded-2xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
-              >
-                {copiedLink ? (
-                  <>
-                    <Check className="mr-1.5 size-3.5 text-emerald-600" />
-                    Копирано!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="mr-1.5 size-3.5" />
-                    Копирай линк
-                  </>
+                {/* QR Code preview */}
+                {issuedSuccessDoc.qrCodeDataUrl && (
+                  <div className="flex flex-col items-center justify-center pt-2">
+                    <div className="rounded-xl border border-zinc-200 bg-white p-2 shadow-xs">
+                      <Image
+                        src={issuedSuccessDoc.qrCodeDataUrl}
+                        alt="QR код за верификация"
+                        width={120}
+                        height={120}
+                        className="size-28 object-contain"
+                        style={{ width: "auto", height: "auto" }}
+                        unoptimized
+                      />
+                    </div>
+                    <span className="mt-1 font-mono text-[10px] text-zinc-400">
+                      {publicUrl}
+                    </span>
+                  </div>
                 )}
-              </Button>
+              </div>
+            )}
 
-              <Button
-                onClick={handleWebShare}
-                className="h-10 rounded-2xl bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
-              >
-                <Share2 className="mr-1.5 size-3.5" />
-                Сподели (Share)
-              </Button>
-            </div>
+            {/* Social Share & Copy Buttons */}
+            <div className="space-y-2 pt-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleCopyLink}
+                  className="h-10 rounded-2xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+                >
+                  {copiedLink ? (
+                    <>
+                      <Check className="mr-1.5 size-3.5 text-emerald-600" />
+                      Копирано!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="mr-1.5 size-3.5" />
+                      Копирай линк
+                    </>
+                  )}
+                </Button>
 
-            {/* Quick Export / Print in Success Modal */}
-            <div className="grid grid-cols-3 gap-2 pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => printCertificate()}
-                className="h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
-              >
-                <Printer className="size-3.5" />
-                Печат
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleExportLivePdf}
-                disabled={isExportingPdf}
-                className="h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
-              >
-                {isExportingPdf ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <FileDown className="size-3.5" />
-                )}
-                PDF
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleExportLivePng}
-                disabled={isExportingPng}
-                className="h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
-              >
-                {isExportingPng ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Download className="size-3.5" />
-                )}
-                PNG
-              </Button>
-            </div>
+                <Button
+                  onClick={handleWebShare}
+                  className="h-10 rounded-2xl bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
+                >
+                  <Share2 className="mr-1.5 size-3.5" />
+                  Сподели (Share)
+                </Button>
+              </div>
 
-            {/* Direct Messenger Buttons */}
-            <div className="flex items-center justify-center gap-2 pt-1">
-              <a
-                href={`viber://forward?text=${encodeURIComponent(`Официален документ от БК Гълъбово: ${publicUrl}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-xl bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300"
-              >
-                <span>📱 Viber</span>
-              </a>
-              <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Официален клубен документ: ${publicUrl}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300"
-              >
-                <span>💬 WhatsApp</span>
-              </a>
-              <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(publicUrl)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300"
-              >
-                <span>📘 Facebook</span>
-              </a>
+              {/* Quick Export / Print in Success Modal */}
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => printCertificate()}
+                  className="h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+                >
+                  <Printer className="size-3.5" />
+                  Печат
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleExportLivePdf}
+                  disabled={isExportingPdf}
+                  className="h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+                >
+                  {isExportingPdf ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <FileDown className="size-3.5" />
+                  )}
+                  PDF
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleExportLivePng}
+                  disabled={isExportingPng}
+                  className="h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+                >
+                  {isExportingPng ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Download className="size-3.5" />
+                  )}
+                  PNG
+                </Button>
+              </div>
+
+              {/* Direct Messenger Buttons */}
+              <div className="flex items-center justify-center gap-2 pt-1">
+                <a
+                  href={`viber://forward?text=${encodeURIComponent(`Официален документ от БК Гълъбово: ${publicUrl}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-xl bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300"
+                >
+                  <span>📱 Viber</span>
+                </a>
+                <a
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Официален клубен документ: ${publicUrl}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300"
+                >
+                  <span>💬 WhatsApp</span>
+                </a>
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(publicUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-xl bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300"
+                >
+                  <span>📘 Facebook</span>
+                </a>
+              </div>
             </div>
           </div>
 
-          <DialogFooter className="pt-2">
+          {/* Fixed Sticky Footer */}
+          <div className="shrink-0 flex items-center justify-end border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
             <Button
               onClick={() => {
                 setIssuedSuccessDoc(null);
@@ -1743,7 +1747,7 @@ export function IssueDocumentTab({
             >
               Към регистъра с издадени документи
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1754,93 +1758,98 @@ export function IssueDocumentTab({
           if (!open) setBulkSuccessList([]);
         }}
       >
-        <DialogContent className="max-h-[88vh] overflow-y-auto max-w-xl rounded-3xl border border-emerald-100 bg-white p-6 shadow-2xl dark:border-emerald-950 dark:bg-zinc-950">
-          <DialogHeader className="text-center">
-            <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-400">
-              <Trophy className="size-7 animate-bounce" />
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-100 bg-white p-0 shadow-2xl dark:border-emerald-950 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          {/* Fixed Sticky Header */}
+          <div className="shrink-0 border-b border-emerald-100/60 bg-emerald-50/30 p-4 sm:p-5 pr-12 text-center dark:border-emerald-950/60 dark:bg-emerald-950/20">
+            <div className="mx-auto mb-2 sm:mb-3 flex size-12 sm:size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-400">
+              <Trophy className="size-6 sm:size-7 animate-bounce" />
             </div>
-            <DialogTitle className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+            <DialogTitle className="text-lg sm:text-xl font-black text-zinc-900 dark:text-zinc-50">
               🎉 Грамотите за подиума са генерирани!
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+            <DialogDescription className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
               Успешно издадени {bulkSuccessList.length} официални грамоти за
               призьорите от турнира.
             </DialogDescription>
-          </DialogHeader>
-
-          <div className="my-4 space-y-2.5 max-h-64 overflow-y-auto pr-1">
-            {bulkSuccessList.map((doc, idx) => {
-              const rank = doc.details?.rank || "participant";
-              const rankIcon =
-                rank === "1st"
-                  ? "🥇 1-во място"
-                  : rank === "2nd"
-                    ? "🥈 2-ро място"
-                    : rank === "3rd"
-                      ? "🥉 3-то място"
-                      : "🎖️ Призьор";
-              const rankColor =
-                rank === "1st"
-                  ? "border-amber-200 bg-amber-50/60 dark:bg-amber-950/30"
-                  : rank === "2nd"
-                    ? "border-slate-200 bg-slate-50/60 dark:bg-slate-900/30"
-                    : "border-orange-200 bg-orange-50/60 dark:bg-orange-950/30";
-
-              return (
-                <div
-                  key={doc.id || idx}
-                  className={`flex items-center justify-between rounded-2xl border p-3 ${rankColor}`}
-                >
-                  <div className="min-w-0 pr-3">
-                    <span className="inline-block text-[11px] font-black uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                      {rankIcon}
-                    </span>
-                    <h5 className="wrap-break-word text-sm font-bold text-zinc-900 dark:text-white">
-                      {doc.recipient?.name || "Състезател"}
-                    </h5>
-                    <p className="text-[10px] text-zinc-500 font-mono">
-                      Сериен № {doc.serialNumber}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <a
-                      href={`/cert/${doc.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-xl border border-zinc-200 bg-white px-2.5 py-1 text-xs font-bold text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
-                    >
-                      Преглед
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
           </div>
 
-          {/* Batch PDF Download Button */}
-          <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800">
-            <Button
-              type="button"
-              onClick={handleDownloadBulkMultiPdf}
-              disabled={isExportingBulkPdf}
-              className="w-full gap-2 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
-            >
-              {isExportingBulkPdf ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Генериране на общ PDF документ...
-                </>
-              ) : (
-                <>
-                  <FileDown className="size-4" />
-                  📦 Свали всички {bulkSuccessList.length} грамоти в един общ A4
-                  PDF
-                </>
-              )}
-            </Button>
+          {/* Scrollable Body Container */}
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+            <div className="space-y-2.5">
+              {bulkSuccessList.map((doc, idx) => {
+                const rank = doc.details?.rank || "participant";
+                const rankIcon =
+                  rank === "1st"
+                    ? "🥇 1-во място"
+                    : rank === "2nd"
+                      ? "🥈 2-ро място"
+                      : rank === "3rd"
+                        ? "🥉 3-то място"
+                        : "🎖️ Призьор";
+                const rankColor =
+                  rank === "1st"
+                    ? "border-amber-200 bg-amber-50/60 dark:bg-amber-950/30"
+                    : rank === "2nd"
+                      ? "border-slate-200 bg-slate-50/60 dark:bg-slate-900/30"
+                      : "border-orange-200 bg-orange-50/60 dark:bg-orange-950/30";
+
+                return (
+                  <div
+                    key={doc.id || idx}
+                    className={`flex items-center justify-between rounded-2xl border p-3 ${rankColor}`}
+                  >
+                    <div className="min-w-0 pr-3">
+                      <span className="inline-block text-[11px] font-black uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                        {rankIcon}
+                      </span>
+                      <h5 className="wrap-break-word text-sm font-bold text-zinc-900 dark:text-white">
+                        {doc.recipient?.name || "Състезател"}
+                      </h5>
+                      <p className="text-[10px] text-zinc-500 font-mono">
+                        Сериен № {doc.serialNumber}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <a
+                        href={`/cert/${doc.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-xl border border-zinc-200 bg-white px-2.5 py-1 text-xs font-bold text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+                      >
+                        Преглед
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Batch PDF Download Button */}
+            <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800">
+              <Button
+                type="button"
+                onClick={handleDownloadBulkMultiPdf}
+                disabled={isExportingBulkPdf}
+                className="w-full gap-2 rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+              >
+                {isExportingBulkPdf ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Генериране на общ PDF документ...
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="size-4" />
+                    📦 Свали всички {bulkSuccessList.length} грамоти в един общ
+                    A4 PDF
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
-          <DialogFooter className="grid grid-cols-2 gap-2 pt-2">
+          {/* Fixed Sticky Footer */}
+          <div className="shrink-0 grid grid-cols-2 gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
             <Button
               variant="outline"
               onClick={() => setBulkSuccessList([])}
@@ -1857,7 +1866,7 @@ export function IssueDocumentTab({
             >
               Към регистъра
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 

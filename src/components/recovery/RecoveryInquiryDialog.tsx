@@ -21,7 +21,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -226,9 +225,9 @@ export function RecoveryInquiryDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-lg flex-col overflow-hidden rounded-3xl border border-emerald-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl sm:max-w-xl">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
         {/* Header decoration */}
-        <div className="relative shrink-0 bg-linear-to-br from-emerald-950/80 via-zinc-950 to-zinc-950 p-5 pr-14 pb-3 sm:p-6 sm:pb-4">
+        <div className="shrink-0 border-b border-zinc-800/80 bg-linear-to-br from-emerald-950/80 via-zinc-950 to-zinc-950 p-4 sm:p-5 pr-12 text-left">
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-950/60 px-3 py-1 text-[10px] font-bold tracking-widest text-emerald-400 uppercase">
               <Sparkles size={12} />
@@ -236,14 +235,14 @@ export function RecoveryInquiryDialog({
             </span>
           </div>
 
-          <DialogHeader className="mt-2.5 text-left">
+          <div className="mt-2.5 text-left">
             <DialogTitle className="text-lg font-bold tracking-tight text-white sm:text-xl">
               Запитване за Сесия
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-400">
+            <DialogDescription className="mt-1 text-xs text-zinc-400">
               Изберете удобен начин за запазване на час и информация.
             </DialogDescription>
-          </DialogHeader>
+          </div>
 
           {/* Mode Switcher */}
           {!isSuccess && (
@@ -277,7 +276,7 @@ export function RecoveryInquiryDialog({
         </div>
 
         {/* Content Body */}
-        <div className="custom-scrollbar flex-1 overflow-y-auto px-5 py-3 sm:px-6 sm:py-4">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
           <AnimatePresence mode="wait">
             {isSuccess ? (
               <motion.div

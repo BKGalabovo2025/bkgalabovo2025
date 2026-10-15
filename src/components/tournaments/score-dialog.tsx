@@ -4,13 +4,7 @@ import { AlertCircle, Plus, Trophy } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   getMatchFormat,
   isValidGameScore,
@@ -200,18 +194,25 @@ export function ScoreDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[88vh] overflow-y-auto border-zinc-200 bg-white sm:max-w-lg dark:border-zinc-800 dark:bg-zinc-950">
-        <DialogHeader>
-          <DialogTitle>Въвеждане на резултат</DialogTitle>
-        </DialogHeader>
-
-        {/* Формат */}
-        <div className="rounded-md border bg-muted/50 px-3 py-1.5 text-center text-xs text-muted-foreground">
-          📋 Формат:{" "}
-          <span className="font-medium text-foreground">{fmt.label}</span>
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="flex items-center gap-3 pr-8">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+              <Trophy className="size-4.5" />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
+                Въвеждане на резултат
+              </DialogTitle>
+              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                Формат: {fmt.label}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-5 py-2">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
           {/* Заглавна лента с имената */}
           <div className="grid grid-cols-3 gap-2 text-center text-sm font-semibold">
             <div
@@ -273,14 +274,26 @@ export function ScoreDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="h-10 rounded-xl px-5 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+          >
             Отказ
           </Button>
-          <Button onClick={handleSave} disabled={isSubmitting || !canSave}>
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={isSubmitting || !canSave}
+            className="h-10 rounded-xl bg-zinc-900 px-6 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+          >
             Запази резултат
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

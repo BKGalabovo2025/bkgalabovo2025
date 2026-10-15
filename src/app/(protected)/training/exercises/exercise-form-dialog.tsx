@@ -5,13 +5,7 @@ import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -169,14 +163,20 @@ export default function ExerciseFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>
-            {exercise ? "Редакция на упражнение" : "Ново упражнение"}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="min-w-0 pr-8">
+            <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
+              {exercise ? "Редакция на упражнение" : "Ново упражнение"}
+            </DialogTitle>
+            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+              Попълнете параметрите на упражнението
+            </p>
+          </div>
+        </div>
 
-        <div className="space-y-4 py-4">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
           <div className="space-y-2">
             <Label>Име на упражнението *</Label>
             <Input
@@ -422,30 +422,33 @@ export default function ExerciseFormDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex w-full items-center justify-between sm:justify-between">
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex items-center justify-between gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           {exercise ? (
             <Button
               type="button"
               variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
+              className="h-10 rounded-xl px-4 text-xs font-bold"
             >
               {isDeleting ? (
-                <Loader2 className="mr-2 size-4 animate-spin" />
+                <Loader2 className="mr-1.5 size-3.5 animate-spin" />
               ) : (
-                <Trash2 className="mr-2 size-4" />
+                <Trash2 className="mr-1.5 size-3.5" />
               )}
               Изтрий
             </Button>
           ) : (
-            <div></div>
+            <div />
           )}
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={() => onOpenChange(false)}
+              className="h-10 rounded-xl px-5 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
             >
               Отказ
             </Button>
@@ -453,13 +456,13 @@ export default function ExerciseFormDialog({
               type="button"
               onClick={handleSave}
               disabled={isSaving || !name || ageGroups.length === 0}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="h-10 rounded-xl bg-indigo-600 px-6 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500"
             >
-              {isSaving && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {isSaving && <Loader2 className="mr-2 size-3.5 animate-spin" />}
               Запази
             </Button>
           </div>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

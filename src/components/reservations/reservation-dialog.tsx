@@ -78,19 +78,19 @@ const ReservationDialogContent = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="flex max-h-[88vh] flex-col overflow-hidden rounded-4xl border-zinc-100 p-0 shadow-2xl sm:max-w-lg dark:border-zinc-900">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
         {/* Wizard Header / Progress */}
-        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50 p-6 sm:p-8 dark:border-zinc-900 dark:bg-zinc-900/50">
-          <div className="mb-6 flex items-center justify-between">
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="mb-4 sm:mb-5 flex items-center justify-between">
             <div>
-              <DialogTitle className="text-2xl font-black tracking-tighter text-zinc-950 uppercase italic dark:text-white">
+              <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter text-zinc-950 uppercase italic dark:text-white">
                 {title}
               </DialogTitle>
-              <DialogDescription className="mt-1 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
+              <DialogDescription className="mt-0.5 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                 {description}
               </DialogDescription>
             </div>
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <div className="flex size-10 sm:size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               {currentStep === "time" && <CalendarRange className="size-6" />}
               {currentStep === "details" && <User className="size-6" />}
               {currentStep === "review" && (
@@ -145,7 +145,7 @@ const ReservationDialogContent = ({
           </div>
         </div>
 
-        <div className="custom-scrollbar flex-1 overflow-y-auto p-6 sm:p-8">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
           <Form {...form}>
             <form
               onSubmit={(e) => {

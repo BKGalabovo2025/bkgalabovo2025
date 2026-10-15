@@ -20,13 +20,7 @@ import Link from "next/link";
 import { CoachNotesCard } from "@/components/training/CoachNotesCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Exercise, PlannerSession, SessionBlock } from "@/types/planner.types";
 
 interface SessionDetailsDialogProps {
@@ -106,9 +100,9 @@ export function SessionDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] max-w-3xl flex flex-col overflow-hidden p-0 sm:rounded-3xl">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
         {/* Header Banner */}
-        <div className="border-b border-zinc-100 bg-linear-to-br from-indigo-50/80 via-white to-zinc-50/80 p-6">
+        <div className="shrink-0 border-b border-zinc-100 bg-linear-to-br from-indigo-50/80 via-white to-zinc-50/80 p-4 sm:p-6 dark:border-zinc-800 dark:from-indigo-950/30 dark:via-zinc-900 dark:to-zinc-950">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               {isCompleted ? (
@@ -189,282 +183,275 @@ export function SessionDetailsDialog({
         </div>
 
         {/* Scrollable Content */}
-        <ScrollArea className="max-h-[calc(90vh-180px)] p-6">
-          <div className="space-y-6">
-            {/* Coach Notes & Methodological instructions */}
-            {session.coachNotes && (
-              <div>
-                <h4 className="mb-2 flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
-                  <Sparkles className="size-3.5 text-amber-500" />
-                  Треньорски бележки & Организация
-                </h4>
-                <CoachNotesCard
-                  notes={session.coachNotes}
-                  className="border-amber-200 bg-amber-50/40 text-sm"
-                />
-              </div>
-            )}
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-6 min-h-0">
+          {/* Coach Notes & Methodological instructions */}
+          {session.coachNotes && (
+            <div>
+              <h4 className="mb-2 flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
+                <Sparkles className="size-3.5 text-amber-500" />
+                Треньорски бележки & Организация
+              </h4>
+              <CoachNotesCard
+                notes={session.coachNotes}
+                className="border-amber-200 bg-amber-50/40 text-sm"
+              />
+            </div>
+          )}
 
-            {/* Target Groups Detail if present */}
-            {session.sessionGroups && session.sessionGroups.length > 0 && (
-              <div>
-                <h4 className="mb-2 flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
-                  <Users className="size-3.5 text-indigo-500" />
-                  Разпределение по групи
-                </h4>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {session.sessionGroups.map((grp) => (
-                    <div
-                      key={grp.id}
-                      className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50/50 p-3 text-xs"
-                    >
-                      <span className="font-bold text-zinc-900">
-                        {grp.name}
-                      </span>
-                      <span className="font-medium text-zinc-500">
-                        {grp.memberIds?.length || 0} състезатели
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Structured Blocks (Warmup, Main, Cooldown) */}
-            {hasBlocks && (
-              <div className="space-y-6">
-                <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
-                  <Layers className="size-3.5 text-indigo-500" />
-                  План на тренировката по части
-                </h4>
-
-                {session.blocks!.map((block: SessionBlock) => (
+          {/* Target Groups Detail if present */}
+          {session.sessionGroups && session.sessionGroups.length > 0 && (
+            <div>
+              <h4 className="mb-2 flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
+                <Users className="size-3.5 text-indigo-500" />
+                Разпределение по групи
+              </h4>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {session.sessionGroups.map((grp) => (
                   <div
-                    key={block.id}
-                    className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs"
+                    key={grp.id}
+                    className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50/50 p-3 text-xs"
                   >
-                    <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/80 px-4 py-2.5">
-                      <span className="text-xs font-bold tracking-wide text-zinc-800 uppercase">
-                        {getPhaseTitle(block.phase)}
-                      </span>
-                      {block.targetDuration > 0 && (
-                        <Badge
-                          variant="secondary"
-                          className="bg-white text-[11px] font-semibold text-zinc-600 shadow-2xs"
-                        >
-                          {block.targetDuration} мин.
-                        </Badge>
-                      )}
-                    </div>
+                    <span className="font-bold text-zinc-900">{grp.name}</span>
+                    <span className="font-medium text-zinc-500">
+                      {grp.memberIds?.length || 0} състезатели
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-                    <div className="divide-y divide-zinc-100 p-2">
-                      {block.items.length === 0 ? (
-                        <div className="p-4 text-center text-xs text-zinc-400">
-                          Няма добавени упражнения в тази фаза.
-                        </div>
-                      ) : (
-                        block.items.map((item, idx) => (
-                          <div key={item.id || idx} className="p-3">
-                            {item.type === "station" ? (
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Badge className="bg-amber-100 text-[10px] font-bold text-amber-800 hover:bg-amber-100">
-                                      🔄 Станционна Ротация
-                                    </Badge>
-                                    <span className="text-xs font-bold text-zinc-900">
-                                      {item.durationMinutes} мин. на станция
-                                    </span>
-                                  </div>
-                                </div>
+          {/* Structured Blocks (Warmup, Main, Cooldown) */}
+          {hasBlocks && (
+            <div className="space-y-6">
+              <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
+                <Layers className="size-3.5 text-indigo-500" />
+                План на тренировката по части
+              </h4>
 
-                                {item.rotations &&
-                                  item.rotations.length > 0 && (
-                                    <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
-                                      {item.rotations.map((r, rIdx) => (
-                                        <div
-                                          key={rIdx}
-                                          className="rounded-xl border border-amber-200/80 bg-amber-50/30 p-2.5 text-xs"
-                                        >
-                                          <div className="flex items-center gap-1.5 font-bold text-amber-900">
-                                            <Target className="size-3 text-amber-600" />
-                                            {r.exercise?.name || "Упражнение"}
-                                          </div>
-                                          {r.exercise?.description && (
-                                            <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
-                                              {r.exercise.description}
-                                            </p>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                              </div>
-                            ) : (
-                              <div className="space-y-1.5">
-                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-zinc-900">
-                                      {item.exercise?.name || "Упражнение"}
-                                    </span>
-                                    {item.exercise?.category && (
-                                      <Badge
-                                        variant="outline"
-                                        className="border-zinc-200 bg-zinc-50 text-[10px] text-zinc-600"
-                                      >
-                                        {getCategoryLabel(
-                                          item.exercise.category
-                                        )}
-                                      </Badge>
-                                    )}
-                                  </div>
+              {session.blocks!.map((block: SessionBlock) => (
+                <div
+                  key={block.id}
+                  className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs"
+                >
+                  <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/80 px-4 py-2.5">
+                    <span className="text-xs font-bold tracking-wide text-zinc-800 uppercase">
+                      {getPhaseTitle(block.phase)}
+                    </span>
+                    {block.targetDuration > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-white text-[11px] font-semibold text-zinc-600 shadow-2xs"
+                      >
+                        {block.targetDuration} мин.
+                      </Badge>
+                    )}
+                  </div>
 
-                                  <span className="text-xs font-semibold text-indigo-600">
-                                    {item.durationMinutes ||
-                                      item.exercise?.durationMinutes ||
-                                      5}{" "}
-                                    мин.
+                  <div className="divide-y divide-zinc-100 p-2">
+                    {block.items.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-zinc-400">
+                        Няма добавени упражнения в тази фаза.
+                      </div>
+                    ) : (
+                      block.items.map((item, idx) => (
+                        <div key={item.id || idx} className="p-3">
+                          {item.type === "station" ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Badge className="bg-amber-100 text-[10px] font-bold text-amber-800 hover:bg-amber-100">
+                                    🔄 Станционна Ротация
+                                  </Badge>
+                                  <span className="text-xs font-bold text-zinc-900">
+                                    {item.durationMinutes} мин. на станция
                                   </span>
                                 </div>
+                              </div>
 
-                                {item.exercise?.description && (
-                                  <p className="text-xs leading-relaxed text-zinc-600">
-                                    {item.exercise.description}
-                                  </p>
-                                )}
-
-                                {item.exercise?.coachingPoints &&
-                                  item.exercise.coachingPoints.length > 0 && (
-                                    <div className="mt-2 rounded-lg bg-zinc-50 p-2 text-[11px] text-zinc-600">
-                                      <span className="font-bold text-zinc-700">
-                                        Акценти:{" "}
-                                      </span>
-                                      {item.exercise.coachingPoints.join(" • ")}
-                                    </div>
-                                  )}
-
-                                {item.exercise?.equipment &&
-                                  item.exercise.equipment.length > 0 && (
-                                    <div className="flex flex-wrap items-center gap-1 pt-1">
-                                      <span className="text-[10px] font-medium text-zinc-400">
-                                        Екипировка:
-                                      </span>
-                                      {item.exercise.equipment.map(
-                                        (eq, eqIdx) => (
-                                          <Badge
-                                            key={eqIdx}
-                                            variant="secondary"
-                                            className="text-[10px] font-normal"
-                                          >
-                                            {eq}
-                                          </Badge>
-                                        )
+                              {item.rotations && item.rotations.length > 0 && (
+                                <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
+                                  {item.rotations.map((r, rIdx) => (
+                                    <div
+                                      key={rIdx}
+                                      className="rounded-xl border border-amber-200/80 bg-amber-50/30 p-2.5 text-xs"
+                                    >
+                                      <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                                        <Target className="size-3 text-amber-600" />
+                                        {r.exercise?.name || "Упражнение"}
+                                      </div>
+                                      {r.exercise?.description && (
+                                        <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+                                          {r.exercise.description}
+                                        </p>
                                       )}
                                     </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="space-y-1.5">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-zinc-900">
+                                    {item.exercise?.name || "Упражнение"}
+                                  </span>
+                                  {item.exercise?.category && (
+                                    <Badge
+                                      variant="outline"
+                                      className="border-zinc-200 bg-zinc-50 text-[10px] text-zinc-600"
+                                    >
+                                      {getCategoryLabel(item.exercise.category)}
+                                    </Badge>
                                   )}
+                                </div>
+
+                                <span className="text-xs font-semibold text-indigo-600">
+                                  {item.durationMinutes ||
+                                    item.exercise?.durationMinutes ||
+                                    5}{" "}
+                                  мин.
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
-            {/* Grouped Exercises if present without blocks */}
-            {!hasBlocks && hasGrouped && (
-              <div className="space-y-4">
-                <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
-                  <Layers className="size-3.5 text-indigo-500" />
-                  Упражнения по възрастови групи
-                </h4>
+                              {item.exercise?.description && (
+                                <p className="text-xs leading-relaxed text-zinc-600">
+                                  {item.exercise.description}
+                                </p>
+                              )}
 
-                {session.groupedExercises!.map((grp, gIdx) => (
-                  <div
-                    key={gIdx}
-                    className="overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4"
-                  >
-                    <div className="mb-3 flex items-center justify-between">
-                      <Badge className="bg-indigo-600 font-bold text-white">
-                        {grp.ageGroup}{" "}
-                        {grp.skillLevel ? `(${grp.skillLevel})` : ""}
-                      </Badge>
-                      <span className="text-xs font-medium text-zinc-500">
-                        {grp.exercises.length} упражнения
-                      </span>
-                    </div>
+                              {item.exercise?.coachingPoints &&
+                                item.exercise.coachingPoints.length > 0 && (
+                                  <div className="mt-2 rounded-lg bg-zinc-50 p-2 text-[11px] text-zinc-600">
+                                    <span className="font-bold text-zinc-700">
+                                      Акценти:{" "}
+                                    </span>
+                                    {item.exercise.coachingPoints.join(" • ")}
+                                  </div>
+                                )}
 
-                    <div className="space-y-3">
-                      {grp.exercises.map((ex, eIdx) => (
-                        <div
-                          key={ex.id || eIdx}
-                          className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 text-xs"
-                        >
-                          <div className="flex items-center justify-between font-bold text-zinc-900">
-                            <span>{ex.name}</span>
-                            <span className="text-indigo-600">
-                              {ex.durationMinutes} мин.
-                            </span>
-                          </div>
-                          {ex.description && (
-                            <p className="mt-1 leading-relaxed text-zinc-600">
-                              {ex.description}
-                            </p>
+                              {item.exercise?.equipment &&
+                                item.exercise.equipment.length > 0 && (
+                                  <div className="flex flex-wrap items-center gap-1 pt-1">
+                                    <span className="text-[10px] font-medium text-zinc-400">
+                                      Екипировка:
+                                    </span>
+                                    {item.exercise.equipment.map(
+                                      (eq, eqIdx) => (
+                                        <Badge
+                                          key={eqIdx}
+                                          variant="secondary"
+                                          className="text-[10px] font-normal"
+                                        >
+                                          {eq}
+                                        </Badge>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                            </div>
                           )}
                         </div>
-                      ))}
+                      ))
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Grouped Exercises if present without blocks */}
+          {!hasBlocks && hasGrouped && (
+            <div className="space-y-4">
+              <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
+                <Layers className="size-3.5 text-indigo-500" />
+                Упражнения по възрастови групи
+              </h4>
+
+              {session.groupedExercises!.map((grp, gIdx) => (
+                <div
+                  key={gIdx}
+                  className="overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <Badge className="bg-indigo-600 font-bold text-white">
+                      {grp.ageGroup}{" "}
+                      {grp.skillLevel ? `(${grp.skillLevel})` : ""}
+                    </Badge>
+                    <span className="text-xs font-medium text-zinc-500">
+                      {grp.exercises.length} упражнения
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {grp.exercises.map((ex, eIdx) => (
+                      <div
+                        key={ex.id || eIdx}
+                        className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 text-xs"
+                      >
+                        <div className="flex items-center justify-between font-bold text-zinc-900">
+                          <span>{ex.name}</span>
+                          <span className="text-indigo-600">
+                            {ex.durationMinutes} мин.
+                          </span>
+                        </div>
+                        {ex.description && (
+                          <p className="mt-1 leading-relaxed text-zinc-600">
+                            {ex.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Legacy Flat Exercises list if present */}
+          {!hasBlocks && !hasGrouped && hasLegacyExercises && (
+            <div className="space-y-3">
+              <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
+                <Layers className="size-3.5 text-indigo-500" />
+                Списък с упражнения
+              </h4>
+
+              <div className="divide-y divide-zinc-100 rounded-2xl border border-zinc-200 bg-white p-2">
+                {session.exercises!.map((ex: Exercise, idx: number) => (
+                  <div key={ex.id || idx} className="p-3 text-xs">
+                    <div className="flex items-center justify-between font-bold text-zinc-900">
+                      <span>{ex.name}</span>
+                      <span className="text-indigo-600">
+                        {ex.durationMinutes} мин.
+                      </span>
                     </div>
+                    {ex.description && (
+                      <p className="mt-1 leading-relaxed text-zinc-600">
+                        {ex.description}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Legacy Flat Exercises list if present */}
-            {!hasBlocks && !hasGrouped && hasLegacyExercises && (
-              <div className="space-y-3">
-                <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-400 uppercase">
-                  <Layers className="size-3.5 text-indigo-500" />
-                  Списък с упражнения
-                </h4>
+          {/* If no exercises attached */}
+          {!hasBlocks && !hasGrouped && !hasLegacyExercises && (
+            <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center text-xs text-zinc-500">
+              Няма въведени структурирани упражнения за тази тренировка.
+              {session.coachNotes && (
+                <p className="mt-1 font-medium text-zinc-700">
+                  Вижте треньорските бележки по-горе за указанията.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
 
-                <div className="divide-y divide-zinc-100 rounded-2xl border border-zinc-200 bg-white p-2">
-                  {session.exercises!.map((ex: Exercise, idx: number) => (
-                    <div key={ex.id || idx} className="p-3 text-xs">
-                      <div className="flex items-center justify-between font-bold text-zinc-900">
-                        <span>{ex.name}</span>
-                        <span className="text-indigo-600">
-                          {ex.durationMinutes} мин.
-                        </span>
-                      </div>
-                      {ex.description && (
-                        <p className="mt-1 leading-relaxed text-zinc-600">
-                          {ex.description}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* If no exercises attached */}
-            {!hasBlocks && !hasGrouped && !hasLegacyExercises && (
-              <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center text-xs text-zinc-500">
-                Няма въведени структурирани упражнения за тази тренировка.
-                {session.coachNotes && (
-                  <p className="mt-1 font-medium text-zinc-700">
-                    Вижте треньорските бележки по-горе за указанията.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-
-        {/* Footer actions */}
-        <DialogFooter className="flex flex-wrap items-center justify-between border-t border-zinc-100 bg-zinc-50 p-4 sm:justify-between">
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex flex-wrap items-center justify-between gap-2.5 border-t border-zinc-100 bg-zinc-50/80 p-3.5 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex items-center gap-2">
             {isCompleted && onRevertToPlanned && (
               <Button
@@ -522,7 +509,7 @@ export function SessionDetailsDialog({
               </Link>
             </Button>
           </div>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

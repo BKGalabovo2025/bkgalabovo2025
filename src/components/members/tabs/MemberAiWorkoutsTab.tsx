@@ -25,7 +25,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -737,47 +736,43 @@ export function MemberAiWorkoutsTab({
           open={!!viewingProgram}
           onOpenChange={(open) => !open && setViewingProgram(null)}
         >
-          <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-3xl border-zinc-200 p-0 dark:border-zinc-800">
-            <div className="border-b border-zinc-100 bg-linear-to-r from-blue-50/50 via-white to-transparent p-6 dark:border-zinc-800 dark:from-blue-950/20 dark:via-zinc-950">
-              <DialogHeader>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-2xl bg-blue-600 p-2.5 text-white">
-                      <Sparkles className="size-5" />
-                    </div>
-                    <div>
-                      <DialogTitle className="text-lg font-bold text-zinc-950 dark:text-zinc-50">
-                        {getGoalLabel(viewingProgram.targetGoal)}
-                      </DialogTitle>
-                      <DialogDescription className="text-xs text-zinc-500">
-                        Запазена програма •{" "}
-                        {formatDate(viewingProgram.createdAt)}
-                      </DialogDescription>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => handleDownloadPdf(viewingProgram)}
-                      size="sm"
-                      className="rounded-xl bg-blue-600 text-xs text-white hover:bg-blue-700"
-                    >
-                      <Download className="mr-1.5 size-3.5" /> Свали PDF
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteProgram(viewingProgram.id)}
-                      disabled={deletingId === viewingProgram.id}
-                      size="sm"
-                      variant="outline"
-                      className="rounded-xl border-rose-200 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900 dark:text-rose-400"
-                    >
-                      <Trash2 className="mr-1.5 size-3.5" /> Изтрий
-                    </Button>
-                  </div>
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+            {/* Fixed Sticky Header */}
+            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-linear-to-r from-blue-50/50 via-white to-transparent p-4 sm:p-6 dark:border-zinc-800 dark:from-blue-950/20 dark:via-zinc-950">
+              <div className="flex items-center gap-3 pr-8 min-w-0">
+                <div className="shrink-0 rounded-2xl bg-blue-600 p-2.5 text-white">
+                  <Sparkles className="size-5" />
                 </div>
-              </DialogHeader>
+                <div className="min-w-0">
+                  <DialogTitle className="truncate text-base font-bold text-zinc-950 sm:text-lg dark:text-zinc-50">
+                    {getGoalLabel(viewingProgram.targetGoal)}
+                  </DialogTitle>
+                  <DialogDescription className="truncate text-xs text-zinc-500">
+                    Запазена програма • {formatDate(viewingProgram.createdAt)}
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => handleDownloadPdf(viewingProgram)}
+                  size="sm"
+                  className="rounded-xl bg-blue-600 text-xs text-white hover:bg-blue-700"
+                >
+                  <Download className="mr-1.5 size-3.5" /> Свали PDF
+                </Button>
+                <Button
+                  onClick={() => handleDeleteProgram(viewingProgram.id)}
+                  disabled={deletingId === viewingProgram.id}
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl border-rose-200 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900 dark:text-rose-400"
+                >
+                  <Trash2 className="mr-1.5 size-3.5" /> Изтрий
+                </Button>
+              </div>
             </div>
 
-            <div className="space-y-5 p-6">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5 min-h-0">
               {viewingProgram.safetyAudit && (
                 <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 text-xs dark:border-zinc-800 dark:bg-zinc-900">
                   <div className="mb-2 flex items-center gap-2 font-bold text-zinc-900 dark:text-zinc-100">

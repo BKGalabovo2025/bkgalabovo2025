@@ -23,12 +23,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -392,19 +387,20 @@ export function MarketingHistoryTab({
         open={!!selectedLog}
         onOpenChange={(open) => !open && setSelectedLog(null)}
       >
-        <DialogContent className="max-w-md rounded-3xl p-6">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
           {selectedLog && (
-            <div className="space-y-4">
-              <DialogHeader>
-                <div className="flex items-center gap-2">
-                  <div className="flex size-9 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400">
+            <>
+              {/* Fixed Sticky Header */}
+              <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 shrink-0">
                     <History className="size-4.5" />
                   </div>
-                  <div>
-                    <DialogTitle className="text-base font-black text-zinc-950 dark:text-white">
-                      Детайли на изпратеното съобщение
+                  <div className="min-w-0">
+                    <DialogTitle className="text-base font-bold text-zinc-950 dark:text-white line-clamp-1">
+                      Детайли на съобщението
                     </DialogTitle>
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-zinc-500 truncate block">
                       До: {selectedLog.recipientName} (
                       {selectedLog.recipientPhone ||
                         selectedLog.recipientEmail ||
@@ -413,9 +409,10 @@ export function MarketingHistoryTab({
                     </span>
                   </div>
                 </div>
-              </DialogHeader>
+              </div>
 
-              <div className="space-y-3">
+              {/* Scrollable Body */}
+              <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
                 <div className="flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 text-xs dark:border-zinc-800 dark:bg-zinc-900">
                   <span className="text-zinc-500">Канал:</span>
                   <strong className="text-zinc-800 uppercase dark:text-zinc-200">
@@ -427,29 +424,37 @@ export function MarketingHistoryTab({
                   <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                     Пълен текст:
                   </span>
-                  <div className="max-h-60 overflow-y-auto rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3.5 text-xs leading-relaxed whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+                  <div className="max-h-60 overflow-y-auto rounded-xl border border-zinc-200 bg-zinc-50/70 p-3 text-xs leading-relaxed whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
                     {selectedLog.messageText}
                   </div>
                 </div>
-
-                {/* Delete button directly inside dialog */}
-                <div className="flex justify-end border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    disabled={isDeleting}
-                    onClick={() =>
-                      handleDelete(selectedLog.id, selectedLog.recipientName)
-                    }
-                    className="rounded-xl bg-rose-600 px-3 text-xs font-bold text-white shadow-xs hover:bg-rose-700"
-                  >
-                    <Trash2 className="mr-1.5 size-3.5" />
-                    Изтрий от базата данни
-                  </Button>
-                </div>
               </div>
-            </div>
+
+              {/* Fixed Sticky Footer */}
+              <div className="shrink-0 flex items-center justify-between gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setSelectedLog(null)}
+                  className="h-9 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Затвори
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  disabled={isDeleting}
+                  onClick={() =>
+                    handleDelete(selectedLog.id, selectedLog.recipientName)
+                  }
+                  className="h-9 rounded-xl bg-rose-600 px-3.5 text-xs font-bold text-white shadow-xs hover:bg-rose-700"
+                >
+                  <Trash2 className="mr-1.5 size-3.5" />
+                  Изтрий
+                </Button>
+              </div>
+            </>
           )}
         </DialogContent>
       </Dialog>

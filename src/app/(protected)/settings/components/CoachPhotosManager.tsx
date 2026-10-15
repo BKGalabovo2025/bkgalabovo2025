@@ -27,8 +27,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -317,7 +315,7 @@ export function CoachPhotosManager({
 
       {/* 2. DEDICATED MANAGEMENT DIALOG (Spacious, clean, modal) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden p-6 sm:rounded-3xl">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-3xl md:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
           {/* Hidden multi-file input */}
           <input
             ref={fileInputRef}
@@ -328,216 +326,218 @@ export function CoachPhotosManager({
             className="hidden"
           />
 
-          <DialogHeader className="border-b border-zinc-100 pb-3 dark:border-zinc-800">
+          {/* Fixed Sticky Header */}
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
             <div className="flex items-center gap-2">
               <ImageIcon className="size-5 text-primary" />
-              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+              <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
                 Фотогалерия — {coach.name}
               </DialogTitle>
             </div>
-            <DialogDescription className="text-xs text-zinc-500">
+            <DialogDescription className="mt-1 text-xs text-zinc-500">
               Качвайте множество снимки едновременно, маркирайте кои да се
               виждат на сайта и изберете водещ аватар.
             </DialogDescription>
-          </DialogHeader>
-
-          {/* Action Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className="border-primary/30 bg-primary/10 text-xs font-semibold text-primary"
-              >
-                {photos.length} общо
-              </Badge>
-              <span className="text-xs text-zinc-500">
-                ({publicCount} видими в сайта)
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {photos.length > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleToggleAll}
-                  className="h-8 rounded-xl text-xs font-medium"
-                >
-                  <Check className="mr-1.5 size-3.5 text-emerald-500" />
-                  {allMarkedPublic
-                    ? "Скрий всички от сайта"
-                    : "Маркирай всички за сайта"}
-                </Button>
-              )}
-
-              <Button
-                type="button"
-                variant={showUploader ? "secondary" : "default"}
-                size="sm"
-                onClick={() => setShowUploader(!showUploader)}
-                className="h-8 rounded-xl text-xs font-medium"
-              >
-                {showUploader ? (
-                  <>
-                    <X className="mr-1.5 size-3.5" /> Затвори ъплоудера
-                  </>
-                ) : (
-                  <>
-                    <Plus className="mr-1.5 size-3.5" /> Добави снимки
-                    (множествен избор)
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
 
-          {/* Batch Uploader Panel (Collapsible inside modal) */}
-          {showUploader && (
-            <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 transition-all">
-              <div className="flex items-center justify-between border-b border-primary/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <button
+          {/* Scrollable Body Container */}
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+            {/* Action Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="border-primary/30 bg-primary/10 text-xs font-semibold text-primary"
+                >
+                  {photos.length} общо
+                </Badge>
+                <span className="text-xs text-zinc-500">
+                  ({publicCount} видими в сайта)
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {photos.length > 1 && (
+                  <Button
                     type="button"
-                    onClick={() => setUploaderTab("files")}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                      uploaderTab === "files"
-                        ? "bg-primary text-white shadow-xs"
-                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                    }`}
+                    variant="outline"
+                    size="sm"
+                    onClick={handleToggleAll}
+                    className="h-8 rounded-xl text-xs font-medium"
                   >
-                    <UploadCloud className="mr-1.5 inline-block size-3.5" />
-                    Качи файлове наведнъж
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUploaderTab("links")}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                      uploaderTab === "links"
-                        ? "bg-primary text-white shadow-xs"
-                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                    }`}
-                  >
-                    <LinkIcon className="mr-1.5 inline-block size-3.5" />
-                    Постави външни линкове
-                  </button>
-                </div>
+                    <Check className="mr-1.5 size-3.5 text-emerald-500" />
+                    {allMarkedPublic
+                      ? "Скрий всички от сайта"
+                      : "Маркирай всички за сайта"}
+                  </Button>
+                )}
 
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant={showUploader ? "secondary" : "default"}
                   size="sm"
-                  onClick={() => setShowUploader(false)}
-                  className="size-7 p-0 text-zinc-400 hover:text-zinc-600"
+                  onClick={() => setShowUploader(!showUploader)}
+                  className="h-8 rounded-xl text-xs font-medium"
                 >
-                  <X className="size-4" />
+                  {showUploader ? (
+                    <>
+                      <X className="mr-1.5 size-3.5" /> Затвори ъплоудера
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-1.5 size-3.5" /> Добави снимки
+                      (множествен избор)
+                    </>
+                  )}
                 </Button>
               </div>
+            </div>
 
-              {/* Tab 1: Multi-file picker */}
-              {uploaderTab === "files" && (
-                <div className="pt-3">
-                  {uploadProgress ? (
-                    <div className="flex flex-col items-center justify-center rounded-xl border border-primary/30 bg-white/60 p-6 text-center backdrop-blur-xs dark:bg-zinc-950/60">
-                      <Loader2 className="size-8 animate-spin text-primary" />
-                      <p className="mt-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                        Качване на снимка {uploadProgress.current} от{" "}
-                        {uploadProgress.total}...
-                      </p>
-                      <p className="mt-1 max-w-xs truncate text-xs text-zinc-500">
-                        {uploadProgress.fileName}
-                      </p>
-                      <div className="mt-4 h-2 w-full max-w-md overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                        <div
-                          className={cn(
-                            "h-full bg-primary transition-all duration-300",
-                            getProgressWidthClass(
-                              uploadProgress.current,
-                              uploadProgress.total
-                            )
-                          )}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        setIsDragOver(true);
-                      }}
-                      onDragLeave={() => setIsDragOver(false)}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all ${
-                        isDragOver
-                          ? "border-primary bg-primary/10 shadow-inner"
-                          : "border-zinc-300 bg-white/40 hover:border-primary/60 hover:bg-white/80 dark:border-zinc-700 dark:bg-zinc-900/30"
+            {/* Batch Uploader Panel (Collapsible inside modal) */}
+            {showUploader && (
+              <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 transition-all">
+                <div className="flex items-center justify-between border-b border-primary/10 pb-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUploaderTab("files")}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                        uploaderTab === "files"
+                          ? "bg-primary text-white shadow-xs"
+                          : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                       }`}
                     >
-                      <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <UploadCloud className="size-6" />
+                      <UploadCloud className="mr-1.5 inline-block size-3.5" />
+                      Качи файлове наведнъж
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUploaderTab("links")}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                        uploaderTab === "links"
+                          ? "bg-primary text-white shadow-xs"
+                          : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                      }`}
+                    >
+                      <LinkIcon className="mr-1.5 inline-block size-3.5" />
+                      Постави външни линкове
+                    </button>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowUploader(false)}
+                    className="size-7 p-0 text-zinc-400 hover:text-zinc-600"
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+
+                {/* Tab 1: Multi-file picker */}
+                {uploaderTab === "files" && (
+                  <div className="pt-3">
+                    {uploadProgress ? (
+                      <div className="flex flex-col items-center justify-center rounded-xl border border-primary/30 bg-white/60 p-6 text-center backdrop-blur-xs dark:bg-zinc-950/60">
+                        <Loader2 className="size-8 animate-spin text-primary" />
+                        <p className="mt-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                          Качване на снимка {uploadProgress.current} от{" "}
+                          {uploadProgress.total}...
+                        </p>
+                        <p className="mt-1 max-w-xs truncate text-xs text-zinc-500">
+                          {uploadProgress.fileName}
+                        </p>
+                        <div className="mt-4 h-2 w-full max-w-md overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                          <div
+                            className={cn(
+                              "h-full bg-primary transition-all duration-300",
+                              getProgressWidthClass(
+                                uploadProgress.current,
+                                uploadProgress.total
+                              )
+                            )}
+                          />
+                        </div>
                       </div>
-                      <h4 className="mt-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                        Плъзнете няколко снимки тук или кликнете за избор
-                      </h4>
-                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                        Поддържа маркиране на множество файлове едновременно
-                        (PNG, JPG, WEBP).
-                      </p>
+                    ) : (
+                      <div
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setIsDragOver(true);
+                        }}
+                        onDragLeave={() => setIsDragOver(false)}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all ${
+                          isDragOver
+                            ? "border-primary bg-primary/10 shadow-inner"
+                            : "border-zinc-300 bg-white/40 hover:border-primary/60 hover:bg-white/80 dark:border-zinc-700 dark:bg-zinc-900/30"
+                        }`}
+                      >
+                        <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <UploadCloud className="size-6" />
+                        </div>
+                        <h4 className="mt-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                          Плъзнете няколко снимки тук или кликнете за избор
+                        </h4>
+                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                          Поддържа маркиране на множество файлове едновременно
+                          (PNG, JPG, WEBP).
+                        </p>
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="mt-3 h-8 rounded-xl px-4 text-xs font-medium"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fileInputRef.current?.click();
+                          }}
+                        >
+                          Избери файлове от компютър
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Tab 2: Multiple links */}
+                {uploaderTab === "links" && (
+                  <div className="space-y-3 pt-3">
+                    <Label
+                      htmlFor={linksTextareaId}
+                      className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
+                    >
+                      Въведете един или няколко линка (по един на ред или
+                      разделени със запетая):
+                    </Label>
+                    <textarea
+                      id={linksTextareaId}
+                      rows={3}
+                      value={linksInput}
+                      onChange={(e) => setLinksInput(e.target.value)}
+                      placeholder="public\team\mira georgieva.jpg&#10;/team/photo-2.jpg&#10;https://..."
+                      className="w-full rounded-xl border border-zinc-300 bg-white p-3 font-mono text-xs text-zinc-800 focus:border-primary focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                    />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-zinc-500">
+                        Автоматично разпознава и нормализира пътища.
+                      </span>
                       <Button
                         type="button"
                         size="sm"
-                        className="mt-3 h-8 rounded-xl px-4 text-xs font-medium"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          fileInputRef.current?.click();
-                        }}
+                        onClick={handleAddLinksBatch}
+                        className="h-8 rounded-xl text-xs font-medium"
                       >
-                        Избери файлове от компютър
+                        <Plus className="mr-1.5 size-3.5" /> Добави линковете
                       </Button>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* Tab 2: Multiple links */}
-              {uploaderTab === "links" && (
-                <div className="space-y-3 pt-3">
-                  <Label
-                    htmlFor={linksTextareaId}
-                    className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
-                  >
-                    Въведете един или няколко линка (по един на ред или
-                    разделени със запетая):
-                  </Label>
-                  <textarea
-                    id={linksTextareaId}
-                    rows={3}
-                    value={linksInput}
-                    onChange={(e) => setLinksInput(e.target.value)}
-                    placeholder="public\team\mira georgieva.jpg&#10;/team/photo-2.jpg&#10;https://..."
-                    className="w-full rounded-xl border border-zinc-300 bg-white p-3 font-mono text-xs text-zinc-800 focus:border-primary focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-                  />
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-zinc-500">
-                      Автоматично разпознава и нормализира пътища.
-                    </span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleAddLinksBatch}
-                      className="h-8 rounded-xl text-xs font-medium"
-                    >
-                      <Plus className="mr-1.5 size-3.5" /> Добави линковете
-                    </Button>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
 
-          {/* Scrollable Photos Grid inside Modal */}
-          <div className="flex-1 overflow-y-auto pr-1">
+            {/* Photos Grid inside Modal Body */}
             {photos.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-800">
                 <ImageIcon className="size-10 text-zinc-400" />
@@ -654,8 +654,8 @@ export function CoachPhotosManager({
             )}
           </div>
 
-          {/* Dialog Footer */}
-          <DialogFooter className="flex items-center justify-between border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          {/* Fixed Sticky Footer */}
+          <div className="shrink-0 flex items-center justify-between border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
             <p className="text-xs text-zinc-500">
               {photos.length} снимки в галерията ({publicCount} видими в сайта)
             </p>
@@ -666,7 +666,7 @@ export function CoachPhotosManager({
             >
               Запази и затвори
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 

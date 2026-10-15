@@ -26,8 +26,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -2542,19 +2540,20 @@ export default function CreateSessionWizard({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-dvh max-h-dvh w-full max-w-7xl flex-col gap-0 overflow-hidden rounded-none bg-zinc-50 p-0 sm:h-[90vh] sm:max-h-[90vh] sm:rounded-2xl">
-        <DialogHeader className="z-10 shrink-0 border-b border-zinc-200 bg-white p-3 sm:p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <DialogTitle className="text-base sm:text-xl">
+      <DialogContent className="flex max-h-[95dvh] sm:max-h-[90vh] h-[95dvh] sm:h-[90vh] w-[calc(100%-1rem)] sm:w-full sm:max-w-6xl xl:max-w-7xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="z-10 shrink-0 border-b border-zinc-200 bg-white p-3 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-950">
+          <DialogTitle className="text-base sm:text-xl font-bold text-zinc-900 dark:text-white">
             {initialSession
               ? "Редактиране на тренировка"
               : "Конструктор на тренировка (Time-Budget Builder)"}
           </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
+          <DialogDescription className="mt-0.5 text-xs sm:text-sm text-zinc-500">
             {initialSession
               ? `Редактирайте тренировката: ${initialSession.title}`
               : "Разпределете упражненията и станциите за вашите групи. Времето се разпределя автоматично (10% - 80% - 10%)."}
           </DialogDescription>
-        </DialogHeader>
+        </div>
 
         {/* WIZARD HEADER */}
         <div className="flex shrink-0 justify-center gap-1.5 border-b border-zinc-200 bg-white p-2 text-xs font-medium sm:gap-6 sm:p-3 sm:text-sm dark:border-zinc-800 dark:bg-zinc-950">
@@ -2764,8 +2763,10 @@ export default function CreateSessionWizard({
           )}
         </div>
 
-        <DialogFooter className="flex shrink-0 items-center justify-between border-t border-zinc-200 bg-white p-4">
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex items-center justify-between border-t border-zinc-200 bg-white px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-950">
           <Button
+            type="button"
             variant="outline"
             onClick={() => {
               if (currentStep > 1) {
@@ -2775,20 +2776,23 @@ export default function CreateSessionWizard({
               }
             }}
             disabled={isSaving}
+            className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
           >
             {currentStep > 1 ? "Назад" : "Отказ"}
           </Button>
 
           {currentStep < 3 ? (
             <Button
-              className="bg-indigo-600 px-8 text-white hover:bg-indigo-700"
+              type="button"
+              className="rounded-xl bg-indigo-600 px-6 sm:px-8 text-xs font-bold text-white hover:bg-indigo-700"
               onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3)}
             >
               Напред
             </Button>
           ) : (
             <Button
-              className="bg-emerald-600 px-8 text-white hover:bg-emerald-700"
+              type="button"
+              className="rounded-xl bg-emerald-600 px-6 sm:px-8 text-xs font-bold text-white hover:bg-emerald-700"
               onClick={handleSave}
               disabled={isSaving || !title}
             >
@@ -2796,20 +2800,22 @@ export default function CreateSessionWizard({
               Запиши Тренировката
             </Button>
           )}
-        </DialogFooter>
+        </div>
       </DialogContent>
 
       {/* Station Modal */}
       <Dialog open={showStationModal} onOpenChange={setShowStationModal}>
-        <DialogContent className="max-h-[88vh] max-w-lg overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Нова Станционна Ротация</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
+              Нова Станционна Ротация
+            </DialogTitle>
+            <DialogDescription className="mt-1 text-xs text-zinc-500">
               Изберете кои групи кое упражнение ще изпълняват. Те ще споделят
               общ таймер.
             </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
+          </div>
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
             <div>
               <Label>Общо време на станцията (мин)</Label>
               <Input
@@ -2897,7 +2903,7 @@ export default function CreateSessionWizard({
               </Button>
             </div>
           </div>
-          <DialogFooter>
+          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
             <Button
               variant="outline"
               onClick={() => setShowStationModal(false)}
@@ -2913,7 +2919,7 @@ export default function CreateSessionWizard({
             >
               Запази Ротацията
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </Dialog>

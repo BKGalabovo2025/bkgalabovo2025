@@ -73,8 +73,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { BentoCard } from "@/components/ui/bento-card";
@@ -908,27 +906,34 @@ export default function ScheduleClient() {
       )}
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="max-w-md rounded-4xl border-none bg-white p-10 shadow-none dark:bg-zinc-950">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl leading-tight font-light text-zinc-900 dark:text-white">
+        <AlertDialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+          {/* Fixed Sticky Header */}
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <AlertDialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
               Наистина ли искате да изтриете това събитие?
             </AlertDialogTitle>
-            <AlertDialogDescription className="mt-4 text-sm leading-relaxed font-light text-zinc-400">
+          </div>
+
+          {/* Scrollable Body Container */}
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+            <AlertDialogDescription className="text-xs sm:text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
               Това действие не може да бъде отменено. Записът ще бъде премахнат
               окончателно от базата данни.
             </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-10 gap-3">
-            <AlertDialogCancel className="h-12 rounded-xl border-zinc-100 bg-white px-6 text-[11px] font-medium tracking-widest uppercase dark:border-zinc-800 dark:bg-zinc-900">
+          </div>
+
+          {/* Fixed Sticky Footer */}
+          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <AlertDialogCancel className="h-10 rounded-xl border-zinc-200 px-4 text-xs font-semibold dark:border-zinc-800">
               Отказ
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="h-12 rounded-xl bg-rose-500 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-rose-600"
+              className="h-10 rounded-xl bg-rose-600 px-5 text-xs font-bold text-white hover:bg-rose-700"
             >
               Изтрий
             </AlertDialogAction>
-          </AlertDialogFooter>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </div>

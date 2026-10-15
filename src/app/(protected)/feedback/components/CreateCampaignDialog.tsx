@@ -11,8 +11,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -167,121 +165,233 @@ export function CreateCampaignDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-h-[88vh] overflow-y-auto max-w-xl sm:rounded-3xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl font-black text-zinc-900">
-            <Sparkles className="size-5 text-indigo-600" />
-            {isRecovery
-              ? "Създаване на Анкета за събитие / кампания"
-              : "Създаване на Анкета за събитие"}
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            <Sparkles className="size-5 text-indigo-600 shrink-0" />
+            <span className="truncate">
+              {isRecovery
+                ? "Създаване на Анкета за кампания"
+                : "Създаване на Анкета за събитие"}
+            </span>
           </DialogTitle>
-          <DialogDescription className="text-xs text-zinc-500">
+          <DialogDescription className="mt-1 text-xs text-zinc-500">
             {isRecovery
               ? "Генерирайте уникален публичен линк за анкета, който да изпратите на клиентите или спортистите."
               : "Генерирайте уникален публичен линк за анкета, който да изпратите на родителите или състезателите."}
           </DialogDescription>
-        </DialogHeader>
+        </div>
 
         {createdLink ? (
           /* Success Screen with Copy Link */
-          <div className="space-y-6 py-4 text-center">
-            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
-              <Check className="size-7 stroke-3" />
+          <>
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5 min-h-0 text-center">
+              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+                <Check className="size-7 stroke-3" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                  Анкетата е готова за споделяне!
+                </h3>
+                <p className="mx-auto mt-1 max-w-sm text-xs text-zinc-500">
+                  {isRecovery
+                    ? "Копирайте линка по-долу и го изпратете на клиентите по имейл или съобщение."
+                    : "Копирайте линка по-долу и го изпратете на родителите по имейл или съобщение."}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/50 p-2 dark:border-indigo-900/50 dark:bg-indigo-950/30">
+                <Input
+                  readOnly
+                  value={createdLink}
+                  className="border-none bg-transparent text-xs font-semibold text-indigo-900 shadow-none focus-visible:ring-0 dark:text-indigo-200"
+                />
+                <Button
+                  onClick={copyToClipboard}
+                  className="shrink-0 rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700"
+                >
+                  {hasCopied ? (
+                    <>
+                      <Check className="mr-1.5 size-4" />
+                      Копирано!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="mr-1.5 size-4" />
+                      Копирай линк
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-bold text-zinc-900">
-                Анкетата е готова за споделяне!
-              </h3>
-              <p className="mx-auto mt-1 max-w-sm text-xs text-zinc-500">
-                {isRecovery
-                  ? "Копирайте линка по-долу и го изпратете на клиентите по имейл или съобщение."
-                  : "Копирайте линка по-долу и го изпратете на родителите по имейл или съобщение."}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/50 p-2">
-              <Input
-                readOnly
-                value={createdLink}
-                className="border-none bg-transparent text-xs font-semibold text-indigo-900 shadow-none focus-visible:ring-0"
-              />
-              <Button
-                onClick={copyToClipboard}
-                className="shrink-0 rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700"
-              >
-                {hasCopied ? (
-                  <>
-                    <Check className="mr-1.5 size-4" />
-                    Копирано!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="mr-1.5 size-4" />
-                    Копирай линк
-                  </>
-                )}
-              </Button>
-            </div>
-
-            <DialogFooter className="sm:justify-center">
+            <div className="shrink-0 flex items-center justify-center border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 variant="outline"
                 onClick={handleClose}
-                className="rounded-xl"
+                className="h-9 sm:h-10 rounded-xl px-6 text-xs font-semibold"
               >
                 Готово
               </Button>
-            </DialogFooter>
-          </div>
+            </div>
+          </>
         ) : (
           /* Creation Form */
-          <div className="space-y-4 py-2">
-            {/* Choose Event from calendar */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-zinc-700">
-                {isRecovery
-                  ? "Свържи с конкретно събитие или кампания (по избор)"
-                  : "Свържи със събитие от клубния график (по избор)"}
-              </Label>
-              <Select value={selectedEventId} onValueChange={handleEventSelect}>
-                <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
-                  <SelectValue
-                    placeholder={
-                      isRecovery
-                        ? "Изберете събитие (по избор)..."
-                        : "Изберете събитие от календара..."
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  <SelectItem value="none">
-                    -- Без конкретно събитие (Обща анкета) --
-                  </SelectItem>
-                  {events.map((ev) => (
-                    <SelectItem key={ev.id} value={ev.id}>
-                      {ev.title} (
-                      {new Date(ev.startDate).toLocaleDateString("bg-BG", {
-                        day: "2-digit",
-                        month: "2-digit",
-                      })}
-                      )
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Event Type & Template */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <>
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+              {/* Choose Event from calendar */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-zinc-700">
-                  Тип на събитието
+                  {isRecovery
+                    ? "Свържи с конкретно събитие или кампания (по избор)"
+                    : "Свържи със събитие от клубния график (по избор)"}
                 </Label>
                 <Select
-                  value={selectedEventType}
-                  onValueChange={(val) =>
-                    handleEventTypeChange(val as FeedbackEventType)
+                  value={selectedEventId}
+                  onValueChange={handleEventSelect}
+                >
+                  <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
+                    <SelectValue
+                      placeholder={
+                        isRecovery
+                          ? "Изберете събитие (по избор)..."
+                          : "Изберете събитие от календара..."
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value="none">
+                      -- Без конкретно събитие (Обща анкета) --
+                    </SelectItem>
+                    {events.map((ev) => (
+                      <SelectItem key={ev.id} value={ev.id}>
+                        {ev.title} (
+                        {new Date(ev.startDate).toLocaleDateString("bg-BG", {
+                          day: "2-digit",
+                          month: "2-digit",
+                        })}
+                        )
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Event Type & Template */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-zinc-700">
+                    Тип на събитието
+                  </Label>
+                  <Select
+                    value={selectedEventType}
+                    onValueChange={(val) =>
+                      handleEventTypeChange(val as FeedbackEventType)
+                    }
+                  >
+                    <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {isRecovery ? (
+                        <>
+                          <SelectItem value="recovery">
+                            ⚡ Normatec 3 / Процедура
+                          </SelectItem>
+                          <SelectItem value="general">
+                            🌟 Обща анкета
+                          </SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem value="camp">🏕️ Лагер</SelectItem>
+                          <SelectItem value="competition">
+                            🏸 Състезание
+                          </SelectItem>
+                          <SelectItem value="training">
+                            ⚡ Тренировки
+                          </SelectItem>
+                          <SelectItem value="general">
+                            🌟 Обща анкета
+                          </SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-zinc-700">
+                    Шаблон с въпроси
+                  </Label>
+                  <Select
+                    value={selectedTemplateId}
+                    onValueChange={setSelectedTemplateId}
+                  >
+                    <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
+                      <SelectValue placeholder="Изберете шаблон..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Campaign Title */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-zinc-700">
+                  {isRecovery
+                    ? "Заглавие на анкетата (видимо за клиентите) *"
+                    : "Заглавие на анкетата (видимо за родителите) *"}
+                </Label>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={
+                    isRecovery
+                      ? "напр. Обратна връзка: Възстановяване след Републиканско първенство"
+                      : "напр. Обратна връзка: Летен лагер Приморско 2026"
+                  }
+                  className="rounded-xl border-zinc-200 text-xs"
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-zinc-700">
+                  {isRecovery
+                    ? "Кратко описание / обръщение към клиентите"
+                    : "Кратко описание / обръщение към родителите"}
+                </Label>
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder={
+                    isRecovery
+                      ? "напр. Благодарим ви, че избрахте Recovery Zone by ZM! Моля, отделете 2 минути да споделите впечатленията си от процедурата..."
+                      : "напр. Скъпи родители, благодарим ви за доверието! Моля, отделете 2 минути да споделите вашите впечатления..."
+                  }
+                  rows={3}
+                  className="rounded-xl border-zinc-200 text-xs"
+                />
+              </div>
+
+              {/* Target Audience */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-zinc-700">
+                  Целева аудитория
+                </Label>
+                <Select
+                  value={targetAudience}
+                  onValueChange={(v) =>
+                    setTargetAudience(v as "parents" | "athletes" | "all")
                   }
                 >
                   <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
@@ -290,150 +400,55 @@ export function CreateCampaignDialog({
                   <SelectContent>
                     {isRecovery ? (
                       <>
-                        <SelectItem value="recovery">
-                          ⚡ Normatec 3 / Процедура
+                        <SelectItem value="all">
+                          👥 Всички клиенти и посетители
                         </SelectItem>
-                        <SelectItem value="general">🌟 Обща анкета</SelectItem>
+                        <SelectItem value="athletes">🏃‍♂️ Спортисти</SelectItem>
                       </>
                     ) : (
                       <>
-                        <SelectItem value="camp">🏕️ Лагер</SelectItem>
-                        <SelectItem value="competition">
-                          🏸 Състезание
+                        <SelectItem value="parents">👨‍👩‍👧 Родители</SelectItem>
+                        <SelectItem value="athletes">
+                          🏸 Състезатели / Деца
                         </SelectItem>
-                        <SelectItem value="training">⚡ Тренировки</SelectItem>
-                        <SelectItem value="general">🌟 Обща анкета</SelectItem>
+                        <SelectItem value="all">🌐 Всички</SelectItem>
                       </>
                     )}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-zinc-700">
-                  Шаблон с въпроси
-                </Label>
-                <Select
-                  value={selectedTemplateId}
-                  onValueChange={setSelectedTemplateId}
+              {/* Standing Survey Toggle */}
+              <div className="flex items-center space-x-2 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
+                <Checkbox
+                  id="isStandingCheck"
+                  checked={isStanding}
+                  onCheckedChange={(c) => setIsStanding(Boolean(c))}
+                />
+                <Label
+                  htmlFor="isStandingCheck"
+                  className="cursor-pointer text-xs font-bold text-indigo-950"
                 >
-                  <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
-                    <SelectValue placeholder="Изберете шаблон..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {isRecovery
+                    ? "🌐 Постоянна анкета на сайта на Recovery Zone (видима без краен срок)"
+                    : "🌐 Постоянна анкета на клубния сайт (видима без краен срок)"}
+                </Label>
               </div>
             </div>
 
-            {/* Campaign Title */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-zinc-700">
-                {isRecovery
-                  ? "Заглавие на анкетата (видимо за клиентите) *"
-                  : "Заглавие на анкетата (видимо за родителите) *"}
-              </Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={
-                  isRecovery
-                    ? "напр. Обратна връзка: Възстановяване след Републиканско първенство"
-                    : "напр. Обратна връзка: Летен лагер Приморско 2026"
-                }
-                className="rounded-xl border-zinc-200 text-xs"
-              />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-zinc-700">
-                {isRecovery
-                  ? "Кратко описание / обръщение към клиентите"
-                  : "Кратко описание / обръщение към родителите"}
-              </Label>
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={
-                  isRecovery
-                    ? "напр. Благодарим ви, че избрахте Recovery Zone by ZM! Моля, отделете 2 минути да споделите впечатленията си от процедурата..."
-                    : "напр. Скъпи родители, благодарим ви за доверието! Моля, отделете 2 минути да споделите вашите впечатления..."
-                }
-                rows={3}
-                className="rounded-xl border-zinc-200 text-xs"
-              />
-            </div>
-
-            {/* Target Audience */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-zinc-700">
-                Целева аудитория
-              </Label>
-              <Select
-                value={targetAudience}
-                onValueChange={(v) =>
-                  setTargetAudience(v as "parents" | "athletes" | "all")
-                }
-              >
-                <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {isRecovery ? (
-                    <>
-                      <SelectItem value="all">
-                        👥 Всички клиенти и посетители
-                      </SelectItem>
-                      <SelectItem value="athletes">🏃‍♂️ Спортисти</SelectItem>
-                    </>
-                  ) : (
-                    <>
-                      <SelectItem value="parents">👨‍👩‍👧 Родители</SelectItem>
-                      <SelectItem value="athletes">
-                        🏸 Състезатели / Деца
-                      </SelectItem>
-                      <SelectItem value="all">🌐 Всички</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Standing Survey Toggle */}
-            <div className="flex items-center space-x-2 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
-              <Checkbox
-                id="isStandingCheck"
-                checked={isStanding}
-                onCheckedChange={(c) => setIsStanding(Boolean(c))}
-              />
-              <Label
-                htmlFor="isStandingCheck"
-                className="cursor-pointer text-xs font-bold text-indigo-950"
-              >
-                {isRecovery
-                  ? "🌐 Постоянна анкета на сайта на Recovery Zone (видима без краен срок)"
-                  : "🌐 Постоянна анкета на клубния сайт (видима без краен срок)"}
-              </Label>
-            </div>
-
-            <DialogFooter className="pt-2">
+            {/* Fixed Sticky Footer */}
+            <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={handleClose}
-                className="rounded-xl text-xs"
+                className="h-9 sm:h-10 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
               >
                 Отказ
               </Button>
               <Button
                 onClick={handleCreate}
                 disabled={isSubmitting || !title.trim() || !selectedTemplateId}
-                className="rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700"
+                className="h-9 sm:h-10 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white shadow-md hover:bg-indigo-700"
               >
                 {isSubmitting ? (
                   <Loader2 className="mr-1.5 size-3.5 animate-spin" />
@@ -442,8 +457,8 @@ export function CreateCampaignDialog({
                 )}
                 Генерирай линк за анкета
               </Button>
-            </DialogFooter>
-          </div>
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>

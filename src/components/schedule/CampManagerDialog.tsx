@@ -20,7 +20,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -303,22 +302,22 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
     >
       <DialogContent
         key={event?.id}
-        className="flex h-[90vh] max-h-200 w-[95vw] flex-col overflow-hidden rounded-2xl border-none bg-white p-0 shadow-xl sm:max-w-4xl dark:bg-zinc-950"
+        className="flex max-h-[92dvh] sm:max-h-[88vh] h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4"
         aria-describedby={descriptionId}
       >
-        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50 p-4 sm:p-6 dark:border-zinc-900 dark:bg-zinc-900/50">
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900/40">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-emerald-100 p-2 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+              <div className="rounded-xl bg-emerald-100 p-2 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
                 <Tent className="size-5" />
               </div>
               <div>
-                <DialogTitle className="text-lg font-semibold text-zinc-900 sm:text-xl dark:text-white">
+                <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
                   Управление на Лагер
                 </DialogTitle>
                 <DialogDescription
                   id={descriptionId}
-                  className="mt-1 line-clamp-1 text-xs text-zinc-500"
+                  className="mt-0.5 line-clamp-1 text-xs text-zinc-500"
                 >
                   {event?.title || "Лагер"}
                 </DialogDescription>
@@ -783,10 +782,10 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
           </div>
         </ScrollArea>
 
-        <DialogFooter className="shrink-0 border-t border-zinc-100 bg-zinc-50/50 p-4 sm:p-6 dark:border-zinc-900">
+        <div className="shrink-0 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex w-full items-center justify-between">
             <div className="text-xs font-medium text-zinc-500">
-              <span className="text-zinc-900 dark:text-white">
+              <span className="font-bold text-zinc-900 dark:text-white">
                 {attendeesList.length}
               </span>{" "}
               участници
@@ -797,7 +796,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                 size="sm"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="h-9 rounded-lg px-4 text-xs font-medium"
+                className="h-8.5 sm:h-9 rounded-xl px-4 text-xs font-medium"
               >
                 Отказ
               </Button>
@@ -805,17 +804,17 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                 size="sm"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="h-9 rounded-lg bg-zinc-900 px-6 text-xs font-medium text-white hover:bg-zinc-800"
+                className="h-8.5 sm:h-9 rounded-xl bg-zinc-900 px-5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
               >
                 {isSubmitting ? (
-                  <Loader2 className="size-3 animate-spin" />
+                  <Loader2 className="size-3.5 animate-spin" />
                 ) : (
                   "Запази"
                 )}
               </Button>
             </div>
           </div>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

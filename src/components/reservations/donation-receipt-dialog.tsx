@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -254,50 +253,49 @@ export function DonationReceiptDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-[95vh] max-w-4xl overflow-y-auto rounded-4xl border-none bg-zinc-100 p-0 shadow-2xl dark:bg-zinc-950">
-        <DialogHeader className="no-print border-b border-zinc-100 bg-white p-8 pb-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/20">
-                <BadgeCheck className="size-6 text-white" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl font-black tracking-tight uppercase">
-                  Документ за Дарение
-                </DialogTitle>
-                <p className="mt-1 text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
-                  А4 формат (2 екземпляра)
-                </p>
-              </div>
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl lg:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="no-print shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="flex items-center gap-3 pr-8 sm:pr-0">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-primary/20">
+              <BadgeCheck className="size-4.5" />
             </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handlePrint}
-                className="h-12 rounded-2xl border-zinc-200 px-6 text-[10px] font-bold tracking-widest uppercase hover:bg-zinc-50"
-              >
-                <Printer className="mr-2 size-4" />
-                Принтирай
-              </Button>
-              <Button
-                size="lg"
-                onClick={handleSendEmail}
-                disabled={isSendingEmail || !reservation.clientEmail}
-                className="h-12 rounded-2xl bg-primary px-8 text-[10px] font-bold tracking-widest text-white uppercase shadow-xl shadow-primary/20 hover:bg-primary/90"
-              >
-                {isSendingEmail ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                ) : (
-                  <Mail className="mr-2 size-4" />
-                )}
-                {isSendingEmail ? "Изпращане..." : "Изпрати по Имейл"}
-              </Button>
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
+                Документ за Дарение
+              </DialogTitle>
+              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                А4 формат (2 екземпляра за печат)
+              </p>
             </div>
           </div>
-        </DialogHeader>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrint}
+              className="h-9 rounded-xl border-zinc-200 px-4 text-xs font-bold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              <Printer className="mr-1.5 size-3.5" />
+              Принтирай
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSendEmail}
+              disabled={isSendingEmail || !reservation.clientEmail}
+              className="h-9 rounded-xl bg-primary px-4 text-xs font-bold text-white shadow-sm hover:bg-primary/90"
+            >
+              {isSendingEmail ? (
+                <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+              ) : (
+                <Mail className="mr-1.5 size-3.5" />
+              )}
+              {isSendingEmail ? "Изпращане..." : "Имейл"}
+            </Button>
+          </div>
+        </div>
 
-        <div className="overflow-x-auto bg-zinc-50 p-4 sm:p-8 dark:bg-zinc-950/50">
+        <div className="custom-scrollbar flex-1 overflow-auto overscroll-contain bg-zinc-100/70 p-4 sm:p-6 min-h-0 dark:bg-zinc-900/40">
           <div
             ref={receiptRef}
             className="printable-area mx-auto flex min-h-[1123px] w-[794px] min-w-[794px] shrink-0 flex-col gap-6 bg-white p-[10mm] font-sans text-zinc-950 shadow-2xl"

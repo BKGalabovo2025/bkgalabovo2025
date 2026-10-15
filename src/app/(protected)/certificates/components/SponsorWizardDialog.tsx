@@ -193,9 +193,9 @@ export function SponsorWizardDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="flex max-h-[92dvh] w-[95vw] max-w-2xl flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-0 shadow-2xl sm:max-h-[88vh] sm:rounded-3xl dark:border-zinc-800 dark:bg-zinc-950">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
         {/* Header with Stepper */}
-        <div className="shrink-0 border-b border-zinc-200 bg-white/90 px-4 py-3.5 backdrop-blur-md sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/90">
+        <div className="shrink-0 border-b border-zinc-200 bg-white/90 px-4 py-3.5 pr-12 backdrop-blur-md sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/90">
           <DialogTitle className="flex items-center gap-2 text-base font-black text-zinc-900 sm:text-lg dark:text-white">
             <span className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs sm:size-8">
               <Handshake className="size-3.5 sm:size-4" />
@@ -246,7 +246,7 @@ export function SponsorWizardDialog({
         </div>
 
         {/* Step Body */}
-        <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:space-y-6 sm:p-6 overscroll-contain">
+        <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4 sm:space-y-6 sm:p-6 overscroll-contain min-h-0">
           {/* STEP 1: CATEGORY */}
           {currentStep === 1 && (
             <div className="space-y-3 sm:space-y-4 duration-200 animate-in fade-in">

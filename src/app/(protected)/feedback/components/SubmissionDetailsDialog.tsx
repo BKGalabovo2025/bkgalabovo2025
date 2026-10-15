@@ -16,13 +16,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
@@ -106,8 +100,9 @@ export function SubmissionDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] max-w-2xl flex flex-col overflow-hidden p-0 sm:rounded-3xl">
-        <DialogHeader className="border-b border-zinc-100 bg-linear-to-br from-indigo-50/70 via-white to-zinc-50/70 p-6">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/60 p-4 sm:p-6 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {submission.status === "approved" ? (
@@ -183,10 +178,10 @@ export function SubmissionDetailsDialog({
               </span>
             )}
           </div>
-        </DialogHeader>
+        </div>
 
-        <ScrollArea className="max-h-[calc(90vh-200px)] p-6">
-          <div className="space-y-6">
+        <ScrollArea className="flex-1 custom-scrollbar min-h-0">
+          <div className="space-y-6 p-4 sm:p-6">
             {/* Main Review text */}
             {submission.reviewText && (
               <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
@@ -306,12 +301,12 @@ export function SubmissionDetailsDialog({
         </ScrollArea>
 
         {/* Footer Actions */}
-        <DialogFooter className="flex flex-wrap items-center justify-between border-t border-zinc-100 bg-zinc-50 p-4 sm:justify-between">
+        <div className="shrink-0 flex flex-wrap items-center justify-between border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl text-xs text-zinc-600"
+            className="h-9 sm:h-10 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
           >
             Затвори
           </Button>
@@ -323,7 +318,7 @@ export function SubmissionDetailsDialog({
                 size="sm"
                 disabled={isSaving}
                 onClick={() => handleUpdateStatus("rejected", false)}
-                className="rounded-xl border-rose-200 text-xs font-bold text-rose-700 hover:bg-rose-50"
+                className="h-9 sm:h-10 rounded-xl border-rose-200 text-xs font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-950/30"
               >
                 <XCircle className="mr-1.5 size-3.5" />
                 Отхвърли
@@ -334,13 +329,13 @@ export function SubmissionDetailsDialog({
               size="sm"
               disabled={isSaving}
               onClick={() => handleUpdateStatus("approved", true)}
-              className="rounded-xl bg-emerald-600 text-xs font-bold text-white shadow-xs hover:bg-emerald-700"
+              className="h-9 sm:h-10 rounded-xl bg-emerald-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-emerald-700"
             >
               <CheckCircle2 className="mr-1.5 size-3.5" />
-              Одобри за публичния сайт
+              Одобри за сайта
             </Button>
           </div>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -24,8 +24,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
@@ -173,23 +171,29 @@ export function SharedSaleDetails({
                 <Trash2 className="mr-2 size-4" /> Изтрий
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="rounded-3xl">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-xl font-medium text-zinc-900">
+            <AlertDialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+              <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+                <AlertDialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
                   Сигурни ли сте?
                 </AlertDialogTitle>
-                <AlertDialogDescription className="font-medium">
+                <AlertDialogDescription className="mt-1 text-xs text-zinc-500">
                   Това действие е необратимо. Наличностите в склада ще бъдат
                   възстановени.
                 </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
+              </div>
+              <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 text-xs text-zinc-600 dark:text-zinc-400 min-h-0">
+                <p>
+                  Продажбата #{sale.id.substring(0, 8)} ще бъде изтрита от
+                  регистъра.
+                </p>
+              </div>
+              <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
                 <AlertDialogCancel className="rounded-xl font-medium">
                   Отказ
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDelete}
-                  className="rounded-xl bg-rose-500 font-medium shadow-none hover:bg-rose-600"
+                  className="rounded-xl bg-rose-500 font-medium text-white shadow-none hover:bg-rose-600"
                   disabled={isDeleting}
                 >
                   {isDeleting ? (
@@ -197,7 +201,7 @@ export function SharedSaleDetails({
                   ) : null}
                   Потвърди изтриването
                 </AlertDialogAction>
-              </AlertDialogFooter>
+              </div>
             </AlertDialogContent>
           </AlertDialog>
         </div>

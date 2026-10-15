@@ -4,13 +4,7 @@ import { CheckCheck, Loader2, PenLine, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface SignatureDialogProps {
   open: boolean;
@@ -166,27 +160,30 @@ export const SignatureDialog = ({
         if (!v && !isSaving) onClose();
       }}
     >
-      <DialogContent className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-3xl border-zinc-100 p-0 shadow-2xl">
-        <DialogHeader className="px-8 pt-8 pb-4">
-          <div className="mb-1 flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-zinc-950">
-              <PenLine className="size-5 text-white" strokeWidth={1.5} />
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Sticky Header */}
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="flex items-center gap-3 pr-8">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-zinc-950 text-white dark:bg-zinc-800">
+              <PenLine className="size-4.5" strokeWidth={1.5} />
             </div>
-            <DialogTitle className="text-xl font-light tracking-tight text-zinc-950">
-              {title}
-            </DialogTitle>
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
+                {title}
+              </DialogTitle>
+              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                {description}
+              </p>
+            </div>
           </div>
-          <p className="ml-13 text-sm font-light text-zinc-400">
-            {description}
-          </p>
-        </DialogHeader>
+        </div>
 
         {/* Canvas Area */}
-        <div className="mx-6 mb-2">
-          <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-3 min-h-0">
+          <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 dark:border-zinc-700 dark:bg-zinc-900/40">
             {/* Guiding line */}
-            <div className="pointer-events-none absolute inset-x-8 bottom-10 h-px bg-zinc-200" />
-            <p className="pointer-events-none absolute bottom-3 left-8 text-[10px] font-medium tracking-widest text-zinc-300 uppercase select-none">
+            <div className="pointer-events-none absolute inset-x-8 bottom-10 h-px bg-zinc-200 dark:bg-zinc-700" />
+            <p className="pointer-events-none absolute bottom-3 left-8 text-[10px] font-medium tracking-widest text-zinc-400 uppercase select-none">
               Подпис
             </p>
 
@@ -194,7 +191,7 @@ export const SignatureDialog = ({
               ref={canvasRef}
               width={560}
               height={200}
-              className="block h-45 w-full cursor-crosshair touch-none touch-none"
+              className="block h-45 w-full cursor-crosshair touch-none"
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}
@@ -205,51 +202,54 @@ export const SignatureDialog = ({
             />
           </div>
           {!hasSignature && (
-            <p className="mt-3 text-center text-xs font-light text-zinc-300">
+            <p className="text-center text-xs text-zinc-400">
               Начертайте подписа с мишката или пръст (на мобилен)
             </p>
           )}
         </div>
 
-        <DialogFooter className="flex flex-col gap-2 px-6 pb-6 sm:flex-row sm:gap-3">
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={clearCanvas}
             disabled={!hasSignature || isSaving}
-            className="h-11 flex-1 rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-500 uppercase transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 sm:flex-none"
+            className="h-10 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400"
           >
-            <Trash2 className="mr-2 size-4" strokeWidth={1.5} />
+            <Trash2 className="mr-1.5 size-4" strokeWidth={1.5} />
             Изчисти
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isSaving}
-            className="h-11 flex-1 rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-500 uppercase sm:flex-none"
-          >
-            Отказ
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={!hasSignature || isSaving}
-            className="h-11 flex-1 rounded-xl bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Запазване...
-              </>
-            ) : (
-              <>
-                <CheckCheck className="mr-2 size-4" strokeWidth={1.5} />
-                Запази подписа
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              disabled={isSaving}
+              className="h-10 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+            >
+              Отказ
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSave}
+              disabled={!hasSignature || isSaving}
+              className="h-10 rounded-xl bg-zinc-950 px-5 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  Запазване...
+                </>
+              ) : (
+                <>
+                  <CheckCheck className="mr-2 size-4" strokeWidth={1.5} />
+                  Запази подписа
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

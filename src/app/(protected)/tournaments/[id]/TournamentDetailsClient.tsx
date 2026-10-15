@@ -22,12 +22,7 @@ import { TournamentBracket } from "@/components/tournaments/TournamentBracket";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -451,10 +446,23 @@ export default function TournamentDetailsClient({
 
       <div className="space-y-6">
         <Dialog open={isEntryDialogOpen} onOpenChange={setIsEntryDialogOpen}>
-          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
-            <DialogHeader>
-              <DialogTitle>Записване за турнира</DialogTitle>
-            </DialogHeader>
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+            {/* Fixed Sticky Header */}
+            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+              <div className="flex items-center gap-3 pr-8">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-primary/20">
+                  <UserPlus className="size-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
+                    Записване за турнира
+                  </DialogTitle>
+                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                    Изберете състезатели и дисциплина
+                  </p>
+                </div>
+              </div>
+            </div>
             <EntryForm
               tournamentId={tournament.id!}
               allowedCategories={tournament.categories}
@@ -467,10 +475,23 @@ export default function TournamentDetailsClient({
 
         {/* Диалог за редактиране на турнира */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
-            <DialogHeader>
-              <DialogTitle>Редактиране на турнир</DialogTitle>
-            </DialogHeader>
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+            {/* Fixed Sticky Header */}
+            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+              <div className="flex items-center gap-3 pr-8">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+                  <Trophy className="size-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
+                    Редактиране на турнир
+                  </DialogTitle>
+                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                    Променете параметрите на турнира
+                  </p>
+                </div>
+              </div>
+            </div>
             <TournamentForm
               onSave={handleUpdateTournament}
               onClose={() => setIsEditDialogOpen(false)}

@@ -1,5 +1,6 @@
 "use client";
 
+import { Dumbbell } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -9,7 +10,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/context/auth-context";
@@ -89,21 +89,30 @@ export const UnifiedTrainingDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="custom-scrollbar max-h-[85vh] max-w-5xl overflow-y-auto rounded-4xl border-none bg-white p-6 shadow-xl sm:p-8 dark:bg-zinc-950">
-        <DialogHeader className="mb-6">
-          <DialogTitle className="text-2xl font-light text-zinc-950 dark:text-zinc-50">
-            {mode === "add"
-              ? "Добавяне на тренировка"
-              : "Редактиране на тренировка"}
-          </DialogTitle>
-          <DialogDescription className="mt-1 font-light text-zinc-400">
-            {mode === "add"
-              ? "Създаване на нов абонаментен план, еднократно посещение или членски внос."
-              : `Промяна на детайлите за "${service?.name}"`}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Header */}
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="flex items-center gap-3 pr-8">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-950">
+              <Dumbbell className="size-4.5" />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base font-bold text-zinc-950 sm:text-lg dark:text-zinc-50">
+                {mode === "add"
+                  ? "Добавяне на тренировка"
+                  : "Редактиране на тренировка"}
+              </DialogTitle>
+              <DialogDescription className="truncate text-xs text-zinc-400">
+                {mode === "add"
+                  ? "Създаване на нов абонаментен план, еднократно посещение или членски внос."
+                  : `Промяна на детайлите за "${service?.name}"`}
+              </DialogDescription>
+            </div>
+          </div>
+        </div>
 
-        <div className="mt-2">
+        {/* Scrollable Body */}
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
           <ServiceForm
             initialData={mode === "edit" && service ? service : undefined}
             onSubmit={handleSubmit}

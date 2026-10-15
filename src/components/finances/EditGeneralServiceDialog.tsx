@@ -13,8 +13,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -251,216 +249,235 @@ export const EditGeneralServiceDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="custom-scrollbar max-h-[90vh] overflow-y-auto rounded-4xl border-none bg-white p-8 shadow-xl sm:max-w-[850px] sm:p-10 dark:bg-zinc-950">
-        <DialogHeader className="mb-6">
-          <DialogTitle className="flex items-center gap-3 text-2xl font-light text-zinc-950 dark:text-zinc-50">
-            <Wrench className="text-zinc-650 size-6" strokeWidth={1.5} />
-            Редактиране на: {service.name}
-          </DialogTitle>
-          <DialogDescription className="mt-1 font-light text-zinc-400">
-            Промяна на информацията за услугата и преглед на историята.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-          {/* LEFT COLUMN: Service Details */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
-              <Sparkles className="size-4 text-primary" strokeWidth={2} />
-              <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-                Информация за услугата
-              </h3>
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        {/* Fixed Header */}
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="flex items-center gap-3 pr-8">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-950">
+              <Wrench className="size-4.5" />
             </div>
-
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label
-                  htmlFor="edit-name"
-                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                >
-                  Име на услугата *
-                </Label>
-                <Input
-                  id="edit-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="напр. Наем на корт"
-                  className="h-11 rounded-xl"
-                  disabled={isProcessing}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label
-                    htmlFor="edit-price"
-                    className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                  >
-                    Цена (EUR) *
-                  </Label>
-                  <Input
-                    id="edit-price"
-                    type="number"
-                    step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="0.00"
-                    className="h-11 rounded-xl"
-                    disabled={isProcessing}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label
-                    htmlFor="edit-pricingUnit"
-                    className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                  >
-                    Ценообразуване *
-                  </Label>
-                  <Select
-                    value={pricingUnit}
-                    onValueChange={(val: any) => setPricingUnit(val)}
-                    disabled={isProcessing}
-                  >
-                    <SelectTrigger className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
-                      <SelectValue placeholder="Избери..." />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="fixed">Фиксирана сума</SelectItem>
-                      <SelectItem value="per_hour">На час</SelectItem>
-                      <SelectItem value="per_session">На сесия</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label
-                    htmlFor="edit-performerName"
-                    className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                  >
-                    Изпълнител *
-                  </Label>
-                  <Input
-                    id="edit-performerName"
-                    value={performerName}
-                    onChange={(e) => setPerformerName(e.target.value)}
-                    placeholder="Име на треньор/клуб"
-                    className="h-11 rounded-xl"
-                    disabled={isProcessing}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label
-                    htmlFor="edit-performerType"
-                    className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                  >
-                    Тип изпълнител *
-                  </Label>
-                  <Select
-                    value={performerType}
-                    onValueChange={(val: any) => setPerformerType(val)}
-                    disabled={isProcessing}
-                  >
-                    <SelectTrigger className="h-11 rounded-xl border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
-                      <SelectValue placeholder="Избери..." />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="internal">Вътрешен (Клуб)</SelectItem>
-                      <SelectItem value="external">Външен партньор</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <UniversalMediaUpload
-                id="edit-imageUrl"
-                label="Изображение / Снимка на услугата"
-                description="PNG, JPG, WEBP или външен линк (до 800KB)"
-                value={imageUrl}
-                onChange={(url) => setImageUrl(url)}
-                storageFolder="services"
-                placeholderUrl="Линк към снимка на услугата..."
-              />
-
-              <div className="grid gap-2">
-                <Label
-                  htmlFor="edit-description"
-                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                >
-                  Описание
-                </Label>
-                <Textarea
-                  id="edit-description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Допълнителни детайли..."
-                  className="min-h-20 rounded-xl"
-                  rows={3}
-                  disabled={isProcessing}
-                />
-              </div>
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base font-bold text-zinc-950 sm:text-lg dark:text-zinc-50">
+                Редактиране на: {service.name}
+              </DialogTitle>
+              <DialogDescription className="truncate text-xs text-zinc-400">
+                Промяна на информацията за услугата и преглед на историята.
+              </DialogDescription>
             </div>
-
-            <Button
-              onClick={handleUpdateInfo}
-              disabled={isProcessing}
-              className="mt-4 h-12 w-full rounded-xl bg-zinc-950 text-[11px] font-medium tracking-widest text-white uppercase transition-all hover:bg-zinc-800"
-            >
-              Запази информацията
-            </Button>
-          </div>
-
-          {/* RIGHT COLUMN: Service History System with Tabs */}
-          <div className="flex h-full min-h-[450px] flex-col space-y-6 md:border-l md:border-zinc-100 md:pl-10 md:dark:border-zinc-900">
-            <Tabs
-              defaultValue="movements"
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="flex w-full flex-1 flex-col"
-            >
-              <TabsList className="mb-6 flex h-11 w-full rounded-2xl border border-zinc-200/40 bg-zinc-100 p-1 dark:border-zinc-800/40 dark:bg-zinc-900/50">
-                <TabsTrigger
-                  value="movements"
-                  className="flex-1 rounded-xl py-2 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
-                >
-                  Движения
-                </TabsTrigger>
-                <TabsTrigger
-                  value="sales"
-                  className="flex-1 rounded-xl py-2 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
-                >
-                  Продажби
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent
-                value="movements"
-                className="custom-scrollbar mt-0 max-h-95 flex-1 space-y-4 overflow-y-auto pr-1 outline-none"
-              >
-                {renderMovementsContent()}
-              </TabsContent>
-
-              <TabsContent
-                value="sales"
-                className="custom-scrollbar mt-0 max-h-95 flex-1 space-y-4 overflow-y-auto pr-1 outline-none"
-              >
-                {renderSalesContent()}
-              </TabsContent>
-            </Tabs>
           </div>
         </div>
 
-        <DialogFooter className="mt-8 flex justify-end gap-3 border-t border-zinc-100 pt-6 dark:border-zinc-900">
+        {/* Scrollable Body */}
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* LEFT COLUMN: Service Details */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 border-b border-zinc-100 pb-2 dark:border-zinc-900">
+                <Sparkles className="size-4 text-primary" strokeWidth={2} />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+                  Информация за услугата
+                </h3>
+              </div>
+
+              <div className="grid gap-3.5">
+                <div className="grid gap-1.5">
+                  <Label
+                    htmlFor="edit-name"
+                    className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+                  >
+                    Име на услугата *
+                  </Label>
+                  <Input
+                    id="edit-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="напр. Наем на корт"
+                    className="h-9.5 rounded-xl text-xs sm:text-sm"
+                    disabled={isProcessing}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-1.5">
+                    <Label
+                      htmlFor="edit-price"
+                      className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+                    >
+                      Цена (EUR) *
+                    </Label>
+                    <Input
+                      id="edit-price"
+                      type="number"
+                      step="0.01"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="0.00"
+                      className="h-9.5 rounded-xl text-xs sm:text-sm"
+                      disabled={isProcessing}
+                    />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label
+                      htmlFor="edit-pricingUnit"
+                      className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+                    >
+                      Ценообразуване *
+                    </Label>
+                    <Select
+                      value={pricingUnit}
+                      onValueChange={(val: any) => setPricingUnit(val)}
+                      disabled={isProcessing}
+                    >
+                      <SelectTrigger className="h-9.5 rounded-xl border-zinc-200 bg-zinc-50 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-900/50">
+                        <SelectValue placeholder="Избери..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="fixed">Фиксирана сума</SelectItem>
+                        <SelectItem value="per_hour">На час</SelectItem>
+                        <SelectItem value="per_session">На сесия</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-1.5">
+                    <Label
+                      htmlFor="edit-performerName"
+                      className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+                    >
+                      Изпълнител *
+                    </Label>
+                    <Input
+                      id="edit-performerName"
+                      value={performerName}
+                      onChange={(e) => setPerformerName(e.target.value)}
+                      placeholder="Име на треньор/клуб"
+                      className="h-9.5 rounded-xl text-xs sm:text-sm"
+                      disabled={isProcessing}
+                    />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label
+                      htmlFor="edit-performerType"
+                      className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+                    >
+                      Тип изпълнител *
+                    </Label>
+                    <Select
+                      value={performerType}
+                      onValueChange={(val: any) => setPerformerType(val)}
+                      disabled={isProcessing}
+                    >
+                      <SelectTrigger className="h-9.5 rounded-xl border-zinc-200 bg-zinc-50 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-900/50">
+                        <SelectValue placeholder="Избери..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="internal">
+                          Вътрешен (Клуб)
+                        </SelectItem>
+                        <SelectItem value="external">
+                          Външен партньор
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-3 dark:border-zinc-800/80 dark:bg-zinc-900/30">
+                  <UniversalMediaUpload
+                    id="edit-imageUrl"
+                    label="Изображение / Снимка"
+                    description="PNG, JPG, WEBP (до 800KB)"
+                    value={imageUrl}
+                    onChange={(url) => setImageUrl(url)}
+                    storageFolder="services"
+                    placeholderUrl="Линк към снимка на услугата..."
+                  />
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label
+                    htmlFor="edit-description"
+                    className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+                  >
+                    Описание
+                  </Label>
+                  <Textarea
+                    id="edit-description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Допълнителни детайли..."
+                    className="resize-none rounded-xl text-xs sm:text-sm leading-relaxed"
+                    rows={2}
+                    disabled={isProcessing}
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                onClick={handleUpdateInfo}
+                disabled={isProcessing}
+                className="h-10 w-full rounded-xl bg-zinc-950 text-xs font-semibold text-white shadow-xs hover:bg-zinc-800 active:scale-95 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
+              >
+                Запази промените по услугата
+              </Button>
+            </div>
+
+            {/* RIGHT COLUMN: Service History System with Tabs */}
+            <div className="flex h-full flex-col space-y-4 md:border-l md:border-zinc-100 md:pl-6 md:dark:border-zinc-900">
+              <Tabs
+                defaultValue="movements"
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="flex w-full flex-1 flex-col"
+              >
+                <TabsList className="mb-4 flex h-10 w-full rounded-xl border border-zinc-200/40 bg-zinc-100 p-1 dark:border-zinc-800/40 dark:bg-zinc-900/50">
+                  <TabsTrigger
+                    value="movements"
+                    className="flex-1 rounded-lg py-1.5 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+                  >
+                    Движения
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="sales"
+                    className="flex-1 rounded-lg py-1.5 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+                  >
+                    Продажби
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent
+                  value="movements"
+                  className="space-y-3 pr-1 outline-none"
+                >
+                  {renderMovementsContent()}
+                </TabsContent>
+
+                <TabsContent
+                  value="sales"
+                  className="space-y-3 pr-1 outline-none"
+                >
+                  {renderSalesContent()}
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex items-center justify-end border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
+            type="button"
             variant="outline"
             onClick={onClose}
             disabled={isProcessing}
-            className="rounded-xl px-6"
+            className="h-9 rounded-xl border-zinc-200 px-5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             Затвори
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

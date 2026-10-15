@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -40,11 +39,11 @@ const UnifiedSaleWizardContent = () => {
   const isReceipt = step === 6;
 
   return (
-    <div className="relative flex flex-col max-h-[88vh] h-full overflow-hidden">
-      <DialogHeader className="shrink-0 border-b border-zinc-100 px-6 py-4 dark:border-zinc-900">
+    <div className="relative flex flex-col flex-1 h-full overflow-hidden">
+      <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
         <div className="flex items-center justify-between">
           <div className="flex flex-col space-y-0.5">
-            <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
+            <DialogTitle className="text-base sm:text-lg font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
               {item.name}
             </DialogTitle>
             <DialogDescription className="text-[10px] font-medium tracking-widest text-zinc-500 uppercase">
@@ -54,14 +53,14 @@ const UnifiedSaleWizardContent = () => {
           <button
             onClick={handleClose}
             disabled={isProcessing}
-            className="flex size-8 items-center justify-center rounded-full bg-zinc-100/80 text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+            className="flex size-8 items-center justify-center rounded-full bg-zinc-100/80 text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 cursor-pointer"
           >
             <X className="size-4" />
           </button>
         </div>
-      </DialogHeader>
+      </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+      <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
         <div className="w-full">
           {step === 1 && <UnifiedWizardStep1 />}
           {step === 2 &&
@@ -166,7 +165,7 @@ export const UnifiedSaleWizardDialog = ({
 }: UnifiedSaleWizardDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl gap-0 overflow-hidden border-zinc-200/50 bg-white/95 p-0 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-950/95 max-h-[88vh] flex flex-col [&>button:last-child]:hidden">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:hidden">
         <UnifiedSaleWizardProvider
           item={item}
           mode={mode}

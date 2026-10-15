@@ -25,8 +25,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -200,62 +198,66 @@ export default function AnnualPlansClient() {
           }
         }}
       >
-        <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
           {sessionPreview &&
             (() => {
               const tmpl = getTemplate(sessionPreview.session.templateId);
               return (
                 <>
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-xl">
+                  {/* Fixed Sticky Header */}
+                  <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+                    <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
                       Ден {sessionPreview.session.dayOfWeek}
-                      <span className="text-sm font-normal text-muted-foreground">
+                      <span className="text-xs sm:text-sm font-normal text-muted-foreground">
                         | Седмица {sessionPreview.week.weekNumber}
                       </span>
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="mt-1 text-xs text-zinc-500">
                       Фаза: {sessionPreview.phase.name} • Фокус:{" "}
                       {sessionPreview.session.focus}
                     </DialogDescription>
-                  </DialogHeader>
+                  </div>
 
-                  <div className="mt-4 space-y-4">
+                  {/* Scrollable Body Container */}
+                  <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
                     {sessionPreview.week.isMatchWeek && (
-                      <div className="flex items-center gap-2 rounded-md bg-amber-100 p-3 text-sm font-medium text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
-                        <Trophy className="size-5" />
+                      <div className="flex items-center gap-2 rounded-xl bg-amber-100 p-3 text-xs sm:text-sm font-medium text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+                        <Trophy className="size-4 sm:size-5 shrink-0" />
                         Състезателна седмица (Match Week) - Tapering & Peaking
                         включени.
                       </div>
                     )}
 
                     {!tmpl ? (
-                      <div className="rounded-lg bg-muted/50 p-8 text-center">
+                      <div className="rounded-xl bg-muted/50 p-8 text-center text-xs text-zinc-500">
                         Шаблонът не е намерен.
                       </div>
                     ) : (
-                      <div className="space-y-6">
+                      <div className="space-y-4">
                         <div className="flex items-center justify-between border-b pb-2">
-                          <h3 className="text-lg font-bold text-primary">
+                          <h3 className="text-base font-bold text-primary">
                             {tmpl.name}
                           </h3>
                           <Badge>{tmpl.totalDurationMinutes} мин</Badge>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           {tmpl.blocks.map((block) => (
                             <div
                               key={block.id}
-                              className="rounded-lg border bg-muted/30 p-4"
+                              className="rounded-xl border bg-muted/30 p-3.5 sm:p-4"
                             >
                               <div className="mb-2 flex items-center justify-between">
-                                <h4 className="font-semibold">{block.title}</h4>
-                                <span className="rounded border bg-background px-2 py-1 font-mono text-xs">
+                                <h4 className="text-sm font-semibold">
+                                  {block.title}
+                                </h4>
+                                <span className="rounded-md border bg-background px-2 py-0.5 font-mono text-xs">
                                   {block.durationMinutes} мин
                                 </span>
                               </div>
 
                               {block.description && (
-                                <p className="mb-4 rounded-md border-l-2 border-primary/50 bg-background p-3 text-sm whitespace-pre-wrap text-muted-foreground">
+                                <p className="mb-3 rounded-lg border-l-2 border-primary/50 bg-background p-2.5 text-xs whitespace-pre-wrap text-muted-foreground">
                                   {block.description}
                                 </p>
                               )}
@@ -264,10 +266,11 @@ export default function AnnualPlansClient() {
                                 {block.exercises.map((ex, i) => (
                                   <div
                                     key={i}
-                                    className="flex flex-col gap-1 rounded border bg-background p-2 text-sm"
+                                    className="flex flex-col gap-1 rounded-lg border bg-background p-2 text-xs"
                                   >
                                     <div className="flex items-center justify-between font-medium">
                                       <button
+                                        type="button"
                                         className="text-left font-semibold text-primary hover:underline"
                                         onClick={() => {
                                           const foundEx = allExercises.find(
@@ -286,7 +289,7 @@ export default function AnnualPlansClient() {
                                       <span>{ex.durationMinutes} мин</span>
                                     </div>
                                     {ex.customInstructions && (
-                                      <span className="text-xs text-muted-foreground italic">
+                                      <span className="text-[11px] text-muted-foreground italic">
                                         Забележка: {ex.customInstructions}
                                       </span>
                                     )}
@@ -300,31 +303,36 @@ export default function AnnualPlansClient() {
                     )}
                   </div>
 
-                  <DialogFooter className="mt-6 flex items-center gap-4 sm:justify-between">
-                    <p className="text-xs text-muted-foreground">
-                      <Info className="mr-1 inline size-4" />
-                      Щракнете върху упражнение за видео и детайли.
+                  {/* Fixed Sticky Footer */}
+                  <div className="shrink-0 flex items-center justify-between gap-3 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+                    <p className="hidden text-xs text-muted-foreground sm:block">
+                      <Info className="mr-1 inline size-3.5" />
+                      Щракнете върху упражнение за детайли.
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2 ml-auto">
                       <Button
+                        type="button"
                         variant="outline"
                         onClick={() => setSessionPreview(null)}
+                        className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
                       >
                         Затвори
                       </Button>
                       {tmpl && (
                         <Button
+                          type="button"
                           onClick={() =>
                             router.push(
                               `/training/planner?importTemplate=${tmpl.id}`
                             )
                           }
+                          className="rounded-xl text-xs font-bold"
                         >
                           Импортирай в Планировчика
                         </Button>
                       )}
                     </div>
-                  </DialogFooter>
+                  </div>
                 </>
               );
             })()}
@@ -336,22 +344,24 @@ export default function AnnualPlansClient() {
         open={!!exercisePreview}
         onOpenChange={(open) => !open && setExercisePreview(null)}
       >
-        <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
           {exercisePreview && (
             <>
-              <DialogHeader>
-                <DialogTitle className="text-2xl text-primary">
+              {/* Fixed Sticky Header */}
+              <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+                <DialogTitle className="text-base sm:text-lg font-bold text-primary">
                   {exercisePreview.name}
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="mt-1 text-xs text-zinc-500">
                   Категория: {exercisePreview.category} | Възраст:{" "}
                   {exercisePreview.ageGroups.join(", ")}
                 </DialogDescription>
-              </DialogHeader>
+              </div>
 
-              <div className="mt-4 space-y-4 text-sm">
+              {/* Scrollable Body Container */}
+              <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0 text-sm">
                 {exercisePreview.videoUrl && (
-                  <div className="flex items-center justify-between rounded border bg-muted/30 p-3">
+                  <div className="flex items-center justify-between rounded-xl border bg-muted/30 p-3 text-xs">
                     <span className="font-semibold">Видео Демонстрация:</span>
                     <a
                       href={exercisePreview.videoUrl}
@@ -366,10 +376,10 @@ export default function AnnualPlansClient() {
 
                 {exercisePreview.description && (
                   <div>
-                    <h4 className="mb-1 border-b pb-1 font-bold">
+                    <h4 className="mb-1 border-b pb-1 text-xs font-bold uppercase tracking-wider text-zinc-500">
                       Инструкции (BWF)
                     </h4>
-                    <p className="whitespace-pre-wrap text-muted-foreground">
+                    <p className="text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
                       {exercisePreview.description}
                     </p>
                   </div>
@@ -378,10 +388,10 @@ export default function AnnualPlansClient() {
                 {exercisePreview.coachingPoints &&
                   exercisePreview.coachingPoints.length > 0 && (
                     <div>
-                      <h4 className="mb-1 border-b pb-1 font-bold">
+                      <h4 className="mb-1 border-b pb-1 text-xs font-bold uppercase tracking-wider text-zinc-500">
                         Треньорски насоки
                       </h4>
-                      <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+                      <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
                         {exercisePreview.coachingPoints.map((pt, idx) => (
                           <li key={idx}>{pt}</li>
                         ))}
@@ -389,27 +399,33 @@ export default function AnnualPlansClient() {
                     </div>
                   )}
 
-                <div className="grid grid-cols-2 gap-4 rounded border bg-muted/20 p-3">
+                <div className="grid grid-cols-2 gap-3 rounded-xl border bg-muted/20 p-3">
                   <div>
-                    <span className="mb-1 block font-bold">
+                    <span className="mb-1 block text-xs font-bold">
                       Необходими уреди:
                     </span>
                     <div className="flex flex-wrap gap-1">
                       {exercisePreview.equipment.length > 0 ? (
                         exercisePreview.equipment.map((e) => (
-                          <Badge key={e} variant="outline" className="text-xs">
+                          <Badge
+                            key={e}
+                            variant="outline"
+                            className="text-[10px]"
+                          >
                             {e}
                           </Badge>
                         ))
                       ) : (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[10px] text-muted-foreground">
                           Няма
                         </span>
                       )}
                     </div>
                   </div>
                   <div>
-                    <span className="mb-1 block font-bold">Базови умения:</span>
+                    <span className="mb-1 block text-xs font-bold">
+                      Базови умения:
+                    </span>
                     <div className="flex flex-wrap gap-1">
                       {exercisePreview.prerequisites &&
                       exercisePreview.prerequisites.length > 0 ? (
@@ -417,13 +433,13 @@ export default function AnnualPlansClient() {
                           <Badge
                             key={p}
                             variant="secondary"
-                            className="text-xs"
+                            className="text-[10px]"
                           >
                             {p}
                           </Badge>
                         ))
                       ) : (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[10px] text-muted-foreground">
                           Няма
                         </span>
                       )}
@@ -431,11 +447,18 @@ export default function AnnualPlansClient() {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
-                <Button onClick={() => setExercisePreview(null)}>
+
+              {/* Fixed Sticky Footer */}
+              <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setExercisePreview(null)}
+                  className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                >
                   Затвори
                 </Button>
-              </DialogFooter>
+              </div>
             </>
           )}
         </DialogContent>

@@ -33,12 +33,7 @@ import { RedeemVoucherDialog } from "@/app/(protected)/certificates/components/R
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/context/auth-context";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
 import { IssuedCertificate } from "@/types/certificates";
@@ -931,22 +926,22 @@ export function PublicCertificateClient({
       {/* ================================================================= */}
       {uploadedDoc && (
         <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
-          <DialogContent className="max-w-5xl p-4 sm:p-6">
-            <DialogHeader className="mb-2">
-              <DialogTitle className="flex items-center justify-between text-base">
-                <span>{uploadedDoc.fileName || "Ваучер за подарък"}</span>
-                <a
-                  href={uploadedDoc.fileUrl}
-                  download={uploadedDoc.fileName || "vaucher.pdf"}
-                  className="mr-6 inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline"
-                >
-                  <Download className="size-3.5" />
-                  Свали
-                </a>
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl lg:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+              <DialogTitle className="text-sm sm:text-base font-bold text-zinc-900 dark:text-white">
+                {uploadedDoc.fileName || "Ваучер за подарък"}
               </DialogTitle>
-            </DialogHeader>
+              <a
+                href={uploadedDoc.fileUrl}
+                download={uploadedDoc.fileName || "vaucher.pdf"}
+                className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline dark:text-blue-400"
+              >
+                <Download className="size-3.5" />
+                Свали
+              </a>
+            </div>
 
-            <div className="max-h-[85vh] w-full overflow-y-auto rounded-xl bg-white p-2 dark:bg-zinc-900">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-2 sm:p-4 min-h-0 bg-white dark:bg-zinc-900">
               {uploadedDoc.fileType === "pdf" ? (
                 <PdfToImageCanvas
                   fileUrl={uploadedDoc.fileUrl}
