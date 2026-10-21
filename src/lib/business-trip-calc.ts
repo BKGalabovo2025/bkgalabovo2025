@@ -242,3 +242,121 @@ export function calculateTripStatementTotals(
     personTotals,
   };
 }
+
+export interface TripTransportCalculation {
+  isDailyCommute: boolean;
+  singleRoundTripKm: number;
+  plannedTripsCount: number;
+  actualTripsCount: number;
+  effectiveDistanceKm: number;
+  calcFuelLiters: number;
+  calcFuelEUR: number;
+  calcPublicTransportEUR: number;
+}
+
+/**
+ * Изчислява ефективните километри и транспортни разходи по командировка:
+ * - При режим "daily_commute" (ежедневно пътуване без нощувка):
+ *     Ако децата отпаднат на ден 2 от 3-дневен турнир, курсовете стават 2.
+ *     Ефективни км = actualTripsCount * singleRoundTripKm (или actualDays * singleRoundTripKm)
+ * - При режим "single" (еднократно отиване и връщане с престой на място):
+ *     Курсът е 1 (общо в двете посоки), независимо колко дни е продължил престоят.
+ */
+function resolveTripDays(trip: BusinessTrip, plannedDays: number): number {
+  const coachOverride = trip.participantOverrides?.["coach"];
+  if (coachOverride?.actualDays != null) return coachOverride.actualDays;
+  if (trip.actualDays != null) return trip.actualDays;
+  return plannedDays;
+}
+
+function resolveSingleRoundTripKm(
+  vehicle: BusinessTrip["vehicle"],
+  isDailyCommute: boolean,
+  plannedDays: number
+): number {
+  if (vehicle?.singleRoundTripKm && vehicle.singleRoundTripKm > 0) {
+    return vehicle.singleRoundTripKm;
+  }
+  if (isDailyCommute && vehicle?.distanceKm && plannedDays > 0) {
+    return Math.round((vehicle.distanceKm / plannedDays) * 100) / 100;
+  }
+  return vehicle?.distanceKm ?? 0;
+}
+
+function resolveActualTripsCount(
+  vehicle: BusinessTrip["vehicle"],
+  isDailyCommute: boolean,
+  defDays: number
+): number {
+  if (vehicle?.actualTripsCount != null) return vehicle.actualTripsCount;
+  return isDailyCommute ? defDays : 1;
+}
+
+/**
+ * Изчислява ефективните километри и транспортни разходи по командировка:
+ * - При режим "daily_commute" (ежедневно пътуване без нощувка):
+ *     Ако децата отпаднат на ден 2 от 3-дневен турнир, курсовете стават 2.
+ *     Ефективни км = actualTripsCount * singleRoundTripKm
+ * - При режим "single" (еднократно отиване и връщане с престой на място):
+ *     Курсът е 1 (общо в двете посоки), независимо колко дни е продължил престоят.
+ */
+export function calculateTripTransportTotals(
+  trip: BusinessTrip,
+  fuelPricePerLiterEUR = 1.35
+): TripTransportCalculation {
+  const sDate = new Date(trip.startDate);
+  const eDate = new Date(trip.endDate);
+  const plannedDays = Math.max(1, differenceInCalendarDays(eDate, sDate) + 1);
+
+  const defDays = resolveTripDays(trip, plannedDays);
+  const vehicle = trip.vehicle;
+  const isDailyCommute = vehicle?.commuteMode === "daily_commute";
+
+  const singleRoundTripKm = resolveSingleRoundTripKm(
+    vehicle,
+    isDailyCommute,
+    plannedDays
+  );
+  const plannedTripsCount =
+    vehicle?.plannedTripsCount ?? (isDailyCommute ? plannedDays : 1);
+  const actualTripsCount = resolveActualTripsCount(
+    vehicle,
+    isDailyCommute,
+    defDays
+  );
+
+  const effectiveDistanceKm = isDailyCommute
+    ? Math.round(actualTripsCount * singleRoundTripKm * 10) / 10
+    : (vehicle?.distanceKm ?? singleRoundTripKm);
+
+  const fuelNorm = vehicle?.fuelNorm ?? 0;
+  const calcFuelLiters =
+    effectiveDistanceKm > 0 && fuelNorm > 0
+      ? Math.round((effectiveDistanceKm / 100) * fuelNorm * 100) / 100
+      : 0;
+
+  const calcFuelEUR =
+    calcFuelLiters > 0
+      ? Math.round(calcFuelLiters * fuelPricePerLiterEUR * 100) / 100
+      : 0;
+
+  let calcPublicTransportEUR = 0;
+  if (trip.transportType === "public" && trip.publicTransportDailyFareEUR) {
+    const dailyFare = trip.publicTransportDailyFareEUR;
+    const peopleCount = 1 + (trip.participantsIds?.length || 0);
+    const travelDays = trip.publicTransportDaysCount ?? defDays;
+    calcPublicTransportEUR =
+      Math.round(dailyFare * peopleCount * travelDays * 100) / 100;
+  }
+
+  return {
+    isDailyCommute,
+    singleRoundTripKm,
+    plannedTripsCount,
+    actualTripsCount,
+    effectiveDistanceKm,
+    calcFuelLiters,
+    calcFuelEUR,
+    calcPublicTransportEUR,
+  };
+}

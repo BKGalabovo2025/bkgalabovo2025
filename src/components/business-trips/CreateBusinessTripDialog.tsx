@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { differenceInCalendarDays } from "date-fns";
 import { AlertTriangle, FileText, Save } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -629,28 +630,277 @@ export function CreateBusinessTripDialog({
                   )}
                 />
 
-                <FormField
-                  control={form.control as any}
-                  name="vehicle.distanceKm"
-                  render={({ field }: any) => (
-                    <FormItem>
-                      <FormLabel>Разстояние (в км)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                      <FormDescription className="text-[10px]">
-                        Въведете ръчно (общо в двете посоки).
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
+                {/* Режим на пътуване (Ежедневно прибиране без нощувка VS Еднократно с престой) */}
+                <div className="col-span-2 rounded-xl border border-amber-200/80 bg-amber-50/50 p-4 space-y-3 dark:border-amber-900/50 dark:bg-amber-950/20">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm font-semibold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
+                        🔄 Режим на пътуване
+                      </FormLabel>
+                      <p className="text-xs text-amber-800/90 dark:text-amber-300/80">
+                        Определя дали отборът пътува всеки състезателен ден (без
+                        нощувка) или отива еднократно с преспиване на място.
+                      </p>
+                    </div>
+                  </div>
+
+                  <FormField
+                    control={form.control as any}
+                    name="vehicle.commuteMode"
+                    render={({ field }: any) => (
+                      <FormItem className="space-y-2">
+                        <Select
+                          value={field.value || "single"}
+                          onValueChange={(val) => {
+                            field.onChange(val);
+                            const singleKm =
+                              form.getValues("vehicle.singleRoundTripKm") ||
+                              form.getValues("vehicle.distanceKm") ||
+                              0;
+                            const plannedDays = Math.max(
+                              1,
+                              differenceInCalendarDays(
+                                new Date(
+                                  form.getValues("endDate") || event.endDate
+                                ),
+                                new Date(
+                                  form.getValues("startDate") || event.startDate
+                                )
+                              ) + 1
+                            );
+                            if (val === "daily_commute") {
+                              if (
+                                !form.getValues("vehicle.singleRoundTripKm") &&
+                                singleKm > 0
+                              ) {
+                                form.setValue(
+                                  "vehicle.singleRoundTripKm",
+                                  singleKm
+                                );
+                              }
+                              form.setValue(
+                                "vehicle.plannedTripsCount",
+                                plannedDays
+                              );
+                              form.setValue(
+                                "vehicle.distanceKm",
+                                singleKm * plannedDays
+                              );
+                            } else {
+                              form.setValue("vehicle.plannedTripsCount", 1);
+                              form.setValue("vehicle.distanceKm", singleKm);
+                            }
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-white dark:bg-zinc-900">
+                              <SelectValue placeholder="Изберете режим" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="single">
+                              🏨 Еднократно пътуване (1 курс с престой /
+                              преспиване на място)
+                            </SelectItem>
+                            <SelectItem value="daily_commute">
+                              🚗 Ежедневно пътуване (всеки ден отиване и връщане
+                              без нощувка)
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription className="text-[11px] leading-relaxed text-amber-900 dark:text-amber-200">
+                          {field.value === "daily_commute" ? (
+                            <>
+                              ✓ <strong>Ежедневно пътуване:</strong> Отборът се
+                              връща в Гълъбово след всеки състезателен ден
+                              (напр. турнири в Първомай, Хасково, Казанлък).
+                              Въведете разстоянието за{" "}
+                              <strong>1 пълен курс (отиване и връщане)</strong>{" "}
+                              — системата автоматично го умножава по броя
+                              състезателни дни. При по-ранно отпадане, курсовете
+                              се коригират лесно във ведомостта!
+                            </>
+                          ) : (
+                            <>
+                              ✓ <strong>Еднократно пътуване:</strong> Отборът
+                              отива в началото и се връща в края на участието
+                              (общо 1 курс отиване и връщане, напр. турнир в
+                              София или Варна). Дори клубът да не поема нощувки
+                              (напр. безплатен хотел или спане при близки),
+                              курсът остава точно един.
+                            </>
+                          )}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Полета за километри според избрания режим */}
+                  {form.watch("vehicle.commuteMode") === "daily_commute" ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                      <FormField
+                        control={form.control as any}
+                        name="vehicle.singleRoundTripKm"
+                        render={({ field }: any) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium">
+                              Разстояние за 1 пълен курс (отиване и връщане в
+                              км)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="Напр. 140 (Гълъбово - Първомай - Гълъбово)"
+                                {...field}
+                                value={field.value ?? ""}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  field.onChange(val);
+                                  const plannedDays = Math.max(
+                                    1,
+                                    differenceInCalendarDays(
+                                      new Date(
+                                        form.getValues("endDate") ||
+                                          event.endDate
+                                      ),
+                                      new Date(
+                                        form.getValues("startDate") ||
+                                          event.startDate
+                                      )
+                                    ) + 1
+                                  );
+                                  form.setValue(
+                                    "vehicle.plannedTripsCount",
+                                    plannedDays
+                                  );
+                                  form.setValue(
+                                    "vehicle.distanceKm",
+                                    val * plannedDays
+                                  );
+                                }}
+                              />
+                            </FormControl>
+                            <FormDescription className="text-[10px]">
+                              Въведете общо за 1 ден (отиване до турнира +
+                              връщане вкъщи).
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control as any}
+                        name="vehicle.distanceKm"
+                        render={({ field }: any) => {
+                          const plannedDays = Math.max(
+                            1,
+                            differenceInCalendarDays(
+                              new Date(
+                                form.getValues("endDate") || event.endDate
+                              ),
+                              new Date(
+                                form.getValues("startDate") || event.startDate
+                              )
+                            ) + 1
+                          );
+                          return (
+                            <FormItem>
+                              <FormLabel className="text-xs font-medium">
+                                Общо планирани км ({plannedDays}{" "}
+                                {plannedDays === 1 ? "курс" : "курса"})
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  readOnly
+                                  className="bg-zinc-100 font-semibold dark:bg-zinc-800"
+                                  {...field}
+                                  value={field.value ?? ""}
+                                />
+                              </FormControl>
+                              <FormDescription className="text-[10px]">
+                                Изчислява се автоматично: {plannedDays} дни × 1
+                                курс.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <FormField
+                      control={form.control as any}
+                      name="vehicle.distanceKm"
+                      render={({ field }: any) => (
+                        <FormItem>
+                          <FormLabel className="text-xs font-medium">
+                            Общо разстояние (в двете посоки в км)
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="Напр. 500 (Гълъбово - София - Гълъбово)"
+                              {...field}
+                              value={field.value ?? ""}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                field.onChange(val);
+                                form.setValue("vehicle.singleRoundTripKm", val);
+                                form.setValue("vehicle.plannedTripsCount", 1);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription className="text-[10px]">
+                            Въведете общите километри за целия турнир (отиване в
+                            началото + прибиране в края).
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
+                </div>
+
+                {transportType === "public" && (
+                  <div className="col-span-2 rounded-xl border border-sky-200 bg-sky-50/70 p-4 space-y-3 dark:border-sky-900/50 dark:bg-sky-950/20">
+                    <FormLabel className="text-sm font-semibold text-sky-950 dark:text-sky-200 flex items-center gap-1.5">
+                      🚆 Обществен транспорт — билети
+                    </FormLabel>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <FormField
+                        control={form.control as any}
+                        name="publicTransportDailyFareEUR"
+                        render={({ field }: any) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-medium">
+                              Цена на двупосочен билет за 1 човек за 1 ден (€)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.5"
+                                placeholder="Напр. 8.00"
+                                {...field}
+                                value={field.value ?? ""}
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
+                              />
+                            </FormControl>
+                            <FormDescription className="text-[10px]">
+                              Стойност на билета за отиване и връщане на 1
+                              състезател/треньор.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {transportType === "fuel_only" && (
                   <>

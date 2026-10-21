@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateTripStatementTotals,
+  calculateTripTransportTotals,
   getEffectiveTripRates,
   isTripCoverageWithoutAccom,
 } from "../lib/business-trip-calc";
@@ -173,6 +174,81 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
 
       expect(athleteCalc.perDiemRateEUR).toBe(11); // Sanitized from 5.5 to 11
       expect(athleteCalc.diemTotalEUR).toBe(22); // 2 * 11 EUR = 22 EUR
+    });
+  });
+
+  describe("calculateTripTransportTotals (User Commute & Early Return Scenarios)", () => {
+    it("User Scenario A: 3-day Parvomay tournament without overnight, daily commute. Kids drop out on Day 2 -> 2 round trips * 140 km = 280 km", () => {
+      const trip: BusinessTrip = {
+        id: "trip-parvomay-commute",
+        siteId: "bkgalabovo",
+        title: "ДЛШ под 11 г. Първомай (ежедневно пътуване)",
+        destination: "Първомай",
+        startDate: "2026-06-10T08:00:00.000Z",
+        endDate: "2026-06-12T18:00:00.000Z", // 3 planned days
+        coachId: "coach-1",
+        participantsIds: ["child-1", "child-2"],
+        transportType: "fuel_only",
+        expensesCoverage: "transport_and_food",
+        vehicle: {
+          brand: "Toyota Avensis",
+          regNumber: "CT1234AB",
+          fuelType: "diesel",
+          fuelNorm: 6.5,
+          commuteMode: "daily_commute",
+          singleRoundTripKm: 140, // 1 round trip
+          plannedTripsCount: 3,
+        },
+        financials: {
+          perDiemRateEUR: 11,
+          accommodationRateEUR: 0,
+          isCommercialActivity: false,
+        },
+        actualDays: 2, // Returned after day 2
+        status: "completed",
+      };
+
+      const result = calculateTripTransportTotals(trip, 1.35);
+      expect(result.isDailyCommute).toBe(true);
+      expect(result.actualTripsCount).toBe(2);
+      expect(result.effectiveDistanceKm).toBe(280); // 2 * 140 km
+      expect(result.calcFuelLiters).toBeCloseTo(18.2, 1);
+      expect(result.calcFuelEUR).toBeCloseTo(24.57, 2);
+    });
+
+    it("User Scenario B: 3-day Sofia tournament without hotel cost (free lodging). Stayed overnight, kids dropped out Day 2 -> 1 single round trip", () => {
+      const trip: BusinessTrip = {
+        id: "trip-sofia-single",
+        siteId: "bkgalabovo",
+        title: "ДЛШ под 19 г. София (безплатен престой)",
+        destination: "София",
+        startDate: "2026-06-15T08:00:00.000Z",
+        endDate: "2026-06-17T18:00:00.000Z", // 3 planned days
+        coachId: "coach-1",
+        participantsIds: ["child-1"],
+        transportType: "fuel_only",
+        expensesCoverage: "transport_and_food", // No hotel cost for club
+        vehicle: {
+          brand: "Toyota Avensis",
+          regNumber: "CT1234AB",
+          fuelType: "diesel",
+          fuelNorm: 7.0,
+          commuteMode: "single", // Stayed in Sofia! Not daily commute!
+          distanceKm: 500, // Galabovo - Sofia - Galabovo total
+        },
+        financials: {
+          perDiemRateEUR: 11,
+          accommodationRateEUR: 0,
+          isCommercialActivity: false,
+        },
+        actualDays: 2, // Returned on Day 2
+        status: "completed",
+      };
+
+      const result = calculateTripTransportTotals(trip, 1.35);
+      expect(result.isDailyCommute).toBe(false);
+      expect(result.actualTripsCount).toBe(1);
+      expect(result.effectiveDistanceKm).toBe(500); // exactly 1 round trip, NOT multiplied by days!
     });
   });
 });

@@ -9,7 +9,10 @@ import { bg } from "date-fns/locale";
 import React from "react";
 
 import { getSiteConfig } from "@/config/sites";
-import { getEffectiveTripRates } from "@/lib/business-trip-calc";
+import {
+  calculateTripTransportTotals,
+  getEffectiveTripRates,
+} from "@/lib/business-trip-calc";
 import { buildStaySectionText } from "@/lib/business-trip-report";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
@@ -277,7 +280,14 @@ export function BusinessTripPdfTemplates({
   const accomBGN = eurToBgn(accomEUR);
   const hasFuel = trip.transportType === "fuel_only";
   const fuelNorm = trip.vehicle?.fuelNorm ?? 0;
-  const distKm = trip.vehicle?.distanceKm ?? 0;
+  const transportCalc = calculateTripTransportTotals(trip);
+  const distKm =
+    transportCalc.effectiveDistanceKm > 0
+      ? transportCalc.effectiveDistanceKm
+      : (trip.vehicle?.distanceKm ?? 0);
+  const isDailyCommute = transportCalc.isDailyCommute;
+  const singleKm = transportCalc.singleRoundTripKm;
+  const actualTrips = transportCalc.actualTripsCount;
 
   const eventLabel =
     (
@@ -2338,9 +2348,25 @@ export function BusinessTripPdfTemplates({
                   <br />
                   <span style={{ fontSize: "8pt", color: "#555" }}>
                     {routeLabel}
+                    {isDailyCommute && actualTrips > 0 && singleKm > 0 && (
+                      <>
+                        <br />
+                        <strong style={{ color: "#1e3a8a" }}>
+                          Ежедневно пътуване: {actualTrips}{" "}
+                          {actualTrips === 1 ? "курс" : "курса"} (отиване и
+                          връщане) по {singleKm} км = {distKm} км
+                        </strong>
+                      </>
+                    )}
                   </span>
                 </td>
-                <td style={{ ...TD, textAlign: "center" }}>
+                <td
+                  style={{
+                    ...TD,
+                    textAlign: "center",
+                    fontWeight: isDailyCommute ? "bold" : "normal",
+                  }}
+                >
                   {distKm > 0 ? distKm : ""}
                 </td>
                 <td style={{ ...TD, textAlign: "center" }}>

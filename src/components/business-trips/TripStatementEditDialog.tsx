@@ -132,6 +132,8 @@ export function TripStatementEditDialog({
   const [filterMode, setFilterMode] = useState<"all" | "staying" | "no_stay">(
     "all"
   );
+  const [actualTripsCount, setActualTripsCount] = useState<number | "">("");
+  const [commuteNote, setCommuteNote] = useState<string>("");
 
   // Planned values from trip dates
   const plannedDays = trip
@@ -177,6 +179,16 @@ export function TripStatementEditDialog({
         trip.actualNights != null ? trip.actualNights : plannedNights;
       setGlobalDays(defDays);
       setGlobalNights(defNights);
+
+      const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
+      let initialTrips = 1;
+      if (trip.vehicle?.actualTripsCount != null) {
+        initialTrips = trip.vehicle.actualTripsCount;
+      } else if (isDailyCommute) {
+        initialTrips = defDays;
+      }
+      setActualTripsCount(initialTrips);
+      setCommuteNote(trip.vehicle?.commuteNote || "");
 
       const overrides = trip.participantOverrides ?? {};
 
@@ -433,13 +445,45 @@ export function TripStatementEditDialog({
 
   const simulatedTrip = useMemo(() => {
     if (!trip) return null;
+    const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
+    const singleKm =
+      trip.vehicle?.singleRoundTripKm && trip.vehicle.singleRoundTripKm > 0
+        ? trip.vehicle.singleRoundTripKm
+        : (trip.vehicle?.distanceKm ?? 0);
+
+    let tripsCount = 1;
+    if (actualTripsCount !== "") {
+      tripsCount = Number(actualTripsCount);
+    } else if (isDailyCommute) {
+      tripsCount = Number(globalDays) || 1;
+    }
+
+    const updatedDistanceKm = isDailyCommute
+      ? Math.round(tripsCount * singleKm * 10) / 10
+      : trip.vehicle?.distanceKm;
+
     return {
       ...trip,
       actualDays: globalDays === "" ? undefined : Number(globalDays),
       actualNights: globalNights === "" ? undefined : Number(globalNights),
       participantOverrides: currentOverrides,
+      vehicle: trip.vehicle
+        ? {
+            ...trip.vehicle,
+            actualTripsCount: tripsCount,
+            distanceKm: updatedDistanceKm,
+            commuteNote: commuteNote?.trim() || undefined,
+          }
+        : undefined,
     } as BusinessTrip;
-  }, [trip, globalDays, globalNights, currentOverrides]);
+  }, [
+    trip,
+    globalDays,
+    globalNights,
+    currentOverrides,
+    actualTripsCount,
+    commuteNote,
+  ]);
 
   const reportStaySectionPreview = useMemo(() => {
     if (!simulatedTrip) return "";
@@ -457,15 +501,40 @@ export function TripStatementEditDialog({
         membersDict
       );
 
+      const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
+      const singleKm =
+        trip.vehicle?.singleRoundTripKm && trip.vehicle.singleRoundTripKm > 0
+          ? trip.vehicle.singleRoundTripKm
+          : (trip.vehicle?.distanceKm ?? 0);
+
+      let tripsCount = 1;
+      if (actualTripsCount !== "") {
+        tripsCount = Number(actualTripsCount);
+      } else if (isDailyCommute) {
+        tripsCount = Number(globalDays) || 1;
+      }
+
+      const updatedDistanceKm = isDailyCommute
+        ? Math.round(tripsCount * singleKm * 10) / 10
+        : trip.vehicle?.distanceKm;
+
       await businessTripService.updateTrip(trip.id, {
         actualDays: globalDays === "" ? undefined : Number(globalDays),
         actualNights: globalNights === "" ? undefined : Number(globalNights),
         participantOverrides: currentOverrides,
         reportText: updatedReportText,
+        vehicle: trip.vehicle
+          ? {
+              ...trip.vehicle,
+              actualTripsCount: tripsCount,
+              distanceKm: updatedDistanceKm,
+              commuteNote: commuteNote?.trim() || undefined,
+            }
+          : undefined,
       });
 
       toast.success(
-        "Ведомостта и Докладът за командировка са актуализирани успешно!"
+        "Ведомостта, пътуванията и Докладът за командировка са актуализирани успешно!"
       );
       onSuccess?.();
       onOpenChange(false);
@@ -553,6 +622,36 @@ export function TripStatementEditDialog({
             </div>
           </div>
 
+          {/* Smart guidance banner for early dropouts & commute */}
+          <div className="rounded-xl border border-blue-200/90 bg-blue-50/70 p-3.5 text-xs dark:border-blue-900/60 dark:bg-blue-950/30">
+            <div className="flex items-start gap-2.5">
+              <span className="text-base leading-none">💡</span>
+              <div className="space-y-1 text-blue-950 dark:text-blue-200">
+                <p className="font-semibold">
+                  Ръководство при по-ранно отпадане от състезанието:
+                </p>
+                <p className="text-[11px] leading-relaxed text-blue-900/90 dark:text-blue-300">
+                  • <strong>Дни и дневни:</strong> Ако децата са отпаднали на
+                  2-рия ден от 3-дневен турнир, въведете 2 дни за отбора. За
+                  дните без нощувка дневните се изплащат в законов размер от 50%
+                  (11 €).
+                </p>
+                <p className="text-[11px] leading-relaxed text-blue-900/90 dark:text-blue-300">
+                  • <strong>Транспорт и километри:</strong> При режим{" "}
+                  <em>„Ежедневно пътуване“</em> (без нощувка) броят на курсовете
+                  отиване-връщане автоматично се съобразява с дните (2 курса = 2
+                  × 140 км). Ако сте били с престой на място (напр. в София),
+                  курсът остава 1 двупосочен.
+                </p>
+                <p className="text-[11px] leading-relaxed text-blue-900/90 dark:text-blue-300">
+                  • <strong>Доклад:</strong> Всички промени по престоя и
+                  изминатите километри ще се запишат автоматично в Раздел 3 на
+                  Доклада за командировка.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Team Duration Inputs */}
           <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
             <div className="mb-2.5 flex items-center justify-between">
@@ -621,6 +720,84 @@ export function TripStatementEditDialog({
                 </p>
               </div>
             </div>
+
+            {/* Корекция на транспорт и курсове */}
+            {trip.transportType === "fuel_only" && (
+              <div className="mt-3.5 pt-3 border-t border-zinc-200/80 dark:border-zinc-800">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                      🚗 Отчет за транспорт и курсове (МПС)
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {trip.vehicle?.commuteMode === "daily_commute"
+                        ? "Режим: Ежедневно пътуване (1 курс = отиване и връщане за всеки ден)"
+                        : "Режим: Еднократно пътуване (1 курс с престой на място)"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">
+                      {trip.vehicle?.commuteMode === "daily_commute"
+                        ? "Реално осъществени курсове (отиване + връщане):"
+                        : "Брой пътувания (курсове):"}
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={actualTripsCount}
+                      onChange={(e) =>
+                        setActualTripsCount(
+                          e.target.value === "" ? "" : Number(e.target.value)
+                        )
+                      }
+                      className="h-8 bg-white font-semibold dark:bg-zinc-950"
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      {trip.vehicle?.commuteMode === "daily_commute"
+                        ? `Препоръчително: ${globalDays || 1} курса (според реалните дни на треньора)`
+                        : "Обичайно 1 курс за целия престой"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Общо изминати километри по пътен лист:
+                    </Label>
+                    <div className="h-8 px-3 rounded-md border border-zinc-200 bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-800/80 flex items-center font-bold text-zinc-900 dark:text-zinc-100">
+                      {(() => {
+                        const isDaily =
+                          trip.vehicle?.commuteMode === "daily_commute";
+                        const singleKm =
+                          trip.vehicle?.singleRoundTripKm &&
+                          trip.vehicle.singleRoundTripKm > 0
+                            ? trip.vehicle.singleRoundTripKm
+                            : (trip.vehicle?.distanceKm ?? 0);
+                        let trips = 1;
+                        if (actualTripsCount !== "") {
+                          trips = Number(actualTripsCount);
+                        } else if (isDaily) {
+                          trips = Number(globalDays) || 1;
+                        }
+                        const effectiveKm = isDaily
+                          ? Math.round(trips * singleKm * 10) / 10
+                          : (trip.vehicle?.distanceKm ?? singleKm);
+                        const commuteDetail = isDaily
+                          ? ` (${trips} курса × ${singleKm} км)`
+                          : "";
+                        return `${effectiveKm} км${commuteDetail}`;
+                      })()}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      Това разстояние се вписва в Пътния лист и се признава за
+                      гориво.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Participants header + filter chips */}

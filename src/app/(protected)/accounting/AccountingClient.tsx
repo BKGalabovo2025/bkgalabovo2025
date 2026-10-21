@@ -63,7 +63,10 @@ import {
 } from "@/components/ui/table";
 import { getSiteConfig } from "@/config/sites";
 import { useAuth } from "@/context/auth-context";
-import { calculateTripStatementTotals } from "@/lib/business-trip-calc";
+import {
+  calculateTripStatementTotals,
+  calculateTripTransportTotals,
+} from "@/lib/business-trip-calc";
 import { formatDateShort } from "@/lib/date-utils";
 import { getEventsQuery } from "@/lib/firebase-collections";
 import {
@@ -93,11 +96,8 @@ function computeTripRowTotals(
   const { calcPerDiemEUR: calcPerDiem, calcAccomEUR: calcAccom } =
     calculateTripStatementTotals(trip);
   const calcEntry = trip.financials.entryFeeEUR || 0;
-  let calcFuel = 0;
-
-  if (trip.vehicle?.distanceKm && trip.vehicle?.fuelNorm) {
-    calcFuel = (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm * 1.35;
-  }
+  const transportCalc = calculateTripTransportTotals(trip);
+  const calcFuel = transportCalc.calcFuelEUR;
 
   let expPerDiem = 0;
   let expAccom = 0;
@@ -115,13 +115,17 @@ function computeTripRowTotals(
         fuelExpenses.length
       : 0;
 
+  const effectiveDistKm =
+    transportCalc.effectiveDistanceKm > 0
+      ? transportCalc.effectiveDistanceKm
+      : (trip.vehicle?.distanceKm ?? 0);
   let finalFuelEUR = calcFuel;
   if (
     fuelExpenses.length > 0 &&
-    trip.vehicle?.distanceKm &&
+    effectiveDistKm > 0 &&
     trip.vehicle?.fuelNorm
   ) {
-    const totalLiters = (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm;
+    const totalLiters = (effectiveDistKm / 100) * trip.vehicle.fuelNorm;
     const finalFuelBGN =
       totalLiters * (Math.round(avgPricePerLiterEUR * 1.95583 * 100) / 100);
     finalFuelEUR = finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
@@ -478,15 +482,13 @@ export default function AccountingClient() {
       const { calcPerDiemEUR: calcPerDiem, calcAccomEUR: calcAccom } =
         calculateTripStatementTotals(trip);
       const calcEntry = trip.financials.entryFeeEUR || 0;
-      let calcFuel = 0;
-
-      if (trip.vehicle && trip.vehicle.distanceKm) {
-        totalKM += trip.vehicle.distanceKm;
-        if (trip.vehicle.fuelNorm) {
-          calcFuel =
-            (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm * 1.35; // Default 1.35
-        }
-      }
+      const transportCalc = calculateTripTransportTotals(trip);
+      const effectiveDistKm =
+        transportCalc.effectiveDistanceKm > 0
+          ? transportCalc.effectiveDistanceKm
+          : (trip.vehicle?.distanceKm ?? 0);
+      totalKM += effectiveDistKm;
+      const calcFuel = transportCalc.calcFuelEUR;
 
       const tripExp = expenses[trip.id!] || [];
       let expPerDiem = 0,
@@ -509,11 +511,10 @@ export default function AccountingClient() {
       if (
         fuelExpenses.length > 0 &&
         trip.vehicle &&
-        trip.vehicle.distanceKm &&
+        effectiveDistKm > 0 &&
         trip.vehicle.fuelNorm
       ) {
-        const totalLiters =
-          (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm;
+        const totalLiters = (effectiveDistKm / 100) * trip.vehicle.fuelNorm;
         const avgPricePerLiterBGN = avgPricePerLiterEUR * 1.95583;
         const roundedPricePerLiterBGN =
           Math.round(avgPricePerLiterBGN * 100) / 100;
@@ -607,9 +608,8 @@ export default function AccountingClient() {
         other = 0;
 
       // Auto vehicle cost
-      if (trip.vehicle && trip.vehicle.distanceKm && trip.vehicle.fuelNorm) {
-        trans += (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm * 1.35;
-      }
+      const transportCalc = calculateTripTransportTotals(trip);
+      trans += transportCalc.calcFuelEUR;
 
       // Receipt costs
       const exps = expenses[trip.id!] || [];
@@ -698,12 +698,15 @@ export default function AccountingClient() {
         const trip = filteredTrips[i];
         const tId = trip.id;
 
-        // Sanitize trip title to avoid Windows ZIP invalid folder names (remove slashes, colons, etc.)
+        // Sanitize trip title to avoid Windows ZIP invalid folder names (remove slashes, colons, quotes, etc.)
         const safeTitle = (trip.title || "Командировка")
-          .replace(/[<>:"\/\\|?*]+/g, "-")
-          .trim();
+          .replace(/[<>:"\/\\|?*\x00-\x1F]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 50);
 
-        const tripFolder = zip.folder(`Командировка_${i + 1}_${safeTitle}`);
+        const folderName = `Командировка_${i + 1}_${safeTitle || "Trip"}`;
+        const tripFolder = zip.folder(folderName);
         if (!tripFolder) continue;
 
         // 0. Board Decision
@@ -825,8 +828,10 @@ export default function AccountingClient() {
 
       const content = await zip.generateAsync({
         type: "blob",
+        mimeType: "application/zip",
         compression: "DEFLATE",
         compressionOptions: { level: 6 },
+        platform: "DOS",
       });
       saveAs(
         content,
@@ -1293,14 +1298,36 @@ export default function AccountingClient() {
                         >
                           {trip.title}
                         </span>
-                        {trip.destination && (
-                          <span
-                            className="block truncate text-[10px] text-zinc-400"
-                            title={trip.destination}
-                          >
-                            📍 {trip.destination}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {trip.destination && (
+                            <span
+                              className="truncate text-[10px] text-zinc-400"
+                              title={trip.destination}
+                            >
+                              📍 {trip.destination}
+                            </span>
+                          )}
+                          {trip.vehicle?.commuteMode === "daily_commute" && (
+                            <Badge
+                              variant="outline"
+                              className="border-blue-200 bg-blue-50 px-1 py-0 text-[9px] font-medium text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
+                            >
+                              🚗{" "}
+                              {trip.vehicle.actualTripsCount ??
+                                trip.actualDays ??
+                                1}{" "}
+                              курса
+                            </Badge>
+                          )}
+                          {trip.actualDays != null && (
+                            <Badge
+                              variant="outline"
+                              className="border-amber-200 bg-amber-50 px-1 py-0 text-[9px] font-medium text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300"
+                            >
+                              ⏱️ {trip.actualDays} дни
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="min-w-25 max-w-35 px-2.5 py-1.5">
                         <span className="block truncate" title={coachName}>

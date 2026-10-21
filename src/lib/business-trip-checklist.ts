@@ -130,6 +130,22 @@ function checkFuelTransport(ctx: CheckContext): TripCheckItem[] {
       hint: 'Натиснете „Отчет гориво (PDF)" и разпечатайте – необходим е за счетоводния архив.',
     });
   }
+  // Проверка за ежедневно пътуване и съгласуваност на курсовете
+  if (trip.vehicle?.commuteMode === "daily_commute") {
+    if (
+      !trip.vehicle?.singleRoundTripKm ||
+      trip.vehicle.singleRoundTripKm <= 0
+    ) {
+      issues.push({
+        id: "commute_missing_single_km",
+        severity: "warning",
+        category: "finance",
+        message:
+          "Ежедневно пътуване: Липсва разстояние за 1 курс (отиване и връщане)",
+        hint: "Въведете километрите за 1 курс (напр. 140 км), за да се изчислят точно курсовете по дни.",
+      });
+    }
+  }
   return issues;
 }
 

@@ -60,8 +60,18 @@ const VehicleInfoSchema = z.object({
   brand: z.string().optional(),
   regNumber: z.string().optional(),
   fuelNorm: z.number().min(0).optional(), // Разходна норма (л/100 км)
-  distanceKm: z.number().min(0).optional(), // Разстояние в км (ръчно въвеждане за сега, готово за API)
+  distanceKm: z.number().min(0).optional(), // Общо разстояние в км
   fuelType: z.string().optional(), // Вид гориво (напр. бензин А-95, дизелово гориво, газ)
+  /** Режим на пътуване: "single" = еднократно с престой на място; "daily_commute" = ежедневно прибиране без преспиване */
+  commuteMode: z.enum(["single", "daily_commute"]).default("single").optional(),
+  /** Разстояние за 1 пълен курс отиване и връщане (км) */
+  singleRoundTripKm: z.number().min(0).optional(),
+  /** Първоначално планиран брой курсове (отиване + връщане) */
+  plannedTripsCount: z.number().min(0).optional(),
+  /** Реално осъществен брой курсове (отиване + връщане) след корекция */
+  actualTripsCount: z.number().min(0).optional(),
+  /** Изрична бележка за броя пътувания (напр. "2 курса поради отпадане на ден 2") */
+  commuteNote: z.string().optional(),
 });
 
 /**
@@ -111,6 +121,10 @@ export const BusinessTripSchema = z.object({
   transportType: TransportTypeEnum,
   expensesCoverage: z.string().optional(),
   vehicle: VehicleInfoSchema.optional(),
+  /** Цена на двупосочен билет за 1 човек на ден (в EUR) при обществен транспорт */
+  publicTransportDailyFareEUR: z.number().min(0).optional(),
+  /** Брой дни/пътувания с обществен транспорт */
+  publicTransportDaysCount: z.number().min(0).optional(),
   financials: TripFinancialsSchema,
   status: BusinessTripStatusEnum.default("draft"),
   /** Официална дата на Заповедта (може да се редактира ръчно в диалога) */

@@ -669,6 +669,37 @@ export function BusinessTripManagerDialog({
                           trip={trip}
                           expenses={expensesMap[trip.id!] || []}
                         />
+
+                        {/* ── Подсказка за отпадане / съкратен престой / ежедневно пътуване ── */}
+                        <div className="mt-2.5 rounded-lg border border-blue-200/80 bg-blue-50/60 p-2.5 text-xs dark:border-blue-900/50 dark:bg-blue-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 text-blue-950 dark:text-blue-200">
+                            <span className="text-sm">💡</span>
+                            <div>
+                              <span className="font-semibold">
+                                {trip.vehicle?.commuteMode === "daily_commute"
+                                  ? "Ежедневно пътуване (без нощувка): "
+                                  : "Отпадане на състезатели по-рано? "}
+                              </span>
+                              <span className="text-[11px] text-blue-800 dark:text-blue-300">
+                                {trip.vehicle?.commuteMode === "daily_commute"
+                                  ? `При отпадане курсовете и дневните се преизчисляват автоматично (текущо: ${trip.vehicle.actualTripsCount ?? trip.actualDays ?? 1} курса = ${trip.vehicle.distanceKm ?? 0} км).`
+                                  : "Коригирайте присъствените дни във ведомостта — системата автоматично актуализира доклада и сумите."}
+                              </span>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-[11px] font-medium border-blue-300 bg-white hover:bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-300 shrink-0"
+                            onClick={() => {
+                              setSelectedTripForStatement(trip);
+                              setIsStatementEditOpen(true);
+                            }}
+                          >
+                            ✏️ Корекция дни / курсове
+                          </Button>
+                        </div>
                       </div>
 
                       {/* Action buttons */}

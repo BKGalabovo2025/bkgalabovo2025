@@ -140,6 +140,7 @@ function buildReducedStayText(
  * Автоматично отчита ранно отпадане на състезатели, липса на нощувка, съкратен престой
  * и преизчислени дневни/квартирни във ведомостта.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function buildStaySectionText(
   trip: BusinessTrip,
   membersDict: Record<string, Member>
@@ -202,21 +203,65 @@ export function buildStaySectionText(
     (a) => !reducedAthletes.some((ra) => ra.id === a.id)
   );
 
+  let baseText = "";
   if (reducedAthletes.length > 0) {
-    return buildReducedStayText(reducedAthletes, fullStayAthletes, coachStat);
-  }
-
-  // Общо съкращаване на отбора (всички са се върнали по-рано)
-  if (defDays < plannedDays || defNights < plannedNights) {
+    baseText = buildReducedStayText(
+      reducedAthletes,
+      fullStayAthletes,
+      coachStat
+    );
+  } else if (defDays < plannedDays || defNights < plannedNights) {
+    // Общо съкращаване на отбора (всички са се върнали по-рано)
     const dayWord = defDays === 1 ? "ден" : "дни";
     const nightWord = defNights === 1 ? "нощувка" : "нощувки";
-    return `Отборът приключи своето участие по-рано от предвиденото в предварителния график. Реалният престой на целия състав бе ${defDays} ${dayWord} и ${defNights} ${nightWord} (вместо планираните ${plannedDays} дни / ${plannedNights} нощи). Финансовата ведомост за командировъчни разходи е преизчислена за действително реализирания брой дни и нощувки.`;
+    baseText = `Отборът приключи своето участие по-рано от предвиденото в предварителния график. Реалният престой на целия състав бе ${defDays} ${dayWord} и ${defNights} ${nightWord} (вместо планираните ${plannedDays} дни / ${plannedNights} нощи). Финансовата ведомост за командировъчни разходи е преизчислена за действително реализирания брой дни и нощувки.`;
+  } else {
+    // Пълен престой по график
+    const dayWord = plannedDays === 1 ? "ден" : "дни";
+    const nightWord = plannedNights === 1 ? "нощувка" : "нощувки";
+    baseText = `Пътуването и престоят се осъществиха изцяло съгласно предварителния план и утвърдените условия (общо ${plannedDays} ${dayWord} и ${plannedNights} ${nightWord}). Всички участници проведоха пълния престой и ползваха предвидените нощувки.`;
   }
 
-  // Пълен престой по график
-  const dayWord = plannedDays === 1 ? "ден" : "дни";
-  const nightWord = plannedNights === 1 ? "нощувка" : "нощувки";
-  return `Пътуването и престоят се осъществиха изцяло съгласно предварителния план и утвърдените условия (общо ${plannedDays} ${dayWord} и ${plannedNights} ${nightWord}). Всички участници проведоха пълния престой и ползваха предвидените нощувки.`;
+  // Добавяне на изрично описание за транспорта и курсовете
+  const vehicle = trip.vehicle;
+  const isDailyCommute = vehicle?.commuteMode === "daily_commute";
+  let singleKm = vehicle?.distanceKm ?? 0;
+  if (vehicle?.singleRoundTripKm && vehicle.singleRoundTripKm > 0) {
+    singleKm = vehicle.singleRoundTripKm;
+  } else if (isDailyCommute && vehicle?.distanceKm && plannedDays > 0) {
+    singleKm = Math.round(vehicle.distanceKm / plannedDays);
+  }
+
+  let actualTrips = isDailyCommute ? defDays : 1;
+  if (vehicle?.actualTripsCount != null) {
+    actualTrips = vehicle.actualTripsCount;
+  }
+
+  const totalEffectiveKm = isDailyCommute
+    ? Math.round(actualTrips * singleKm * 10) / 10
+    : (vehicle?.distanceKm ?? singleKm);
+
+  let transportLine = "";
+  if (trip.transportType === "fuel_only" && singleKm > 0) {
+    if (isDailyCommute) {
+      const tripWord = actualTrips === 1 ? "курс" : "курса";
+      const earlyReturnNote =
+        actualTrips < plannedDays
+          ? ` На останалите дни от програмата не е пътувано поради приключило участие.`
+          : "";
+      transportLine = `\n• Транспорт с лично МПС (ежедневно пътуване без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут Гълъбово – ${trip.destination || "дестинацията"} – Гълъбово (1 курс = ${singleKm} км). Общо изминати километри по пътен лист: ${totalEffectiveKm} км.${earlyReturnNote}`;
+    } else {
+      transportLine = `\n• Транспорт с лично МПС: Осъществено е 1 двупосочно пътуване с престой на място по маршрут Гълъбово – ${trip.destination || "дестинацията"} – Гълъбово. Общо изминати километри по пътен лист: ${totalEffectiveKm} км.`;
+    }
+  } else if (trip.transportType === "public") {
+    if (isDailyCommute) {
+      transportLine = `\n• Обществен транспорт (ежедневно пътуване): Закупени са билети за ${actualTrips} дни пътуване за отбора съгласно реалните състезателни дни.`;
+    } else {
+      transportLine = `\n• Обществен транспорт: Закупени са двупосочни билети за пътуването до ${trip.destination || "дестинацията"} и обратно.`;
+    }
+  }
+
+  return transportLine ? `${baseText}\n${transportLine}` : baseText;
 }
 
 /**
