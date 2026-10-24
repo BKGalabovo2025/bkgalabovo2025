@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -104,6 +105,11 @@ export function CreateBusinessTripDialog({
       ? {
           // Режим Редактиране — презареждаме съществуващите стойности
           ...initialData,
+          participantsIds:
+            initialData.participantsIds &&
+            initialData.participantsIds.length > 0
+              ? initialData.participantsIds
+              : participantIds,
           usDecision: initialData.usDecision || "",
           usDecisionDate: initialData.usDecisionDate || "",
           usProtocolNumber: initialData.usProtocolNumber || "",
@@ -181,6 +187,17 @@ export function CreateBusinessTripDialog({
       ? new Date(watchedOrderDate) > new Date(event.startDate)
       : false;
 
+  const currentParticipantsIds: string[] =
+    form.watch("participantsIds") && form.watch("participantsIds").length > 0
+      ? form.watch("participantsIds")
+      : initialData?.participantsIds && initialData.participantsIds.length > 0
+        ? initialData.participantsIds
+        : participantIds;
+
+  const effectiveParticipantsList = currentParticipantsIds
+    .map((id: string) => membersDict[id])
+    .filter(Boolean) as Member[];
+
   const computeTotalEntryFee = (
     hasEntryFee: boolean,
     perPerson: number | undefined,
@@ -207,8 +224,17 @@ export function CreateBusinessTripDialog({
         participantsCount
       );
 
+      const effectiveParticipantsIds: string[] =
+        values.participantsIds && values.participantsIds.length > 0
+          ? values.participantsIds
+          : initialData?.participantsIds &&
+              initialData.participantsIds.length > 0
+            ? initialData.participantsIds
+            : participantIds;
+
       const tripPayload = {
         ...values,
+        participantsIds: effectiveParticipantsIds,
         coachName,
         coachRole,
         orderDate: values.orderDate,
@@ -229,8 +255,7 @@ export function CreateBusinessTripDialog({
         // Режим Редактиране
         const defaultDecision = values.usDecision?.trim()
           ? values.usDecision.trim()
-          : initialData.usDecision ||
-            `${initialData.id.substring(0, 6).toUpperCase()}-УС`;
+          : initialData.usDecision;
         await businessTripService.updateTrip(initialData.id, {
           ...tripPayload,
           usDecision: defaultDecision,
@@ -243,12 +268,8 @@ export function CreateBusinessTripDialog({
           siteId: values.siteId || "default",
         } as any);
 
-        if (!values.usDecision?.trim() && newTripId) {
-          const autoDecision = `${newTripId.substring(0, 6).toUpperCase()}-УС`;
-          await businessTripService.updateTrip(newTripId, {
-            usDecision: autoDecision,
-          });
-        }
+        // Номерът на заповедта/решението се присвоява автоматично от businessTripService.createTrip
+        void newTripId;
         toast.success("Командировката е създадена успешно като чернова!");
       }
 
@@ -502,13 +523,33 @@ export function CreateBusinessTripDialog({
                   />
                 </div>
 
-                <div className="col-span-2 flex flex-col justify-center space-y-1 rounded-md border p-3">
-                  <span className="text-xs text-muted-foreground">
-                    Командировани състезатели
-                  </span>
-                  <span className="text-sm font-medium">
-                    {participantsCount} състезатели
-                  </span>
+                <div className="col-span-2 flex flex-col justify-center space-y-2 rounded-md border p-3 bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      Командировани състезатели (
+                      {effectiveParticipantsList.length})
+                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      {effectiveParticipantsList.length} състезатели
+                    </Badge>
+                  </div>
+                  {effectiveParticipantsList.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {effectiveParticipantsList.map((m) => (
+                        <Badge
+                          key={m.id}
+                          variant="secondary"
+                          className="text-xs font-normal px-2 py-0.5"
+                        >
+                          {m.firstName} {m.lastName}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">
+                      Няма добавени състезатели към събитието.
+                    </span>
+                  )}
                 </div>
 
                 <FormField

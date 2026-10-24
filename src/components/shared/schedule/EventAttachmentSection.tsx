@@ -74,6 +74,8 @@ export const EventAttachmentSection: React.FC<EventAttachmentSectionProps> = ({
         ref={fileInputRef}
         type="file"
         id={`${idPrefix}-file-upload`}
+        name={`${idPrefix}-file-upload`}
+        aria-label="Прикачен документ"
         className="hidden"
         accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         onChange={onFileUpload}
@@ -183,19 +185,39 @@ export const EventAttachmentSection: React.FC<EventAttachmentSectionProps> = ({
             </button>
           ) : (
             <div className="space-y-3 rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-              <Input
-                placeholder="https://... (Google Drive, Dropbox, URL към PDF/Word)"
-                value={manualLinkUrl}
-                onChange={(e) => setManualLinkUrl(e.target.value)}
-                className="h-10 rounded-xl bg-white text-xs dark:bg-zinc-800"
-              />
-              <div className="flex items-center gap-2">
+              <div className="space-y-1">
+                <label
+                  htmlFor={`${idPrefix}-manual-link-url`}
+                  className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400"
+                >
+                  Линк към документа
+                </label>
                 <Input
-                  placeholder="Име на файла (напр. Наредба_Държавно_2026.pdf)"
-                  value={manualLinkName}
-                  onChange={(e) => setManualLinkName(e.target.value)}
-                  className="h-10 flex-1 rounded-xl bg-white text-xs dark:bg-zinc-800"
+                  id={`${idPrefix}-manual-link-url`}
+                  name="manualLinkUrl"
+                  placeholder="https://... (Google Drive, Dropbox, URL към PDF/Word)"
+                  value={manualLinkUrl}
+                  onChange={(e) => setManualLinkUrl(e.target.value)}
+                  className="h-10 rounded-xl bg-white text-xs dark:bg-zinc-800"
                 />
+              </div>
+              <div className="flex items-end gap-2">
+                <div className="flex-1 space-y-1">
+                  <label
+                    htmlFor={`${idPrefix}-manual-link-name`}
+                    className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400"
+                  >
+                    Име на документа
+                  </label>
+                  <Input
+                    id={`${idPrefix}-manual-link-name`}
+                    name="manualLinkName"
+                    placeholder="Име на файла (напр. Наредба_Държавно_2026.pdf)"
+                    value={manualLinkName}
+                    onChange={(e) => setManualLinkName(e.target.value)}
+                    className="h-10 flex-1 rounded-xl bg-white text-xs dark:bg-zinc-800"
+                  />
+                </div>
                 <Button
                   type="button"
                   onClick={handleManualApply}

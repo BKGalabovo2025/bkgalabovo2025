@@ -7,6 +7,7 @@ import {
   FileSpreadsheet,
   FileText,
   ImageIcon,
+  Loader2,
   Paperclip,
   Printer,
 } from "lucide-react";
@@ -57,7 +58,7 @@ export const getDocumentTypeBadge = (type?: DocumentAttachmentType | null) => {
     case "pdf":
       return "PDF Документ";
     case "word":
-      return "Word Документ";
+      return "Word / RTF Документ";
     case "excel":
       return "Excel Таблица";
     case "image":
@@ -67,9 +68,337 @@ export const getDocumentTypeBadge = (type?: DocumentAttachmentType | null) => {
   }
 };
 
+const RTF_SKIP_DESTINATIONS = new Set([
+  "fonttbl",
+  "colortbl",
+  "stylesheet",
+  "info",
+  "pict",
+  "header",
+  "headerl",
+  "headerr",
+  "headerf",
+  "footer",
+  "footerl",
+  "footerr",
+  "footerf",
+  "listtable",
+  "listoverridetable",
+  "rsidtbl",
+  "generator",
+  "themedata",
+  "colorschememapping",
+  "latentstyles",
+  "datastore",
+  "fldinst",
+  "object",
+  "private",
+]);
+
+export function parseRtfToPlainText(rtf: string): string {
+  if (!rtf) return "";
+
+  let cp1251: TextDecoder | null = null;
+  try {
+    cp1251 = new TextDecoder("windows-1251");
+  } catch {
+    cp1251 = null;
+  }
+  const decodeByte = (b: number) =>
+    cp1251 ? cp1251.decode(new Uint8Array([b])) : String.fromCharCode(b);
+
+  type State = { uc: number; skip: boolean };
+  const stack: State[] = [];
+  let state: State = { uc: 1, skip: false };
+  let pendingSkip = 0; // fallback chars to skip after \uN
+  let out = "";
+  const emit = (s: string) => {
+    if (!state.skip) out += s;
+  };
+
+  const n = rtf.length;
+  let i = 0;
+  let groupStart = false; // just after '{'
+
+  while (i < n) {
+    const ch = rtf[i];
+
+    if (ch === "{") {
+      stack.push({ ...state });
+      groupStart = true;
+      i++;
+      continue;
+    }
+    if (ch === "}") {
+      state = stack.pop() ?? { uc: 1, skip: false };
+      groupStart = false;
+      i++;
+      continue;
+    }
+    if (ch === "\r" || ch === "\n") {
+      i++;
+      continue;
+    }
+
+    if (ch === "\\") {
+      const next = rtf[i + 1];
+      const wasGroupStart = groupStart;
+      groupStart = false;
+
+      if (next === "\\" || next === "{" || next === "}") {
+        if (pendingSkip > 0) pendingSkip--;
+        else emit(next);
+        i += 2;
+        continue;
+      }
+      if (next === "*") {
+        if (wasGroupStart) state.skip = true;
+        i += 2;
+        continue;
+      }
+      if (next === "'") {
+        const hex = rtf.substr(i + 2, 2);
+        const byte = parseInt(hex, 16);
+        i += 4;
+        if (pendingSkip > 0) {
+          pendingSkip--;
+        } else if (!Number.isNaN(byte)) {
+          emit(decodeByte(byte));
+        }
+        continue;
+      }
+      if (next === "~") {
+        emit("\u00a0");
+        i += 2;
+        continue;
+      }
+      if (next === "-" || next === "_") {
+        emit(next === "_" ? "-" : "");
+        i += 2;
+        continue;
+      }
+      if (next && /[a-zA-Z]/.test(next)) {
+        let j = i + 1;
+        while (j < n && /[a-zA-Z]/.test(rtf[j])) j++;
+        const word = rtf.slice(i + 1, j);
+        let param: number | null = null;
+        const m = /^-?\d+/.exec(rtf.slice(j, j + 12));
+        if (m) {
+          param = parseInt(m[0], 10);
+          j += m[0].length;
+        }
+        if (rtf[j] === " ") j++; // delimiter space
+        i = j;
+
+        if (wasGroupStart && RTF_SKIP_DESTINATIONS.has(word)) {
+          state.skip = true;
+          continue;
+        }
+
+        switch (word) {
+          case "uc":
+            state.uc = param ?? 1;
+            break;
+          case "u": {
+            if (param !== null) {
+              let code = param;
+              if (code < 0) code += 65536;
+              emit(String.fromCharCode(code));
+              pendingSkip = state.uc;
+            }
+            break;
+          }
+          case "par":
+          case "line":
+          case "sect":
+          case "page":
+            emit("\n");
+            break;
+          case "tab":
+            emit("    ");
+            break;
+          case "cell":
+          case "nestcell":
+            emit(" | ");
+            break;
+          case "row":
+          case "nestrow":
+            emit("\n");
+            break;
+          case "emdash":
+            emit("—");
+            break;
+          case "endash":
+            emit("–");
+            break;
+          case "lquote":
+            emit("‘");
+            break;
+          case "rquote":
+            emit("’");
+            break;
+          case "ldblquote":
+            emit("“");
+            break;
+          case "rdblquote":
+            emit("”");
+            break;
+          case "bullet":
+            emit("•");
+            break;
+          default:
+            break;
+        }
+        continue;
+      }
+
+      // unknown escaped symbol
+      i += 2;
+      continue;
+    }
+
+    // plain character
+    groupStart = false;
+    if (pendingSkip > 0) {
+      pendingSkip--;
+    } else {
+      emit(ch);
+    }
+    i++;
+  }
+
+  return out
+    .split("\n")
+    .map((l) => l.replace(/[ \t]+$/g, "").replace(/(?:\s*\|\s*)+$/g, ""))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function loadRtfContent(url: string): Promise<string> {
+  const res = await fetch(url);
+  const buffer = await res.arrayBuffer();
+
+  let raw = "";
+  try {
+    raw = new TextDecoder("windows-1251").decode(buffer);
+  } catch {
+    raw = new TextDecoder("utf-8").decode(buffer);
+  }
+
+  return parseRtfToPlainText(raw);
+}
+
+const RtfViewer: React.FC<{
+  url: string;
+  name?: string | null;
+  onDownload?: () => void | Promise<void>;
+}> = ({ url, name, onDownload }) => {
+  const [content, setContent] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+
+    loadRtfContent(url)
+      .then((txt) => {
+        if (cancelled) return;
+        if (txt && txt.trim().length > 0) {
+          setContent(txt);
+        } else {
+          setError(true);
+        }
+      })
+      .catch((e) => {
+        console.warn("Could not preview RTF:", e);
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  if (loading) {
+    return (
+      <div className="flex size-full flex-col items-center justify-center p-8 text-center">
+        <Loader2 className="size-8 animate-spin text-blue-500" />
+        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+          Зареждане и декодиране на съдийския протокол...
+        </p>
+      </div>
+    );
+  }
+
+  if (error || !content) {
+    return (
+      <div className="flex size-full flex-col items-center justify-center p-8 text-center">
+        <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-zinc-800">
+          <FileCode className="size-10 text-blue-500" />
+        </div>
+        <h3 className="text-base font-semibold text-zinc-800 dark:text-zinc-200">
+          {name || "RTF Документ"}
+        </h3>
+        <p className="mt-1 max-w-md text-xs text-zinc-500 dark:text-zinc-400">
+          Документът е в Rich Text Format (RTF). Можете да го свалите директно и
+          да го отворите с Microsoft Word или WordPad.
+        </p>
+        <Button asChild className="mt-4 gap-2 rounded-xl">
+          <a
+            href={url}
+            download={name || "protocol.rtf"}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onDownload?.()}
+          >
+            <Download className="size-4" />
+            Изтегли RTF файла
+          </a>
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex size-full flex-col overflow-hidden bg-zinc-100 dark:bg-zinc-950">
+      <div className="shrink-0 flex items-center justify-between border-b border-zinc-200 bg-white/90 px-4 py-2.5 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90">
+        <div className="flex items-center gap-2">
+          <FileCode className="size-4 text-blue-600" />
+          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+            Официален съдийски протокол от срещите (RTF)
+          </span>
+        </div>
+        <a
+          href={url}
+          download={name || "protocol.rtf"}
+          onClick={() => onDownload?.()}
+          className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400"
+        >
+          <Download className="size-3.5" />
+          Свали оригинала (.RTF)
+        </a>
+      </div>
+      <div className="flex-1 overflow-auto p-4 sm:p-6">
+        <div className="mx-auto max-w-4xl rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <pre className="whitespace-pre-wrap font-sans text-xs sm:text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+            {content}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface ViewerBodyProps {
   isPdf: boolean;
   isOffice: boolean;
+  isRtf: boolean;
   isImage: boolean;
   isGoogleDrive: boolean;
   googleDrivePreviewUrl: string;
@@ -83,6 +412,7 @@ interface ViewerBodyProps {
 const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   isPdf,
   isOffice,
+  isRtf,
   isImage,
   isGoogleDrive,
   googleDrivePreviewUrl,
@@ -93,6 +423,16 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   onDownload,
 }) => {
   if (!documentUrl) return null;
+
+  if (isRtf) {
+    return (
+      <RtfViewer
+        url={documentUrl}
+        name={documentName}
+        onDownload={onDownload}
+      />
+    );
+  }
 
   if (isImage) {
     return (
@@ -195,32 +535,40 @@ function parseDocumentViewerData(
     ? `https://drive.google.com/file/d/${driveMatch?.[1]}/preview`
     : "";
 
-  const isImage =
+  const isRtf =
     !isGoogleDrive &&
-    (documentType === "image" ||
-      /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(documentUrl) ||
-      /\.(png|jpe?g|webp|gif|svg)$/i.test(documentName || "") ||
-      documentUrl.startsWith("data:image/") ||
-      (documentUrl.includes("/api/upload") &&
-        !documentUrl.includes(".pdf") &&
-        !documentUrl.includes(".doc") &&
-        !documentUrl.includes(".xls")));
+    (/\.rtf(\?.*)?$/i.test(documentUrl) || /\.rtf$/i.test(documentName || ""));
 
   const isPdf =
     !isGoogleDrive &&
-    !isImage &&
     (documentType === "pdf" ||
-      documentUrl.toLowerCase().includes(".pdf") ||
-      (documentName ? documentName.toLowerCase().endsWith(".pdf") : false));
+      /\.pdf(\?.*)?$/i.test(documentUrl) ||
+      /\.pdf$/i.test(documentName || ""));
 
   const isOffice =
     !isGoogleDrive &&
-    !isImage &&
+    !isRtf &&
     !isPdf &&
     (documentType === "word" ||
       documentType === "excel" ||
       /\.(docx?|xlsx?|pptx?)$/i.test(documentName || "") ||
-      /\.(docx?|xlsx?|pptx?)/i.test(documentUrl));
+      /\.(docx?|xlsx?|pptx?)(\?.*)?$/i.test(documentUrl));
+
+  const isImage =
+    !isGoogleDrive &&
+    !isRtf &&
+    !isPdf &&
+    !isOffice &&
+    !/\.(rtf|docx?|xlsx?|pptx?|pdf|txt|csv|zip|rar)$/i.test(
+      documentName || ""
+    ) &&
+    !/\.(rtf|docx?|xlsx?|pptx?|pdf|txt|csv|zip|rar)(\?.*)?$/i.test(
+      documentUrl
+    ) &&
+    (documentType === "image" ||
+      /\.(png|jpe?g|webp|gif|svg|bmp|avif)(\?.*)?$/i.test(documentUrl) ||
+      /\.(png|jpe?g|webp|gif|svg|bmp|avif)$/i.test(documentName || "") ||
+      documentUrl.startsWith("data:image/"));
 
   let effectiveType: DocumentAttachmentType = "other";
   if (documentType) {
@@ -229,7 +577,7 @@ function parseDocumentViewerData(
     effectiveType = "image";
   } else if (isPdf) {
     effectiveType = "pdf";
-  } else if (isOffice) {
+  } else if (isOffice || isRtf) {
     effectiveType = "word";
   }
 
@@ -243,6 +591,7 @@ function parseDocumentViewerData(
     isImage,
     isPdf,
     isOffice,
+    isRtf,
     effectiveType,
     officeViewerUrl,
   };
@@ -265,6 +614,7 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
     isImage,
     isPdf,
     isOffice,
+    isRtf,
     effectiveType,
     officeViewerUrl,
   } = parseDocumentViewerData(documentUrl, documentName, documentType);
@@ -357,6 +707,7 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
           <DocumentViewerBody
             isPdf={isPdf}
             isOffice={isOffice}
+            isRtf={isRtf}
             isImage={isImage}
             isGoogleDrive={isGoogleDrive}
             googleDrivePreviewUrl={googleDrivePreviewUrl}

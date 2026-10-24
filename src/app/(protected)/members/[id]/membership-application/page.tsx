@@ -1,9 +1,12 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { MemberDocumentShell } from "@/components/shared/members/MemberDocumentShell";
+import { useClubFeeServices } from "@/hooks/useClubFeeServices";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
+import { isMatchingParticipation } from "@/lib/services-fees";
 import { formatFullName } from "@/lib/utils";
 
 const MembershipApplicationPage = () => {
@@ -11,6 +14,12 @@ const MembershipApplicationPage = () => {
   const router = useRouter();
   const memberId = params.id as string;
   const { member, loading } = useMemberProfile(memberId);
+  const { feeOptions } = useClubFeeServices();
+
+  const initialPlan =
+    ((member as Record<string, unknown>)?.participationType as string) ||
+    "Месечен абонамент – 1 дете (20 EUR)";
+  const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan);
 
   if (loading) return <div className="p-8">Зареждане...</div>;
   if (!member) return <div className="p-8">Членът не е намерен.</div>;
@@ -18,61 +27,115 @@ const MembershipApplicationPage = () => {
   const fullName = formatFullName(member);
   const today = new Date().toLocaleDateString("bg-BG");
 
+  const signatureUrl =
+    member.membershipApplicationUrl ||
+    member.membershipApplicationSignatureUrl ||
+    null;
+
+  const handleBack = () => {
+    const hasHistory =
+      typeof window !== "undefined" &&
+      ((window.history.state && window.history.state.idx > 0) ||
+        (window.history.length > 1 &&
+          document.referrer &&
+          document.referrer.includes(window.location.host)));
+
+    if (hasHistory) {
+      router.back();
+    } else {
+      router.push(`/members/${memberId}?tab=documents`);
+    }
+  };
+
   return (
     <MemberDocumentShell
-      onBack={() => router.back()}
+      documentKey="membershipApplication"
+      onBack={handleBack}
       documentSubtitle='за членство в СНЦ „Бадминтон клуб Гълъбово" град Гълъбово'
       fullName={fullName}
       today={today}
+      parentName={member.parentName}
+      parentPhone={member.parentPhone}
+      parentEmail={member.parentEmail}
+      parentAddress={member.address}
+      signatureUrl={signatureUrl}
     >
-      <div className="space-y-4 text-sm">
-        <p className="font-bold">Уважаема госпожо Председател,</p>
-
-        <p>Моля, да приемете</p>
-
-        <div className="text-center">
-          <p className="inline-block min-h-[1.2rem] border-b border-dotted border-slate-400 px-8 text-base font-bold">
-            {fullName}
-          </p>
-          <p className="mt-0.5 text-[9px] text-slate-500 italic">
-            (име на детето/члена)
-          </p>
-        </div>
-
-        <p>
-          като член на СНЦ &quot;Бадминтон клуб Гълъбово&quot;, считано от
-          .................................................. 20........... г.
+      <div className="space-y-4 text-xs leading-relaxed text-justify font-serif">
+        <p className="font-serif font-bold text-slate-900 text-[10.5pt]">
+          Уважаема госпожо Председател,
         </p>
 
-        <div className="my-4 space-y-2">
-          <p className="font-bold">
-            Избирам/е следната форма на участие (отбележете с ✔):
+        <p className="indent-6">
+          Моля, да приемете горепосочения кандидат{" "}
+          <strong className="text-slate-950 font-bold underline underline-offset-4">
+            {fullName}
+          </strong>{" "}
+          за редовен член на СНЦ „Бадминтон клуб Гълъбово“, считано от{" "}
+          <span className="inline-block min-w-32 border-b border-slate-700 pb-0.5 text-center font-bold text-slate-950">
+            {today}
+          </span>{" "}
+          г.
+        </p>
+
+        <div className="my-3 rounded-md border border-slate-300 bg-slate-50/70 p-3 text-xs print:border-slate-400 print:bg-transparent">
+          <p className="font-bold tracking-wider text-slate-950 uppercase text-[8.5pt]">
+            Избирам/е следната форма на участие:
           </p>
-          <div className="ml-4 grid grid-cols-1 gap-1 text-xs">
-            <p>☐ Месечен абонамент - едно дете ( 20 EUR / )</p>
-            <p>☐ Месечен абонамент - 2 деца ( 30 EUR / )</p>
-            <p>☐ Месечен абонамент - 2+ деца ( 40 EUR / )</p>
-            <p>☐ Единично посещение ( 3 EUR / )</p>
+          <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+            {feeOptions.map((opt) => {
+              const isSelected =
+                isMatchingParticipation(selectedPlan, opt.label) ||
+                isMatchingParticipation(selectedPlan, opt.radioLabel) ||
+                isMatchingParticipation(selectedPlan, opt.name);
+              return (
+                <div
+                  key={opt.id}
+                  onClick={() => setSelectedPlan(opt.radioLabel)}
+                  className="flex items-center gap-2 cursor-pointer print:cursor-default"
+                >
+                  <span
+                    className={`inline-flex items-center justify-center size-3.5 rounded-xs border border-slate-700 text-center text-[8pt] font-bold ${
+                      isSelected
+                        ? "bg-slate-900 text-white"
+                        : "bg-white text-transparent"
+                    }`}
+                  >
+                    ✓
+                  </span>
+                  <span
+                    className={
+                      isSelected ? "font-bold text-slate-950" : "text-slate-700"
+                    }
+                  >
+                    {opt.radioLabel}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         <div className="space-y-2 text-xs">
-          <p className="flex gap-3">
-            <span className="shrink-0">☐</span>
-            <span>
-              Декларирам, че съм запознат/а с Вътрешния правилник на клуба и се
-              съгласявам с него.
+          <div className="flex items-start gap-2.5">
+            <span className="mt-0.5 inline-block size-3.5 rounded-xs border border-slate-600 text-center text-[8pt] font-bold">
+              ✓
             </span>
-          </p>
-          <p className="flex gap-3">
-            <span className="shrink-0">☐</span>
-            <span>
-              Запознат/а съм, че при желание за прекратяване на членството е
-              необходимо подаване на &quot;Молба за прекратяване на
-              членство&quot; и връщане на предоставена клубна екипировка (ако
-              има дадена такава).
+            <span className="text-justify leading-normal">
+              Декларирам, че съм подробно запознат/а с Вътрешния правилник на
+              СНЦ „Бадминтон клуб Гълъбово“, приемам неговите клаузи и се
+              задължавам аз и моето дете стриктно да го спазваме.
             </span>
-          </p>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <span className="mt-0.5 inline-block size-3.5 rounded-xs border border-slate-600 text-center text-[8pt] font-bold">
+              ✓
+            </span>
+            <span className="text-justify leading-normal">
+              Запознат/а съм, че при евентуално прекратяване на членството се
+              подава писмена молба по образец и се връща цялата предоставена
+              клубна материална база и състезателна екипировка.
+            </span>
+          </div>
         </div>
       </div>
     </MemberDocumentShell>

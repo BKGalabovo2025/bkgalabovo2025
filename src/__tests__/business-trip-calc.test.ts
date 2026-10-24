@@ -6,6 +6,15 @@ import {
   getEffectiveTripRates,
   isTripCoverageWithoutAccom,
 } from "../lib/business-trip-calc";
+import {
+  getTripAttendanceNumber,
+  getTripBaseNumber,
+  getTripDecisionNumber,
+  getTripFuelNumber,
+  getTripOrderNumber,
+  getTripReportNumber,
+  getTripStatementNumber,
+} from "../lib/business-trip-numbers";
 import { BusinessTrip } from "../types/business-trip.types";
 
 describe("Business Trip Per Diem & Accounting Calculations", () => {
@@ -249,6 +258,69 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(result.isDailyCommute).toBe(false);
       expect(result.actualTripsCount).toBe(1);
       expect(result.effectiveDistanceKm).toBe(500); // exactly 1 round trip, NOT multiplied by days!
+    });
+  });
+
+  describe("business-trip-numbers unique document identifiers", () => {
+    it("should generate proper suffix codes for all document types", () => {
+      const trip: BusinessTrip = {
+        orderNumber: 1,
+        title: 'Зона "Южна България"',
+        destination: "Пловдив",
+        startDate: "2026-01-18T07:00:00.000Z",
+        endDate: "2026-01-18T18:00:00.000Z",
+        coachId: "coach-1",
+        participantsIds: [],
+        status: "draft",
+        transportType: "fuel_only",
+        siteId: "bkgalabovo",
+        financials: {
+          perDiemRateEUR: 11,
+          accommodationRateEUR: 0,
+          isCommercialActivity: false,
+        },
+      };
+
+      expect(getTripBaseNumber(trip)).toBe("1");
+      expect(getTripOrderNumber(trip)).toBe("1-НР");
+      expect(getTripDecisionNumber(trip)).toBe("1-УС");
+      expect(getTripStatementNumber(trip)).toBe("1-ВД");
+      expect(getTripFuelNumber(trip)).toBe("1-ПЛ");
+      expect(getTripAttendanceNumber(trip)).toBe("1-ПС");
+      expect(getTripReportNumber(trip)).toBe("1-ДК");
+    });
+
+    it("should handle trips without orderNumber with placeholder", () => {
+      const trip = { siteId: "bkgalabovo" } as unknown as BusinessTrip;
+      expect(getTripBaseNumber(trip)).toBe("____");
+      expect(getTripOrderNumber(trip)).toBe("____");
+      expect(getTripDecisionNumber(trip)).toBe("____");
+      expect(getTripStatementNumber(trip)).toBe("____");
+    });
+
+    it("should preserve manual decision numbers if not auto-generated", () => {
+      const trip: BusinessTrip = {
+        orderNumber: 2,
+        usDecision: "Протокол 45/2026",
+        title: "Турнир",
+        destination: "Варна",
+        startDate: "2026-02-18T07:00:00.000Z",
+        endDate: "2026-02-19T18:00:00.000Z",
+        coachId: "coach-1",
+        participantsIds: [],
+        status: "approved",
+        siteId: "bkgalabovo",
+        financials: {
+          perDiemRateEUR: 22,
+          accommodationRateEUR: 20,
+          isCommercialActivity: false,
+        },
+        transportType: "public",
+      };
+
+      expect(getTripDecisionNumber(trip)).toBe("Протокол 45/2026");
+      expect(getTripOrderNumber(trip)).toBe("2-НР");
+      expect(getTripStatementNumber(trip)).toBe("2-ВД");
     });
   });
 });

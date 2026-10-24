@@ -26,6 +26,8 @@ import {
 } from "@/types";
 import { SignedDeclaration } from "@/types";
 import { MemberAssessment } from "@/types/assessment.types";
+import { DocumentRequest } from "@/types/document-request.types";
+import { DocumentTemplate } from "@/types/document-template.types";
 import { Match, Tournament, TournamentEntry } from "@/types/tournament.types";
 
 import { getDb } from "./firebase";
@@ -140,6 +142,10 @@ const reservationConverter = createConverter<Reservation>();
 const blockedSlotConverter = createConverter<BlockedSlot>();
 
 const signedDeclarationConverter = createConverter<SignedDeclaration>();
+
+const documentRequestConverter = createConverter<DocumentRequest>();
+
+const documentTemplateConverter = createConverter<DocumentTemplate>();
 
 // --- Collection Getters (Raw) ---
 
@@ -344,4 +350,47 @@ export const getSignedDeclarationsQuery = (memberId?: string) => {
     q = query(q, where("memberId", "==", memberId));
   }
   return q;
+};
+
+export const getDocumentRequestsCollection = () =>
+  collection(getDb(), "document_requests").withConverter(
+    documentRequestConverter
+  );
+
+export const getMemberDocumentRequestsQuery = (memberId?: string) => {
+  let q = query(
+    getDocumentRequestsCollection(),
+    where("siteId", "==", getSiteConfig().id),
+    orderBy("createdAt", "desc")
+  );
+  if (memberId) {
+    q = query(
+      getDocumentRequestsCollection(),
+      where("memberId", "==", memberId),
+      orderBy("createdAt", "desc")
+    );
+  }
+  return q;
+};
+
+export const getDocumentTemplatesCollection = () =>
+  collection(getDb(), "document_templates").withConverter(
+    documentTemplateConverter
+  );
+
+export const getDocumentTemplatesQuery = () => {
+  return query(
+    getDocumentTemplatesCollection(),
+    where("siteId", "==", getSiteConfig().id),
+    orderBy("createdAt", "desc")
+  );
+};
+
+export const getActiveDocumentTemplatesQuery = () => {
+  return query(
+    getDocumentTemplatesCollection(),
+    where("siteId", "==", getSiteConfig().id),
+    where("isActive", "==", true),
+    orderBy("createdAt", "desc")
+  );
 };

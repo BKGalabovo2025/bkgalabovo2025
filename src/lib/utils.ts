@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, sonarjs/cognitive-complexity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -109,8 +109,15 @@ export const resolveMemberAgeGroup = (
 
 export const getValidAvatarUrl = (url?: string | null): string | undefined => {
   if (!url) return undefined;
-  if (url.startsWith("http") || url.startsWith("/")) return url;
-  return `/${url}`;
+  const trimmed = url.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://"))
+    return trimmed;
+  let clean = trimmed.replace(/\\/g, "/");
+  if (clean.startsWith("public/")) clean = clean.substring(6);
+  if (clean.startsWith("/public/")) clean = clean.substring(7);
+  if (!clean.startsWith("/")) clean = `/${clean}`;
+  return clean;
 };
 
 /**

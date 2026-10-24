@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable sonarjs/no-nested-conditional */
+
 "use client";
 
 import { ArrowRight, Gift, Loader2, PartyPopper } from "lucide-react";
@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { useMembers } from "@/hooks/useMembers";
+import { getValidAvatarUrl } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
 import { Member } from "@/types/member.types";
 
@@ -218,7 +219,7 @@ export function BirthdayReminder() {
             >
               <div className="flex items-center gap-2.5">
                 <Avatar className="size-9 border border-rose-100 transition-colors group-hover:border-rose-300">
-                  <AvatarImage src={bday.member.avatarUrl ?? undefined} />
+                  <AvatarImage src={getValidAvatarUrl(bday.member.avatarUrl)} />
                   <AvatarFallback className="bg-rose-50 text-xs font-semibold text-rose-700">
                     {bday.member.firstName?.[0]}
                     {bday.member.lastName?.[0]}

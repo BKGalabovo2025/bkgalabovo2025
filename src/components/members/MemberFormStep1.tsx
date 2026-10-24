@@ -336,6 +336,47 @@ export function MemberFormStep1({
               label="Дата на регистрация (Опц.)"
               yearCount={10}
             />
+            <FormField
+              name="egn"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
+                    ЕГН (за състезателни документи)
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ""}
+                      placeholder="10-цифрено ЕГН"
+                      maxLength={10}
+                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 font-mono text-sm tracking-wider focus:bg-white focus:ring-0 sm:h-12"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="birthPlace"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
+                    Месторождение (гр./с.)
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ""}
+                      placeholder="напр. гр. Гълъбово"
+                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </>
         )}
       </div>

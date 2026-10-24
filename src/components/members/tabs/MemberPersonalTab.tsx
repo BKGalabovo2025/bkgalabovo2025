@@ -232,6 +232,38 @@ export const MemberPersonalTab = ({
         />
         <InfoRow icon={Users} label="Екипировка" value={member.apparelSize} />
         <InfoRow icon={Home} label="Адрес" value={member.address} />
+        {member.egn && (
+          <InfoRow
+            icon={Contact}
+            label="ЕГН"
+            value={
+              <span className="font-mono text-xs font-semibold tracking-wider text-slate-800">
+                {member.egn}
+              </span>
+            }
+          />
+        )}
+        {member.birthPlace && (
+          <InfoRow
+            icon={Home}
+            label="Месторождение"
+            value={member.birthPlace}
+          />
+        )}
+        {(member.fatherName || member.parentName) && (
+          <InfoRow
+            icon={Users}
+            label="Баща"
+            value={`${member.fatherName || member.parentName}${member.fatherPhone || member.parentPhone ? ` (${member.fatherPhone || member.parentPhone})` : ""}`}
+          />
+        )}
+        {member.motherName && (
+          <InfoRow
+            icon={Users}
+            label="Майка"
+            value={`${member.motherName}${member.motherPhone ? ` (${member.motherPhone})` : ""}`}
+          />
+        )}
 
         {member.healthConditionNotes && (
           <div className="mt-4 md:col-span-2">

@@ -52,20 +52,20 @@ const useFormField = () => {
     throw new Error("useFormField should be used within <FormField>");
   }
 
-  const { id } = itemContext;
+  const id = itemContext?.id;
 
   return {
     id,
-    name: fieldContext.name,
-    formItemId: `${id}-form-item`,
-    formDescriptionId: `${id}-form-item-description`,
-    formMessageId: `${id}-form-item-message`,
+    name: fieldContext?.name,
+    formItemId: id ? `${id}-form-item` : undefined,
+    formDescriptionId: id ? `${id}-form-item-description` : undefined,
+    formMessageId: id ? `${id}-form-item-message` : undefined,
     ...fieldState,
   };
 };
 
 type FormItemContextValue = {
-  id: string;
+  id?: string;
 };
 
 const FormItemContext = React.createContext<FormItemContextValue>(
@@ -89,14 +89,14 @@ FormItem.displayName = "FormItem";
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => {
-  const { error, formItemId } = useFormField();
+>(({ className, htmlFor, ...props }, ref) => {
+  const { error, formItemId, id } = useFormField();
 
   return (
     <Label
       ref={ref}
       className={cn(error && "text-destructive", className)}
-      htmlFor={formItemId}
+      htmlFor={htmlFor || (id ? formItemId : undefined)}
       {...props}
     />
   );

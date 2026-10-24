@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, Save, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,9 @@ export const MemberForm = ({
     safeInitialData.registrationDate = ensureDateString(
       safeInitialData.registrationDate
     );
+  }
+  if (safeInitialData.siteId === "Зала Гълъбово") {
+    safeInitialData.siteId = "bkgalabovo";
   }
 
   const form = useForm<MemberFormValues>({
@@ -96,7 +99,40 @@ export const MemberForm = ({
     formState: { isSubmitting },
     trigger,
     watch,
+    reset,
   } = form;
+
+  // Re-sync form if initialData loads asynchronously
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      const formatted = { ...initialData } as Record<string, unknown>;
+      if (formatted.dateOfBirth) {
+        formatted.dateOfBirth = ensureDateString(formatted.dateOfBirth);
+      }
+      if (formatted.registrationDate) {
+        formatted.registrationDate = ensureDateString(
+          formatted.registrationDate
+        );
+      }
+      if (formatted.siteId === "Зала Гълъбово") {
+        formatted.siteId = "bkgalabovo";
+      }
+      reset((prev) => ({
+        ...prev,
+        ...formatted,
+        isClubMember:
+          (formatted.isClubMember as boolean | undefined) ??
+          formatted.memberType === "regular",
+        isRecoveryMember:
+          (formatted.isRecoveryMember as boolean | undefined) ??
+          (formatted.memberType === "recovery" ||
+            activeBranch === "recoveryzone"),
+        isGuest:
+          (formatted.isGuest as boolean | undefined) ??
+          formatted.memberType === "guest",
+      }));
+    }
+  }, [initialData, reset, activeBranch]);
 
   const isClubMember = watch("isClubMember");
   const isRecoveryMember = watch("isRecoveryMember");

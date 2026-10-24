@@ -129,6 +129,8 @@ export const BusinessTripSchema = z.object({
   status: BusinessTripStatusEnum.default("draft"),
   /** Официална дата на Заповедта (може да се редактира ръчно в диалога) */
   orderDate: z.string().datetime().optional(),
+  /** Автоматичен пореден номер на Заповедта (по година), присвоява се от системата */
+  orderNumber: z.number().int().positive().optional(),
   usDecision: z.string().optional(), // Решение на УС № ...
   usDecisionDate: z.string().optional(), // Дата на заседанието на УС
   usProtocolNumber: z.string().optional(), // Номер на Протокол от заседание на УС

@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 
+import { isAutoDecision } from "@/lib/business-trip-numbers";
 import { db } from "@/lib/firebase";
 import { uploadFile } from "@/services/storage-service";
 import {
@@ -45,7 +46,69 @@ export const businessTripService = {
       collection(db, TRIPS_COLLECTION),
       sanitizedData
     );
-    return docRef.id;
+    const newId = docRef.id;
+    try {
+      await this.assignMissingNumbers(validatedData.siteId);
+    } catch (e) {
+      console.error("Неуспешно присвояване на номер на заповед", e);
+    }
+    return newId;
+  },
+
+  /**
+   * Присвоява автоматични поредни номера (по календарна година на заповедта)
+   * на всички командировки без номер и подменя старите "ID"-базирани номера
+   * на решенията на УС. Ръчно въведени номера на решения не се пипат.
+   */
+  async assignMissingNumbers(siteId: string): Promise<number> {
+    const trips = await this.getTrips(siteId);
+    const stamp = (t: BusinessTrip) =>
+      t.orderDate || t.startDate || t.createdAt || "";
+    const yearOf = (t: BusinessTrip) =>
+      new Date(
+        t.orderDate || t.startDate || t.createdAt || Date.now()
+      ).getFullYear();
+
+    const maxByYear: Record<number, number> = {};
+    trips.forEach((t) => {
+      if (t.orderNumber) {
+        const y = yearOf(t);
+        maxByYear[y] = Math.max(maxByYear[y] ?? 0, t.orderNumber);
+      }
+    });
+
+    const missing = trips
+      .filter((t) => !t.orderNumber && t.id)
+      .sort((a, b) => stamp(a).localeCompare(stamp(b)));
+
+    let updatedCount = 0;
+    for (const t of missing) {
+      const y = yearOf(t);
+      const n = (maxByYear[y] ?? 0) + 1;
+      maxByYear[y] = n;
+      await this.updateTrip(t.id as string, {
+        orderNumber: n,
+        ...(isAutoDecision(t.usDecision) ? { usDecision: `${n}-УС` } : {}),
+      });
+      updatedCount++;
+    }
+
+    // Подменяме стари ID-базирани решения на вече номерирани командировки
+    for (const t of trips) {
+      if (
+        t.id &&
+        t.orderNumber &&
+        isAutoDecision(t.usDecision) &&
+        t.usDecision !== `${t.orderNumber}-УС`
+      ) {
+        await this.updateTrip(t.id, {
+          usDecision: `${t.orderNumber}-УС`,
+        });
+        updatedCount++;
+      }
+    }
+
+    return updatedCount;
   },
 
   async updateTrip(id: string, data: Partial<BusinessTrip>): Promise<void> {
@@ -63,15 +126,20 @@ export const businessTripService = {
   async getTrips(siteId: string): Promise<BusinessTrip[]> {
     const q = query(
       collection(db, TRIPS_COLLECTION),
-      where("siteId", "==", siteId),
-      orderBy("startDate", "desc")
+      where("siteId", "==", siteId)
     );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
+    const trips = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     })) as BusinessTrip[];
+
+    return trips.sort(
+      (a, b) =>
+        new Date(b.startDate || 0).getTime() -
+        new Date(a.startDate || 0).getTime()
+    );
   },
 
   async getTripsByEventId(

@@ -2,6 +2,7 @@
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
 export * from "./business-trip.types";
 export { type SignedDeclaration } from "./declaration.types";
+export * from "./document-request.types";
 export { type Member } from "./member.types";
 export { type ClientPackage } from "./package.types";
 export { type BlockedSlot, type Reservation } from "./reservation";

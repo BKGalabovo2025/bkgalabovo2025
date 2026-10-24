@@ -30,7 +30,7 @@ export const SignatureDialog = ({
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasSignature(false);
@@ -81,7 +81,7 @@ export const SignatureDialog = ({
       setHasSignature(true);
 
       // Draw a dot for single click
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
       ctx.beginPath();
       ctx.arc(point.x, point.y, 1.5, 0, Math.PI * 2);
@@ -101,7 +101,7 @@ export const SignatureDialog = ({
       if (!isDrawing) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
 
       const point = getCanvasPoint(canvas, e);

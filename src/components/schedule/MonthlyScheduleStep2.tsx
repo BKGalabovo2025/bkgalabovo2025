@@ -4,6 +4,7 @@ import { Calendar, Clock } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -59,11 +60,14 @@ export function MonthlyScheduleStep2({
             <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               <Calendar className="size-3" /> Месец за генериране
             </FormLabel>
-            <Input
-              type="month"
-              className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-center text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
-              {...field}
-            />
+            <FormControl>
+              <Input
+                id="monthly-schedule-month"
+                type="month"
+                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-center text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                {...field}
+              />
+            </FormControl>
           </FormItem>
         )}
       />
@@ -77,12 +81,15 @@ export function MonthlyScheduleStep2({
               <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                 <Clock className="size-3" /> Начален час
               </FormLabel>
-              <Input
-                type="time"
-                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
-                onKeyDown={onKeyDown}
-                {...field}
-              />
+              <FormControl>
+                <Input
+                  id="monthly-schedule-startTime"
+                  type="time"
+                  className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                  onKeyDown={onKeyDown}
+                  {...field}
+                />
+              </FormControl>
               <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
             </FormItem>
           )}
@@ -96,12 +103,15 @@ export function MonthlyScheduleStep2({
               <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                 <Clock className="size-3" /> Краен час
               </FormLabel>
-              <Input
-                type="time"
-                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
-                onKeyDown={onKeyDown}
-                {...field}
-              />
+              <FormControl>
+                <Input
+                  id="monthly-schedule-endTime"
+                  type="time"
+                  className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                  onKeyDown={onKeyDown}
+                  {...field}
+                />
+              </FormControl>
               <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
             </FormItem>
           )}

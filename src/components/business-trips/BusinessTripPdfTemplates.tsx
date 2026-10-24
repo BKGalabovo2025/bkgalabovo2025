@@ -2,7 +2,6 @@
 /* eslint-disable react/forbid-dom-props */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @next/next/no-img-element */
-/* eslint-disable sonarjs/cognitive-complexity */
 
 import { differenceInCalendarDays, format } from "date-fns";
 import { bg } from "date-fns/locale";
@@ -13,7 +12,16 @@ import {
   calculateTripTransportTotals,
   getEffectiveTripRates,
 } from "@/lib/business-trip-calc";
-import { buildStaySectionText } from "@/lib/business-trip-report";
+import {
+  getTripAttendanceNumber,
+  getTripDecisionNumber,
+  getTripFuelNumber,
+  getTripOrderNumber,
+  getTripReportNumber,
+  getTripStatementNumber,
+  resolveTripNumbers,
+} from "@/lib/business-trip-numbers";
+import { generateDefaultReportText } from "@/lib/business-trip-report";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
@@ -150,6 +158,20 @@ const PAGE_A4: React.CSSProperties = {
   padding: "12mm 15mm 12mm 15mm",
   boxSizing: "border-box",
 };
+const PAGE_A4_REPORT: React.CSSProperties = {
+  width: "210mm",
+  minHeight: "297mm",
+  fontFamily:
+    'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  fontSize: "8.5pt",
+  lineHeight: 1.42,
+  color: "#1e293b",
+  backgroundColor: "#fff",
+  padding: "10mm 15mm 10mm 15mm",
+  boxSizing: "border-box",
+  display: "flex",
+  flexDirection: "column",
+};
 const PAGE_LAND: React.CSSProperties = {
   width: "297mm",
   minHeight: "210mm",
@@ -199,13 +221,14 @@ const TD: React.CSSProperties = {
 };
 
 export function BusinessTripPdfTemplates({
-  trip,
+  trip: tripProp,
   event,
   membersDict,
   expenses = [],
   idSuffix = "",
 }: BusinessTripPdfTemplatesProps) {
-  if (!trip) return null;
+  if (!tripProp) return null;
+  const trip = resolveTripNumbers(tripProp);
 
   const site = getSiteConfig();
 
@@ -218,7 +241,17 @@ export function BusinessTripPdfTemplates({
 
   const participantOverrides = trip.participantOverrides ?? {};
 
-  const partMembers = trip.participantsIds
+  const effectiveTripParticipantIds =
+    trip.participantsIds && trip.participantsIds.length > 0
+      ? trip.participantsIds
+      : (event?.attendees
+          ?.map((a) => a.memberId)
+          .filter((id) => {
+            const m = membersDict[id];
+            return m && !m.isCoach;
+          }) ?? []);
+
+  const partMembers = effectiveTripParticipantIds
     .map((id) => membersDict[id])
     .filter(Boolean) as Member[];
 
@@ -453,23 +486,25 @@ export function BusinessTripPdfTemplates({
   const grandEUR = allPersonCalcs.reduce((sum, c) => sum + c.personTotalEUR, 0);
   const grandBGN = allPersonCalcs.reduce((sum, c) => sum + c.personTotalBGN, 0);
 
-  const orderNum = trip.id ? trip.id.substring(0, 6).toUpperCase() : "______";
+  const orderNum = getTripOrderNumber(trip);
+  const decisionNum = getTripDecisionNumber(trip);
+  const statementNum = getTripStatementNumber(trip);
+  const fuelNum = getTripFuelNumber(trip);
+  const attendanceNum = getTripAttendanceNumber(trip);
+  const reportNum = getTripReportNumber(trip);
+
   const orderDate = fmtDate(trip.orderDate || trip.createdAt || trip.startDate);
   const decisionDate = trip.usDecisionDate
     ? fmtDate(trip.usDecisionDate)
     : orderDate;
 
   const getDecisionHeader = (): string => {
-    if (trip.usDecision) {
-      const cleanNum = trip.usDecision.startsWith("№")
-        ? trip.usDecision
-        : `№ ${trip.usDecision}`;
-      if (cleanNum.includes("/") || cleanNum.toLowerCase().includes("от")) {
-        return cleanNum;
-      }
-      return `${cleanNum} / ${decisionDate} г.`;
+    const raw = decisionNum;
+    const cleanNum = raw.startsWith("№") ? raw : `№ ${raw}`;
+    if (cleanNum.includes("/") || cleanNum.toLowerCase().includes("от")) {
+      return cleanNum;
     }
-    return `№ ${orderNum}-УС / ${decisionDate} г.`;
+    return `${cleanNum} / ${decisionDate} г.`;
   };
 
   const destCity = trip.destination || "___________";
@@ -1005,10 +1040,14 @@ export function BusinessTripPdfTemplates({
               </strong>
               {trip.usDecisionDate
                 ? ` от ${fmtDate(trip.usDecisionDate)} г.`
-                : ""}
+                : ` от ${decisionDate} г.`}
             </>
           ) : (
-            <> и Решение на Управителния съвет № {orderNum}-УС</>
+            <>
+              {" "}
+              и Решение на Управителния съвет № {decisionNum} от {decisionDate}{" "}
+              г.
+            </>
           )}
           ,
         </p>
@@ -2027,7 +2066,8 @@ export function BusinessTripPdfTemplates({
                 {destCity}
               </p>
               <p style={{ margin: 0 }}>
-                Нареждане № {orderNum} от {orderDate} г.
+                Нареждане № {orderNum} от {orderDate} г. | Решение на УС №{" "}
+                {decisionNum}
               </p>
             </div>
           </div>
@@ -2044,7 +2084,7 @@ export function BusinessTripPdfTemplates({
                 color: "#0f172a",
               }}
             >
-              В Е Д О М О С Т
+              В Е Д О М О С Т № {statementNum}
             </p>
             <p
               style={{
@@ -2284,7 +2324,7 @@ export function BusinessTripPdfTemplates({
               color: "#0f172a",
             }}
           >
-            ПЪТЕН ЛИСТ — ОТЧЕТ ЗА РАЗХОД НА ГОРИВО
+            ПЪТЕН ЛИСТ № {fuelNum} — ОТЧЕТ ЗА РАЗХОД НА ГОРИВО
           </p>
           <p
             style={{
@@ -2295,6 +2335,7 @@ export function BusinessTripPdfTemplates({
             }}
           >
             към Нареждане за командировка № {orderNum} от {orderDate} г.
+            (Решение на УС № {decisionNum})
           </p>
           <p style={{ marginBottom: "4pt" }}>
             От <strong>{coachName}</strong>,&nbsp; длъжност{" "}
@@ -2589,7 +2630,7 @@ export function BusinessTripPdfTemplates({
                     color: "#0f172a",
                   }}
                 >
-                  С П И С Ъ К
+                  С П И С Ъ К № {attendanceNum}
                 </p>
                 <p
                   style={{
@@ -2600,7 +2641,17 @@ export function BusinessTripPdfTemplates({
                     fontWeight: "600",
                   }}
                 >
-                  на състезателите от „БАДМИНТОН КЛУБ ГЪЛЪБОВО“
+                  на състезателите от „{site.shortName.toUpperCase()}“
+                </p>
+                <p
+                  style={{
+                    fontSize: "9pt",
+                    marginTop: "2pt",
+                    marginBottom: 0,
+                    color: "#64748b",
+                  }}
+                >
+                  към Нареждане за командировка № {orderNum} от {orderDate} г.
                 </p>
                 <p
                   style={{
@@ -2798,196 +2849,217 @@ export function BusinessTripPdfTemplates({
       {/* ══════════════════════════════════════════════════════
           DOC 5: ДОКЛАД ЗА ИЗВЪРШЕНАТА РАБОТА (REPORT)
       ══════════════════════════════════════════════════════ */}
-      <div id={`pdf-report-template${idSuffix}`} style={PAGE_A4}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            borderBottom: "2px solid #e2e8f0",
-            paddingBottom: "10pt",
-            marginBottom: "12pt",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
-            <img
-              src="/icons/LOGO.jpg"
-              alt="Logo"
-              style={{ height: "45pt", objectFit: "contain" }}
-            />
-            <div>
+      {(() => {
+        const defaultReportText = generateDefaultReportText(
+          trip,
+          membersDict,
+          Boolean(trip.attachMatchProtocols),
+          expenses,
+          event
+        );
+
+        const displayReportText =
+          trip.reportText && trip.reportText.trim().length > 0
+            ? trip.reportText.trim()
+            : defaultReportText;
+
+        // Приблизителна оценка на редовете: при дълъг текст докладът заема точно 2 листа А4
+        const estimatedLines = displayReportText
+          .split("\n")
+          .reduce((sum, l) => sum + Math.max(1, Math.ceil(l.length / 100)), 0);
+        const reportSheets = estimatedLines > 38 ? 2 : 1;
+
+        return (
+          <div
+            id={`pdf-report-template${idSuffix}`}
+            style={{
+              ...PAGE_A4_REPORT,
+              minHeight: `${297 * reportSheets}mm`,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderBottom: "2px solid #e2e8f0",
+                paddingBottom: "6pt",
+                marginBottom: "8pt",
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8pt" }}
+              >
+                <img
+                  src="/icons/LOGO.jpg"
+                  alt="Logo"
+                  style={{ height: "36pt", objectFit: "contain" }}
+                />
+                <div>
+                  <p
+                    style={{
+                      fontWeight: "700",
+                      fontSize: "12pt",
+                      margin: 0,
+                      color: "#0f172a",
+                    }}
+                  >
+                    „{site.shortName.toUpperCase()}“
+                  </p>
+                  {site.bulstat && (
+                    <p
+                      style={{
+                        fontSize: "8pt",
+                        margin: "1pt 0 0 0",
+                        color: "#64748b",
+                      }}
+                    >
+                      БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ textAlign: "right", fontSize: "8pt" }}>
+                <p style={{ margin: 0, fontWeight: "700", color: "#0f172a" }}>
+                  УТВЪРЖДАВАМ:
+                </p>
+                <p style={{ margin: "1pt 0" }}>
+                  Председател на УС: ....................
+                </p>
+                <p style={{ margin: "1pt 0", color: "#64748b" }}>
+                  / {site.contact.mol || "М. Георгиева"} /
+                </p>
+                <p style={{ margin: "1pt 0" }}>
+                  Дата: {fmtDate(trip.endDate || trip.startDate)} г.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ textAlign: "center", marginBottom: "8pt" }}>
               <p
                 style={{
-                  fontWeight: "700",
-                  fontSize: "14pt",
+                  fontWeight: "800",
+                  fontSize: "12pt",
+                  letterSpacing: "1.5px",
                   margin: 0,
                   color: "#0f172a",
                 }}
               >
-                „{site.shortName.toUpperCase()}“
+                Д О К Л А Д № {reportNum}
               </p>
-              {site.bulstat && (
-                <p
-                  style={{
-                    fontSize: "9pt",
-                    margin: "2pt 0 0 0",
-                    color: "#64748b",
-                  }}
-                >
-                  БУЛСТАТ: {site.bulstat} | {site.contact.address}
-                </p>
-              )}
+              <p
+                style={{
+                  fontSize: "10pt",
+                  marginTop: "2pt",
+                  marginBottom: 0,
+                  color: "#0f172a",
+                  fontWeight: "700",
+                }}
+              >
+                ЗА ИЗВЪРШЕНАТА РАБОТА И СПОРТНИ РЕЗУЛТАТИ
+              </p>
+              <p
+                style={{
+                  fontSize: "8pt",
+                  color: "#64748b",
+                  margin: "1pt 0 0 0",
+                }}
+              >
+                (съгласно Наредбата за командировките в страната)
+              </p>
             </div>
-          </div>
 
-          <div style={{ textAlign: "right", fontSize: "9pt" }}>
-            <p style={{ margin: 0, fontWeight: "700", color: "#0f172a" }}>
-              УТВЪРЖДАВАМ:
-            </p>
-            <p style={{ margin: "2pt 0" }}>
-              Председател на УС: ....................
-            </p>
-            <p style={{ margin: "1pt 0", color: "#64748b" }}>
-              / {site.contact.mol || "М. Георгиева"} /
-            </p>
-            <p style={{ margin: "2pt 0" }}>
-              Дата: {fmtDate(trip.endDate || trip.startDate)} г.
-            </p>
-          </div>
-        </div>
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: "4pt",
+                padding: "6pt 10pt",
+                marginBottom: "8pt",
+                fontSize: "8.5pt",
+                lineHeight: "1.35",
+              }}
+            >
+              <p style={{ margin: "1pt 0" }}>
+                <strong>ОТ:</strong> {coachName} — {coachRole}
+              </p>
+              <p style={{ margin: "1pt 0" }}>
+                <strong>ОТНОСНО:</strong> Командировка за участие в:{" "}
+                <strong>{trip.title}</strong>
+              </p>
+              <p style={{ margin: "1pt 0" }}>
+                <strong>НА ОСНОВАНИЕ:</strong> Нареждане №{" "}
+                <strong>{orderNum}</strong> от {orderDate} г. и Решение на УС{" "}
+                <strong>{getDecisionHeader()}</strong>
+              </p>
+              <p style={{ margin: "1pt 0" }}>
+                <strong>МЯСТО И ПЕРИОД:</strong> {destCity} (
+                {fmtDate(trip.startDate)} г. — {fmtDate(trip.endDate)} г.)
+              </p>
+            </div>
 
-        <div style={{ textAlign: "center", marginBottom: "14pt" }}>
-          <p
-            style={{
-              fontWeight: "800",
-              fontSize: "14pt",
-              letterSpacing: "2px",
-              margin: 0,
-              color: "#0f172a",
-            }}
-          >
-            Д О К Л А Д
-          </p>
-          <p
-            style={{
-              fontSize: "11pt",
-              marginTop: "4pt",
-              color: "#0f172a",
-              fontWeight: "700",
-            }}
-          >
-            ЗА ИЗВЪРШЕНАТА РАБОТА И СПОРТНИ РЕЗУЛТАТИ
-          </p>
-          <p style={{ fontSize: "9pt", color: "#64748b", marginTop: "2pt" }}>
-            (съгласно Наредбата за командировките в страната)
-          </p>
-        </div>
+            <div
+              style={{
+                fontSize: "8.5pt",
+                lineHeight: "1.42",
+                textAlign: "justify",
+                whiteSpace: "pre-line",
+                color: "#1e293b",
+                marginBottom: "10pt",
+                flex: "1 1 auto",
+              }}
+            >
+              {displayReportText}
+            </div>
 
-        <div
-          style={{
-            background: "#f8fafc",
-            border: "1px solid #e2e8f0",
-            borderRadius: "4pt",
-            padding: "8pt 12pt",
-            marginBottom: "14pt",
-            fontSize: "9pt",
-            lineHeight: "1.5",
-          }}
-        >
-          <p style={{ margin: "2pt 0" }}>
-            <strong>ОТ:</strong> {coachName} — {coachRole}
-          </p>
-          <p style={{ margin: "2pt 0" }}>
-            <strong>ОТНОСНО:</strong> Командировка за участие в:{" "}
-            <strong>{trip.title}</strong>
-          </p>
-          <p style={{ margin: "2pt 0" }}>
-            <strong>НА ОСНОВАНИЕ:</strong> Заповед № <strong>{orderNum}</strong>{" "}
-            от {orderDate} г. и Решение на УС{" "}
-            <strong>{getDecisionHeader()}</strong>
-          </p>
-          <p style={{ margin: "2pt 0" }}>
-            <strong>МЯСТО И ПЕРИОД:</strong> {destCity} (
-            {fmtDate(trip.startDate)} г. — {fmtDate(trip.endDate)} г.)
-          </p>
-        </div>
-
-        <div
-          style={{
-            fontSize: "10pt",
-            lineHeight: "1.6",
-            textAlign: "justify",
-            whiteSpace: "pre-line",
-            minHeight: "340pt",
-            color: "#1e293b",
-          }}
-        >
-          {trip.reportText?.trim() ||
-            `1. ПРОВЕЖДАНЕ И ОФИЦИАЛНО УЧАСТИЕ:
-В периода от ${fmtDate(trip.startDate)} г. до ${fmtDate(trip.endDate)} г. отборът на „${site.name}“ взе участие в ${trip.title}, проведено в ${destCity}. В състезанието участваха ${allPeople.filter((p) => p.role !== "Треньор" && p.role !== "Ръководител").length} състезатели под ръководството на ${coachName} (${coachRole}).
-
-2. ПОСТИГНАТИ РЕЗУЛТАТИ И СПОРТНО-ТЕХНИЧЕСКА ОЦЕНКА:
-Състезателите (${
-              allPeople
-                .filter((p) => p.role !== "Треньор" && p.role !== "Ръководител")
-                .map((p) => p.name)
-                .join(", ") || "състезателите на клуба"
-            }) взеха участие в предвидените дисциплини съгласно календара на БФ Бадминтон. Показаха висок спортен дух, отборен синхрон и отлична дисциплина. Поставените цели за спортно-техническо представяне бяха изпълнени.
-
-3. ПРЕСТОЙ, НАСТАНЯВАНЕ И ТРАНСПОРТ:
-${buildStaySectionText(trip, membersDict)}
-
-4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ:
-Възложените задачи със Заповед за командировка № ${orderNum} са изпълнени. Към настоящия доклад се прилагат следните отчетни документи:${trip.attachMatchProtocols ? "\n• Официални съдийски протоколи от изиграните срещи на състезателите;" : ""}
-• Присъствен списък / удостоверение за присъствие, заверено от главния съдия/домакина;
-• Финансова ведомост за изплатени средства;
-• Разходооправдателни документи (фактури за нощувки и разходи).
-Настоящият доклад се представя в законоустановения 3-дневен срок съгласно Наредбата за командировките в страната.`}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            marginTop: "30pt",
-          }}
-        >
-          <div>
-            <p style={{ margin: "0 0 4pt 0" }}>
-              Дата: {fmtDate(trip.endDate || trip.startDate)} г.
-            </p>
-            <p style={{ margin: 0 }}>гр. Гълъбово</p>
-          </div>
-
-          <div style={{ textAlign: "right" }}>
-            <p style={{ margin: "0 0 4pt 0", fontWeight: "600" }}>
-              Докладчик (Командировано лице):
-            </p>
-            <p style={{ margin: "0 0 10pt 0" }}>{coachName}</p>
             <div
               style={{
                 display: "flex",
+                justifyContent: "space-between",
                 alignItems: "flex-end",
-                justifyContent: "flex-end",
+                marginTop: "auto",
+                paddingTop: "12pt",
+                pageBreakInside: "avoid",
               }}
             >
-              <span style={{ marginRight: "10pt" }}>Подпис:</span>
-              {trip.signatures?.coach ? (
-                <img
-                  src={trip.signatures.coach}
-                  alt="signature"
-                  style={{ height: "35pt", objectFit: "contain" }}
-                />
-              ) : (
-                <span style={{ color: "#cbd5e1" }}>
-                  ........................................
-                </span>
-              )}
+              <div style={{ fontSize: "8.5pt" }}>
+                <p style={{ margin: "0 0 2pt 0" }}>
+                  Дата: {fmtDate(trip.endDate || trip.startDate)} г.
+                </p>
+                <p style={{ margin: 0 }}>гр. Гълъбово</p>
+              </div>
+
+              <div style={{ textAlign: "right", fontSize: "8.5pt" }}>
+                <p style={{ margin: "0 0 2pt 0", fontWeight: "600" }}>
+                  Докладчик (Командировано лице):
+                </p>
+                <p style={{ margin: "0 0 4pt 0" }}>{coachName}</p>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-end",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <span style={{ marginRight: "8pt" }}>Подпис:</span>
+                  {trip.signatures?.coach ? (
+                    <img
+                      src={trip.signatures.coach}
+                      alt="signature"
+                      style={{ height: "30pt", objectFit: "contain" }}
+                    />
+                  ) : (
+                    <span style={{ color: "#cbd5e1" }}>
+                      ........................................
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        );
+      })()}
     </div>
   );
 }

@@ -739,12 +739,17 @@ export function TripStatementEditDialog({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">
+                    <Label
+                      htmlFor="actual-trips-count"
+                      className="text-[11px] text-muted-foreground"
+                    >
                       {trip.vehicle?.commuteMode === "daily_commute"
                         ? "Реално осъществени курсове (отиване + връщане):"
                         : "Брой пътувания (курсове):"}
                     </Label>
                     <Input
+                      id="actual-trips-count"
+                      name="actualTripsCount"
                       type="number"
                       min={0}
                       value={actualTripsCount}
@@ -763,9 +768,9 @@ export function TripStatementEditDialog({
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">
+                    <span className="text-[11px] text-muted-foreground block font-medium">
                       Общо изминати километри по пътен лист:
-                    </Label>
+                    </span>
                     <div className="h-8 px-3 rounded-md border border-zinc-200 bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-800/80 flex items-center font-bold text-zinc-900 dark:text-zinc-100">
                       {(() => {
                         const isDaily =
@@ -960,10 +965,15 @@ export function TripStatementEditDialog({
                       <div className="flex flex-wrap items-center gap-2.5">
                         {/* Days input */}
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                          <label
+                            htmlFor={`person-days-${p.id}`}
+                            className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400"
+                          >
                             Дни:
-                          </span>
+                          </label>
                           <Input
+                            id={`person-days-${p.id}`}
+                            name={`person_days_${p.id}`}
                             type="number"
                             min={0}
                             max={plannedDays}
@@ -983,10 +993,15 @@ export function TripStatementEditDialog({
 
                         {/* Nights input */}
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                          <label
+                            htmlFor={`person-nights-${p.id}`}
+                            className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400"
+                          >
                             Нощи:
-                          </span>
+                          </label>
                           <Input
+                            id={`person-nights-${p.id}`}
+                            name={`person_nights_${p.id}`}
                             type="number"
                             min={0}
                             max={plannedNights}
@@ -1099,6 +1114,9 @@ export function TripStatementEditDialog({
                           </Select>
 
                           <Input
+                            id={`person-note-${p.id}`}
+                            name={`person_note_${p.id}`}
+                            aria-label={`Бележка за ${p.name}`}
                             placeholder="или въведете бележка тук..."
                             value={p.note}
                             onChange={(e) =>

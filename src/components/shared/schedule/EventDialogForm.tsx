@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-
 "use client";
 
 import {
@@ -83,7 +81,11 @@ export const detectFileType = (
 ): DocumentAttachmentType => {
   const ext = fileName.split(".").pop()?.toLowerCase() || "";
   if (ext === "pdf" || mimeType === "application/pdf") return "pdf";
-  if (["doc", "docx"].includes(ext) || mimeType?.includes("word"))
+  if (
+    ["doc", "docx", "rtf", "odt", "txt"].includes(ext) ||
+    mimeType?.includes("word") ||
+    mimeType?.includes("rtf")
+  )
     return "word";
   if (
     ["xls", "xlsx", "csv"].includes(ext) ||
@@ -442,6 +444,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     </label>
                     <Input
                       id={`${idPrefix}-title`}
+                      name="title"
                       placeholder="Например: Тренировка - Напреднали"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
@@ -459,6 +462,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     </label>
                     <Input
                       id={`${idPrefix}-location`}
+                      name="location"
                       placeholder="Например: Спортна зала 'Енергетик'"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
@@ -483,6 +487,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     </label>
                     <Input
                       id={`${idPrefix}-startDate`}
+                      name="startDate"
                       type="datetime-local"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
@@ -499,6 +504,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     </label>
                     <Input
                       id={`${idPrefix}-endDate`}
+                      name="endDate"
                       type="datetime-local"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
@@ -538,6 +544,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     </label>
                     <Input
                       id={`${idPrefix}-tournamentUrl`}
+                      name="tournamentUrl"
                       type="url"
                       placeholder="https://... или /tournaments/..."
                       value={tournamentUrl}
@@ -572,6 +579,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                     </label>
                     <Textarea
                       id={`${idPrefix}-description`}
+                      name="description"
                       placeholder="Допълнителни бележки, треньори, подробности или линкове..."
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}

@@ -4,6 +4,7 @@ import { MapPin, Tag, Type } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -40,17 +41,21 @@ export function MonthlyScheduleStep1({
             <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               <Tag className="size-3" /> Тип събитие
             </FormLabel>
-            <select
-              className="h-12 w-full rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
-              value={field.value || "training"}
-              onChange={(e) => field.onChange(e.target.value)}
-            >
-              <option value="training">Тренировка</option>
-              <option value="competition">Състезание</option>
-              <option value="camp">Лагер</option>
-              <option value="event">Събитие</option>
-              <option value="other">Друго</option>
-            </select>
+            <FormControl>
+              <select
+                id="monthly-schedule-type"
+                name="type"
+                className="h-12 w-full rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                value={field.value || "training"}
+                onChange={(e) => field.onChange(e.target.value)}
+              >
+                <option value="training">Тренировка</option>
+                <option value="competition">Състезание</option>
+                <option value="camp">Лагер</option>
+                <option value="event">Събитие</option>
+                <option value="other">Друго</option>
+              </select>
+            </FormControl>
             <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
           </FormItem>
         )}
@@ -64,12 +69,15 @@ export function MonthlyScheduleStep1({
             <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               <Type className="size-3" /> Име на събитието / Група
             </FormLabel>
-            <Input
-              placeholder="напр. Тренировка - Група А"
-              className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
-              onKeyDown={onKeyDown}
-              {...field}
-            />
+            <FormControl>
+              <Input
+                id="monthly-schedule-title"
+                placeholder="напр. Тренировка - Група А"
+                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                onKeyDown={onKeyDown}
+                {...field}
+              />
+            </FormControl>
             <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
           </FormItem>
         )}
@@ -83,11 +91,15 @@ export function MonthlyScheduleStep1({
             <FormLabel className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               <MapPin className="size-3" /> Място / Корт
             </FormLabel>
-            <Input
-              className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
-              onKeyDown={onKeyDown}
-              {...field}
-            />
+            <FormControl>
+              <Input
+                id="monthly-schedule-location"
+                placeholder="напр. Зала Енергетик"
+                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                onKeyDown={onKeyDown}
+                {...field}
+              />
+            </FormControl>
             <FormMessage className="text-[10px] font-medium tracking-widest text-rose-500 uppercase" />
           </FormItem>
         )}

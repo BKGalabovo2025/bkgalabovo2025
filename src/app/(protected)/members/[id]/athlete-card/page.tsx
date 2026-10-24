@@ -1,144 +1,159 @@
 "use client";
 
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { ArrowLeft, Download, Loader2, Printer } from "lucide-react";
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
+import { generatePdfFromElement } from "@/lib/html-to-pdf";
+import { getValidAvatarUrl } from "@/lib/utils";
 import { Member } from "@/types/member.types";
 
 const AthleteCard = ({ member }: { member: Member }) => {
   return (
-    <div className="athlete-card-container mb-12 flex h-[48vh] flex-col justify-between border-b-2 border-dashed border-slate-300 bg-white pb-12 last:mb-0 last:border-0 last:pb-0">
+    <div className="athlete-card-container flex flex-col justify-between border border-slate-400 bg-white p-3 font-serif text-slate-900 leading-snug">
       <div className="w-full">
-        {/* Top Section: Photo and Title */}
-        <div className="mb-6 flex items-start justify-between">
-          <div className="flex h-32 w-24 items-center justify-center overflow-hidden border-2 border-slate-400 bg-slate-50">
+        {/* Top Section: Photo and Centered Title */}
+        <div className="mb-2 flex items-start justify-between gap-3">
+          {/* Снимка 3x4 */}
+          <div className="flex h-28 w-22 shrink-0 items-center justify-center overflow-hidden border border-slate-700 bg-slate-50">
             {member.avatarUrl ? (
-              <Image
-                src={member.avatarUrl}
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={getValidAvatarUrl(member.avatarUrl)}
                 alt={`${member.firstName} ${member.lastName}`}
-                fill
-                sizes="100vw"
-                className="object-cover"
-                unoptimized
+                className="object-cover size-full"
+                crossOrigin="anonymous"
               />
             ) : (
-              <div className="px-2 text-center text-[10px] text-slate-400 uppercase italic">
+              <div className="text-center text-[10pt] text-slate-400 italic">
                 Снимка
               </div>
             )}
           </div>
-          <div className="flex-1 pr-24 text-center">
-            <h1 className="mb-1 text-xl font-bold tracking-tight uppercase">
+
+          {/* Centered Federative Title */}
+          <div className="flex-1 pr-4 pt-1 text-center">
+            <h1 className="text-base font-bold tracking-tight uppercase text-slate-950 sm:text-lg">
               Българска Федерация Бадминтон
             </h1>
-            <h2 className="text-sm font-bold tracking-widest uppercase">
+            <h2 className="mt-0.5 text-xs font-bold tracking-widest uppercase text-slate-900 sm:text-sm">
               Картон на състезателя
             </h2>
           </div>
         </div>
 
-        {/* Info Grid */}
-        <div className="grid grid-cols-12 gap-x-6 gap-y-4 text-[10pt]">
+        {/* Info Grid: Club on Left, Athlete on Right */}
+        <div className="mb-2 grid grid-cols-12 gap-x-4 text-[9pt]">
           {/* Club Column */}
-          <div className="col-span-4 space-y-3">
+          <div className="col-span-5 space-y-1.5">
             <div>
-              <p className="border-b border-dotted border-slate-600 text-[11pt] font-bold">
-                &quot;Бадминтон клуб Гълъбово&quot;
+              <p className="border-b border-dotted border-slate-800 pb-0.5 font-bold text-[9.5pt] leading-normal min-h-[1.4em]">
+                „Бадминтон клуб Гълъбово”
               </p>
-              <p className="text-[8pt] text-slate-500 italic">/ клуб /</p>
+              <p className="text-[7pt] text-slate-600 italic">/клуб/</p>
             </div>
             <div>
-              <p className="border-b border-dotted border-slate-600 text-[11pt]">
+              <p className="border-b border-dotted border-slate-800 pb-0.5 text-[9pt] leading-normal min-h-[1.4em]">
                 гр. Гълъбово
               </p>
-              <p className="text-[8pt] text-slate-500 italic">гр.</p>
+              <p className="text-[7pt] text-slate-600 italic">/град/</p>
             </div>
-            <div className="pt-4">
-              <p className="min-h-6 border-b border-dotted border-slate-600 text-[11pt]"></p>
-              <p className="text-[8pt] text-slate-500 italic">
-                Председател: / Подпис, печат /
+            <div className="pt-0.5">
+              <div className="flex items-end justify-between border-b border-dotted border-slate-800 pb-0.5 min-h-[1.4em]">
+                <span className="text-[8.5pt]">Председател:</span>
+                <span className="font-semibold text-[8.5pt]">
+                  Мира Георгиева
+                </span>
+              </div>
+              <p className="text-[7pt] text-slate-600 italic">
+                /Подпис, печат/
               </p>
             </div>
           </div>
 
           {/* Athlete Column */}
-          <div className="col-span-8 space-y-2">
-            <div className="flex items-end gap-2">
-              <span className="text-[9pt] whitespace-nowrap">Име:</span>
-              <span className="flex-1 border-b border-dotted border-slate-600 font-bold">
+          <div className="col-span-7 space-y-1.5 border-l border-slate-200 pl-3">
+            <div className="flex items-end gap-1.5 min-h-[1.6em]">
+              <span className="text-[8.5pt] whitespace-nowrap font-normal">
+                Име:
+              </span>
+              <span className="flex-1 border-b border-dotted border-slate-800 px-1 font-bold text-[9.5pt] leading-normal min-h-[1.4em] overflow-visible">
                 {member.firstName}
               </span>
-              <span className="text-[9pt] whitespace-nowrap">бащино:</span>
-              <span className="flex-1 border-b border-dotted border-slate-600 font-bold">
-                {member.middleName || "......................"}
+              <span className="text-[8.5pt] whitespace-nowrap font-normal">
+                бащино:
+              </span>
+              <span className="flex-1 border-b border-dotted border-slate-800 px-1 font-bold text-[9.5pt] leading-normal min-h-[1.4em] overflow-visible">
+                {member.middleName || "\u00A0"}
               </span>
             </div>
-            <div className="flex items-end gap-2">
-              <span className="text-[9pt] whitespace-nowrap">фамилия:</span>
-              <span className="flex-3 border-b border-dotted border-slate-600 font-bold">
+
+            <div className="flex items-end gap-1.5 min-h-[1.6em]">
+              <span className="text-[8.5pt] whitespace-nowrap font-normal">
+                фамилия:
+              </span>
+              <span className="flex-1 border-b border-dotted border-slate-800 px-1 font-bold text-[9.5pt] leading-normal min-h-[1.4em] overflow-visible">
                 {member.lastName}
               </span>
-              <span className="text-[9pt] whitespace-nowrap">роден на:</span>
-              <span className="flex-1 border-b border-dotted border-slate-600 font-bold">
-                {member.dateOfBirth
-                  ? new Date(member.dateOfBirth).toLocaleDateString("bg-BG")
-                  : ""}
+              <span className="text-[8.5pt] whitespace-nowrap font-normal">
+                ЕГН:
+              </span>
+              <span className="min-w-28 border-b border-dotted border-slate-800 px-1 text-center font-bold tracking-wider text-[9.5pt] leading-normal min-h-[1.4em] overflow-visible">
+                {member.egn || "\u00A0"}
               </span>
             </div>
-            <div className="flex items-start gap-2 pt-1">
-              <span className="mt-1 text-[9pt] whitespace-nowrap">Адрес:</span>
-              <div className="flex-1">
-                <p className="min-h-[1.2rem] border-b border-dotted border-slate-600 text-[9pt]">
-                  {member.address || ""}
-                </p>
-                <p className="text-[7pt] text-slate-500 italic">
-                  / Град, ул. № вх. ап. /
-                </p>
+
+            <div>
+              <div className="flex items-end gap-1.5 min-h-[1.6em]">
+                <span className="text-[8.5pt] whitespace-nowrap font-normal">
+                  Адрес:
+                </span>
+                <span className="flex-1 border-b border-dotted border-slate-800 px-1 text-[8.5pt] font-medium leading-normal min-h-[1.4em] overflow-visible">
+                  {member.address || "\u00A0"}
+                </span>
               </div>
+              <p className="pl-12 text-[7pt] text-slate-600 italic">
+                /Град, ул. № вх. ап./
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Table Section */}
-        <div className="mt-6">
-          <table className="w-full border-collapse border border-slate-950 text-[7.5pt]">
+        {/* Table Section: 6 Columns x 2 Rows */}
+        <div className="w-full mt-2">
+          <table className="w-full border-collapse border border-slate-900 text-[7pt] leading-snug">
             <thead>
-              <tr className="divide-x divide-slate-950">
+              <tr className="divide-x divide-slate-900 border-b border-slate-900">
                 {[...Array(6)].map((_, i) => (
                   <th
                     key={i}
-                    className="w-1/6 space-y-1 border-b border-slate-950 p-1 pb-4 text-left font-normal"
+                    className="w-1/6 space-y-0.5 bg-slate-50/50 p-1 text-left font-normal"
                   >
-                    <p className="font-bold">Мед. преглед</p>
-                    <p>Дата: ...................</p>
+                    <p className="font-bold text-[7.5pt]">Мед. преглед</p>
+                    <p>Дата: ________</p>
                     <p>Периодичен</p>
-                    <div className="pt-2">
-                      <p>Подпис: .............</p>
-                      <p className="ml-4 text-[6pt] italic">печат</p>
+                    <div className="flex items-end justify-between pt-1">
+                      <span>Подпис: ____</span>
+                      <span className="text-[6pt] italic">печат</span>
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              <tr className="divide-x divide-slate-950">
+              <tr className="divide-x divide-slate-900">
                 {[...Array(6)].map((_, i) => (
-                  <td key={i} className="h-24 space-y-1 p-1 pb-2 align-top">
-                    <p className="font-bold">Заверка за</p>
-                    <p className="font-bold">Правоучастие</p>
-                    <p>Дата: ...................</p>
-                    <p>Възр. група</p>
-                    <p>.............................</p>
-                    <div className="pt-1">
-                      <p>Председател......</p>
-                      <p className="ml-4 text-[6pt] italic">печат</p>
+                  <td key={i} className="h-16 w-1/6 space-y-0.5 p-1 align-top">
+                    <p className="font-bold text-[7.5pt]">Заверка за</p>
+                    <p className="font-bold text-[7.5pt]">Правоучастие</p>
+                    <p>Дата: ________</p>
+                    <p>Въз. група: ____</p>
+                    <div className="flex items-end justify-between pt-1">
+                      <span>Председател: ____</span>
+                      <span className="text-[6pt] italic">печат</span>
                     </div>
                   </td>
                 ))}
@@ -177,43 +192,11 @@ const AthleteCardPage = () => {
     const toastId = toast.loading("Генериране на PDF...");
 
     try {
-      // Capture the element as a canvas
-      const canvas = await html2canvas(printRef.current, {
-        scale: 2, // Higher quality
-        useCORS: true, // Allow cross-origin images (avatars)
-        backgroundColor: "#ffffff",
-        logging: false,
-        onclone: (clonedDoc: Document) => {
-          // html2canvas fails on modern CSS color functions like lab() and oklch()
-          // which are common in Tailwind v4. We strip them from the cloned document styles.
-          const styleTags = clonedDoc.getElementsByTagName("style");
-          for (let i = 0; i < styleTags.length; i++) {
-            const style = styleTags[i];
-            if (
-              style.innerHTML.includes("lab(") ||
-              style.innerHTML.includes("oklch(")
-            ) {
-              style.innerHTML = style.innerHTML
-                .replace(/lab\([^)]+\)/g, "#000000")
-                .replace(/oklch\([^)]+\)/g, "#000000");
-            }
-          }
-        },
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-      pdf.save(`Kartoteka_${member.firstName}_${member.lastName}.pdf`);
-
+      await generatePdfFromElement(
+        printRef.current,
+        `Kartoteka_${member.firstName}_${member.lastName}.pdf`,
+        "portrait"
+      );
       toast.success("PDF документът е изтеглен успешно!", { id: toastId });
     } catch (error) {
       console.error("PDF Export error:", error);
@@ -225,13 +208,28 @@ const AthleteCardPage = () => {
 
   const fullName = `${member.firstName} ${member.lastName}`;
 
+  const handleBack = () => {
+    const hasHistory =
+      typeof window !== "undefined" &&
+      ((window.history.state && window.history.state.idx > 0) ||
+        (window.history.length > 1 &&
+          document.referrer &&
+          document.referrer.includes(window.location.host)));
+
+    if (hasHistory) {
+      router.back();
+    } else {
+      router.push(`/members/${memberId}?tab=documents`);
+    }
+  };
+
   return (
     <div className="mx-auto min-h-screen max-w-[210mm] overflow-hidden bg-white p-0 font-serif print:overflow-visible">
       {/* Non-printable header */}
       <div className="flex items-center justify-between border-b bg-slate-50 p-8 print:hidden">
         <Button
           variant="outline"
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="rounded-xl border-slate-200"
         >
           <ArrowLeft className="mr-2 size-4" /> Назад
@@ -267,7 +265,19 @@ const AthleteCardPage = () => {
         </div>
       </div>
 
-      <div ref={printRef} className="print-area bg-white p-[10mm]">
+      <div ref={printRef} className="print-area bg-white p-[8mm]">
+        <AthleteCard member={member} />
+
+        <div className="my-2.5 flex items-center justify-center gap-2 text-slate-400 text-[8pt] print:my-2">
+          <span>✂</span>
+          <div className="h-px flex-1 border-t border-dashed border-slate-300" />
+          <span className="uppercase tracking-widest text-[7pt]">
+            Линия за изрязване (2 карти на лист А4)
+          </span>
+          <div className="h-px flex-1 border-t border-dashed border-slate-300" />
+          <span>✂</span>
+        </div>
+
         <AthleteCard member={member} />
       </div>
 
@@ -322,8 +332,8 @@ const AthleteCardPage = () => {
             left: 0;
             top: 0;
             width: 210mm;
-            height: 297mm;
-            padding: 10mm;
+            min-height: 297mm;
+            padding: 8mm;
             background: white !important;
           }
           @page {
@@ -331,7 +341,7 @@ const AthleteCardPage = () => {
             margin: 0;
           }
           .athlete-card-container {
-            height: 135mm;
+            height: 128mm;
             page-break-inside: avoid;
             background: white !important;
           }

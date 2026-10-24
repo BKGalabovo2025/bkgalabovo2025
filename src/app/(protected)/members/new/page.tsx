@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 
+import { GenerateDocumentLinkDialog } from "@/components/members/GenerateDocumentLinkDialog";
 import { MemberForm } from "@/components/members/member-form";
 import { useAuth } from "@/context/auth-context";
 import { createMemberAction } from "@/lib/actions/members";
@@ -19,6 +21,8 @@ const NewMemberPage = () => {
   const familyId = searchParams.get("familyId");
   const type = searchParams.get("type");
   const { idToken } = useAuth();
+  const [createdMember, setCreatedMember] = useState<Member | null>(null);
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
 
   const handleSave = async (data: MemberFormValues) => {
     if (!idToken) {
@@ -31,10 +35,19 @@ const NewMemberPage = () => {
     try {
       const result = await createMemberAction(idToken, data);
 
-      if (result.success) {
-        toast.success("Успех!", { description: result.message });
-        router.push(`/members/${result.data?.id}`);
-        router.refresh();
+      if (result.success && result.data?.id) {
+        toast.success("Членът е записан успешно!");
+        if (type === "guest") {
+          router.push(`/members/${result.data.id}`);
+          router.refresh();
+        } else {
+          const newMem = {
+            id: result.data.id,
+            ...data,
+          } as unknown as Member;
+          setCreatedMember(newMem);
+          setShowLinkDialog(true);
+        }
       } else {
         toast.error("Грешка", { description: result.message });
         if (result.errors) {
@@ -46,6 +59,14 @@ const NewMemberPage = () => {
       toast.error("Грешка", {
         description: "Неуспешно свързване със сървъра.",
       });
+    }
+  };
+
+  const handleLinkDialogClose = (open: boolean) => {
+    setShowLinkDialog(open);
+    if (!open && createdMember) {
+      router.push(`/members/${createdMember.id}`);
+      router.refresh();
     }
   };
 
@@ -74,6 +95,15 @@ const NewMemberPage = () => {
         onClose={handleClose}
         initialData={initialData}
       />
+
+      {createdMember && (
+        <GenerateDocumentLinkDialog
+          member={createdMember}
+          documentType="membershipApplication"
+          open={showLinkDialog}
+          onOpenChange={handleLinkDialogClose}
+        />
+      )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 "use client";
 
 import {
@@ -109,7 +108,7 @@ export async function compressImageIfNeeded(
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) {
         resolve(file);
         return;
@@ -148,7 +147,7 @@ export const detectAttachmentType = (
   if (isImageFileOrUrl(fileNameOrUrl)) return "image";
   const ext = fileNameOrUrl.split("?")[0].split(".").pop()?.toLowerCase() || "";
   if (ext === "pdf") return "pdf";
-  if (["doc", "docx"].includes(ext)) return "word";
+  if (["doc", "docx", "rtf", "odt", "txt"].includes(ext)) return "word";
   if (["xls", "xlsx", "csv"].includes(ext)) return "excel";
   return "other";
 };
@@ -160,7 +159,7 @@ export function UniversalMediaUpload({
   value,
   onChange,
   storageFolder = "media",
-  accept = "image/*,.pdf,.doc,.docx,.xls,.xlsx",
+  accept = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.rtf,.txt",
   maxSizeBytes = 800 * 1024,
   placeholderUrl = "https://... или /zones/...",
   className,

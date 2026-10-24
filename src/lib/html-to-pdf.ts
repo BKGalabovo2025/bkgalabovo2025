@@ -26,9 +26,10 @@ async function renderElementToCanvas(
         cleanCSS +
         "\n" +
         `
-        * {
-          font-family: Arial, Helvetica, sans-serif !important;
-          word-spacing: 2px !important;
+        /* Clean font smoothing without forced word-spacing that causes clipping */
+        html, body {
+          -webkit-font-smoothing: antialiased;
+          text-rendering: optimizeLegibility;
         }
       `;
       clonedDoc.head.appendChild(styleEl);
@@ -159,7 +160,8 @@ async function createPdf(
   pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
   heightLeft -= pdfHeight;
 
-  while (heightLeft > 0) {
+  // Толеранс 2 мм: 297 мм мин-височина се рендира като ~297.0x мм и без толеранс се получава празна втора страница
+  while (heightLeft > 2) {
     position -= pdfHeight;
     pdf.addPage();
     pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);

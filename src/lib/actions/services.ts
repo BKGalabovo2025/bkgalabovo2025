@@ -173,6 +173,8 @@ export async function createClubService(
     serverCache.invalidate("clubServices");
     revalidatePath("/catalogs");
     revalidatePath("/finances/services");
+    revalidatePath("/documents");
+    revalidatePath("/members");
     return {
       success: true,
       message: `Услугата '${data.name}' беше създадена успешно.`,
@@ -181,7 +183,7 @@ export async function createClubService(
     console.error("Server Action Error:", error);
     return {
       success: false,
-      // eslint-disable-next-line sonarjs/no-nested-conditional
+
       message: `Грешка при сървъра: ${error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : "Неизвестна грешка"}`,
     };
   }
@@ -241,6 +243,8 @@ export async function updateClubService(
     revalidatePath("/catalogs");
     revalidatePath("/finances/services");
     revalidatePath(`/finances/services/${id}`);
+    revalidatePath("/documents");
+    revalidatePath("/members");
     return {
       success: true,
       message: `Услугата '${data.name}' беше обновена успешно.`,
@@ -249,7 +253,7 @@ export async function updateClubService(
     console.error("Server Action Error:", error);
     return {
       success: false,
-      // eslint-disable-next-line sonarjs/no-nested-conditional
+
       message: `Грешка при сървъра: ${error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : "Неизвестна грешка"}`,
     };
   }
@@ -285,6 +289,8 @@ export async function deleteClubService(idToken: string, id: string) {
     serverCache.invalidate("clubServices");
     revalidatePath("/catalogs");
     revalidatePath("/finances/services");
+    revalidatePath("/documents");
+    revalidatePath("/members");
     return {
       success: true,
       message: "Услугата беше изтрита успешно.",
@@ -804,5 +810,38 @@ export async function executeTrainingSaleAction(
         (error instanceof Error ? error.message : "Unknown error") ||
         "Грешка при продажба.",
     };
+  }
+}
+
+/**
+ * Server action to fetch formatted club fees and subscription options directly from clubServices.
+ * Used for dynamic document rendering, PDF generation, and signing flows.
+ */
+export async function getClubFeeServicesAction() {
+  try {
+    const adminDb = getAdminDb();
+    const snapshot = await adminDb.collection("clubServices").get();
+    const rawServices = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: (data.name as string) || "",
+        price: Number(data.price) || 0,
+        currency: (data.currency as string) || "EUR",
+        type: (data.type as string) || "Абонамент",
+        targetGroups: Array.isArray(data.targetGroups)
+          ? (data.targetGroups as string[])
+          : [],
+      };
+    });
+
+    const { filterTrainingServicesForDocuments } =
+      await import("@/lib/services-fees");
+    const feeOptions = filterTrainingServicesForDocuments(rawServices);
+    return { success: true, data: feeOptions };
+  } catch (error: unknown) {
+    console.error("Error getClubFeeServicesAction:", error);
+    const { DEFAULT_CLUB_FEES } = await import("@/lib/services-fees");
+    return { success: true, data: DEFAULT_CLUB_FEES };
   }
 }

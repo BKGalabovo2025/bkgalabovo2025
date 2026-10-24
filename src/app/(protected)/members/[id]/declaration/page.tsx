@@ -17,104 +17,183 @@ const InformedConsentPage = () => {
         `Подпис за Декларация за информирано съгласие на ${fullName}`
       }
     >
-      {({ member, fullName, existingSignatureUrl }) => (
+      {({ member, fullName, existingSignatureUrl, displayDate }) => (
         <>
-          <div className="mb-8 text-center">
-            <h1 className="text-xl font-bold tracking-widest uppercase">
-              ДЕКЛАРАЦИЯ
+          <div className="mb-4 text-center">
+            <h1 className="text-xl font-bold tracking-[0.25em] text-slate-950 uppercase">
+              Д Е К Л А Р А Ц И Я
             </h1>
-            <h2 className="mt-1 text-base font-bold uppercase">
-              За информирано съгласие
-            </h2>
+            <p className="mt-1 text-xs font-bold text-slate-800 uppercase tracking-wider">
+              За информирано съгласие и обработване на лични данни
+            </p>
           </div>
 
-          <div className="space-y-4 text-justify text-[10.5pt] leading-relaxed">
-            <p>
-              Долуподписаният/ата
-              ...............................................................................................................................................
-            </p>
-            <p>
-              дата на раждане:
-              ...................................................., телефон за
-              връзка:
-              ...................................................................................
-            </p>
-
-            <div className="mt-4 text-left">
-              В качеството си на:
-              <div className="mt-2 ml-6 space-y-1">
-                <p>☐ Лично (за пълнолетни лица)</p>
-                <p>
-                  ☐ Родител / Настойник на: <strong>{fullName}</strong>, дата на
-                  раждане:{" "}
-                  <strong>
-                    {member.dateOfBirth
-                      ? new Date(member.dateOfBirth).toLocaleDateString("bg-BG")
-                      : "...................................."}
-                  </strong>
-                </p>
+          {/* Structured Administrative Declarant Data Box */}
+          <div className="mb-4 rounded-md border border-slate-300 bg-slate-50/70 p-3 text-[9pt] print:border-slate-400 print:bg-transparent">
+            <div className="space-y-2">
+              <div className="grid grid-cols-[190px_1fr] items-baseline gap-2">
+                <span className="font-bold text-slate-900 uppercase tracking-wide">
+                  Долуподписаният/ата:
+                </span>
+                <span className="border-b border-dotted border-slate-500 pb-0.5 font-medium text-slate-950">
+                  {member.parentName ? (
+                    <strong className="text-slate-950">
+                      {member.parentName}
+                    </strong>
+                  ) : (
+                    <span className="text-slate-400 italic">
+                      / трите имена по документ за самоличност /
+                    </span>
+                  )}
+                </span>
               </div>
-            </div>
 
-            <div className="mt-6 space-y-4">
-              <p className="font-bold">ДЕКЛАРИРАМ, ЧЕ:</p>
-              <ol className="list-decimal space-y-2 pl-6">
-                <li>
-                  Запознат/а съм и приемам Правилника за вътрешния ред на
-                  „Бадминтон клуб Гълъбово&quot;.
-                </li>
-                <li>
-                  Доброволно желая аз / моето дете да участва в тренировъчния и
-                  състезателен процес на клуба.
-                </li>
-                <li>
-                  Запознат/а съм с рисковете от травми и наранявания,
-                  съпътстващи спортната дейност.
-                </li>
-                <li>
-                  Декларирам, че аз / моето дете е клинично здраво/здрав и няма
-                  медицински противопоказания за практикуване на спорт.
-                </li>
-                <li>
-                  Давам съгласието си за събиране, съхранение и обработка на
-                  личните ми данни / данните на моето дете от клуба, съгласно
-                  изискванията на ЗЗЛД и GDPR, единствено за целите на
-                  тренировъчната и спортно-състезателната дейност.
-                </li>
-                <li>
-                  Давам съгласието си клубът да прави снимки и видеоклипове по
-                  време на тренировки и състезания с цел популяризиране на
-                  дейността.
-                </li>
-              </ol>
-            </div>
-
-            <div className="mt-16 flex items-end justify-between">
-              <div>
-                <p>Дата: ........................ г.</p>
-                <p>Гр. Гълъбово</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-[190px_1fr] items-baseline gap-2">
+                  <span className="font-bold text-slate-900">
+                    ЕГН / Дата на раждане:
+                  </span>
+                  <span className="border-b border-dotted border-slate-500 pb-0.5">
+                    {member.egn ? (
+                      <strong className="text-slate-950">{member.egn}</strong>
+                    ) : (
+                      <span>&nbsp;</span>
+                    )}
+                  </span>
+                </div>
+                <div className="grid grid-cols-[120px_1fr] items-baseline gap-2">
+                  <span className="font-bold text-slate-900">
+                    Тел. за връзка:
+                  </span>
+                  <span className="border-b border-dotted border-slate-500 pb-0.5">
+                    {member.parentPhone || member.phone ? (
+                      <strong className="text-slate-950">
+                        {member.parentPhone || member.phone}
+                      </strong>
+                    ) : (
+                      <span>&nbsp;</span>
+                    )}
+                  </span>
+                </div>
               </div>
-              <div className="relative min-w-50 text-center">
-                {existingSignatureUrl ? (
-                  <div className="relative inline-block">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={existingSignatureUrl}
-                      alt="Електронен подпис"
-                      className="mx-auto h-16 w-auto object-contain"
-                      // eslint-disable-next-line react/forbid-dom-props
-                      style={{ mixBlendMode: "multiply" }}
-                    />
-                    <div className="mt-1 border-b border-slate-400" />
+
+              <div className="grid grid-cols-[190px_1fr] items-baseline gap-2 border-t border-slate-200 pt-1.5 print:border-slate-300">
+                <span className="font-bold text-slate-900 uppercase tracking-wide">
+                  В качеството си на:
+                </span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block size-3.5 rounded-xs border border-slate-600 text-center text-[8pt] leading-none"></span>
+                    <span>
+                      Лично (за пълнолетни лица / състезатели над 18 навършени
+                      години)
+                    </span>
                   </div>
-                ) : (
-                  <p>
-                    Декларатор:
-                    ....................................................
-                  </p>
-                )}
-                <p className="text-[9pt]">(подпис)</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="inline-block size-3.5 rounded-xs border border-slate-600 text-center text-[8pt] font-bold leading-none">
+                      ✓
+                    </span>
+                    <span>
+                      Родител / Настойник на състезателя:{" "}
+                      <strong className="font-bold text-slate-950">
+                        {fullName}
+                      </strong>
+                      {member.dateOfBirth && (
+                        <span className="ml-2 text-slate-700">
+                          (роден/а на:{" "}
+                          <strong>
+                            {new Date(member.dateOfBirth).toLocaleDateString(
+                              "bg-BG"
+                            )}{" "}
+                            г.
+                          </strong>
+                          )
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
               </div>
+            </div>
+          </div>
+
+          {/* Declarative Clauses */}
+          <div className="space-y-2 text-justify text-[9pt] leading-relaxed">
+            <p className="font-bold tracking-wider text-slate-950 uppercase">
+              ДЕКЛАРИРАМ, ЧЕ:
+            </p>
+            <ol className="list-decimal space-y-1.5 pl-5 text-[8.5pt] leading-normal">
+              <li>
+                <strong>Правилник за вътрешния ред:</strong> Запознат/а съм и
+                приемам без възражения Правилника за вътрешния ред на СНЦ
+                „Бадминтон клуб Гълъбово“, като се задължавам аз / моето дете да
+                спазваме спортната дисциплина и установения тренировъчен график.
+              </li>
+              <li>
+                <strong>Доброволно участие:</strong> Доброволно и по собствено
+                желание заявявам участието си / участието на моето дете в
+                учебно-тренировъчния процес, спортните лагери и състезателната
+                дейност на клуба.
+              </li>
+              <li>
+                <strong>Осведоменост за рисковете:</strong> Запознат/а съм с
+                естеството на спорта бадминтон и възможните рискове от физически
+                натоварвания и спортни травми, съпътстващи системната спортна
+                активност.
+              </li>
+              <li>
+                <strong>Здравословно състояние:</strong> Удостоверявам, че аз /
+                моето дете е клинично здраво/здрав, преминало е предсъстезателен
+                медицински преглед и няма установени медицински противопоказания
+                за извършване на интензивни физически упражнения и
+                спортно-състезателна дейност.
+              </li>
+              <li>
+                <strong>Защита на личните данни (GDPR):</strong> Давам своето
+                изрично и информирано съгласие СНЦ „Бадминтон клуб Гълъбово“ да
+                съхранява и обработва предоставените лични данни (мои и на
+                детето ми) съгласно изискванията на Регламент (ЕС) 2016/679
+                (GDPR) и ЗЗЛД, единствено за нуждите на картотекирането,
+                легитимацията пред БФБ и ММС.
+              </li>
+              <li>
+                <strong>Медийно отразяване:</strong> Съгласен/на съм клубът да
+                заснема фото- и видеоматериали по време на тренировки и турнири
+                с участието на мен / моето дете и да ги публикува с цел
+                отразяване и популяризиране на дейността.
+              </li>
+            </ol>
+          </div>
+
+          {/* Institutional Closing & Signature Block */}
+          <div className="mt-8 flex items-end justify-between font-serif text-[9pt]">
+            <div className="space-y-1">
+              <p className="font-semibold text-slate-900">гр. Гълъбово</p>
+              <div className="w-36 border-b border-slate-700 pb-0.5">
+                <span className="font-medium">Дата: {displayDate} г.</span>
+              </div>
+            </div>
+
+            <div className="min-w-64 text-center">
+              <p className="mb-2 font-bold tracking-wider text-slate-950 uppercase text-[9pt]">
+                ДЕКЛАРАТОР:
+              </p>
+              {existingSignatureUrl ? (
+                <div className="relative inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={existingSignatureUrl}
+                    alt="Електронен подпис"
+                    className="mx-auto h-11 w-auto object-contain mix-blend-multiply"
+                  />
+                  <div className="mt-1 w-48 border-b border-slate-700" />
+                </div>
+              ) : (
+                <div className="pt-8 w-48 mx-auto border-b border-slate-700" />
+              )}
+              <p className="mt-1 text-[8pt] text-slate-600">
+                / {member.parentName || "подпис на декларатора"} /
+              </p>
             </div>
           </div>
         </>

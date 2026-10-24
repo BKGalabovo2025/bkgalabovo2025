@@ -17,7 +17,7 @@ const inter = Inter({
   subsets: ["latin", "cyrillic"],
   display: "swap",
   variable: "--font-inter",
-  preload: true,
+  preload: false,
   fallback: [
     "system-ui",
     "-apple-system",

@@ -140,7 +140,10 @@ export async function updateMemberAction(
       };
     }
     const existingData = existingSnap.data();
-    const targetSiteId = (memberData?.siteId as string) || existingData?.siteId;
+    let targetSiteId = (memberData?.siteId as string) || existingData?.siteId;
+    if (targetSiteId === "Зала Гълъбово") {
+      targetSiteId = "bkgalabovo";
+    }
     const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
     if (
       targetSiteId &&

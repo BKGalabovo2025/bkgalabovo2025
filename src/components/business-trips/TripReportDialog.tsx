@@ -38,8 +38,10 @@ import {
 import { businessTripService } from "@/services/business-trip-service";
 import {
   BusinessTrip,
+  TripExpense,
   TripProtocolAttachment,
 } from "@/types/business-trip.types";
+import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
 
 export {
@@ -53,6 +55,8 @@ interface TripReportDialogProps {
   onOpenChange: (open: boolean) => void;
   trip: BusinessTrip | null;
   membersDict: Record<string, Member>;
+  expenses?: TripExpense[];
+  event?: ScheduleEvent | null;
   onSuccess?: () => void;
 }
 
@@ -61,6 +65,8 @@ export function TripReportDialog({
   onOpenChange,
   trip,
   membersDict,
+  expenses = [],
+  event,
   onSuccess,
 }: TripReportDialogProps) {
   const { idToken } = useAuth();
@@ -97,11 +103,17 @@ export function TripReportDialog({
         setReportText(trip.reportText);
       } else {
         setReportText(
-          generateDefaultReportText(trip, membersDict, hasProtocols)
+          generateDefaultReportText(
+            trip,
+            membersDict,
+            hasProtocols,
+            expenses,
+            event
+          )
         );
       }
     }
-  }, [open, trip, membersDict]);
+  }, [open, trip, membersDict, expenses, event]);
 
   const handleToggleProtocols = (checked: boolean) => {
     setAttachMatchProtocols(checked);
@@ -208,11 +220,20 @@ export function TripReportDialog({
       p.url.toLowerCase().includes(".pdf") ||
       p.name.toLowerCase().endsWith(".pdf");
     const isImg =
-      /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(p.url) ||
-      /\.(png|jpe?g|webp|gif|svg)$/i.test(p.name);
+      /\.(png|jpe?g|webp|gif|svg|bmp|avif)(\?.*)?$/i.test(p.url) ||
+      /\.(png|jpe?g|webp|gif|svg|bmp|avif)$/i.test(p.name);
+    const isWord =
+      /\.(docx?|rtf|odt|txt)$/i.test(p.name) ||
+      /\.(docx?|rtf|odt|txt)(\?.*)?$/i.test(p.url);
+    const isExcel =
+      /\.(xlsx?|csv)$/i.test(p.name) || /\.(xlsx?|csv)(\?.*)?$/i.test(p.url);
     let docType: DocumentAttachmentType | undefined;
     if (isPdf) {
       docType = "pdf";
+    } else if (isWord) {
+      docType = "word";
+    } else if (isExcel) {
+      docType = "excel";
     } else if (isImg) {
       docType = "image";
     }
@@ -253,8 +274,15 @@ export function TripReportDialog({
   const handleResetToDefault = () => {
     if (!trip) return;
     setReportText(
-      generateDefaultReportText(trip, membersDict, attachMatchProtocols)
+      generateDefaultReportText(
+        trip,
+        membersDict,
+        attachMatchProtocols,
+        expenses,
+        event
+      )
     );
+    toast.success("Възстановен е официалният стандартизиран текст на доклада.");
   };
 
   const handleSave = async () => {
@@ -344,6 +372,8 @@ export function TripReportDialog({
                     <input
                       type="file"
                       id="protocol-file-upload"
+                      name="protocol-file-upload"
+                      aria-label="Качване на съдийски протоколи"
                       accept="image/*,.pdf"
                       multiple
                       className="hidden"
@@ -478,7 +508,12 @@ export function TripReportDialog({
             )}
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Съдържание на доклада / спортния отчет:</span>
+              <label
+                htmlFor="trip-report-text"
+                className="font-medium text-zinc-700 dark:text-zinc-300"
+              >
+                Съдържание на доклада / спортния отчет:
+              </label>
               <Button
                 type="button"
                 variant="ghost"
@@ -492,6 +527,8 @@ export function TripReportDialog({
             </div>
 
             <Textarea
+              id="trip-report-text"
+              name="reportText"
               value={reportText}
               onChange={(e) => setReportText(e.target.value)}
               rows={10}

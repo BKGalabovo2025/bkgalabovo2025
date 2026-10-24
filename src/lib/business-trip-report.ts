@@ -1,7 +1,12 @@
 import { differenceInCalendarDays } from "date-fns";
 
 import { getSiteConfig } from "@/config/sites";
-import { BusinessTrip } from "@/types/business-trip.types";
+import {
+  getTripDecisionNumber,
+  getTripOrderNumber,
+} from "@/lib/business-trip-numbers";
+import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
+import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
 
 interface PersonStat {
@@ -135,12 +140,21 @@ function buildReducedStayText(
   return lines.join("\n");
 }
 
+const fmtDate = (d?: string) => {
+  if (!d) return "—";
+  try {
+    const parts = d.split("T")[0].split("-");
+    if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+    return d;
+  } catch {
+    return d;
+  }
+};
+
 /**
- * Генерира съдържанието за точка „3. ПРЕСТОЙ, НАСТАНЯВАНЕ И ТРАНСПОРТ" от Доклада за командировка.
- * Автоматично отчита ранно отпадане на състезатели, липса на нощувка, съкратен престой
- * и преизчислени дневни/квартирни във ведомостта.
+ * Генерира съдържанието за точка „3. ТРАНСПОРТ, ПРЕСТОЙ И МАТЕРИАЛНО-ФИНАНСОВО ОБЕЗПЕЧАВАНЕ"
+ * от Доклада за командировка.
  */
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export function buildStaySectionText(
   trip: BusinessTrip,
   membersDict: Record<string, Member>
@@ -174,7 +188,8 @@ export function buildStaySectionText(
     defNights
   );
 
-  const athletesStats: PersonStat[] = trip.participantsIds.map((pid) => {
+  const participantIds = trip.participantsIds || [];
+  const athletesStats: PersonStat[] = participantIds.map((pid) => {
     const m = membersDict[pid];
     const name = m ? `${m.firstName} ${m.lastName}` : pid;
     const role = m?.isCoach ? "Треньор" : "Състезател";
@@ -203,26 +218,27 @@ export function buildStaySectionText(
     (a) => !reducedAthletes.some((ra) => ra.id === a.id)
   );
 
-  let baseText = "";
-  if (reducedAthletes.length > 0) {
-    baseText = buildReducedStayText(
+  let stayText = "";
+  if (reducedAthletes.length > 0 && plannedNights > 0) {
+    stayText = buildReducedStayText(
       reducedAthletes,
       fullStayAthletes,
       coachStat
     );
   } else if (defDays < plannedDays || defNights < plannedNights) {
-    // Общо съкращаване на отбора (всички са се върнали по-рано)
     const dayWord = defDays === 1 ? "ден" : "дни";
     const nightWord = defNights === 1 ? "нощувка" : "нощувки";
-    baseText = `Отборът приключи своето участие по-рано от предвиденото в предварителния график. Реалният престой на целия състав бе ${defDays} ${dayWord} и ${defNights} ${nightWord} (вместо планираните ${plannedDays} дни / ${plannedNights} нощи). Финансовата ведомост за командировъчни разходи е преизчислена за действително реализирания брой дни и нощувки.`;
+    stayText = `• Престой: Отборът приключи своето участие по-рано от предвиденото в предварителния график. Реалният престой на състава бе ${defDays} ${dayWord} и ${defNights} ${nightWord} (вместо планираните ${plannedDays} дни / ${plannedNights} нощи). Финансовата ведомост за командировъчни разходи е преизчислена за действителния престой.`;
+  } else if (plannedNights === 0 || defNights === 0) {
+    const dayWord = defDays === 1 ? "ден" : "дни";
+    stayText = `• Престой и настаняване: Отборът участва в режим на ежедневно пътуване (всеки ден отиване и връщане без нощувка) в рамките на ${defDays} ${dayWord}. Не са ползвани хотелски услуги.`;
   } else {
-    // Пълен престой по график
     const dayWord = plannedDays === 1 ? "ден" : "дни";
     const nightWord = plannedNights === 1 ? "нощувка" : "нощувки";
-    baseText = `Пътуването и престоят се осъществиха изцяло съгласно предварителния план и утвърдените условия (общо ${plannedDays} ${dayWord} и ${plannedNights} ${nightWord}). Всички участници проведоха пълния престой и ползваха предвидените нощувки.`;
+    stayText = `• Престой и настаняване: Пътуването и престоят се осъществиха изцяло съгласно предварителния график (общо ${plannedDays} ${dayWord} и ${plannedNights} ${nightWord} на място). Всички участници проведоха пълния престой съгласно състезателната програма.`;
   }
 
-  // Добавяне на изрично описание за транспорта и курсовете
+  // Транспорт
   const vehicle = trip.vehicle;
   const isDailyCommute = vehicle?.commuteMode === "daily_commute";
   let singleKm = vehicle?.distanceKm ?? 0;
@@ -242,36 +258,71 @@ export function buildStaySectionText(
     : (vehicle?.distanceKm ?? singleKm);
 
   let transportLine = "";
-  if (trip.transportType === "fuel_only" && singleKm > 0) {
+  if (trip.transportType === "free") {
+    transportLine = `• Транспорт: Организиран и осигурен безплатно от организатора/домакина (без транспортен разход за клуба).`;
+  } else if (
+    trip.transportType === "fuel_only" ||
+    trip.transportType === "club_paid"
+  ) {
+    const tripWord = actualTrips === 1 ? "курс" : "курса";
     if (isDailyCommute) {
-      const tripWord = actualTrips === 1 ? "курс" : "курса";
-      const earlyReturnNote =
-        actualTrips < plannedDays
-          ? ` На останалите дни от програмата не е пътувано поради приключило участие.`
-          : "";
-      transportLine = `\n• Транспорт с лично МПС (ежедневно пътуване без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут Гълъбово – ${trip.destination || "дестинацията"} – Гълъбово (1 курс = ${singleKm} км). Общо изминати километри по пътен лист: ${totalEffectiveKm} км.${earlyReturnNote}`;
+      transportLine = `• Транспорт с МПС (ежедневно пътуване без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут гр. Гълъбово – ${trip.destination || "дестинацията"} – гр. Гълъбово (1 курс = ${singleKm} км, общо ${totalEffectiveKm} км по пътен лист).`;
     } else {
-      transportLine = `\n• Транспорт с лично МПС: Осъществено е 1 двупосочно пътуване с престой на място по маршрут Гълъбово – ${trip.destination || "дестинацията"} – Гълъбово. Общо изминати километри по пътен лист: ${totalEffectiveKm} км.`;
+      transportLine = `• Транспорт с МПС: Осъществено е двупосочно пътуване по маршрут гр. Гълъбово – ${trip.destination || "дестинацията"} – гр. Гълъбово (общо ${totalEffectiveKm} км по пътен лист).`;
     }
   } else if (trip.transportType === "public") {
     if (isDailyCommute) {
-      transportLine = `\n• Обществен транспорт (ежедневно пътуване): Закупени са билети за ${actualTrips} дни пътуване за отбора съгласно реалните състезателни дни.`;
+      transportLine = `• Обществен транспорт (ежедневно пътуване): Закупени са билети за ${actualTrips} дни състезателно пътуване на отбора.`;
     } else {
-      transportLine = `\n• Обществен транспорт: Закупени са двупосочни билети за пътуването до ${trip.destination || "дестинацията"} и обратно.`;
+      transportLine = `• Обществен транспорт: Закупени са двупосочни билети за пътуването на отбора.`;
     }
+  } else {
+    transportLine = `• Транспорт: Осъществен съгласно утвърдените условия в Заповедта за командировка.`;
   }
 
-  return transportLine ? `${baseText}\n${transportLine}` : baseText;
+  // Финансово обезпечаване
+  const perDiemRate = trip.financials?.perDiemRateEUR ?? 11;
+  const financeLine = `• Финансово обезпечаване: На командированите лица са начислени и изплатени полагащите се командировъчни пари (дневни в размер на ${perDiemRate.toFixed(2)} € на ден на лице съгласно Наредбата за командировките в страната), подробно отразени във Финансовата ведомост.`;
+
+  return [stayText, transportLine, financeLine].filter(Boolean).join("\n");
 }
 
 /**
- * Генерира целия текст на Доклада за командировка по подразбиране,
- * като интегрира автоматично информацията за реалния престой и отпадналите състезатели.
+ * Генерира опис на приложенията спрямо прикачените файлове и фактури.
+ */
+export function buildReportApplicationsText(
+  trip: BusinessTrip,
+  _expenses: TripExpense[] = [],
+  attachMatchProtocols: boolean = false
+): string {
+  const lines: string[] = [];
+
+  // 1. Официален съдийски протокол
+  const matchProtos = trip.matchProtocols || [];
+  if (matchProtos.length > 0) {
+    const names = matchProtos.map((p) => p.name).join("; ");
+    lines.push(`• Официални съдийски протоколи от срещите: ${names};`);
+  } else if (attachMatchProtocols || trip.attachMatchProtocols) {
+    lines.push(
+      `• Официални съдийски протоколи от изиграните срещи на турнира;`
+    );
+  }
+
+  // 2. Оригинални разходооправдателни документи (общо, без изброяване)
+  lines.push(`• Оригиналните разходооправдателни документи.`);
+
+  return lines.join("\n");
+}
+
+/**
+ * Генерира целия текст на Доклада за командировка по подразбиране по единен стандарт.
  */
 export function generateDefaultReportText(
   trip: BusinessTrip,
   membersDict: Record<string, Member>,
-  attachMatchProtocols: boolean = false
+  attachMatchProtocols: boolean = false,
+  expenses: TripExpense[] = [],
+  event?: ScheduleEvent | null
 ): string {
   const site = getSiteConfig();
   const coach = membersDict[trip.coachId];
@@ -281,38 +332,67 @@ export function generateDefaultReportText(
   const coachRole =
     trip.coachRole || (coach?.isCoach ? "Треньор" : "Ръководител");
 
-  const athletesNames = trip.participantsIds
-    .map((id) => membersDict[id])
-    .filter(Boolean)
-    .filter((m) => !m.isCoach)
-    .map((m) => `${m.firstName} ${m.lastName}`);
+  const rawParticipantIds =
+    trip.participantsIds && trip.participantsIds.length > 0
+      ? trip.participantsIds
+      : (event?.attendees
+          ?.map((a) => a.memberId)
+          .filter((id) => {
+            const m = membersDict[id];
+            return m && !m.isCoach;
+          }) ?? []);
 
-  const athletesCount = athletesNames.length;
+  const athletesMembers = rawParticipantIds
+    .map((id) => membersDict[id])
+    .filter(Boolean) as Member[];
+
+  const athletesCount = athletesMembers.length;
+  const athletesNames = athletesMembers.map(
+    (m) => `${m.firstName} ${m.lastName}`
+  );
   const athletesStr =
     athletesCount > 0 ? athletesNames.join(", ") : "състезателите на клуба";
 
-  const fmtDate = (d?: string) => {
-    if (!d) return "—";
-    try {
-      const parts = d.split("T")[0].split("-");
-      if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
-      return d;
-    } catch {
-      return d;
-    }
-  };
-
   const startStr = fmtDate(trip.startDate);
   const endStr = fmtDate(trip.endDate);
-  const dest = trip.destination || "мястото на състезанието";
-
-  const protocolLine = attachMatchProtocols
-    ? `\n• Официални съдийски протоколи от изиграните срещи на състезателите;`
+  const destCity = trip.destination || "гр. Хасково";
+  const organizer =
+    (event as { organizer?: string } | undefined)?.organizer ||
+    trip.organizer ||
+    "Българска федерация бадминтон (БФБ)";
+  const hostClub =
+    (event as { hostClub?: string } | undefined)?.hostClub ||
+    trip.hostClub ||
+    `БК ${trip.destination || "домакин"}`;
+  const orderNum = getTripOrderNumber(trip);
+  const orderDate = fmtDate(trip.orderDate || trip.startDate);
+  const decisionNum = getTripDecisionNumber(trip);
+  const decisionDate = fmtDate(trip.usDecisionDate || trip.startDate);
+  const protocolNum = trip.usProtocolNumber?.trim()
+    ? ` (Протокол № ${trip.usProtocolNumber.trim()})`
     : "";
 
   const staySection = buildStaySectionText(trip, membersDict);
+  const appSection = buildReportApplicationsText(
+    trip,
+    expenses,
+    attachMatchProtocols
+  );
 
-  return `1. ПРОВЕЖДАНЕ И ОФИЦИАЛНО УЧАСТИЕ:\nВ периода от ${startStr} г. до ${endStr} г. отборът на „${site.name}" взе участие в ${trip.title}, проведено в ${dest}. В състезанието участваха ${athletesCount} състезатели под ръководството на ${coachName} (${coachRole}).\n\n2. ПОСТИГНАТИ РЕЗУЛТАТИ И СПОРТНО-ТЕХНИЧЕСКА ОЦЕНКА:\nСъстезателите (${athletesStr}) се състезаваха в определените дисциплини и възрастови групи съгласно Държавния спортен календар на БФ Бадминтон. Показаха висок спортен дух, дисциплина и стриктно спазване на състезателния правилник. Поставените цели бяха изпълнени.\n\n3. ПРЕСТОЙ, НАСТАНЯВАНЕ И ТРАНСПОРТ:\n${staySection}\n\n4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ:\nВъзложените задачи със Заповедта за командировка са изпълнени. Към настоящия доклад се прилагат следните отчетни документи:${protocolLine}\n• Присъствен списък / удостоверение за присъствие, заверено от главния съдия/домакина;\n• Финансова ведомост за изплатени средства;\n• Разходооправдателни документи (фактури за нощувки и разходи).\nНастоящият доклад се представя в законоустановения 3-дневен срок съгласно Наредбата за командировките в страната.`;
+  return `1. ПРОВЕЖДАНЕ И ОФИЦИАЛНО УЧАСТИЕ:
+В периода от ${startStr} г. до ${endStr} г. представителният отбор на „${site.name}“ взе официално участие в състезанието ${trip.title}, проведено в ${destCity}. Турнирът се организира от ${organizer} с клуб домакин ${hostClub}. Участието се осъществи въз основа на Заповед за командировка № ${orderNum} от ${orderDate} г. и Решение на УС № ${decisionNum} от ${decisionDate} г.${protocolNum ? `${protocolNum}.` : ""} Отборът бе ръководен от ${coachName} (${coachRole}) с делегация от ${athletesCount} командировани състезатели: ${athletesStr}.
+
+2. СПОРТНО-ТЕХНИЧЕСКИ РЕЗУЛТАТИ И ПРЕДСТАВЯНЕ:
+Състезателите на клуба взеха участие в утвърдените турнирни дисциплини съгласно Държавния спортен календар на БФ Бадминтон. Отборът демонстрира отлична състезателна подготовка, висок спортен дух, отборен синхрон и стриктна дисциплина на и извън корта. Всички срещи се проведоха при спазване на състезателния правилник и указанията на треньора. Поставените цели за турнира и спортно-техническото представяне са изпълнени успешно.
+
+3. ТРАНСПОРТ, ПРЕСТОЙ И МАТЕРИАЛНО-ФИНАНСОВО ОБЕЗПЕЧАВАНЕ:
+${staySection}
+
+4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ:
+Възложените задачи са изпълнени. Прилагат се оригиналните разходооправдателни документи. Настоящият доклад се представя в законоустановения 3-дневен срок от Наредбата за командировките в страната.
+
+Приложения:
+${appSection}`;
 }
 
 /**
@@ -334,20 +414,23 @@ export function updateReportTextStaySection(
     );
   }
 
-  // Ако съдържа шаблонен раздел 3 — заменяме само него.
-  // Използваме indexOf + slice вместо сложен regex за избягване на backtracking.
-  const marker3 = "3. ПРЕСТОЙ";
+  const marker3 = "3. ТРАНСПОРТ";
+  const marker3Old = "3. ПРЕСТОЙ";
   const marker4 = "4. ЗАКЛЮЧЕНИЕ";
-  const idx3 = existingText.toUpperCase().indexOf(marker3.toUpperCase());
+
+  let idx3 = existingText.toUpperCase().indexOf(marker3.toUpperCase());
+  if (idx3 === -1) {
+    idx3 = existingText.toUpperCase().indexOf(marker3Old.toUpperCase());
+  }
+
   if (idx3 !== -1) {
     const idx4 = existingText
       .toUpperCase()
       .indexOf(marker4.toUpperCase(), idx3);
     const before = existingText.slice(0, idx3);
     const after = idx4 !== -1 ? "\n" + existingText.slice(idx4) : "";
-    return `${before}3. ПРЕСТОЙ, НАСТАНЯВАНЕ И ТРАНСПОРТ:\n${stayText}${after}`;
+    return `${before}3. ТРАНСПОРТ, ПРЕСТОЙ И МАТЕРИАЛНО-ФИНАНСОВО ОБЕЗПЕЧАВАНЕ:\n${stayText}${after}`;
   }
 
-  // Ако не следва точния шаблон, прибавяме забележката
-  return `${existingText}\n\n3. ПРЕСТОЙ И НАСТАНЯВАНЕ (АКТУАЛИЗИРАНО):\n${stayText}`;
+  return `${existingText}\n\n3. ТРАНСПОРТ, ПРЕСТОЙ И МАТЕРИАЛНО-ФИНАНСОВО ОБЕЗПЕЧАВАНЕ:\n${stayText}`;
 }

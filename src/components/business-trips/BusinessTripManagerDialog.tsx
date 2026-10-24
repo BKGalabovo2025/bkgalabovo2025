@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable sonarjs/cognitive-complexity */
 import { format } from "date-fns";
 import {
   AlertTriangle,
@@ -39,6 +38,14 @@ import {
   checkTripCompleteness,
   countBySeverity,
 } from "@/lib/business-trip-checklist";
+import {
+  getTripAttendanceNumber,
+  getTripDecisionNumber,
+  getTripFuelNumber,
+  getTripOrderNumber,
+  getTripReportNumber,
+  getTripStatementNumber,
+} from "@/lib/business-trip-numbers";
 import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
 import { getAllMembers } from "@/services/member-service";
@@ -235,6 +242,13 @@ export function BusinessTripManagerDialog({
 
   const loadData = async () => {
     try {
+      // Автоматично присвояване на поредни номера на заповедите (за всички документи)
+      try {
+        const sid = (event as { siteId?: string })?.siteId || "bkgalabovo";
+        await businessTripService.assignMissingNumbers(sid);
+      } catch (e) {
+        console.error("Неуспешно присвояване на номера", e);
+      }
       const [tripsData, membersData] = await Promise.all([
         businessTripService.getTripsByEventId(event.id),
         getAllMembers(),
@@ -277,9 +291,10 @@ export function BusinessTripManagerDialog({
       const el = document.getElementById("pdf-order-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
+          const num = getTripOrderNumber(trip);
           m.generatePdfFromElement(
             el,
-            `Нареждане_Командировка_${trip.title}`
+            `Нареждане_${num}_${trip.title}`
           ).finally(() => {
             setIsGeneratingPdf(false);
             // Записваме дата на изтегляне
@@ -304,19 +319,16 @@ export function BusinessTripManagerDialog({
       const el = document.getElementById("pdf-board-decision-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
+          const num = getTripDecisionNumber(trip);
           m.generatePdfFromElement(
             el,
-            `Решение_УС_${trip.title}`,
+            `Решение_УС_${num}_${trip.title}`,
             "portrait"
           ).finally(() => {
             setIsGeneratingPdf(false);
-            const defaultDecision = trip.usDecision?.trim()
-              ? trip.usDecision.trim()
-              : `${(trip.id || "").substring(0, 6).toUpperCase()}-УС`;
             businessTripService
               .updateTrip(trip.id!, {
                 decisionDownloadedAt: new Date().toISOString(),
-                usDecision: defaultDecision,
               })
               .then(loadData)
               .catch(console.error);
@@ -335,9 +347,10 @@ export function BusinessTripManagerDialog({
       const el = document.getElementById("pdf-statement-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
+          const num = getTripStatementNumber(trip);
           m.generatePdfFromElement(
             el,
-            `Ведомост_${trip.title}`,
+            `Ведомост_${num}_${trip.title}`,
             "landscape"
           ).finally(() => {
             setIsGeneratingPdf(false);
@@ -399,9 +412,10 @@ export function BusinessTripManagerDialog({
       const el = document.getElementById("pdf-fuel-report-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
+          const num = getTripFuelNumber(trip);
           m.generatePdfFromElement(
             el,
-            `Отчет_Гориво_${trip.title}`,
+            `Отчет_Гориво_${num}_${trip.title}`,
             "landscape"
           ).finally(() => setIsGeneratingPdf(false));
         });
@@ -418,17 +432,19 @@ export function BusinessTripManagerDialog({
       const el = document.getElementById("pdf-attendance-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
-          m.generatePdfFromElement(el, `Присъствен_Лист_${trip.title}`).finally(
-            () => {
-              setIsGeneratingPdf(false);
-              businessTripService
-                .updateTrip(trip.id!, {
-                  attendanceDownloadedAt: new Date().toISOString(),
-                })
-                .then(loadData)
-                .catch(console.error);
-            }
-          );
+          const num = getTripAttendanceNumber(trip);
+          m.generatePdfFromElement(
+            el,
+            `Присъствен_Лист_${num}_${trip.title}`
+          ).finally(() => {
+            setIsGeneratingPdf(false);
+            businessTripService
+              .updateTrip(trip.id!, {
+                attendanceDownloadedAt: new Date().toISOString(),
+              })
+              .then(loadData)
+              .catch(console.error);
+          });
         });
       } else {
         setIsGeneratingPdf(false);
@@ -443,9 +459,10 @@ export function BusinessTripManagerDialog({
       const el = document.getElementById("pdf-report-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
+          const num = getTripReportNumber(trip);
           m.generatePdfFromElement(
             el,
-            `Доклад_Отчет_${trip.title}`,
+            `Доклад_Отчет_${num}_${trip.title}`,
             "portrait"
           ).finally(() => {
             setIsGeneratingPdf(false);
@@ -658,12 +675,63 @@ export function BusinessTripManagerDialog({
                     >
                       {/* Trip title + info */}
                       <div>
-                        <p className="font-medium">{trip.title}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                            {trip.title}
+                          </p>
+                          {trip.orderNumber ? (
+                            <span className="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+                              Командировка № {trip.orderNumber}
+                            </span>
+                          ) : null}
+                        </div>
                         <p className="text-sm text-zinc-500">
                           До: {trip.destination} (
                           {formatDateShort(trip.startDate)} -{" "}
                           {formatDateShort(trip.endDate)})
                         </p>
+
+                        {/* Номера на съпътстващите документи */}
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                            Заповед:{" "}
+                            <strong className="text-zinc-900 dark:text-zinc-100">
+                              {getTripOrderNumber(trip)}
+                            </strong>
+                          </span>
+                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                            Решение:{" "}
+                            <strong className="text-zinc-900 dark:text-zinc-100">
+                              {getTripDecisionNumber(trip)}
+                            </strong>
+                          </span>
+                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                            Ведомост:{" "}
+                            <strong className="text-zinc-900 dark:text-zinc-100">
+                              {getTripStatementNumber(trip)}
+                            </strong>
+                          </span>
+                          {trip.transportType === "fuel_only" && (
+                            <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                              Пътен лист:{" "}
+                              <strong className="text-zinc-900 dark:text-zinc-100">
+                                {getTripFuelNumber(trip)}
+                              </strong>
+                            </span>
+                          )}
+                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                            Списък:{" "}
+                            <strong className="text-zinc-900 dark:text-zinc-100">
+                              {getTripAttendanceNumber(trip)}
+                            </strong>
+                          </span>
+                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                            Доклад:{" "}
+                            <strong className="text-zinc-900 dark:text-zinc-100">
+                              {getTripReportNumber(trip)}
+                            </strong>
+                          </span>
+                        </div>
                         {/* ── Checklist panel ── */}
                         <TripChecklistPanel
                           trip={trip}
@@ -753,8 +821,8 @@ export function BusinessTripManagerDialog({
                           >
                             <FileDown className="mr-2 size-4" />
                             {trip.decisionDownloadedAt
-                              ? `Решение на УС (Изтеглено ${format(new Date(trip.decisionDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : "Решение на УС (PDF)"}
+                              ? `Решение ${getTripDecisionNumber(trip)} (Изтеглено ${format(new Date(trip.decisionDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                              : `Решение ${getTripDecisionNumber(trip)} (PDF)`}
                           </Button>
                           <Button
                             variant={
@@ -808,8 +876,8 @@ export function BusinessTripManagerDialog({
                           >
                             <FileDown className="mr-2 size-4" />
                             {trip.orderDownloadedAt
-                              ? `Нареждане (Изтеглено ${format(new Date(trip.orderDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : "Нареждане (PDF)"}
+                              ? `Нареждане ${getTripOrderNumber(trip)} (Изтеглено ${format(new Date(trip.orderDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                              : `Нареждане ${getTripOrderNumber(trip)} (PDF)`}
                           </Button>
                           <Button
                             variant={
@@ -865,8 +933,8 @@ export function BusinessTripManagerDialog({
                           >
                             <FileDown className="mr-2 size-4" />
                             {trip.statementDownloadedAt
-                              ? `Ведомост (Изтеглено ${format(new Date(trip.statementDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : "Ведомост (PDF)"}
+                              ? `Ведомост ${getTripStatementNumber(trip)} (Изтеглено ${format(new Date(trip.statementDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                              : `Ведомост ${getTripStatementNumber(trip)} (PDF)`}
                           </Button>
                           <Button
                             variant={
@@ -945,8 +1013,8 @@ export function BusinessTripManagerDialog({
                           >
                             <FileDown className="mr-2 size-4" />
                             {trip.attendanceDownloadedAt
-                              ? `Присъствен лист (Изтеглено ${format(new Date(trip.attendanceDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : "Присъствен лист (PDF)"}
+                              ? `Списък ${getTripAttendanceNumber(trip)} (Изтеглено ${format(new Date(trip.attendanceDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                              : `Списък ${getTripAttendanceNumber(trip)} (PDF)`}
                           </Button>
                           <Button
                             variant={
@@ -1001,8 +1069,8 @@ export function BusinessTripManagerDialog({
                           >
                             <FileDown className="mr-2 size-4" />
                             {trip.reportDownloadedAt
-                              ? `Доклад (Изтеглен ${format(new Date(trip.reportDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : "Доклад (PDF)"}
+                              ? `Доклад ${getTripReportNumber(trip)} (Изтеглен ${format(new Date(trip.reportDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                              : `Доклад ${getTripReportNumber(trip)} (PDF)`}
                           </Button>
                           <Button
                             variant="outline"
@@ -1074,16 +1142,30 @@ export function BusinessTripManagerDialog({
                                         .includes(".pdf") ||
                                       proto.name.toLowerCase().endsWith(".pdf");
                                     const isImg =
-                                      /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(
+                                      /\.(png|jpe?g|webp|gif|svg|bmp|avif)(\?.*)?$/i.test(
                                         proto.url
                                       ) ||
-                                      /\.(png|jpe?g|webp|gif|svg)$/i.test(
+                                      /\.(png|jpe?g|webp|gif|svg|bmp|avif)$/i.test(
                                         proto.name
                                       );
+                                    const isWord =
+                                      /\.(docx?|rtf|odt|txt)$/i.test(
+                                        proto.name
+                                      ) ||
+                                      /\.(docx?|rtf|odt|txt)(\?.*)?$/i.test(
+                                        proto.url
+                                      );
+                                    const isExcel =
+                                      /\.(xlsx?|csv)$/i.test(proto.name) ||
+                                      /\.(xlsx?|csv)(\?.*)?$/i.test(proto.url);
                                     let docType:
                                       DocumentAttachmentType | undefined;
                                     if (isPdf) {
                                       docType = "pdf";
+                                    } else if (isWord) {
+                                      docType = "word";
+                                    } else if (isExcel) {
+                                      docType = "excel";
                                     } else if (isImg) {
                                       docType = "image";
                                     }
@@ -1170,8 +1252,8 @@ export function BusinessTripManagerDialog({
                             >
                               <FileDown className="mr-2 size-4" />
                               {trip.fuelDownloadedAt
-                                ? `Пътен лист / Гориво (Изтеглено ${format(new Date(trip.fuelDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                                : "Пътен лист / Отчет гориво (PDF)"}
+                                ? `Пътен лист ${getTripFuelNumber(trip)} (Изтеглено ${format(new Date(trip.fuelDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                                : `Пътен лист ${getTripFuelNumber(trip)} (PDF)`}
                             </Button>
                             <Button
                               variant={
@@ -1395,10 +1477,32 @@ export function BusinessTripManagerDialog({
                                                 exp.attachmentName
                                               )
                                             );
+                                          const isWord =
+                                            Boolean(
+                                              exp.attachmentName &&
+                                              /\.(docx?|rtf|odt|txt)$/i.test(
+                                                exp.attachmentName
+                                              )
+                                            ) ||
+                                            /\.(docx?|rtf|odt|txt)(\?.*)?$/i.test(
+                                              url
+                                            );
+                                          const isExcel =
+                                            Boolean(
+                                              exp.attachmentName &&
+                                              /\.(xlsx?|csv)$/i.test(
+                                                exp.attachmentName
+                                              )
+                                            ) ||
+                                            /\.(xlsx?|csv)(\?.*)?$/i.test(url);
                                           let docType:
                                             DocumentAttachmentType | undefined;
                                           if (isPdf) {
                                             docType = "pdf";
+                                          } else if (isWord) {
+                                            docType = "word";
+                                          } else if (isExcel) {
+                                            docType = "excel";
                                           } else if (isImg) {
                                             docType = "image";
                                           }
@@ -1592,6 +1696,12 @@ export function BusinessTripManagerDialog({
           }}
           trip={selectedTripForReport}
           membersDict={membersDict}
+          expenses={
+            selectedTripForReport?.id
+              ? expensesMap[selectedTripForReport.id] || []
+              : []
+          }
+          event={event}
           onSuccess={() => {
             setSelectedTripForReport(null);
             loadData();

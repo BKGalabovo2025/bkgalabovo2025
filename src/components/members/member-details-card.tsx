@@ -189,7 +189,9 @@ export const MemberDetailsCard = ({
       | "safetyInstruction"
       | "internalRules"
       | "membershipApplication"
-      | "terminationRequest",
+      | "terminationRequest"
+      | "amateurContract"
+      | "licenseApplication",
     action: "print" | "submit" | "cancel"
   ) => {
     if (!idToken) return;

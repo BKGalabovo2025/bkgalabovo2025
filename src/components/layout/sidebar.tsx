@@ -10,6 +10,7 @@ import {
   CalendarRange,
   Dumbbell,
   FileSignature,
+  FileText,
   GraduationCap,
   Handshake,
   Home,
@@ -166,6 +167,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <Users size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">Членове</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/documents")}
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+              >
+                <Link
+                  href="/documents"
+                  className="flex w-full items-center gap-3"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <FileText size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Документи & Бланки</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

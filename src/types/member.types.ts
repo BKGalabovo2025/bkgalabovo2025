@@ -19,24 +19,19 @@ export const MemberSchema = z.object({
   ageGroup: z.string().nullable().optional(), // Calculated age group for the current year
   isCoach: z.boolean().optional(),
 
-  // --- Date Fields (as ISO strings) ---
-  registrationDate: z
-    .string()
-    .datetime({ message: "Invalid registration date format" }),
-  updatedAt: z
-    .string()
-    .datetime({ message: "Invalid update date format" })
-    .optional(),
-  lastPaymentDate: z
-    .string()
-    .datetime({ message: "Invalid last payment date format" })
-    .nullable()
-    .optional(),
+  // --- Date Fields (as ISO strings or dates) ---
+  registrationDate: z.string(),
+  updatedAt: z.string().optional(),
+  lastPaymentDate: z.string().nullable().optional(),
   dateOfBirth: z.string().nullable().optional(),
 
   // --- Optional Contact & Personal Info ---
   middleName: z.string().nullable().optional(),
-  gender: z.enum(["male", "female"]).nullable().optional(),
+  egn: z.string().nullable().optional(),
+  birthPlace: z.string().nullable().optional(),
+  gender: z
+    .union([z.enum(["male", "female"]), z.literal(""), z.null(), z.undefined()])
+    .optional(),
   email: z
     .union([
       z.string().trim().email({ message: "Invalid email address" }),
@@ -67,6 +62,22 @@ export const MemberSchema = z.object({
   emergencyContactName: z.string().nullable().optional(),
   emergencyContactPhone: z.string().nullable().optional(),
 
+  // --- Parent & Guardian Contact ---
+  parentName: z.string().nullable().optional(),
+  parentPhone: z.string().nullable().optional(),
+  parentEmail: z.string().nullable().optional(),
+  parentAddress: z.string().nullable().optional(),
+  secondParentName: z.string().nullable().optional(),
+  secondParentPhone: z.string().nullable().optional(),
+  fatherName: z.string().nullable().optional(),
+  fatherPhone: z.string().nullable().optional(),
+  fatherCity: z.string().nullable().optional(),
+  fatherEGN: z.string().nullable().optional(),
+  motherName: z.string().nullable().optional(),
+  motherPhone: z.string().nullable().optional(),
+  motherCity: z.string().nullable().optional(),
+  motherEGN: z.string().nullable().optional(),
+
   // --- ADDED: Apparel ---
   apparelSize: z.string().nullable().optional(),
 
@@ -87,45 +98,62 @@ export const MemberSchema = z.object({
 
   // --- Administrative & Documents ---
   hasSignedDeclaration: z.boolean().optional(),
-  signedDeclarationPrintedAt: z.string().datetime().nullable().optional(),
-  signedDeclarationHandedAt: z.string().datetime().nullable().optional(),
+  signedDeclarationPrintedAt: z.string().nullable().optional(),
+  signedDeclarationHandedAt: z.string().nullable().optional(),
   signedDeclarationUrl: z.string().nullable().optional(),
 
   hasMedicalCertificate: z.boolean().optional(),
-  medicalCertificateDate: z.string().datetime().nullable().optional(), // This is the date ON the certificate
-  medicalCertificatePrintedAt: z.string().datetime().nullable().optional(),
-  medicalCertificateHandedAt: z.string().datetime().nullable().optional(),
+  medicalCertificateDate: z.string().nullable().optional(), // This is the date ON the certificate
+  medicalCertificatePrintedAt: z.string().nullable().optional(),
+  medicalCertificateHandedAt: z.string().nullable().optional(),
   medicalCertificateUrl: z.string().nullable().optional(),
 
   isLicensed: z.boolean().optional(),
-  isLicensedPrintedAt: z.string().datetime().nullable().optional(),
-  isLicensedHandedAt: z.string().datetime().nullable().optional(),
+  isLicensedPrintedAt: z.string().nullable().optional(),
+  isLicensedHandedAt: z.string().nullable().optional(),
   isLicensedUrl: z.string().nullable().optional(),
 
   hasTravelDeclaration: z.boolean().optional(),
-  travelDeclarationPrintedAt: z.string().datetime().nullable().optional(),
-  travelDeclarationHandedAt: z.string().datetime().nullable().optional(),
+  travelDeclarationPrintedAt: z.string().nullable().optional(),
+  travelDeclarationHandedAt: z.string().nullable().optional(),
   travelDeclarationUrl: z.string().nullable().optional(),
 
   hasSafetyInstruction: z.boolean().optional(),
-  safetyInstructionPrintedAt: z.string().datetime().nullable().optional(),
-  safetyInstructionHandedAt: z.string().datetime().nullable().optional(),
+  safetyInstructionPrintedAt: z.string().nullable().optional(),
+  safetyInstructionHandedAt: z.string().nullable().optional(),
   safetyInstructionUrl: z.string().nullable().optional(),
 
   hasInternalRules: z.boolean().optional(),
-  internalRulesPrintedAt: z.string().datetime().nullable().optional(),
-  internalRulesHandedAt: z.string().datetime().nullable().optional(),
+  internalRulesPrintedAt: z.string().nullable().optional(),
+  internalRulesHandedAt: z.string().nullable().optional(),
   internalRulesUrl: z.string().nullable().optional(),
+  internalRulesSignatureUrl: z.string().nullable().optional(),
 
-  membershipApplicationPrintedAt: z.string().datetime().nullable().optional(),
-  membershipApplicationHandedAt: z.string().datetime().nullable().optional(),
+  membershipApplicationPrintedAt: z.string().nullable().optional(),
+  membershipApplicationHandedAt: z.string().nullable().optional(),
   hasMembershipApplication: z.boolean().optional(),
   membershipApplicationUrl: z.string().nullable().optional(),
+  membershipApplicationSignatureUrl: z.string().nullable().optional(),
 
-  terminationRequestPrintedAt: z.string().datetime().nullable().optional(),
-  terminationRequestHandedAt: z.string().datetime().nullable().optional(),
+  terminationRequestPrintedAt: z.string().nullable().optional(),
+  terminationRequestHandedAt: z.string().nullable().optional(),
   hasTerminationRequest: z.boolean().optional(),
   terminationRequestUrl: z.string().nullable().optional(),
+  terminationRequestSignatureUrl: z.string().nullable().optional(),
+
+  amateurContractPrintedAt: z.string().nullable().optional(),
+  amateurContractHandedAt: z.string().nullable().optional(),
+  hasAmateurContract: z.boolean().optional(),
+  amateurContractUrl: z.string().nullable().optional(),
+  amateurContractSignatureUrl: z.string().nullable().optional(),
+
+  licenseApplicationPrintedAt: z.string().nullable().optional(),
+  licenseApplicationHandedAt: z.string().nullable().optional(),
+  hasLicenseApplication: z.boolean().optional(),
+  licenseApplicationUrl: z.string().nullable().optional(),
+  licenseApplicationSignatureUrl: z.string().nullable().optional(),
+
+  safetyDeclarationSignatureUrl: z.string().nullable().optional(),
 
   // --- Miscellaneous ---
   suspended: z.boolean().optional(),
