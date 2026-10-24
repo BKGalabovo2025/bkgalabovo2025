@@ -39,7 +39,7 @@
     "test:integration": "cross-env TEST_ENV=integration firebase emulators:exec \"vitest run src/integration-tests\" --project bkgalabovo-test",
     "security-check": "npm audit --audit-level=critical --omit=dev",
     "prepare": "husky",
-    "postinstall": "node scripts/patch-html2canvas.js",
+    "postinstall": "node scripts/patch-html2canvas.js || exit 0",
     "precommit": "lint-staged",
     "migrate:bkgalabovo": "tsx scripts/migrate-bkgalabovo-site-id.ts",
     "migrate:recoveryzone": "tsx scripts/import-recovery-zone.ts",
