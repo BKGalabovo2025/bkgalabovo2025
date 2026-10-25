@@ -474,8 +474,11 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       );
       expect(text).toContain("Тя запозна присъстващите");
       expect(text).toContain("Спортния календар на БФ Бадминтон");
+      expect(text).toContain("съгласно Устава на сдружението кворум");
       expect(text).not.toContain("Той запозна");
       expect(text).not.toContain("поканата от БФ Бадминтон");
+      expect(text).not.toContain("ЗЮЛНЦ");
+      expect(text).not.toContain("чл. 32");
     });
 
     it("should format organization name correctly without nested or doubled quotation marks", () => {
@@ -518,12 +521,15 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
 
     it("should heal legacy text with 'поканата от БФ Бадминтон' and male pronoun for female chair", () => {
       const legacy =
-        "Думата бе дадена на Председателя на УС Мира Георгиева. Той запозна членовете с поканата от БФ Бадминтон, графика на състезанието и предложи клубна делегация.";
+        "Думата бе дадена на Председателя на УС Мира Георгиева. Той запозна членовете с поканата от БФ Бадминтон, графика на състезанието и предложи клубна делегация. Присъства необходимият съгласно чл. 32 от ЗЮЛНЦ и разпоредбите на Устава кворум.";
       const healed = cleanProtocolText(legacy, true);
       expect(healed).toContain("Тя запозна");
       expect(healed).toContain("Спортния календар на БФ Бадминтон");
+      expect(healed).toContain("съгласно Устава на сдружението");
       expect(healed).not.toContain("Той запозна");
       expect(healed).not.toContain("поканата от БФ Бадминтон");
+      expect(healed).not.toContain("ЗЮЛНЦ");
+      expect(healed).not.toContain("чл. 32");
     });
   });
 });
