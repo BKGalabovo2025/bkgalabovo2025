@@ -740,7 +740,8 @@ export function BusinessTripPdfTemplates({
           >
             {cleanProtocolText(
               trip.protocolText,
-              isFemalePerson(chair, membersDict)
+              isFemalePerson(chair, membersDict),
+              site.shortName
             )
               .split(/\n\s*\n/)
               .map((para, i) => (
@@ -908,9 +909,9 @@ export function BusinessTripPdfTemplates({
 
             <div style={{ marginLeft: "12pt", marginBottom: "6pt" }}>
               <p style={{ margin: "2pt 0" }}>
-                <strong>1.</strong> Одобрява участието на клубния отбор в{" "}
-                <strong>{trip.title}</strong> ({destCity}) в периода{" "}
-                {fmtDate(trip.startDate)} г.
+                <strong>1.</strong> Одобрява участието на{" "}
+                {formatOrgName(site.shortName)} в <strong>{trip.title}</strong>{" "}
+                ({destCity}) в периода {fmtDate(trip.startDate)} г.
                 {trip.startDate !== trip.endDate
                   ? ` — ${fmtDate(trip.endDate)} г.`
                   : ""}

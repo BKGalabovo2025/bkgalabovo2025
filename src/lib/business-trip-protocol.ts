@@ -115,7 +115,11 @@ export function isFemalePerson(
 /**
  * Изчиства евентуални дублирани кавички и остарели фрази в свободен текст на протокол
  */
-export function cleanProtocolText(text?: string, isFemale?: boolean): string {
+export function cleanProtocolText(
+  text?: string,
+  isFemale?: boolean,
+  clubName?: string
+): string {
   if (!text) return "";
   let res = text
     // Оправя „СНЦ "..."“ или „СНЦ „...““ -> СНЦ „...“
@@ -158,6 +162,12 @@ export function cleanProtocolText(text?: string, isFemale?: boolean): string {
       "бе определена $1"
     );
   }
+
+  // Замяна на "клубния отбор" с името на клуба при т. 1 от решението
+  res = res.replace(
+    /Одобрява участието на клубния отбор в/giu,
+    `Одобрява участието на ${formatOrgName(clubName || "Бадминтон клуб Гълъбово")} в`
+  );
 
   return res;
 }
@@ -276,12 +286,13 @@ ${boardMembers}
 Резултат от гласуването: „ЗА“ — единодушно (100%), „ПРОТИВ“ — няма, „ВЪЗДЪРЖАЛИ СЕ“ — няма.
 
 ВЪЗ ОСНОВА НА РЕЗУЛТАТИТЕ ОТ ГЛАСУВАНЕТО, УПРАВИТЕЛНИЯТ СЪВЕТ ПРИЕ СЛЕДНОТО РЕШЕНИЕ № ${decisionNum}:
-1. Одобрява участието на клубния отбор в ${trip.title} (${destCity}) в периода ${periodStr}.
+1. Одобрява участието на ${formatOrgName(site.shortName)} в ${trip.title} (${destCity}) в периода ${periodStr}.
 2. Утвърждава поименния състав на делегацията с ръководител ${coachName}.
 3. Одобрява финансовото обезпечаване (пътни, дневни и квартирни пари) съгласно НКС и бюджета на клуба.
 4. Възлага на Председателя на УС да издаде Заповед за командировка № ${orderNum} и окомплектова счетоводното досие на състезанието.${notesText}
 
 Поради изчерпване на дневния ред заседанието на Управителния съвет бе закрито. Настоящият протокол № ${protocolNum} се съставя в удостоверение на взетите решения и се вписва в протоколната книга на клуба.`,
-    isChairFemale
+    isChairFemale,
+    site.shortName
   );
 }

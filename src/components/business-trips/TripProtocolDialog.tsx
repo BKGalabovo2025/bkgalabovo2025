@@ -112,7 +112,8 @@ export function TripProtocolDialog({
         setProtocolText(
           cleanProtocolText(
             trip.protocolText,
-            isFemalePerson(chairVal, membersDict)
+            isFemalePerson(chairVal, membersDict),
+            site.shortName
           )
         );
         setAutoSyncText(false);

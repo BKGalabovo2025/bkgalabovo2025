@@ -479,6 +479,11 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(text).not.toContain("поканата от БФ Бадминтон");
       expect(text).not.toContain("ЗЮЛНЦ");
       expect(text).not.toContain("чл. 32");
+      // Проверка за изписване на името на клуба вместо "клубния отбор"
+      expect(text).toContain(
+        "1. Одобрява участието на „Бадминтон клуб Гълъбово“ в"
+      );
+      expect(text).not.toContain("Одобрява участието на клубния отбор");
     });
 
     it("should format organization name correctly without nested or doubled quotation marks", () => {
