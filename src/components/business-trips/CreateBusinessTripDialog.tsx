@@ -433,7 +433,7 @@ export function CreateBusinessTripDialog({
                           <FormLabel>Протокол № от заседание</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Напр. 05/2026"
+                              placeholder="Автоматично (напр. 1-ПР) или ръчно"
                               {...field}
                               value={field.value || ""}
                             />

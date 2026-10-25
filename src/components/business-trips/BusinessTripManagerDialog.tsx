@@ -43,6 +43,7 @@ import {
   getTripDecisionNumber,
   getTripFuelNumber,
   getTripOrderNumber,
+  getTripProtocolNumber,
   getTripReportNumber,
   getTripStatementNumber,
 } from "@/lib/business-trip-numbers";
@@ -312,6 +313,34 @@ export function BusinessTripManagerDialog({
     }, 100);
   };
 
+  const handlePrintProtocol = (trip: BusinessTrip) => {
+    setIsGeneratingPdf(true);
+    setSelectedTripForPdf(trip);
+    setTimeout(() => {
+      const el = document.getElementById("pdf-board-protocol-template");
+      if (el) {
+        import("@/lib/html-to-pdf").then((m) => {
+          const num = getTripProtocolNumber(trip);
+          m.generatePdfFromElement(
+            el,
+            `Протокол_УС_${num}_${trip.title}`,
+            "portrait"
+          ).finally(() => {
+            setIsGeneratingPdf(false);
+            businessTripService
+              .updateTrip(trip.id!, {
+                protocolDownloadedAt: new Date().toISOString(),
+              })
+              .then(loadData)
+              .catch(console.error);
+          });
+        });
+      } else {
+        setIsGeneratingPdf(false);
+      }
+    }, 100);
+  };
+
   const handlePrintDecision = (trip: BusinessTrip) => {
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
@@ -371,14 +400,22 @@ export function BusinessTripManagerDialog({
 
   const handlePreviewPdf = (
     trip: BusinessTrip,
-    type: "decision" | "order" | "statement" | "fuel" | "attendance" | "report"
+    type:
+      | "protocol"
+      | "decision"
+      | "order"
+      | "statement"
+      | "fuel"
+      | "attendance"
+      | "report"
   ) => {
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
 
     setTimeout(() => {
       let elId = "pdf-fuel-report-template";
-      if (type === "decision") elId = "pdf-board-decision-template";
+      if (type === "protocol") elId = "pdf-board-protocol-template";
+      else if (type === "decision") elId = "pdf-board-decision-template";
       else if (type === "order") elId = "pdf-order-template";
       else if (type === "statement") elId = "pdf-statement-template";
       else if (type === "attendance") elId = "pdf-attendance-template";
@@ -482,7 +519,14 @@ export function BusinessTripManagerDialog({
 
   const handleEmailPdf = (
     trip: BusinessTrip,
-    type: "decision" | "order" | "statement" | "fuel" | "attendance" | "report"
+    type:
+      | "protocol"
+      | "decision"
+      | "order"
+      | "statement"
+      | "fuel"
+      | "attendance"
+      | "report"
   ) => {
     const email = window.prompt(
       "Моля, въведете имейл адрес, на който да изпратим документа:",
@@ -495,7 +539,8 @@ export function BusinessTripManagerDialog({
 
     setTimeout(() => {
       let elId = "pdf-fuel-report-template";
-      if (type === "decision") elId = "pdf-board-decision-template";
+      if (type === "protocol") elId = "pdf-board-protocol-template";
+      else if (type === "decision") elId = "pdf-board-decision-template";
       else if (type === "order") elId = "pdf-order-template";
       else if (type === "statement") elId = "pdf-statement-template";
       else if (type === "attendance") elId = "pdf-attendance-template";
@@ -509,7 +554,9 @@ export function BusinessTripManagerDialog({
           m.getPdfBase64FromElement(el, orientation)
             .then(async (base64Data) => {
               let filename = `Отчет_Гориво_${trip.title}.pdf`;
-              if (type === "decision")
+              if (type === "protocol")
+                filename = `Протокол_УС_${trip.title}.pdf`;
+              else if (type === "decision")
                 filename = `Решение_УС_${trip.title}.pdf`;
               else if (type === "order")
                 filename = `Нареждане_${trip.title}.pdf`;
@@ -783,6 +830,66 @@ export function BusinessTripManagerDialog({
                         >
                           <Plus className="mr-2 size-4" /> Разход
                         </Button>
+
+                        {/* Протокол от заседание на УС */}
+                        <div className="flex items-center">
+                          <Button
+                            variant={
+                              trip.protocolDownloadedAt
+                                ? "secondary"
+                                : "outline"
+                            }
+                            size="icon"
+                            title="Преглед на Протокол от заседание на УС"
+                            className={
+                              trip.protocolDownloadedAt
+                                ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                : "size-8 rounded-r-none border-r-0 px-0"
+                            }
+                            onClick={() => handlePreviewPdf(trip, "protocol")}
+                            disabled={isGeneratingPdf || isSendingEmail}
+                          >
+                            <Eye className="size-4" />
+                          </Button>
+                          <Button
+                            variant={
+                              trip.protocolDownloadedAt
+                                ? "secondary"
+                                : "outline"
+                            }
+                            size="sm"
+                            onClick={() => handlePrintProtocol(trip)}
+                            disabled={isGeneratingPdf || isSendingEmail}
+                            className={
+                              trip.protocolDownloadedAt
+                                ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                : "rounded-none border-x-0"
+                            }
+                          >
+                            <FileDown className="mr-2 size-4" />
+                            {trip.protocolDownloadedAt
+                              ? `Протокол ${getTripProtocolNumber(trip)} (Изтеглен ${format(new Date(trip.protocolDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                              : `Протокол ${getTripProtocolNumber(trip)} (PDF)`}
+                          </Button>
+                          <Button
+                            variant={
+                              trip.protocolDownloadedAt
+                                ? "secondary"
+                                : "outline"
+                            }
+                            size="icon"
+                            title="Изпрати по имейл"
+                            className={
+                              trip.protocolDownloadedAt
+                                ? "size-8 rounded-l-none border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                : "size-8 rounded-l-none px-0"
+                            }
+                            onClick={() => handleEmailPdf(trip, "protocol")}
+                            disabled={isGeneratingPdf || isSendingEmail}
+                          >
+                            <Mail className="size-4" />
+                          </Button>
+                        </div>
 
                         {/* Решение на УС */}
                         <div className="flex items-center">

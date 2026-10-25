@@ -62,7 +62,30 @@ export function getTripReportNumber(trip: BusinessTrip): string {
   return base === "____" ? "____" : `${base}-ДК`;
 }
 
-/** Връща копие на командировката с нормализиран номер на решение. */
+/**
+ * Номер на Протокола от заседание на УС: ръчно въведеният (ако не е автогенериран), иначе „<№>-ПР“.
+ * Например: "1-ПР"
+ */
+const LEGACY_AUTO_PROTOCOL = /^[A-Z0-9А-ЯІЈ]{6,8}-(ПР|PR)$/i;
+
+export function isAutoProtocol(usProtocol?: string | null): boolean {
+  const v = (usProtocol ?? "").trim();
+  return v === "" || LEGACY_AUTO_PROTOCOL.test(v) || /^\d+-ПР$/i.test(v);
+}
+
+export function getTripProtocolNumber(trip: BusinessTrip): string {
+  if (trip.usProtocolNumber && !isAutoProtocol(trip.usProtocolNumber)) {
+    return trip.usProtocolNumber.trim();
+  }
+  const base = getTripBaseNumber(trip);
+  return base === "____" ? "____" : `${base}-ПР`;
+}
+
+/** Връща копие на командировката с нормализирани номера на протокол и решение. */
 export function resolveTripNumbers<T extends BusinessTrip>(trip: T): T {
-  return { ...trip, usDecision: getTripDecisionNumber(trip) };
+  return {
+    ...trip,
+    usDecision: getTripDecisionNumber(trip),
+    usProtocolNumber: getTripProtocolNumber(trip),
+  };
 }

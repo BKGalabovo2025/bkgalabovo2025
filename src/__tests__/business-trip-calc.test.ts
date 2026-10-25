@@ -12,6 +12,7 @@ import {
   getTripDecisionNumber,
   getTripFuelNumber,
   getTripOrderNumber,
+  getTripProtocolNumber,
   getTripReportNumber,
   getTripStatementNumber,
 } from "../lib/business-trip-numbers";
@@ -288,6 +289,7 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(getTripFuelNumber(trip)).toBe("1-ПЛ");
       expect(getTripAttendanceNumber(trip)).toBe("1-ПС");
       expect(getTripReportNumber(trip)).toBe("1-ДК");
+      expect(getTripProtocolNumber(trip)).toBe("1-ПР");
     });
 
     it("should handle trips without orderNumber with placeholder", () => {
@@ -295,6 +297,7 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(getTripBaseNumber(trip)).toBe("____");
       expect(getTripOrderNumber(trip)).toBe("____");
       expect(getTripDecisionNumber(trip)).toBe("____");
+      expect(getTripProtocolNumber(trip)).toBe("____");
       expect(getTripStatementNumber(trip)).toBe("____");
     });
 
@@ -320,6 +323,9 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
 
       expect(getTripDecisionNumber(trip)).toBe("Протокол 45/2026");
       expect(getTripOrderNumber(trip)).toBe("2-НР");
+      expect(
+        getTripProtocolNumber({ ...trip, usProtocolNumber: "07/2026" })
+      ).toBe("07/2026");
       expect(getTripStatementNumber(trip)).toBe("2-ВД");
     });
   });

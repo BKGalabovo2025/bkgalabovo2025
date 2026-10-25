@@ -17,6 +17,7 @@ import {
   getTripDecisionNumber,
   getTripFuelNumber,
   getTripOrderNumber,
+  getTripProtocolNumber,
   getTripReportNumber,
   getTripStatementNumber,
   resolveTripNumbers,
@@ -488,6 +489,7 @@ export function BusinessTripPdfTemplates({
 
   const orderNum = getTripOrderNumber(trip);
   const decisionNum = getTripDecisionNumber(trip);
+  const protocolNum = getTripProtocolNumber(trip);
   const statementNum = getTripStatementNumber(trip);
   const fuelNum = getTripFuelNumber(trip);
   const attendanceNum = getTripAttendanceNumber(trip);
@@ -500,6 +502,15 @@ export function BusinessTripPdfTemplates({
 
   const getDecisionHeader = (): string => {
     const raw = decisionNum;
+    const cleanNum = raw.startsWith("№") ? raw : `№ ${raw}`;
+    if (cleanNum.includes("/") || cleanNum.toLowerCase().includes("от")) {
+      return cleanNum;
+    }
+    return `${cleanNum} / ${decisionDate} г.`;
+  };
+
+  const getProtocolHeader = (): string => {
+    const raw = protocolNum;
     const cleanNum = raw.startsWith("№") ? raw : `№ ${raw}`;
     if (cleanNum.includes("/") || cleanNum.toLowerCase().includes("от")) {
       return cleanNum;
@@ -624,6 +635,322 @@ export function BusinessTripPdfTemplates({
 
   return (
     <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+      {/* ══════════════════════════════════════════════════════
+          DOC 0.0: ПРОТОКОЛ НА УПРАВИТЕЛНИЯ СЪВЕТ (BOARD PROTOCOL / MINUTES)
+      ══════════════════════════════════════════════════════ */}
+      <div id={`pdf-board-protocol-template${idSuffix}`} style={PAGE_A4}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "2px solid #e2e8f0",
+            paddingBottom: "10pt",
+            marginBottom: "12pt",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+            <img
+              src="/icons/LOGO.jpg"
+              alt="Logo"
+              style={{ height: "45pt", objectFit: "contain" }}
+            />
+            <div>
+              <p
+                style={{
+                  fontWeight: "700",
+                  fontSize: "14pt",
+                  margin: 0,
+                  color: "#0f172a",
+                }}
+              >
+                „{site.shortName.toUpperCase()}"
+              </p>
+              {site.bulstat && (
+                <p
+                  style={{
+                    fontSize: "9pt",
+                    margin: "2pt 0 0 0",
+                    color: "#64748b",
+                  }}
+                >
+                  БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: "center", marginBottom: "12pt" }}>
+          <p
+            style={{
+              fontWeight: "800",
+              fontSize: "13pt",
+              letterSpacing: "3px",
+              margin: 0,
+              color: "#0f172a",
+            }}
+          >
+            П Р О Т О К О Л
+          </p>
+          <p
+            style={{
+              fontSize: "11pt",
+              fontWeight: "700",
+              marginTop: "4pt",
+              color: "#0f172a",
+            }}
+          >
+            ОТ ЗАСЕДАНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ НА „{site.name.toUpperCase()}“
+          </p>
+          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
+            <span>{getProtocolHeader()}</span>
+          </p>
+        </div>
+
+        <div
+          style={{
+            lineHeight: "1.45",
+            textAlign: "justify",
+            fontSize: "8.5pt",
+            color: "#1e293b",
+          }}
+        >
+          <p style={{ marginBottom: "5pt", textIndent: "15pt" }}>
+            Днес, <strong>{decisionDate} г.</strong>, в гр. Гълъбово, в
+            седалището на сдружението се проведе заседание на Управителния съвет
+            на „{site.name}“.
+          </p>
+
+          <p style={{ marginBottom: "3pt", fontWeight: "700" }}>
+            ПРИСЪСТВАТ ЧЛЕНОВЕТЕ НА УПРАВИТЕЛНИЯ СЪВЕТ:
+          </p>
+          <div style={{ marginLeft: "15pt", marginBottom: "5pt" }}>
+            <p style={{ margin: "2pt 0" }}>
+              1. <strong>{mol}</strong> — Председател на Управителния съвет
+            </p>
+            <p style={{ margin: "2pt 0" }}>
+              2. Членове на Управителния съвет (редовно уведомени по установения
+              ред).
+            </p>
+          </div>
+
+          <p style={{ marginBottom: "5pt", textIndent: "15pt" }}>
+            Председателят констатира, че присъства необходимият съгласно чл. 32
+            от ЗЮЛНЦ и разпоредбите на Устава кворум. Заседанието е законно
+            конституирано и може да взема валидни решения. За водещ заседанието
+            бе определен <strong>{mol}</strong>, а за протоколчик — член на
+            Управителния съвет.
+          </p>
+
+          <p
+            style={{
+              marginBottom: "3pt",
+              fontWeight: "700",
+              textAlign: "center",
+              letterSpacing: "1px",
+            }}
+          >
+            ДНЕВЕН РЕД:
+          </p>
+          <div
+            style={{
+              border: "1px solid #e2e8f0",
+              backgroundColor: "#f8fafc",
+              padding: "6pt 10pt",
+              borderRadius: "6px",
+              marginBottom: "6pt",
+            }}
+          >
+            <p style={{ margin: 0 }}>
+              <strong>Точка 1:</strong> Обсъждане и вземане на решение за
+              официално участие на представителния клубен отбор в състезание:{" "}
+              <strong>{trip.title}</strong> (гр./място{" "}
+              <strong>{destCity}</strong>, период{" "}
+              <strong>
+                {fmtDate(trip.startDate)} г.
+                {trip.startDate !== trip.endDate
+                  ? ` — ${fmtDate(trip.endDate)} г.`
+                  : ""}
+              </strong>
+              ), утвърждаване на клубна делегация и финансово обезпечаване на
+              разходите.
+            </p>
+          </div>
+
+          <p style={{ marginBottom: "4pt", textIndent: "15pt" }}>
+            <strong>ПО ТОЧКА 1 ОТ ДНЕВНИЯ РЕД:</strong> Думата бе дадена на
+            Председателя на УС <strong>{mol}</strong>. Той запозна членовете с
+            поканата от БФ Бадминтон, графика на състезанието и предложи клубна
+            делегация в общ брой от{" "}
+            <strong>
+              {totalPlannedPeople} {totalPlannedPeople === 1 ? "човек" : "души"}
+            </strong>{" "}
+            (Ръководител/Треньор: <strong>{coachName}</strong> и състезатели:{" "}
+            <em>
+              {plannedPeople
+                .filter((p) => p.role !== "Треньор" && p.role !== "Ръководител")
+                .map((p) => p.name)
+                .join(", ") || "—"}
+            </em>
+            ). Направена бе финансова план-сметка за пътни, дневни и нощувки
+            съгласно Наредбата за командировките в страната (НКС).
+          </p>
+
+          <p style={{ marginBottom: "5pt", textIndent: "15pt" }}>
+            След проведени обсъждания и разисквания, заседанието пристъпи към
+            гласуване.{" "}
+            <strong>
+              Резултат от гласуването: „ЗА“ — единодушно (100%), „ПРОТИВ“ —
+              няма, „ВЪЗДЪРЖАЛИ СЕ“ — няма.
+            </strong>
+          </p>
+
+          <p
+            style={{
+              textAlign: "center",
+              fontWeight: "700",
+              margin: "6pt 0",
+              letterSpacing: "1px",
+            }}
+          >
+            ВЪЗ ОСНОВА НА РЕЗУЛТАТИТЕ ОТ ГЛАСУВАНЕТО, УПРАВИТЕЛНИЯТ СЪВЕТ ПРИЕ
+            СЛЕДНОТО РЕШЕНИЕ № {decisionNum}:
+          </p>
+
+          <div style={{ marginLeft: "12pt", marginBottom: "6pt" }}>
+            <p style={{ margin: "2pt 0" }}>
+              <strong>1.</strong> Одобрява участието на клубния отбор в{" "}
+              <strong>{trip.title}</strong> ({destCity}) в периода{" "}
+              {fmtDate(trip.startDate)} г.
+              {trip.startDate !== trip.endDate
+                ? ` — ${fmtDate(trip.endDate)} г.`
+                : ""}
+              .
+            </p>
+            <p style={{ margin: "2pt 0" }}>
+              <strong>2.</strong> Утвърждава поименния състав на делегацията с
+              ръководител <strong>{coachName}</strong>.
+            </p>
+            <p style={{ margin: "2pt 0" }}>
+              <strong>3.</strong> Одобрява финансовото обезпечаване (пътни,
+              дневни и квартирни пари) съгласно НКС и бюджета на клуба.
+            </p>
+            <p style={{ margin: "2pt 0" }}>
+              <strong>4.</strong> Възлага на Председателя на УС да издаде
+              Заповед за командировка <strong>№ {orderNum}</strong> и
+              окомплектова счетоводното досие на състезанието.
+            </p>
+          </div>
+
+          <p style={{ margin: "4pt 0 0 0", textIndent: "15pt" }}>
+            Поради изчерпване на дневния ред заседанието на Управителния съвет
+            бе закрито. Настоящият протокол се съставя в удостоверение на
+            взетите решения и се вписва в протоколната книга на клуба.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "20pt",
+            marginTop: "auto",
+            paddingTop: "6pt",
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              border: "1px solid #cbd5e1",
+              borderRadius: "8px",
+              padding: "8pt",
+              textAlign: "center",
+              backgroundColor: "#f8fafc",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: "700",
+                fontSize: "8.5pt",
+                margin: 0,
+                color: "#64748b",
+                textTransform: "uppercase",
+              }}
+            >
+              Председателстващ заседанието
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "36pt",
+              }}
+            >
+              {trip.signatures?.chairman ? (
+                <img
+                  src={trip.signatures.chairman}
+                  alt="signature"
+                  style={{ height: "32pt", objectFit: "contain" }}
+                />
+              ) : (
+                <span style={{ color: "#cbd5e1" }}>
+                  ..................................
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+              / {mol} /
+            </p>
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              border: "1px solid #cbd5e1",
+              borderRadius: "8px",
+              padding: "8pt",
+              textAlign: "center",
+              backgroundColor: "#f8fafc",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: "700",
+                fontSize: "8.5pt",
+                margin: 0,
+                color: "#64748b",
+                textTransform: "uppercase",
+              }}
+            >
+              Протоколчик и Членове на УС
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "36pt",
+                fontSize: "8pt",
+                color: "#64748b",
+              }}
+            >
+              <p style={{ margin: "1pt 0" }}>
+                1. ........................................ (подпис)
+              </p>
+              <p style={{ margin: "1pt 0" }}>
+                2. ........................................ (подпис)
+              </p>
+            </div>
+            <p style={{ fontSize: "7.5pt", margin: 0, color: "#94a3b8" }}>
+              Протоколна книга на „{site.shortName}“
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* ══════════════════════════════════════════════════════
           DOC 0: РЕШЕНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ (BOARD DECISION)
       ══════════════════════════════════════════════════════ */}
@@ -961,8 +1288,8 @@ export function BusinessTripPdfTemplates({
               </p>
             </div>
             <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
-              {trip.usProtocolNumber
-                ? `Протокол № ${trip.usProtocolNumber} от заседание на УС`
+              {protocolNum && protocolNum !== "____"
+                ? `Протокол № ${protocolNum} от заседание на УС`
                 : "Протокол от заседание на УС"}
             </p>
           </div>

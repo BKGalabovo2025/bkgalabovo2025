@@ -141,6 +141,7 @@ export const BusinessTripSchema = z.object({
       chairman: z.string().optional(), // Base64 PNG image
     })
     .optional(),
+  protocolDownloadedAt: z.string().datetime().optional(),
   decisionDownloadedAt: z.string().datetime().optional(),
   orderDownloadedAt: z.string().datetime().optional(),
   statementDownloadedAt: z.string().datetime().optional(),

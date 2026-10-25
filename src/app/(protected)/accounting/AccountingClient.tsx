@@ -667,7 +667,6 @@ export default function AccountingClient() {
     }, 100);
   };
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   const handleDownloadAll = async () => {
     if (filteredTrips.length === 0) {
       toast.error("Няма командировки за този месец.");
@@ -709,20 +708,29 @@ export default function AccountingClient() {
         const tripFolder = zip.folder(folderName);
         if (!tripFolder) continue;
 
-        // 0. Board Decision
+        // 0. Board Protocol
+        const protocolEl = document.getElementById(
+          `pdf-board-protocol-template-${tId}`
+        );
+        if (protocolEl) {
+          const blob = await getPdfBlobFromElement(protocolEl, "portrait");
+          tripFolder.file(`00_Протокол_УС_${safeTitle}.pdf`, blob);
+        }
+
+        // 1. Board Decision
         const decisionEl = document.getElementById(
           `pdf-board-decision-template-${tId}`
         );
         if (decisionEl) {
           const blob = await getPdfBlobFromElement(decisionEl, "portrait");
-          tripFolder.file(`00_Решение_УС_${safeTitle}.pdf`, blob);
+          tripFolder.file(`01_Решение_УС_${safeTitle}.pdf`, blob);
         }
 
-        // Order
+        // 2. Order
         const orderEl = document.getElementById(`pdf-order-template-${tId}`);
         if (orderEl) {
           const blob = await getPdfBlobFromElement(orderEl, "portrait");
-          tripFolder.file(`01_Заповед_${safeTitle}.pdf`, blob);
+          tripFolder.file(`02_Заповед_${safeTitle}.pdf`, blob);
         }
 
         // Statement
@@ -1605,7 +1613,7 @@ export default function AccountingClient() {
               </tr>
             </thead>
             <tbody>
-              {/* eslint-disable-next-line sonarjs/cognitive-complexity */}
+              {}
               {filteredTrips.map((trip, idx) => {
                 const coach = membersDict[trip.coachId];
                 const coachName = coach
