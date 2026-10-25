@@ -258,7 +258,10 @@ export function generateDefaultProtocolText(
   const chairPronoun = isChairFemale ? "Тя" : "Той";
   const chairDetermined = isChairFemale ? "определена" : "определен";
 
-  const defaultBoardMembers = `1. ${chair} — Председател на Управителния съвет\n2. Членове на Управителния съвет (редовно уведомени по установения ред)`;
+  const defaultBoardMembers =
+    secretary && secretary.toLowerCase() !== "член на ус"
+      ? `1. ${chair} — Председател на Управителния съвет\n2. ${secretary} — Член на Управителния съвет (редовно уведомен по установения ред)`
+      : `1. ${chair} — Председател на Управителния съвет\n2. Членове на Управителния съвет (редовно уведомени по установения ред)`;
   const boardMembers =
     options?.boardMembers || trip.usBoardMembers || defaultBoardMembers;
 
@@ -295,4 +298,57 @@ ${boardMembers}
     isChairFemale,
     site.shortName
   );
+}
+
+/**
+ * Извлича имената на членовете на УС от текста на кворума (usBoardMembers).
+ * Премахва номерация (1., 2.), булети (-, •), длъжности (— Член на УС...) и бележки в скоби.
+ * Филтрира общи формулировки (напр. "Членове на Управителния съвет...") и председателя,
+ * тъй като председателят се подписва отделно в полето "ПРЕДСЕДАТЕЛ НА ЗАСЕДАНИЕТО".
+ */
+export function extractBoardMembers(
+  boardMembersText?: string,
+  chairName?: string
+): string[] {
+  if (!boardMembersText || !boardMembersText.trim()) return [];
+  const lines = boardMembersText
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const cleanChair = chairName ? chairName.trim().toLowerCase() : "";
+  const members: string[] = [];
+
+  for (const line of lines) {
+    // Премахва водеща номерация или булети: "1.", "2)", "•", "-" и т.н.
+    const withoutNum = line.replace(/^[\s\d\.\)\-–—•*]+/u, "").trim();
+    if (!withoutNum) continue;
+
+    // Игнорираме служебни и общи редове, които не съдържат конкретно лице
+    if (/^членове\s+на\s+управителния/iu.test(withoutNum)) continue;
+    if (/^управителен\s+съвет/iu.test(withoutNum)) continue;
+    if (/^присъстват/iu.test(withoutNum)) continue;
+
+    // Взимаме името преди тире (—, –, -), двоеточие, запетая или отваряща скоба
+    const nameMatch = withoutNum.match(/^([^—–\-–:,\(\n]+)/u);
+    let rawName = (nameMatch ? nameMatch[1] : withoutNum).trim();
+
+    // Изчистваме обръщения и титли
+    rawName = rawName
+      .replace(/^(?:г-н|г-жа|инж\.|д-р)\s+/iu, "")
+      .replace(/\s+(?:член|председател).*$/iu, "")
+      .trim();
+
+    if (!rawName || rawName.length < 3) continue;
+    if (/^членове\b/iu.test(rawName)) continue;
+
+    // Ако името съвпада с председателя, го пропускаме (председателят е в отделна колона)
+    if (cleanChair && rawName.toLowerCase() === cleanChair) continue;
+
+    if (!members.includes(rawName)) {
+      members.push(rawName);
+    }
+  }
+
+  return members;
 }

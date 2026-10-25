@@ -24,6 +24,7 @@ import {
 } from "@/lib/business-trip-numbers";
 import {
   cleanProtocolText,
+  extractBoardMembers,
   formatOrgName,
   isFemalePerson,
 } from "@/lib/business-trip-protocol";
@@ -973,7 +974,7 @@ export function BusinessTripPdfTemplates({
                 textTransform: "uppercase",
               }}
             >
-              Председателстващ заседанието
+              Председател на заседанието
             </p>
             <div
               style={{
@@ -1019,29 +1020,76 @@ export function BusinessTripPdfTemplates({
                 textTransform: "uppercase",
               }}
             >
-              Протоколчик и Членове на УС
+              Членове на УС
             </p>
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
-                alignItems: "center",
-                height: "36pt",
+                alignItems: "flex-start",
+                minHeight: "36pt",
                 fontSize: "8pt",
                 color: "#64748b",
+                gap: "2pt",
+                paddingLeft: "8pt",
+                paddingRight: "8pt",
+                width: "100%",
               }}
             >
-              <p style={{ margin: "1pt 0" }}>
-                1. ........................................ / {secretary} /
-              </p>
-              <p style={{ margin: "1pt 0" }}>
-                2. ........................................ (подпис)
-              </p>
+              {(() => {
+                const extracted = extractBoardMembers(
+                  trip.usBoardMembers,
+                  chair
+                );
+                const displayMembers =
+                  extracted.length > 0
+                    ? extracted
+                    : secretary &&
+                        secretary.trim().toLowerCase() !== "член на ус"
+                      ? [secretary]
+                      : [];
+
+                if (displayMembers.length === 0) {
+                  return (
+                    <>
+                      <p
+                        style={{
+                          margin: "1pt 0",
+                          width: "100%",
+                          textAlign: "left",
+                        }}
+                      >
+                        1. ........................................ (подпис)
+                      </p>
+                      <p
+                        style={{
+                          margin: "1pt 0",
+                          width: "100%",
+                          textAlign: "left",
+                        }}
+                      >
+                        2. ........................................ (подпис)
+                      </p>
+                    </>
+                  );
+                }
+
+                return displayMembers.map((mName, idx) => (
+                  <p
+                    key={idx}
+                    style={{
+                      margin: "1pt 0",
+                      width: "100%",
+                      textAlign: "left",
+                    }}
+                  >
+                    {idx + 1}. ........................................ /{" "}
+                    {mName} /
+                  </p>
+                ));
+              })()}
             </div>
-            <p style={{ fontSize: "7.5pt", margin: 0, color: "#94a3b8" }}>
-              Протоколна книга на „{site.shortName}“
-            </p>
           </div>
         </div>
       </div>
@@ -1370,17 +1418,32 @@ export function BusinessTripPdfTemplates({
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
-                height: "45pt",
+                minHeight: "45pt",
                 fontSize: "8.5pt",
                 color: "#64748b",
               }}
             >
-              <p style={{ margin: "2pt 0" }}>
-                1. ........................................ (подпис)
-              </p>
-              <p style={{ margin: "2pt 0" }}>
-                2. ........................................ (подпис)
-              </p>
+              {(() => {
+                const extracted = extractBoardMembers(trip.usBoardMembers, mol);
+                if (extracted.length > 0) {
+                  return extracted.map((mName, idx) => (
+                    <p key={idx} style={{ margin: "2pt 0" }}>
+                      {idx + 1}. ........................................ /{" "}
+                      {mName} /
+                    </p>
+                  ));
+                }
+                return (
+                  <>
+                    <p style={{ margin: "2pt 0" }}>
+                      1. ........................................ (подпис)
+                    </p>
+                    <p style={{ margin: "2pt 0" }}>
+                      2. ........................................ (подпис)
+                    </p>
+                  </>
+                );
+              })()}
             </div>
             <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
               {protocolNum && protocolNum !== "____"

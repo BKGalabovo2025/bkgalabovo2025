@@ -96,8 +96,11 @@ export function TripProtocolDialog({
       const locVal =
         trip.usMeetingLocation || "гр. Гълъбово, в седалището на сдружението";
       const chairVal = trip.usMeetingChair || mol;
-      const secVal = trip.usMeetingSecretary || "Член на УС";
-      const defMembers = `1. ${chairVal} — Председател на Управителния съвет\n2. Членове на Управителния съвет (редовно уведомени по установения ред)`;
+      const secVal = trip.usMeetingSecretary || "Невена Георгиева";
+      const defMembers =
+        secVal && secVal.toLowerCase() !== "член на ус"
+          ? `1. ${chairVal} — Председател на Управителния съвет\n2. ${secVal} — Член на Управителния съвет (редовно уведомен по установения ред)`
+          : `1. ${chairVal} — Председател на Управителния съвет\n2. Членове на Управителния съвет (редовно уведомени по установения ред)`;
       const membersVal = trip.usBoardMembers || defMembers;
       const protoNumVal = trip.usProtocolNumber || getTripProtocolNumber(trip);
 
@@ -336,12 +339,12 @@ export function TripProtocolDialog({
           <div className="rounded-lg border bg-slate-50/50 p-4 dark:bg-slate-900/40">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
               <Users className="size-4 text-indigo-600 dark:text-indigo-400" />
-              2. Състав, Председателстващ и Протоколчик
+              2. Състав: Председател на заседанието, Протоколчик и Членове на УС
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="proto-chair" className="text-xs">
-                  Председателстващ заседанието
+                  Председател на заседанието
                 </Label>
                 <Input
                   id="proto-chair"
@@ -370,9 +373,14 @@ export function TripProtocolDialog({
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="proto-members" className="text-xs">
-                  Присъстващи членове на УС (кворум)
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="proto-members" className="text-xs">
+                    Присъстващи членове на УС (кворум и подписи)
+                  </Label>
+                  <span className="text-[10px] text-slate-500">
+                    Имената се извличат автоматично за подписите под протокола
+                  </span>
+                </div>
                 <Textarea
                   id="proto-members"
                   rows={3}
@@ -380,9 +388,14 @@ export function TripProtocolDialog({
                   onChange={(e) =>
                     updateFieldsAndSync({ members: e.target.value })
                   }
-                  placeholder="Списък с членове на Управителния съвет..."
+                  placeholder={`1. ${meetingChair || mol} — Председател на УС\n2. ${meetingSecretary || "Невена Георгиева"} — Член на УС\n3. Име на член — Член на УС`}
                   className="bg-white text-xs dark:bg-slate-950"
                 />
+                <p className="text-[11px] text-slate-500">
+                  Въведете всеки член на нов ред. Присъстващите членове (без
+                  Председателя, който подписва отделно) се извеждат автоматично
+                  с поименни редове в колоната „ЧЛЕНОВЕ НА УС“.
+                </p>
               </div>
             </div>
           </div>

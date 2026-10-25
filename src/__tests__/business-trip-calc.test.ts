@@ -19,6 +19,7 @@ import {
 } from "../lib/business-trip-numbers";
 import {
   cleanProtocolText,
+  extractBoardMembers,
   formatOrgName,
   generateDefaultProtocolText,
   isFemalePerson,
@@ -535,6 +536,28 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(healed).not.toContain("поканата от БФ Бадминтон");
       expect(healed).not.toContain("ЗЮЛНЦ");
       expect(healed).not.toContain("чл. 32");
+    });
+
+    it("should correctly extract board members from quorum text, excluding chair and placeholders", () => {
+      const quorumText = `1. Мира Георгиева — Председател на Управителния съвет
+2. Невена Георгиева - Член на Управителния съвет (редовно уведомен по установения ред)
+3. Наско Маджаров - Член на Управителния съвет (редовно уведомен по установения ред)`;
+
+      const members = extractBoardMembers(quorumText, "Мира Георгиева");
+      expect(members).toEqual(["Невена Георгиева", "Наско Маджаров"]);
+
+      // Generic placeholder should return empty array
+      const genericText = `1. Мира Георгиева — Председател на Управителния съвет
+2. Членове на Управителния съвет (редовно уведомени по установения ред)`;
+      expect(extractBoardMembers(genericText, "Мира Георгиева")).toEqual([]);
+
+      // Bullet points or plain lines
+      const bulletText = `• Невена Георгиева
+• Наско Маджаров`;
+      expect(extractBoardMembers(bulletText)).toEqual([
+        "Невена Георгиева",
+        "Наско Маджаров",
+      ]);
     });
   });
 });
