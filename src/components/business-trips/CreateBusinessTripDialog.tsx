@@ -114,6 +114,12 @@ export function CreateBusinessTripDialog({
           usDecisionDate: initialData.usDecisionDate || "",
           usProtocolNumber: initialData.usProtocolNumber || "",
           usDecisionNotes: initialData.usDecisionNotes || "",
+          usMeetingLocation: initialData.usMeetingLocation || "",
+          usMeetingTime: initialData.usMeetingTime || "",
+          usBoardMembers: initialData.usBoardMembers || "",
+          usMeetingChair: initialData.usMeetingChair || "",
+          usMeetingSecretary: initialData.usMeetingSecretary || "",
+          protocolText: initialData.protocolText || "",
           reportText: initialData.reportText || "",
           attachMatchProtocols: initialData.attachMatchProtocols ?? false,
           expensesCoverage:
@@ -156,6 +162,12 @@ export function CreateBusinessTripDialog({
           usDecisionDate: new Date().toISOString().split("T")[0],
           usProtocolNumber: "",
           usDecisionNotes: "",
+          usMeetingLocation: "",
+          usMeetingTime: "",
+          usBoardMembers: "",
+          usMeetingChair: "",
+          usMeetingSecretary: "",
+          protocolText: "",
           reportText: "",
           attachMatchProtocols: false,
           hasEntryFee: false,
@@ -443,6 +455,105 @@ export function CreateBusinessTripDialog({
                       )}
                     />
                   </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control as any}
+                      name="usMeetingTime"
+                      render={({ field }: any) => (
+                        <FormItem>
+                          <FormLabel>Час на заседание на УС</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="напр. 18:00 ч."
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control as any}
+                      name="usMeetingLocation"
+                      render={({ field }: any) => (
+                        <FormItem>
+                          <FormLabel>Място на провеждане</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="напр. гр. Гълъбово, в седалището"
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control as any}
+                      name="usMeetingChair"
+                      render={({ field }: any) => (
+                        <FormItem>
+                          <FormLabel>Председателстващ заседанието</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Име на председателя (по подразбиране: МОЛ)"
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control as any}
+                      name="usMeetingSecretary"
+                      render={({ field }: any) => (
+                        <FormItem>
+                          <FormLabel>Протоколчик</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Име на протоколчика"
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control as any}
+                    name="usBoardMembers"
+                    render={({ field }: any) => (
+                      <FormItem>
+                        <FormLabel>Присъстващи членове на УС</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Списък с присъстващи членове на УС за Протокола..."
+                            rows={2}
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormDescription className="text-[11px]">
+                          Ако не е попълнено, ще се използва стандартният кворум
+                          на клуба.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control as any}

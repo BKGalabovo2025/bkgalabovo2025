@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { SiteConfig } from "../config/sites";
 import {
   calculateTripStatementTotals,
   calculateTripTransportTotals,
@@ -16,7 +17,9 @@ import {
   getTripReportNumber,
   getTripStatementNumber,
 } from "../lib/business-trip-numbers";
+import { generateDefaultProtocolText } from "../lib/business-trip-protocol";
 import { BusinessTrip } from "../types/business-trip.types";
+import { Member } from "../types/member.types";
 
 describe("Business Trip Per Diem & Accounting Calculations", () => {
   describe("getEffectiveTripRates", () => {
@@ -327,6 +330,99 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
         getTripProtocolNumber({ ...trip, usProtocolNumber: "07/2026" })
       ).toBe("07/2026");
       expect(getTripStatementNumber(trip)).toBe("2-ВД");
+    });
+  });
+
+  describe("Board Protocol Generator (generateDefaultProtocolText)", () => {
+    const mockSite = {
+      id: "bkgalabovo",
+      name: 'СНЦ "Бадминтон клуб Гълъбово"',
+      shortName: "Бадминтон клуб Гълъбово",
+      themeColor: "#1e3a8a",
+      contact: {
+        address: "гр. Гълъбово",
+        phone: "+359 899 82 99 23",
+        mol: "Мира Георгиева",
+      },
+    };
+
+    const mockCoach = {
+      id: "coach-1",
+      firstName: "Пламен",
+      lastName: "Михалев",
+      isCoach: true,
+    } as unknown as Member;
+
+    const mockPlayer = {
+      id: "player-1",
+      firstName: "Георги",
+      lastName: "Иванов",
+      isCoach: false,
+    } as unknown as Member;
+
+    const mockMembers = {
+      "coach-1": mockCoach,
+      "player-1": mockPlayer,
+    };
+
+    const baseTrip: BusinessTrip = {
+      orderNumber: 5,
+      title: "Държавно първенство по бадминтон",
+      destination: "Хасково",
+      startDate: "2026-03-10T08:00:00.000Z",
+      endDate: "2026-03-11T18:00:00.000Z",
+      coachId: "coach-1",
+      participantsIds: ["player-1"],
+      status: "approved",
+      siteId: "bkgalabovo",
+      financials: {
+        perDiemRateEUR: 22,
+        accommodationRateEUR: 25,
+        isCommercialActivity: false,
+      },
+      transportType: "public",
+    };
+
+    it("should generate complete protocol text with defaults", () => {
+      const text = generateDefaultProtocolText(
+        baseTrip,
+        mockSite as unknown as SiteConfig,
+        mockMembers
+      );
+
+      expect(text).toContain("протокол № 5-ПР");
+      expect(text).toContain(
+        'Управителния съвет на „СНЦ "Бадминтон клуб Гълъбово"“'
+      );
+      expect(text).toContain("Държавно първенство по бадминтон");
+      expect(text).toContain("Пламен Михалев");
+      expect(text).toContain("Георги Иванов");
+      expect(text).toContain("№ 5-УС");
+      expect(text).toContain("№ 5-НР");
+      expect(text).toContain("5-ПР");
+    });
+
+    it("should allow custom overrides for date, time, location, chair and secretary", () => {
+      const text = generateDefaultProtocolText(
+        baseTrip,
+        mockSite as unknown as SiteConfig,
+        mockMembers,
+        {
+          meetingDate: "2026-03-08",
+          meetingTime: "19:30 ч.",
+          meetingLocation: "гр. Стара Загора, зала Тракия",
+          meetingChair: "Иван Тодоров",
+          meetingSecretary: "Мария Петрова",
+          boardMembers: "1. Иван Тодоров\n2. Мария Петрова\n3. Димитър Стоянов",
+        }
+      );
+
+      expect(text).toContain("08.03.2026 г.");
+      expect(text).toContain("19:30 ч.");
+      expect(text).toContain("гр. Стара Загора, зала Тракия");
+      expect(text).toContain("Иван Тодоров");
+      expect(text).toContain("Мария Петрова");
+      expect(text).toContain("Димитър Стоянов");
     });
   });
 });

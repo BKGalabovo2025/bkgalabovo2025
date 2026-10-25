@@ -25,6 +25,7 @@ import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTr
 import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
 import { SignaturePadDialog } from "@/components/business-trips/SignaturePadDialog";
 import { TripExpenseDialog } from "@/components/business-trips/TripExpenseDialog";
+import { TripProtocolDialog } from "@/components/business-trips/TripProtocolDialog";
 import { TripReportDialog } from "@/components/business-trips/TripReportDialog";
 import { TripStatementEditDialog } from "@/components/business-trips/TripStatementEditDialog";
 import {
@@ -198,6 +199,9 @@ export function BusinessTripManagerDialog({
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [isProtocolDialogOpen, setIsProtocolDialogOpen] = useState(false);
+  const [selectedTripForProtocol, setSelectedTripForProtocol] =
+    useState<BusinessTrip | null>(null);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedTripForReport, setSelectedTripForReport] =
     useState<BusinessTrip | null>(null);
@@ -872,6 +876,18 @@ export function BusinessTripManagerDialog({
                               : `Протокол ${getTripProtocolNumber(trip)} (PDF)`}
                           </Button>
                           <Button
+                            variant="outline"
+                            size="icon"
+                            title="Редактирай протокола (дата, членове, място, текст)"
+                            className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                            onClick={() => {
+                              setSelectedTripForProtocol(trip);
+                              setIsProtocolDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+                          <Button
                             variant={
                               trip.protocolDownloadedAt
                                 ? "secondary"
@@ -881,7 +897,7 @@ export function BusinessTripManagerDialog({
                             title="Изпрати по имейл"
                             className={
                               trip.protocolDownloadedAt
-                                ? "size-8 rounded-l-none border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
                                 : "size-8 rounded-l-none px-0"
                             }
                             onClick={() => handleEmailPdf(trip, "protocol")}
@@ -1791,6 +1807,25 @@ export function BusinessTripManagerDialog({
           onOpenChange={setSignaturePadOpen}
           title={`Подпис: ${signatureRole === "coach" ? "Командирован" : "Председател"}`}
           onSave={handleSaveSignature}
+        />
+      )}
+
+      {isProtocolDialogOpen && selectedTripForProtocol && (
+        <TripProtocolDialog
+          open={isProtocolDialogOpen}
+          onOpenChange={(v) => {
+            if (!v) setSelectedTripForProtocol(null);
+            setIsProtocolDialogOpen(v);
+          }}
+          trip={selectedTripForProtocol}
+          membersDict={membersDict}
+          onSuccess={() => {
+            setSelectedTripForProtocol(null);
+            loadData();
+          }}
+          onPreview={(trip) => {
+            handlePreviewPdf(trip, "protocol");
+          }}
         />
       )}
 

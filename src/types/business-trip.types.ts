@@ -135,6 +135,12 @@ export const BusinessTripSchema = z.object({
   usDecisionDate: z.string().optional(), // Дата на заседанието на УС
   usProtocolNumber: z.string().optional(), // Номер на Протокол от заседание на УС
   usDecisionNotes: z.string().optional(), // Допълнителни решения / бележки на УС
+  usMeetingLocation: z.string().optional(), // Място на провеждане на заседанието на УС
+  usMeetingTime: z.string().optional(), // Час на провеждане на заседанието на УС
+  usBoardMembers: z.string().optional(), // Членове на УС / присъстващи
+  usMeetingChair: z.string().optional(), // Председателстващ заседанието
+  usMeetingSecretary: z.string().optional(), // Протоколчик
+  protocolText: z.string().optional(), // Редактиран или персонализиран пълен текст на Протокола
   signatures: z
     .object({
       coach: z.string().optional(), // Base64 PNG image
