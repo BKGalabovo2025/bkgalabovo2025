@@ -21,6 +21,7 @@ import {
   cleanProtocolText,
   formatOrgName,
   generateDefaultProtocolText,
+  isFemalePerson,
 } from "../lib/business-trip-protocol";
 import { BusinessTrip } from "../types/business-trip.types";
 import { Member } from "../types/member.types";
@@ -467,6 +468,14 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(text).toContain("Невена Георгиева");
       expect(text).toContain("Наско Маджаров");
       expect(text).toContain("протокол № 9-ПР");
+      // Проверка за женски род (Мира Георгиева) и състезателен календар
+      expect(text).toContain(
+        "За водещ заседанието бе определена Мира Георгиева"
+      );
+      expect(text).toContain("Тя запозна присъстващите");
+      expect(text).toContain("Спортния календар на БФ Бадминтон");
+      expect(text).not.toContain("Той запозна");
+      expect(text).not.toContain("поканата от БФ Бадминтон");
     });
 
     it("should format organization name correctly without nested or doubled quotation marks", () => {
@@ -495,6 +504,26 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(cleaned).toContain("СНЦ „Бадминтон клуб Гълъбово“");
       expect(cleaned).not.toContain('„СНЦ "БАДМИНТОН КЛУБ ГЪЛЪБОВО""');
       expect(cleaned).not.toContain('„СНЦ "Бадминтон клуб Гълъбово"“');
+    });
+
+    it("should accurately detect female names according to Bulgarian grammar", () => {
+      expect(isFemalePerson("Мира Георгиева")).toBe(true);
+      expect(isFemalePerson("Невена Георгиева")).toBe(true);
+      expect(isFemalePerson("Мария Петрова")).toBe(true);
+      expect(isFemalePerson("Пламен Михалев")).toBe(false);
+      expect(isFemalePerson("Георги Иванов")).toBe(false);
+      expect(isFemalePerson("Никола Иванов")).toBe(false);
+      expect(isFemalePerson("Иван Тодоров")).toBe(false);
+    });
+
+    it("should heal legacy text with 'поканата от БФ Бадминтон' and male pronoun for female chair", () => {
+      const legacy =
+        "Думата бе дадена на Председателя на УС Мира Георгиева. Той запозна членовете с поканата от БФ Бадминтон, графика на състезанието и предложи клубна делегация.";
+      const healed = cleanProtocolText(legacy, true);
+      expect(healed).toContain("Тя запозна");
+      expect(healed).toContain("Спортния календар на БФ Бадминтон");
+      expect(healed).not.toContain("Той запозна");
+      expect(healed).not.toContain("поканата от БФ Бадминтон");
     });
   });
 });

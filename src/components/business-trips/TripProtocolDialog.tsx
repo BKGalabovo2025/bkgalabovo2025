@@ -33,6 +33,7 @@ import { getTripProtocolNumber } from "@/lib/business-trip-numbers";
 import {
   cleanProtocolText,
   generateDefaultProtocolText,
+  isFemalePerson,
 } from "@/lib/business-trip-protocol";
 import { businessTripService } from "@/services/business-trip-service";
 import { BusinessTrip } from "@/types/business-trip.types";
@@ -108,7 +109,12 @@ export function TripProtocolDialog({
       setProtocolNumber(protoNumVal);
 
       if (trip.protocolText && trip.protocolText.trim() !== "") {
-        setProtocolText(cleanProtocolText(trip.protocolText));
+        setProtocolText(
+          cleanProtocolText(
+            trip.protocolText,
+            isFemalePerson(chairVal, membersDict)
+          )
+        );
         setAutoSyncText(false);
       } else {
         setAutoSyncText(true);

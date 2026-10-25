@@ -22,7 +22,11 @@ import {
   getTripStatementNumber,
   resolveTripNumbers,
 } from "@/lib/business-trip-numbers";
-import { cleanProtocolText, formatOrgName } from "@/lib/business-trip-protocol";
+import {
+  cleanProtocolText,
+  formatOrgName,
+  isFemalePerson,
+} from "@/lib/business-trip-protocol";
 import { generateDefaultReportText } from "@/lib/business-trip-report";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
@@ -734,7 +738,10 @@ export function BusinessTripPdfTemplates({
               whiteSpace: "pre-line",
             }}
           >
-            {cleanProtocolText(trip.protocolText)
+            {cleanProtocolText(
+              trip.protocolText,
+              isFemalePerson(chair, membersDict)
+            )
               .split(/\n\s*\n/)
               .map((para, i) => (
                 <p
@@ -802,8 +809,10 @@ export function BusinessTripPdfTemplates({
               Председателят констатира, че присъства необходимият съгласно чл.
               32 от ЗЮЛНЦ и разпоредбите на Устава кворум. Заседанието е законно
               конституирано и може да взема валидни решения. За водещ
-              заседанието бе определен <strong>{chair}</strong>, а за
-              протоколчик — <strong>{secretary}</strong>.
+              заседанието бе{" "}
+              {isFemalePerson(chair, membersDict) ? "определена" : "определен"}{" "}
+              <strong>{chair}</strong>, а за протоколчик —{" "}
+              <strong>{secretary}</strong>.
             </p>
 
             <p
@@ -827,7 +836,9 @@ export function BusinessTripPdfTemplates({
             >
               <p style={{ margin: 0 }}>
                 <strong>Точка 1:</strong> Обсъждане и вземане на решение за
-                официално участие на представителния клубен отбор в състезание:{" "}
+                официално участие на представителния клубен отбор в състезание
+                съгласно Държавния спортен календар на{" "}
+                {trip.organizer?.trim() || "БФ Бадминтон"}:{" "}
                 <strong>{trip.title}</strong> (гр./място{" "}
                 <strong>{destCity}</strong>, период{" "}
                 <strong>
@@ -843,9 +854,21 @@ export function BusinessTripPdfTemplates({
 
             <p style={{ marginBottom: "4pt", textIndent: "15pt" }}>
               <strong>ПО ТОЧКА 1 ОТ ДНЕВНИЯ РЕД:</strong> Думата бе дадена на
-              Председателя на УС <strong>{chair}</strong>. Той запозна членовете
-              с поканата от БФ Бадминтон, графика на състезанието и предложи
-              клубна делегация в общ брой от{" "}
+              Председателя на УС <strong>{chair}</strong>.{" "}
+              {isFemalePerson(chair, membersDict) ? "Тя" : "Той"} запозна
+              присъстващите с предстоящото участие на клуба в състезанието
+              съгласно Спортния календар на{" "}
+              {trip.organizer?.trim() || "БФ Бадминтон"} —{" "}
+              <strong>{trip.title}</strong>, провеждащо се в {destCity} в
+              периода{" "}
+              <strong>
+                {fmtDate(trip.startDate)} г.
+                {trip.startDate !== trip.endDate
+                  ? ` — ${fmtDate(trip.endDate)} г.`
+                  : ""}
+              </strong>
+              . {isFemalePerson(chair, membersDict) ? "Тя" : "Той"} представи
+              информацията за турнира и предложи клубна делегация в общ брой от{" "}
               <strong>
                 {totalPlannedPeople}{" "}
                 {totalPlannedPeople === 1 ? "човек" : "души"}
