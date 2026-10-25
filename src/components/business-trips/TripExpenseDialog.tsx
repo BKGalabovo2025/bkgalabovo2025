@@ -1,21 +1,23 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addDays, differenceInCalendarDays, format } from "date-fns";
 import {
+  Camera,
   CheckCircle2,
   ExternalLink,
   FileUp,
   Loader2,
   Moon,
+  QrCode,
   Save,
+  Sparkles,
+  Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import Tesseract from "tesseract.js";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/context/auth-context";
+import {
+  ParsedExpenseData,
+  processExpenseDocument,
+} from "@/lib/expense-document-parser";
 import { cn } from "@/lib/utils";
 import { businessTripService } from "@/services/business-trip-service";
 import {
@@ -52,6 +58,8 @@ import {
   TripExpense,
   TripExpenseSchema,
 } from "@/types/business-trip.types";
+
+import { DocumentCameraScannerDialog } from "./DocumentCameraScannerDialog";
 
 const FormSchema = TripExpenseSchema.extend({
   attachmentFile: z.any().optional(), // File type from input
@@ -80,6 +88,10 @@ export function TripExpenseDialog({
 }: TripExpenseDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isOcrRunning, setIsOcrRunning] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [ocrSummary, setOcrSummary] = useState<string | null>(null);
+  const [ocrProgressText, setOcrProgressText] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [currencyMode, setCurrencyMode] = useState<"EUR" | "BGN">("EUR");
   const [bgnInputValue, setBgnInputValue] = useState<string>("");
   const { idToken } = useAuth();
@@ -213,74 +225,111 @@ export function TripExpenseDialog({
     }
   };
 
-  // Tesseract OCR parser
-  // eslint-disable-next-line sonarjs/cognitive-complexity
-  const handleFileUpload = async (files: FileList | null) => {
+  // Интелигентен анализ на документи (снимки, PDF, НАП QR кодове)
+  const handleFileUpload = async (
+    files: FileList | File[] | null,
+    preParsedData?: ParsedExpenseData | null
+  ) => {
     if (!files || files.length === 0) return;
     const file = files[0];
 
-    // Check if it's an image
-    if (!file.type.startsWith("image/")) return;
+    // Задаваме файла във формата за предстоящо качване
+    form.setValue("attachmentFile", [file]);
 
     setIsOcrRunning(true);
-    const ocrToast = toast.loading("Сканиране с изкуствен интелект (OCR)...");
+    setOcrSummary(null);
+    setOcrProgressText("Анализиране на документа...");
+
+    const ocrToast = toast.loading("Сканиране и разпознаване на документа...");
 
     try {
-      const result = await Tesseract.recognize(file, "bul+eng", {
-        logger: (m) => {
-          if (m.status === "recognizing text" && m.progress > 0) {
-            // Optional: could update toast message with progress
-          }
-        },
-      });
+      const result = await processExpenseDocument(
+        file,
+        preParsedData,
+        (progress, status) => {
+          setOcrProgressText(`${status} (${progress}%)`);
+        }
+      );
 
-      const text = result.data.text.toUpperCase();
-      console.log("OCR Extracted Text:\n", text);
+      const detectedFields: string[] = [];
 
-      // Search for amounts like ОБЩО: 125.50 or TOTAL: 125.50 or СУМА: 125.50
-      const lines = text.split("\n");
-      let maxAmount = 0;
+      // 1. Попълване на сума
+      if (result.amountBGN && result.amountBGN > 0) {
+        form.setValue("amountEUR", convertBgnToEur(result.amountBGN));
+        setBgnInputValue(result.amountBGN.toFixed(2));
+        setCurrencyMode("BGN");
+        detectedFields.push(`Сума: ${result.amountBGN.toFixed(2)} лв.`);
+      } else if (result.amountEUR && result.amountEUR > 0) {
+        form.setValue("amountEUR", result.amountEUR);
+        setBgnInputValue(convertEurToBgn(result.amountEUR).toFixed(2));
+        setCurrencyMode("EUR");
+        detectedFields.push(`Сума: €${result.amountEUR.toFixed(2)}`);
+      }
 
-      for (const line of lines) {
-        if (
-          line.includes("ОБЩО") ||
-          line.includes("СУМА") ||
-          line.includes("TOTAL") ||
-          line.includes("EUR") ||
-          line.includes("BGN") ||
-          line.includes("ЛВ")
-        ) {
-          // Extract numbers (e.g. 125.50, 125,50)
-          const matches = line.match(/\b\d+[.,]\d{2}\b/g);
-          if (matches) {
-            for (const match of matches) {
-              const num = parseFloat(match.replace(",", "."));
-              if (num > maxAmount) maxAmount = num;
-            }
-          }
+      // 2. Попълване на доставчик / търговец
+      if (result.supplierName) {
+        form.setValue("supplierName", result.supplierName);
+        detectedFields.push(`Търговец: ${result.supplierName}`);
+      }
+
+      // 3. Попълване на номер на документ
+      if (result.documentNumber) {
+        form.setValue("documentNumber", result.documentNumber);
+        detectedFields.push(`№ ${result.documentNumber}`);
+      }
+
+      // 4. Попълване на дата
+      if (result.documentDate) {
+        try {
+          form.setValue(
+            "documentDate",
+            new Date(result.documentDate).toISOString()
+          );
+          detectedFields.push(
+            `Дата: ${format(new Date(result.documentDate), "dd.MM.yyyy")}`
+          );
+        } catch {
+          // Игнорираме невалидна дата
         }
       }
 
-      if (maxAmount > 0) {
-        toast.success(
-          `OCR: Намерена е сума ${maxAmount} лв. Моля, проверете!`,
-          { id: ocrToast }
+      // 5. Попълване на вид разход
+      if (result.expenseType && result.expenseType !== "other") {
+        form.setValue("expenseType", result.expenseType);
+        const typeLabels: Record<string, string> = {
+          fuel: "Гориво",
+          accommodation: "Нощувка",
+          toll: "Пътни такси / Тол",
+          entry_fee: "Такса участие",
+        };
+        detectedFields.push(
+          `Вид: ${typeLabels[result.expenseType] || result.expenseType}`
         );
-        // Automatically assume BGN for BG receipts, so convert to EUR
-        form.setValue("amountEUR", convertBgnToEur(maxAmount));
-        setBgnInputValue(String(maxAmount));
-        setCurrencyMode("BGN");
+      }
+
+      if (detectedFields.length > 0) {
+        const summaryText = `Автоматично извлечени данни: ${detectedFields.join(" | ")}`;
+        setOcrSummary(summaryText);
+        toast.success(
+          "Данните от документа бяха разпознати и попълнени автоматично!",
+          {
+            id: ocrToast,
+          }
+        );
       } else {
         toast.info(
-          "OCR: Не успяхме да открием сумата. Моля, въведете я ръчно.",
-          { id: ocrToast }
+          "Документът е прикачен. Моля, проверете и въведете данните ръчно.",
+          {
+            id: ocrToast,
+          }
         );
       }
     } catch (e) {
-      console.error("OCR Error", e);
-      toast.error("Грешка при сканиране на бележката.", { id: ocrToast });
+      console.error("Document process error:", e);
+      toast.error("Грешка при обработката на документа.", { id: ocrToast });
     } finally {
       setIsOcrRunning(false);
+      setOcrProgressText("");
     }
   };
 
@@ -598,35 +647,12 @@ export function TripExpenseDialog({
                           ) : (
                             <FormControl>
                               <Input
-                                placeholder="Напр. Нощ 2 (11.10 - 12.10.2025)"
+                                placeholder="напр. 11.10.2025 г. или 10-12.10.2025 г."
                                 {...field}
-                                className="bg-white text-xs dark:bg-zinc-900"
+                                className="bg-white dark:bg-zinc-900"
                               />
                             </FormControl>
                           )}
-                          <FormDescription className="text-[11px]">
-                            Посочете коя нощ от турнира покрива този разход.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control as any}
-                      name="notes"
-                      render={({ field }: any) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">
-                            Бележки / Настанени състезатели (по избор)
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Напр. За 8 състезатели (без отпадналите)"
-                              {...field}
-                              className="bg-white text-xs dark:bg-zinc-900"
-                            />
-                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -637,64 +663,157 @@ export function TripExpenseDialog({
                 <FormField
                   control={form.control as any}
                   name="attachmentFile"
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem className="col-span-1 sm:col-span-2">
-                      <FormLabel>Прикачи снимка/скан (опционално)</FormLabel>
-                      <FormControl>
-                        <div className="flex items-center gap-4">
-                          <Input
-                            type="file"
-                            accept="image/*,.pdf"
-                            capture="environment"
-                            onChange={(e) => {
-                              onChange(e.target.files);
-                              handleFileUpload(e.target.files);
-                            }}
-                            {...field}
-                            className="file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-1 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
-                          />
-                          {isOcrRunning ? (
-                            <Loader2 className="size-5 animate-spin text-blue-500" />
-                          ) : (
-                            <FileUp className="size-5 text-zinc-400" />
+                  render={({ field: { value, onChange } }) => {
+                    const currentAttachmentUrl = form.watch("attachmentUrl");
+                    const attachedFile = value && value[0] ? value[0] : null;
+
+                    return (
+                      <FormItem className="col-span-1 sm:col-span-2">
+                        <div className="flex items-center justify-between">
+                          <FormLabel className="flex items-center gap-1.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                            <span>Прикачен документ / касова бележка</span>
+                            <span className="text-[10px] font-normal text-zinc-500">
+                              (опционално)
+                            </span>
+                          </FormLabel>
+                          {isOcrRunning && (
+                            <span className="flex items-center gap-1.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                              <Loader2 className="size-3.5 animate-spin" />
+                              {ocrProgressText || "Анализ на документа..."}
+                            </span>
                           )}
                         </div>
-                      </FormControl>
-                      <FormDescription className="text-[10px]">
-                        Снимката ще бъде качена сигурно в облака.
-                      </FormDescription>
-                      {form.watch("attachmentUrl") && (
-                        <div className="mt-2 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
-                          <div className="flex items-center gap-1.5">
-                            <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                            <span>Прикачен документ е наличен.</span>
-                            {expenseToEdit?.attachmentDownloadedAt && (
-                              <span className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80">
-                                (Свалян на:{" "}
-                                {format(
-                                  new Date(
-                                    expenseToEdit.attachmentDownloadedAt
-                                  ),
-                                  "dd.MM.yyyy HH:mm"
-                                )}
-                                )
-                              </span>
+
+                        <FormControl>
+                          <div className="space-y-3">
+                            {/* Скрит файл инпут за избор на файл */}
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              accept="image/*,.pdf"
+                              className="hidden"
+                              onChange={(e) => {
+                                if (
+                                  e.target.files &&
+                                  e.target.files.length > 0
+                                ) {
+                                  onChange(e.target.files);
+                                  handleFileUpload(e.target.files);
+                                }
+                              }}
+                            />
+
+                            {/* Бутони: 📸 Сканирай с камера и 📁 Прикачи PDF / Снимка */}
+                            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsScannerOpen(true)}
+                                disabled={isOcrRunning}
+                                className="group relative flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-50/50 font-medium text-emerald-700 transition-all hover:border-emerald-500/50 hover:bg-emerald-100/60 dark:border-emerald-500/20 dark:bg-emerald-950/20 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                              >
+                                <div className="flex size-6 items-center justify-center rounded-lg bg-emerald-500 text-white shadow-sm transition-transform group-hover:scale-105">
+                                  <Camera className="size-3.5" />
+                                </div>
+                                <span className="text-xs sm:text-sm">
+                                  Сканирай с камера
+                                </span>
+                                <span className="ml-auto flex items-center gap-0.5 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                  <QrCode className="size-3" />
+                                  QR
+                                </span>
+                              </Button>
+
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isOcrRunning}
+                                className="flex h-11 items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white font-medium text-zinc-700 transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                              >
+                                <div className="flex size-6 items-center justify-center rounded-lg bg-zinc-200 text-zinc-700 shadow-sm dark:bg-zinc-800 dark:text-zinc-300">
+                                  <FileUp className="size-3.5" />
+                                </div>
+                                <span className="text-xs sm:text-sm">
+                                  Прикачи PDF / Снимка
+                                </span>
+                              </Button>
+                            </div>
+
+                            {/* Банер за автоматично разпознати данни от OCR / QR */}
+                            {ocrSummary && (
+                              <div className="flex items-start gap-2 rounded-xl border border-blue-200/80 bg-blue-50/70 p-2.5 text-xs text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300">
+                                <Sparkles className="mt-0.5 size-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                                <div className="flex-1 space-y-0.5">
+                                  <p className="font-semibold text-blue-950 dark:text-blue-200">
+                                    Автоматично извлечена информация:
+                                  </p>
+                                  <p className="text-[11px] leading-relaxed text-blue-800 dark:text-blue-300">
+                                    {ocrSummary.replace(
+                                      "Автоматично извлечени данни: ",
+                                      ""
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Показване на прикачения файл (току-що избран или съществуващ в облака) */}
+                            {(attachedFile || currentAttachmentUrl) && (
+                              <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="truncate font-medium">
+                                    {attachedFile
+                                      ? attachedFile.name
+                                      : "Прикачен документ в облака"}
+                                  </span>
+                                  {attachedFile && (
+                                    <span className="text-[10px] text-emerald-700/70 dark:text-emerald-400/70">
+                                      ({(attachedFile.size / 1024).toFixed(0)}{" "}
+                                      KB)
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {currentAttachmentUrl && (
+                                    <a
+                                      href={currentAttachmentUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-950 dark:text-emerald-300 dark:hover:text-emerald-100"
+                                    >
+                                      Преглед
+                                      <ExternalLink className="size-3" />
+                                    </a>
+                                  )}
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      onChange(undefined);
+                                      form.setValue("attachmentUrl", "");
+                                      setOcrSummary(null);
+                                    }}
+                                    className="size-7 text-zinc-400 hover:text-red-500"
+                                    title="Премахни документа"
+                                  >
+                                    <Trash2 className="size-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
                             )}
                           </div>
-                          <a
-                            href={form.watch("attachmentUrl")}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 font-medium underline underline-offset-2 hover:text-emerald-950 dark:hover:text-emerald-100"
-                          >
-                            Преглед
-                            <ExternalLink className="size-3" />
-                          </a>
-                        </div>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                        </FormControl>
+                        <FormDescription className="text-[10px] text-zinc-500">
+                          Поддържа PDF фактури, снимки и автоматично сканиране
+                          на НАП QR код от касови бележки.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
             </div>
@@ -731,6 +850,15 @@ export function TripExpenseDialog({
           </form>
         </Form>
       </DialogContent>
+
+      {/* Модал за сканиране с камера (телефон / лаптоп) */}
+      <DocumentCameraScannerDialog
+        open={isScannerOpen}
+        onOpenChange={setIsScannerOpen}
+        onCapture={(file, preParsedData) => {
+          handleFileUpload([file], preParsedData);
+        }}
+      />
     </Dialog>
   );
 }
