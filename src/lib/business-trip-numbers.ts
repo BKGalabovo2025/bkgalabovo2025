@@ -9,7 +9,7 @@ const LEGACY_AUTO_DECISION = /^[A-Z0-9А-ЯІЈ]{6,8}-(УС|YC|US)$/i;
 
 export function isAutoDecision(usDecision?: string | null): boolean {
   const v = (usDecision ?? "").trim();
-  return v === "" || LEGACY_AUTO_DECISION.test(v) || /^\d+-УС$/i.test(v);
+  return v === "" || LEGACY_AUTO_DECISION.test(v);
 }
 
 /** Основен пореден номер на командировката (число като стринг, напр. "1") */
@@ -70,7 +70,7 @@ const LEGACY_AUTO_PROTOCOL = /^[A-Z0-9А-ЯІЈ]{6,8}-(ПР|PR)$/i;
 
 export function isAutoProtocol(usProtocol?: string | null): boolean {
   const v = (usProtocol ?? "").trim();
-  return v === "" || LEGACY_AUTO_PROTOCOL.test(v) || /^\d+-ПР$/i.test(v);
+  return v === "" || LEGACY_AUTO_PROTOCOL.test(v);
 }
 
 export function getTripProtocolNumber(trip: BusinessTrip): string {

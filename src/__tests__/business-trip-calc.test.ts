@@ -424,5 +424,44 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(text).toContain("Мария Петрова");
       expect(text).toContain("Димитър Стоянов");
     });
+
+    it("should accurately reflect user's exact parameters: 9-ПР, 15.10.2026 г., 18:30 ч., зала Енергетик and 3 members", () => {
+      const userTrip: BusinessTrip = {
+        ...baseTrip,
+        usProtocolNumber: "9-ПР",
+        usDecisionDate: "15.10.2026 г.",
+        usMeetingTime: "18:30 ч.",
+        usMeetingLocation: 'Спортна зала "Енергетик" град Гълъбово',
+        usMeetingChair: "Мира Георгиева",
+        usMeetingSecretary: "Невена Георгиева",
+        usBoardMembers:
+          "1. Мира Георгиева — Председател на Управителния съвет\n2. Невена Георгиева - Член на Управителния съвет (редовно уведомен по установения ред)\n3. Наско Маджаров - Член на Управителния съвет (редовно уведомен по установения ред)",
+      };
+
+      expect(getTripProtocolNumber(userTrip)).toBe("9-ПР");
+
+      const text = generateDefaultProtocolText(
+        userTrip,
+        mockSite as unknown as SiteConfig,
+        mockMembers,
+        {
+          meetingDate: userTrip.usDecisionDate,
+          meetingTime: userTrip.usMeetingTime,
+          meetingLocation: userTrip.usMeetingLocation,
+          meetingChair: userTrip.usMeetingChair,
+          meetingSecretary: userTrip.usMeetingSecretary,
+          boardMembers: userTrip.usBoardMembers,
+          protocolNumber: userTrip.usProtocolNumber,
+        }
+      );
+
+      expect(text).toContain("15.10.2026 г.");
+      expect(text).toContain("18:30 ч.");
+      expect(text).toContain('Спортна зала "Енергетик" град Гълъбово');
+      expect(text).toContain("Мира Георгиева");
+      expect(text).toContain("Невена Георгиева");
+      expect(text).toContain("Наско Маджаров");
+      expect(text).toContain("протокол № 9-ПР");
+    });
   });
 });

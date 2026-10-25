@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -62,6 +63,7 @@ export function TripProtocolDialog({
   const [boardMembers, setBoardMembers] = useState("");
   const [protocolNumber, setProtocolNumber] = useState("");
   const [protocolText, setProtocolText] = useState("");
+  const [autoSyncText, setAutoSyncText] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -70,45 +72,97 @@ export function TripProtocolDialog({
       const rawDate = trip.usDecisionDate || trip.orderDate || trip.startDate;
       let dateVal = "";
       if (rawDate) {
-        try {
-          dateVal = format(new Date(rawDate), "yyyy-MM-dd");
-        } catch {
-          dateVal = rawDate.slice(0, 10);
+        const clean = rawDate.replace(/\s*г\.?$/u, "").trim();
+        const ddmmyyyy = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(clean);
+        if (ddmmyyyy) {
+          const [, d, m, y] = ddmmyyyy;
+          dateVal = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+        } else {
+          try {
+            dateVal = format(new Date(clean), "yyyy-MM-dd");
+          } catch {
+            dateVal = clean.slice(0, 10);
+          }
         }
       }
       setMeetingDate(dateVal);
 
       // Инициализация на основни полета
-      setMeetingTime(trip.usMeetingTime || "18:00 ч.");
-      setMeetingLocation(
-        trip.usMeetingLocation || "гр. Гълъбово, в седалището на сдружението"
-      );
-      setMeetingChair(trip.usMeetingChair || mol);
-      setMeetingSecretary(trip.usMeetingSecretary || "Член на УС");
+      const timeVal = trip.usMeetingTime || "18:00 ч.";
+      const locVal =
+        trip.usMeetingLocation || "гр. Гълъбово, в седалището на сдружението";
+      const chairVal = trip.usMeetingChair || mol;
+      const secVal = trip.usMeetingSecretary || "Член на УС";
+      const defMembers = `1. ${chairVal} — Председател на Управителния съвет\n2. Членове на Управителния съвет (редовно уведомени по установения ред)`;
+      const membersVal = trip.usBoardMembers || defMembers;
+      const protoNumVal = trip.usProtocolNumber || getTripProtocolNumber(trip);
 
-      const defMembers = `1. ${trip.usMeetingChair || mol} — Председател на Управителния съвет\n2. Членове на Управителния съвет (редовно уведомени по установения ред)`;
-      setBoardMembers(trip.usBoardMembers || defMembers);
-
-      setProtocolNumber(trip.usProtocolNumber || getTripProtocolNumber(trip));
+      setMeetingTime(timeVal);
+      setMeetingLocation(locVal);
+      setMeetingChair(chairVal);
+      setMeetingSecretary(secVal);
+      setBoardMembers(membersVal);
+      setProtocolNumber(protoNumVal);
 
       if (trip.protocolText && trip.protocolText.trim() !== "") {
         setProtocolText(trip.protocolText);
+        setAutoSyncText(false);
       } else {
+        setAutoSyncText(true);
         setProtocolText(
           generateDefaultProtocolText(trip, site, membersDict, {
             meetingDate: dateVal,
-            meetingTime: trip.usMeetingTime || "18:00 ч.",
-            meetingLocation:
-              trip.usMeetingLocation ||
-              "гр. Гълъбово, в седалището на сдружението",
-            meetingChair: trip.usMeetingChair || mol,
-            meetingSecretary: trip.usMeetingSecretary || "Член на УС",
-            boardMembers: trip.usBoardMembers || defMembers,
+            meetingTime: timeVal,
+            meetingLocation: locVal,
+            meetingChair: chairVal,
+            meetingSecretary: secVal,
+            boardMembers: membersVal,
+            protocolNumber: protoNumVal,
           })
         );
       }
     }
   }, [open, trip, membersDict, mol, site]);
+
+  const updateFieldsAndSync = (next: {
+    date?: string;
+    time?: string;
+    location?: string;
+    chair?: string;
+    secretary?: string;
+    members?: string;
+    protoNum?: string;
+  }) => {
+    const d = next.date !== undefined ? next.date : meetingDate;
+    const t = next.time !== undefined ? next.time : meetingTime;
+    const loc = next.location !== undefined ? next.location : meetingLocation;
+    const ch = next.chair !== undefined ? next.chair : meetingChair;
+    const sec =
+      next.secretary !== undefined ? next.secretary : meetingSecretary;
+    const mem = next.members !== undefined ? next.members : boardMembers;
+    const pNum = next.protoNum !== undefined ? next.protoNum : protocolNumber;
+
+    if (next.date !== undefined) setMeetingDate(next.date);
+    if (next.time !== undefined) setMeetingTime(next.time);
+    if (next.location !== undefined) setMeetingLocation(next.location);
+    if (next.chair !== undefined) setMeetingChair(next.chair);
+    if (next.secretary !== undefined) setMeetingSecretary(next.secretary);
+    if (next.members !== undefined) setBoardMembers(next.members);
+    if (next.protoNum !== undefined) setProtocolNumber(next.protoNum);
+
+    if (autoSyncText && trip) {
+      const regenerated = generateDefaultProtocolText(trip, site, membersDict, {
+        meetingDate: d,
+        meetingTime: t,
+        meetingLocation: loc,
+        meetingChair: ch,
+        meetingSecretary: sec,
+        boardMembers: mem,
+        protocolNumber: pNum,
+      });
+      setProtocolText(regenerated);
+    }
+  };
 
   const handleResetToDefaultText = () => {
     if (!trip) return;
@@ -119,8 +173,10 @@ export function TripProtocolDialog({
       meetingChair,
       meetingSecretary,
       boardMembers,
+      protocolNumber,
     });
     setProtocolText(text);
+    setAutoSyncText(true);
     toast.info("Текстът на протокола бе прегенериран от текущите полета.");
   };
 
@@ -205,8 +261,10 @@ export function TripProtocolDialog({
                 <Input
                   id="proto-num"
                   value={protocolNumber}
-                  onChange={(e) => setProtocolNumber(e.target.value)}
-                  placeholder="напр. 1-ПР"
+                  onChange={(e) =>
+                    updateFieldsAndSync({ protoNum: e.target.value })
+                  }
+                  placeholder="напр. 9-ПР"
                   className="bg-white dark:bg-slate-950"
                 />
               </div>
@@ -219,7 +277,9 @@ export function TripProtocolDialog({
                   id="proto-date"
                   type="date"
                   value={meetingDate}
-                  onChange={(e) => setMeetingDate(e.target.value)}
+                  onChange={(e) =>
+                    updateFieldsAndSync({ date: e.target.value })
+                  }
                   className="bg-white dark:bg-slate-950"
                 />
               </div>
@@ -234,8 +294,10 @@ export function TripProtocolDialog({
                 <Input
                   id="proto-time"
                   value={meetingTime}
-                  onChange={(e) => setMeetingTime(e.target.value)}
-                  placeholder="напр. 18:00 ч."
+                  onChange={(e) =>
+                    updateFieldsAndSync({ time: e.target.value })
+                  }
+                  placeholder="напр. 18:30 ч."
                   className="bg-white dark:bg-slate-950"
                 />
               </div>
@@ -250,8 +312,10 @@ export function TripProtocolDialog({
                 <Input
                   id="proto-location"
                   value={meetingLocation}
-                  onChange={(e) => setMeetingLocation(e.target.value)}
-                  placeholder="гр. Гълъбово, в седалището"
+                  onChange={(e) =>
+                    updateFieldsAndSync({ location: e.target.value })
+                  }
+                  placeholder="напр. Спортна зала 'Енергетик' град Гълъбово"
                   className="bg-white dark:bg-slate-950"
                 />
               </div>
@@ -272,7 +336,9 @@ export function TripProtocolDialog({
                 <Input
                   id="proto-chair"
                   value={meetingChair}
-                  onChange={(e) => setMeetingChair(e.target.value)}
+                  onChange={(e) =>
+                    updateFieldsAndSync({ chair: e.target.value })
+                  }
                   placeholder="Име на председателя"
                   className="bg-white dark:bg-slate-950"
                 />
@@ -285,7 +351,9 @@ export function TripProtocolDialog({
                 <Input
                   id="proto-secretary"
                   value={meetingSecretary}
-                  onChange={(e) => setMeetingSecretary(e.target.value)}
+                  onChange={(e) =>
+                    updateFieldsAndSync({ secretary: e.target.value })
+                  }
                   placeholder="Име на протоколчика"
                   className="bg-white dark:bg-slate-950"
                 />
@@ -297,9 +365,11 @@ export function TripProtocolDialog({
                 </Label>
                 <Textarea
                   id="proto-members"
-                  rows={2}
+                  rows={3}
                   value={boardMembers}
-                  onChange={(e) => setBoardMembers(e.target.value)}
+                  onChange={(e) =>
+                    updateFieldsAndSync({ members: e.target.value })
+                  }
                   placeholder="Списък с членове на Управителния съвет..."
                   className="bg-white text-xs dark:bg-slate-950"
                 />
@@ -310,13 +380,15 @@ export function TripProtocolDialog({
           {/* Секция 3: Пълен текст на протокола */}
           <div className="space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <Label
-                htmlFor="proto-text"
-                className="text-sm font-semibold text-slate-800 dark:text-slate-200"
-              >
-                3. Пълен текст на Протокола (дневен ред, разисквания, гласуване,
-                решения)
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor="proto-text"
+                  className="text-sm font-semibold text-slate-800 dark:text-slate-200"
+                >
+                  3. Пълен текст на Протокола (дневен ред, разисквания,
+                  гласуване, решения)
+                </Label>
+              </div>
               <Button
                 type="button"
                 variant="outline"
@@ -328,16 +400,55 @@ export function TripProtocolDialog({
                 Прегенерирай от горните полета
               </Button>
             </div>
+
+            <div className="flex items-center gap-2 pt-1 pb-0.5">
+              <Checkbox
+                id="auto-sync-text"
+                checked={autoSyncText}
+                onCheckedChange={(checked) => {
+                  const val = Boolean(checked);
+                  setAutoSyncText(val);
+                  if (val && trip) {
+                    const text = generateDefaultProtocolText(
+                      trip,
+                      site,
+                      membersDict,
+                      {
+                        meetingDate,
+                        meetingTime,
+                        meetingLocation,
+                        meetingChair,
+                        meetingSecretary,
+                        boardMembers,
+                        protocolNumber,
+                      }
+                    );
+                    setProtocolText(text);
+                  }
+                }}
+              />
+              <Label
+                htmlFor="auto-sync-text"
+                className="cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300"
+              >
+                Автоматично актуализирай текста при промяна на горните полета
+                (Дата, Час, Място, Членове)
+              </Label>
+            </div>
+
             <p className="text-xs text-muted-foreground">
-              Можете да редактирате свободно всеки абзац от протокола.
-              Редактираният текст се отпечатва директно в официалния PDF
-              документ.
+              {autoSyncText
+                ? "🟢 В момента текстът се обновява автоматично според въведените по-горе реквизити."
+                : "✏️ Режим на ръчно редактиране. Въведените от вас промени в текста се запазват."}
             </p>
             <Textarea
               id="proto-text"
               rows={14}
               value={protocolText}
-              onChange={(e) => setProtocolText(e.target.value)}
+              onChange={(e) => {
+                setProtocolText(e.target.value);
+                setAutoSyncText(false);
+              }}
               className="font-mono text-xs leading-relaxed"
               placeholder="Въведете или коригирайте текста на протокола..."
             />

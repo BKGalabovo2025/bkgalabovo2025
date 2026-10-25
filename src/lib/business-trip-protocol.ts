@@ -17,14 +17,21 @@ export interface ProtocolTextOptions {
   meetingChair?: string;
   meetingSecretary?: string;
   boardMembers?: string;
+  protocolNumber?: string;
 }
 
 export function formatProtocolDate(dateStr?: string): string {
   if (!dateStr) return "—";
+  const clean = dateStr.replace(/\s*г\.?$/u, "").trim();
+  const ddmmyyyy = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(clean);
+  if (ddmmyyyy) {
+    const [, d, m, y] = ddmmyyyy;
+    return `${d.padStart(2, "0")}.${m.padStart(2, "0")}.${y}`;
+  }
   try {
-    return format(new Date(dateStr), "dd.MM.yyyy", { locale: bg });
+    return format(new Date(clean), "dd.MM.yyyy", { locale: bg });
   } catch {
-    return dateStr;
+    return clean;
   }
 }
 
@@ -75,7 +82,8 @@ export function generateDefaultProtocolText(
 
   const orderNum = getTripOrderNumber(trip);
   const decisionNum = getTripDecisionNumber(trip);
-  const protocolNum = getTripProtocolNumber(trip);
+  const protocolNum =
+    options?.protocolNumber?.trim() || getTripProtocolNumber(trip);
 
   const decisionDateFmt = formatProtocolDate(
     options?.meetingDate ||

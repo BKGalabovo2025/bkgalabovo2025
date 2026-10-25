@@ -284,10 +284,16 @@ export function BusinessTripPdfTemplates({
 
   const fmtDate = (d?: string) => {
     if (!d) return "—";
+    const clean = d.replace(/\s*г\.?$/u, "").trim();
+    const ddmmyyyy = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(clean);
+    if (ddmmyyyy) {
+      const [, day, month, year] = ddmmyyyy;
+      return `${day.padStart(2, "0")}.${month.padStart(2, "0")}.${year}`;
+    }
     try {
-      return format(new Date(d), "dd.MM.yyyy", { locale: bg });
+      return format(new Date(clean), "dd.MM.yyyy", { locale: bg });
     } catch {
-      return d;
+      return clean;
     }
   };
   const startD = new Date(trip.startDate);
@@ -506,7 +512,8 @@ export function BusinessTripPdfTemplates({
     if (cleanNum.includes("/") || cleanNum.toLowerCase().includes("от")) {
       return cleanNum;
     }
-    return `${cleanNum} / ${decisionDate} г.`;
+    const cleanDate = decisionDate.replace(/\s*г\.?$/u, "").trim();
+    return `${cleanNum} / ${cleanDate} г.`;
   };
 
   const getProtocolHeader = (): string => {
@@ -515,7 +522,8 @@ export function BusinessTripPdfTemplates({
     if (cleanNum.includes("/") || cleanNum.toLowerCase().includes("от")) {
       return cleanNum;
     }
-    return `${cleanNum} / ${decisionDate} г.`;
+    const cleanDate = decisionDate.replace(/\s*г\.?$/u, "").trim();
+    return `${cleanNum} / ${cleanDate} г.`;
   };
 
   const destCity = trip.destination || "___________";
