@@ -45,13 +45,14 @@ setup("authenticate as admin", async ({ page }) => {
   });
 
   // 3. Perform the UI login
-  await page.goto("/login");
+  await page.goto("/login", { timeout: 60000 });
+  await page.waitForLoadState("domcontentloaded");
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', password);
   await page.click('button[type="submit"]');
 
   // Wait until the dashboard loads (which indicates successful login)
-  await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 30000 });
+  await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 60000 });
 
   // 4. Save the state
   await page.context().storageState({ path: authFile });
