@@ -30,7 +30,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getSiteConfig } from "@/config/sites";
 import { getTripProtocolNumber } from "@/lib/business-trip-numbers";
-import { generateDefaultProtocolText } from "@/lib/business-trip-protocol";
+import {
+  cleanProtocolText,
+  generateDefaultProtocolText,
+} from "@/lib/business-trip-protocol";
 import { businessTripService } from "@/services/business-trip-service";
 import { BusinessTrip } from "@/types/business-trip.types";
 import { Member } from "@/types/member.types";
@@ -105,7 +108,7 @@ export function TripProtocolDialog({
       setProtocolNumber(protoNumVal);
 
       if (trip.protocolText && trip.protocolText.trim() !== "") {
-        setProtocolText(trip.protocolText);
+        setProtocolText(cleanProtocolText(trip.protocolText));
         setAutoSyncText(false);
       } else {
         setAutoSyncText(true);

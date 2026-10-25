@@ -17,7 +17,11 @@ import {
   getTripReportNumber,
   getTripStatementNumber,
 } from "../lib/business-trip-numbers";
-import { generateDefaultProtocolText } from "../lib/business-trip-protocol";
+import {
+  cleanProtocolText,
+  formatOrgName,
+  generateDefaultProtocolText,
+} from "../lib/business-trip-protocol";
 import { BusinessTrip } from "../types/business-trip.types";
 import { Member } from "../types/member.types";
 
@@ -392,8 +396,9 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
 
       expect(text).toContain("протокол № 5-ПР");
       expect(text).toContain(
-        'Управителния съвет на „СНЦ "Бадминтон клуб Гълъбово"“'
+        "Управителния съвет на СНЦ „Бадминтон клуб Гълъбово“"
       );
+      expect(text).not.toContain('„СНЦ "Бадминтон клуб Гълъбово"“');
       expect(text).toContain("Държавно първенство по бадминтон");
       expect(text).toContain("Пламен Михалев");
       expect(text).toContain("Георги Иванов");
@@ -462,6 +467,34 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(text).toContain("Невена Георгиева");
       expect(text).toContain("Наско Маджаров");
       expect(text).toContain("протокол № 9-ПР");
+    });
+
+    it("should format organization name correctly without nested or doubled quotation marks", () => {
+      expect(formatOrgName('СНЦ "Бадминтон клуб Гълъбово"')).toBe(
+        "СНЦ „Бадминтон клуб Гълъбово“"
+      );
+      expect(formatOrgName('СНЦ "Бадминтон клуб Гълъбово"', true)).toBe(
+        "СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“"
+      );
+      expect(formatOrgName('„СНЦ "БАДМИНТОН КЛУБ ГЪЛЪБОВО""', true)).toBe(
+        "СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“"
+      );
+      expect(formatOrgName("Бадминтон клуб Гълъбово", true)).toBe(
+        "„БАДМИНТОН КЛУБ ГЪЛЪБОВО“"
+      );
+      expect(formatOrgName("Бадминтон клуб Гълъбово")).toBe(
+        "„Бадминтон клуб Гълъбово“"
+      );
+    });
+
+    it("should clean up doubled quotation marks in stored protocol text", () => {
+      const dirty =
+        'ОТ ЗАСЕДАНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ НА „СНЦ "БАДМИНТОН КЛУБ ГЪЛЪБОВО"" се проведе заседание на „СНЦ "Бадминтон клуб Гълъбово"“.';
+      const cleaned = cleanProtocolText(dirty);
+      expect(cleaned).toContain("СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“");
+      expect(cleaned).toContain("СНЦ „Бадминтон клуб Гълъбово“");
+      expect(cleaned).not.toContain('„СНЦ "БАДМИНТОН КЛУБ ГЪЛЪБОВО""');
+      expect(cleaned).not.toContain('„СНЦ "Бадминтон клуб Гълъбово"“');
     });
   });
 });

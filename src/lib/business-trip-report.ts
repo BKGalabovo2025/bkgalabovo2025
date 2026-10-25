@@ -5,6 +5,7 @@ import {
   getTripDecisionNumber,
   getTripOrderNumber,
 } from "@/lib/business-trip-numbers";
+import { formatOrgName } from "@/lib/business-trip-protocol";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
@@ -380,7 +381,7 @@ export function generateDefaultReportText(
   );
 
   return `1. ПРОВЕЖДАНЕ И ОФИЦИАЛНО УЧАСТИЕ:
-В периода от ${startStr} г. до ${endStr} г. представителният отбор на „${site.name}“ взе официално участие в състезанието ${trip.title}, проведено в ${destCity}. Турнирът се организира от ${organizer} с клуб домакин ${hostClub}. Участието се осъществи въз основа на Заповед за командировка № ${orderNum} от ${orderDate} г. и Решение на УС № ${decisionNum} от ${decisionDate} г.${protocolNum ? `${protocolNum}.` : ""} Отборът бе ръководен от ${coachName} (${coachRole}) с делегация от ${athletesCount} командировани състезатели: ${athletesStr}.
+В периода от ${startStr} г. до ${endStr} г. представителният отбор на ${formatOrgName(site.name)} взе официално участие в състезанието ${trip.title}, проведено в ${destCity}. Турнирът се организира от ${organizer} с клуб домакин ${hostClub}. Участието се осъществи въз основа на Заповед за командировка № ${orderNum} от ${orderDate} г. и Решение на УС № ${decisionNum} от ${decisionDate} г.${protocolNum ? `${protocolNum}.` : ""} Отборът бе ръководен от ${coachName} (${coachRole}) с делегация от ${athletesCount} командировани състезатели: ${athletesStr}.
 
 2. СПОРТНО-ТЕХНИЧЕСКИ РЕЗУЛТАТИ И ПРЕДСТАВЯНЕ:
 Състезателите на клуба взеха участие в утвърдените турнирни дисциплини съгласно Държавния спортен календар на БФ Бадминтон. Отборът демонстрира отлична състезателна подготовка, висок спортен дух, отборен синхрон и стриктна дисциплина на и извън корта. Всички срещи се проведоха при спазване на състезателния правилник и указанията на треньора. Поставените цели за турнира и спортно-техническото представяне са изпълнени успешно.

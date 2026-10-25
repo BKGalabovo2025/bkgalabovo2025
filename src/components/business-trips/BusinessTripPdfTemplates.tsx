@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable react/forbid-dom-props */
-/* eslint-disable react/no-unescaped-entities */
+
 /* eslint-disable @next/next/no-img-element */
 
 import { differenceInCalendarDays, format } from "date-fns";
@@ -22,6 +22,7 @@ import {
   getTripStatementNumber,
   resolveTripNumbers,
 } from "@/lib/business-trip-numbers";
+import { cleanProtocolText, formatOrgName } from "@/lib/business-trip-protocol";
 import { generateDefaultReportText } from "@/lib/business-trip-report";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
@@ -678,7 +679,7 @@ export function BusinessTripPdfTemplates({
                   color: "#0f172a",
                 }}
               >
-                „{site.shortName.toUpperCase()}"
+                {formatOrgName(site.shortName, true)}
               </p>
               {site.bulstat && (
                 <p
@@ -715,7 +716,8 @@ export function BusinessTripPdfTemplates({
               color: "#0f172a",
             }}
           >
-            ОТ ЗАСЕДАНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ НА „{site.name.toUpperCase()}“
+            ОТ ЗАСЕДАНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ НА{" "}
+            {formatOrgName(site.name, true)}
           </p>
           <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
             <span>{getProtocolHeader()}</span>
@@ -732,30 +734,32 @@ export function BusinessTripPdfTemplates({
               whiteSpace: "pre-line",
             }}
           >
-            {trip.protocolText.split(/\n\s*\n/).map((para, i) => (
-              <p
-                key={i}
-                style={{
-                  margin: "3pt 0",
-                  textIndent:
-                    para.startsWith("•") ||
-                    para.startsWith("1.") ||
-                    para.startsWith("2.") ||
-                    para.startsWith("3.") ||
-                    para.startsWith("4.") ||
-                    para.startsWith("5.") ||
-                    para.startsWith("ПРИСЪСТВАТ") ||
-                    para.startsWith("ДНЕВЕН РЕД") ||
-                    para.startsWith("ПО ТОЧКА") ||
-                    para.startsWith("ВЪЗ ОСНОВА") ||
-                    para.includes(":")
-                      ? "0"
-                      : "15pt",
-                }}
-              >
-                {para}
-              </p>
-            ))}
+            {cleanProtocolText(trip.protocolText)
+              .split(/\n\s*\n/)
+              .map((para, i) => (
+                <p
+                  key={i}
+                  style={{
+                    margin: "3pt 0",
+                    textIndent:
+                      para.startsWith("•") ||
+                      para.startsWith("1.") ||
+                      para.startsWith("2.") ||
+                      para.startsWith("3.") ||
+                      para.startsWith("4.") ||
+                      para.startsWith("5.") ||
+                      para.startsWith("ПРИСЪСТВАТ") ||
+                      para.startsWith("ДНЕВЕН РЕД") ||
+                      para.startsWith("ПО ТОЧКА") ||
+                      para.startsWith("ВЪЗ ОСНОВА") ||
+                      para.includes(":")
+                        ? "0"
+                        : "15pt",
+                  }}
+                >
+                  {para}
+                </p>
+              ))}
           </div>
         ) : (
           <div
@@ -768,8 +772,8 @@ export function BusinessTripPdfTemplates({
           >
             <p style={{ marginBottom: "5pt", textIndent: "15pt" }}>
               Днес, <strong>{decisionDate} г.</strong>, в {meetingLocation}, в{" "}
-              {meetingTime} се проведе заседание на Управителния съвет на „
-              {site.name}“.
+              {meetingTime} се проведе заседание на Управителния съвет на{" "}
+              {formatOrgName(site.name)}.
             </p>
 
             <p style={{ marginBottom: "3pt", fontWeight: "700" }}>
@@ -1048,7 +1052,7 @@ export function BusinessTripPdfTemplates({
                   color: "#0f172a",
                 }}
               >
-                „{site.shortName.toUpperCase()}"
+                {formatOrgName(site.shortName, true)}
               </p>
               {site.bulstat && (
                 <p
@@ -1085,7 +1089,7 @@ export function BusinessTripPdfTemplates({
               color: "#0f172a",
             }}
           >
-            НА УПРАВИТЕЛНИЯ СЪВЕТ НА „{site.name.toUpperCase()}“
+            НА УПРАВИТЕЛНИЯ СЪВЕТ НА {formatOrgName(site.name, true)}
           </p>
           <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
             <span>{getDecisionHeader()}</span>
@@ -1100,12 +1104,12 @@ export function BusinessTripPdfTemplates({
             lineHeight: "1.5",
           }}
         >
-          Днес, <strong>{decisionDate} г.</strong>, Управителният съвет на „
-          {site.name}“, на основание Устава на сдружението, Държавния спортен
-          календар на БФ Бадминтон и разпоредбите на Наредбата за командировките
-          в страната (НКС), проведе заседание относно финансовото,
-          организационното и транспортното обезпечаване на предстоящо спортно
-          участие.
+          Днес, <strong>{decisionDate} г.</strong>, Управителният съвет на{" "}
+          {formatOrgName(site.name)}, на основание Устава на сдружението,
+          Държавния спортен календар на БФ Бадминтон и разпоредбите на Наредбата
+          за командировките в страната (НКС), проведе заседание относно
+          финансовото, организационното и транспортното обезпечаване на
+          предстоящо спортно участие.
         </p>
 
         <p
@@ -1123,9 +1127,9 @@ export function BusinessTripPdfTemplates({
 
         <div style={{ lineHeight: "1.6", textAlign: "justify" }}>
           <p style={{ marginBottom: "6pt" }}>
-            <strong>1.</strong> Одобрява участието на състезатели и треньори на
-            „{site.name}“ в: <strong>{trip.title}</strong>, провеждащо се в
-            периода{" "}
+            <strong>1.</strong> Одобрява участието на състезатели и треньори на{" "}
+            {formatOrgName(site.name)} в: <strong>{trip.title}</strong>,
+            провеждащо се в периода{" "}
             <strong>
               {fmtDate(trip.startDate)} г.
               {trip.startDate !== trip.endDate
@@ -1390,7 +1394,7 @@ export function BusinessTripPdfTemplates({
                   color: "#0f172a",
                 }}
               >
-                „{site.shortName.toUpperCase()}"
+                {formatOrgName(site.shortName, true)}
               </p>
               {site.bulstat && (
                 <p
@@ -1543,8 +1547,8 @@ export function BusinessTripPdfTemplates({
             color: "#0f172a",
           }}
         >
-          Разходите за командировката са за сметка на „{site.shortName}" гр.
-          Гълъбово.
+          Разходите за командировката са за сметка на{" "}
+          {formatOrgName(site.shortName)} гр. Гълъбово.
         </p>
         <div
           style={{
@@ -2432,7 +2436,7 @@ export function BusinessTripPdfTemplates({
                     color: "#0f172a",
                   }}
                 >
-                  „{site.shortName.toUpperCase()}"
+                  {formatOrgName(site.shortName, true)}
                 </p>
                 {site.bulstat && (
                   <p
@@ -2670,7 +2674,7 @@ export function BusinessTripPdfTemplates({
                     color: "#0f172a",
                   }}
                 >
-                  „{site.shortName.toUpperCase()}"
+                  {formatOrgName(site.shortName, true)}
                 </p>
                 {site.bulstat && (
                   <p
@@ -2997,7 +3001,7 @@ export function BusinessTripPdfTemplates({
                         color: "#0f172a",
                       }}
                     >
-                      „{site.shortName.toUpperCase()}"
+                      {formatOrgName(site.shortName, true)}
                     </p>
                     {site.bulstat && (
                       <p
@@ -3036,7 +3040,7 @@ export function BusinessTripPdfTemplates({
                     fontWeight: "600",
                   }}
                 >
-                  на състезателите от „{site.shortName.toUpperCase()}“
+                  на състезателите от {formatOrgName(site.shortName, true)}
                 </p>
                 <p
                   style={{
@@ -3299,7 +3303,7 @@ export function BusinessTripPdfTemplates({
                       color: "#0f172a",
                     }}
                   >
-                    „{site.shortName.toUpperCase()}“
+                    {formatOrgName(site.shortName, true)}
                   </p>
                   {site.bulstat && (
                     <p
