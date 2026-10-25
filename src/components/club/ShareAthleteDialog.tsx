@@ -109,7 +109,7 @@ export function ShareAthleteDialog({
     [member.firstName, member.lastName].filter(Boolean).join(" ") ||
     "Състезател";
 
-  const shareTitle = `Дигитална карта на ${athleteName} | БК Гълъбово`;
+  const shareTitle = `Дигитална карта на ${athleteName} | Бадминтон клуб Гълъбово`;
   const shareText = `Вижте профила и турнирните участия на ${athleteName} (${levelText}, ${ageGroup}) в СНЦ Бадминтон Клуб Гълъбово! 🏸🏆`;
 
   // 1. Copy Link
@@ -234,25 +234,25 @@ export function ShareAthleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-blue-500/20 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
-        <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 p-4 sm:p-5 pr-12 text-left space-y-1">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-blue-500/20 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
+        <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 text-left space-y-0.5">
           <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-blue-400 uppercase">
-            <Share2 className="size-4" />
+            <Share2 className="size-3.5" />
             <span>Официална карта за споделяне</span>
           </div>
-          <DialogTitle className="text-xl sm:text-2xl font-light text-white">
+          <DialogTitle className="text-base sm:text-lg font-bold text-white">
             Сподели{" "}
             <span className="font-semibold text-blue-400">{athleteName}</span>
           </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm text-zinc-400">
+          <DialogDescription className="text-xs text-zinc-400">
             Изтеглете или споделете профила на състезателя във Facebook,
             Instagram, Viber или WhatsApp.
           </DialogDescription>
         </div>
 
-        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5 min-h-0">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3.5 min-h-0">
           {/* 🏸 Digital Card Preview */}
-          <div className="relative overflow-hidden rounded-3xl border border-blue-500/30 bg-linear-to-b from-blue-950/40 via-zinc-900/60 to-black p-6 shadow-[0_0_40px_rgba(30,58,138,0.2)]">
+          <div className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-linear-to-b from-blue-950/40 via-zinc-900/60 to-black p-4 sm:p-5 shadow-[0_0_40px_rgba(30,58,138,0.2)]">
             <div className="pointer-events-none absolute -top-12 -right-12 size-48 rounded-full bg-blue-500/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-12 -left-12 size-48 rounded-full bg-blue-600/10 blur-3xl" />
 
@@ -262,7 +262,7 @@ export function ShareAthleteDialog({
                 <div className="relative size-10 overflow-hidden rounded-xl border border-blue-500/30 bg-blue-950/60 p-1">
                   <Image
                     src="/icons/badge-option-3-light-squircle.png"
-                    alt="БК Гълъбово"
+                    alt="Бадминтон клуб Гълъбово"
                     fill
                     className="object-contain"
                     unoptimized
@@ -270,10 +270,7 @@ export function ShareAthleteDialog({
                 </div>
                 <div>
                   <p className="text-xs font-bold tracking-wider text-white uppercase">
-                    БК Гълъбово
-                  </p>
-                  <p className="text-[10px] tracking-widest text-blue-400 uppercase">
-                    Школа за шампиони
+                    Бадминтон клуб Гълъбово
                   </p>
                 </div>
               </div>
@@ -292,6 +289,8 @@ export function ShareAthleteDialog({
                     alt={member.name}
                     fill
                     unoptimized
+                    priority
+                    loading="eager"
                     sizes="128px"
                     className="object-cover"
                   />
@@ -326,9 +325,9 @@ export function ShareAthleteDialog({
 
                 {/* School / Kindergarten */}
                 {member.educationInstitution && (
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-zinc-400 sm:justify-start">
-                    <GraduationCap className="size-4 shrink-0 text-blue-400" />
-                    <span className="font-medium text-zinc-300">
+                  <div className="flex items-start justify-center gap-1.5 text-xs text-zinc-400 sm:justify-start">
+                    <GraduationCap className="mt-0.5 size-4 shrink-0 text-blue-400" />
+                    <span className="font-medium text-zinc-300 leading-snug wrap-break-word">
                       {member.educationInstitution}
                     </span>
                   </div>
@@ -355,14 +354,14 @@ export function ShareAthleteDialog({
                   В момента състезателят се подготвя за предстоящи турнири.
                 </p>
               ) : (
-                <div className="max-h-36 space-y-1.5 overflow-y-auto pr-1">
+                <div className="max-h-48 space-y-1.5 overflow-y-auto pr-1">
                   {tournaments.map((t, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-2 rounded-lg bg-zinc-900/50 px-2.5 py-1.5 text-xs text-zinc-300"
+                      className="flex items-start gap-2 rounded-lg bg-zinc-900/50 px-2.5 py-1.5 text-xs text-zinc-300"
                     >
-                      <span className="size-1.5 rounded-full bg-blue-500" />
-                      <span className="truncate">{t}</span>
+                      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-blue-500" />
+                      <span className="leading-snug wrap-break-word">{t}</span>
                     </div>
                   ))}
                 </div>
@@ -487,10 +486,10 @@ export function ShareAthleteDialog({
         </div>
 
         {/* Native Mobile Share Sticky Footer */}
-        <div className="shrink-0 border-t border-zinc-800/80 bg-zinc-900/60 p-4 sm:p-5">
+        <div className="shrink-0 border-t border-zinc-800/80 bg-zinc-900/60 px-4 py-2.5 sm:px-5 sm:py-3">
           <button
             onClick={handleNativeShare}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-blue-600 to-blue-500 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all hover:from-blue-500 hover:to-blue-400 active:scale-95 cursor-pointer"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-500 py-2.5 text-xs font-semibold text-white shadow-lg shadow-blue-600/30 transition-all hover:from-blue-500 hover:to-blue-400 active:scale-95 cursor-pointer"
           >
             <Share2 className="size-4" />
             <span>Сподели през мобилно устройство</span>

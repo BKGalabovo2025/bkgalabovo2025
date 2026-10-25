@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import {
@@ -575,10 +574,10 @@ export function TemplatesTab({
         open={Boolean(previewTemplate)}
         onOpenChange={(open) => !open && setPreviewTemplate(null)}
       >
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl lg:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl lg:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
-          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
                   <Badge
@@ -640,7 +639,7 @@ export function TemplatesTab({
           </div>
 
           {/* Scrollable Body Container */}
-          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 min-h-0">
             {previewTemplate && (
               <div className="flex flex-col items-center justify-center py-2">
                 <div className="flex w-full items-center justify-center overflow-hidden">
@@ -679,12 +678,13 @@ export function TemplatesTab({
           </div>
 
           {/* Fixed Sticky Footer */}
-          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => setPreviewTemplate(null)}
-              className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+              className="h-9 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             >
               Затвори
             </Button>

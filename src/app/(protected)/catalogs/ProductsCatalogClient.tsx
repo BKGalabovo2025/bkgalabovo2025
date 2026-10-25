@@ -348,11 +348,11 @@ export default function ProductsCatalogClient({
             return (
               <BentoCard
                 key={p.id}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-none transition-all duration-300 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none transition-all duration-300 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
               >
                 <div>
                   {/* Top image / badge area */}
-                  <div className="relative mb-4 flex h-36 w-full items-center justify-center overflow-hidden rounded-2xl bg-zinc-50 dark:bg-zinc-900/60">
+                  <div className="relative mb-3 flex h-32 sm:h-36 w-full items-center justify-center overflow-hidden rounded-xl bg-zinc-50 dark:bg-zinc-900/60">
                     {sanitizeImageUrl(p.imageUrl) ? (
                       <div className="relative size-full">
                         <Image
@@ -448,11 +448,11 @@ export default function ProductsCatalogClient({
 
       {/* Add / Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Header */}
-          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
             <div className="flex items-center gap-3 pr-8">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-950">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-950">
                 {editingProduct ? (
                   <Edit2 className="size-4" />
                 ) : (
@@ -480,7 +480,7 @@ export default function ProductsCatalogClient({
             className="flex flex-1 flex-col overflow-hidden min-h-0"
           >
             {/* Scrollable Body (Only middle scrolls if screen height requires it) */}
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 min-h-0">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
                 {/* Left Column: Product Data */}
                 <div className="space-y-3.5 sm:space-y-4 md:col-span-7">
@@ -627,7 +627,7 @@ export default function ProductsCatalogClient({
             </div>
 
             {/* Fixed Sticky Footer */}
-            <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 type="button"
                 variant="outline"

@@ -48,7 +48,7 @@ function GlobalHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b border-zinc-100 bg-white/80 px-4 backdrop-blur-md transition-all dark:border-zinc-800 dark:bg-zinc-950/80">
+    <header className="sticky top-0 z-50 flex h-14 w-full items-center justify-between border-b border-zinc-100 bg-white/80 px-4 backdrop-blur-md transition-all dark:border-zinc-800 dark:bg-zinc-950/80">
       <div className="flex items-center gap-6">
         <SidebarTrigger className="size-10 shrink-0 rounded-xl border border-zinc-200 bg-white shadow-sm transition-all hover:bg-zinc-100 active:scale-95 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900" />
 
@@ -161,7 +161,7 @@ export default function ProtectedLayoutClient({
           >
             <div
               key={`content-${activeBranch}`}
-              className="mx-auto max-w-350 p-3.5 duration-1000 animate-in fade-in slide-in-from-bottom-2 sm:p-5 md:p-6 lg:p-6 xl:p-8"
+              className="mx-auto max-w-full 2xl:max-w-7xl px-3 py-2.5 sm:px-4 sm:py-3 md:px-5 md:py-3.5 lg:px-6 lg:py-4 duration-500 animate-in fade-in"
             >
               {children}
             </div>

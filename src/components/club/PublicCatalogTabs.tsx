@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable sonarjs/no-nested-conditional */
+
 "use client";
 
 import {
@@ -421,7 +420,7 @@ function CatalogCard({
   };
 
   return (
-    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900 shadow-none transition-all duration-500 hover:border-zinc-700/80 hover:shadow-xl hover:shadow-blue-900/5 sm:rounded-3xl">
+    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900 shadow-none transition-all duration-300 hover:border-zinc-700">
       {/* Product Image section with navigation */}
       <div className="relative flex h-40 w-full shrink-0 items-center justify-center overflow-hidden border-b border-zinc-800/60 bg-zinc-950 sm:h-44 md:h-48">
         {renderImages()}
@@ -590,9 +589,9 @@ function CatalogCard({
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white [&>button:last-child]:z-10">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white [&>button:last-child]:z-10">
           <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain min-h-0">
-            <div className="relative h-56 sm:h-64 w-full bg-black">
+            <div className="relative h-48 sm:h-56 w-full bg-black">
               <ImageGallery
                 images={images}
                 displayMode="carousel"
@@ -601,13 +600,13 @@ function CatalogCard({
                 fallbackText={lang === "en" ? "No image" : "Няма снимка"}
               />
               <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
-              <div className="pointer-events-none absolute top-4 left-4">
+              <div className="pointer-events-none absolute top-3 left-3">
                 {renderBadges()}
               </div>
             </div>
 
-            <div className="relative -mt-16 p-5 sm:p-6 md:p-8">
-              <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5 sm:p-6 shadow-2xl backdrop-blur-xl">
+            <div className="relative -mt-12 p-3.5 sm:p-4.5">
+              <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
                 <DialogHeader>
                   <DialogTitle className="mb-2 text-xl sm:text-2xl leading-tight font-bold text-white">
                     <span>{renderTranslatedText(item.name, lang)}</span>

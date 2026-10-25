@@ -98,24 +98,24 @@ export function ServiceForm({
       action={onSubmit}
       className="space-y-8 pb-12 duration-500 animate-in fade-in"
     >
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3">
         {/* Left Column: Basic Info */}
-        <div className="space-y-8 lg:col-span-2">
-          <BentoCard className="rounded-5xl border-zinc-100 bg-white p-8 shadow-none">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="rounded-xl bg-blue-50 p-2.5 text-blue-600">
-                <Info className="size-5" strokeWidth={1.5} />
+        <div className="space-y-4 sm:space-y-5 lg:col-span-2">
+          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4.5 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="rounded-xl bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/40">
+                <Info className="size-4.5" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-light tracking-tight">
+              <h3 className="text-lg font-light tracking-tight text-zinc-900 sm:text-xl dark:text-white">
                 Основна информация
               </h3>
             </div>
 
-            <div className="space-y-6">
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
                 <Label
                   htmlFor="name"
-                  className="ml-1 font-medium text-zinc-500"
+                  className="ml-1 text-xs font-medium text-zinc-500"
                 >
                   Име на услугата
                 </Label>
@@ -124,7 +124,7 @@ export function ServiceForm({
                   name="name"
                   defaultValue={initialData?.name}
                   placeholder="напр. Месечен абонамент - Дете"
-                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50 text-lg transition-all focus:bg-white"
+                  className="h-11 rounded-xl border-zinc-200/80 bg-zinc-50/50 text-sm transition-all focus:bg-white dark:border-zinc-800 dark:bg-zinc-900/50"
                   required
                 />
                 {errors?.name && (
@@ -203,17 +203,17 @@ export function ServiceForm({
             </div>
           </BentoCard>
 
-          <BentoCard className="rounded-5xl border-zinc-100 bg-white p-8 shadow-none">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="rounded-xl bg-amber-50 p-2.5 text-amber-600">
-                <Camera className="size-5" strokeWidth={1.5} />
+          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4.5 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="rounded-xl bg-amber-50 p-2 text-amber-600 dark:bg-amber-950/40">
+                <Camera className="size-4.5" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-light tracking-tight">
+              <h3 className="text-lg font-light tracking-tight text-zinc-900 sm:text-xl dark:text-white">
                 Изображения на услугата
               </h3>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <input type="hidden" name="imageUrl" value={imageUrl} />
               <input
                 type="file"
@@ -415,17 +415,17 @@ export function ServiceForm({
             </div>
           </BentoCard>
 
-          <BentoCard className="rounded-5xl border-zinc-100 bg-white p-8 shadow-none">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="rounded-xl bg-purple-50 p-2.5 text-purple-600">
-                <Users className="size-5" strokeWidth={1.5} />
+          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4.5 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="rounded-xl bg-purple-50 p-2 text-purple-600 dark:bg-purple-950/40">
+                <Users className="size-4.5" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-light tracking-tight">
+              <h3 className="text-lg font-light tracking-tight text-zinc-900 sm:text-xl dark:text-white">
                 Целеви групи и тип
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="space-y-4">
                 <Label className="ml-1 text-xs font-medium tracking-widest text-zinc-500 uppercase">
                   Целеви групи
@@ -511,16 +511,18 @@ export function ServiceForm({
         </div>
 
         {/* Right Column: Settings */}
-        <div className="space-y-8">
-          <BentoCard className="rounded-5xl border-zinc-100 bg-white p-8 shadow-none">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
-                <Settings className="size-5" strokeWidth={1.5} />
+        <div className="space-y-4 sm:space-y-5">
+          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4.5 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="rounded-xl bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/40">
+                <Settings className="size-4.5" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-light tracking-tight">Настройки</h3>
+              <h3 className="text-lg font-light tracking-tight text-zinc-900 sm:text-xl dark:text-white">
+                Настройки
+              </h3>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-4">
               <div className="space-y-6 animate-in slide-in-from-right-4">
                 <div className="space-y-2">
                   <Label className="ml-1 font-medium text-zinc-500">
@@ -739,16 +741,16 @@ export function ServiceForm({
             </div>
           </BentoCard>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
             <SubmitButton isEdit={!!initialData?.id} />
             <Button
               type="button"
               variant="outline"
-              size="lg"
+              size="default"
               onClick={onCancel}
-              className="h-14 rounded-3xl border-zinc-100 font-light text-zinc-500 transition-all hover:bg-zinc-50 hover:text-zinc-900"
+              className="h-10 rounded-xl border-zinc-200 text-xs font-light text-zinc-500 transition-all hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900"
             >
-              <X className="mr-2 size-4" /> Отказ
+              <X className="mr-1.5 size-4" /> Отказ
             </Button>
           </div>
         </div>
@@ -762,14 +764,13 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
   return (
     <Button
       type="submit"
-      size="lg"
       disabled={pending}
-      className="h-16 rounded-3xl bg-zinc-950 text-sm font-medium tracking-widest text-white uppercase shadow-2xl shadow-zinc-200 transition-all hover:bg-zinc-800"
+      className="h-10 rounded-xl bg-zinc-950 text-xs font-medium tracking-widest text-white uppercase transition-all hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
     >
       {pending ? (
-        <Loader2 className="mr-3 size-5 animate-spin" />
+        <Loader2 className="mr-2 size-4 animate-spin" />
       ) : (
-        <Save className="mr-3 size-5" strokeWidth={1.5} />
+        <Save className="mr-2 size-4" strokeWidth={1.5} />
       )}
       {isEdit ? "Запази промените" : "Създай услуга"}
     </Button>

@@ -1,6 +1,4 @@
 "use client";
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable sonarjs/no-nested-conditional */
 
 import {
   AlertCircle,
@@ -498,30 +496,30 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
   if (!mounted) {
     return (
-      <div className="animate-pulse space-y-8 pb-12">
-        <div className="h-32 w-full rounded-3xl bg-zinc-50" />
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <div className="h-40 rounded-3xl bg-zinc-50" />
-          <div className="h-40 rounded-3xl bg-zinc-50" />
-          <div className="h-40 rounded-3xl bg-zinc-50" />
-          <div className="h-40 rounded-3xl bg-zinc-50" />
+      <div className="animate-pulse space-y-4 pb-4">
+        <div className="h-24 w-full rounded-2xl bg-zinc-50" />
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <div className="h-32 rounded-2xl bg-zinc-50" />
+          <div className="h-32 rounded-2xl bg-zinc-50" />
+          <div className="h-32 rounded-2xl bg-zinc-50" />
+          <div className="h-32 rounded-2xl bg-zinc-50" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 pb-12 duration-700 animate-in fade-in">
+    <div className="space-y-4 pb-4 duration-500 animate-in fade-in">
       <PageHeader
         title={firstName}
         description={displayGreeting}
         breadcrumbs={[{ label: "Начало" }]}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
-            className="flex size-12 shrink-0 items-center justify-center rounded-xl border-zinc-200 transition-all hover:bg-zinc-50"
+            className="flex size-9 shrink-0 items-center justify-center rounded-xl border-zinc-200 transition-all hover:bg-zinc-50 shadow-2xs"
             onClick={() => handleRefresh(false)}
             disabled={refreshing}
             aria-label={language === "bg" ? "Обнови" : "Refresh"}
@@ -529,7 +527,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           >
             <RefreshCw
               className={cn(
-                "size-4 text-zinc-600 transition-transform duration-500",
+                "size-3.5 text-zinc-600 transition-transform duration-500",
                 refreshing && "animate-spin"
               )}
             />
@@ -540,13 +538,13 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       {/* Main Stats Grid */}
       <div
         className={cn(
-          "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2",
+          "grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-2",
           isRecoveryZone ? "lg:grid-cols-3" : "lg:grid-cols-4"
         )}
       >
         <BentoCard
           onClick={() => router.push("/members")}
-          className="group relative flex h-full min-h-36 sm:min-h-48 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-blue-100 bg-blue-50 p-4 sm:p-5 text-blue-600 shadow-none transition-all duration-300 hover:bg-blue-100/50 dark:border-blue-800/50 dark:bg-blue-900/10 dark:text-blue-400 dark:hover:bg-blue-950/20"
+          className="group relative flex h-full min-h-32 sm:min-h-40 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-blue-100 bg-blue-50 p-3.5 sm:p-4 text-blue-600 shadow-none transition-all duration-300 hover:bg-blue-100/50 dark:border-blue-800/50 dark:bg-blue-900/10 dark:text-blue-400 dark:hover:bg-blue-950/20"
         >
           <div className="mb-2 flex items-center justify-between">
             <div className="rounded-2xl bg-blue-100 p-2.5 text-blue-600 dark:bg-blue-800 dark:text-blue-200">
@@ -592,7 +590,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           onClick={() =>
             router.push(isRecoveryZone ? "/schedule?tab=recovery" : "/schedule")
           }
-          className="group flex h-full min-h-36 sm:min-h-48 cursor-pointer flex-col justify-between rounded-2xl sm:rounded-3xl border border-emerald-100 bg-emerald-50 p-4 sm:p-5 text-emerald-600 shadow-none transition-all hover:border-emerald-200 hover:bg-emerald-100/50 dark:border-emerald-800/50 dark:bg-emerald-900/10 dark:text-emerald-400"
+          className="group flex h-full min-h-32 sm:min-h-40 cursor-pointer flex-col justify-between rounded-2xl border border-emerald-100 bg-emerald-50 p-3.5 sm:p-4 text-emerald-600 shadow-none transition-all hover:border-emerald-200 hover:bg-emerald-100/50 dark:border-emerald-800/50 dark:bg-emerald-900/10 dark:text-emerald-400"
         >
           <div className="mb-2 flex items-center justify-between">
             <div className="rounded-2xl bg-emerald-100 p-2.5 text-emerald-600 transition-transform group-hover:scale-105 dark:bg-emerald-800 dark:text-emerald-200">
@@ -605,7 +603,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             </div>
           </div>
           <div>
-            <p className="mb-2.5 text-xs font-bold text-emerald-900 dark:text-emerald-200">
+            <p className="mb-2 text-xs font-bold text-emerald-900 dark:text-emerald-200">
               {isRecoveryZone ? "Процедури днес" : t("dash.today_training")}
             </p>
             {renderScheduleContent()}
@@ -614,7 +612,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
         <BentoCard
           onClick={() => router.push(isRecoveryZone ? "/finances" : "/sales")}
-          className="group relative flex h-full min-h-36 sm:min-h-48 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-purple-100 bg-purple-50 p-4 sm:p-5 text-purple-600 shadow-none transition-all duration-300 hover:bg-purple-100/50 dark:border-purple-800/50 dark:bg-purple-900/10 dark:text-purple-400 dark:hover:bg-purple-950/20"
+          className="group relative flex h-full min-h-32 sm:min-h-40 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-purple-100 bg-purple-50 p-3.5 sm:p-4 text-purple-600 shadow-none transition-all duration-300 hover:bg-purple-100/50 dark:border-purple-800/50 dark:bg-purple-900/10 dark:text-purple-400 dark:hover:bg-purple-950/20"
         >
           <div className="mb-2 flex items-center justify-between">
             <div className="rounded-2xl bg-purple-100 p-2.5 text-purple-600 dark:bg-purple-800 dark:text-purple-200">
@@ -622,7 +620,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
             </div>
           </div>
           <div className="relative z-10 flex flex-1 flex-col justify-end">
-            <div className="mb-2.5 flex items-baseline justify-between">
+            <div className="mb-2 flex items-baseline justify-between">
               <p className="text-xs font-bold text-purple-900 dark:text-purple-200">
                 {isRecoveryZone
                   ? `Оборот Релакс Зона (${new Date().toLocaleString(
@@ -653,7 +651,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           <BentoCard
             onClick={() => router.push("/catalogs?tab=inventory")}
             className={cn(
-              "group relative flex h-full min-h-36 sm:min-h-48 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border p-4 sm:p-5 shadow-none transition-all duration-300",
+              "group relative flex h-full min-h-32 sm:min-h-40 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border p-3.5 sm:p-4 shadow-none transition-all duration-300",
               (stats?.lowStockCount || 0) > 0
                 ? "dark:text-rose-450 border-rose-100 bg-rose-50 text-rose-600 hover:bg-rose-100/50 dark:border-rose-900/50 dark:bg-rose-950/10 dark:hover:bg-rose-950/20"
                 : "dark:text-emerald-450 border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100/50 dark:border-emerald-900/50 dark:bg-emerald-950/10 dark:hover:bg-emerald-950/20"
@@ -681,7 +679,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
               )}
             </div>
             <div className="relative z-10 flex flex-1 flex-col justify-end">
-              <div className="mb-2.5 flex items-center justify-between">
+              <div className="mb-2 flex items-center justify-between">
                 <p
                   className={cn(
                     "text-xs font-bold",
@@ -701,13 +699,13 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       </div>
 
       {/* Middle Operations Grid: Courts & Inquiries */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5 lg:grid-cols-2">
         <CourtsOccupancyCard />
         <InquiriesNotificationCard />
       </div>
 
       {/* Community, Reviews & Alerts Grid: Reminders, Customer Reviews & Birthdays */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5 md:grid-cols-2 lg:grid-cols-3">
         <DashboardNotifications reminders={isRecoveryZone ? [] : reminders} />
         <FeedbackDashboardCard />
         <BirthdayReminder />

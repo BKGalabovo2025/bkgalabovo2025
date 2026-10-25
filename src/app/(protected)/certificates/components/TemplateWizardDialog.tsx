@@ -1,4 +1,4 @@
-/* eslint-disable react/forbid-dom-props, sonarjs/cognitive-complexity, sonarjs/no-nested-conditional */
+/* eslint-disable react/forbid-dom-props */
 "use client";
 
 import {
@@ -903,15 +903,15 @@ export function TemplateWizardDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="flex max-h-[95dvh] sm:max-h-[92vh] h-[95dvh] sm:h-[92vh] w-[calc(100%-1rem)] sm:w-full sm:max-w-6xl xl:max-w-7xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+      <DialogContent className="flex max-h-[95dvh] sm:max-h-[92vh] h-[95dvh] sm:h-[92vh] w-[calc(100%-1rem)] sm:w-full sm:max-w-6xl xl:max-w-7xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
         {/* Header with Mode Switcher & Stepper */}
-        <div className="shrink-0 border-b border-zinc-200 bg-white/95 px-4 sm:px-6 py-3.5 pr-12 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95">
-          <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
+        <div className="shrink-0 border-b border-zinc-200 bg-white/95 px-4 sm:px-5 py-2.5 pr-10 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95">
+          <div className="flex flex-col justify-between gap-2.5 lg:flex-row lg:items-center">
             <DialogHeader>
-              <div className="flex items-center gap-3">
-                <DialogTitle className="flex items-center gap-2 text-lg font-black text-zinc-900 dark:text-white">
-                  <span className="flex size-8 items-center justify-center rounded-xl bg-linear-to-tr from-amber-500 to-amber-400 text-white shadow-md">
-                    <Sparkles className="size-4" />
+              <div className="flex items-center gap-2.5">
+                <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
+                  <span className="flex size-7 items-center justify-center rounded-lg bg-linear-to-tr from-amber-500 to-amber-400 text-white shadow-sm">
+                    <Sparkles className="size-3.5" />
                   </span>
                   <span>
                     {templateToEdit
@@ -2671,32 +2671,33 @@ export function TemplateWizardDialog({
           open={showEnglishPreviewModal}
           onOpenChange={setShowEnglishPreviewModal}
         >
-          <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
             {/* Fixed Sticky Header */}
-            <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
               <DialogTitle className="flex items-center gap-2 text-base font-bold text-zinc-900 dark:text-white">
                 <Languages className="size-4 text-purple-600" />
                 <span>Преведен Английски Промпт за AI Модела</span>
               </DialogTitle>
-              <DialogDescription className="mt-1 text-xs text-zinc-500">
+              <DialogDescription className="mt-0.5 text-xs text-zinc-500">
                 Това е оптимизираният английски текст, който системата изпраща
                 към Imagen 3 / FLUX задкулисно:
               </DialogDescription>
             </div>
 
             {/* Scrollable Body Container */}
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-xs leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 min-h-0">
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3.5 font-mono text-xs leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
                 {englishPromptPreview || "—"}
               </div>
             </div>
 
             {/* Fixed Sticky Footer */}
-            <div className="shrink-0 flex items-center justify-end border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div className="shrink-0 flex items-center justify-end border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 type="button"
+                size="sm"
                 onClick={() => setShowEnglishPreviewModal(false)}
-                className="rounded-xl text-xs font-bold"
+                className="h-9 rounded-xl text-xs font-bold"
               >
                 Разбрах
               </Button>

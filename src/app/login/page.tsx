@@ -127,7 +127,7 @@ function LoginForm() {
         <ArrowLeft size={13} strokeWidth={2} /> Обратно към порталите
       </Link>
 
-      <BentoCard className="rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-7 shadow-lg shadow-zinc-950/5">
+      <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-6 shadow-lg shadow-zinc-950/5 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mb-4 sm:mb-5 flex flex-col items-center text-center">
           <div className="mb-2.5 sm:mb-3 flex size-10 sm:size-11 items-center justify-center rounded-xl sm:rounded-2xl border border-zinc-800 bg-zinc-950 text-white shadow-md">
             <ShieldCheck

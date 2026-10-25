@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import pathPosix from "path/posix";

@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-
 "use client";
 
 import { Minus, Trophy } from "lucide-react";

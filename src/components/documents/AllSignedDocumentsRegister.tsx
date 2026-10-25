@@ -15,7 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ViewSignedDocumentDialog } from "@/components/documents/ViewSignedDocumentDialog";
@@ -42,7 +42,7 @@ export function AllSignedDocumentsRegister() {
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const loadRequests = async () => {
+  const loadRequests = useCallback(async () => {
     if (!user) {
       setIsLoading(false);
       return;
@@ -66,7 +66,7 @@ export function AllSignedDocumentsRegister() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -74,7 +74,7 @@ export function AllSignedDocumentsRegister() {
     } else {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, loadRequests]);
 
   const handleCopyLink = async (req: DocumentRequest) => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -142,73 +142,73 @@ export function AllSignedDocumentsRegister() {
   }, [requests, selectedStatus, searchQuery]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Top Metrics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-xs">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="rounded-2xl border border-zinc-100 bg-white p-3.5 sm:p-4 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-500">
               Общо документи
             </span>
             <span className="flex size-7 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700">
-              <FileText className="size-4" />
+              <FileText className="size-3.5" />
             </span>
           </div>
-          <p className="mt-3 text-2xl font-bold text-zinc-950">
+          <p className="mt-1.5 text-xl font-bold text-zinc-950">
             {metrics.total}
           </p>
-          <span className="text-[11px] text-zinc-400">
+          <span className="text-[10px] text-zinc-400">
             Всички заявени бланки
           </span>
         </div>
 
-        <div className="rounded-3xl border border-emerald-100 bg-emerald-50/40 p-5 shadow-xs">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-3.5 sm:p-4 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-emerald-800">
               Подписани онлайн
             </span>
             <span className="flex size-7 items-center justify-center rounded-xl bg-emerald-500 text-white">
-              <CheckCircle2 className="size-4" />
+              <CheckCircle2 className="size-3.5" />
             </span>
           </div>
-          <p className="mt-3 text-2xl font-bold text-emerald-950">
+          <p className="mt-1.5 text-xl font-bold text-emerald-950">
             {metrics.completed}
           </p>
-          <span className="text-[11px] text-emerald-700 font-medium">
+          <span className="text-[10px] text-emerald-700 font-medium">
             С валиден подпис от родител
           </span>
         </div>
 
-        <div className="rounded-3xl border border-amber-100 bg-amber-50/40 p-5 shadow-xs">
+        <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-3.5 sm:p-4 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-amber-800">
               Очакващи подпис
             </span>
             <span className="flex size-7 items-center justify-center rounded-xl bg-amber-500 text-white">
-              <Clock className="size-4" />
+              <Clock className="size-3.5" />
             </span>
           </div>
-          <p className="mt-3 text-2xl font-bold text-amber-950">
+          <p className="mt-1.5 text-xl font-bold text-amber-950">
             {metrics.pending}
           </p>
-          <span className="text-[11px] text-amber-700 font-medium">
+          <span className="text-[10px] text-amber-700 font-medium">
             Активни линкове
           </span>
         </div>
 
-        <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-xs">
+        <div className="rounded-2xl border border-zinc-100 bg-white p-3.5 sm:p-4 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-500">
               Процент на завършеност
             </span>
             <span className="flex size-7 items-center justify-center rounded-xl bg-zinc-950 text-white">
-              <ShieldCheck className="size-4" />
+              <ShieldCheck className="size-3.5" />
             </span>
           </div>
-          <p className="mt-3 text-2xl font-bold text-zinc-950">
+          <p className="mt-1.5 text-xl font-bold text-zinc-950">
             {metrics.rate}%
           </p>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
             {/* eslint-disable react/forbid-dom-props */}
             <div
               className="h-full bg-emerald-500 transition-all duration-500"
@@ -220,22 +220,28 @@ export function AllSignedDocumentsRegister() {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-2.5">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
           <Input
+            id="documents-search-input"
+            name="searchQuery"
+            aria-label="Търсене по състезател, родител, телефон или документ"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Търсене по състезател, родител, телефон или документ..."
-            className="h-11 pl-10 rounded-2xl bg-white border-zinc-200 text-xs"
+            className="h-9 pl-9 rounded-xl bg-white border-zinc-200 text-xs shadow-2xs"
           />
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
           <select
+            id="documents-status-filter"
+            name="selectedStatus"
+            aria-label="Филтриране по статус на документите"
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="h-10 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950"
+            className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 shadow-2xs"
           >
             <option value="all">Всички статуси</option>
             <option value="completed">Подписани онлайн</option>
@@ -248,7 +254,7 @@ export function AllSignedDocumentsRegister() {
             variant="outline"
             onClick={loadRequests}
             disabled={isLoading}
-            className="h-10 rounded-xl text-xs font-semibold"
+            className="h-9 rounded-xl text-xs font-semibold"
             title="Презареди регистъра"
           >
             <RefreshCw
@@ -260,7 +266,7 @@ export function AllSignedDocumentsRegister() {
       </div>
 
       {/* Register Table */}
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-xs overflow-hidden">
+      <div className="rounded-2xl border border-zinc-100 bg-white p-3.5 sm:p-4 shadow-2xs overflow-hidden">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center p-16">
             <Loader2 className="size-8 animate-spin text-zinc-400 mb-3" />
@@ -309,7 +315,7 @@ export function AllSignedDocumentsRegister() {
                       className="transition-colors hover:bg-zinc-50/70"
                     >
                       {/* Member */}
-                      <td className="py-3.5 pl-2 font-bold text-zinc-900">
+                      <td className="py-2 pl-2 font-bold text-zinc-900">
                         <Link
                           href={`/members/${req.memberId}?tab=documents`}
                           className="hover:underline flex items-center gap-2"
@@ -325,7 +331,7 @@ export function AllSignedDocumentsRegister() {
                       </td>
 
                       {/* Document & Version */}
-                      <td className="py-3.5">
+                      <td className="py-2">
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold text-zinc-800">
                             {req.documentTitle}
@@ -337,36 +343,36 @@ export function AllSignedDocumentsRegister() {
                       </td>
 
                       {/* Status */}
-                      <td className="py-3.5">
+                      <td className="py-2">
                         {isCompleted ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
                             <CheckCircle2 className="size-3 text-emerald-600" />
                             Подписан
                           </span>
                         ) : isPending ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
                             <Clock className="size-3 text-amber-600" />
                             Очаква подпис
                           </span>
                         ) : req.status === "expired" ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-semibold text-zinc-500">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-500">
                             Изтекъл
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[10px] font-semibold text-rose-600">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-600">
                             Анулиран
                           </span>
                         )}
                       </td>
 
                       {/* Parent / Signer */}
-                      <td className="py-3.5 text-zinc-600">
+                      <td className="py-2 text-zinc-600">
                         {req.parentData ? (
                           <div>
-                            <div className="font-medium text-zinc-900">
+                            <div className="font-medium text-zinc-900 text-xs">
                               {req.parentData.parentName}
                             </div>
-                            <div className="text-[11px] text-zinc-400">
+                            <div className="text-[10px] text-zinc-400">
                               {req.parentData.parentPhone}
                             </div>
                           </div>
@@ -376,7 +382,7 @@ export function AllSignedDocumentsRegister() {
                       </td>
 
                       {/* Calendar Year Validity */}
-                      <td className="py-3.5">
+                      <td className="py-2">
                         <div className="flex flex-col gap-0.5">
                           <span
                             className={cn(
@@ -390,7 +396,7 @@ export function AllSignedDocumentsRegister() {
                             {validity.badgeText}
                           </span>
                           {validity.isExpired && (
-                            <span className="text-[10px] font-medium text-amber-700">
+                            <span className="text-[9px] font-medium text-amber-700">
                               Изисква нова за {validity.currentYear} г.
                             </span>
                           )}
@@ -398,7 +404,7 @@ export function AllSignedDocumentsRegister() {
                       </td>
 
                       {/* Date */}
-                      <td className="py-3.5 text-zinc-500 text-[11px]">
+                      <td className="py-2 text-zinc-500 text-[11px]">
                         {req.signedAt ? (
                           <div>
                             <span className="font-medium text-emerald-700">
@@ -406,7 +412,7 @@ export function AllSignedDocumentsRegister() {
                                 "bg-BG"
                               )}
                             </span>
-                            <span className="text-zinc-400 ml-1">
+                            <span className="text-zinc-400 ml-1 text-[10px]">
                               {new Date(req.signedAt).toLocaleTimeString(
                                 "bg-BG",
                                 { hour: "2-digit", minute: "2-digit" }
@@ -424,7 +430,7 @@ export function AllSignedDocumentsRegister() {
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3.5 pr-2 text-right">
+                      <td className="py-2 pr-2 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
                             variant="outline"

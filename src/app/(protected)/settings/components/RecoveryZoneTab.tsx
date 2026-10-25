@@ -20,7 +20,7 @@ import { useSettingsStore } from "@/store/use-settings-store";
 import { DEFAULT_RECOVERY_ATTACHMENTS } from "@/types/site.types";
 
 const inputClassRz =
-  "h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]";
+  "h-11 rounded-xl border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-[#00f2fe]";
 const labelClass =
   "text-[11px] font-medium uppercase tracking-widest text-zinc-400";
 
@@ -48,18 +48,18 @@ export function RecoveryZoneTab() {
       : DEFAULT_RECOVERY_ATTACHMENTS;
 
   return (
-    <div className="grid grid-cols-1 gap-6">
+    <div className="grid grid-cols-1 gap-4">
       {/* 1. General Info */}
-      <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-6 flex items-center gap-4">
+      <BentoCard className="space-y-4 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center gap-3">
           <Activity className="size-5 text-[#00f2fe]" strokeWidth={1.5} />
-          <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+          <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
             Обща информация за зоната
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="space-y-3 md:col-span-2">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="rz-description" className={labelClass}>
               Общо Описание
             </Label>
@@ -71,10 +71,10 @@ export function RecoveryZoneTab() {
                 handleInputChange("recoveryzone", "description", e.target.value)
               }
               placeholder="Възстанови своите Сили..."
-              className={`${inputClassRz} min-h-30 resize-y`}
+              className={`${inputClassRz} min-h-24 resize-y`}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label htmlFor="rz-phone" className={labelClass}>
               Телефон
             </Label>
@@ -89,7 +89,7 @@ export function RecoveryZoneTab() {
               className={inputClassRz}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label htmlFor="rz-email" className={labelClass}>
               Имейл
             </Label>
@@ -104,7 +104,7 @@ export function RecoveryZoneTab() {
               className={inputClassRz}
             />
           </div>
-          <div className="space-y-3 md:col-span-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="rz-address" className={labelClass}>
               Адрес
             </Label>
@@ -119,7 +119,7 @@ export function RecoveryZoneTab() {
               className={inputClassRz}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label htmlFor="rz-facebook" className={labelClass}>
               Facebook Линк
             </Label>
@@ -134,7 +134,7 @@ export function RecoveryZoneTab() {
               className={inputClassRz}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label htmlFor="rz-instagram" className={labelClass}>
               Instagram Линк
             </Label>
@@ -149,7 +149,7 @@ export function RecoveryZoneTab() {
               className={inputClassRz}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label htmlFor="rz-youtube" className={labelClass}>
               YouTube Линк
             </Label>
@@ -168,16 +168,16 @@ export function RecoveryZoneTab() {
       </BentoCard>
 
       {/* 2. Inventory & Equipment */}
-      <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-6 flex items-center gap-4">
+      <BentoCard className="space-y-4 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center gap-3">
           <Activity className="size-5 text-[#00f2fe]" strokeWidth={1.5} />
-          <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+          <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
             Инвентар & Оборудване
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
+          <div className="space-y-2">
             <Label htmlFor="rz-inv-compressors" className={labelClass}>
               Брой Компресори
             </Label>
@@ -197,7 +197,7 @@ export function RecoveryZoneTab() {
               className={inputClassRz}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label htmlFor="rz-inv-hips" className={labelClass}>
               Приставки &quot;ТАЗ&quot;
             </Label>
@@ -217,7 +217,7 @@ export function RecoveryZoneTab() {
               className={inputClassRz}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label htmlFor="rz-inv-legs" className={labelClass}>
               Приставки &quot;КРАКА&quot;
             </Label>
@@ -237,7 +237,7 @@ export function RecoveryZoneTab() {
               className={inputClassRz}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label htmlFor="rz-inv-arms" className={labelClass}>
               Приставки &quot;РЪЦЕ&quot;
             </Label>
@@ -261,12 +261,12 @@ export function RecoveryZoneTab() {
       </BentoCard>
 
       {/* 3. Attachments & Application (Секция "Приставки") */}
-      <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+      <BentoCard className="space-y-4 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <Layers className="size-5 text-[#00f2fe]" strokeWidth={1.5} />
             <div>
-              <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+              <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
                 Нашите приставки и тяхното приложение
               </h3>
               <p className="text-xs text-zinc-500">
@@ -279,21 +279,21 @@ export function RecoveryZoneTab() {
             type="button"
             variant="outline"
             onClick={() => addAttachment("recoveryzone")}
-            className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
+            className="h-9 rounded-xl px-3.5 text-xs font-medium tracking-widest uppercase"
           >
-            <Plus className="mr-2 size-4" /> Добави Приставка
+            <Plus className="mr-1.5 size-3.5" /> Добави Приставка
           </Button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {attachments.map((att, index) => (
             <div
               key={att.id || `att-${index}`}
-              className="flex flex-col gap-6 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/50"
+              className="flex flex-col gap-4 rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 sm:p-4.5 dark:border-zinc-800 dark:bg-zinc-900/50"
             >
-              <div className="flex items-center justify-between border-b border-zinc-100 pb-4 dark:border-zinc-800">
+              <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
-                  <div className="flex size-9 items-center justify-center rounded-xl bg-[#00f2fe]/10 text-[#00f2fe]">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-[#00f2fe]/10 text-[#00f2fe]">
                     <Layers className="size-4" />
                   </div>
                   <div>
@@ -309,13 +309,13 @@ export function RecoveryZoneTab() {
                   type="button"
                   variant="ghost"
                   onClick={() => removeAttachment("recoveryzone", index)}
-                  className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                  className="size-8 p-0 text-red-500 hover:bg-red-500/10 hover:text-red-600"
                 >
                   <Trash2 className="size-4" />
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label
                     htmlFor={`rz-att-name-${index}`}
@@ -448,7 +448,7 @@ export function RecoveryZoneTab() {
                       )
                     }
                     placeholder="Въведете детайлно описание на приставката и нейното въздействие..."
-                    className={`${inputClassRz} min-h-24 resize-y`}
+                    className={`${inputClassRz} min-h-20 resize-y`}
                   />
                 </div>
               </div>
@@ -456,7 +456,7 @@ export function RecoveryZoneTab() {
           ))}
 
           {attachments.length === 0 && (
-            <p className="text-sm font-light text-zinc-500">
+            <p className="text-xs font-light text-zinc-500">
               Няма въведени приставки.
             </p>
           )}
@@ -464,14 +464,14 @@ export function RecoveryZoneTab() {
       </BentoCard>
 
       {/* 4. Schedule */}
-      <BentoCard className="mt-6 space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-6 flex items-center gap-4">
+      <BentoCard className="space-y-4 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center gap-3">
           <Clock className="size-5 text-[#00f2fe]" strokeWidth={1.5} />
-          <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+          <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
             Работно Време
           </h3>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {[
             "monday",
             "tuesday",
@@ -501,17 +501,17 @@ export function RecoveryZoneTab() {
             return (
               <div
                 key={day}
-                className="flex items-center gap-6 rounded-xl border border-zinc-100 bg-zinc-50/30 p-4 dark:border-zinc-800 dark:bg-zinc-900/30"
+                className="flex items-center gap-4 rounded-xl border border-zinc-100 bg-zinc-50/30 p-3 sm:p-3.5 dark:border-zinc-800 dark:bg-zinc-900/30"
               >
-                <div className="w-32">
+                <div className="w-28 sm:w-32">
                   <Label
                     htmlFor={`rz-open-${day}`}
-                    className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                    className="text-xs font-medium text-zinc-700 sm:text-sm dark:text-zinc-300"
                   >
                     {dayNames[i]}
                   </Label>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   <Checkbox
                     id={`rz-open-${day}`}
                     checked={daySched.isOpen}
@@ -524,7 +524,7 @@ export function RecoveryZoneTab() {
                   </span>
                 </div>
                 {daySched.isOpen && (
-                  <div className="flex flex-1 items-center justify-end gap-3">
+                  <div className="flex flex-1 items-center justify-end gap-2.5">
                     <Input
                       id={`rz-sched-open-${day}`}
                       name={`rz-sched-open-${day}`}
@@ -538,7 +538,7 @@ export function RecoveryZoneTab() {
                           e.target.value
                         )
                       }
-                      className="h-10 w-32"
+                      className="h-9 w-28 sm:w-32"
                     />
                     <span className="text-zinc-400">-</span>
                     <Input
@@ -554,7 +554,7 @@ export function RecoveryZoneTab() {
                           e.target.value
                         )
                       }
-                      className="h-10 w-32"
+                      className="h-9 w-28 sm:w-32"
                     />
                   </div>
                 )}
@@ -565,11 +565,11 @@ export function RecoveryZoneTab() {
       </BentoCard>
 
       {/* 5. Benefits */}
-      <BentoCard className="mt-6 space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <BentoCard className="space-y-4 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <CheckCircle2 className="size-5 text-[#00f2fe]" strokeWidth={1.5} />
-            <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+            <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
               Предимства (Секция &quot;База&quot;)
             </h3>
           </div>
@@ -577,19 +577,19 @@ export function RecoveryZoneTab() {
             type="button"
             variant="outline"
             onClick={() => addStringArrayItem("recoveryzone", "benefits")}
-            className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
+            className="h-9 rounded-xl px-3.5 text-xs font-medium tracking-widest uppercase"
           >
-            <Plus className="mr-2 size-4" /> Добави Предимство
+            <Plus className="mr-1.5 size-3.5" /> Добави Предимство
           </Button>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {rzData.benefits?.map((item, index) => {
             const value =
               typeof item === "string"
                 ? item
                 : (item as { title?: string }).title || "";
             return (
-              <div key={index} className="flex items-center gap-4">
+              <div key={index} className="flex items-center gap-3">
                 <Label htmlFor={`rz-benefit-${index}`} className="sr-only">
                   Предимство {index + 1}
                 </Label>
@@ -614,7 +614,7 @@ export function RecoveryZoneTab() {
                   onClick={() =>
                     removeStringArrayItem("recoveryzone", "benefits", index)
                   }
-                  className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                  className="size-8 p-0 text-red-500 hover:bg-red-500/10 hover:text-red-600"
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -622,7 +622,7 @@ export function RecoveryZoneTab() {
             );
           })}
           {(!rzData.benefits || rzData.benefits.length === 0) && (
-            <p className="text-sm font-light text-zinc-500">
+            <p className="text-xs font-light text-zinc-500">
               Няма въведени предимства.
             </p>
           )}
@@ -630,11 +630,11 @@ export function RecoveryZoneTab() {
       </BentoCard>
 
       {/* 6. Contraindications */}
-      <BentoCard className="mt-6 space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <BentoCard className="space-y-4 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <Shield className="size-5 text-red-500" strokeWidth={1.5} />
-            <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+            <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
               Противопоказания
             </h3>
           </div>
@@ -644,14 +644,14 @@ export function RecoveryZoneTab() {
             onClick={() =>
               addStringArrayItem("recoveryzone", "contraindications")
             }
-            className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
+            className="h-9 rounded-xl px-3.5 text-xs font-medium tracking-widest uppercase"
           >
-            <Plus className="mr-2 size-4" /> Добави Противопоказание
+            <Plus className="mr-1.5 size-3.5" /> Добави Противопоказание
           </Button>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {rzData.contraindications?.map((item, index) => (
-            <div key={index} className="flex items-center gap-4">
+            <div key={index} className="flex items-center gap-3">
               <Label htmlFor={`rz-contra-${index}`} className="sr-only">
                 Противопоказание {index + 1}
               </Label>
@@ -680,7 +680,7 @@ export function RecoveryZoneTab() {
                     index
                   )
                 }
-                className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                className="size-8 p-0 text-red-500 hover:bg-red-500/10 hover:text-red-600"
               >
                 <Trash2 className="size-4" />
               </Button>
@@ -688,7 +688,7 @@ export function RecoveryZoneTab() {
           ))}
           {(!rzData.contraindications ||
             rzData.contraindications.length === 0) && (
-            <p className="text-sm font-light text-zinc-500">
+            <p className="text-xs font-light text-zinc-500">
               Няма въведени противопоказания.
             </p>
           )}
@@ -696,11 +696,11 @@ export function RecoveryZoneTab() {
       </BentoCard>
 
       {/* 7. FAQs */}
-      <BentoCard className="mt-6 space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <BentoCard className="space-y-4 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <HelpCircle className="size-5 text-primary" strokeWidth={1.5} />
-            <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+            <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
               Често Задавани Въпроси
             </h3>
           </div>
@@ -708,16 +708,16 @@ export function RecoveryZoneTab() {
             type="button"
             variant="outline"
             onClick={() => addFaq("recoveryzone")}
-            className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
+            className="h-9 rounded-xl px-3.5 text-xs font-medium tracking-widest uppercase"
           >
-            <Plus className="mr-2 size-4" /> Добави Въпрос
+            <Plus className="mr-1.5 size-3.5" /> Добави Въпрос
           </Button>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {rzData.faqs?.map((faq, index) => (
             <div
               key={index}
-              className="flex flex-col gap-4 rounded-xl border border-zinc-100 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/50"
+              className="flex flex-col gap-3 rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 sm:p-4.5 dark:border-zinc-800 dark:bg-zinc-900/50"
             >
               <div className="flex items-center justify-between">
                 <Label
@@ -730,7 +730,7 @@ export function RecoveryZoneTab() {
                   type="button"
                   variant="ghost"
                   onClick={() => removeFaq("recoveryzone", index)}
-                  className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                  className="size-8 p-0 text-red-500 hover:bg-red-500/10 hover:text-red-600"
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -756,12 +756,12 @@ export function RecoveryZoneTab() {
                   handleFaqChange("recoveryzone", index, "a", e.target.value)
                 }
                 placeholder="Отговор..."
-                className={`${inputClassRz} min-h-20 resize-y`}
+                className={`${inputClassRz} min-h-16 resize-y`}
               />
             </div>
           ))}
           {(!rzData.faqs || rzData.faqs.length === 0) && (
-            <p className="text-sm font-light text-zinc-500">
+            <p className="text-xs font-light text-zinc-500">
               Няма въведени въпроси.
             </p>
           )}

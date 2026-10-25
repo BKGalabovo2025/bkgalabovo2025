@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity */
 "use client";
 
 import confetti from "canvas-confetti";
@@ -1881,23 +1880,23 @@ export function UploadVoucherTab({
           open={Boolean(issuedSuccessCert)}
           onOpenChange={(open) => !open && setIssuedSuccessCert(null)}
         >
-          <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
             {/* Fixed Sticky Header */}
-            <div className="shrink-0 border-b border-zinc-200/60 bg-white/80 p-4 sm:p-5 pr-12 text-center backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-400">
-                <CheckCircle2 className="size-6" />
+            <div className="shrink-0 border-b border-zinc-200/60 bg-white/80 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 text-center backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80">
+              <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm shadow-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-400">
+                <CheckCircle2 className="size-5" />
               </div>
-              <DialogTitle className="mt-3 text-base sm:text-lg font-black text-zinc-900 dark:text-white">
+              <DialogTitle className="mt-2 text-base sm:text-lg font-black text-zinc-900 dark:text-white">
                 Документът е издаден успешно!
               </DialogTitle>
-              <DialogDescription className="mt-1 text-xs text-zinc-500">
+              <DialogDescription className="mt-0.5 text-xs text-zinc-500">
                 Ваучерът е вписан в електронния регистър с генериран
                 верификационен QR код.
               </DialogDescription>
             </div>
 
             {/* Scrollable Body Container */}
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0 text-center">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3 min-h-0 text-center">
               <div className="space-y-1 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
                 <span className="font-mono text-xs font-black tracking-wider text-emerald-600 dark:text-emerald-400">
                   № {issuedSuccessCert.serialNumber}
@@ -1996,7 +1995,7 @@ export function UploadVoucherTab({
             </div>
 
             {/* Fixed Sticky Footer */}
-            <div className="shrink-0 grid grid-cols-2 gap-2 border-t border-zinc-200 bg-zinc-100/90 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/90">
+            <div className="shrink-0 grid grid-cols-2 gap-2 border-t border-zinc-200 bg-zinc-100/90 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/90">
               <Button
                 variant="outline"
                 onClick={handleResetForNext}
@@ -2025,12 +2024,12 @@ export function UploadVoucherTab({
       {/* DIALOG 3: BATCH ISSUANCE RESULTS MODAL                                */}
       {/* ===================================================================== */}
       <Dialog open={isBatchResultsOpen} onOpenChange={setIsBatchResultsOpen}>
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-50 p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
-          <div className="shrink-0 border-b border-zinc-200 bg-white/90 px-4 sm:px-6 py-3.5 sm:py-4 pr-12 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-md shadow-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-400">
-                <CheckCircle2 className="size-5" />
+          <div className="shrink-0 border-b border-zinc-200 bg-white/90 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm shadow-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-400">
+                <CheckCircle2 className="size-4.5" />
               </div>
               <div>
                 <DialogTitle className="text-base sm:text-lg font-black text-zinc-900 dark:text-white">
@@ -2045,7 +2044,7 @@ export function UploadVoucherTab({
           </div>
 
           {/* List of issued children - Scrollable Body */}
-          <div className="custom-scrollbar flex-1 space-y-2 overflow-y-auto p-4 sm:p-6 overscroll-contain min-h-0">
+          <div className="custom-scrollbar flex-1 space-y-2 overflow-y-auto p-3.5 sm:p-4.5 overscroll-contain min-h-0">
             {batchResults.map((c, idx) => (
               <div
                 key={c.id || idx}
@@ -2102,7 +2101,7 @@ export function UploadVoucherTab({
           </div>
 
           {/* Fixed Sticky Footer */}
-          <div className="shrink-0 flex items-center justify-between border-t border-zinc-200 bg-zinc-100/90 px-4 sm:px-6 py-3 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/90">
+          <div className="shrink-0 flex items-center justify-between border-t border-zinc-200 bg-zinc-100/90 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/90">
             <Button
               type="button"
               variant="outline"
@@ -2136,10 +2135,10 @@ export function UploadVoucherTab({
           open={isDocumentModalOpen}
           onOpenChange={setIsDocumentModalOpen}
         >
-          <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
             {/* Fixed Sticky Header */}
-            <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
                     {uploadedFile?.name || "Преглед на документа"}
@@ -2163,7 +2162,7 @@ export function UploadVoucherTab({
             </div>
 
             {/* Scrollable Body Container */}
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 min-h-0">
               <div className="flex w-full items-center justify-center rounded-2xl bg-zinc-100 p-2 dark:bg-zinc-950">
                 {fileType === "pdf" ? (
                   <iframe
@@ -2185,12 +2184,13 @@ export function UploadVoucherTab({
             </div>
 
             {/* Fixed Sticky Footer */}
-            <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 onClick={() => setIsDocumentModalOpen(false)}
-                className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                className="h-9 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
               >
                 Затвори
               </Button>

@@ -283,17 +283,17 @@ export function BackupTab() {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6">
+    <div className="grid grid-cols-1 gap-4">
       {/* 1. Status & Overview */}
-      <BentoCard className="space-y-6 border-zinc-100 bg-white p-8 md:p-10 dark:border-zinc-900 dark:bg-zinc-950">
+      <BentoCard className="space-y-4 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div className="flex items-center gap-4">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500">
-              <Database className="size-6" strokeWidth={1.75} />
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+              <Database className="size-5" strokeWidth={1.75} />
             </div>
             <div>
-              <div className="flex items-center gap-3">
-                <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
                   Автоматичен Резервен Архив (Бекъп)
                 </h3>
                 <Badge
@@ -304,19 +304,19 @@ export function BackupTab() {
                   Активен (00:00 ч.)
                 </Badge>
               </div>
-              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
                 Защита на клубните данни чрез ежедневен пълен експорт в Vercel
                 Cloud.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Button
               variant="outline"
               onClick={() => handleDownload("latest")}
               disabled={downloadingId !== null || backups.length === 0}
-              className="h-11 rounded-xl border-zinc-200 px-5 text-xs font-medium tracking-wider uppercase transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
+              className="h-9.5 rounded-xl border-zinc-200 px-4 text-xs font-medium tracking-wider uppercase transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
             >
               {downloadingId === "latest" ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -329,7 +329,7 @@ export function BackupTab() {
             <Button
               onClick={handleManualBackup}
               disabled={triggering}
-              className="h-11 rounded-xl bg-primary px-6 text-xs font-medium tracking-wider text-white uppercase shadow-none hover:bg-primary/90"
+              className="h-9.5 rounded-xl bg-primary px-4.5 text-xs font-medium tracking-wider text-white uppercase shadow-none hover:bg-primary/90"
             >
               {triggering ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -342,15 +342,15 @@ export function BackupTab() {
         </div>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-zinc-100 bg-zinc-50/70 p-5 dark:border-zinc-800/40 dark:bg-zinc-900/40">
-            <div className="flex items-center gap-3 text-zinc-500">
-              <Clock className="size-4" />
-              <span className="text-xs font-medium tracking-wider uppercase">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-100 bg-zinc-50/70 p-3.5 sm:p-4 dark:border-zinc-800/40 dark:bg-zinc-900/40">
+            <div className="flex items-center gap-2 text-zinc-500">
+              <Clock className="size-3.5" />
+              <span className="text-[11px] font-medium tracking-wider uppercase">
                 График на изпълнение
               </span>
             </div>
-            <p className="mt-2 text-lg font-medium text-zinc-900 dark:text-white">
+            <p className="mt-1.5 text-base font-medium text-zinc-900 dark:text-white">
               Всеки ден в 00:00 ч.
             </p>
             <p className="text-[11px] text-zinc-400">
@@ -358,14 +358,14 @@ export function BackupTab() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-zinc-100 bg-zinc-50/70 p-5 dark:border-zinc-800/40 dark:bg-zinc-900/40">
-            <div className="flex items-center gap-3 text-zinc-500">
-              <ShieldCheck className="size-4 text-emerald-500" />
-              <span className="text-xs font-medium tracking-wider uppercase">
+          <div className="rounded-xl border border-zinc-100 bg-zinc-50/70 p-3.5 sm:p-4 dark:border-zinc-800/40 dark:bg-zinc-900/40">
+            <div className="flex items-center gap-2 text-zinc-500">
+              <ShieldCheck className="size-3.5 text-emerald-500" />
+              <span className="text-[11px] font-medium tracking-wider uppercase">
                 Последен успешен архив
               </span>
             </div>
-            <p className="mt-2 text-lg font-medium text-zinc-900 dark:text-white">
+            <p className="mt-1.5 text-base font-medium text-zinc-900 dark:text-white">
               {formatBackupTime(latestBackup)}
             </p>
             <p className="text-[11px] text-zinc-400">
@@ -375,14 +375,14 @@ export function BackupTab() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-zinc-100 bg-zinc-50/70 p-5 dark:border-zinc-800/40 dark:bg-zinc-900/40">
-            <div className="flex items-center gap-3 text-zinc-500">
-              <FileJson className="size-4 text-amber-500" />
-              <span className="text-xs font-medium tracking-wider uppercase">
+          <div className="rounded-xl border border-zinc-100 bg-zinc-50/70 p-3.5 sm:p-4 dark:border-zinc-800/40 dark:bg-zinc-900/40">
+            <div className="flex items-center gap-2 text-zinc-500">
+              <FileJson className="size-3.5 text-amber-500" />
+              <span className="text-[11px] font-medium tracking-wider uppercase">
                 Формат и съхранение
               </span>
             </div>
-            <p className="mt-2 text-lg font-medium text-zinc-900 dark:text-white">
+            <p className="mt-1.5 text-base font-medium text-zinc-900 dark:text-white">
               Структуриран JSON
             </p>
             <p className="text-[11px] text-zinc-400">
@@ -393,7 +393,7 @@ export function BackupTab() {
       </BentoCard>
 
       {/* 2. History Table */}
-      <BentoCard className="space-y-6 border-zinc-100 bg-white p-8 md:p-10 dark:border-zinc-900 dark:bg-zinc-950">
+      <BentoCard className="space-y-4 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Calendar className="size-5 text-primary" strokeWidth={1.5} />

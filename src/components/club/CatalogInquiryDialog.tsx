@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import {
@@ -167,12 +165,12 @@ export function CatalogInquiryDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-blue-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-blue-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
         {/* Header */}
-        <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 p-4 sm:p-5 pr-12">
+        <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 px-4 py-3 sm:px-5 sm:py-3.5 pr-10">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold tracking-wider text-blue-400 uppercase">
-              <MessageSquare className="size-3.5" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-semibold tracking-wider text-blue-400 uppercase">
+              <MessageSquare className="size-3" />
               {isProduct
                 ? lang === "en"
                   ? "Product inquiry"
@@ -182,10 +180,10 @@ export function CatalogInquiryDialog({
                   : "Запитване за услуга"}
             </span>
           </div>
-          <DialogTitle className="mt-2 text-lg sm:text-xl font-bold text-white">
+          <DialogTitle className="mt-1 text-base sm:text-lg font-bold text-white">
             {item.name}
           </DialogTitle>
-          <DialogDescription className="mt-1 flex items-center gap-2 text-xs text-zinc-400">
+          <DialogDescription className="mt-0.5 flex items-center gap-2 text-xs text-zinc-400">
             {showPrice ? (
               <span className="font-semibold text-blue-400">
                 {item.price?.toFixed(2)} EUR
@@ -199,7 +197,7 @@ export function CatalogInquiryDialog({
         </div>
 
         {/* Content Body */}
-        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 min-h-0">
           {isSuccess ? (
             <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in zoom-in-95">
               <div className="mb-4 flex size-16 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-lg shadow-emerald-500/10">

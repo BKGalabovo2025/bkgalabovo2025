@@ -307,18 +307,27 @@ export default function BeepTestClient() {
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "new" | "history")}
         >
-          <TabsList className="mb-6 grid h-12 w-full max-w-sm grid-cols-2">
-            <TabsTrigger value="new" className="h-10 text-sm font-bold">
+          <TabsList className="mb-3 grid h-9 w-full max-w-xs grid-cols-2 rounded-xl bg-zinc-100 p-0.5">
+            <TabsTrigger
+              value="new"
+              className="rounded-lg text-xs font-semibold"
+            >
               Нов Тест
             </TabsTrigger>
-            <TabsTrigger value="history" className="h-10 text-sm font-bold">
+            <TabsTrigger
+              value="history"
+              className="rounded-lg text-xs font-semibold"
+            >
               История
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="new" className="duration-300 animate-in fade-in">
+          <TabsContent
+            value="new"
+            className="mt-2 duration-300 animate-in fade-in"
+          >
             <Card className="border-zinc-200">
-              <CardContent className="space-y-6 p-6">
+              <CardContent className="space-y-4 p-4 sm:p-5">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-zinc-700">
                     Период на теста

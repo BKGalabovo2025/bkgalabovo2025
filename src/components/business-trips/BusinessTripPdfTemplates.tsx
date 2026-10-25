@@ -28,7 +28,10 @@ import {
   formatOrgName,
   isFemalePerson,
 } from "@/lib/business-trip-protocol";
-import { generateDefaultReportText } from "@/lib/business-trip-report";
+import {
+  generateDefaultReportText,
+  updateReportTextStaySection,
+} from "@/lib/business-trip-report";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
@@ -940,8 +943,8 @@ export function BusinessTripPdfTemplates({
 
             <p style={{ margin: "4pt 0 0 0", textIndent: "15pt" }}>
               Поради изчерпване на дневния ред заседанието на Управителния съвет
-              бе закрито. Настоящият протокол се съставя в удостоверение на
-              взетите решения и се вписва в протоколната книга на клуба.
+              бе закрито. Настоящият протокол № {protocolNum} се съставя в
+              удостоверение на взетите решения.
             </p>
           </div>
         )}
@@ -2878,9 +2881,11 @@ export function BusinessTripPdfTemplates({
                       <>
                         <br />
                         <strong style={{ color: "#1e3a8a" }}>
-                          Ежедневно пътуване: {actualTrips}{" "}
-                          {actualTrips === 1 ? "курс" : "курса"} (отиване и
-                          връщане) по {singleKm} км = {distKm} км
+                          {actualTrips === 1
+                            ? "Еднодневно пътуване:"
+                            : "Ежедневно пътуване:"}{" "}
+                          {actualTrips} {actualTrips === 1 ? "курс" : "курса"}{" "}
+                          (отиване и връщане) по {singleKm} км = {distKm} км
                         </strong>
                       </>
                     )}
@@ -3345,7 +3350,11 @@ export function BusinessTripPdfTemplates({
 
         const displayReportText =
           trip.reportText && trip.reportText.trim().length > 0
-            ? trip.reportText.trim()
+            ? updateReportTextStaySection(
+                trip.reportText.trim(),
+                trip,
+                membersDict
+              )
             : defaultReportText;
 
         // Приблизителна оценка на редовете: при дълъг текст докладът заема точно 2 листа А4

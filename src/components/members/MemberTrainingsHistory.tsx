@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 

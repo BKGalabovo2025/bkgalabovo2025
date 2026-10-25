@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity */
 "use client";
 
 import { motion } from "framer-motion";
@@ -560,25 +559,25 @@ export default function ClubReviewsClient() {
 
       {/* Survey Picker Dialog for Multiple Standing Surveys */}
       <Dialog open={isSurveyPickerOpen} onOpenChange={setIsSurveyPickerOpen}>
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
-          <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 p-4 sm:p-5 pr-12">
-            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-black text-white">
-              <PenLine className="size-5 text-blue-400" />
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
+          <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 px-4 py-3 sm:px-5 sm:py-3.5 pr-10">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-black text-white">
+              <PenLine className="size-4.5 text-blue-400" />
               Изберете анкета за отзив
             </DialogTitle>
-            <DialogDescription className="mt-1 text-xs text-zinc-400">
+            <DialogDescription className="mt-0.5 text-xs text-zinc-400">
               Моля, изберете за кое направление от клубната дейност желаете да
               споделите своите впечатления и препоръки:
             </DialogDescription>
           </div>
 
-          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-3 min-h-0">
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-2.5 min-h-0">
             {standingCampaigns.map((sc) => (
               <Link
                 key={sc.id}
                 href={`/feedback/${sc.id}`}
                 onClick={() => setIsSurveyPickerOpen(false)}
-                className="group flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 transition-all hover:border-blue-500/50 hover:bg-blue-950/30"
+                className="group flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 p-3 sm:p-3.5 transition-all hover:border-blue-500/50 hover:bg-blue-950/30"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">

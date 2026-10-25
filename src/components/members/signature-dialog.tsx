@@ -160,12 +160,12 @@ export const SignatureDialog = ({
         if (!v && !isSaving) onClose();
       }}
     >
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+      <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
         {/* Fixed Sticky Header */}
-        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
           <div className="flex items-center gap-3 pr-8">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-zinc-950 text-white dark:bg-zinc-800">
-              <PenLine className="size-4.5" strokeWidth={1.5} />
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-950 text-white dark:bg-zinc-800">
+              <PenLine className="size-4" strokeWidth={1.5} />
             </div>
             <div className="min-w-0">
               <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
@@ -179,7 +179,7 @@ export const SignatureDialog = ({
         </div>
 
         {/* Canvas Area */}
-        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-3 min-h-0">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-2.5 min-h-0">
           <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 dark:border-zinc-700 dark:bg-zinc-900/40">
             {/* Guiding line */}
             <div className="pointer-events-none absolute inset-x-8 bottom-10 h-px bg-zinc-200 dark:bg-zinc-700" />
@@ -209,15 +209,15 @@ export const SignatureDialog = ({
         </div>
 
         {/* Fixed Sticky Footer */}
-        <div className="shrink-0 flex items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="shrink-0 flex items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             type="button"
             variant="ghost"
             onClick={clearCanvas}
             disabled={!hasSignature || isSaving}
-            className="h-10 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400"
+            className="h-9 rounded-xl px-3.5 text-xs font-bold text-zinc-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400"
           >
-            <Trash2 className="mr-1.5 size-4" strokeWidth={1.5} />
+            <Trash2 className="mr-1.5 size-3.5" strokeWidth={1.5} />
             Изчисти
           </Button>
           <div className="flex items-center gap-2">
@@ -226,7 +226,7 @@ export const SignatureDialog = ({
               variant="ghost"
               onClick={onClose}
               disabled={isSaving}
-              className="h-10 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              className="h-9 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
             >
               Отказ
             </Button>
@@ -234,16 +234,16 @@ export const SignatureDialog = ({
               type="button"
               onClick={handleSave}
               disabled={!hasSignature || isSaving}
-              className="h-10 rounded-xl bg-zinc-950 px-5 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+              className="h-9 rounded-xl bg-zinc-950 px-5 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  <Loader2 className="mr-1.5 size-3.5 animate-spin" />
                   Запазване...
                 </>
               ) : (
                 <>
-                  <CheckCheck className="mr-2 size-4" strokeWidth={1.5} />
+                  <CheckCheck className="mr-1.5 size-3.5" strokeWidth={1.5} />
                   Запази подписа
                 </>
               )}

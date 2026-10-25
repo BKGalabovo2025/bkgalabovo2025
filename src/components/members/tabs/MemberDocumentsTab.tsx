@@ -1,6 +1,5 @@
 "use client";
 
-import { deleteDoc, doc, getDocs } from "firebase/firestore";
 import {
   AlertTriangle,
   CheckCircle,
@@ -22,10 +21,12 @@ import React, { useEffect, useState } from "react";
 import { DocumentRequestsHistory } from "@/components/members/DocumentRequestsHistory";
 import { GenerateDocumentLinkDialog } from "@/components/members/GenerateDocumentLinkDialog";
 import { Button } from "@/components/ui/button";
+import {
+  deleteDeclarationAction,
+  getMemberDeclarationsAction,
+} from "@/lib/actions/declarations";
 import { getDocumentTemplatesAction } from "@/lib/actions/document-templates";
 import { getCalendarYearValidity } from "@/lib/document-validity";
-import { getDb } from "@/lib/firebase";
-import { getSignedDeclarationsQuery } from "@/lib/firebase-collections";
 import { cn } from "@/lib/utils";
 import { Member, SignedDeclaration } from "@/types";
 import { DocumentType } from "@/types/document-request.types";
@@ -401,13 +402,14 @@ export const MemberDocumentsTab = ({
 
   useEffect(() => {
     async function fetchDeclarations() {
-      const snapshot = await getDocs(getSignedDeclarationsQuery(member.id));
-      const list = snapshot.docs.map((d) => d.data() as SignedDeclaration);
-      list.sort(
-        (a, b) =>
-          new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime()
-      );
-      setDeclarations(list);
+      try {
+        const res = await getMemberDeclarationsAction(member.id);
+        if (res.success && res.data) {
+          setDeclarations(res.data);
+        }
+      } catch (err) {
+        console.error("Error fetching declarations for member:", err);
+      }
     }
     fetchDeclarations();
   }, [member.id]);
@@ -425,11 +427,12 @@ export const MemberDocumentsTab = ({
       window.confirm("Сигурни ли сте, че искате да изтриете тази декларация?")
     ) {
       try {
-        await deleteDoc(doc(getDb(), "member_declarations", id));
-        setDeclarations((prev) => prev.filter((d) => d.id !== id));
-        // Note: Ideally, we should also trigger an update of the member's hasSignedDeclaration status
-        // but that requires updating the reservation or member record which is handled separately.
-        // For now, this cleanly removes it from the list and DB.
+        const res = await deleteDeclarationAction(id);
+        if (res.success) {
+          setDeclarations((prev) => prev.filter((d) => d.id !== id));
+        } else {
+          alert(res.message || "Грешка при изтриването.");
+        }
       } catch (error) {
         console.error("Error deleting declaration:", error);
         alert("Възникна грешка при изтриването.");

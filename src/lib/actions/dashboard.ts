@@ -4,7 +4,6 @@ import "server-only";
 import * as admin from "firebase-admin";
 
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
-/* eslint-disable sonarjs/no-nested-conditional */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getAdminDb } from "@/lib/firebase-admin";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
@@ -204,7 +203,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
 
     return await serverCache.get(
       cacheKey,
-      // eslint-disable-next-line sonarjs/cognitive-complexity
+
       async () => {
         // ВЪТРЕШЕН try/catch — никога не хвърляме нагоре от fetchFn
         try {

@@ -25,6 +25,7 @@ interface CoachPhotoGalleryProps {
   coach: Therapist;
   className?: string;
   children?: React.ReactNode;
+  priority?: boolean;
 }
 
 interface PhotoItem {
@@ -37,6 +38,7 @@ export function CoachPhotoGallery({
   coach,
   className = "",
   children,
+  priority = true,
 }: CoachPhotoGalleryProps) {
   // Lightbox state: active photo index, or null if closed
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -169,6 +171,8 @@ export function CoachPhotoGallery({
                 fill
                 sizes="128px"
                 unoptimized
+                priority={priority}
+                loading={priority ? "eager" : "lazy"}
                 className="object-cover transition-transform duration-500 group-hover/avatar:scale-105"
               />
               {/* Fullscreen icon on hover */}

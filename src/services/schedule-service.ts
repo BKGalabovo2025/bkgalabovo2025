@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
 import {
   DocumentSnapshot,
   getDocs,

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, sonarjs/no-unused-vars, sonarjs/cognitive-complexity, sonarjs/no-redundant-assignments, sonarjs/no-dead-store */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, sonarjs/no-unused-vars, sonarjs/no-redundant-assignments */
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

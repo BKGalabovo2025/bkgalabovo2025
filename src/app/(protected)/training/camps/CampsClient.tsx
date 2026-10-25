@@ -138,9 +138,19 @@ export default function CampsClient() {
       </div>
 
       <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="mb-6 grid w-full max-w-xs sm:max-w-md grid-cols-2">
-          <TabsTrigger value="upcoming">Предстоящи</TabsTrigger>
-          <TabsTrigger value="past">Минали</TabsTrigger>
+        <TabsList className="mb-3 grid h-9 w-full max-w-xs sm:max-w-sm grid-cols-2 rounded-xl bg-zinc-100 p-0.5">
+          <TabsTrigger
+            value="upcoming"
+            className="rounded-lg text-xs font-semibold"
+          >
+            Предстоящи
+          </TabsTrigger>
+          <TabsTrigger
+            value="past"
+            className="rounded-lg text-xs font-semibold"
+          >
+            Минали
+          </TabsTrigger>
         </TabsList>
         <TabsContent
           value="upcoming"

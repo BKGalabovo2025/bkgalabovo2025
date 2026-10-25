@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import { motion } from "framer-motion";

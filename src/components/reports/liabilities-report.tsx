@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-
 "use client";
 
 import {
@@ -103,18 +101,25 @@ const LiabilitiesReport = ({
   return (
     <div className="space-y-6">
       {/* Filters Card */}
-      <BentoCard className="rounded-4xl border border-zinc-100 bg-white p-8 shadow-none">
-        <div className="flex flex-col items-end gap-6 md:flex-row">
-          <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="space-y-3">
-              <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+      <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4.5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex flex-col items-end gap-3 sm:gap-4 md:flex-row">
+          <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="liabilities-year"
+                className="ml-1 text-[10px] sm:text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+              >
                 Година
               </Label>
               <Select value={year} onValueChange={setYear}>
-                <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 shadow-none focus:ring-zinc-200">
+                <SelectTrigger
+                  id="liabilities-year"
+                  aria-label="Година"
+                  className="h-10 rounded-xl border-zinc-100 bg-zinc-50/50 shadow-none focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900/50"
+                >
                   <SelectValue placeholder="Избери година" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-zinc-100 shadow-2xl">
+                <SelectContent className="rounded-xl border-zinc-100 shadow-2xl dark:border-zinc-800">
                   {years.map((y) => (
                     <SelectItem key={y} value={y}>
                       {y}
@@ -123,15 +128,22 @@ const LiabilitiesReport = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-3">
-              <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="liabilities-month"
+                className="ml-1 text-[10px] sm:text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase"
+              >
                 Месец
               </Label>
               <Select value={month} onValueChange={setMonth}>
-                <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 shadow-none focus:ring-zinc-200">
+                <SelectTrigger
+                  id="liabilities-month"
+                  aria-label="Месец"
+                  className="h-10 rounded-xl border-zinc-100 bg-zinc-50/50 shadow-none focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900/50"
+                >
                   <SelectValue placeholder="Избери месец" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-zinc-100 shadow-2xl">
+                <SelectContent className="rounded-xl border-zinc-100 shadow-2xl dark:border-zinc-800">
                   {months.map((m) => (
                     <SelectItem key={m.value} value={m.value}>
                       {m.label}
@@ -142,16 +154,16 @@ const LiabilitiesReport = ({
             </div>
           </div>
 
-          <div className="flex w-full gap-3 md:w-auto">
+          <div className="flex w-full gap-2.5 md:w-auto">
             <Button
               onClick={handleGenerateReport}
               disabled={isLoading}
-              className="h-12 flex-1 rounded-xl bg-zinc-950 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 md:flex-none"
+              className="h-10 flex-1 rounded-xl bg-zinc-950 px-5 text-[10px] sm:text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 md:flex-none"
             >
               {isLoading ? (
-                <Loader2 className="mr-3 size-4 animate-spin" />
+                <Loader2 className="mr-2 size-3.5 animate-spin" />
               ) : (
-                <Filter className="mr-3 size-4" strokeWidth={1.5} />
+                <Filter className="mr-2 size-3.5" strokeWidth={1.5} />
               )}
               Генерирай
             </Button>
@@ -159,9 +171,9 @@ const LiabilitiesReport = ({
               <Button
                 onClick={handleExport}
                 variant="outline"
-                className="h-12 rounded-xl border-zinc-100 px-8 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-50"
+                className="h-10 rounded-xl border-zinc-200 px-5 text-[10px] sm:text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-50 dark:border-zinc-800"
               >
-                <Download className="mr-3 size-4" strokeWidth={1.5} /> Експорт
+                <Download className="mr-2 size-3.5" strokeWidth={1.5} /> Експорт
               </Button>
             )}
           </div>
@@ -170,30 +182,31 @@ const LiabilitiesReport = ({
 
       {/* Summary Stat Card */}
       {hasSearched && !isLoading && unpaidMembers.length > 0 && (
-        <BentoCard className="rounded-4xl border border-rose-100 bg-white p-8 shadow-none">
-          <div className="mb-3 flex items-center gap-4 text-rose-500">
-            <AlertCircle className="size-5" strokeWidth={1.5} />
-            <span className="text-[11px] font-medium tracking-[0.2em] uppercase">
+        <BentoCard className="rounded-2xl border border-rose-200/80 bg-rose-50/20 p-3.5 sm:p-4 shadow-none dark:border-rose-900/50 dark:bg-rose-950/10">
+          <div className="mb-1.5 flex items-center gap-2.5 text-rose-500">
+            <AlertCircle className="size-4" strokeWidth={1.5} />
+            <span className="text-[10px] sm:text-[11px] font-medium tracking-[0.2em] uppercase">
               Общо неплатили за периода
             </span>
           </div>
-          <p className="text-4xl font-light tracking-tighter text-rose-600">
-            {unpaidMembers.length} <span className="text-xl">души</span>
+          <p className="text-2xl sm:text-3xl font-light tracking-tight text-rose-600">
+            {unpaidMembers.length}{" "}
+            <span className="text-base sm:text-lg">души</span>
           </p>
         </BentoCard>
       )}
 
       {/* Results Table Card */}
-      <BentoCard className="overflow-hidden rounded-5xl border border-zinc-100 bg-white p-0 shadow-none">
-        <div className="flex items-center justify-between border-b border-zinc-50 p-8">
-          <h3 className="flex items-center gap-3 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
-            <Users className="size-4 text-primary" strokeWidth={1.5} />
+      <BentoCard className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center justify-between border-b border-zinc-100 p-3.5 sm:p-4 dark:border-zinc-800">
+          <h3 className="flex items-center gap-2 text-[10px] sm:text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+            <Users className="size-3.5 text-primary" strokeWidth={1.5} />
             Списък на длъжници
           </h3>
           {hasSearched && (
             <Badge
               variant={unpaidMembers.length > 0 ? "destructive" : "outline"}
-              className="rounded-full border-none px-4 py-1 text-[10px] font-medium tracking-widest uppercase"
+              className="rounded-full border-none px-3 py-0.5 text-[10px] font-medium tracking-widest uppercase"
             >
               {unpaidMembers.length} задължения
             </Badge>
@@ -201,21 +214,21 @@ const LiabilitiesReport = ({
         </div>
 
         {isLoading ? (
-          <div className="p-32 text-center">
+          <div className="p-8 sm:p-12 text-center">
             <Loader2
-              className="mx-auto mb-6 size-10 animate-spin text-zinc-200"
-              strokeWidth={1}
+              className="mx-auto mb-3 size-8 animate-spin text-zinc-300 dark:text-zinc-600"
+              strokeWidth={1.5}
             />
-            <p className="text-[11px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
+            <p className="text-[10px] sm:text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
               Проверка на плащания...
             </p>
           </div>
         ) : unpaidMembers.length === 0 ? (
-          <div className="p-32 text-center text-emerald-600">
-            <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-emerald-50">
-              <Users className="size-8" strokeWidth={1} />
+          <div className="p-8 sm:p-12 text-center text-emerald-600">
+            <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/30">
+              <Users className="size-6" strokeWidth={1.5} />
             </div>
-            <p className="text-[11px] font-medium tracking-[0.2em] uppercase">
+            <p className="text-[10px] sm:text-[11px] font-medium tracking-[0.2em] uppercase">
               Браво! Всички са платили.
             </p>
           </div>

@@ -344,12 +344,12 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent
-          className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4"
+          className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5"
           aria-describedby={descriptionId}
         >
           <div className="flex h-full flex-col overflow-hidden min-h-0">
             {/* Header */}
-            <div className="z-10 shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="z-10 shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-between text-lg sm:text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
                   <span>{dialogTitle}</span>
@@ -391,12 +391,12 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
                 id={formId}
                 onSubmit={handleSubmit}
                 onKeyDown={handleKeyDown}
-                className="space-y-5 p-4 sm:p-6"
+                className="space-y-3.5 p-3.5 sm:p-4.5"
               >
                 {/* STEP 1: Basic Info */}
                 <div
                   className={cn(
-                    "space-y-5 transition-all duration-500",
+                    "space-y-3.5 transition-all duration-500",
                     step === 1 ? "block opacity-100" : "hidden opacity-0"
                   )}
                 >
@@ -605,7 +605,7 @@ export const EventDialogForm: React.FC<EventDialogFormProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="z-10 shrink-0 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div className="z-10 shrink-0 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
               <div className="flex w-full items-center justify-between">
                 {step > 1 ? (
                   <Button

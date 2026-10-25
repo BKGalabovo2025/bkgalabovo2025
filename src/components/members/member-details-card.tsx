@@ -348,58 +348,58 @@ export const MemberDetailsCard = ({
 
       <Tabs defaultValue="personal" className="w-full">
         <div className="group relative">
-          <TabsList className="no-scrollbar mb-8 flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-2xl border border-zinc-100 bg-zinc-50/50 p-1.5 md:flex-wrap md:overflow-visible">
+          <TabsList className="no-scrollbar mb-3 flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-xl border border-zinc-100 bg-zinc-50/50 p-1 md:flex-wrap md:overflow-visible">
             <TabsTrigger
               value="personal"
-              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-2xs"
             >
               Данни
             </TabsTrigger>
             <TabsTrigger
               value="documents"
-              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-2xs"
             >
               Документи
             </TabsTrigger>
             <TabsTrigger
               value="sales"
-              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-2xs"
             >
               Финансова история
             </TabsTrigger>
             <TabsTrigger
               value="attendance"
-              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-2xs"
             >
               Присъствия
             </TabsTrigger>
             <TabsTrigger
               value="trainings"
-              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-2xs"
             >
               Shadow тренировки
             </TabsTrigger>
             <TabsTrigger
               value="volume"
-              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-2xs"
             >
               Тренировъчен обем
             </TabsTrigger>
             <TabsTrigger
               value="assessments"
-              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-2xs"
             >
               Оценяване
             </TabsTrigger>
             <TabsTrigger
               value="theory"
-              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-zinc-400 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-2xs"
             >
               Теория
             </TabsTrigger>
             <TabsTrigger
               value="ai-workouts"
-              className="h-9 flex-none rounded-xl border-transparent px-4 text-[9px] font-semibold tracking-widest whitespace-nowrap text-blue-600 uppercase transition-all data-[state=active]:border data-[state=active]:border-blue-100 data-[state=active]:bg-blue-50/70 data-[state=active]:text-blue-900 data-[state=active]:shadow-sm dark:text-blue-400 dark:data-[state=active]:bg-blue-950/40 dark:data-[state=active]:text-blue-200"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-blue-600 uppercase transition-all data-[state=active]:border data-[state=active]:border-blue-100 data-[state=active]:bg-blue-50/70 data-[state=active]:text-blue-900 data-[state=active]:shadow-2xs dark:text-blue-400 dark:data-[state=active]:bg-blue-950/40 dark:data-[state=active]:text-blue-200"
             >
               <Sparkles className="mr-1.5 size-3 text-blue-500" />
               AI Програми

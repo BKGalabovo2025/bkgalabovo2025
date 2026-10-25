@@ -102,20 +102,20 @@ export function BirthdayReminder() {
 
   if (loading) {
     return (
-      <BentoCard className="flex flex-col justify-between rounded-4xl border border-zinc-100 bg-white p-6 shadow-none dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mb-4 flex items-center gap-2.5">
-          <div className="flex size-8 items-center justify-center rounded-xl bg-rose-50 text-rose-500 dark:bg-rose-950/50">
-            <Gift className="size-4" strokeWidth={1.75} />
+      <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="mb-3 flex items-center gap-2.5">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-rose-50 text-rose-500 dark:bg-rose-950/50">
+            <Gift className="size-3.5" strokeWidth={1.75} />
           </div>
           <div>
             <h2 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
               Рождени дни
             </h2>
-            <p className="text-[11px] text-zinc-400">Клубен календар</p>
+            <p className="text-[10px] text-zinc-400">Клубен календар</p>
           </div>
         </div>
-        <div className="flex h-32 items-center justify-center">
-          <Loader2 className="size-6 animate-spin text-zinc-300" />
+        <div className="flex h-24 items-center justify-center">
+          <Loader2 className="size-5 animate-spin text-zinc-300" />
         </div>
       </BentoCard>
     );
@@ -124,9 +124,9 @@ export function BirthdayReminder() {
   // When no birthdays in next 14 days, show friendly calm card with closest next birthday
   if (upcomingBirthdays.length === 0) {
     return (
-      <BentoCard className="flex flex-col justify-between rounded-4xl border border-zinc-100 bg-white p-6 shadow-none dark:border-zinc-800 dark:bg-zinc-900">
+      <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
         <div>
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="flex size-8 items-center justify-center rounded-xl bg-rose-50 text-rose-500 dark:bg-rose-950/50 dark:text-rose-400">
                 <Gift className="size-4" strokeWidth={1.75} />
@@ -185,36 +185,36 @@ export function BirthdayReminder() {
   }
 
   return (
-    <BentoCard className="relative flex flex-col justify-between overflow-hidden rounded-4xl border border-rose-200/80 bg-linear-to-br from-rose-50/50 via-white to-rose-50/20 p-6 shadow-none dark:border-rose-900/50 dark:from-rose-950/20 dark:via-zinc-900 dark:to-zinc-900">
+    <BentoCard className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-rose-200/80 bg-linear-to-br from-rose-50/50 via-white to-rose-50/20 p-3.5 sm:p-4 shadow-none dark:border-rose-900/50 dark:from-rose-950/20 dark:via-zinc-900 dark:to-zinc-900">
       <div>
-        <div className="relative z-10 mb-4 flex items-center justify-between">
+        <div className="relative z-10 mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-rose-500 text-white shadow-sm shadow-rose-500/25">
-              <Gift className="size-4" strokeWidth={2.2} />
+            <div className="flex size-7 items-center justify-center rounded-lg bg-rose-500 text-white shadow-sm shadow-rose-500/25">
+              <Gift className="size-3.5" strokeWidth={2.2} />
             </div>
             <div>
               <h2 className="text-xs font-bold text-rose-950 dark:text-rose-200">
                 Рождени дни
               </h2>
-              <p className="text-[11px] text-rose-700/80 dark:text-rose-400/70">
+              <p className="text-[10px] text-rose-700/80 dark:text-rose-400/70">
                 Следващите 14 дни
               </p>
             </div>
           </div>
           <Badge
             variant="secondary"
-            className="border-rose-200 bg-rose-100 px-2 text-[10px] font-bold text-rose-800 shadow-none dark:border-rose-800 dark:bg-rose-900/40 dark:text-rose-300"
+            className="border-rose-200 bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800 shadow-none dark:border-rose-800 dark:bg-rose-900/40 dark:text-rose-300"
           >
             {upcomingBirthdays.length}{" "}
             {upcomingBirthdays.length === 1 ? "рожденик" : "рожденици"}
           </Badge>
         </div>
 
-        <div className="relative z-10 max-h-72 space-y-2 overflow-y-auto pr-1">
+        <div className="relative z-10 max-h-72 space-y-1.5 overflow-y-auto pr-1">
           {upcomingBirthdays.map((bday) => (
             <div
               key={bday.member.id}
-              className="group flex cursor-pointer items-center justify-between rounded-2xl border border-rose-100/80 bg-white/95 p-3 backdrop-blur-xs transition-all hover:border-rose-300 hover:shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/95"
+              className="group flex cursor-pointer items-center justify-between rounded-xl border border-rose-100/80 bg-white/95 p-2 sm:p-2.5 backdrop-blur-xs transition-all hover:border-rose-300 hover:shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/95"
               onClick={() => router.push(`/members/${bday.member.id}`)}
             >
               <div className="flex items-center gap-2.5">

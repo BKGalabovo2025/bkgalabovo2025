@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { shadowLogger } from "@/lib/shadow-training/shadow-logger";

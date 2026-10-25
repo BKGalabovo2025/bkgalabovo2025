@@ -68,8 +68,8 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
   if (isGuestOnly) return null;
 
   return (
-    <BentoCard className="rounded-3xl border-zinc-100 p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 sm:rounded-4xl sm:p-8">
-      <div className="mb-6 flex items-center gap-2">
+    <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="mb-4 flex items-center gap-2">
         <FileText className="size-4 text-zinc-400" strokeWidth={1.5} />
         <h3 className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase sm:text-[11px]">
           {isRecoveryMember
@@ -127,22 +127,24 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                   <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                     Ниво на умения
                   </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value || undefined}
-                  >
-                    <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
-                      <SelectValue placeholder="Избери ниво" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-zinc-100">
-                      <SelectItem value="beginner">Начално</SelectItem>
-                      <SelectItem value="intermediate">Средно</SelectItem>
-                      <SelectItem value="advanced">Напреднало</SelectItem>
-                      <SelectItem value="professional">
-                        Професионално
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || undefined}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
+                        <SelectValue placeholder="Избери ниво" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-zinc-100">
+                        <SelectItem value="beginner">Начално</SelectItem>
+                        <SelectItem value="intermediate">Средно</SelectItem>
+                        <SelectItem value="advanced">Напреднало</SelectItem>
+                        <SelectItem value="professional">
+                          Професионално
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
                   <p className="mt-1 text-[10px] leading-relaxed text-zinc-400">
                     Ако изберете &quot;Напреднало&quot; или
                     &quot;Професионално&quot;, в публичния отбор ще излиза като
@@ -163,15 +165,20 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
               <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                 Статус
               </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-zinc-100">
-                  <SelectItem value="active">Активен</SelectItem>
-                  <SelectItem value="inactive">Неактивен</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-zinc-100">
+                    <SelectItem value="active">Активен</SelectItem>
+                    <SelectItem value="inactive">Неактивен</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

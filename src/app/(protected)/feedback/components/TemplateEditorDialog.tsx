@@ -157,25 +157,25 @@ export function TemplateEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
         {/* Fixed Sticky Header */}
-        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-            <Sparkles className="size-5 text-indigo-600 shrink-0" />
+            <Sparkles className="size-4.5 text-indigo-600 shrink-0" />
             <span className="truncate">
               {isEditing
                 ? "Редактиране на Шаблон за анкета"
                 : "Нов Шаблон за анкета"}
             </span>
           </DialogTitle>
-          <DialogDescription className="mt-1 text-xs text-zinc-500">
+          <DialogDescription className="mt-0.5 text-xs text-zinc-500">
             Конфигурирайте въпросите, които родителите или състезателите ще
             попълват.
           </DialogDescription>
         </div>
 
         <ScrollArea className="flex-1 custom-scrollbar min-h-0">
-          <div className="space-y-6 p-4 sm:p-6">
+          <div className="space-y-4 p-3.5 sm:p-4.5">
             {/* Meta info */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
@@ -367,18 +367,18 @@ export function TemplateEditorDialog({
         </ScrollArea>
 
         {/* Fixed Sticky Footer */}
-        <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="h-9 sm:h-10 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+            className="h-9 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
           >
             Отказ
           </Button>
           <Button
             onClick={handleSave}
             disabled={isSubmitting}
-            className="h-9 sm:h-10 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white shadow-md hover:bg-indigo-700"
+            className="h-9 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white shadow-md hover:bg-indigo-700"
           >
             Запази шаблона
           </Button>

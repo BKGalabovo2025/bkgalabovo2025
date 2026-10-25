@@ -38,7 +38,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed top-[50%] left-[50%] z-50 grid max-h-[88vh] w-[calc(100%-1.5rem)] max-w-lg -translate-1/2 gap-4 sm:gap-6 overflow-y-auto overscroll-contain border border-zinc-100 bg-white p-5 sm:p-8 rounded-2xl shadow-2xl shadow-zinc-200/20 duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] data-[state=open]:zoom-in-95 sm:rounded-4xl dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-none",
+        "fixed top-[50%] left-[50%] z-50 grid max-h-[90vh] w-[calc(100%-1.25rem)] max-w-lg -translate-1/2 gap-3 sm:gap-4 overflow-y-auto overscroll-contain border border-zinc-100 bg-white p-4 sm:p-5 rounded-2xl shadow-xl shadow-zinc-200/20 duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] data-[state=open]:zoom-in-95 dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-none",
         className
       )}
       {...props}
@@ -50,7 +50,7 @@ const DialogContent = React.forwardRef<
         Описание на диалоговия прозорец
       </DialogPrimitive.Description>
       {children}
-      <DialogPrimitive.Close className="absolute top-6 right-6 rounded-full p-2 opacity-40 ring-offset-background transition-all hover:bg-zinc-100 hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground dark:hover:bg-zinc-900">
+      <DialogPrimitive.Close className="absolute top-3.5 right-3.5 rounded-full p-1.5 opacity-50 ring-offset-background transition-all hover:bg-zinc-100 hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground dark:hover:bg-zinc-900">
         <X className="size-4" />
         <span className="sr-only">Затвори</span>
       </DialogPrimitive.Close>
@@ -65,7 +65,7 @@ const DialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left",
+      "flex flex-col space-y-1 text-center sm:text-left",
       className
     )}
     {...props}
@@ -79,7 +79,7 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2",
+      "flex flex-col-reverse gap-1.5 sm:flex-row sm:justify-end sm:gap-2",
       className
     )}
     {...props}
@@ -94,7 +94,7 @@ const DialogTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-2xl leading-none font-light tracking-tight text-zinc-900 dark:text-zinc-100",
+      "text-lg sm:text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100",
       className
     )}
     {...props}
@@ -108,7 +108,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-xs sm:text-sm text-muted-foreground", className)}
     {...props}
   />
 ));

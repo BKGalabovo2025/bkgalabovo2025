@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { getAllDeclarationsAction } from "@/lib/actions/declarations";
 import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
 
 import DeclarationsClient from "./DeclarationsClient";
@@ -12,5 +13,8 @@ export default async function DeclarationsPage() {
     redirect("/login");
   }
 
-  return <DeclarationsClient />;
+  const res = await getAllDeclarationsAction();
+  const initialDeclarations = res.success && res.data ? res.data : [];
+
+  return <DeclarationsClient initialDeclarations={initialDeclarations} />;
 }

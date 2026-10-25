@@ -145,9 +145,9 @@ export function ViewSignedDocumentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto p-0 sm:rounded-3xl border-zinc-200 bg-zinc-100 font-sans">
+      <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto p-0 sm:rounded-2xl border-zinc-200 bg-zinc-100 font-sans">
         {/* Modal Top Bar (Non-printable) */}
-        <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/95 px-6 py-4 backdrop-blur-md print:hidden">
+        <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2.5 border-b border-zinc-200/80 bg-white/95 px-4 py-2.5 sm:px-5 sm:py-3 backdrop-blur-md print:hidden">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">

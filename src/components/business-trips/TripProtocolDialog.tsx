@@ -241,11 +241,11 @@ export function TripProtocolDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto p-6 sm:p-7">
-        <DialogHeader className="border-b pb-3">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl p-4 sm:p-5">
+        <DialogHeader className="border-b pb-2">
           <div className="flex items-center gap-2">
-            <div className="rounded-md bg-indigo-50 p-2 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
-              <FileText className="size-5" />
+            <div className="rounded-md bg-indigo-50 p-1.5 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+              <FileText className="size-4.5" />
             </div>
             <div>
               <DialogTitle className="text-xl font-bold">

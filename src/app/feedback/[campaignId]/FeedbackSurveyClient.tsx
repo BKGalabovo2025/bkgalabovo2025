@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity */
 "use client";
 
 import {

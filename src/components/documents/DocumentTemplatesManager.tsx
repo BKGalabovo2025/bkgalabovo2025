@@ -484,10 +484,15 @@ export function DocumentTemplatesManager() {
     <div className="space-y-4">
       {/* 1. Основни настройки */}
       <div className="space-y-1.5">
-        <Label className="text-xs font-bold text-zinc-800">
+        <Label
+          htmlFor="template-title"
+          className="text-xs font-bold text-zinc-800"
+        >
           Заглавие на документа *
         </Label>
         <Input
+          id="template-title"
+          name="title"
           required
           value={formData.title}
           onChange={(e) =>
@@ -500,8 +505,15 @@ export function DocumentTemplatesManager() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-zinc-800">Категория</Label>
+          <Label
+            htmlFor="template-category"
+            className="text-xs font-bold text-zinc-800"
+          >
+            Категория
+          </Label>
           <select
+            id="template-category"
+            name="category"
             value={formData.category}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -520,10 +532,15 @@ export function DocumentTemplatesManager() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-zinc-800">
+          <Label
+            htmlFor="template-header-type"
+            className="text-xs font-bold text-zinc-800"
+          >
             Официална клубна шапка с лого
           </Label>
           <select
+            id="template-header-type"
+            name="headerType"
             value={formData.headerType || "official_club"}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -544,10 +561,15 @@ export function DocumentTemplatesManager() {
       {/* 2. Адресат и Идентификационен блок */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-zinc-800">
+          <Label
+            htmlFor="template-addressee"
+            className="text-xs font-bold text-zinc-800"
+          >
             Адресат (ДО...)
           </Label>
           <Input
+            id="template-addressee"
+            name="addressee"
             value={formData.addressee || ""}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, addressee: e.target.value }))
@@ -558,10 +580,15 @@ export function DocumentTemplatesManager() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-zinc-800">
+          <Label
+            htmlFor="template-salutation"
+            className="text-xs font-bold text-zinc-800"
+          >
             Обръщение (по избор)
           </Label>
           <Input
+            id="template-salutation"
+            name="salutation"
             value={formData.salutation || ""}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, salutation: e.target.value }))
@@ -574,10 +601,15 @@ export function DocumentTemplatesManager() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-zinc-800">
+          <Label
+            htmlFor="template-applicant-layout"
+            className="text-xs font-bold text-zinc-800"
+          >
             Идентификационен блок на лицето
           </Label>
           <select
+            id="template-applicant-layout"
+            name="applicantLayout"
             value={formData.applicantLayout || "none"}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -605,10 +637,15 @@ export function DocumentTemplatesManager() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-zinc-800">
+          <Label
+            htmlFor="template-page-count"
+            className="text-xs font-bold text-zinc-800"
+          >
             Обем на документа (А4)
           </Label>
           <select
+            id="template-page-count"
+            name="pageCount"
             value={formData.pageCount || 1}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -629,7 +666,10 @@ export function DocumentTemplatesManager() {
       {/* 3. Чекбоксове / Форми на участие (динамично добавяне) */}
       <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4 space-y-3">
         <div>
-          <Label className="text-xs font-bold text-zinc-900">
+          <Label
+            htmlFor="template-new-checkbox-label"
+            className="text-xs font-bold text-zinc-900"
+          >
             Чекбоксове и форми на участие в документа
           </Label>
           <p className="text-[11px] text-zinc-500">
@@ -670,6 +710,9 @@ export function DocumentTemplatesManager() {
 
         <div className="flex items-center gap-2 pt-1">
           <Input
+            id="template-new-checkbox-label"
+            name="newCheckboxLabel"
+            aria-label="Нов чекбокс"
             value={newCheckboxLabel}
             onChange={(e) => setNewCheckboxLabel(e.target.value)}
             placeholder="напр. Месечен абонамент – 1 дете (20 EUR) или Декларирам, че..."
@@ -695,7 +738,10 @@ export function DocumentTemplatesManager() {
       {/* 4. Текст на документа и бързи маркери */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <Label className="text-xs font-bold text-zinc-800">
+          <Label
+            htmlFor="template-content"
+            className="text-xs font-bold text-zinc-800"
+          >
             Текст на документа (клаузи и съдържание) *
           </Label>
           <span className="text-[10px] text-zinc-500">
@@ -726,6 +772,8 @@ export function DocumentTemplatesManager() {
         </div>
 
         <Textarea
+          id="template-content"
+          name="content"
           required
           rows={10}
           value={formData.content}
@@ -743,8 +791,13 @@ export function DocumentTemplatesManager() {
           Кой подписва този документ?
         </Label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-          <label className="flex items-center gap-2 cursor-pointer text-xs">
+          <label
+            htmlFor="sig-parent"
+            className="flex items-center gap-2 cursor-pointer text-xs"
+          >
             <input
+              id="sig-parent"
+              name="requireParent"
               type="checkbox"
               checked={formData.signatures?.requireParent ?? true}
               onChange={(e) =>
@@ -769,8 +822,13 @@ export function DocumentTemplatesManager() {
             <span>Родител / Настойник</span>
           </label>
 
-          <label className="flex items-center gap-2 cursor-pointer text-xs">
+          <label
+            htmlFor="sig-second-parent"
+            className="flex items-center gap-2 cursor-pointer text-xs"
+          >
             <input
+              id="sig-second-parent"
+              name="requireSecondParent"
               type="checkbox"
               checked={formData.signatures?.requireSecondParent ?? false}
               onChange={(e) =>
@@ -794,8 +852,13 @@ export function DocumentTemplatesManager() {
             <span>Втори родител</span>
           </label>
 
-          <label className="flex items-center gap-2 cursor-pointer text-xs">
+          <label
+            htmlFor="sig-member"
+            className="flex items-center gap-2 cursor-pointer text-xs"
+          >
             <input
+              id="sig-member"
+              name="requireMember"
               type="checkbox"
               checked={formData.signatures?.requireMember ?? false}
               onChange={(e) =>
@@ -820,8 +883,13 @@ export function DocumentTemplatesManager() {
             <span>Състезател</span>
           </label>
 
-          <label className="flex items-center gap-2 cursor-pointer text-xs">
+          <label
+            htmlFor="sig-president"
+            className="flex items-center gap-2 cursor-pointer text-xs"
+          >
             <input
+              id="sig-president"
+              name="requirePresident"
               type="checkbox"
               checked={formData.signatures?.requirePresident ?? false}
               onChange={(e) =>
@@ -850,10 +918,15 @@ export function DocumentTemplatesManager() {
       {/* 6. Заключителни данни */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-zinc-800">
+          <Label
+            htmlFor="template-closing-location"
+            className="text-xs font-bold text-zinc-800"
+          >
             Място на издаване
           </Label>
           <Input
+            id="template-closing-location"
+            name="closingLocation"
             value={formData.closingLocation || "гр. Гълъбово"}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -867,11 +940,16 @@ export function DocumentTemplatesManager() {
 
         <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 border border-zinc-200 mt-5">
           <div className="space-y-0.5">
-            <span className="text-xs font-bold text-zinc-900">
+            <Label
+              htmlFor="template-is-required-for-member"
+              className="text-xs font-bold text-zinc-900 cursor-pointer"
+            >
               Показвай в досието на състезателя
-            </span>
+            </Label>
           </div>
           <input
+            id="template-is-required-for-member"
+            name="isRequiredForMember"
             type="checkbox"
             checked={formData.isRequiredForMember}
             onChange={(e) =>
@@ -899,12 +977,15 @@ export function DocumentTemplatesManager() {
             </p>
           </div>
 
-          <label className="cursor-pointer">
+          <label htmlFor="template-file-upload" className="cursor-pointer">
             <div className="flex items-center gap-1.5 rounded-xl bg-white border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 transition-all shadow-xs">
               <Upload className="size-3.5" />
               <span>Избери файл</span>
             </div>
             <input
+              id="template-file-upload"
+              name="fileUpload"
+              aria-label="Прикачи файл"
               type="file"
               className="hidden"
               accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
@@ -980,22 +1061,28 @@ export function DocumentTemplatesManager() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-center gap-2.5">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
           <Input
+            id="template-search-input"
+            name="searchQuery"
+            aria-label="Търсене по заглавие, описание или текст"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Търсене по заглавие, описание или текст..."
-            className="pl-10 h-10 rounded-2xl border-zinc-200 bg-white text-xs shadow-2xs"
+            className="pl-9 h-9 rounded-xl border-zinc-200 bg-white text-xs shadow-2xs"
           />
         </div>
 
         <div className="w-full sm:w-auto">
           <select
+            id="template-category-filter"
+            name="selectedCategory"
+            aria-label="Филтриране по категория на образците"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="h-10 rounded-2xl border border-zinc-200 bg-white px-3.5 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 shadow-2xs"
+            className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 shadow-2xs"
           >
             <option value="all">Всички категории</option>
             {Object.entries(DOCUMENT_CATEGORY_LABELS).map(([key, label]) => (
@@ -1009,15 +1096,15 @@ export function DocumentTemplatesManager() {
 
       {/* Templates Grid */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center p-16 bg-white rounded-3xl border border-zinc-100">
-          <Loader2 className="size-8 animate-spin text-zinc-400 mb-3" />
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-zinc-100">
+          <Loader2 className="size-7 animate-spin text-zinc-400 mb-2.5" />
           <p className="text-xs text-zinc-500 font-medium">
             Зареждане на образците на документи...
           </p>
         </div>
       ) : filteredTemplates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-16 bg-white rounded-3xl border border-zinc-100 text-center">
-          <FileText className="size-12 text-zinc-300 mb-3" strokeWidth={1} />
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-zinc-100 text-center">
+          <FileText className="size-10 text-zinc-300 mb-2.5" strokeWidth={1} />
           <h3 className="text-sm font-bold text-zinc-900">
             Няма намерени образци
           </h3>
@@ -1026,7 +1113,7 @@ export function DocumentTemplatesManager() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
           {filteredTemplates.map((template) => {
             const isDefault = [
               "internalRules",
@@ -1043,23 +1130,23 @@ export function DocumentTemplatesManager() {
               <div
                 key={template.id}
                 className={cn(
-                  "flex flex-col justify-between rounded-3xl border bg-white p-6 shadow-xs transition-all hover:shadow-md",
+                  "flex flex-col justify-between rounded-2xl border bg-white p-4 sm:p-5 shadow-2xs transition-all hover:shadow-xs",
                   template.isActive
                     ? "border-zinc-200/80"
                     : "border-zinc-200/50 opacity-60 bg-zinc-50/50"
                 )}
               >
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {/* Top Badges */}
                   <div className="flex items-start justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-semibold text-zinc-700">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-semibold text-zinc-700">
                       <Layers className="size-3 text-zinc-500" />
                       {DOCUMENT_CATEGORY_LABELS[template.category] ||
                         template.category}
                     </span>
 
                     <div className="flex items-center gap-1.5">
-                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">
+                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">
                         v{template.version}
                       </span>
                       {template.isRequiredForMember && (
@@ -1075,20 +1162,20 @@ export function DocumentTemplatesManager() {
 
                   {/* Title & Description */}
                   <div>
-                    <h3 className="text-base font-bold text-zinc-950 leading-snug">
+                    <h3 className="text-sm font-bold text-zinc-950 leading-snug">
                       {template.title}
                     </h3>
-                    <p className="mt-1 line-clamp-2 text-xs font-light text-zinc-500">
+                    <p className="mt-0.5 line-clamp-2 text-xs font-light text-zinc-500">
                       {template.description || "Официална бланка на клуба"}
                     </p>
                   </div>
 
                   {/* Attached File Preview if present */}
                   {template.fileName && (
-                    <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-2.5 border border-zinc-200/60 text-xs">
+                    <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-2 border border-zinc-200/60 text-xs">
                       <div className="flex items-center gap-2 truncate">
                         <Paperclip className="size-3.5 text-zinc-500 shrink-0" />
-                        <span className="truncate font-medium text-zinc-800">
+                        <span className="truncate font-medium text-zinc-800 text-[11px]">
                           {template.fileName}
                         </span>
                       </div>
@@ -1099,26 +1186,26 @@ export function DocumentTemplatesManager() {
                           className="shrink-0 text-emerald-600 hover:text-emerald-700 p-1"
                           title="Свали файла"
                         >
-                          <FileDown className="size-4" />
+                          <FileDown className="size-3.5" />
                         </a>
                       )}
                     </div>
                   )}
 
                   {/* Content snippet */}
-                  <div className="rounded-2xl bg-zinc-50/70 p-3 text-[11px] font-mono text-zinc-600 line-clamp-3 leading-relaxed border border-zinc-100">
+                  <div className="rounded-xl bg-zinc-50/70 p-2.5 text-[10px] font-mono text-zinc-600 line-clamp-3 leading-relaxed border border-zinc-100">
                     {template.content}
                   </div>
                 </div>
 
                 {/* Footer Actions */}
-                <div className="mt-5 pt-4 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
+                <div className="mt-3.5 pt-3 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleOpenPreview(template)}
-                      className="h-9 rounded-xl px-2.5 text-xs text-zinc-700 hover:bg-zinc-100"
+                      className="h-8 rounded-lg px-2 text-xs text-zinc-700 hover:bg-zinc-100"
                       title="Преглед на официалния документ"
                     >
                       <Eye className="size-3.5 mr-1" />
@@ -1129,7 +1216,7 @@ export function DocumentTemplatesManager() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handlePrintBlank(template)}
-                      className="h-9 rounded-xl px-2.5 text-xs text-zinc-700 hover:bg-zinc-100"
+                      className="h-8 rounded-lg px-2 text-xs text-zinc-700 hover:bg-zinc-100"
                       title="Принтирай празен образец"
                     >
                       <Printer className="size-3.5 mr-1" />
@@ -1137,12 +1224,12 @@ export function DocumentTemplatesManager() {
                     </Button>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleOpenEdit(template)}
-                      className="h-9 rounded-xl border-zinc-200 px-3 text-xs font-semibold hover:bg-zinc-950 hover:text-white"
+                      className="h-8 rounded-lg border-zinc-200 px-2.5 text-xs font-semibold hover:bg-zinc-950 hover:text-white"
                       title="Редактирай образеца"
                     >
                       <Edit3 className="size-3.5 mr-1" />
@@ -1154,7 +1241,7 @@ export function DocumentTemplatesManager() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(template)}
-                        className="h-9 rounded-xl px-2 text-xs text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                        className="h-8 rounded-lg px-1.5 text-xs text-rose-500 hover:bg-rose-50 hover:text-rose-600"
                         title="Изтрий образеца"
                       >
                         <Trash2 className="size-3.5" />
@@ -1170,7 +1257,7 @@ export function DocumentTemplatesManager() {
 
       {/* DIALOG: CREATE NEW TEMPLATE */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl p-6 sm:p-8">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-5.5">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1298,7 +1385,7 @@ export function DocumentTemplatesManager() {
 
       {/* DIALOG: EDIT TEMPLATE */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl p-6 sm:p-8">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-5.5">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1426,7 +1513,7 @@ export function DocumentTemplatesManager() {
 
       {/* DIALOG: PREVIEW TEMPLATE */}
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl p-6 sm:p-8">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-5.5">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div>

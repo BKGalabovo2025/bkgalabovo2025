@@ -22,6 +22,7 @@ export type AuditAction =
   | "mass_marketing_send"
   | "clear_marketing_history"
   | "sign_declaration"
+  | "delete_declaration"
   | "create_document_request"
   | "sign_document_request"
   | "delete_document_request"

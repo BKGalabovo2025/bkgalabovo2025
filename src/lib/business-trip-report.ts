@@ -267,13 +267,17 @@ export function buildStaySectionText(
   ) {
     const tripWord = actualTrips === 1 ? "курс" : "курса";
     if (isDailyCommute) {
-      transportLine = `• Транспорт с МПС (ежедневно пътуване без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут гр. Гълъбово – ${trip.destination || "дестинацията"} – гр. Гълъбово (1 курс = ${singleKm} км, общо ${totalEffectiveKm} км по пътен лист).`;
+      const commuteTypeWord =
+        actualTrips === 1 ? "еднодневно пътуване" : "ежедневно пътуване";
+      transportLine = `• Транспорт с МПС (${commuteTypeWord} без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут гр. Гълъбово – ${trip.destination || "дестинацията"} – гр. Гълъбово (1 курс = ${singleKm} км, общо ${totalEffectiveKm} км по пътен лист).`;
     } else {
       transportLine = `• Транспорт с МПС: Осъществено е двупосочно пътуване по маршрут гр. Гълъбово – ${trip.destination || "дестинацията"} – гр. Гълъбово (общо ${totalEffectiveKm} км по пътен лист).`;
     }
   } else if (trip.transportType === "public") {
     if (isDailyCommute) {
-      transportLine = `• Обществен транспорт (ежедневно пътуване): Закупени са билети за ${actualTrips} дни състезателно пътуване на отбора.`;
+      const commuteTypeWord =
+        actualTrips === 1 ? "еднодневно пътуване" : "ежедневно пътуване";
+      transportLine = `• Обществен транспорт (${commuteTypeWord}): Закупени са билети за ${actualTrips} ${actualTrips === 1 ? "ден" : "дни"} състезателно пътуване на отбора.`;
     } else {
       transportLine = `• Обществен транспорт: Закупени са двупосочни билети за пътуването на отбора.`;
     }

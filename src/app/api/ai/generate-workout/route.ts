@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional, sonarjs/cognitive-complexity */
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 

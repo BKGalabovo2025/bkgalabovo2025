@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -103,17 +104,24 @@ export const ReservationStep1Time = () => {
           />
         ) : (
           <FormItem>
-            <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+            <FormLabel
+              htmlFor="reservation-duration"
+              className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase"
+            >
               <Clock className="size-3" /> Време (Часове)
             </FormLabel>
-            <Input
-              type="number"
-              min="1"
-              step="1"
-              value={duration}
-              onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
-              className="h-14 rounded-2xl border-2 border-zinc-100 text-center font-bold focus-visible:ring-primary dark:border-zinc-800"
-            />
+            <FormControl>
+              <Input
+                id="reservation-duration"
+                name="duration"
+                type="number"
+                min="1"
+                step="1"
+                value={duration}
+                onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
+                className="h-14 rounded-2xl border-2 border-zinc-100 text-center font-bold focus-visible:ring-primary dark:border-zinc-800"
+              />
+            </FormControl>
           </FormItem>
         )}
       </div>
@@ -125,16 +133,24 @@ export const ReservationStep1Time = () => {
             name="serviceId"
             render={({ field }: { field: any }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+                <FormLabel
+                  htmlFor="reservation-service-select"
+                  className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase"
+                >
                   <Activity className="size-3" /> Изберете Услуга
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value || ""}
                 >
-                  <SelectTrigger className="h-14 rounded-2xl border-2 border-zinc-100 bg-white focus:ring-primary dark:border-zinc-800 dark:bg-zinc-950">
-                    <SelectValue placeholder="Изберете услуга (напр. Наем на корт)..." />
-                  </SelectTrigger>
+                  <FormControl>
+                    <SelectTrigger
+                      id="reservation-service-select"
+                      className="h-14 rounded-2xl border-2 border-zinc-100 bg-white focus:ring-primary dark:border-zinc-800 dark:bg-zinc-950"
+                    >
+                      <SelectValue placeholder="Изберете услуга (напр. Наем на корт)..." />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
                     {services.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
@@ -153,10 +169,14 @@ export const ReservationStep1Time = () => {
             name="courtId"
             render={({ field }: { field: any }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+                <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                   <MapPin className="size-3" /> Изберете Корт
-                </FormLabel>
-                <div className="grid grid-cols-3 gap-3">
+                </div>
+                <div
+                  role="group"
+                  aria-label="Изберете корт"
+                  className="grid grid-cols-3 gap-3"
+                >
                   {Array.from({ length: 6 }, (_, i) => i + 1).map((num) => (
                     <button
                       key={num}
@@ -196,10 +216,14 @@ export const ReservationStep1Time = () => {
           name="serviceId"
           render={({ field }: { field: any }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+              <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                 <Activity className="size-3" /> Изберете Услуга
-              </FormLabel>
-              <div className="max-h-100 scrollbar-thin scrollbar-thumb-zinc-100 space-y-6 overflow-y-auto pr-2 dark:scrollbar-thumb-zinc-800">
+              </div>
+              <div
+                role="group"
+                aria-label="Изберете услуга за възстановяване"
+                className="max-h-100 scrollbar-thin scrollbar-thumb-zinc-100 space-y-6 overflow-y-auto pr-2 dark:scrollbar-thumb-zinc-800"
+              >
                 {Object.entries(groupedServices).map(
                   ([category, catServices]) => (
                     <div key={category} className="space-y-3">
@@ -263,11 +287,15 @@ export const ReservationStep1Time = () => {
             return (
               <div className="space-y-4 duration-300 animate-in slide-in-from-top-2">
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+                  <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                     <Activity className="size-3" /> Коя зона ще се ползва?{" "}
                     {isTwoClients ? "(КЛИЕНТ 1)" : ""}
-                  </FormLabel>
-                  <div className="grid grid-cols-3 gap-2">
+                  </div>
+                  <div
+                    role="group"
+                    aria-label="Избор на зона за клиент 1"
+                    className="grid grid-cols-3 gap-2"
+                  >
                     {availableZones.map((zone) => (
                       <button
                         key={zone}
@@ -293,11 +321,15 @@ export const ReservationStep1Time = () => {
                     name="client2Zone"
                     render={({ field: field2 }: { field: any }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
+                        <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                           <Activity className="size-3" /> Коя зона ще се ползва?
                           (КЛИЕНТ 2)
-                        </FormLabel>
-                        <div className="grid grid-cols-3 gap-2">
+                        </div>
+                        <div
+                          role="group"
+                          aria-label="Избор на зона за клиент 2"
+                          className="grid grid-cols-3 gap-2"
+                        >
                           {availableZones.map((zone) => (
                             <button
                               key={`client2-${zone}`}

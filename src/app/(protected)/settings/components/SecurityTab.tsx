@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { getFirebaseAuth } from "@/lib/firebase";
 
 const inputClass =
-  "h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary";
+  "h-11 rounded-xl border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary";
 const labelClass =
   "text-[11px] font-medium uppercase tracking-widest text-zinc-400";
 
@@ -82,12 +82,12 @@ export function SecurityTab() {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6">
-      <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+    <div className="grid grid-cols-1 gap-4">
+      <BentoCard className="space-y-5 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <Shield className="size-5 text-primary" strokeWidth={1.5} />
-            <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+            <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
               Смяна на парола
             </h3>
           </div>
@@ -95,14 +95,14 @@ export function SecurityTab() {
             variant="outline"
             onClick={handleResetPassword}
             disabled={isSendingReset}
-            className="h-10 rounded-xl px-4 text-xs font-medium tracking-widest uppercase"
+            className="h-9 rounded-xl px-3.5 text-xs font-medium tracking-widest uppercase"
           >
             {isSendingReset ? "Изпращане..." : "Забравена парола?"}
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
+          <div className="space-y-2">
             <Label className={labelClass}>Текуща парола</Label>
             <div className="relative">
               <Input
@@ -126,7 +126,7 @@ export function SecurityTab() {
             </div>
           </div>
           <div className="hidden md:block"></div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className={labelClass}>Нова парола</Label>
             <div className="relative">
               <Input
@@ -149,7 +149,7 @@ export function SecurityTab() {
               </button>
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className={labelClass}>Повтори новата парола</Label>
             <div className="relative">
               <Input
@@ -173,7 +173,7 @@ export function SecurityTab() {
             </div>
           </div>
         </div>
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end pt-2">
           <Button
             onClick={handleChangePassword}
             disabled={

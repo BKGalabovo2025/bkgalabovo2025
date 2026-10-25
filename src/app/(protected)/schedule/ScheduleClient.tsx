@@ -686,19 +686,19 @@ export default function ScheduleClient() {
           defaultValue="current"
           className="w-full"
         >
-          <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-            <TabsList className="w-full rounded-2xl border border-zinc-100 bg-zinc-100 p-1 md:w-fit dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="mb-3 flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
+            <TabsList className="w-full rounded-xl border border-zinc-100 bg-zinc-100 p-1 md:w-fit dark:border-zinc-800 dark:bg-zinc-900">
               <TabsTrigger
                 value="current"
-                className="rounded-xl px-8 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-zinc-800"
+                className="rounded-lg px-4 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800"
               >
                 Текущи
               </TabsTrigger>
               <TabsTrigger
                 value="upcoming"
-                className="rounded-xl px-8 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-zinc-800"
+                className="rounded-lg px-4 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800"
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5">
                   Предстоящи
                   {isUpcomingLoading && (
                     <span className="size-1.5 animate-pulse rounded-full bg-primary" />
@@ -707,9 +707,9 @@ export default function ScheduleClient() {
               </TabsTrigger>
               <TabsTrigger
                 value="past"
-                className="rounded-xl px-8 py-3 text-[11px] font-medium tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-zinc-800"
+                className="rounded-lg px-4 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800"
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5">
                   Минали
                   {isPastLoading && (
                     <span className="size-1.5 animate-pulse rounded-full bg-primary" />
@@ -718,9 +718,9 @@ export default function ScheduleClient() {
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex w-full items-center gap-3 md:w-75">
-              <div className="flex size-12 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900">
-                <Filter className="size-4 text-zinc-400" strokeWidth={1.5} />
+            <div className="flex w-full items-center gap-2 md:w-64">
+              <div className="flex size-9 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-100 shrink-0 dark:border-zinc-800 dark:bg-zinc-900">
+                <Filter className="size-3.5 text-zinc-400" strokeWidth={1.5} />
               </div>
               <Select
                 onValueChange={(value: string) =>
@@ -730,14 +730,14 @@ export default function ScheduleClient() {
               >
                 <SelectTrigger
                   aria-label="Филтрирай по тип събитие"
-                  className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm font-light shadow-none focus:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
+                  className="h-9 rounded-xl border-zinc-100 bg-zinc-50/50 text-xs font-light shadow-none focus:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                 >
                   <SelectValue placeholder="Филтрирай по тип" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-zinc-100 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
                   <SelectItem
                     value="all"
-                    className="rounded-lg text-sm font-light"
+                    className="rounded-lg text-xs font-light"
                   >
                     Всички типове
                   </SelectItem>
@@ -745,7 +745,7 @@ export default function ScheduleClient() {
                     <SelectItem
                       key={key}
                       value={key}
-                      className="rounded-lg text-sm font-light"
+                      className="rounded-lg text-xs font-light"
                     >
                       {value}
                     </SelectItem>
@@ -755,29 +755,29 @@ export default function ScheduleClient() {
             </div>
           </div>
 
-          <div className="space-y-6">{renderEventsTabContent()}</div>
+          <div className="space-y-4">{renderEventsTabContent()}</div>
         </Tabs>
       ) : (
         /* Courts Reservations Grid Layout */
         <Tabs
           value={activeReservationTab}
           onValueChange={setActiveReservationTab}
-          className="w-full space-y-6"
+          className="w-full space-y-4"
         >
-          <div className="flex flex-col items-center justify-between gap-6 rounded-4xl border border-zinc-100 bg-white p-3 pr-5 shadow-sm shadow-black/2 md:flex-row dark:border-zinc-900 dark:bg-zinc-950">
-            <TabsList className="h-14 rounded-3xl border border-zinc-200/50 bg-zinc-100/50 p-1 dark:border-zinc-800/50 dark:bg-zinc-900/50">
+          <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-zinc-100 bg-white p-2 sm:px-4 shadow-2xs md:flex-row dark:border-zinc-900 dark:bg-zinc-950">
+            <TabsList className="h-9 rounded-xl border border-zinc-200/50 bg-zinc-100/50 p-1 dark:border-zinc-800/50 dark:bg-zinc-900/50">
               <TabsTrigger
                 value="schedule"
-                className="flex h-full items-center gap-2.5 rounded-2xl px-6 text-[10px] font-bold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+                className="flex h-full items-center gap-2 rounded-lg px-4 text-[10px] font-bold tracking-wider uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800"
               >
-                <LayoutGrid className="size-4" />
+                <LayoutGrid className="size-3.5" />
                 Дневен График
               </TabsTrigger>
               <TabsTrigger
                 value="history"
-                className="flex h-full items-center gap-2.5 rounded-2xl px-6 text-[10px] font-bold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+                className="flex h-full items-center gap-2 rounded-lg px-4 text-[10px] font-bold tracking-wider uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800"
               >
-                <History className="size-4" />
+                <History className="size-3.5" />
                 История
               </TabsTrigger>
             </TabsList>
@@ -835,7 +835,7 @@ export default function ScheduleClient() {
           </div>
 
           <TabsContent value="schedule" className="mt-0 outline-none">
-            <BentoCard className="overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-sm shadow-black/2 dark:border-zinc-900 dark:bg-zinc-950">
+            <BentoCard className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
               <div className="bg-white dark:bg-zinc-950">
                 <AgendaView
                   key={`${currentDate.toISOString()}-${refreshKey}-${activeMainTab}`}
@@ -906,16 +906,16 @@ export default function ScheduleClient() {
       )}
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+        <AlertDialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
           {/* Fixed Sticky Header */}
-          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
             <AlertDialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
               Наистина ли искате да изтриете това събитие?
             </AlertDialogTitle>
           </div>
 
           {/* Scrollable Body Container */}
-          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 min-h-0">
             <AlertDialogDescription className="text-xs sm:text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
               Това действие не може да бъде отменено. Записът ще бъде премахнат
               окончателно от базата данни.
@@ -923,13 +923,13 @@ export default function ScheduleClient() {
           </div>
 
           {/* Fixed Sticky Footer */}
-          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <AlertDialogCancel className="h-10 rounded-xl border-zinc-200 px-4 text-xs font-semibold dark:border-zinc-800">
+          <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <AlertDialogCancel className="h-9 rounded-xl border-zinc-200 px-4 text-xs font-semibold dark:border-zinc-800">
               Отказ
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="h-10 rounded-xl bg-rose-600 px-5 text-xs font-bold text-white hover:bg-rose-700"
+              className="h-9 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700"
             >
               Изтрий
             </AlertDialogAction>
@@ -979,19 +979,19 @@ function EventsList({
 
   if (finalTotalEvents === 0) {
     return (
-      <BentoCard className="flex flex-col items-center justify-center rounded-5xl border-2 border-dashed border-zinc-100 bg-zinc-50/30 py-40 text-center shadow-none dark:border-zinc-900 dark:bg-zinc-900/10">
-        <div className="mb-10 flex size-32 items-center justify-center rounded-full border border-zinc-100 bg-white transition-all hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900">
+      <BentoCard className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200/80 bg-zinc-50/30 py-10 sm:py-14 text-center shadow-none dark:border-zinc-800 dark:bg-zinc-900/10">
+        <div className="mb-4 flex size-14 sm:size-16 items-center justify-center rounded-full border border-zinc-200 bg-white transition-all hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900">
           <CalendarDays
-            className="size-12 text-zinc-200 dark:text-zinc-700"
-            strokeWidth={1}
+            className="size-6 sm:size-7 text-zinc-300 dark:text-zinc-600"
+            strokeWidth={1.5}
           />
         </div>
-        <h3 className="text-3xl font-light text-zinc-900 dark:text-white">
+        <h3 className="text-base sm:text-lg font-medium text-zinc-900 dark:text-white">
           {filterType === "all"
             ? `Няма ${tabTranslations[activeTab]} събития`
             : `Няма ${tabTranslations[activeTab]} събития от тип "${eventTypeTranslations[filterType as ScheduleEventType]}"`}
         </h3>
-        <p className="mt-4 max-w-sm leading-relaxed font-light text-zinc-400">
+        <p className="mt-1.5 max-w-sm leading-relaxed text-xs sm:text-sm font-light text-zinc-400">
           Можете да промените филтрите или да създадете ново събитие, за да
           започнете.
         </p>

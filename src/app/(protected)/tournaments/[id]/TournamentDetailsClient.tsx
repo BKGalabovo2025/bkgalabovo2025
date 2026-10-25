@@ -446,12 +446,12 @@ export default function TournamentDetailsClient({
 
       <div className="space-y-6">
         <Dialog open={isEntryDialogOpen} onOpenChange={setIsEntryDialogOpen}>
-          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
             {/* Fixed Sticky Header */}
-            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-              <div className="flex items-center gap-3 pr-8">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-primary/20">
-                  <UserPlus className="size-4.5" />
+            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary dark:bg-primary/20">
+                  <UserPlus className="size-4" />
                 </div>
                 <div className="min-w-0">
                   <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
@@ -475,12 +475,12 @@ export default function TournamentDetailsClient({
 
         {/* Диалог за редактиране на турнира */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
             {/* Fixed Sticky Header */}
-            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-              <div className="flex items-center gap-3 pr-8">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
-                  <Trophy className="size-4.5" />
+            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+                  <Trophy className="size-4" />
                 </div>
                 <div className="min-w-0">
                   <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
@@ -511,41 +511,41 @@ export default function TournamentDetailsClient({
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid h-14 w-full max-w-2xl grid-cols-4 rounded-2xl border border-zinc-100 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+          <TabsList className="grid h-9 w-full max-w-xl grid-cols-4 rounded-xl border border-zinc-100 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900 mb-3">
             <TabsTrigger
               value="participants"
-              className="rounded-xl text-[11px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-none dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+              className="rounded-lg text-[10px] sm:text-xs font-semibold tracking-wider text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
               Участници ({entries.length})
             </TabsTrigger>
             <TabsTrigger
               value="bracket"
-              className="rounded-xl text-[11px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-none dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+              className="rounded-lg text-[10px] sm:text-xs font-semibold tracking-wider text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
               Схема
             </TabsTrigger>
             <TabsTrigger
               value="matches"
-              className="rounded-xl text-[11px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-none dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+              className="rounded-lg text-[10px] sm:text-xs font-semibold tracking-wider text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
               Мачове ({matches.length})
             </TabsTrigger>
             <TabsTrigger
               value="results"
-              className="rounded-xl text-[11px] font-medium tracking-widest text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-none dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+              className="rounded-lg text-[10px] sm:text-xs font-semibold tracking-wider text-zinc-500 uppercase transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
               Резултати
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="participants" className="mt-6">
-            <BentoCard>
-              <div className="flex flex-row items-center justify-between border-b border-zinc-100/50 p-8">
+          <TabsContent value="participants" className="mt-4">
+            <BentoCard className="overflow-hidden p-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-zinc-100 p-3.5 sm:p-4.5 dark:border-zinc-800">
                 <div>
-                  <h3 className="text-lg font-medium text-zinc-900">
+                  <h3 className="text-base sm:text-lg font-medium text-zinc-900 dark:text-white">
                     Списък с участници
                   </h3>
-                  <p className="mt-1 text-sm font-light text-zinc-400">
+                  <p className="mt-0.5 text-xs sm:text-sm font-light text-zinc-400">
                     Всички регистрирани играчи за този турнир
                   </p>
                 </div>
@@ -554,9 +554,9 @@ export default function TournamentDetailsClient({
                     <Button
                       onClick={handleGenerateMatches}
                       disabled={isGenerating}
-                      className="rounded-xl bg-blue-600 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
+                      className="h-9 rounded-xl bg-blue-600 px-3.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
                     >
-                      <Trophy className="mr-2 size-4" />
+                      <Trophy className="mr-1.5 size-3.5" />
                       {matches.length > 0
                         ? "Прегенерирай схемата"
                         : "Генерирай схема"}
@@ -564,13 +564,13 @@ export default function TournamentDetailsClient({
                   )}
                   <Button
                     onClick={() => setIsEntryDialogOpen(true)}
-                    className="rounded-xl bg-zinc-950 text-white shadow-none hover:bg-zinc-800"
+                    className="h-9 rounded-xl bg-zinc-950 px-3.5 text-xs font-medium text-white shadow-none hover:bg-zinc-800"
                   >
-                    <UserPlus className="mr-2 size-4" /> Запиши участник
+                    <UserPlus className="mr-1.5 size-3.5" /> Запиши участник
                   </Button>
                 </div>
               </div>
-              <div className="p-8">
+              <div className="p-3.5 sm:p-4.5">
                 {entries.length === 0 ? (
                   <div className="py-12 text-center text-muted-foreground">
                     <ShieldAlert className="mx-auto mb-3 size-8 opacity-50" />
@@ -718,14 +718,15 @@ export default function TournamentDetailsClient({
           </TabsContent>
 
           {/* Visual bracket tab */}
-          <TabsContent value="bracket" className="mt-6">
-            <BentoCard className="p-8">
-              <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          {/* Visual bracket tab */}
+          <TabsContent value="bracket" className="mt-4">
+            <BentoCard className="p-3.5 sm:p-4.5">
+              <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
-                  <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                  <h3 className="text-base sm:text-lg font-medium text-zinc-900 dark:text-white">
                     Визуална Схема
                   </h3>
-                  <p className="mt-1 text-sm font-light text-zinc-400">
+                  <p className="mt-0.5 text-xs sm:text-sm font-light text-zinc-400">
                     Прогрес на турнира по кръгове
                   </p>
                 </div>
@@ -734,13 +735,13 @@ export default function TournamentDetailsClient({
                     onClick={handleGenerateMatches}
                     disabled={isGenerating}
                     className={cn(
-                      "h-10 rounded-xl px-5 text-xs font-semibold shadow-none transition-all",
+                      "h-9 rounded-xl px-4 text-xs font-semibold shadow-none transition-all",
                       matches.length > 0
                         ? "border border-zinc-200 bg-white text-zinc-950 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                         : "bg-blue-600 text-white hover:bg-blue-700"
                     )}
                   >
-                    <Trophy className="mr-2 size-4" />
+                    <Trophy className="mr-1.5 size-3.5" />
                     {matches.length > 0
                       ? "Прегенерирай схемата"
                       : "Генерирай турнирната схема"}
@@ -748,9 +749,9 @@ export default function TournamentDetailsClient({
                 )}
               </div>
               {tournament.categories.map((cat) => (
-                <div key={cat} className="mb-10">
-                  <div className="mb-6 flex items-center rounded-lg border bg-muted px-4 py-3">
-                    <h3 className="text-sm font-medium tracking-widest text-zinc-500 uppercase">
+                <div key={cat} className="mb-6">
+                  <div className="mb-3 flex items-center rounded-lg border border-zinc-200 bg-muted px-3 py-2 dark:border-zinc-800">
+                    <h3 className="text-xs font-medium tracking-widest text-zinc-500 uppercase">
                       {getCategoryName(cat)}
                     </h3>
                   </div>
@@ -769,14 +770,14 @@ export default function TournamentDetailsClient({
             </BentoCard>
           </TabsContent>
 
-          <TabsContent value="matches" className="mt-6">
-            <BentoCard>
-              <div className="flex flex-row items-center justify-between border-b border-zinc-100/50 p-8">
+          <TabsContent value="matches" className="mt-4">
+            <BentoCard className="overflow-hidden p-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-zinc-100 p-3.5 sm:p-4.5 dark:border-zinc-800">
                 <div>
-                  <h3 className="text-lg font-medium text-zinc-900">
+                  <h3 className="text-base sm:text-lg font-medium text-zinc-900 dark:text-white">
                     Генератор на мачове
                   </h3>
-                  <p className="mt-1 text-sm font-light text-zinc-400">
+                  <p className="mt-0.5 text-xs sm:text-sm font-light text-zinc-400">
                     Схема на турнира (Система Бергер)
                   </p>
                 </div>
@@ -784,19 +785,19 @@ export default function TournamentDetailsClient({
                   onClick={handleGenerateMatches}
                   disabled={isGenerating || entries.length < 2}
                   className={cn(
-                    "h-12 rounded-xl px-6 text-[11px] font-medium tracking-widest uppercase shadow-none transition-all",
+                    "h-9.5 rounded-xl px-4 text-[10px] sm:text-[11px] font-medium tracking-widest uppercase shadow-none transition-all",
                     matches.length > 0
-                      ? "border border-zinc-200 bg-white text-zinc-950 hover:bg-zinc-50"
+                      ? "border border-zinc-200 bg-white text-zinc-950 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                       : "bg-zinc-950 text-white hover:bg-zinc-800"
                   )}
                 >
-                  <Trophy className="mr-3 size-4" strokeWidth={1.5} />
+                  <Trophy className="mr-2 size-3.5" strokeWidth={1.5} />
                   {matches.length > 0
                     ? "Прегенерирай схемата"
                     : "Генерирай мачове"}
                 </Button>
               </div>
-              <div className="p-8">
+              <div className="p-3.5 sm:p-4.5">
                 {matches.length === 0 ? (
                   <div className="py-12 text-center text-muted-foreground">
                     <Trophy className="mx-auto mb-4 size-12 opacity-20" />
@@ -839,9 +840,9 @@ export default function TournamentDetailsClient({
                                 {pendingMatches.map((match) => (
                                   <div
                                     key={match.id}
-                                    className="flex flex-col justify-between rounded-4xl border border-zinc-100 bg-white p-6 shadow-none transition-all hover:border-zinc-200"
+                                    className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none transition-all hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
                                   >
-                                    <div className="mb-4 flex items-center justify-between border-b pb-2">
+                                    <div className="mb-3 flex items-center justify-between border-b pb-2 dark:border-zinc-800">
                                       <Badge
                                         variant="outline"
                                         className="text-[10px]"
@@ -853,9 +854,9 @@ export default function TournamentDetailsClient({
                                       </span>
                                     </div>
 
-                                    <div className="mb-4 space-y-3">
-                                      <div className="flex items-center justify-between font-light text-zinc-900">
-                                        <span className="truncate pr-2">
+                                    <div className="mb-3 space-y-2">
+                                      <div className="flex items-center justify-between font-light text-zinc-900 dark:text-white">
+                                        <span className="truncate pr-2 text-sm">
                                           {getEntryNameById(
                                             match.player1EntryId
                                           )}
@@ -864,8 +865,8 @@ export default function TournamentDetailsClient({
                                       <div className="border-l-2 border-primary/30 pl-2 text-xs text-muted-foreground">
                                         срещу
                                       </div>
-                                      <div className="flex items-center justify-between font-light text-zinc-900">
-                                        <span className="truncate pr-2">
+                                      <div className="flex items-center justify-between font-light text-zinc-900 dark:text-white">
+                                        <span className="truncate pr-2 text-sm">
                                           {getEntryNameById(
                                             match.player2EntryId
                                           )}
@@ -873,11 +874,11 @@ export default function TournamentDetailsClient({
                                       </div>
                                     </div>
 
-                                    <div className="mt-auto flex items-center justify-end border-t pt-3">
+                                    <div className="mt-auto flex items-center justify-end border-t pt-2.5 dark:border-zinc-800">
                                       <Button
                                         variant="default"
                                         size="sm"
-                                        className="w-full rounded-xl bg-zinc-950 text-white shadow-none transition-all hover:bg-zinc-800"
+                                        className="h-8.5 w-full rounded-xl bg-zinc-950 text-xs text-white shadow-none transition-all hover:bg-zinc-800"
                                         onClick={() => setSelectedMatch(match)}
                                       >
                                         Въведи резултат
@@ -892,18 +893,18 @@ export default function TournamentDetailsClient({
                           {/* Изиграни мачове */}
                           {completedMatches.length > 0 && (
                             <div className="ml-4">
-                              <h4 className="mb-6 flex items-center text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                              <h4 className="mb-4 flex items-center text-[10px] sm:text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                                 <CheckCircle2
                                   className="mr-2 size-4 text-emerald-500"
                                   strokeWidth={1.5}
                                 />
                                 Изиграни мачове ({completedMatches.length})
                               </h4>
-                              <div className="mb-6 grid grid-cols-1 gap-4 opacity-80 md:grid-cols-2 lg:grid-cols-3">
+                              <div className="mb-4 grid grid-cols-1 gap-3 opacity-80 md:grid-cols-2 lg:grid-cols-3">
                                 {completedMatches.map((match) => (
                                   <div
                                     key={match.id}
-                                    className="flex flex-col justify-between rounded-4xl border border-zinc-100 bg-zinc-50/50 p-6 shadow-none"
+                                    className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-900/50"
                                   >
                                     <div className="mb-4 flex items-center justify-between border-b border-muted-foreground/20 pb-2">
                                       <Badge
@@ -1060,38 +1061,38 @@ export default function TournamentDetailsClient({
               });
 
               return (
-                <BentoCard key={cat} className="mb-8">
-                  <div className="flex flex-col items-start justify-between gap-6 border-b border-zinc-100/50 p-8 md:flex-row md:items-center">
+                <BentoCard key={cat} className="mb-4 overflow-hidden p-0">
+                  <div className="flex flex-col items-start justify-between gap-3 border-b border-zinc-100 p-3.5 sm:p-4.5 md:flex-row md:items-center dark:border-zinc-800">
                     <div>
-                      <h3 className="flex items-center gap-2 text-lg font-medium text-zinc-900">
+                      <h3 className="flex items-center gap-2 text-base sm:text-lg font-medium text-zinc-900 dark:text-white">
                         <Trophy
-                          className="size-5 text-amber-400"
+                          className="size-4 sm:size-5 text-amber-400"
                           strokeWidth={1.5}
                         />
                         Класиране – {getCategoryName(cat)}
                       </h3>
-                      <p className="mt-1 text-sm font-light text-zinc-400">
+                      <p className="mt-0.5 text-xs sm:text-sm font-light text-zinc-400">
                         {catMatches.length} от{" "}
                         {matches.filter((m) => m.categoryId === cat).length}{" "}
                         мача изиграни
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 gap-2"
+                        className="h-8 gap-1.5 text-xs"
                         onClick={() => handleExport("excel", cat, standings)}
                       >
-                        <FileDown className="size-4 text-green-600" /> Excel
+                        <FileDown className="size-3.5 text-green-600" /> Excel
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 gap-2"
+                        className="h-8 gap-1.5 text-xs"
                         onClick={() => handleExport("pdf", cat, standings)}
                       >
-                        <Download className="size-4 text-red-600" /> PDF
+                        <Download className="size-3.5 text-red-600" /> PDF
                       </Button>
                       {tournament.status !== "completed" &&
                         matches
@@ -1100,16 +1101,17 @@ export default function TournamentDetailsClient({
                           <Button
                             variant="default"
                             size="sm"
-                            className="h-8 gap-2 bg-green-600 hover:bg-green-700"
+                            className="h-8 gap-1.5 bg-green-600 text-xs hover:bg-green-700"
                             onClick={handleCompleteTournament}
                           >
-                            <CheckCircle2 className="size-4" /> Приключи турнира
+                            <CheckCircle2 className="size-3.5" /> Приключи
+                            турнира
                           </Button>
                         )}
                     </div>
                   </div>
 
-                  <div className="p-8 pt-0">
+                  <div className="p-3.5 sm:p-4.5 pt-0">
                     <div className="hidden overflow-x-auto md:block">
                       <Table>
                         <TableHeader>

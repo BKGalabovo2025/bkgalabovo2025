@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useSettingsStore } from "@/store/use-settings-store";
 
 const inputClass =
-  "h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary";
+  "h-11 rounded-xl border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary";
 const labelClass =
   "text-[11px] font-medium uppercase tracking-widest text-zinc-400";
 
@@ -17,18 +17,18 @@ export function BrandingTab() {
   const rzData = formData["recoveryzone"] || {};
 
   return (
-    <div className="grid grid-cols-1 gap-6">
-      <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-2 flex items-center gap-4">
+    <div className="grid grid-cols-1 gap-4">
+      <BentoCard className="space-y-5 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center gap-3">
           <Palette className="size-5 text-primary" strokeWidth={1.5} />
-          <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+          <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
             Брандиране и Цветове
           </h3>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
+          <div className="space-y-2">
             <Label className={labelClass}>Лого на клуба (Светла тема)</Label>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <Input
                 value={bkgData.logo || ""}
                 onChange={(e) =>
@@ -37,27 +37,27 @@ export function BrandingTab() {
                 placeholder="/icons/LOGO.jpg"
                 className={inputClass}
               />
-              <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
                 {bkgData.logo ? (
-                  <div className="relative size-8">
+                  <div className="relative size-7">
                     <Image
                       src={bkgData.logo}
                       alt="Logo"
                       fill
-                      sizes="32px"
+                      sizes="28px"
                       className="object-contain"
                       unoptimized
                     />
                   </div>
                 ) : (
-                  <ImageIcon className="size-5 text-zinc-400" />
+                  <ImageIcon className="size-4 text-zinc-400" />
                 )}
               </div>
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className={labelClass}>Лого на клуба (Тъмна тема)</Label>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <Input
                 value={bkgData.logo || ""}
                 onChange={(e) =>
@@ -66,28 +66,28 @@ export function BrandingTab() {
                 placeholder="/icons/LOGO.jpg"
                 className={inputClass}
               />
-              <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-900 dark:border-zinc-800">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-900 dark:border-zinc-800">
                 {bkgData.logo ? (
-                  <div className="relative size-8">
+                  <div className="relative size-7">
                     <Image
                       src={bkgData.logo}
                       alt="Logo Dark"
                       fill
-                      sizes="32px"
+                      sizes="28px"
                       className="object-contain"
                       unoptimized
                     />
                   </div>
                 ) : (
-                  <ImageIcon className="size-5 text-zinc-600" />
+                  <ImageIcon className="size-4 text-zinc-600" />
                 )}
               </div>
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className={labelClass}>Лого Recovery Zone</Label>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <Input
                 value={rzData.logo || ""}
                 onChange={(e) =>
@@ -96,28 +96,28 @@ export function BrandingTab() {
                 placeholder="/recovery-logo.png"
                 className={inputClass}
               />
-              <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
                 {rzData.logo ? (
-                  <div className="relative size-8">
+                  <div className="relative size-7">
                     <Image
                       src={rzData.logo}
                       alt="Recovery Logo"
                       fill
-                      sizes="32px"
+                      sizes="28px"
                       className="object-contain"
                       unoptimized
                     />
                   </div>
                 ) : (
-                  <ImageIcon className="size-5 text-zinc-400" />
+                  <ImageIcon className="size-4 text-zinc-400" />
                 )}
               </div>
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className={labelClass}>Основен Цвят (Primary)</Label>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <Input
                 type="color"
                 value={bkgData.primaryColor || "#0ea5e9"}
@@ -128,7 +128,7 @@ export function BrandingTab() {
                     e.target.value
                   )
                 }
-                className="size-14 shrink-0 cursor-pointer p-1"
+                className="size-11 shrink-0 cursor-pointer p-1"
               />
               <Input
                 value={bkgData.primaryColor || "#0ea5e9"}

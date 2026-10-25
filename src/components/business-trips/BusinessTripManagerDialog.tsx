@@ -684,14 +684,14 @@ export function BusinessTripManagerDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-3xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
-          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-3xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
             <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
               Решения на УС и Командировки: {event.title}
             </DialogTitle>
           </div>
 
-          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3 min-h-0">
             <div className="flex flex-col items-start justify-between gap-3 rounded-xl bg-zinc-50/50 p-4 sm:flex-row sm:items-center sm:p-6 dark:bg-zinc-900/50">
               <div>
                 <p className="text-sm font-light text-zinc-400">
@@ -948,6 +948,18 @@ export function BusinessTripManagerDialog({
                               : `Решение ${getTripDecisionNumber(trip)} (PDF)`}
                           </Button>
                           <Button
+                            variant="outline"
+                            size="icon"
+                            title="Редактирай Решение на УС (мотиви, решение, дата)"
+                            className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                            onClick={() => {
+                              setSelectedTripForProtocol(trip);
+                              setIsProtocolDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+                          <Button
                             variant={
                               trip.decisionDownloadedAt
                                 ? "secondary"
@@ -957,7 +969,7 @@ export function BusinessTripManagerDialog({
                             title="Изпрати по имейл"
                             className={
                               trip.decisionDownloadedAt
-                                ? "size-8 rounded-l-none border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
                                 : "size-8 rounded-l-none px-0"
                             }
                             onClick={() => handleEmailPdf(trip, "decision")}
@@ -1001,6 +1013,17 @@ export function BusinessTripManagerDialog({
                             {trip.orderDownloadedAt
                               ? `Нареждане ${getTripOrderNumber(trip)} (Изтеглено ${format(new Date(trip.orderDownloadedAt), "dd.MM.yyyy, HH:mm")})`
                               : `Нареждане ${getTripOrderNumber(trip)} (PDF)`}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            title="Редактирай нареждането (събитие, дати, командирован, транспорт)"
+                            className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                            onClick={() => {
+                              setTripToEdit(trip);
+                            }}
+                          >
+                            <Pencil className="size-3.5" />
                           </Button>
                           <Button
                             variant={
@@ -1138,6 +1161,17 @@ export function BusinessTripManagerDialog({
                             {trip.attendanceDownloadedAt
                               ? `Списък ${getTripAttendanceNumber(trip)} (Изтеглено ${format(new Date(trip.attendanceDownloadedAt), "dd.MM.yyyy, HH:mm")})`
                               : `Списък ${getTripAttendanceNumber(trip)} (PDF)`}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            title="Редактирай присъствения списък (състезатели)"
+                            className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                            onClick={() => {
+                              setTripToEdit(trip);
+                            }}
+                          >
+                            <Pencil className="size-3.5" />
                           </Button>
                           <Button
                             variant={
@@ -1377,6 +1411,18 @@ export function BusinessTripManagerDialog({
                               {trip.fuelDownloadedAt
                                 ? `Пътен лист ${getTripFuelNumber(trip)} (Изтеглено ${format(new Date(trip.fuelDownloadedAt), "dd.MM.yyyy, HH:mm")})`
                                 : `Пътен лист ${getTripFuelNumber(trip)} (PDF)`}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              title="Редактирай пътен лист (курсове, км, разход на гориво)"
+                              className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                              onClick={() => {
+                                setSelectedTripForStatement(trip);
+                                setIsStatementEditOpen(true);
+                              }}
+                            >
+                              <Pencil className="size-3.5" />
                             </Button>
                             <Button
                               variant={
@@ -1688,8 +1734,13 @@ export function BusinessTripManagerDialog({
               )}
             </div>
           </div>
-          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 rounded-xl px-4 text-xs"
+              onClick={() => onOpenChange(false)}
+            >
               Затвори
             </Button>
           </div>

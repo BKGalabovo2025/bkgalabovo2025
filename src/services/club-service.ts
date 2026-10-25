@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 
 import { getClubServicesCollection } from "@/lib/firebase-collections";

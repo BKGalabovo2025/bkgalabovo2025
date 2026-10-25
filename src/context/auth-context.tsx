@@ -36,36 +36,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Optimization: avoid booting Firebase Auth on public pages for anonymous visitors
+    // Optimization: avoid booting Firebase Auth only on truly public pages for anonymous visitors with no active session
     const pathname =
       typeof window !== "undefined" ? window.location.pathname : "";
-    const isProtectedOrLogin =
-      pathname.startsWith("/dashboard") ||
-      pathname.startsWith("/login") ||
-      pathname.startsWith("/members") ||
-      pathname.startsWith("/finances") ||
-      pathname.startsWith("/accounting") ||
-      pathname.startsWith("/training") ||
-      pathname.startsWith("/tournaments") ||
-      pathname.startsWith("/reservations") ||
-      pathname.startsWith("/sales") ||
-      pathname.startsWith("/inventory") ||
-      pathname.startsWith("/marketing") ||
-      pathname.startsWith("/feedback") ||
-      pathname.startsWith("/settings") ||
-      pathname.startsWith("/schedule") ||
-      pathname.startsWith("/reports");
+    const isExplicitlyPublic =
+      pathname === "/" ||
+      pathname.startsWith("/club") ||
+      pathname.startsWith("/recovery-zone") ||
+      pathname.startsWith("/quiz") ||
+      pathname.startsWith("/sign") ||
+      pathname.startsWith("/cert") ||
+      pathname.startsWith("/feedback/") ||
+      pathname.startsWith("/_next") ||
+      pathname.startsWith("/api");
 
     let hasStoredAuth = false;
     try {
-      hasStoredAuth = Object.keys(localStorage).some((k) =>
-        k.startsWith("firebase:authUser")
-      );
+      hasStoredAuth =
+        Object.keys(localStorage).some((k) =>
+          k.startsWith("firebase:authUser")
+        ) ||
+        (typeof document !== "undefined" &&
+          document.cookie.includes("session="));
     } catch {
       // Ignore storage restrictions
     }
 
-    if (!isProtectedOrLogin && !hasStoredAuth) {
+    if (
+      isExplicitlyPublic &&
+      !hasStoredAuth &&
+      !pathname.startsWith("/login")
+    ) {
       setUser(null);
       setIdToken(null);
       setLoading(false);

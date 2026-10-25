@@ -2,37 +2,42 @@
 
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
-import { collection, deleteDoc, doc, getDocs, query } from "firebase/firestore";
 import { Clock, FileText, Printer, Search, Trash2, User } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getDb } from "@/lib/firebase";
+import {
+  deleteDeclarationAction,
+  getAllDeclarationsAction,
+} from "@/lib/actions/declarations";
 import { SignedDeclaration } from "@/types";
 
-export default function DeclarationsClient() {
-  const [declarations, setDeclarations] = useState<SignedDeclaration[]>([]);
-  const [loading, setLoading] = useState(true);
+interface DeclarationsClientProps {
+  initialDeclarations?: SignedDeclaration[];
+}
+
+export default function DeclarationsClient({
+  initialDeclarations = [],
+}: DeclarationsClientProps) {
+  const [declarations, setDeclarations] =
+    useState<SignedDeclaration[]>(initialDeclarations);
+  const [loading, setLoading] = useState(initialDeclarations.length === 0);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
+    if (initialDeclarations.length > 0) {
+      setLoading(false);
+      return;
+    }
+
     async function fetchDeclarations() {
       try {
-        const q = query(collection(getDb(), "member_declarations"));
-        const snapshot = await getDocs(q);
-        const list = snapshot.docs.map(
-          (doc) => doc.data() as SignedDeclaration
-        );
-
-        // Sort by signedAt descending (newest first)
-        list.sort(
-          (a, b) =>
-            new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime()
-        );
-
-        setDeclarations(list);
+        const res = await getAllDeclarationsAction();
+        if (res.success && res.data) {
+          setDeclarations(res.data);
+        }
       } catch (error) {
         console.error("Error fetching declarations:", error);
       } finally {
@@ -40,7 +45,7 @@ export default function DeclarationsClient() {
       }
     }
     fetchDeclarations();
-  }, []);
+  }, [initialDeclarations]);
 
   const handlePrint = () => {
     window.open(
@@ -56,8 +61,12 @@ export default function DeclarationsClient() {
       )
     ) {
       try {
-        await deleteDoc(doc(getDb(), "member_declarations", id));
-        setDeclarations((prev) => prev.filter((d) => d.id !== id));
+        const res = await deleteDeclarationAction(id);
+        if (res.success) {
+          setDeclarations((prev) => prev.filter((d) => d.id !== id));
+        } else {
+          alert(res.message || "Възникна грешка при изтриването.");
+        }
       } catch (error) {
         console.error("Error deleting declaration:", error);
         alert("Възникна грешка при изтриването.");

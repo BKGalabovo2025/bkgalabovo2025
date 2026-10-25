@@ -1,7 +1,5 @@
 "use client";
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable sonarjs/no-nested-template-literals */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
@@ -748,10 +746,12 @@ export function InquiriesTab({ onNewCountChange }: InquiriesTabProps) {
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
-        <AlertDialogContent className="max-h-[90dvh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+        <AlertDialogContent className="max-h-[90dvh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-5 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
           <AlertDialogHeader>
-            <AlertDialogTitle>Изтриване на запитване</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg font-bold">
+              Изтриване на запитване
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm leading-relaxed">
               Сигурни ли сте, че искате постоянно да изтриете запитването от{" "}
               <strong className="text-zinc-900 dark:text-white">
                 {deletingInquiry?.name}
@@ -769,12 +769,17 @@ export function InquiriesTab({ onNewCountChange }: InquiriesTabProps) {
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Отказ</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel
+              disabled={isDeleting}
+              className="h-9 rounded-xl text-xs font-semibold"
+            >
+              Отказ
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteInquiry}
               disabled={isDeleting}
-              className="bg-rose-600 text-white hover:bg-rose-700"
+              className="h-9 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700"
             >
               {isDeleting ? "Изтриване..." : "Изтрий запитването"}
             </AlertDialogAction>

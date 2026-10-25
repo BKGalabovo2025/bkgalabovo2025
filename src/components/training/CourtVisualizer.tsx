@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-nested-conditional, sonarjs/use-type-alias */
+/* eslint-disable sonarjs/use-type-alias */
 "use client";
 
 import { Maximize2, Minimize2, User } from "lucide-react";

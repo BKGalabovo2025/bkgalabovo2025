@@ -227,61 +227,61 @@ export default function RankingsClient({
       </PageHeader>
 
       {initialRankings.length === 0 ? (
-        <BentoCard className="py-24 text-center">
-          <Award className="mx-auto mb-4 size-16 opacity-10" />
-          <p className="text-lg font-medium tracking-widest text-slate-400 uppercase">
+        <BentoCard className="py-10 sm:py-14 text-center">
+          <Award className="mx-auto mb-3 size-10 opacity-20" />
+          <p className="text-sm font-medium tracking-wider text-slate-400 uppercase">
             Няма намерени данни за избрания период.
           </p>
         </BentoCard>
       ) : (
         <>
           {/* Top 3 Podium Bento */}
-          <div className="grid grid-cols-1 items-end gap-6 lg:grid-cols-12">
+          <div className="grid grid-cols-1 items-end gap-4 lg:grid-cols-12">
             {/* Stats Col */}
-            <div className="grid h-full grid-cols-2 gap-4 lg:col-span-4">
-              <BentoCard className="flex flex-col justify-between border-zinc-100 bg-white p-5">
-                <Users className="size-5 text-blue-500" />
+            <div className="grid h-full grid-cols-2 gap-2.5 sm:gap-3 lg:col-span-4">
+              <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+                <Users className="size-4 sm:size-5 text-blue-500" />
                 <div>
-                  <p className="text-2xl font-light tracking-tight">
+                  <p className="text-xl sm:text-2xl font-light tracking-tight">
                     {initialRankings.length}
                   </p>
-                  <p className="mt-1 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
+                  <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Играчи
                   </p>
                 </div>
               </BentoCard>
-              <BentoCard className="flex flex-col justify-between border-zinc-100 bg-white p-5">
-                <TrendingUp className="size-5 text-emerald-500" />
+              <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+                <TrendingUp className="size-4 sm:size-5 text-emerald-500" />
                 <div>
-                  <p className="text-2xl font-light tracking-tight">
+                  <p className="text-xl sm:text-2xl font-light tracking-tight">
                     {initialRankings[0]?.totalPoints ?? 0}
                   </p>
-                  <p className="mt-1 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
+                  <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Макс. точки
                   </p>
                 </div>
               </BentoCard>
-              <BentoCard className="flex flex-col justify-between border-zinc-100 bg-white p-5">
-                <Trophy className="size-5 text-yellow-500" />
+              <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+                <Trophy className="size-4 sm:size-5 text-yellow-500" />
                 <div>
-                  <p className="text-2xl font-light tracking-tight">
+                  <p className="text-xl sm:text-2xl font-light tracking-tight">
                     {initialRankings.reduce(
                       (s, r) => s + r.tournamentsPlayed,
                       0
                     )}
                   </p>
-                  <p className="mt-1 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
+                  <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Участия
                   </p>
                 </div>
               </BentoCard>
-              <BentoCard className="flex flex-col justify-between border-zinc-100 bg-white p-5">
-                <Star className="size-5 text-purple-500" />
+              <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+                <Star className="size-4 sm:size-5 text-purple-500" />
                 <div>
-                  <p className="text-2xl font-light tracking-tight">
+                  <p className="text-xl sm:text-2xl font-light tracking-tight">
                     {initialRankings.reduce((s, r) => s + r.wins, 0)}
                   </p>
-                  <p className="mt-1 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
+                  <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Победи
                   </p>
                 </div>
@@ -289,7 +289,7 @@ export default function RankingsClient({
             </div>
 
             {/* Podium Col */}
-            <BentoCard className="flex h-full flex-col justify-center border-zinc-100 bg-white p-8 lg:col-span-8">
+            <BentoCard className="flex h-full flex-col justify-center rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-6 shadow-none lg:col-span-8 dark:border-zinc-800 dark:bg-zinc-950">
               <div className="flex items-end justify-center gap-4 pb-4 md:gap-8">
                 {/* 2nd Place */}
                 {topThree[1] && (
@@ -349,19 +349,19 @@ export default function RankingsClient({
           </div>
 
           {/* Full List Bento */}
-          <BentoCard className="overflow-hidden">
-            <div className="border-b border-zinc-100 p-4 sm:p-8">
-              <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                <h3 className="text-[14px] tracking-[0.3em] text-zinc-400 uppercase">
+          <BentoCard className="overflow-hidden p-0">
+            <div className="border-b border-zinc-100 p-3.5 sm:p-4.5 dark:border-zinc-800">
+              <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+                <h3 className="text-xs sm:text-sm tracking-[0.2em] text-zinc-400 uppercase font-medium">
                   Пълно класиране
                 </h3>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-11 overflow-x-auto gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-1">
+                  <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-9 overflow-x-auto gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-0.5">
                     {CATEGORY_TABS.map((tab) => (
                       <TabsTrigger
                         key={tab.id}
                         value={tab.id}
-                        className="flex-1 sm:flex-none rounded-lg px-3 sm:px-6 py-2 sm:py-0 text-[10px] tracking-widest uppercase data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm"
+                        className="flex-1 sm:flex-none rounded-lg px-3 sm:px-4 py-1 sm:py-0 text-[10px] font-semibold tracking-wider uppercase data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs"
                       >
                         {tab.label}
                       </TabsTrigger>
@@ -374,7 +374,7 @@ export default function RankingsClient({
             <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader className="bg-zinc-50/50">
-                  <TableRow className="h-14 border-zinc-100 hover:bg-transparent">
+                  <TableRow className="h-10 border-zinc-100 hover:bg-transparent">
                     <TableHead className="w-16 text-center text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                       №
                     </TableHead>
@@ -598,19 +598,19 @@ export default function RankingsClient({
           </BentoCard>
 
           {/* Points System Bento */}
-          <BentoCard className="border-none bg-zinc-950 p-8 text-white">
-            <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
+          <BentoCard className="rounded-2xl border-none bg-zinc-950 p-4 sm:p-5 text-white shadow-none">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
               <div className="shrink-0">
-                <h4 className="mb-3 flex items-center gap-3 text-[12px] tracking-[0.4em] text-zinc-500 uppercase">
-                  <Award className="size-4" /> Система за точки
+                <h4 className="mb-1.5 flex items-center gap-2 text-[11px] tracking-[0.3em] text-zinc-500 uppercase">
+                  <Award className="size-3.5" /> Система за точки
                 </h4>
-                <p className="text-xl font-light text-zinc-300">
+                <p className="text-base sm:text-lg font-light text-zinc-300">
                   Как се формира официалната
                   <br />
                   ранглиста на клуба
                 </p>
               </div>
-              <div className="grid flex-1 grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
+              <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
                 {[
                   { pos: "🥇", pts: 100 },
                   { pos: "🥈", pts: 70 },
@@ -623,13 +623,13 @@ export default function RankingsClient({
                 ].map(({ pos, pts }) => (
                   <div
                     key={pos}
-                    className="flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-white/5 p-4 text-center transition-colors hover:bg-white/10"
+                    className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-white/5 p-2 sm:p-2.5 text-center transition-colors hover:bg-white/10"
                   >
-                    <span className="mb-2 text-xl">{pos}</span>
-                    <span className="text-2xl font-light tracking-tighter text-zinc-100">
+                    <span className="mb-1 text-base sm:text-lg">{pos}</span>
+                    <span className="text-lg sm:text-xl font-light tracking-tight text-zinc-100">
                       {pts}
                     </span>
-                    <span className="mt-1 text-[8px] tracking-widest text-zinc-500 uppercase">
+                    <span className="mt-0.5 text-[8px] tracking-widest text-zinc-500 uppercase">
                       точки
                     </span>
                   </div>

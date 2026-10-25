@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-
 import { Column } from "@tanstack/react-table";
 import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react";
 

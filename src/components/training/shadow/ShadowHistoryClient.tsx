@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import { format } from "date-fns";
@@ -535,12 +534,12 @@ export function ShadowHistoryClient({
           if (!open) setInspectSession(null);
         }}
       >
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
-          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
             <div className="flex items-center gap-3 pr-8">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
-                <Zap className="size-4.5" />
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+                <Zap className="size-4" />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
@@ -559,7 +558,7 @@ export function ShadowHistoryClient({
           </div>
 
           {inspectSession && (
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-6 min-h-0">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-4 min-h-0">
               {/* Parameters Grid */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-900">
@@ -659,12 +658,12 @@ export function ShadowHistoryClient({
           )}
 
           {/* Fixed Sticky Footer */}
-          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
             <Button
               type="button"
               variant="ghost"
               onClick={() => setInspectSession(null)}
-              className="h-10 rounded-xl px-5 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              className="h-9 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
             >
               Затвори
             </Button>

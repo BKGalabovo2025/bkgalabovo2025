@@ -156,60 +156,60 @@ export default function TournamentsClient({
         </Button>
       </PageHeader>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-        <BentoCard className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-100 dark:border-zinc-800">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 md:grid-cols-4">
+        <BentoCard className="p-3.5 sm:p-4 rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-start justify-between">
             <div>
-              <p className="mb-1 text-2xl sm:text-4xl font-light text-zinc-900 dark:text-white">
+              <p className="mb-0.5 text-2xl sm:text-3xl font-light text-zinc-900 dark:text-white">
                 {activeTournaments.length}
               </p>
               <p className="text-[10px] sm:text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                 Активни
               </p>
             </div>
-            <div className="flex size-8 sm:size-10 items-center justify-center rounded-xl bg-primary/5 text-primary">
-              <Trophy className="size-4 sm:size-5" strokeWidth={1.5} />
+            <div className="flex size-7 sm:size-8 items-center justify-center rounded-xl bg-primary/5 text-primary">
+              <Trophy className="size-3.5 sm:size-4" strokeWidth={1.5} />
             </div>
           </div>
         </BentoCard>
-        <BentoCard className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-100 dark:border-zinc-800">
+        <BentoCard className="p-3.5 sm:p-4 rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-start justify-between">
             <div>
-              <p className="mb-1 text-2xl sm:text-4xl font-light text-zinc-900 dark:text-white">
+              <p className="mb-0.5 text-2xl sm:text-3xl font-light text-zinc-900 dark:text-white">
                 {completedTournaments.length}
               </p>
               <p className="text-[10px] sm:text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
                 Приключили
               </p>
             </div>
-            <div className="flex size-8 sm:size-10 items-center justify-center rounded-xl bg-zinc-50 text-zinc-400 dark:bg-zinc-900">
-              <CheckCircle2 className="size-4 sm:size-5" strokeWidth={1.5} />
+            <div className="flex size-7 sm:size-8 items-center justify-center rounded-xl bg-zinc-50 text-zinc-400 dark:bg-zinc-900">
+              <CheckCircle2 className="size-3.5 sm:size-4" strokeWidth={1.5} />
             </div>
           </div>
         </BentoCard>
-        <BentoCard className="col-span-2 flex items-center p-3 sm:p-4 px-4 sm:px-6 md:col-span-2 rounded-2xl sm:rounded-3xl border border-zinc-100 dark:border-zinc-800">
+        <BentoCard className="col-span-2 flex items-center p-2.5 sm:p-3 px-3 sm:px-4 md:col-span-2 rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
           <div className="relative w-full">
             <Search
-              className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-400"
+              className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400"
               strokeWidth={1.5}
             />
             <Input
               placeholder="Търсене на турнир по име или локация..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-zinc-100 bg-zinc-50/50 pl-10 sm:pl-11 text-xs sm:text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
+              className="h-9.5 sm:h-10 rounded-xl border-zinc-100 bg-zinc-50/50 pl-9 text-xs sm:text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
             />
           </div>
         </BentoCard>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
-          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-            <div className="flex items-center gap-3 pr-8">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
-                <Trophy className="size-4.5" />
+          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+                <Trophy className="size-4" />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
@@ -234,12 +234,12 @@ export default function TournamentsClient({
         open={!!editingTournament}
         onOpenChange={(open) => !open && setEditingTournament(null)}
       >
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
-          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-            <div className="flex items-center gap-3 pr-8">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
-                <Trophy className="size-4.5" />
+          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+                <Trophy className="size-4" />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
@@ -262,22 +262,22 @@ export default function TournamentsClient({
       </Dialog>
 
       {tournaments.length === 0 ? (
-        <BentoCard className="flex flex-col items-center justify-center rounded-5xl border-2 border-dashed border-zinc-100 bg-zinc-50/30 py-40 text-center dark:border-zinc-900 dark:bg-zinc-900/10">
-          <div className="mb-10 flex size-32 items-center justify-center rounded-full border border-zinc-100 bg-white transition-all hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900">
+        <BentoCard className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200/80 bg-zinc-50/30 py-10 sm:py-14 text-center dark:border-zinc-800 dark:bg-zinc-900/10">
+          <div className="mb-4 flex size-14 sm:size-16 items-center justify-center rounded-full border border-zinc-200 bg-white transition-all hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900">
             <Trophy
-              className="size-12 text-zinc-200 dark:text-zinc-700"
-              strokeWidth={1}
+              className="size-6 sm:size-7 text-zinc-300 dark:text-zinc-600"
+              strokeWidth={1.5}
             />
           </div>
-          <h3 className="mb-4 text-3xl font-light text-zinc-900 dark:text-white">
+          <h3 className="mb-2 text-xl sm:text-2xl font-light text-zinc-900 dark:text-white">
             Няма създадени турнири
           </h3>
-          <p className="mb-12 max-w-sm leading-relaxed font-light text-zinc-400">
+          <p className="mb-6 max-w-sm leading-relaxed text-xs sm:text-sm font-light text-zinc-400">
             Започнете, като създадете първия турнир за вашия клуб.
           </p>
           <Button
             onClick={() => setIsDialogOpen(true)}
-            className="h-14 rounded-xl bg-zinc-950 px-10 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+            className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] sm:text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
           >
             Създай първия турнир
           </Button>
@@ -384,44 +384,44 @@ function TournamentCard({
   };
 
   return (
-    <BentoCard className="group flex h-full flex-col overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none transition-all duration-500 hover:border-primary/30 dark:border-zinc-900 dark:bg-zinc-950">
-      <div className="p-8 pb-6">
-        <div className="mb-6 flex items-center justify-between">
+    <BentoCard className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-primary/40 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="p-4 sm:p-5 pb-3 sm:pb-3.5">
+        <div className="mb-3 flex items-center justify-between">
           {getStatusBadge(tournament.status)}
-          <span className="text-[10px] font-medium tracking-[0.2em] text-zinc-300 uppercase">
+          <span className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
             {getFormatLabel(tournament.format || "")}
           </span>
         </div>
-        <h3 className="line-clamp-2 min-h-16 text-2xl leading-tight font-light text-zinc-900 transition-colors group-hover:text-primary dark:text-white">
+        <h3 className="line-clamp-2 min-h-12 text-lg sm:text-xl leading-tight font-normal text-zinc-900 transition-colors group-hover:text-primary dark:text-white">
           {tournament.title}
         </h3>
-        <div className="mt-4 flex items-center text-xs font-light tracking-wide text-zinc-400">
-          <MapPin className="mr-2 size-4" strokeWidth={1} />{" "}
+        <div className="mt-2.5 flex items-center text-xs font-light tracking-wide text-zinc-400">
+          <MapPin className="mr-1.5 size-3.5" strokeWidth={1.5} />{" "}
           {tournament.location}
         </div>
       </div>
 
-      <div className="flex-1 border-y border-zinc-100/50 bg-zinc-50/30 px-8 py-6 dark:border-zinc-900/50 dark:bg-zinc-900/30">
-        <div className="grid grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <p className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+      <div className="flex-1 border-y border-zinc-100 bg-zinc-50/40 px-4 sm:p-5 py-3 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/30">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <p className="text-[10px] sm:text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
               Дата
             </p>
-            <div className="flex items-center text-sm font-light text-zinc-900 dark:text-zinc-100">
+            <div className="flex items-center text-xs sm:text-sm font-light text-zinc-900 dark:text-zinc-100">
               <Calendar
-                className="mr-3 size-4 text-primary/40"
+                className="mr-2 size-3.5 text-primary/60"
                 strokeWidth={1.5}
               />
               {formatDateShort(tournament.startDate)}
             </div>
           </div>
-          <div className="space-y-2">
-            <p className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+          <div className="space-y-1">
+            <p className="text-[10px] sm:text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
               Категории
             </p>
-            <div className="flex items-center text-sm font-light text-zinc-900 dark:text-zinc-100">
+            <div className="flex items-center text-xs sm:text-sm font-light text-zinc-900 dark:text-zinc-100">
               <Users
-                className="mr-3 size-4 text-primary/40"
+                className="mr-2 size-3.5 text-primary/60"
                 strokeWidth={1.5}
               />
               {tournament.categories?.length || 0}
@@ -429,11 +429,11 @@ function TournamentCard({
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {tournament.categories?.slice(0, 3).map((cat) => (
             <span
               key={cat}
-              className="rounded-full border border-zinc-100 bg-white px-3 py-1 text-[9px] font-medium tracking-widest text-zinc-400 uppercase dark:border-zinc-800 dark:bg-zinc-900"
+              className="rounded-full border border-zinc-200 bg-white px-2.5 py-0.5 text-[9px] font-medium tracking-widest text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
             >
               {getCategoryLabel(cat)}
             </span>
@@ -441,13 +441,13 @@ function TournamentCard({
         </div>
       </div>
 
-      <div className="mt-auto flex gap-3 border-t border-zinc-50 bg-white p-6 dark:border-zinc-900 dark:bg-zinc-950">
+      <div className="mt-auto flex gap-2 border-t border-zinc-100 bg-white p-3.5 sm:p-4 dark:border-zinc-800 dark:bg-zinc-950">
         <Button
           asChild
-          className="h-12 flex-1 rounded-xl bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+          className="h-9.5 sm:h-10 flex-1 rounded-xl bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
         >
           <Link href={`/tournaments/${tournament.id}`}>
-            <LayoutList className="mr-3 size-4" strokeWidth={1.5} /> Детайли
+            <LayoutList className="mr-2 size-3.5" strokeWidth={1.5} /> Детайли
           </Link>
         </Button>
         <div className="flex gap-2">

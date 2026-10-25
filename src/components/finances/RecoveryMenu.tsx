@@ -85,8 +85,8 @@ export function RecoveryMenu({ services, onSale }: RecoveryMenuProps) {
       ))}
 
       {services.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-5xl border-2 border-dashed border-zinc-100 py-24 text-zinc-400">
-          <p className="font-light">
+        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200/80 bg-zinc-50/30 py-10 sm:py-14 text-center text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/10">
+          <p className="text-xs sm:text-sm font-light">
             Все още няма добавени процедури в каталога.
           </p>
         </div>
@@ -136,36 +136,36 @@ const RecoveryCard = ({
   };
 
   return (
-    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none transition-all duration-500 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/20">
+    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950">
       {/* Cover Image Header with Horizontal Scroll */}
-      <div className="relative h-48 overflow-hidden border-b border-zinc-50 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="relative h-44 overflow-hidden border-b border-zinc-100 bg-zinc-50 sm:h-48 dark:border-zinc-800 dark:bg-zinc-900">
         {renderImages()}
 
         {/* Dropdown Menu on Image Hover */}
-        <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <div className="absolute top-3 right-3 z-10 flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="dark:border-zinc-850 size-8 rounded-full border border-zinc-100/50 bg-white/90 backdrop-blur-md hover:bg-white dark:bg-zinc-900/90"
+                className="dark:border-zinc-850 size-7.5 rounded-full border border-zinc-100/50 bg-white/90 backdrop-blur-md hover:bg-white dark:bg-zinc-900/90"
               >
                 <MoreHorizontal className="size-4 text-zinc-500" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="min-w-40 rounded-2xl border-zinc-100 p-2"
+              className="min-w-40 rounded-xl border-zinc-100 p-1.5"
             >
               <DropdownMenuItem
                 onClick={onEdit}
-                className="gap-2 rounded-xl py-3 focus:bg-zinc-50"
+                className="gap-2 rounded-lg py-2 focus:bg-zinc-50"
               >
                 <Edit className="size-4 text-zinc-400" /> Редактиране
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onDelete}
-                className="text-red-650 gap-2 rounded-xl py-3 focus:bg-red-50"
+                className="text-red-650 gap-2 rounded-lg py-2 focus:bg-red-50"
               >
                 <Trash2 className="size-4" /> Изтриване
               </DropdownMenuItem>
@@ -174,7 +174,7 @@ const RecoveryCard = ({
         </div>
 
         {/* Status badge in bottom corner */}
-        <div className="absolute bottom-4 left-4 z-10">
+        <div className="absolute bottom-3 left-3 z-10">
           {(() => {
             const res = service.requiredResources;
             const zones = (service.zones || []).map((z) => z.toUpperCase());
@@ -190,14 +190,14 @@ const RecoveryCard = ({
 
             if (!isUpdated) {
               return (
-                <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-1.5 text-[9px] font-bold tracking-widest text-amber-700 uppercase backdrop-blur-md">
+                <div className="flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50/90 px-2.5 py-1 text-[9px] font-bold tracking-widest text-amber-700 uppercase backdrop-blur-md">
                   <span className="size-1.5 animate-pulse rounded-full bg-amber-400" />
                   Поддръжка
                 </div>
               );
             }
             return (
-              <div className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/90 px-3 py-1.5 text-[9px] font-bold tracking-widest text-emerald-700 uppercase backdrop-blur-md">
+              <div className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50/90 px-2.5 py-1 text-[9px] font-bold tracking-widest text-emerald-700 uppercase backdrop-blur-md">
                 <span className="size-1.5 rounded-full bg-emerald-400" />
                 Готова
               </div>
@@ -207,9 +207,9 @@ const RecoveryCard = ({
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-1 flex-col justify-between p-8">
-        <div className="space-y-4">
-          <div className="mb-1 flex flex-wrap gap-2">
+      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+        <div className="space-y-3">
+          <div className="mb-1 flex flex-wrap gap-1.5">
             {service.category && (
               <span className="rounded-md bg-zinc-50 px-2 py-0.5 text-[9px] font-black tracking-widest text-zinc-400 uppercase">
                 {service.category}
@@ -221,22 +221,22 @@ const RecoveryCard = ({
               </span>
             )}
           </div>
-          <h4 className="text-xl font-medium tracking-tight text-zinc-900 transition-colors group-hover:text-cyan-600">
+          <h4 className="text-lg font-medium tracking-tight text-zinc-900 transition-colors group-hover:text-cyan-600 sm:text-xl dark:text-white">
             {service.name}
           </h4>
-          <p className="line-clamp-3 min-h-16 text-sm leading-relaxed font-light text-zinc-400">
+          <p className="line-clamp-2 min-h-10 text-xs leading-relaxed font-light text-zinc-400 sm:line-clamp-3 sm:min-h-12 sm:text-sm">
             {service.description}
           </p>
 
           {/* Zones */}
-          <div className="flex flex-wrap gap-2 pt-2">
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {(() => {
               const uniqueZones = Array.from(
                 new Set(Array.isArray(service.zones) ? service.zones : [])
               );
               if (uniqueZones.length === 3) {
                 return (
-                  <span className="rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-[10px] font-medium tracking-wider text-cyan-600 uppercase">
+                  <span className="rounded-full border border-cyan-100 bg-cyan-50 px-2.5 py-0.5 text-[9px] font-medium tracking-wider text-cyan-600 uppercase">
                     Зона по избор ({uniqueZones.join(", ")})
                   </span>
                 );
@@ -244,7 +244,7 @@ const RecoveryCard = ({
               return uniqueZones.map((zone) => (
                 <span
                   key={zone}
-                  className="rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-[10px] font-medium tracking-wider text-cyan-600 uppercase"
+                  className="rounded-full border border-cyan-100 bg-cyan-50 px-2.5 py-0.5 text-[9px] font-medium tracking-wider text-cyan-600 uppercase"
                 >
                   {zone}
                 </span>
@@ -253,9 +253,9 @@ const RecoveryCard = ({
           </div>
 
           {/* Features */}
-          <div className="space-y-3 border-t border-zinc-50 pt-4">
-            <div className="flex items-center gap-3 text-xs text-zinc-500">
-              <Clock className="size-4 text-zinc-300" strokeWidth={1.5} />
+          <div className="space-y-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+            <div className="flex items-center gap-2.5 text-xs text-zinc-500">
+              <Clock className="size-3.5 text-zinc-400" strokeWidth={1.5} />
               <span>
                 {service.durationMinutes === 45 &&
                 service.category === "VIP СЕСИИ" ? (
@@ -267,13 +267,16 @@ const RecoveryCard = ({
                 )}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs text-zinc-500">
-              <Users className="size-4 text-zinc-300" strokeWidth={1.5} />
+            <div className="flex items-center gap-2.5 text-xs text-zinc-500">
+              <Users className="size-3.5 text-zinc-400" strokeWidth={1.5} />
               <span>{service.athleteCount} спортисти</span>
             </div>
             {(service.numberOfDays || 1) >= 1 && (
-              <div className="flex items-center gap-3 text-xs text-zinc-500">
-                <Calendar className="size-4 text-zinc-300" strokeWidth={1.5} />
+              <div className="flex items-center gap-2.5 text-xs text-zinc-500">
+                <Calendar
+                  className="size-3.5 text-zinc-400"
+                  strokeWidth={1.5}
+                />
                 <span>
                   {service.numberOfDays || 1} дни /{" "}
                   {service.proceduresPerDay || 1} процедури на ден
@@ -282,11 +285,11 @@ const RecoveryCard = ({
             )}
 
             {service.requiredResources && (
-              <div className="mt-2 space-y-1 pt-2">
-                <p className="mb-1 text-[9px] font-medium tracking-widest text-zinc-400 uppercase">
+              <div className="mt-1.5 space-y-1 pt-1.5">
+                <p className="mb-0.5 text-[9px] font-medium tracking-widest text-zinc-400 uppercase">
                   Ресурси
                 </p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                <div className="flex flex-wrap gap-x-2.5 gap-y-1">
                   {(service.requiredResources.compressors ?? 0) > 0 && (
                     <div className="flex items-center gap-1 text-[10px] text-zinc-500">
                       <span className="size-1 rounded-full bg-emerald-400" />
@@ -319,22 +322,22 @@ const RecoveryCard = ({
 
         <div>
           {/* Price */}
-          <div className="my-6 flex items-baseline gap-1 border-t border-zinc-50 pt-6">
-            <span className="text-3xl font-light tracking-tighter text-zinc-950">
+          <div className="my-3.5 flex items-baseline gap-1 border-t border-zinc-100 pt-3.5 dark:border-zinc-800">
+            <span className="text-2xl font-light tracking-tight text-zinc-950 sm:text-3xl dark:text-white">
               {formatPrice(service.price).replace(" EUR", "")}
             </span>
-            <span className="ml-1 text-sm font-medium tracking-widest text-zinc-400 uppercase">
+            <span className="ml-1 text-xs font-medium tracking-widest text-zinc-400 uppercase">
               EUR
             </span>
           </div>
 
           {/* Actions */}
-          <div className="grid w-full grid-cols-2 gap-3">
+          <div className="grid w-full grid-cols-2 gap-2.5">
             <Button
               variant="outline"
               size="sm"
               onClick={onSale}
-              className="h-11 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              className="h-9 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Продажба
             </Button>
@@ -342,7 +345,7 @@ const RecoveryCard = ({
               variant="default"
               size="sm"
               onClick={onEdit}
-              className="h-11 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+              className="h-9 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               Редактиране
             </Button>

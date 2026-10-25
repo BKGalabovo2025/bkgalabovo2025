@@ -1,4 +1,4 @@
-/* eslint-disable react/forbid-dom-props, sonarjs/cognitive-complexity, sonarjs/no-nested-conditional, sonarjs/no-all-duplicated-branches */
+/* eslint-disable react/forbid-dom-props, sonarjs/no-all-duplicated-branches */
 "use client";
 
 import {

@@ -202,9 +202,12 @@ export function ServiceMenu({
       )}
 
       {services.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-[32px] border-2 border-dashed border-zinc-100 bg-zinc-50/50 py-24 text-zinc-400">
-          <Zap className="mb-3 size-10 text-zinc-300" strokeWidth={1} />
-          <p className="text-sm font-light">Няма намерени услуги.</p>
+        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200/80 bg-zinc-50/30 py-10 sm:py-14 text-center text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/10">
+          <Zap
+            className="mb-2 size-8 text-zinc-300 dark:text-zinc-700"
+            strokeWidth={1.5}
+          />
+          <p className="text-xs sm:text-sm font-light">Няма намерени услуги.</p>
         </div>
       )}
     </div>
@@ -252,9 +255,9 @@ function ServiceCard({
   };
 
   return (
-    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none transition-all duration-500 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/20">
+    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950">
       {/* Cover Image or Icon Header */}
-      <div className="relative flex h-48 items-center justify-center overflow-hidden border-b border-zinc-50 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="relative flex h-44 items-center justify-center overflow-hidden border-b border-zinc-100 bg-zinc-50 sm:h-48 dark:border-zinc-800 dark:bg-zinc-900">
         {images.length > 0 ? (
           <>
             {images.map((imgUrl, idx) => (
@@ -343,21 +346,21 @@ function ServiceCard({
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-1 flex-col justify-between p-8">
-        <div className="space-y-4">
-          <h4 className="line-clamp-1 text-xl font-medium tracking-tight text-zinc-900 transition-colors group-hover:text-primary">
+      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+        <div className="space-y-3">
+          <h4 className="line-clamp-1 text-lg font-medium tracking-tight text-zinc-900 transition-colors group-hover:text-primary sm:text-xl dark:text-white">
             {service.name}
           </h4>
-          <p className="line-clamp-3 min-h-18 text-sm leading-relaxed font-light text-zinc-400">
+          <p className="line-clamp-2 min-h-10 text-xs leading-relaxed font-light text-zinc-400 sm:line-clamp-3 sm:min-h-12 sm:text-sm">
             {service.description}
           </p>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 pt-2">
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {service.targetGroups?.map((group) => (
               <span
                 key={group}
-                className="rounded-full border border-zinc-100 bg-zinc-50 px-3 py-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase"
+                className="rounded-full border border-zinc-100 bg-zinc-50 px-2.5 py-0.5 text-[9px] font-medium tracking-wider text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-900"
               >
                 {group}
               </span>
@@ -365,42 +368,45 @@ function ServiceCard({
           </div>
 
           {/* Features */}
-          <div className="space-y-3 border-t border-zinc-50 pt-4">
+          <div className="space-y-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
             {isSubscription ? (
               <>
-                <div className="flex items-center gap-3 text-xs text-zinc-500">
+                <div className="flex items-center gap-2.5 text-xs text-zinc-500">
                   <CreditCard
-                    className="size-4 text-zinc-300"
+                    className="size-3.5 text-zinc-400"
                     strokeWidth={1.5}
                   />
                   <span>{service.billingPeriod || "Месечен"} период</span>
                 </div>
                 {service.grantsLicense && (
-                  <div className="flex items-center gap-3 text-xs text-zinc-500">
+                  <div className="flex items-center gap-2.5 text-xs text-zinc-500">
                     <UserCheck
-                      className="size-4 text-emerald-400"
+                      className="size-3.5 text-emerald-500"
                       strokeWidth={1.5}
                     />
                     <span>Право на картотека</span>
                   </div>
                 )}
                 {service.grantsApparel && (
-                  <div className="flex items-center gap-3 text-xs text-zinc-500">
-                    <Shirt className="size-4 text-blue-400" strokeWidth={1.5} />
+                  <div className="flex items-center gap-2.5 text-xs text-zinc-500">
+                    <Shirt
+                      className="size-3.5 text-blue-500"
+                      strokeWidth={1.5}
+                    />
                     <span>Право на екипировка</span>
                   </div>
                 )}
               </>
             ) : (
               <>
-                <div className="flex items-center gap-3 text-xs text-zinc-500">
-                  <Clock className="size-4 text-zinc-300" strokeWidth={1.5} />
+                <div className="flex items-center gap-2.5 text-xs text-zinc-500">
+                  <Clock className="size-3.5 text-zinc-400" strokeWidth={1.5} />
                   <span>{service.durationMinutes || 90} минути</span>
                 </div>
                 {service.requiresBooking && (
-                  <div className="flex items-center gap-3 text-xs text-zinc-500">
+                  <div className="flex items-center gap-2.5 text-xs text-zinc-500">
                     <Calendar
-                      className="size-4 text-amber-400"
+                      className="size-3.5 text-amber-500"
                       strokeWidth={1.5}
                     />
                     <span>Изисква резервация</span>
@@ -408,8 +414,8 @@ function ServiceCard({
                 )}
               </>
             )}
-            <div className="flex items-center gap-3 text-xs text-zinc-500">
-              <Users className="size-4 text-zinc-300" strokeWidth={1.5} />
+            <div className="flex items-center gap-2.5 text-xs text-zinc-500">
+              <Users className="size-3.5 text-zinc-400" strokeWidth={1.5} />
               <span>
                 {service.minMembers || 1} - {service.maxMembers || 1} участници
               </span>
@@ -419,15 +425,15 @@ function ServiceCard({
 
         <div>
           {/* Price */}
-          <div className="my-6 flex items-baseline gap-1 border-t border-zinc-50 pt-6">
-            <span className="text-3xl font-light tracking-tighter text-zinc-950">
+          <div className="my-3.5 flex items-baseline gap-1 border-t border-zinc-100 pt-3.5 dark:border-zinc-800">
+            <span className="text-2xl font-light tracking-tight text-zinc-950 sm:text-3xl dark:text-white">
               {formatPrice(service.price).replace(" EUR", "")}
             </span>
-            <span className="ml-1 text-sm font-medium tracking-widest text-zinc-400 uppercase">
+            <span className="ml-1 text-xs font-medium tracking-widest text-zinc-400 uppercase">
               EUR
             </span>
             {isSubscription && (
-              <span className="ml-2 text-xs font-light text-zinc-300 lowercase">
+              <span className="ml-1.5 text-xs font-light text-zinc-400 lowercase">
                 /{" "}
                 {service.billingPeriod?.toLowerCase().replace("ен", "ца") ||
                   "месец"}
@@ -436,12 +442,12 @@ function ServiceCard({
           </div>
 
           {/* Actions */}
-          <div className="grid w-full grid-cols-2 gap-3">
+          <div className="grid w-full grid-cols-2 gap-2.5">
             <Button
               variant="outline"
               size="sm"
               onClick={onSale}
-              className="h-11 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              className="h-9 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Продажба
             </Button>
@@ -449,7 +455,7 @@ function ServiceCard({
               variant="default"
               size="sm"
               onClick={onEdit}
-              className="h-11 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+              className="h-9 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               Редактиране
             </Button>

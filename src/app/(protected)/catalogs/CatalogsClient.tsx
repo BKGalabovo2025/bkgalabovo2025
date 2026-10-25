@@ -47,43 +47,43 @@ export default function CatalogsClient({
           defaultValue={defaultTab}
           value={catalogsSubTab}
           onValueChange={setCatalogsSubTab}
-          className="space-y-6"
+          className="space-y-3"
         >
           <TabsList
             aria-label="Каталози и услуги"
-            className="no-scrollbar mb-2 flex h-11 w-full justify-start overflow-x-auto rounded-2xl border border-zinc-200/40 bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:border-zinc-800/40 dark:bg-zinc-900/50"
+            className="no-scrollbar mb-1 flex h-9 w-full justify-start overflow-x-auto rounded-xl border border-zinc-200/40 bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:border-zinc-800/40 dark:bg-zinc-900/50"
           >
             {!isRecoveryOnly && (
               <>
                 <TabsTrigger
                   value="services"
-                  className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+                  className="rounded-lg px-3.5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
                 >
-                  <ListTree className="mr-2 size-3.5" />
+                  <ListTree className="mr-1.5 size-3.5" />
                   Тренировки
                 </TabsTrigger>
                 <TabsTrigger
                   value="general"
-                  className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+                  className="rounded-lg px-3.5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
                 >
-                  <Wrench className="mr-2 size-3.5" />
+                  <Wrench className="mr-1.5 size-3.5" />
                   Клубни Услуги
                 </TabsTrigger>
               </>
             )}
             <TabsTrigger
               value="recovery"
-              className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+              className="rounded-lg px-3.5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
             >
-              <Activity className="mr-2 size-3.5" />
+              <Activity className="mr-1.5 size-3.5" />
               Възстановяване
             </TabsTrigger>
             {!isRecoveryOnly && (
               <TabsTrigger
                 value="inventory"
-                className="rounded-xl px-5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+                className="rounded-lg px-3.5 text-xs font-semibold tracking-wide whitespace-nowrap shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-2xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
               >
-                <Package className="mr-2 size-3.5" />
+                <Package className="mr-1.5 size-3.5" />
                 Магазин / Стоки
               </TabsTrigger>
             )}

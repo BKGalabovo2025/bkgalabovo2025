@@ -249,12 +249,12 @@ export const EditGeneralServiceDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+      <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
         {/* Fixed Header */}
-        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
           <div className="flex items-center gap-3 pr-8">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-950">
-              <Wrench className="size-4.5" />
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-950">
+              <Wrench className="size-4" />
             </div>
             <div className="min-w-0">
               <DialogTitle className="truncate text-base font-bold text-zinc-950 sm:text-lg dark:text-zinc-50">
@@ -268,7 +268,7 @@ export const EditGeneralServiceDialog = ({
         </div>
 
         {/* Scrollable Body */}
-        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 min-h-0">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* LEFT COLUMN: Service Details */}
             <div className="space-y-4">
@@ -328,7 +328,10 @@ export const EditGeneralServiceDialog = ({
                       onValueChange={(val: any) => setPricingUnit(val)}
                       disabled={isProcessing}
                     >
-                      <SelectTrigger className="h-9.5 rounded-xl border-zinc-200 bg-zinc-50 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-900/50">
+                      <SelectTrigger
+                        id="edit-pricingUnit"
+                        className="h-9.5 rounded-xl border-zinc-200 bg-zinc-50 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-900/50"
+                      >
                         <SelectValue placeholder="Избери..." />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
@@ -350,6 +353,7 @@ export const EditGeneralServiceDialog = ({
                     </Label>
                     <Input
                       id="edit-performerName"
+                      name="performerName"
                       value={performerName}
                       onChange={(e) => setPerformerName(e.target.value)}
                       placeholder="Име на треньор/клуб"
@@ -369,7 +373,10 @@ export const EditGeneralServiceDialog = ({
                       onValueChange={(val: any) => setPerformerType(val)}
                       disabled={isProcessing}
                     >
-                      <SelectTrigger className="h-9.5 rounded-xl border-zinc-200 bg-zinc-50 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-900/50">
+                      <SelectTrigger
+                        id="edit-performerType"
+                        className="h-9.5 rounded-xl border-zinc-200 bg-zinc-50 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-900/50"
+                      >
                         <SelectValue placeholder="Избери..." />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
@@ -433,16 +440,16 @@ export const EditGeneralServiceDialog = ({
                 onValueChange={setActiveTab}
                 className="flex w-full flex-1 flex-col"
               >
-                <TabsList className="mb-4 flex h-10 w-full rounded-xl border border-zinc-200/40 bg-zinc-100 p-1 dark:border-zinc-800/40 dark:bg-zinc-900/50">
+                <TabsList className="mb-2.5 flex h-9 w-full rounded-xl border border-zinc-200/40 bg-zinc-100 p-0.5 dark:border-zinc-800/40 dark:bg-zinc-900/50">
                   <TabsTrigger
                     value="movements"
-                    className="flex-1 rounded-lg py-1.5 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+                    className="flex-1 rounded-lg py-1 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
                   >
                     Движения
                   </TabsTrigger>
                   <TabsTrigger
                     value="sales"
-                    className="flex-1 rounded-lg py-1.5 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+                    className="flex-1 rounded-lg py-1 text-xs font-semibold shadow-none transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
                   >
                     Продажби
                   </TabsTrigger>
@@ -467,7 +474,7 @@ export const EditGeneralServiceDialog = ({
         </div>
 
         {/* Fixed Sticky Footer */}
-        <div className="shrink-0 flex items-center justify-end border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="shrink-0 flex items-center justify-end border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             type="button"
             variant="outline"

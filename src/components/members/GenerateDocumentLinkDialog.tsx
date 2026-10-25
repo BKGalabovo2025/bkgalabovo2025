@@ -155,23 +155,23 @@ export function GenerateDocumentLinkDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-3xl p-6 bg-white sm:rounded-4xl sm:p-8">
+      <DialogContent className="max-w-md rounded-2xl p-4 sm:p-5 bg-white">
         <DialogHeader className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <span className="flex size-7.5 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
               <LinkIcon className="size-4" />
             </span>
-            <DialogTitle className="text-lg font-bold text-zinc-950">
+            <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950">
               Линк за онлайн подписване
             </DialogTitle>
           </div>
-          <DialogDescription className="text-xs text-zinc-500 pt-1">
+          <DialogDescription className="text-xs text-zinc-500 pt-0.5">
             Изпратете този линк на родителя за попълване и подпис от телефон или
             компютър.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-2.5 space-y-3">
           {/* Document & Member pill */}
           <div className="rounded-2xl border border-zinc-100 bg-zinc-50/80 p-3.5 space-y-1.5 text-xs">
             <div className="flex justify-between items-center">

@@ -1428,20 +1428,20 @@ export function CampItineraryClient({
 
         {/* Session Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md md:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md md:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
             {/* Fixed Sticky Header */}
-            <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
               <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
                 {formId ? "Редактиране на сесия" : "Нова сесия"}
               </DialogTitle>
-              <DialogDescription className="mt-1 text-xs text-zinc-500">
+              <DialogDescription className="mt-0.5 text-xs text-zinc-500">
                 Добавете събитие към програмата за{" "}
                 {days.find((d) => d.dateStr === selectedDateStr)?.label}.
               </DialogDescription>
             </div>
 
             {/* Scrollable Body Container */}
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3 min-h-0">
               <div className="grid gap-2">
                 <Label htmlFor="type">Вид дейност</Label>
                 <Select
@@ -1690,20 +1690,22 @@ export function CampItineraryClient({
             </div>
 
             {/* Fixed Sticky Footer */}
-            <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 onClick={() => setIsModalOpen(false)}
-                className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+                className="h-9 rounded-xl border-zinc-200 px-4 text-xs font-semibold dark:border-zinc-800"
               >
                 Отказ
               </Button>
               <Button
                 type="button"
+                size="sm"
                 onClick={handleSaveSession}
                 disabled={isSaving}
-                className="rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white hover:bg-indigo-700"
+                className="h-9 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white hover:bg-indigo-700"
               >
                 {isSaving ? "Запазване..." : "Запази"}
               </Button>

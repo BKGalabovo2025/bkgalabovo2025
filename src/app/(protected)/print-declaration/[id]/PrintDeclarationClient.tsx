@@ -10,40 +10,71 @@ import { getDb } from "@/lib/firebase";
 import { fillDeclarationPdf } from "@/lib/pdf-generator";
 import { SignedDeclaration } from "@/types";
 
+interface PrintDeclarationClientProps {
+  declarationId: string;
+  initialDeclaration?: SignedDeclaration | null;
+}
+
 export default function PrintDeclarationClient({
   declarationId,
-}: {
-  declarationId: string;
-}) {
+  initialDeclaration,
+}: PrintDeclarationClientProps) {
   const router = useRouter();
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isCancelled = false;
+
+    async function generatePdf(data: SignedDeclaration) {
+      try {
+        const url = await fillDeclarationPdf({
+          name: data.memberName,
+          phone: data.phone,
+          date: new Date(data.signedAt).toLocaleDateString("bg-BG"),
+          signatureUrl: data.signatureUrl,
+          parentSignatureUrl: data.parentSignatureUrl,
+        });
+        if (!isCancelled) {
+          setPdfUrl(url);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Failed to generate declaration PDF:", err);
+        if (!isCancelled) setLoading(false);
+      }
+    }
+
+    if (initialDeclaration) {
+      generatePdf(initialDeclaration);
+      return () => {
+        isCancelled = true;
+      };
+    }
+
     async function load() {
       try {
         const docSnap = await getDoc(
           doc(getDb(), "member_declarations", declarationId)
         );
-        if (docSnap.exists()) {
+        if (docSnap.exists() && !isCancelled) {
           const data = docSnap.data() as SignedDeclaration;
-          const url = await fillDeclarationPdf({
-            name: data.memberName,
-            phone: data.phone,
-            date: new Date(data.signedAt).toLocaleDateString("bg-BG"),
-            signatureUrl: data.signatureUrl,
-            parentSignatureUrl: data.parentSignatureUrl,
-          });
-          setPdfUrl(url);
+          await generatePdf(data);
+        } else if (!isCancelled) {
+          setLoading(false);
         }
       } catch (error) {
-        console.error("Failed to load declaration:", error);
-      } finally {
-        setLoading(false);
+        console.error("Failed to load declaration on client:", error);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     }
     load();
-  }, [declarationId]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [declarationId, initialDeclaration]);
 
   if (loading) {
     return <div className="p-8 text-center text-zinc-500">Зареждане...</div>;

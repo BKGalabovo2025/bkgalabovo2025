@@ -263,7 +263,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4 px-3 pb-8 duration-500 animate-in fade-in sm:space-y-5 sm:px-6 lg:px-8">
+    <div className="space-y-3.5 pb-2 duration-500 animate-in fade-in">
       <PageHeader
         title={isRecoveryBranch ? "Членове на зоната" : "Членове на клуба"}
         description={
@@ -306,28 +306,28 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {!isRecoveryBranch && (
-          <TabsList className="no-scrollbar flex h-10 w-full justify-start overflow-x-auto rounded-xl bg-zinc-100 p-1 sm:inline-flex sm:w-fit dark:bg-zinc-900">
+          <TabsList className="no-scrollbar mb-2.5 flex h-9 w-full justify-start overflow-x-auto rounded-xl bg-zinc-100 p-0.5 sm:inline-flex sm:w-fit dark:bg-zinc-900">
             <TabsTrigger
               value="members"
-              className="flex-1 rounded-lg text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+              className="flex-1 rounded-lg px-3 py-1 text-[10px] font-semibold tracking-wider uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
             >
               <Users className="mr-1.5 size-3.5" /> Членове
             </TabsTrigger>
             <TabsTrigger
               value="guests"
-              className="flex-1 rounded-lg text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+              className="flex-1 rounded-lg px-3 py-1 text-[10px] font-semibold tracking-wider uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
             >
               <UserCog className="mr-1.5 size-3.5" /> Външни
             </TabsTrigger>
             <TabsTrigger
               value="families"
-              className="flex-1 rounded-lg text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+              className="flex-1 rounded-lg px-3 py-1 text-[10px] font-semibold tracking-wider uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
             >
               <FamilyIcon className="mr-1.5 size-3.5" /> Семейства
             </TabsTrigger>
             <TabsTrigger
               value="recovery-clients"
-              className="flex-1 rounded-lg text-[10px] font-semibold tracking-widest uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
+              className="flex-1 rounded-lg px-3 py-1 text-[10px] font-semibold tracking-wider uppercase transition-all data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
             >
               <Activity className="mr-1.5 size-3.5" /> Зона Възстановяване
             </TabsTrigger>
@@ -337,11 +337,11 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
         <TabsContent
           value="recovery-clients"
           className={cn(
-            isRecoveryBranch ? "mt-0" : "mt-4",
+            isRecoveryBranch ? "mt-0" : "mt-2.5",
             "animate-in fade-in"
           )}
         >
-          <BentoCard className="min-h-[calc(100vh-16rem)] overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-none">
+          <BentoCard className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
             <RecoveryClientsList members={members} />
           </BentoCard>
         </TabsContent>
@@ -396,7 +396,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           </div>
 
           {/* Main Table Bento */}
-          <BentoCard className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-none sm:rounded-3xl dark:border-zinc-900 dark:bg-zinc-950">
+          <BentoCard className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
             <div className="border-b border-zinc-100 p-3 sm:p-4 dark:border-zinc-900">
               <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div className="flex w-full flex-1 items-center gap-2.5 sm:w-auto">
@@ -832,18 +832,18 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           </BentoCard>
         </TabsContent>
 
-        <TabsContent value="guests" className="mt-8 space-y-8">
+        <TabsContent value="guests" className="mt-4 space-y-4">
           {/* Guest Stats */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
-            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-              <div className="shrink-0 rounded-2xl bg-amber-500/10 p-3.5 text-amber-600 sm:p-4">
-                <UserCog className="size-5 sm:size-6" strokeWidth={1.5} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+            <BentoCard className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-xl bg-amber-500/10 p-2.5 text-amber-600 sm:p-3">
+                <UserCog className="size-5" strokeWidth={1.5} />
               </div>
-              <div className="space-y-0.5 sm:space-y-1">
+              <div className="space-y-0.5">
                 <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
                   Външни клиенти
                 </p>
-                <p className="text-2xl font-light text-amber-600 sm:text-3xl">
+                <p className="text-xl font-light text-amber-600 sm:text-2xl">
                   {
                     members.filter((m) => m.isGuest || m.memberType === "guest")
                       .length
@@ -851,11 +851,11 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
                 </p>
               </div>
             </BentoCard>
-            <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:col-span-2 sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-              <div className="shrink-0 rounded-2xl bg-zinc-100 p-3.5 text-zinc-500 sm:p-4 dark:bg-zinc-800">
-                <UserPlus className="size-5 sm:size-6" strokeWidth={1.5} />
+            <BentoCard className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none sm:col-span-2 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="shrink-0 rounded-xl bg-zinc-100 p-2.5 text-zinc-500 sm:p-3 dark:bg-zinc-800">
+                <UserPlus className="size-5" strokeWidth={1.5} />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
                   Относно Външни клиенти
                 </p>
@@ -869,7 +869,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           </div>
 
           {/* Guest Cards */}
-          <BentoCard className="overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none sm:rounded-5xl dark:border-zinc-900 dark:bg-zinc-950">
+          <BentoCard className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
             <div className="flex items-center justify-between border-b border-zinc-50 p-4 sm:p-6 dark:border-zinc-900">
               <div className="flex items-center gap-3">
                 <UserCog className="size-4 text-amber-500" strokeWidth={1.5} />
@@ -967,12 +967,12 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
           </BentoCard>
         </TabsContent>
 
-        <TabsContent value="families" className="mt-8 space-y-8">
-          <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-            <div className="shrink-0 rounded-2xl bg-zinc-100 p-3.5 text-zinc-500 sm:p-4 dark:bg-zinc-800">
-              <FamilyIcon className="size-5 sm:size-6" />
+        <TabsContent value="families" className="mt-4 space-y-4">
+          <BentoCard className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="shrink-0 rounded-xl bg-zinc-100 p-2.5 text-zinc-500 sm:p-3 dark:bg-zinc-800">
+              <FamilyIcon className="size-5" />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
                 Относно Семейства
               </p>
@@ -985,7 +985,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
             </div>
           </BentoCard>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
             {families.map((family) => {
               const familyMembers = initialMembers.filter((m) =>
                 family.memberIds.includes(m.id)
@@ -993,7 +993,7 @@ export default function MembersClient({ initialMembers }: MembersClientProps) {
               return (
                 <BentoCard
                   key={family.id}
-                  className="space-y-4 rounded-3xl border border-zinc-100 bg-white p-6 shadow-none dark:border-zinc-900 dark:bg-zinc-950"
+                  className="space-y-3 rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">

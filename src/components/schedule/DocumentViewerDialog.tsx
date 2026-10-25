@@ -621,9 +621,9 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="flex max-h-[94dvh] sm:max-h-[90vh] h-[90vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+      <DialogContent className="flex max-h-[94dvh] sm:max-h-[90vh] h-[90vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className="flex shrink-0 items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/50">
           <DialogHeader className="p-0 max-w-[55%] sm:max-w-[70%]">
             <div className="flex items-center gap-2.5 sm:gap-3">
               <div className="rounded-xl bg-white p-1.5 sm:p-2 shadow-xs dark:bg-zinc-800 shrink-0">

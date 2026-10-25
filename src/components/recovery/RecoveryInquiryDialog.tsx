@@ -93,7 +93,6 @@ const timeSlots = [
   "Вечер (18:00 - 21:00 ч.)",
 ];
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export function RecoveryInquiryDialog({
   isOpen,
   onClose,
@@ -225,32 +224,32 @@ export function RecoveryInquiryDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-emerald-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
         {/* Header decoration */}
-        <div className="shrink-0 border-b border-zinc-800/80 bg-linear-to-br from-emerald-950/80 via-zinc-950 to-zinc-950 p-4 sm:p-5 pr-12 text-left">
+        <div className="shrink-0 border-b border-zinc-800/80 bg-linear-to-br from-emerald-950/80 via-zinc-950 to-zinc-950 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 text-left">
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-950/60 px-3 py-1 text-[10px] font-bold tracking-widest text-emerald-400 uppercase">
+            <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-950/60 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-emerald-400 uppercase">
               <Sparkles size={12} />
               RECOVERY ZONE BY ZM
             </span>
           </div>
 
-          <div className="mt-2.5 text-left">
-            <DialogTitle className="text-lg font-bold tracking-tight text-white sm:text-xl">
+          <div className="mt-1.5 text-left">
+            <DialogTitle className="text-base font-bold tracking-tight text-white sm:text-lg">
               Запитване за Сесия
             </DialogTitle>
-            <DialogDescription className="mt-1 text-xs text-zinc-400">
+            <DialogDescription className="mt-0.5 text-xs text-zinc-400">
               Изберете удобен начин за запазване на час и информация.
             </DialogDescription>
           </div>
 
           {/* Mode Switcher */}
           {!isSuccess && (
-            <div className="mt-3.5 grid grid-cols-2 gap-2 rounded-2xl bg-zinc-900/90 p-1">
+            <div className="mt-2.5 grid grid-cols-2 gap-2 rounded-xl bg-zinc-900/90 p-1">
               <button
                 type="button"
                 onClick={() => setMode("form")}
-                className={`flex items-center justify-center gap-2 rounded-xl py-2 text-xs font-bold tracking-wide transition-all ${
+                className={`flex items-center justify-center gap-2 rounded-lg py-1.5 text-xs font-bold tracking-wide transition-all ${
                   mode === "form"
                     ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
                     : "text-zinc-400 hover:text-white"
@@ -262,7 +261,7 @@ export function RecoveryInquiryDialog({
               <button
                 type="button"
                 onClick={() => setMode("phone")}
-                className={`flex items-center justify-center gap-2 rounded-xl py-2 text-xs font-bold tracking-wide transition-all ${
+                className={`flex items-center justify-center gap-2 rounded-lg py-1.5 text-xs font-bold tracking-wide transition-all ${
                   mode === "phone"
                     ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
                     : "text-zinc-400 hover:text-white"
@@ -276,7 +275,7 @@ export function RecoveryInquiryDialog({
         </div>
 
         {/* Content Body */}
-        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 min-h-0">
           <AnimatePresence mode="wait">
             {isSuccess ? (
               <motion.div
@@ -308,8 +307,7 @@ export function RecoveryInquiryDialog({
                   Затвори прозореца
                 </Button>
               </motion.div>
-            ) : // eslint-disable-next-line sonarjs/no-nested-conditional
-            mode === "phone" ? (
+            ) : mode === "phone" ? (
               <motion.div
                 key="phone"
                 initial={{ opacity: 0, y: 10 }}

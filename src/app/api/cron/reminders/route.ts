@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   const isAuthorized =

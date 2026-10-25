@@ -29,8 +29,8 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
   const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
 
   return (
-    <BentoCard className="rounded-3xl border-zinc-100 p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 sm:rounded-4xl sm:p-8">
-      <div className="mb-6 flex items-center gap-2">
+    <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="mb-4 flex items-center gap-2">
         <Phone className="size-4 text-zinc-400" strokeWidth={1.5} />
         <h3 className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase sm:text-[11px]">
           Стъпка 2: Контакти

@@ -736,12 +736,12 @@ export function MemberAiWorkoutsTab({
           open={!!viewingProgram}
           onOpenChange={(open) => !open && setViewingProgram(null)}
         >
-          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
             {/* Fixed Sticky Header */}
-            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-linear-to-r from-blue-50/50 via-white to-transparent p-4 sm:p-6 dark:border-zinc-800 dark:from-blue-950/20 dark:via-zinc-950">
+            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-linear-to-r from-blue-50/50 via-white to-transparent px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:from-blue-950/20 dark:via-zinc-950">
               <div className="flex items-center gap-3 pr-8 min-w-0">
-                <div className="shrink-0 rounded-2xl bg-blue-600 p-2.5 text-white">
-                  <Sparkles className="size-5" />
+                <div className="shrink-0 rounded-xl bg-blue-600 p-2 text-white shadow-md shadow-blue-500/20">
+                  <Sparkles className="size-4.5" />
                 </div>
                 <div className="min-w-0">
                   <DialogTitle className="truncate text-base font-bold text-zinc-950 sm:text-lg dark:text-zinc-50">
@@ -756,7 +756,7 @@ export function MemberAiWorkoutsTab({
                 <Button
                   onClick={() => handleDownloadPdf(viewingProgram)}
                   size="sm"
-                  className="rounded-xl bg-blue-600 text-xs text-white hover:bg-blue-700"
+                  className="h-8.5 rounded-xl bg-blue-600 px-3 text-xs text-white hover:bg-blue-700"
                 >
                   <Download className="mr-1.5 size-3.5" /> Свали PDF
                 </Button>
@@ -765,14 +765,14 @@ export function MemberAiWorkoutsTab({
                   disabled={deletingId === viewingProgram.id}
                   size="sm"
                   variant="outline"
-                  className="rounded-xl border-rose-200 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900 dark:text-rose-400"
+                  className="h-8.5 rounded-xl border-rose-200 px-3 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900 dark:text-rose-400"
                 >
                   <Trash2 className="mr-1.5 size-3.5" /> Изтрий
                 </Button>
               </div>
             </div>
 
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5 min-h-0">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3.5 min-h-0">
               {viewingProgram.safetyAudit && (
                 <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 text-xs dark:border-zinc-800 dark:bg-zinc-900">
                   <div className="mb-2 flex items-center gap-2 font-bold text-zinc-900 dark:text-zinc-100">
@@ -795,7 +795,7 @@ export function MemberAiWorkoutsTab({
               )}
 
               <Tabs defaultValue="0" className="w-full">
-                <TabsList className="flex h-auto w-full gap-1 overflow-x-auto rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
+                <TabsList className="mb-2 flex h-8 sm:h-9 w-full gap-1 overflow-x-auto rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
                   {viewingProgram.schedule?.map((day, idx) => {
                     const isDayDone =
                       viewingProgram.progress?.completedDays?.[day.dayNumber]
@@ -804,7 +804,7 @@ export function MemberAiWorkoutsTab({
                       <TabsTrigger
                         key={idx}
                         value={String(idx)}
-                        className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-blue-400"
+                        className="flex-1 rounded-lg px-2.5 py-1 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-blue-400"
                       >
                         {isDayDone ? "✅ " : ""}
                         {day.dayName}
@@ -814,7 +814,7 @@ export function MemberAiWorkoutsTab({
                 </TabsList>
 
                 {viewingProgram.schedule?.map((day, idx) => (
-                  <TabsContent key={idx} value={String(idx)} className="mt-4">
+                  <TabsContent key={idx} value={String(idx)} className="mt-2">
                     <DayDetailCard
                       day={day}
                       memberId={memberId}

@@ -22,7 +22,7 @@ export function GoogleTranslateWidget() {
   }, []);
 
   useEffect(() => {
-    if (!isClient || currentLang !== "en") return;
+    if (!isClient) return;
 
     const ensureSelectAttributes = () => {
       const select =
@@ -30,26 +30,47 @@ export function GoogleTranslateWidget() {
       if (select) {
         if (!select.id) select.id = "google_translate_select";
         if (!select.name) select.name = "google_translate_select";
+        if (!select.getAttribute("aria-label")) {
+          select.setAttribute(
+            "aria-label",
+            "Избор на език / Language selection"
+          );
+        }
+        if (!select.title) {
+          select.title = "Избор на език / Language selection";
+        }
         if (!select.getAttribute("autocomplete")) {
           select.setAttribute("autocomplete", "off");
+        }
+        if (!document.getElementById("google_translate_label")) {
+          const lbl = document.createElement("label");
+          lbl.id = "google_translate_label";
+          lbl.htmlFor = "google_translate_select";
+          lbl.className = "sr-only";
+          lbl.textContent = "Избор на език / Language selection";
+          select.parentNode?.insertBefore(lbl, select);
         }
       }
     };
 
-    // @ts-expect-error - Google Translate API is loaded externally
-    window.googleTranslateElementInit = () => {
+    ensureSelectAttributes();
+
+    if (currentLang === "en") {
       // @ts-expect-error - Google Translate API is loaded externally
-      // eslint-disable-next-line sonarjs/constructor-for-side-effects
-      new window.google.translate.TranslateElement(
-        {
-          pageLanguage: "bg",
-          includedLanguages: "bg,en",
-          autoDisplay: false,
-        },
-        "google_translate_element"
-      );
-      ensureSelectAttributes();
-    };
+      window.googleTranslateElementInit = () => {
+        // @ts-expect-error - Google Translate API is loaded externally
+        // eslint-disable-next-line sonarjs/constructor-for-side-effects
+        new window.google.translate.TranslateElement(
+          {
+            pageLanguage: "bg",
+            includedLanguages: "bg,en",
+            autoDisplay: false,
+          },
+          "google_translate_element"
+        );
+        ensureSelectAttributes();
+      };
+    }
 
     const observer = new MutationObserver(() => {
       ensureSelectAttributes();

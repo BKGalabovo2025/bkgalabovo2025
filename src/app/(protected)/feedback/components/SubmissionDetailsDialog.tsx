@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import {
@@ -100,9 +99,9 @@ export function SubmissionDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
         {/* Fixed Sticky Header */}
-        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/60 p-4 sm:p-6 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/60 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {submission.status === "approved" ? (
@@ -156,7 +155,7 @@ export function SubmissionDetailsDialog({
             </div>
           </div>
 
-          <DialogTitle className="mt-3 text-xl font-black tracking-tight text-zinc-900">
+          <DialogTitle className="mt-2 text-base sm:text-lg font-black tracking-tight text-zinc-900">
             {submission.respondentName}
             {submission.childName && (
               <span className="text-sm font-semibold text-zinc-500">
@@ -181,7 +180,7 @@ export function SubmissionDetailsDialog({
         </div>
 
         <ScrollArea className="flex-1 custom-scrollbar min-h-0">
-          <div className="space-y-6 p-4 sm:p-6">
+          <div className="space-y-4 p-3.5 sm:p-4.5">
             {/* Main Review text */}
             {submission.reviewText && (
               <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
@@ -301,12 +300,12 @@ export function SubmissionDetailsDialog({
         </ScrollArea>
 
         {/* Footer Actions */}
-        <div className="shrink-0 flex flex-wrap items-center justify-between border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="shrink-0 flex flex-wrap items-center justify-between border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="h-9 sm:h-10 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+            className="h-9 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
           >
             Затвори
           </Button>
@@ -318,7 +317,7 @@ export function SubmissionDetailsDialog({
                 size="sm"
                 disabled={isSaving}
                 onClick={() => handleUpdateStatus("rejected", false)}
-                className="h-9 sm:h-10 rounded-xl border-rose-200 text-xs font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                className="h-9 rounded-xl border-rose-200 text-xs font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-950/30"
               >
                 <XCircle className="mr-1.5 size-3.5" />
                 Отхвърли
@@ -329,7 +328,7 @@ export function SubmissionDetailsDialog({
               size="sm"
               disabled={isSaving}
               onClick={() => handleUpdateStatus("approved", true)}
-              className="h-9 sm:h-10 rounded-xl bg-emerald-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-emerald-700"
+              className="h-9 rounded-xl bg-emerald-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-emerald-700"
             >
               <CheckCircle2 className="mr-1.5 size-3.5" />
               Одобри за сайта

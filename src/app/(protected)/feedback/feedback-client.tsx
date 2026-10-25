@@ -228,17 +228,17 @@ function FeedbackClientContent() {
           setActiveTab(v as "submissions" | "campaigns" | "templates")
         }
       >
-        <TabsList className="grid h-12 w-full max-w-xl grid-cols-3 rounded-2xl bg-zinc-100 p-1">
+        <TabsList className="grid h-9 w-full max-w-lg grid-cols-3 rounded-xl bg-zinc-100 p-1 mb-3">
           <TabsTrigger
             value="submissions"
-            className="flex items-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs sm:text-sm"
+            className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-2xs"
           >
-            <Inbox className="size-4" />
+            <Inbox className="size-3.5" />
             <span>Отзиви</span>
             {stats.pendingSubmissions > 0 && (
               <Badge
                 variant="destructive"
-                className="ml-1 flex size-5 items-center justify-center rounded-full p-0 text-[10px] font-black"
+                className="ml-1 flex size-4 items-center justify-center rounded-full p-0 text-[9px] font-black"
               >
                 {stats.pendingSubmissions}
               </Badge>
@@ -247,13 +247,13 @@ function FeedbackClientContent() {
 
           <TabsTrigger
             value="campaigns"
-            className="flex items-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs sm:text-sm"
+            className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-2xs"
           >
-            <LinkIcon className="size-4" />
+            <LinkIcon className="size-3.5" />
             <span>Анкети & Линкове</span>
             <Badge
               variant="secondary"
-              className="ml-1 bg-zinc-200 text-[10px] font-black text-zinc-700"
+              className="ml-1 bg-zinc-200 text-[9px] font-bold text-zinc-700 px-1 py-0 h-4"
             >
               {campaigns.length}
             </Badge>
@@ -261,13 +261,13 @@ function FeedbackClientContent() {
 
           <TabsTrigger
             value="templates"
-            className="flex items-center gap-1.5 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs sm:text-sm"
+            className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-2xs"
           >
-            <Layers className="size-4" />
+            <Layers className="size-3.5" />
             <span>Шаблони</span>
             <Badge
               variant="secondary"
-              className="ml-1 bg-zinc-200 text-[10px] font-black text-zinc-700"
+              className="ml-1 bg-zinc-200 text-[9px] font-bold text-zinc-700 px-1 py-0 h-4"
             >
               {templates.length}
             </Badge>

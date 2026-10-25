@@ -251,24 +251,24 @@ export function RecoverySessionForm({
       <input type="hidden" name="imageUrl" value={imageUrl} />
       <input type="hidden" name="imageDisplayMode" value={imageDisplayMode} />
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3">
         {/* Left Column: Basic Info */}
-        <div className="space-y-8 lg:col-span-2">
-          <BentoCard className="rounded-5xl border-zinc-100 bg-white p-8 shadow-none">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="rounded-xl bg-blue-50 p-2.5 text-blue-600">
-                <Info className="size-5" strokeWidth={1.5} />
+        <div className="space-y-4 sm:space-y-5 lg:col-span-2">
+          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4.5 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="rounded-xl bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/40">
+                <Info className="size-4.5" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-light tracking-tight">
+              <h3 className="text-lg font-light tracking-tight text-zinc-900 sm:text-xl dark:text-white">
                 Основна информация
               </h3>
             </div>
 
-            <div className="space-y-6">
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
                 <Label
                   htmlFor="name"
-                  className="ml-1 font-medium text-zinc-500"
+                  className="ml-1 text-xs font-medium text-zinc-500"
                 >
                   Име на процедурата
                 </Label>
@@ -278,7 +278,7 @@ export function RecoverySessionForm({
                   autoComplete="off"
                   defaultValue={initialData?.name}
                   placeholder="напр. Криотерапия - Цяло тяло"
-                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50 text-lg transition-all focus:bg-white"
+                  className="h-11 rounded-xl border-zinc-200/80 bg-zinc-50/50 text-sm transition-all focus:bg-white dark:border-zinc-800 dark:bg-zinc-900/50"
                   required
                 />
                 {errors?.name && (
@@ -288,8 +288,8 @@ export function RecoverySessionForm({
                 )}
               </div>
 
-              <div className="space-y-4">
-                <p className="ml-1 text-sm font-medium text-zinc-500">
+              <div className="space-y-2">
+                <p className="ml-1 text-xs font-medium text-zinc-500">
                   Категория
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -298,7 +298,7 @@ export function RecoverySessionForm({
                       key={cat}
                       type="button"
                       onClick={() => handleCategoryChange(cat)}
-                      className={`h-12 rounded-xl border text-[10px] font-black tracking-widest uppercase transition-all ${category === cat ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-100 bg-zinc-50 text-zinc-400 hover:border-zinc-300"}`}
+                      className={`h-9 rounded-xl border text-[10px] font-black tracking-widest uppercase transition-all ${category === cat ? "border-zinc-950 bg-zinc-950 text-white dark:border-white dark:bg-white dark:text-zinc-950" : "border-zinc-200/80 bg-zinc-50/50 text-zinc-400 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50"}`}
                     >
                       {cat}
                     </button>
@@ -312,11 +312,11 @@ export function RecoverySessionForm({
               </div>
 
               {category === "VIP СЕСИИ" && (
-                <div className="space-y-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-                  <p className="text-[10px] font-bold tracking-widest text-emerald-700 uppercase">
+                <div className="space-y-1.5 rounded-xl border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-950/50 dark:bg-emerald-950/20">
+                  <p className="text-[10px] font-bold tracking-widest text-emerald-700 uppercase dark:text-emerald-400">
                     💎 VIP Режим
                   </p>
-                  <p className="text-xs leading-relaxed text-emerald-600">
+                  <p className="text-xs leading-relaxed text-emerald-600 dark:text-emerald-300">
                     Специални условия: Сесията е разделена на сегменти (15 мин
                     Загрявка + 30 мин Възстановяване). Включва 2 сесии на ден на
                     спортист.
@@ -324,10 +324,10 @@ export function RecoverySessionForm({
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label
                   htmlFor="description"
-                  className="ml-1 font-medium text-zinc-500"
+                  className="ml-1 text-xs font-medium text-zinc-500"
                 >
                   Описание
                 </Label>
@@ -337,10 +337,10 @@ export function RecoverySessionForm({
                     name="description"
                     defaultValue={initialData?.description}
                     placeholder="Опишете процедурата и ползите от нея..."
-                    rows={4}
-                    className="resize-none rounded-2xl border-zinc-100 bg-zinc-50 p-4 transition-all focus:bg-white"
+                    rows={3}
+                    className="resize-none rounded-xl border-zinc-200/80 bg-zinc-50/50 p-3 text-sm transition-all focus:bg-white dark:border-zinc-800 dark:bg-zinc-900/50"
                   />
-                  <div className="absolute right-4 bottom-4 rounded-lg border border-zinc-100 bg-white/50 px-3 py-1 text-[10px] font-black tracking-widest text-zinc-400 uppercase backdrop-blur-sm">
+                  <div className="absolute right-3 bottom-3 rounded-lg border border-zinc-100 bg-white/50 px-2.5 py-0.5 text-[9px] font-black tracking-widest text-zinc-400 uppercase backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/50">
                     {sessionType}
                   </div>
                 </div>
@@ -353,12 +353,12 @@ export function RecoverySessionForm({
             </div>
           </BentoCard>
 
-          <BentoCard className="rounded-5xl border-zinc-100 bg-white p-8 shadow-none">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="rounded-xl bg-cyan-50 p-2.5 text-cyan-600">
-                <MapPin className="size-5" strokeWidth={1.5} />
+          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4.5 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="rounded-xl bg-cyan-50 p-2 text-cyan-600 dark:bg-cyan-950/40">
+                <MapPin className="size-4.5" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-light tracking-tight">
+              <h3 className="text-lg font-light tracking-tight text-zinc-900 sm:text-xl dark:text-white">
                 Зони и ресурси
               </h3>
             </div>
@@ -511,17 +511,17 @@ export function RecoverySessionForm({
             </div>
           </BentoCard>
 
-          <BentoCard className="rounded-5xl border-zinc-100 bg-white p-8 shadow-none">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="rounded-xl bg-amber-50 p-2.5 text-amber-600">
-                <Camera className="size-5" strokeWidth={1.5} />
+          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4.5 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="rounded-xl bg-amber-50 p-2 text-amber-600 dark:bg-amber-950/40">
+                <Camera className="size-4.5" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-light tracking-tight">
+              <h3 className="text-lg font-light tracking-tight text-zinc-900 sm:text-xl dark:text-white">
                 Изображения (Банер)
               </h3>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {[
                   "/zones/arm.png",
@@ -648,20 +648,22 @@ export function RecoverySessionForm({
         </div>
 
         {/* Right Column: Numbers & Settings */}
-        <div className="space-y-8">
-          <BentoCard className="rounded-5xl border-zinc-100 bg-white p-8 shadow-none">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
-                <Activity className="size-5" strokeWidth={1.5} />
+        <div className="space-y-4 sm:space-y-5">
+          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4.5 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="rounded-xl bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/40">
+                <Activity className="size-4.5" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-light tracking-tight">Параметри</h3>
+              <h3 className="text-lg font-light tracking-tight text-zinc-900 sm:text-xl dark:text-white">
+                Параметри
+              </h3>
             </div>
 
-            <div className="space-y-6">
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
                 <Label
                   htmlFor="price"
-                  className="ml-1 font-medium text-zinc-500"
+                  className="ml-1 text-xs font-medium text-zinc-500"
                 >
                   Цена (EUR)
                 </Label>
@@ -673,10 +675,10 @@ export function RecoverySessionForm({
                     step="0.01"
                     autoComplete="off"
                     defaultValue={initialData?.price}
-                    className="h-12 rounded-xl border-zinc-100 bg-zinc-50 pl-10"
+                    className="h-10 rounded-xl border-zinc-200/80 bg-zinc-50/50 pl-9 text-sm dark:border-zinc-800 dark:bg-zinc-900/50"
                     required
                   />
-                  <span className="absolute top-1/2 left-4 -translate-y-1/2 text-zinc-400">
+                  <span className="absolute top-1/2 left-3 -translate-y-1/2 text-xs text-zinc-400">
                     €
                   </span>
                 </div>
@@ -687,8 +689,8 @@ export function RecoverySessionForm({
                 )}
               </div>
 
-              <div className="space-y-4">
-                <p className="ml-1 text-sm font-medium text-zinc-500">
+              <div className="space-y-2">
+                <p className="ml-1 text-xs font-medium text-zinc-500">
                   Продължителност
                 </p>
                 <div className="grid grid-cols-3 gap-2">
@@ -697,7 +699,7 @@ export function RecoverySessionForm({
                       key={mins}
                       type="button"
                       onClick={() => handleDurationChange(mins)}
-                      className={`h-12 rounded-xl border text-xs font-bold transition-all ${duration === mins ? "border-cyan-600 bg-cyan-600 text-white shadow-lg shadow-cyan-200" : "border-zinc-100 bg-zinc-50 text-zinc-500 hover:border-zinc-300"}`}
+                      className={`h-9 rounded-xl border text-xs font-medium transition-all ${duration === mins ? "border-cyan-600 bg-cyan-600 text-white shadow-sm" : "border-zinc-200/80 bg-zinc-50/50 text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50"}`}
                     >
                       {mins} мин
                     </button>
@@ -705,8 +707,8 @@ export function RecoverySessionForm({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t border-zinc-50 pt-4">
-                <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                <div className="space-y-1.5">
                   <Label
                     htmlFor="athleteCountInput"
                     className="text-[10px] tracking-widest text-zinc-400 uppercase"
@@ -720,10 +722,10 @@ export function RecoverySessionForm({
                     onChange={(e) =>
                       handleAthleteCountChange(parseInt(e.target.value) || 1)
                     }
-                    className="h-10 rounded-lg bg-zinc-50"
+                    className="h-9 rounded-lg bg-zinc-50/50 dark:bg-zinc-900/50"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label
                     htmlFor="numberOfDaysInput"
                     className="text-[10px] tracking-widest text-zinc-400 uppercase"
@@ -737,12 +739,12 @@ export function RecoverySessionForm({
                     onChange={(e) =>
                       setNumberOfDays(parseInt(e.target.value) || 1)
                     }
-                    className="h-10 rounded-lg bg-zinc-50"
+                    className="h-9 rounded-lg bg-zinc-50/50 dark:bg-zinc-900/50"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label
                   htmlFor="proceduresPerDayInput"
                   className="text-[10px] tracking-widest text-zinc-400 uppercase"
@@ -756,22 +758,22 @@ export function RecoverySessionForm({
                   onChange={(e) =>
                     setProceduresPerDay(parseInt(e.target.value) || 1)
                   }
-                  className="h-10 rounded-lg bg-zinc-50"
+                  className="h-9 rounded-lg bg-zinc-50/50 dark:bg-zinc-900/50"
                 />
               </div>
             </div>
           </BentoCard>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
             <SubmitButton isEdit={!!initialData?.id} />
             <Button
               type="button"
               variant="outline"
-              size="lg"
+              size="default"
               onClick={onCancel}
-              className="h-14 rounded-3xl border-zinc-100 text-zinc-500 transition-all hover:bg-zinc-50"
+              className="h-10 rounded-xl border-zinc-200 text-xs text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900"
             >
-              <X className="mr-2 size-4" /> Отказ
+              <X className="mr-1.5 size-4" /> Отказ
             </Button>
           </div>
         </div>
@@ -785,14 +787,13 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
   return (
     <Button
       type="submit"
-      size="lg"
       disabled={pending}
-      className="h-16 rounded-3xl bg-zinc-950 text-sm font-medium tracking-widest text-white uppercase transition-all hover:bg-zinc-800"
+      className="h-10 rounded-xl bg-zinc-950 text-xs font-medium tracking-widest text-white uppercase transition-all hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
     >
       {pending ? (
-        <Loader2 className="mr-3 size-5 animate-spin" />
+        <Loader2 className="mr-2 size-4 animate-spin" />
       ) : (
-        <Save className="mr-3 size-5" strokeWidth={1.5} />
+        <Save className="mr-2 size-4" strokeWidth={1.5} />
       )}
       {isEdit ? "Запази промените" : "Създай процедура"}
     </Button>

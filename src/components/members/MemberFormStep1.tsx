@@ -72,13 +72,13 @@ export function MemberFormStep1({
   const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember && !isCoach;
 
   return (
-    <BentoCard className="rounded-3xl border-zinc-100 p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 sm:rounded-4xl sm:p-8">
+    <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-5 shadow-none duration-300 animate-in fade-in slide-in-from-right-4 dark:border-zinc-800 dark:bg-zinc-950">
       {!isRecoveryBranch && (
-        <div className="mb-8 border-b border-zinc-100 pb-8">
-          <FormLabel className="mb-4 block text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
+        <div className="mb-5 border-b border-zinc-100 pb-5 dark:border-zinc-800">
+          <FormLabel className="mb-3 block text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
             Роли на профила (може да изберете повече от една) *
           </FormLabel>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div
               onClick={() =>
                 form.setValue("isClubMember", !isClubMember, {
@@ -308,18 +308,20 @@ export function MemberFormStep1({
                   <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
                     Пол
                   </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value || ""}
-                  >
-                    <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
-                      <SelectValue placeholder="Изберете пол" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-zinc-100">
-                      <SelectItem value="male">Мъж</SelectItem>
-                      <SelectItem value="female">Жена</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || ""}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
+                        <SelectValue placeholder="Изберете пол" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-zinc-100">
+                        <SelectItem value="male">Мъж</SelectItem>
+                        <SelectItem value="female">Жена</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

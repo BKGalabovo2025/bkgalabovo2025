@@ -38,7 +38,6 @@ function getMemberAvatarClass(
   return `${base} bg-emerald-500 text-white`;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export const UnifiedWizardStep1 = () => {
   const {
     showNewGuestForm,

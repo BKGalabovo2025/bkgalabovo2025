@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useSettingsStore } from "@/store/use-settings-store";
 
 const inputClass =
-  "h-14 rounded-xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary";
+  "h-11 rounded-xl border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-sm font-light shadow-none focus-visible:ring-primary";
 const labelClass =
   "text-[11px] font-medium uppercase tracking-widest text-zinc-400";
 
@@ -16,16 +16,16 @@ export function GeneralTab() {
   const bkgData = formData["bkgalabovo"] || {};
 
   return (
-    <div className="grid grid-cols-1 gap-6">
-      <BentoCard className="space-y-8 border-zinc-100 bg-white p-10 dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="mb-2 flex items-center gap-4">
+    <div className="grid grid-cols-1 gap-4">
+      <BentoCard className="space-y-5 border-zinc-200/80 bg-white p-4.5 sm:p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center gap-3">
           <Building2 className="size-5 text-primary" strokeWidth={1.5} />
-          <h3 className="text-2xl font-light text-zinc-900 dark:text-white">
+          <h3 className="text-xl font-light text-zinc-900 sm:text-2xl dark:text-white">
             Информация за Клуба
           </h3>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
+          <div className="space-y-2">
             <Label className={labelClass}>Име на клуба</Label>
             <Input
               value={bkgData.name || ""}
@@ -35,7 +35,7 @@ export function GeneralTab() {
               className={inputClass}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className={labelClass}>
               <Mail className="mr-1 inline size-3" />
               Официален Имейл
@@ -48,7 +48,7 @@ export function GeneralTab() {
               className={inputClass}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className={labelClass}>
               <Phone className="mr-1 inline size-3" />
               Телефон за връзка
@@ -61,7 +61,7 @@ export function GeneralTab() {
               className={inputClass}
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label className={labelClass}>
               <Globe className="mr-1 inline size-3" />
               Уебсайт
@@ -75,7 +75,7 @@ export function GeneralTab() {
               className={inputClass}
             />
           </div>
-          <div className="space-y-3 md:col-span-2">
+          <div className="space-y-2 md:col-span-2">
             <Label className={labelClass}>
               <MapPin className="mr-1 inline size-3" />
               Адрес
@@ -90,12 +90,12 @@ export function GeneralTab() {
             />
           </div>
         </div>
-        <div className="border-t border-zinc-50 pt-4 dark:border-zinc-900">
-          <p className="mb-6 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+        <div className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          <p className="mb-4 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
             Социални мрежи
           </p>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
+            <div className="space-y-2">
               <Label className={labelClass}>
                 <InstagramIcon className="mr-1 inline size-3 text-pink-500" />
                 Instagram
@@ -109,7 +109,7 @@ export function GeneralTab() {
                 className={inputClass}
               />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Label className={labelClass}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

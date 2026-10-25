@@ -50,27 +50,27 @@ export function RecoveryClientsList({
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in">
+    <div className="space-y-4 animate-in fade-in sm:space-y-5">
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
-        <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-          <div className="shrink-0 rounded-2xl bg-indigo-500/10 p-3.5 text-indigo-600 sm:p-4">
-            <Activity className="size-5 sm:size-6" strokeWidth={1.5} />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+        <BentoCard className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none sm:p-4.5 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="shrink-0 rounded-xl bg-indigo-500/10 p-3 text-indigo-600">
+            <Activity className="size-5" strokeWidth={1.5} />
           </div>
-          <div className="space-y-0.5 sm:space-y-1">
+          <div className="space-y-0.5">
             <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
               Клиенти на зоната
             </p>
-            <p className="text-2xl font-light text-indigo-600 sm:text-3xl">
+            <p className="text-xl font-light text-indigo-600 sm:text-2xl">
               {recoveryClients.length}
             </p>
           </div>
         </BentoCard>
-        <BentoCard className="flex items-center gap-4 rounded-4xl border border-zinc-100 bg-white p-5 shadow-none sm:col-span-2 sm:gap-6 sm:rounded-5xl sm:p-8 dark:border-zinc-900 dark:bg-zinc-950">
-          <div className="shrink-0 rounded-2xl bg-zinc-100 p-3.5 text-zinc-500 sm:p-4 dark:bg-zinc-800">
-            <FileText className="size-5 sm:size-6" strokeWidth={1.5} />
+        <BentoCard className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none sm:col-span-2 sm:p-4.5 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="shrink-0 rounded-xl bg-zinc-100 p-3 text-zinc-500 dark:bg-zinc-800">
+            <FileText className="size-5" strokeWidth={1.5} />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
               Относно Клиенти Възстановяване
             </p>
@@ -84,9 +84,9 @@ export function RecoveryClientsList({
       </div>
 
       {/* Cards List */}
-      <div className="rounded-4xl border border-zinc-100 bg-white shadow-none sm:rounded-5xl dark:border-zinc-900 dark:bg-zinc-950">
-        <div className="flex items-center justify-between border-b border-zinc-50 p-4 sm:p-6 dark:border-zinc-900">
-          <div className="flex items-center gap-3">
+      <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center justify-between border-b border-zinc-100 p-3.5 sm:p-4 dark:border-zinc-900">
+          <div className="flex items-center gap-2.5">
             <Activity className="size-4 text-indigo-500" strokeWidth={1.5} />
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
               Регистрирани Клиенти
@@ -94,27 +94,27 @@ export function RecoveryClientsList({
           </div>
           <Button
             onClick={() => router.push("/members/new?type=recovery")}
-            className="h-9 rounded-xl bg-indigo-500 px-4 text-[10px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-indigo-600"
+            className="h-8.5 rounded-xl bg-indigo-500 px-3.5 text-[10px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-indigo-600"
           >
-            <Plus className="mr-2 size-3.5" /> Нов Клиент
+            <Plus className="mr-1.5 size-3.5" /> Нов Клиент
           </Button>
         </div>
 
         {recoveryClients.length === 0 ? (
-          <div className="p-16 text-center">
-            <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/20">
-              <Activity className="size-8 text-indigo-300" strokeWidth={1} />
+          <div className="p-8 text-center sm:p-12">
+            <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/20">
+              <Activity className="size-6 text-indigo-300" strokeWidth={1} />
             </div>
-            <p className="mb-3 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+            <p className="mb-2 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
               Няма регистрирани клиенти
             </p>
-            <p className="mx-auto max-w-sm text-sm leading-relaxed font-light text-zinc-400">
+            <p className="mx-auto max-w-sm text-xs leading-relaxed font-light text-zinc-400">
               Все още няма добавени клиенти за зоната. Използвайте бутона горе,
               за да създадете първия профил.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 rounded-b-4xl bg-zinc-50/50 p-4 sm:grid-cols-2 sm:rounded-b-5xl sm:p-6 lg:grid-cols-3 dark:bg-zinc-950/50">
+          <div className="grid grid-cols-1 gap-3 rounded-b-2xl bg-zinc-50/50 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3 dark:bg-zinc-950/50">
             {recoveryClients
               .sort((a, b) =>
                 `${a.firstName} ${a.lastName}`.localeCompare(

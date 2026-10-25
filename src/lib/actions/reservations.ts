@@ -959,7 +959,6 @@ export async function sendDonationReceiptEmailAction(
   }
 }
 
-/* eslint-disable sonarjs/cognitive-complexity */
 export async function createPackageReservationsAction(
   idToken: string,
   reservationsData: Record<string, unknown>[],

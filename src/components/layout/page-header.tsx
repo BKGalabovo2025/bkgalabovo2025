@@ -28,7 +28,7 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <div className={cn("mb-6 sm:mb-8 space-y-4 sm:space-y-5", className)}>
+    <div className={cn("mb-3 sm:mb-4 space-y-2 sm:space-y-2.5", className)}>
       <Breadcrumb>
         <BreadcrumbList>
           {breadcrumbs.map((crumb, index) => (
@@ -37,12 +37,12 @@ export function PageHeader({
                 {crumb.href ? (
                   <BreadcrumbLink
                     href={crumb.href}
-                    className="text-xs font-medium tracking-widest text-zinc-600 uppercase transition-colors hover:text-primary dark:text-zinc-400"
+                    className="text-[11px] font-medium tracking-wider text-zinc-500 uppercase transition-colors hover:text-primary dark:text-zinc-400"
                   >
                     {crumb.label}
                   </BreadcrumbLink>
                 ) : (
-                  <BreadcrumbPage className="text-xs font-medium tracking-widest text-zinc-900 uppercase dark:text-white">
+                  <BreadcrumbPage className="text-[11px] font-medium tracking-wider text-zinc-800 uppercase dark:text-white">
                     {crumb.label}
                   </BreadcrumbPage>
                 )}
@@ -54,13 +54,13 @@ export function PageHeader({
           ))}
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex flex-col justify-between gap-4 sm:gap-6 md:flex-row md:items-end">
-        <div className="space-y-1 sm:space-y-1.5">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-normal tracking-tight text-zinc-900 dark:text-white">
+      <div className="flex flex-col justify-between gap-2 sm:gap-3 md:flex-row md:items-end">
+        <div className="space-y-0.5 sm:space-y-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
             {title}
           </h1>
           {description && (
-            <p className="max-w-2xl text-xs sm:text-sm leading-relaxed font-light text-zinc-500 dark:text-zinc-400">
+            <p className="max-w-2xl text-[11px] sm:text-xs leading-relaxed font-light text-zinc-500 dark:text-zinc-400">
               {description}
             </p>
           )}

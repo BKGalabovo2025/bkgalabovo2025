@@ -302,10 +302,10 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
     >
       <DialogContent
         key={event?.id}
-        className="flex max-h-[92dvh] sm:max-h-[88vh] h-[88vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4"
+        className="flex max-h-[90dvh] sm:max-h-[85vh] h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5"
         aria-describedby={descriptionId}
       >
-        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900/40">
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-emerald-100 p-2 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
@@ -325,7 +325,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
             </div>
           </DialogHeader>
 
-          <div className="mt-6 flex flex-col items-end justify-between gap-4 sm:flex-row">
+          <div className="mt-3 flex flex-col items-end justify-between gap-3 sm:flex-row">
             <div className="w-full space-y-1.5 sm:w-1/3">
               <label className="text-xs font-semibold tracking-widest text-zinc-600 uppercase dark:text-zinc-400">
                 Обща цена / Застраховка
@@ -383,7 +383,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="space-y-8 p-4 sm:p-6">
+          <div className="space-y-4 p-3.5 sm:p-4.5">
             {/* Members Search Results (to add to camp) */}
             {searchTerm && (
               <div className="border-b border-zinc-100 pb-4 dark:border-zinc-900">

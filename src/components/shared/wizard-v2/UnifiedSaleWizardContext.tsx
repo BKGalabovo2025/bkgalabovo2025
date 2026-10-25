@@ -544,7 +544,6 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
     return getPaidEventIds();
   };
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   const handleExecuteSale = async () => {
     if (!idToken) return;
     setIsProcessing(true);

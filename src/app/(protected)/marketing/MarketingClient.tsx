@@ -696,10 +696,10 @@ export default function MarketingClient() {
         }}
         className="space-y-3 sm:space-y-3.5"
       >
-        <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-10 overflow-x-auto gap-1 rounded-xl border border-zinc-200 bg-zinc-100/80 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+        <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-9 overflow-x-auto gap-1 rounded-xl border border-zinc-200 bg-zinc-100/80 p-0.5 dark:border-zinc-800 dark:bg-zinc-900">
           <TabsTrigger
             value="contacts"
-            className="flex-1 min-w-30 sm:min-w-0 py-1.5 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-28 sm:min-w-0 py-1 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <Phone className="size-3.5" />
             <span>📞 Контакти & Hub</span>
@@ -707,7 +707,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="composer"
-            className="flex-1 min-w-30 sm:min-w-0 py-1.5 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-28 sm:min-w-0 py-1 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <Send className="size-3.5" />
             <span>✉️ Имейл Кампания</span>
@@ -715,7 +715,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="templates"
-            className="flex-1 min-w-30 sm:min-w-0 py-1.5 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-28 sm:min-w-0 py-1 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <FileText className="size-3.5" />
             <span>📑 Шаблони ({templates.length})</span>
@@ -723,7 +723,7 @@ export default function MarketingClient() {
 
           <TabsTrigger
             value="history"
-            className="flex-1 min-w-30 sm:min-w-0 py-1.5 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 min-w-28 sm:min-w-0 py-1 sm:py-0 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <History className="size-3.5" />
             <span>📊 История & Дневник</span>

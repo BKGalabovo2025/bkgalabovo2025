@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { z } from "zod";

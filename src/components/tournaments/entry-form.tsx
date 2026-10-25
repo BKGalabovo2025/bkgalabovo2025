@@ -136,19 +136,21 @@ export function EntryForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-1 flex-col overflow-hidden min-h-0"
       >
-        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-5 min-h-0">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3 min-h-0">
           <FormField
             control={form.control}
             name="categoryId"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Категория</FormLabel>
+              <FormItem className="space-y-1.5">
+                <FormLabel className="text-xs font-semibold">
+                  Категория
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 rounded-xl text-xs sm:text-sm">
                       <SelectValue placeholder="Изберете дисциплина" />
                     </SelectTrigger>
                   </FormControl>
@@ -165,9 +167,11 @@ export function EntryForm({
             )}
           />
 
-          <div className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 p-2 dark:border-blue-800 dark:bg-blue-900/10">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-200/80 bg-blue-50/60 px-3 py-2 dark:border-blue-800/60 dark:bg-blue-900/10">
             <div className="flex-1">
-              <h4 className="text-sm font-semibold">Групово добавяне</h4>
+              <h4 className="text-xs sm:text-sm font-semibold">
+                Групово добавяне
+              </h4>
               <p className="text-[10px] text-muted-foreground">
                 Избери няколко души наведнъж
               </p>
@@ -181,15 +185,15 @@ export function EntryForm({
           </div>
 
           {isBulkMode && !isDoubles ? (
-            <div className="space-y-4 rounded-md border p-4">
-              <FormLabel>
+            <div className="space-y-2.5 rounded-xl border p-3">
+              <FormLabel className="text-xs font-semibold">
                 Избери участници ({selectedMemberIds.length})
               </FormLabel>
-              <div className="max-h-75 space-y-2 overflow-y-auto pr-2">
+              <div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
                 {availableMembers.map((m) => (
                   <div
                     key={m.id}
-                    className="flex items-center space-x-2 rounded-md border border-transparent p-2 transition-colors hover:border-border hover:bg-accent"
+                    className="flex items-center space-x-2 rounded-lg border border-transparent p-1.5 transition-colors hover:border-border hover:bg-accent"
                   >
                     <Checkbox
                       id={`member-${m.id}`}
@@ -205,25 +209,25 @@ export function EntryForm({
                     />
                     <label
                       htmlFor={`member-${m.id}`}
-                      className="flex-1 cursor-pointer text-sm"
+                      className="flex-1 cursor-pointer text-xs"
                     >
                       {m.firstName} {m.lastName}
                     </label>
                   </div>
                 ))}
                 {availableMembers.length === 0 && (
-                  <p className="py-4 text-center text-sm text-muted-foreground">
+                  <p className="py-3 text-center text-xs text-muted-foreground">
                     Няма свободни членове за тази категория.
                   </p>
                 )}
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* Участник 1 */}
-              <div className="space-y-4 rounded-md border p-4">
+              <div className="space-y-2.5 rounded-xl border p-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">
+                  <h4 className="text-xs sm:text-sm font-semibold">
                     {isDoubles ? "Играч 1" : "Състезател"}
                   </h4>
                   <div className="flex items-center space-x-2">
@@ -234,7 +238,7 @@ export function EntryForm({
                     />
                     <label
                       htmlFor="p1guest"
-                      className="cursor-pointer text-sm leading-none font-medium"
+                      className="cursor-pointer text-xs leading-none font-medium"
                     >
                       Гост (Външен)
                     </label>
@@ -246,14 +250,16 @@ export function EntryForm({
                     control={form.control}
                     name="memberId"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Избери член на клуба</FormLabel>
+                      <FormItem className="space-y-1">
+                        <FormLabel className="text-xs font-medium">
+                          Избери член на клуба
+                        </FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 rounded-xl text-xs sm:text-sm">
                               <SelectValue placeholder="Търсене..." />
                             </SelectTrigger>
                           </FormControl>
@@ -274,10 +280,16 @@ export function EntryForm({
                     control={form.control}
                     name="externalName"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Имена на госта</FormLabel>
+                      <FormItem className="space-y-1">
+                        <FormLabel className="text-xs font-medium">
+                          Имена на госта
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="Иван Иванов" {...field} />
+                          <Input
+                            className="h-9 rounded-xl text-xs sm:text-sm"
+                            placeholder="Иван Иванов"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -286,11 +298,12 @@ export function EntryForm({
                 )}
               </div>
 
-              {/* Участник 2 (Само за двойки) */}
               {isDoubles && (
-                <div className="space-y-4 rounded-md border bg-muted/20 p-4">
+                <div className="space-y-2.5 rounded-xl border bg-muted/20 p-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-semibold">Играч 2 (Партньор)</h4>
+                    <h4 className="text-xs sm:text-sm font-semibold">
+                      Играч 2 (Партньор)
+                    </h4>
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="p2guest"
@@ -299,7 +312,7 @@ export function EntryForm({
                       />
                       <label
                         htmlFor="p2guest"
-                        className="cursor-pointer text-sm leading-none font-medium"
+                        className="cursor-pointer text-xs leading-none font-medium"
                       >
                         Гост (Външен)
                       </label>
@@ -311,14 +324,16 @@ export function EntryForm({
                       control={form.control}
                       name="partnerMemberId"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Избери член на клуба</FormLabel>
+                        <FormItem className="space-y-1">
+                          <FormLabel className="text-xs font-medium">
+                            Избери член на клуба
+                          </FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-9 rounded-xl text-xs sm:text-sm">
                                 <SelectValue placeholder="Търсене..." />
                               </SelectTrigger>
                             </FormControl>
@@ -339,10 +354,16 @@ export function EntryForm({
                       control={form.control}
                       name="partnerExternalName"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Имена на госта</FormLabel>
+                        <FormItem className="space-y-1">
+                          <FormLabel className="text-xs font-medium">
+                            Имена на госта
+                          </FormLabel>
                           <FormControl>
-                            <Input placeholder="Петър Петров" {...field} />
+                            <Input
+                              className="h-9 rounded-xl text-xs sm:text-sm"
+                              placeholder="Петър Петров"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -356,22 +377,24 @@ export function EntryForm({
         </div>
 
         {/* Fixed Sticky Footer */}
-        <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             type="button"
             variant="ghost"
+            size="sm"
             onClick={onClose}
             disabled={isSubmitting}
-            className="h-10 rounded-xl px-5 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+            className="h-9 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
           >
-            <X className="mr-1.5 size-4" /> Отказ
+            <X className="mr-1.5 size-3.5" /> Отказ
           </Button>
           <Button
             type="submit"
+            size="sm"
             disabled={isSubmitting}
-            className="h-10 rounded-xl bg-zinc-900 px-6 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+            className="h-9 rounded-xl bg-zinc-900 px-5 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
           >
-            <Save className="mr-1.5 size-4" />
+            <Save className="mr-1.5 size-3.5" />
             {isBulkMode
               ? `Запиши ${selectedMemberIds.length} участника`
               : "Запиши участник"}

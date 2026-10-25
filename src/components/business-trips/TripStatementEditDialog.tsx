@@ -133,6 +133,7 @@ export function TripStatementEditDialog({
     "all"
   );
   const [actualTripsCount, setActualTripsCount] = useState<number | "">("");
+  const [customSingleKm, setCustomSingleKm] = useState<number | "">("");
   const [commuteNote, setCommuteNote] = useState<string>("");
 
   // Planned values from trip dates
@@ -188,6 +189,20 @@ export function TripStatementEditDialog({
         initialTrips = defDays;
       }
       setActualTripsCount(initialTrips);
+
+      let initialKm: number | "" = "";
+      if (
+        trip.vehicle?.singleRoundTripKm &&
+        trip.vehicle.singleRoundTripKm > 0
+      ) {
+        initialKm = trip.vehicle.singleRoundTripKm;
+      } else if (trip.vehicle?.distanceKm) {
+        initialKm =
+          isDailyCommute && defDays > 0
+            ? Math.round((trip.vehicle.distanceKm / defDays) * 10) / 10
+            : trip.vehicle.distanceKm;
+      }
+      setCustomSingleKm(initialKm);
       setCommuteNote(trip.vehicle?.commuteNote || "");
 
       const overrides = trip.participantOverrides ?? {};
@@ -447,9 +462,11 @@ export function TripStatementEditDialog({
     if (!trip) return null;
     const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
     const singleKm =
-      trip.vehicle?.singleRoundTripKm && trip.vehicle.singleRoundTripKm > 0
-        ? trip.vehicle.singleRoundTripKm
-        : (trip.vehicle?.distanceKm ?? 0);
+      customSingleKm !== ""
+        ? Number(customSingleKm)
+        : trip.vehicle?.singleRoundTripKm && trip.vehicle.singleRoundTripKm > 0
+          ? trip.vehicle.singleRoundTripKm
+          : (trip.vehicle?.distanceKm ?? 0);
 
     let tripsCount = 1;
     if (actualTripsCount !== "") {
@@ -460,7 +477,7 @@ export function TripStatementEditDialog({
 
     const updatedDistanceKm = isDailyCommute
       ? Math.round(tripsCount * singleKm * 10) / 10
-      : trip.vehicle?.distanceKm;
+      : singleKm;
 
     return {
       ...trip,
@@ -471,6 +488,7 @@ export function TripStatementEditDialog({
         ? {
             ...trip.vehicle,
             actualTripsCount: tripsCount,
+            singleRoundTripKm: singleKm,
             distanceKm: updatedDistanceKm,
             commuteNote: commuteNote?.trim() || undefined,
           }
@@ -482,6 +500,7 @@ export function TripStatementEditDialog({
     globalNights,
     currentOverrides,
     actualTripsCount,
+    customSingleKm,
     commuteNote,
   ]);
 
@@ -503,9 +522,12 @@ export function TripStatementEditDialog({
 
       const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
       const singleKm =
-        trip.vehicle?.singleRoundTripKm && trip.vehicle.singleRoundTripKm > 0
-          ? trip.vehicle.singleRoundTripKm
-          : (trip.vehicle?.distanceKm ?? 0);
+        customSingleKm !== ""
+          ? Number(customSingleKm)
+          : trip.vehicle?.singleRoundTripKm &&
+              trip.vehicle.singleRoundTripKm > 0
+            ? trip.vehicle.singleRoundTripKm
+            : (trip.vehicle?.distanceKm ?? 0);
 
       let tripsCount = 1;
       if (actualTripsCount !== "") {
@@ -516,7 +538,7 @@ export function TripStatementEditDialog({
 
       const updatedDistanceKm = isDailyCommute
         ? Math.round(tripsCount * singleKm * 10) / 10
-        : trip.vehicle?.distanceKm;
+        : singleKm;
 
       await businessTripService.updateTrip(trip.id, {
         actualDays: globalDays === "" ? undefined : Number(globalDays),
@@ -527,6 +549,7 @@ export function TripStatementEditDialog({
           ? {
               ...trip.vehicle,
               actualTripsCount: tripsCount,
+              singleRoundTripKm: singleKm,
               distanceKm: updatedDistanceKm,
               commuteNote: commuteNote?.trim() || undefined,
             }
@@ -567,10 +590,10 @@ export function TripStatementEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
         {/* Fixed Sticky Header */}
-        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-6 sm:py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
           <div className="flex items-center gap-3 pr-8">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
-              <Calculator className="size-4.5" />
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+              <Calculator className="size-4" />
             </div>
             <div className="min-w-0">
               <DialogTitle className="truncate text-base font-bold text-zinc-900 sm:text-lg dark:text-white">
@@ -583,7 +606,7 @@ export function TripStatementEditDialog({
           </div>
         </div>
 
-        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3 min-h-0">
           {/* Planned card */}
           <div className="grid grid-cols-1 gap-2 rounded-xl border border-amber-200/80 bg-amber-50/70 p-3.5 text-xs sm:grid-cols-3 dark:border-amber-900/50 dark:bg-amber-950/25">
             <div>
@@ -737,14 +760,14 @@ export function TripStatementEditDialog({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div className="space-y-1">
                     <Label
                       htmlFor="actual-trips-count"
                       className="text-[11px] text-muted-foreground"
                     >
                       {trip.vehicle?.commuteMode === "daily_commute"
-                        ? "Реално осъществени курсове (отиване + връщане):"
+                        ? "Реално курсове (отиване + връщане):"
                         : "Брой пътувания (курсове):"}
                     </Label>
                     <Input
@@ -762,24 +785,54 @@ export function TripStatementEditDialog({
                     />
                     <p className="text-[10px] text-muted-foreground">
                       {trip.vehicle?.commuteMode === "daily_commute"
-                        ? `Препоръчително: ${globalDays || 1} курса (според реалните дни на треньора)`
+                        ? `Препоръчително: ${globalDays || 1} курса`
                         : "Обичайно 1 курс за целия престой"}
                     </p>
                   </div>
 
                   <div className="space-y-1">
+                    <Label
+                      htmlFor="custom-single-km"
+                      className="text-[11px] text-muted-foreground"
+                    >
+                      {trip.vehicle?.commuteMode === "daily_commute"
+                        ? "Разстояние за 1 курс (км):"
+                        : "Разстояние двупосочно (км):"}
+                    </Label>
+                    <Input
+                      id="custom-single-km"
+                      name="customSingleKm"
+                      type="number"
+                      min={0}
+                      value={customSingleKm}
+                      onChange={(e) =>
+                        setCustomSingleKm(
+                          e.target.value === "" ? "" : Number(e.target.value)
+                        )
+                      }
+                      className="h-8 bg-white font-semibold dark:bg-zinc-950"
+                      placeholder="Напр. 160"
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Гълъбово – дестинация – Гълъбово
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
                     <span className="text-[11px] text-muted-foreground block font-medium">
-                      Общо изминати километри по пътен лист:
+                      Общо км по пътен лист:
                     </span>
                     <div className="h-8 px-3 rounded-md border border-zinc-200 bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-800/80 flex items-center font-bold text-zinc-900 dark:text-zinc-100">
                       {(() => {
                         const isDaily =
                           trip.vehicle?.commuteMode === "daily_commute";
                         const singleKm =
-                          trip.vehicle?.singleRoundTripKm &&
-                          trip.vehicle.singleRoundTripKm > 0
-                            ? trip.vehicle.singleRoundTripKm
-                            : (trip.vehicle?.distanceKm ?? 0);
+                          customSingleKm !== ""
+                            ? Number(customSingleKm)
+                            : trip.vehicle?.singleRoundTripKm &&
+                                trip.vehicle.singleRoundTripKm > 0
+                              ? trip.vehicle.singleRoundTripKm
+                              : (trip.vehicle?.distanceKm ?? 0);
                         let trips = 1;
                         if (actualTripsCount !== "") {
                           trips = Number(actualTripsCount);
@@ -788,16 +841,12 @@ export function TripStatementEditDialog({
                         }
                         const effectiveKm = isDaily
                           ? Math.round(trips * singleKm * 10) / 10
-                          : (trip.vehicle?.distanceKm ?? singleKm);
-                        const commuteDetail = isDaily
-                          ? ` (${trips} курса × ${singleKm} км)`
-                          : "";
-                        return `${effectiveKm} км${commuteDetail}`;
+                          : singleKm;
+                        return `${effectiveKm} км`;
                       })()}
                     </div>
                     <p className="text-[10px] text-muted-foreground">
-                      Това разстояние се вписва в Пътния лист и се признава за
-                      гориво.
+                      Вписва се в Пътния лист и Доклада.
                     </p>
                   </div>
                 </div>
@@ -1229,7 +1278,8 @@ export function TripStatementEditDialog({
         </div>
 
         {/* Fixed Sticky Footer */}
-        <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+        {/* Fixed Sticky Footer */}
+        <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
           <Button
             type="button"
             variant="ghost"
@@ -1244,7 +1294,7 @@ export function TripStatementEditDialog({
             <Button
               type="button"
               variant="ghost"
-              className="h-10 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              className="h-9 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
               onClick={() => onOpenChange(false)}
               disabled={isSaving}
             >
@@ -1254,9 +1304,9 @@ export function TripStatementEditDialog({
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="h-10 rounded-xl bg-blue-600 px-5 text-xs font-bold text-white shadow-sm transition-all hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-500"
+              className="h-9 rounded-xl bg-blue-600 px-5 text-xs font-bold text-white shadow-sm transition-all hover:bg-blue-700 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-500"
             >
-              <Save className="mr-2 size-3.5" />
+              <Save className="mr-1.5 size-3.5" />
               {isSaving ? "Запазване..." : "Запази и преизчисли"}
             </Button>
           </div>

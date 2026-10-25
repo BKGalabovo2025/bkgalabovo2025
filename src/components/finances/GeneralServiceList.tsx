@@ -113,14 +113,14 @@ export function GeneralServiceList() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filteredServices.length > 0 ? (
           filteredServices.map((service) => (
             <BentoCard
               key={service.id}
-              className="group flex flex-col overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none transition-all duration-500 hover:shadow-xl hover:shadow-zinc-100/20 dark:border-zinc-900 dark:bg-zinc-950 dark:hover:shadow-none"
+              className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 dark:hover:shadow-none"
             >
-              <div className="relative flex h-64 items-center justify-center overflow-hidden border-b border-zinc-50 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="relative flex h-44 items-center justify-center overflow-hidden border-b border-zinc-100 bg-zinc-50 sm:h-48 dark:border-zinc-800 dark:bg-zinc-900">
                 {service.imageUrl ? (
                   <Image
                     src={service.imageUrl}
@@ -132,50 +132,50 @@ export function GeneralServiceList() {
                       service.imageUrl.startsWith("data:")
                     }
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-contain p-4 transition-transform duration-1000 group-hover:scale-110"
+                    className="object-contain p-3 transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (
                   <div className="flex size-full flex-col items-center justify-center bg-zinc-50 text-zinc-200 dark:bg-zinc-900 dark:text-zinc-800">
                     <ImageIcon
-                      className="mb-2 size-16 opacity-20"
+                      className="mb-1.5 size-12 opacity-20"
                       strokeWidth={1}
                     />
-                    <span className="text-[10px] font-medium tracking-[0.3em] uppercase opacity-40">
+                    <span className="text-[9px] font-medium tracking-[0.2em] uppercase opacity-40">
                       No Image
                     </span>
                   </div>
                 )}
 
-                <div className="absolute top-6 right-6 flex translate-y-2 gap-2 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="absolute top-3 right-3 flex translate-y-1 gap-1.5 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                   <Button
                     variant="secondary"
                     size="icon"
-                    className="size-10 rounded-xl border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-zinc-800"
+                    className="size-8 rounded-lg border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-zinc-800"
                     onClick={() => {
                       setSelectedService(service);
                       setIsEditOpen(true);
                     }}
                   >
                     <Edit2
-                      className="size-4 text-zinc-600 dark:text-zinc-400"
+                      className="size-3.5 text-zinc-600 dark:text-zinc-400"
                       strokeWidth={1.5}
                     />
                   </Button>
                   <Button
                     variant="secondary"
                     size="icon"
-                    className="size-10 rounded-xl border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-rose-50 hover:text-rose-600 dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-rose-900/20"
+                    className="size-8 rounded-lg border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-rose-50 hover:text-rose-600 dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-rose-900/20"
                     onClick={() => setServiceToDelete(service)}
                   >
                     <Trash2
-                      className="size-4 text-rose-500"
+                      className="size-3.5 text-rose-500"
                       strokeWidth={1.5}
                     />
                   </Button>
                 </div>
 
-                <div className="absolute bottom-6 left-6">
-                  <div className="rounded-xl border border-zinc-100 bg-white/80 px-4 py-2 text-[11px] font-medium tracking-widest text-zinc-900 uppercase backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-white">
+                <div className="absolute bottom-3 left-3">
+                  <div className="rounded-md border border-zinc-200/80 bg-white/85 px-2.5 py-1 text-[9px] font-medium tracking-widest text-zinc-900 uppercase backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/85 dark:text-white">
                     {{
                       fixed: "Фиксирана",
                       per_hour: "На час",
@@ -185,28 +185,28 @@ export function GeneralServiceList() {
                 </div>
               </div>
 
-              <div className="flex flex-1 flex-col justify-between p-8">
+              <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
                 <div>
-                  <div className="mb-2 flex items-start justify-between gap-4">
-                    <h3 className="line-clamp-2 flex min-h-14 items-center text-lg leading-snug font-medium text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-50">
+                  <div className="mb-1.5 flex items-start justify-between gap-3">
+                    <h3 className="line-clamp-2 flex min-h-10 items-center text-base leading-snug font-medium text-zinc-900 transition-colors group-hover:text-primary sm:text-lg dark:text-zinc-50">
                       {service.name}
                     </h3>
                   </div>
-                  <p className="mb-6 line-clamp-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                  <p className="mb-3 line-clamp-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                     Изпълнител: {service.performerName}
                   </p>
                 </div>
 
-                <div className="space-y-5 border-t border-zinc-100 pt-6 dark:border-zinc-900">
+                <div className="space-y-3.5 border-t border-zinc-100 pt-3.5 dark:border-zinc-800">
                   <div className="flex items-baseline justify-between">
                     <span className="text-[10px] leading-none font-medium tracking-widest text-zinc-400 uppercase">
                       Цена
                     </span>
-                    <span className="text-2xl leading-none font-light tracking-tight text-zinc-900 dark:text-white">
+                    <span className="text-xl leading-none font-light tracking-tight text-zinc-900 sm:text-2xl dark:text-white">
                       {formatPrice(service.price)}
                     </span>
                   </div>
-                  <div className="grid w-full grid-cols-2 gap-3">
+                  <div className="grid w-full grid-cols-2 gap-2.5">
                     {service.name.toLowerCase().includes("наем на корт") ||
                     service.id.startsWith("court_rental") ? (
                       <ReservationDialog
@@ -218,7 +218,7 @@ export function GeneralServiceList() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-11 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                          className="h-9 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
                         >
                           Продажба
                         </Button>
@@ -231,7 +231,7 @@ export function GeneralServiceList() {
                           setSelectedService(service);
                           setIsSaleOpen(true);
                         }}
-                        className="h-11 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                        className="h-9 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
                       >
                         Продажба
                       </Button>
@@ -243,7 +243,7 @@ export function GeneralServiceList() {
                         setSelectedService(service);
                         setIsEditOpen(true);
                       }}
-                      className="h-11 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+                      className="h-9 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
                     >
                       Детайли
                     </Button>
@@ -253,19 +253,19 @@ export function GeneralServiceList() {
             </BentoCard>
           ))
         ) : (
-          <div className="col-span-full rounded-4xl border-2 border-dashed border-zinc-100 bg-zinc-50/30 py-40 text-center dark:border-zinc-900 dark:bg-zinc-900/10">
+          <div className="col-span-full rounded-2xl border-2 border-dashed border-zinc-200/80 bg-zinc-50/30 py-10 sm:py-14 text-center dark:border-zinc-800 dark:bg-zinc-900/10">
             <Wrench
-              className="mx-auto mb-8 size-16 text-zinc-200 dark:text-zinc-800"
-              strokeWidth={1}
+              className="mx-auto mb-3 size-10 text-zinc-300 dark:text-zinc-700"
+              strokeWidth={1.5}
             />
-            <p className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+            <p className="text-[10px] sm:text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
               Няма намерени услуги
             </p>
             {searchTerm && (
               <Button
                 variant="link"
                 onClick={() => setSearchTerm("")}
-                className="mt-4 text-[11px] font-medium tracking-widest text-emerald-500 uppercase"
+                className="mt-2 text-[10px] sm:text-[11px] font-medium tracking-widest text-emerald-500 uppercase"
               >
                 Изчисти търсенето
               </Button>
@@ -278,28 +278,28 @@ export function GeneralServiceList() {
         open={!!serviceToDelete}
         onOpenChange={(open) => !open && setServiceToDelete(null)}
       >
-        <AlertDialogContent className="max-h-[90dvh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+        <AlertDialogContent className="max-h-[90dvh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-5 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl leading-tight font-light text-zinc-900 dark:text-white">
+            <AlertDialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
               Изтриване на услуга
             </AlertDialogTitle>
-            <AlertDialogDescription className="mt-4 text-sm leading-relaxed font-light text-zinc-500">
+            <AlertDialogDescription className="mt-1 text-xs sm:text-sm leading-relaxed text-zinc-500">
               Сигурни ли сте, че искате да изтриете услугата &quot;
               {serviceToDelete?.name}&quot;? Това действие не може да бъде
               отменено.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="mt-10 gap-3">
+          <AlertDialogFooter className="mt-4 gap-2 sm:gap-2">
             <AlertDialogCancel
               disabled={isDeleting}
-              className="h-12 rounded-xl border-zinc-200 bg-white px-6 text-[11px] font-medium tracking-widest uppercase hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
+              className="h-9 rounded-xl border-zinc-200 bg-white px-4 text-xs font-semibold hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
             >
               Отказ
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
-              className="h-12 rounded-xl bg-rose-500 px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none hover:bg-rose-600"
+              className="h-9 rounded-xl bg-rose-500 px-5 text-xs font-bold text-white shadow-none hover:bg-rose-600"
             >
               {isDeleting ? "Изтриване..." : "Изтрий"}
             </AlertDialogAction>

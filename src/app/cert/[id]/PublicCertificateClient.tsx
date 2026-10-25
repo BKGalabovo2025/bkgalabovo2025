@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/cognitive-complexity, @next/next/no-img-element */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import confetti from "canvas-confetti";
@@ -926,8 +926,8 @@ export function PublicCertificateClient({
       {/* ================================================================= */}
       {uploadedDoc && (
         <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
-          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl lg:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
-            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-4xl lg:max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
+            <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
               <DialogTitle className="text-sm sm:text-base font-bold text-zinc-900 dark:text-white">
                 {uploadedDoc.fileName || "Ваучер за подарък"}
               </DialogTitle>

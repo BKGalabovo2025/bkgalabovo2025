@@ -166,12 +166,18 @@ export default function AssessmentsClient() {
                 качества
               </p>
             </div>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-4">
-              <TabsList className="h-10">
-                <TabsTrigger value="bwf" className="text-sm font-bold">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              <TabsList className="h-9 rounded-xl bg-zinc-100 p-0.5">
+                <TabsTrigger
+                  value="bwf"
+                  className="rounded-lg px-3 py-1 text-xs font-semibold"
+                >
                   BWF Бланки
                 </TabsTrigger>
-                <TabsTrigger value="history" className="text-sm font-bold">
+                <TabsTrigger
+                  value="history"
+                  className="rounded-lg px-3 py-1 text-xs font-semibold"
+                >
                   История
                 </TabsTrigger>
               </TabsList>
@@ -180,9 +186,9 @@ export default function AssessmentsClient() {
                 <Button
                   onClick={() => handlePrint("all")}
                   variant="outline"
-                  className="h-10 w-full sm:w-auto rounded-xl border-zinc-200 font-bold text-zinc-700"
+                  className="h-9 w-full sm:w-auto rounded-xl border-zinc-200 text-xs font-semibold text-zinc-700"
                 >
-                  <Printer className="mr-2 size-4" />
+                  <Printer className="mr-1.5 size-3.5" />
                   Принтирай ВСИЧКИ
                 </Button>
               )}

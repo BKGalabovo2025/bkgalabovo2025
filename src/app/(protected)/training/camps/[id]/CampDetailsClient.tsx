@@ -366,9 +366,19 @@ export default function CampDetailsClient({ campId }: CampDetailsClientProps) {
 
         <div className="md:col-span-2">
           <Tabs defaultValue="itinerary" className="w-full">
-            <TabsList className="mb-4 grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="itinerary">Дневен график</TabsTrigger>
-              <TabsTrigger value="attendees">Списък с участници</TabsTrigger>
+            <TabsList className="mb-3 grid h-9 w-full max-w-sm grid-cols-2 rounded-xl bg-zinc-100 p-0.5">
+              <TabsTrigger
+                value="itinerary"
+                className="rounded-lg text-xs font-semibold"
+              >
+                Дневен график
+              </TabsTrigger>
+              <TabsTrigger
+                value="attendees"
+                className="rounded-lg text-xs font-semibold"
+              >
+                Списък с участници
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent

@@ -78,23 +78,23 @@ const ReservationDialogContent = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+      <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
         {/* Wizard Header / Progress */}
-        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
-          <div className="mb-4 sm:mb-5 flex items-center justify-between">
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="mb-2.5 sm:mb-3 flex items-center justify-between">
             <div>
-              <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter text-zinc-950 uppercase italic dark:text-white">
+              <DialogTitle className="text-base sm:text-lg font-black tracking-tight text-zinc-950 uppercase italic dark:text-white">
                 {title}
               </DialogTitle>
               <DialogDescription className="mt-0.5 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                 {description}
               </DialogDescription>
             </div>
-            <div className="flex size-10 sm:size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              {currentStep === "time" && <CalendarRange className="size-6" />}
-              {currentStep === "details" && <User className="size-6" />}
+            <div className="flex size-8 sm:size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              {currentStep === "time" && <CalendarRange className="size-4.5" />}
+              {currentStep === "details" && <User className="size-4.5" />}
               {currentStep === "review" && (
-                <ClipboardCheck className="size-6" />
+                <ClipboardCheck className="size-4.5" />
               )}
             </div>
           </div>
@@ -145,7 +145,7 @@ const ReservationDialogContent = ({
           </div>
         </div>
 
-        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 min-h-0">
+        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 min-h-0">
           <Form {...form}>
             <form
               onSubmit={(e) => {
@@ -156,14 +156,14 @@ const ReservationDialogContent = ({
                   handleNext();
                 }
               }}
-              className="space-y-6"
+              className="space-y-4"
             >
               {currentStep === "time" && <ReservationStep1Time />}
               {currentStep === "packageDays" && <ReservationStep2Package />}
               {currentStep === "details" && <ReservationStep3Details />}
               {currentStep === "review" && <ReservationStep4Review />}
 
-              <div className="flex items-center justify-between border-t border-zinc-100 pt-8 dark:border-zinc-900">
+              <div className="flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-900">
                 <Button
                   type="button"
                   variant="ghost"
@@ -172,13 +172,13 @@ const ReservationDialogContent = ({
                       ? handleOpenChange(false)
                       : handleBack()
                   }
-                  className="h-12 rounded-2xl px-6 text-[10px] font-black tracking-widest text-zinc-500 uppercase hover:text-zinc-900"
+                  className="h-9.5 rounded-xl px-4 text-xs font-semibold tracking-wide text-zinc-500 uppercase hover:text-zinc-900"
                 >
                   {currentStep === "time" ? (
                     "Отказ"
                   ) : (
                     <>
-                      <ChevronLeft className="mr-2 size-4" /> Назад
+                      <ChevronLeft className="mr-1.5 size-3.5" /> Назад
                     </>
                   )}
                 </Button>
@@ -187,7 +187,7 @@ const ReservationDialogContent = ({
                   type="submit"
                   disabled={isSaving}
                   className={cn(
-                    "h-12 rounded-2xl px-8 text-[10px] font-black tracking-widest uppercase shadow-lg transition-all",
+                    "h-9.5 rounded-xl px-5 text-xs font-semibold tracking-wide uppercase shadow-md transition-all",
                     currentStep === "review"
                       ? "bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-600"
                       : "bg-primary text-white shadow-primary/20 hover:bg-primary/90"
@@ -197,7 +197,7 @@ const ReservationDialogContent = ({
                     if (isSaving) {
                       return (
                         <>
-                          <Loader2 className="mr-2 size-4 animate-spin" />{" "}
+                          <Loader2 className="mr-1.5 size-3.5 animate-spin" />{" "}
                           Запис...
                         </>
                       );
@@ -205,13 +205,13 @@ const ReservationDialogContent = ({
                     if (currentStep === "review") {
                       return (
                         <>
-                          <CheckCircle2 className="mr-2 size-4" /> Потвърди
+                          <CheckCircle2 className="mr-1.5 size-3.5" /> Потвърди
                         </>
                       );
                     }
                     return (
                       <>
-                        Напред <ChevronRight className="ml-2 size-4" />
+                        Напред <ChevronRight className="ml-1.5 size-3.5" />
                       </>
                     );
                   })()}

@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -181,56 +179,76 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
     };
 
   return (
-    <div className="space-y-10 duration-700 animate-in fade-in">
+    <div className="space-y-4 duration-500 animate-in fade-in">
       {/* Top Controls */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-        <div className="grid grid-cols-1 gap-6 rounded-3xl border border-zinc-100 bg-zinc-50/50 p-6 md:grid-cols-3 lg:col-span-3">
-          <div className="space-y-2.5">
-            <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-3 sm:p-4 md:grid-cols-3 lg:col-span-3">
+          <div className="space-y-1">
+            <Label
+              htmlFor="financial-date-from"
+              className="ml-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase"
+            >
               От дата
             </Label>
             <div className="relative">
               <CalendarIcon
-                className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400"
+                className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400"
                 strokeWidth={1.5}
               />
               <Input
+                id="financial-date-from"
+                name="dateFrom"
                 type="date"
                 value={dateFrom ? formatDateInput(dateFrom) : ""}
                 onChange={handleDateChange(setDateFrom)}
-                className="h-12 rounded-xl border-zinc-100 bg-white pl-12 text-sm font-light shadow-none focus:ring-zinc-200"
+                className="h-9 rounded-xl border-zinc-100 bg-white pl-9 text-xs font-light shadow-2xs focus:ring-zinc-200"
               />
             </div>
           </div>
-          <div className="space-y-2.5">
-            <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+          <div className="space-y-1">
+            <Label
+              htmlFor="financial-date-to"
+              className="ml-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase"
+            >
               До дата
             </Label>
             <div className="relative">
               <CalendarIcon
-                className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400"
+                className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400"
                 strokeWidth={1.5}
               />
               <Input
+                id="financial-date-to"
+                name="dateTo"
                 type="date"
                 value={dateTo ? formatDateInput(dateTo) : ""}
                 onChange={handleDateChange(setDateTo)}
-                className="h-12 rounded-xl border-zinc-100 bg-white pl-12 text-sm font-light shadow-none focus:ring-zinc-200"
+                className="h-9 rounded-xl border-zinc-100 bg-white pl-9 text-xs font-light shadow-2xs focus:ring-zinc-200"
               />
             </div>
           </div>
-          <div className="space-y-2.5">
-            <Label className="ml-1 text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+          <div className="space-y-1">
+            <Label
+              htmlFor="financial-payment-type"
+              className="ml-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase"
+            >
               Тип приходи
             </Label>
             <Select value={paymentType} onValueChange={setPaymentType}>
-              <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-white text-sm font-light shadow-none focus:ring-zinc-200">
-                <div className="flex items-center gap-3">
-                  <Filter className="size-4 text-zinc-400" strokeWidth={1.5} />
+              <SelectTrigger
+                id="financial-payment-type"
+                aria-label="Тип приходи"
+                className="h-9 rounded-xl border-zinc-100 bg-white text-xs font-light shadow-2xs focus:ring-zinc-200"
+              >
+                <div className="flex items-center gap-2">
+                  <Filter
+                    className="size-3.5 text-zinc-400"
+                    strokeWidth={1.5}
+                  />
                   <SelectValue placeholder="Всички" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-zinc-100 shadow-2xl">
+              <SelectContent className="rounded-xl border-zinc-100 shadow-xl">
                 <SelectItem value="all">Всички</SelectItem>
               </SelectContent>
             </Select>
@@ -243,7 +261,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
               <Button
                 variant="outline"
                 disabled={data.sales.length === 0 || isPending}
-                className="flex h-12 items-center justify-between rounded-xl border-zinc-100 px-8 text-[11px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-50"
+                className="flex h-9 items-center justify-between rounded-xl border-zinc-100 px-4 text-[10px] font-medium tracking-wider uppercase transition-all hover:bg-zinc-50 shadow-2xs"
               >
                 <div className="flex items-center">
                   {isPending ? (

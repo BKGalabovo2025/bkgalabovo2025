@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import { ArrowLeft, Maximize2 } from "lucide-react";

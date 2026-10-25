@@ -3,8 +3,6 @@ import "server-only";
 
 import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable sonarjs/no-nested-conditional */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { revalidatePath } from "next/cache";
 
@@ -664,7 +662,7 @@ async function getInventorySalesServerAction(activeBranch: string) {
 /**
  * �?звлича пълните детайли по разписка на сървъра.
  */
-/* eslint-disable sonarjs/cognitive-complexity */
+
 export async function getReceiptDetailsServerAction(saleId: string) {
   try {
     const user = await getAuthUserFromSessionCookie();

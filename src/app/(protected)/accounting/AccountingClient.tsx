@@ -1858,29 +1858,29 @@ export default function AccountingClient() {
 
       {/* Dialog for selecting an event to create/manage business trip */}
       <Dialog open={isSelectEventOpen} onOpenChange={setIsSelectEventOpen}>
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
-          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
-              <CalendarPlus className="size-5 text-emerald-600 shrink-0" />
+              <CalendarPlus className="size-4.5 text-emerald-600 shrink-0" />
               <span>Създаване / Управление на командировка</span>
             </DialogTitle>
-            <DialogDescription className="mt-1 text-xs text-zinc-500">
+            <DialogDescription className="mt-0.5 text-xs text-zinc-500">
               Изберете събитие (турнир или лагер) от календара, за което да
               създадете командировка.
             </DialogDescription>
-            <div className="relative mt-3">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative mt-2.5">
+              <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Търсене по име на събитие или град..."
                 value={eventSearchQuery}
                 onChange={(e) => setEventSearchQuery(e.target.value)}
-                className="h-9 sm:h-10 rounded-xl pl-9 text-xs"
+                className="h-9 rounded-xl pl-8.5 text-xs"
               />
             </div>
           </div>
 
-          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-2 min-h-0">
+          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-2 min-h-0">
             {selectableEvents.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
                 Няма намерени събития.
@@ -1955,11 +1955,11 @@ export default function AccountingClient() {
           </div>
 
           {/* Fixed Sticky Footer */}
-          <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
             <Button
               variant="ghost"
               onClick={() => setIsSelectEventOpen(false)}
-              className="h-9 sm:h-10 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              className="h-9 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
             >
               Затвори
             </Button>

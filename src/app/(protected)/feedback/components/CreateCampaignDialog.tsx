@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 "use client";
 
 import { Check, Copy, Link as LinkIcon, Loader2, Sparkles } from "lucide-react";
@@ -165,11 +164,11 @@ export function CreateCampaignDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 sm:[&>button:last-child]:top-4 sm:[&>button:last-child]:right-4">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
         {/* Fixed Sticky Header */}
-        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-12 dark:border-zinc-800 dark:bg-zinc-900/40">
+        <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
-            <Sparkles className="size-5 text-indigo-600 shrink-0" />
+            <Sparkles className="size-4.5 text-indigo-600 shrink-0" />
             <span className="truncate">
               {isRecovery
                 ? "Създаване на Анкета за кампания"
@@ -240,7 +239,7 @@ export function CreateCampaignDialog({
         ) : (
           /* Creation Form */
           <>
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 min-h-0">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3 min-h-0">
               {/* Choose Event from calendar */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-zinc-700">
@@ -437,18 +436,18 @@ export function CreateCampaignDialog({
             </div>
 
             {/* Fixed Sticky Footer */}
-            <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-zinc-100 bg-zinc-50/80 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
               <Button
                 variant="ghost"
                 onClick={handleClose}
-                className="h-9 sm:h-10 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                className="h-9 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
               >
                 Отказ
               </Button>
               <Button
                 onClick={handleCreate}
                 disabled={isSubmitting || !title.trim() || !selectedTemplateId}
-                className="h-9 sm:h-10 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white shadow-md hover:bg-indigo-700"
+                className="h-9 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white shadow-md hover:bg-indigo-700"
               >
                 {isSubmitting ? (
                   <Loader2 className="mr-1.5 size-3.5 animate-spin" />

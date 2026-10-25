@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity, sonarjs/no-nested-conditional */
 import { collection, getDocs, limit, query } from "firebase/firestore";
 
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";

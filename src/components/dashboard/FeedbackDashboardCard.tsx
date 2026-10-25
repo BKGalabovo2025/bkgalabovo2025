@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable sonarjs/no-nested-conditional */
-
 import { ArrowRight, MessageSquare, Star } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -53,13 +51,13 @@ export function FeedbackDashboardCard() {
   const totalCount = stats?.totalSubmissions || submissions.length;
 
   return (
-    <BentoCard className="flex flex-col justify-between rounded-4xl border border-zinc-100 bg-white p-6 shadow-none dark:border-zinc-800 dark:bg-zinc-900">
+    <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
       <div>
         {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="relative flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-500 shadow-2xs dark:bg-amber-950/50 dark:text-amber-400">
-              <Star className="size-4 fill-amber-400 text-amber-500" />
+            <div className="relative flex size-7 items-center justify-center rounded-lg bg-amber-50 text-amber-500 shadow-2xs dark:bg-amber-950/50 dark:text-amber-400">
+              <Star className="size-3.5 fill-amber-400 text-amber-500" />
               {pendingCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex size-2.5">
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-rose-400 opacity-75" />
@@ -71,7 +69,7 @@ export function FeedbackDashboardCard() {
               <h2 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
                 Отзиви и препоръки
               </h2>
-              <p className="text-[11px] text-zinc-400">
+              <p className="text-[10px] text-zinc-400">
                 Обратна връзка от сайта
               </p>
             </div>
@@ -96,11 +94,11 @@ export function FeedbackDashboardCard() {
 
         {/* Content */}
         {recentReviews.length > 0 ? (
-          <div className="custom-scrollbar max-h-72 space-y-2 overflow-y-auto pr-1">
+          <div className="custom-scrollbar max-h-72 space-y-1.5 overflow-y-auto pr-1">
             {recentReviews.map((rev) => (
               <div
                 key={rev.id}
-                className="group flex flex-col gap-1 rounded-2xl border border-amber-100/70 bg-amber-50/20 p-3 transition-all hover:border-amber-300 hover:shadow-2xs dark:border-zinc-800 dark:bg-zinc-900"
+                className="group flex flex-col gap-1 rounded-xl border border-amber-100/70 bg-amber-50/20 p-2 sm:p-2.5 transition-all hover:border-amber-300 hover:shadow-2xs dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">

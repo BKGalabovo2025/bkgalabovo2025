@@ -1,6 +1,13 @@
 "use client";
 
-import { GraduationCap, MapPin, Share2, User as UserIcon } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  GraduationCap,
+  MapPin,
+  Share2,
+  User as UserIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -10,6 +17,7 @@ import {
   ShareAthleteDialog,
 } from "@/components/club/ShareAthleteDialog";
 import { TeamMemberForCard } from "@/lib/athlete-card-generator";
+import { cn } from "@/lib/utils";
 
 interface TeamAthletesSectionProps {
   groupedMembers: Record<string, TeamMemberForCard[]>;
@@ -23,11 +31,24 @@ function TeamAthletesContent({
   const searchParams = useSearchParams();
   const [selectedAthlete, setSelectedAthlete] =
     useState<TeamMemberForCard | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   // Flatten all members for lookup
   const allMembers = useMemo(() => {
     return Object.values(groupedMembers).flat();
   }, [groupedMembers]);
+
+  const toggleAthleteExpand = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   // Deep-link check: if ?athlete=[id] is present in URL, auto open dialog
   useEffect(() => {
@@ -58,7 +79,7 @@ function TeamAthletesContent({
   return (
     <>
       <div className="space-y-10 sm:space-y-12">
-        {sortedAgeGroups.map((group) => (
+        {sortedAgeGroups.map((group, groupIdx) => (
           <div key={group}>
             <h3 className="mb-6 flex items-center gap-3 text-xl font-light text-white sm:gap-4 sm:text-2xl">
               <span className="block h-px w-8 bg-blue-500/50" />
@@ -66,8 +87,9 @@ function TeamAthletesContent({
               <span className="block h-px flex-1 bg-linear-to-r from-blue-500/50 to-transparent" />
             </h3>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {groupedMembers[group].map((member) => {
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+              {groupedMembers[group].map((member, memberIdx) => {
+                const isAboveTheFold = groupIdx === 0 && memberIdx < 4;
                 const isCompetitor =
                   member.skillLevel === "advanced" ||
                   member.skillLevel === "professional";
@@ -80,6 +102,7 @@ function TeamAthletesContent({
                     .join(" ") ||
                   "Състезател";
                 const validAvatar = getValidImageSrc(member.avatarUrl);
+                const isExpanded = expandedIds.has(member.id);
 
                 return (
                   <div
@@ -96,6 +119,8 @@ function TeamAthletesContent({
                           alt={athleteName}
                           fill
                           unoptimized
+                          priority={isAboveTheFold}
+                          loading={isAboveTheFold ? "eager" : "lazy"}
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           className="object-cover transition-transform duration-700 group-hover:scale-105"
                         />
@@ -117,7 +142,7 @@ function TeamAthletesContent({
 
                       {/* Name & Badges Overlay */}
                       <div className="absolute inset-x-0 bottom-0 z-20 p-4 sm:p-5">
-                        <h4 className="mb-1 text-lg font-medium text-white drop-shadow-md sm:text-xl">
+                        <h4 className="mb-1 text-lg font-medium text-white drop-shadow-md sm:text-xl wrap-break-word">
                           {athleteName}
                         </h4>
                         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -142,13 +167,13 @@ function TeamAthletesContent({
                       <div className="space-y-4">
                         {/* School / Kindergarten */}
                         {member.educationInstitution && (
-                          <div className="flex items-start gap-2 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-2.5">
+                          <div className="flex items-start gap-2.5 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-2.5 sm:p-3">
                             <GraduationCap className="mt-0.5 size-4 shrink-0 text-blue-400" />
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                               <p className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
                                 Училище / Градина
                               </p>
-                              <p className="truncate text-xs font-medium text-zinc-200">
+                              <p className="text-xs font-medium text-zinc-200 leading-snug wrap-break-word">
                                 {member.educationInstitution}
                               </p>
                             </div>
@@ -156,43 +181,81 @@ function TeamAthletesContent({
                         )}
 
                         {/* Tournaments List */}
-                        <div className="flex min-h-22 flex-col justify-start">
-                          <p className="mb-2.5 flex items-center justify-between text-[10px] font-bold tracking-[0.2em] text-blue-400 uppercase">
+                        <div className="flex flex-col justify-start">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              tournaments.length > 3 &&
+                              toggleAthleteExpand(member.id)
+                            }
+                            className={cn(
+                              "mb-2.5 flex w-full items-center justify-between text-[10px] font-bold tracking-[0.2em] text-blue-400 uppercase text-left transition-colors",
+                              tournaments.length > 3 &&
+                                "cursor-pointer hover:text-blue-300"
+                            )}
+                          >
                             <span className="flex items-center gap-1.5">
                               <MapPin size={12} />
                               Участия в Турнири
                             </span>
-                            <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-blue-300">
+                            <span className="rounded-full bg-blue-500/10 px-2 py-0.5 font-semibold text-blue-300">
                               {tournaments.length}
                             </span>
-                          </p>
+                          </button>
 
                           {tournaments.length === 0 ? (
                             <p className="py-1 text-xs text-zinc-500 italic">
                               В подготовка за турнири
                             </p>
                           ) : (
-                            <ul className="space-y-1.5">
-                              {tournaments.slice(0, 3).map((t, idx) => (
-                                <li
-                                  key={idx}
-                                  className="flex items-start gap-2 text-xs font-light text-zinc-300"
-                                >
-                                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-blue-500/50" />
-                                  <span className="line-clamp-1 leading-snug">
-                                    {t}
-                                  </span>
-                                </li>
-                              ))}
+                            <div className="space-y-2">
+                              <ul className="space-y-2">
+                                {(isExpanded
+                                  ? tournaments
+                                  : tournaments.slice(0, 3)
+                                ).map((t, idx) => (
+                                  <li
+                                    key={idx}
+                                    className="flex items-start gap-2 text-xs font-light text-zinc-200"
+                                  >
+                                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-blue-500" />
+                                    <span className="leading-snug wrap-break-word">
+                                      {t}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+
                               {tournaments.length > 3 && (
-                                <li className="text-[11px] text-zinc-500 italic">
-                                  + още {tournaments.length - 3}{" "}
-                                  {tournaments.length - 3 === 1
-                                    ? "състезание"
-                                    : "състезания"}
-                                </li>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleAthleteExpand(member.id)}
+                                  className="mt-2.5 flex w-full items-center justify-between rounded-xl border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-[11px] font-medium text-blue-300 transition-all duration-200 hover:border-blue-400/60 hover:bg-blue-500/20 hover:text-white"
+                                >
+                                  <span className="flex items-center gap-1.5 font-semibold">
+                                    {isExpanded ? (
+                                      <>
+                                        <ChevronUp className="size-3.5" />
+                                        <span>Свий списъка</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <ChevronDown className="size-3.5" />
+                                        <span>
+                                          Разгъни още {tournaments.length - 3}{" "}
+                                          състезания
+                                        </span>
+                                      </>
+                                    )}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-blue-400/90">
+                                    {isExpanded
+                                      ? `(общо ${tournaments.length})`
+                                      : `+${tournaments.length - 3}`}
+                                  </span>
+                                </button>
                               )}
-                            </ul>
+                            </div>
                           )}
                         </div>
                       </div>

@@ -121,96 +121,69 @@ export default function SettingsClient() {
       </PageHeader>
 
       <Tabs defaultValue="general" className="w-full">
-        <div className="flex flex-col gap-6 lg:gap-8 lg:flex-row">
-          <div className="space-y-3 lg:w-72">
-            <TabsList className="no-scrollbar flex h-auto w-full flex-nowrap justify-start gap-2 sm:gap-3 overflow-x-auto bg-transparent p-1 lg:flex-col lg:overflow-visible lg:p-0">
+        <div className="flex flex-col gap-4 lg:gap-6 lg:flex-row">
+          <div className="space-y-2 lg:w-60">
+            <TabsList className="no-scrollbar flex h-auto w-full flex-nowrap justify-start gap-1.5 overflow-x-auto bg-transparent p-1 lg:flex-col lg:overflow-visible lg:p-0">
               <TabsTrigger
                 value="general"
-                className="shrink-0 justify-start rounded-2xl border-none px-4 py-3 text-xs sm:px-6 sm:py-4 lg:py-5 sm:text-[13px] font-medium tracking-widest whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
+                className="shrink-0 justify-start rounded-xl border-none px-3.5 py-2 text-xs sm:px-4 sm:py-2.5 font-semibold tracking-wide whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
               >
-                <Settings
-                  className="mr-3 sm:mr-4 size-4 sm:size-5"
-                  strokeWidth={1.5}
-                />{" "}
-                Общи
+                <Settings className="mr-2.5 size-4" strokeWidth={1.5} /> Общи
               </TabsTrigger>
               <TabsTrigger
                 value="branding"
-                className="shrink-0 justify-start rounded-2xl border-none px-4 py-3 text-xs sm:px-6 sm:py-4 lg:py-5 sm:text-[13px] font-medium tracking-widest whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
+                className="shrink-0 justify-start rounded-xl border-none px-3.5 py-2 text-xs sm:px-4 sm:py-2.5 font-semibold tracking-wide whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
               >
-                <Palette
-                  className="mr-3 sm:mr-4 size-4 sm:size-5"
-                  strokeWidth={1.5}
-                />{" "}
+                <Palette className="mr-2.5 size-4" strokeWidth={1.5} />{" "}
                 Брандиране
               </TabsTrigger>
               <TabsTrigger
                 value="security"
-                className="shrink-0 justify-start rounded-2xl border-none px-4 py-3 text-xs sm:px-6 sm:py-4 lg:py-5 sm:text-[13px] font-medium tracking-widest whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
+                className="shrink-0 justify-start rounded-xl border-none px-3.5 py-2 text-xs sm:px-4 sm:py-2.5 font-semibold tracking-wide whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
               >
-                <Shield
-                  className="mr-3 sm:mr-4 size-4 sm:size-5"
-                  strokeWidth={1.5}
-                />{" "}
-                Сигурност
+                <Shield className="mr-2.5 size-4" strokeWidth={1.5} /> Сигурност
               </TabsTrigger>
               <TabsTrigger
                 value="profile"
-                className="shrink-0 justify-start rounded-2xl border-none px-4 py-3 text-xs sm:px-6 sm:py-4 lg:py-5 sm:text-[13px] font-medium tracking-widest whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
+                className="shrink-0 justify-start rounded-xl border-none px-3.5 py-2 text-xs sm:px-4 sm:py-2.5 font-semibold tracking-wide whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
               >
-                <User
-                  className="mr-3 sm:mr-4 size-4 sm:size-5"
-                  strokeWidth={1.5}
-                />{" "}
-                Личен Профил
+                <User className="mr-2.5 size-4" strokeWidth={1.5} /> Личен
+                Профил
               </TabsTrigger>
 
               <TabsTrigger
                 value="recovery"
-                className="shrink-0 justify-start rounded-2xl border-none px-4 py-3 text-xs sm:px-6 sm:py-4 lg:py-5 sm:text-[13px] font-medium tracking-widest whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-[#00f2fe]/10 data-[state=active]:text-[#00f2fe] lg:w-full"
+                className="shrink-0 justify-start rounded-xl border-none px-3.5 py-2 text-xs sm:px-4 sm:py-2.5 font-semibold tracking-wide whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-[#00f2fe]/10 data-[state=active]:text-[#00f2fe] lg:w-full"
               >
-                <Activity
-                  className="mr-3 sm:mr-4 size-4 sm:size-5"
-                  strokeWidth={1.5}
-                />{" "}
-                Зона Възстановяване
+                <Activity className="mr-2.5 size-4" strokeWidth={1.5} /> Зона
+                Възстановяване
               </TabsTrigger>
 
               <TabsTrigger
                 value="team"
-                className="shrink-0 justify-start rounded-2xl border-none px-4 py-3 text-xs sm:px-6 sm:py-4 lg:py-5 sm:text-[13px] font-medium tracking-widest whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
+                className="shrink-0 justify-start rounded-xl border-none px-3.5 py-2 text-xs sm:px-4 sm:py-2.5 font-semibold tracking-wide whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-primary/5 data-[state=active]:text-primary lg:w-full"
               >
-                <Users
-                  className="mr-3 sm:mr-4 size-4 sm:size-5"
-                  strokeWidth={1.5}
-                />{" "}
-                Екип
+                <Users className="mr-2.5 size-4" strokeWidth={1.5} /> Екип
               </TabsTrigger>
               <TabsTrigger
                 value="audit"
-                className="shrink-0 justify-start rounded-2xl border-none px-4 py-3 text-xs sm:px-6 sm:py-4 lg:py-5 sm:text-[13px] font-medium tracking-widest whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-indigo-500/10 data-[state=active]:text-indigo-500 lg:w-full"
+                className="shrink-0 justify-start rounded-xl border-none px-3.5 py-2 text-xs sm:px-4 sm:py-2.5 font-semibold tracking-wide whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-indigo-500/10 data-[state=active]:text-indigo-500 lg:w-full"
               >
-                <Shield
-                  className="mr-3 sm:mr-4 size-4 sm:size-5"
-                  strokeWidth={1.5}
-                />{" "}
-                Системни логове
+                <Shield className="mr-2.5 size-4" strokeWidth={1.5} /> Системни
+                логове
               </TabsTrigger>
               <TabsTrigger
                 value="backup"
-                className="shrink-0 justify-start rounded-2xl border-none px-4 py-3 text-xs sm:px-6 sm:py-4 lg:py-5 sm:text-[13px] font-medium tracking-widest whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-500 lg:w-full"
+                className="shrink-0 justify-start rounded-xl border-none px-3.5 py-2 text-xs sm:px-4 sm:py-2.5 font-semibold tracking-wide whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:bg-emerald-500/10 data-[state=active]:text-emerald-500 lg:w-full"
               >
-                <Database
-                  className="mr-3 sm:mr-4 size-4 sm:size-5"
-                  strokeWidth={1.5}
-                />{" "}
+                <Database className="mr-2.5 size-4" strokeWidth={1.5} />{" "}
                 Резервен архив
               </TabsTrigger>
             </TabsList>
           </div>
 
           <div className="flex-1">
-            <div className="rounded-2xl sm:rounded-3xl border border-zinc-100 bg-zinc-50/50 p-4 sm:p-6 lg:p-10 dark:border-zinc-800/50 dark:bg-zinc-900/20">
+            <div className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 lg:p-6 dark:border-zinc-800/50 dark:bg-zinc-900/20">
               <TabsContent
                 value="general"
                 className="m-0 mt-0 animate-in fade-in zoom-in-95 data-[state=inactive]:hidden"

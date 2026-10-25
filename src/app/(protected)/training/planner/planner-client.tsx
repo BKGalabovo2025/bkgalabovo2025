@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-conditional */
 "use client";
 
 import {
@@ -290,21 +289,21 @@ function PlannerClientContent() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6">
+      <div className="mb-3">
         <Tabs
           value={activeTab}
           onValueChange={(val) => setActiveTab(val as "upcoming" | "archive")}
         >
-          <TabsList className="grid h-12 w-full max-w-md grid-cols-2 rounded-2xl bg-zinc-100 p-1">
+          <TabsList className="grid h-9 w-full max-w-md grid-cols-2 rounded-xl bg-zinc-100 p-0.5">
             <TabsTrigger
               value="upcoming"
-              className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs sm:text-sm"
+              className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs"
             >
-              <CalendarRange className="size-4" />
+              <CalendarRange className="size-3.5" />
               <span>Предстоящи</span>
               <Badge
                 variant="secondary"
-                className={`ml-1 px-1.5 py-0.5 text-[11px] font-black ${
+                className={`ml-1 px-1.5 py-0 text-[10px] font-bold ${
                   activeTab === "upcoming"
                     ? "bg-indigo-100 text-indigo-800"
                     : "bg-zinc-200 text-zinc-600"
@@ -315,13 +314,13 @@ function PlannerClientContent() {
             </TabsTrigger>
             <TabsTrigger
               value="archive"
-              className="flex items-center gap-2 rounded-xl text-xs font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs sm:text-sm"
+              className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs"
             >
-              <Archive className="size-4" />
+              <Archive className="size-3.5" />
               <span>Архив / Проведени</span>
               <Badge
                 variant="secondary"
-                className={`ml-1 px-1.5 py-0.5 text-[11px] font-black ${
+                className={`ml-1 px-1.5 py-0 text-[10px] font-bold ${
                   activeTab === "archive"
                     ? "bg-indigo-100 text-indigo-800"
                     : "bg-zinc-200 text-zinc-600"
