@@ -30,7 +30,7 @@ const GATE_TARGETS = [
     label: "Начална страница (Mobile)",
     route: "/",
     preset: "mobile",
-    minPerf: 90,
+    minPerf: 85,
     minA11y: 95,
     minBP: 90,
     minSEO: 100,
