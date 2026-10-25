@@ -125,7 +125,11 @@ export default function ProtectedLayoutClient({
   const pathname = usePathname() || "";
 
   useEffect(() => {
-    if (!loading && !user) {
+    const hasSessionCookie =
+      typeof document !== "undefined" &&
+      document.cookie.split(";").some((c) => c.trim().startsWith("session="));
+
+    if (!loading && !user && !hasSessionCookie) {
       router.replace("/login");
       return;
     }
@@ -138,7 +142,15 @@ export default function ProtectedLayoutClient({
     }
   }, [user, loading, router, activeBranch, pathname]);
 
-  if (loading || !user) {
+  const hasSessionCookie =
+    typeof document !== "undefined" &&
+    document.cookie.split(";").some((c) => c.trim().startsWith("session="));
+
+  if (loading && !hasSessionCookie) {
+    return null;
+  }
+
+  if (!loading && !user && !hasSessionCookie) {
     return null;
   }
 

@@ -53,6 +53,10 @@ setup("authenticate as admin", async ({ page }) => {
 
   // Wait until the dashboard loads (which indicates successful login)
   await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 60000 });
+  await expect(
+    page.locator("text=Начало").or(page.locator("main")).first()
+  ).toBeVisible({ timeout: 60000 });
+  await page.waitForLoadState("networkidle");
 
   // 4. Save the state
   await page.context().storageState({ path: authFile });
