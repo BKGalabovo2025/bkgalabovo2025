@@ -30,7 +30,8 @@ async function renderElementToCanvas(
         html, body {
           -webkit-font-smoothing: antialiased;
           text-rendering: optimizeLegibility;
-        }
+          color: #000000 !important;
+}
       `;
       clonedDoc.head.appendChild(styleEl);
 
@@ -41,7 +42,7 @@ async function renderElementToCanvas(
           style.innerHTML = style.innerHTML
             .replace(
               /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-              "color: rgb(15, 23, 42)"
+              "color: rgb(0, 0, 0)"
             )
             .replace(
               /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
@@ -65,7 +66,7 @@ async function renderElementToCanvas(
             styleAttr
               .replace(
                 /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-                "color: rgb(15, 23, 42)"
+                "color: rgb(0, 0, 0)"
               )
               .replace(
                 /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
@@ -108,7 +109,7 @@ async function createPdf(
   const cleanCSS = allCSS
     .replace(
       /color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,
-      "color: rgb(15, 23, 42)"
+      "color: rgb(0, 0, 0)"
     )
     .replace(
       /background-color:\s*(?:lab|oklch|lch|oklab)\([^)]+\)/gi,

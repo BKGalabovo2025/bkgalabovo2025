@@ -160,7 +160,7 @@ const PAGE_A4: React.CSSProperties = {
     'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   fontSize: "10pt",
   lineHeight: 1.5,
-  color: "#1e293b",
+  color: "#000",
   backgroundColor: "#fff",
   padding: "12mm 15mm 12mm 15mm",
   boxSizing: "border-box",
@@ -172,7 +172,7 @@ const PAGE_A4_REPORT: React.CSSProperties = {
     'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   fontSize: "8.5pt",
   lineHeight: 1.42,
-  color: "#1e293b",
+  color: "#000",
   backgroundColor: "#fff",
   padding: "10mm 15mm 10mm 15mm",
   boxSizing: "border-box",
@@ -186,7 +186,7 @@ const PAGE_LAND: React.CSSProperties = {
     'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   fontSize: "9pt",
   lineHeight: 1.4,
-  color: "#1e293b",
+  color: "#000",
   backgroundColor: "#fff",
   padding: "10mm",
   boxSizing: "border-box",
@@ -200,7 +200,7 @@ const PAGE_LAND_PAGE: React.CSSProperties = {
     'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   fontSize: "8.5pt",
   lineHeight: 1.35,
-  color: "#1e293b",
+  color: "#000",
   backgroundColor: "#fff",
   padding: "8mm 10mm",
   boxSizing: "border-box",
@@ -211,20 +211,21 @@ const PAGE_LAND_PAGE: React.CSSProperties = {
   position: "relative",
 };
 const TH: React.CSSProperties = {
-  border: "1px solid #cbd5e1",
+  border: "1px solid #000",
   padding: "4pt 4pt",
   textAlign: "center",
   fontWeight: "600",
   verticalAlign: "middle",
   fontSize: "8pt",
   backgroundColor: "#f8fafc",
-  color: "#0f172a",
+  color: "#000",
 };
 const TD: React.CSSProperties = {
-  border: "1px solid #cbd5e1",
+  border: "1px solid #000",
   padding: "4pt 4pt",
   verticalAlign: "middle",
   fontSize: "8pt",
+  color: "#000",
 };
 
 export function BusinessTripPdfTemplates({
@@ -675,7 +676,7 @@ export function BusinessTripPdfTemplates({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "2px solid #e2e8f0",
+            borderBottom: "2px solid #000",
             paddingBottom: "10pt",
             marginBottom: "12pt",
           }}
@@ -692,7 +693,7 @@ export function BusinessTripPdfTemplates({
                   fontWeight: "700",
                   fontSize: "14pt",
                   margin: 0,
-                  color: "#0f172a",
+                  color: "#000",
                 }}
               >
                 {formatOrgName(site.shortName, true)}
@@ -702,7 +703,7 @@ export function BusinessTripPdfTemplates({
                   style={{
                     fontSize: "9pt",
                     margin: "2pt 0 0 0",
-                    color: "#64748b",
+                    color: "#000",
                   }}
                 >
                   БУЛСТАТ: {site.bulstat} | {site.contact.address}
@@ -719,7 +720,7 @@ export function BusinessTripPdfTemplates({
               fontSize: "13pt",
               letterSpacing: "3px",
               margin: 0,
-              color: "#0f172a",
+              color: "#000",
             }}
           >
             П Р О Т О К О Л
@@ -729,13 +730,13 @@ export function BusinessTripPdfTemplates({
               fontSize: "11pt",
               fontWeight: "700",
               marginTop: "4pt",
-              color: "#0f172a",
+              color: "#000",
             }}
           >
             ОТ ЗАСЕДАНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ НА{" "}
             {formatOrgName(site.name, true)}
           </p>
-          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
+          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#000" }}>
             <span>{getProtocolHeader()}</span>
           </p>
         </div>
@@ -746,7 +747,7 @@ export function BusinessTripPdfTemplates({
               lineHeight: "1.4",
               textAlign: "justify",
               fontSize: "8.2pt",
-              color: "#1e293b",
+              color: "#000",
               whiteSpace: "pre-line",
             }}
           >
@@ -787,7 +788,7 @@ export function BusinessTripPdfTemplates({
               lineHeight: "1.45",
               textAlign: "justify",
               fontSize: "8.5pt",
-              color: "#1e293b",
+              color: "#000",
             }}
           >
             <p style={{ marginBottom: "5pt", textIndent: "15pt" }}>
@@ -839,7 +840,7 @@ export function BusinessTripPdfTemplates({
             </p>
             <div
               style={{
-                border: "1px solid #e2e8f0",
+                border: "1px solid #000",
                 backgroundColor: "#f8fafc",
                 padding: "6pt 10pt",
                 borderRadius: "6px",
@@ -969,7 +970,7 @@ export function BusinessTripPdfTemplates({
           <div
             style={{
               flex: 1,
-              border: "1px solid #cbd5e1",
+              border: "1px solid #000",
               borderRadius: "8px",
               padding: "8pt",
               textAlign: "center",
@@ -981,7 +982,7 @@ export function BusinessTripPdfTemplates({
                 fontWeight: "700",
                 fontSize: "8.5pt",
                 margin: 0,
-                color: "#64748b",
+                color: "#000",
                 textTransform: "uppercase",
               }}
             >
@@ -1002,12 +1003,12 @@ export function BusinessTripPdfTemplates({
                   style={{ height: "32pt", objectFit: "contain" }}
                 />
               ) : (
-                <span style={{ color: "#cbd5e1" }}>
+                <span style={{ color: "#000" }}>
                   ..................................
                 </span>
               )}
             </div>
-            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
               / {chair} /
             </p>
           </div>
@@ -1015,7 +1016,7 @@ export function BusinessTripPdfTemplates({
           <div
             style={{
               flex: 1,
-              border: "1px solid #cbd5e1",
+              border: "1px solid #000",
               borderRadius: "8px",
               padding: "8pt",
               textAlign: "center",
@@ -1027,7 +1028,7 @@ export function BusinessTripPdfTemplates({
                 fontWeight: "700",
                 fontSize: "8.5pt",
                 margin: 0,
-                color: "#64748b",
+                color: "#000",
                 textTransform: "uppercase",
               }}
             >
@@ -1041,7 +1042,7 @@ export function BusinessTripPdfTemplates({
                 alignItems: "flex-start",
                 minHeight: "36pt",
                 fontSize: "8pt",
-                color: "#64748b",
+                color: "#000",
                 gap: "2pt",
                 paddingLeft: "8pt",
                 paddingRight: "8pt",
@@ -1114,7 +1115,7 @@ export function BusinessTripPdfTemplates({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "2px solid #e2e8f0",
+            borderBottom: "2px solid #000",
             paddingBottom: "10pt",
             marginBottom: "12pt",
           }}
@@ -1131,7 +1132,7 @@ export function BusinessTripPdfTemplates({
                   fontWeight: "700",
                   fontSize: "14pt",
                   margin: 0,
-                  color: "#0f172a",
+                  color: "#000",
                 }}
               >
                 {formatOrgName(site.shortName, true)}
@@ -1141,7 +1142,7 @@ export function BusinessTripPdfTemplates({
                   style={{
                     fontSize: "9pt",
                     margin: "2pt 0 0 0",
-                    color: "#64748b",
+                    color: "#000",
                   }}
                 >
                   БУЛСТАТ: {site.bulstat} | {site.contact.address}
@@ -1158,7 +1159,7 @@ export function BusinessTripPdfTemplates({
               fontSize: "13pt",
               letterSpacing: "3px",
               margin: 0,
-              color: "#0f172a",
+              color: "#000",
             }}
           >
             Р Е Ш Е Н И Е
@@ -1168,12 +1169,12 @@ export function BusinessTripPdfTemplates({
               fontSize: "11pt",
               fontWeight: "700",
               marginTop: "4pt",
-              color: "#0f172a",
+              color: "#000",
             }}
           >
             НА УПРАВИТЕЛНИЯ СЪВЕТ НА {formatOrgName(site.name, true)}
           </p>
-          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
+          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#000" }}>
             <span>{getDecisionHeader()}</span>
           </p>
         </div>
@@ -1201,7 +1202,7 @@ export function BusinessTripPdfTemplates({
             fontSize: "11pt",
             margin: "12pt 0 8pt 0",
             letterSpacing: "2px",
-            color: "#0f172a",
+            color: "#000",
           }}
         >
           УПРАВИТЕЛНИЯТ СЪВЕТ РЕШИ:
@@ -1340,7 +1341,7 @@ export function BusinessTripPdfTemplates({
             marginBottom: "18pt",
             fontSize: "10pt",
             fontWeight: "600",
-            color: "#0f172a",
+            color: "#000",
           }}
         >
           Разходите по настоящото решение са изцяло за сметка на „
@@ -1358,7 +1359,7 @@ export function BusinessTripPdfTemplates({
           <div
             style={{
               flex: 1,
-              border: "1px solid #cbd5e1",
+              border: "1px solid #000",
               borderRadius: "8px",
               padding: "10pt",
               textAlign: "center",
@@ -1370,7 +1371,7 @@ export function BusinessTripPdfTemplates({
                 fontWeight: "700",
                 fontSize: "9pt",
                 margin: 0,
-                color: "#64748b",
+                color: "#000",
                 textTransform: "uppercase",
               }}
             >
@@ -1391,12 +1392,12 @@ export function BusinessTripPdfTemplates({
                   style={{ height: "40pt", objectFit: "contain" }}
                 />
               ) : (
-                <span style={{ color: "#cbd5e1" }}>
+                <span style={{ color: "#000" }}>
                   ..................................
                 </span>
               )}
             </div>
-            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
               / {mol} /
             </p>
           </div>
@@ -1404,7 +1405,7 @@ export function BusinessTripPdfTemplates({
           <div
             style={{
               flex: 1,
-              border: "1px solid #cbd5e1",
+              border: "1px solid #000",
               borderRadius: "8px",
               padding: "10pt",
               textAlign: "center",
@@ -1417,7 +1418,7 @@ export function BusinessTripPdfTemplates({
                 fontWeight: "700",
                 fontSize: "9pt",
                 margin: 0,
-                color: "#64748b",
+                color: "#000",
                 textTransform: "uppercase",
               }}
             >
@@ -1431,7 +1432,7 @@ export function BusinessTripPdfTemplates({
                 alignItems: "center",
                 minHeight: "45pt",
                 fontSize: "8.5pt",
-                color: "#64748b",
+                color: "#000",
               }}
             >
               {(() => {
@@ -1456,7 +1457,7 @@ export function BusinessTripPdfTemplates({
                 );
               })()}
             </div>
-            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
               {protocolNum && protocolNum !== "____"
                 ? `Протокол № ${protocolNum} от заседание на УС`
                 : "Протокол от заседание на УС"}
@@ -1471,7 +1472,7 @@ export function BusinessTripPdfTemplates({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "2px solid #e2e8f0",
+            borderBottom: "2px solid #000",
             paddingBottom: "10pt",
             marginBottom: "12pt",
           }}
@@ -1488,7 +1489,7 @@ export function BusinessTripPdfTemplates({
                   fontWeight: "700",
                   fontSize: "14pt",
                   margin: 0,
-                  color: "#0f172a",
+                  color: "#000",
                 }}
               >
                 {formatOrgName(site.shortName, true)}
@@ -1498,7 +1499,7 @@ export function BusinessTripPdfTemplates({
                   style={{
                     fontSize: "9pt",
                     margin: "2pt 0 0 0",
-                    color: "#64748b",
+                    color: "#000",
                   }}
                 >
                   БУЛСТАТ: {site.bulstat} | {site.contact.address}
@@ -1518,7 +1519,7 @@ export function BusinessTripPdfTemplates({
           >
             Н А Р Е Ж Д А Н Е
           </p>
-          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#475569" }}>
+          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#000" }}>
             № {orderNum} / {orderDate} г.
           </p>
         </div>
@@ -1554,15 +1555,15 @@ export function BusinessTripPdfTemplates({
             fontSize: "12pt",
             marginBottom: "10pt",
             letterSpacing: "3px",
-            color: "#0f172a",
+            color: "#000",
           }}
         >
           К О М А Н Д И Р О В А М:
         </p>
         <p style={{ marginBottom: "8pt", lineHeight: "1.5" }}>
-          До <strong style={{ color: "#0f172a" }}>{destCity}</strong> и обратно
-          до гр. Гълъбово, за участие в:{" "}
-          <strong style={{ color: "#0f172a" }}>{trip.title}</strong> (
+          До <strong style={{ color: "#000" }}>{destCity}</strong> и обратно до
+          гр. Гълъбово, за участие в:{" "}
+          <strong style={{ color: "#000" }}>{trip.title}</strong> (
           {fmtDate(trip.startDate)}
           {trip.startDate !== trip.endDate ? ` - ${fmtDate(trip.endDate)}` : ""}
           ), на следните служебни лица:
@@ -1579,13 +1580,13 @@ export function BusinessTripPdfTemplates({
                 padding: "3pt 0",
               }}
             >
-              <span style={{ width: "24pt", color: "#475569" }}>{i + 1}.</span>
+              <span style={{ width: "24pt", color: "#000" }}>{i + 1}.</span>
               <strong
-                style={{ fontWeight: "600", width: "180pt", color: "#0f172a" }}
+                style={{ fontWeight: "600", width: "180pt", color: "#000" }}
               >
                 {p.name}
               </strong>
-              <span style={{ color: "#64748b" }}>— {p.role.toLowerCase()}</span>
+              <span style={{ color: "#000" }}>— {p.role.toLowerCase()}</span>
             </div>
           ))}
         </div>
@@ -1641,7 +1642,7 @@ export function BusinessTripPdfTemplates({
             marginBottom: "20pt",
             fontSize: "11pt",
             fontWeight: "600",
-            color: "#0f172a",
+            color: "#000",
           }}
         >
           Разходите за командировката са за сметка на{" "}
@@ -1658,7 +1659,7 @@ export function BusinessTripPdfTemplates({
           <div
             style={{
               flex: 1,
-              border: "1px solid #cbd5e1",
+              border: "1px solid #000",
               borderRadius: "8px",
               padding: "10pt",
               textAlign: "center",
@@ -1670,7 +1671,7 @@ export function BusinessTripPdfTemplates({
                 fontWeight: "700",
                 fontSize: "9pt",
                 margin: 0,
-                color: "#64748b",
+                color: "#000",
                 textTransform: "uppercase",
               }}
             >
@@ -1691,19 +1692,19 @@ export function BusinessTripPdfTemplates({
                   style={{ height: "45pt", objectFit: "contain" }}
                 />
               ) : (
-                <span style={{ color: "#cbd5e1" }}>
+                <span style={{ color: "#000" }}>
                   ..................................
                 </span>
               )}
             </div>
-            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
               / {coachName} /
             </p>
           </div>
           <div
             style={{
               flex: 1,
-              border: "1px solid #cbd5e1",
+              border: "1px solid #000",
               borderRadius: "8px",
               padding: "10pt",
               textAlign: "center",
@@ -1716,7 +1717,7 @@ export function BusinessTripPdfTemplates({
                 fontWeight: "700",
                 fontSize: "9pt",
                 margin: 0,
-                color: "#64748b",
+                color: "#000",
                 textTransform: "uppercase",
               }}
             >
@@ -1737,12 +1738,12 @@ export function BusinessTripPdfTemplates({
                   style={{ height: "45pt", objectFit: "contain" }}
                 />
               ) : (
-                <span style={{ color: "#cbd5e1" }}>
+                <span style={{ color: "#000" }}>
                   ..................................
                 </span>
               )}
             </div>
-            <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+            <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
               / {mol} /
             </p>
           </div>
@@ -1830,13 +1831,13 @@ export function BusinessTripPdfTemplates({
             if (pNights > 0 && accomRatePerNightEUR > 0) {
               accomRateCell = (
                 <div>
-                  <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                  <span style={{ fontWeight: "600", color: "#000" }}>
                     {accomRatePerNightEUR.toFixed(2)} €
                   </span>
                   <div
                     style={{
                       fontSize: "6.5pt",
-                      color: "#64748b",
+                      color: "#000",
                       lineHeight: "1.1",
                     }}
                   >
@@ -1846,13 +1847,13 @@ export function BusinessTripPdfTemplates({
               );
               accomTotalCell = (
                 <div>
-                  <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                  <span style={{ fontWeight: "600", color: "#000" }}>
                     {pAcomEURpp.toFixed(2)} €
                   </span>
                   <div
                     style={{
                       fontSize: "6.5pt",
-                      color: "#64748b",
+                      color: "#000",
                       lineHeight: "1.1",
                     }}
                   >
@@ -1862,21 +1863,19 @@ export function BusinessTripPdfTemplates({
               );
             } else if (pNights === 0) {
               accomRateCell = (
-                <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>—</span>
+                <span style={{ fontSize: "7.5pt", color: "#000" }}>—</span>
               );
               accomTotalCell = (
-                <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>
-                  0.00 €
-                </span>
+                <span style={{ fontSize: "7.5pt", color: "#000" }}>0.00 €</span>
               );
             } else {
               accomRateCell = (
-                <span style={{ fontSize: "7.5pt", color: "#64748b" }}>
+                <span style={{ fontSize: "7.5pt", color: "#000" }}>
                   (по фактура)
                 </span>
               );
               accomTotalCell = (
-                <span style={{ fontSize: "7.5pt", color: "#64748b" }}>
+                <span style={{ fontSize: "7.5pt", color: "#000" }}>
                   (по фактура)
                 </span>
               );
@@ -1892,13 +1891,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {isFirstPerson && transportTotalEUR > 0 ? (
                   <div>
-                    <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "600", color: "#000" }}>
                       {(transportTotalEUR / 2).toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         lineHeight: "1.1",
                       }}
                     >
@@ -1912,13 +1911,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {isFirstPerson && transportTotalEUR > 0 ? (
                   <div>
-                    <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "600", color: "#000" }}>
                       {(transportTotalEUR / 2).toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         lineHeight: "1.1",
                       }}
                     >
@@ -1935,13 +1934,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasPerDiem ? (
                   <div>
-                    <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "600", color: "#000" }}>
                       {pPerDiemRateEUR.toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         lineHeight: "1.1",
                       }}
                     >
@@ -1955,13 +1954,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasPerDiem ? (
                   <div>
-                    <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "600", color: "#000" }}>
                       {pDiemEURpp.toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         lineHeight: "1.1",
                       }}
                     >
@@ -1979,13 +1978,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>{accomTotalCell}</td>
               <td style={{ ...TD, textAlign: "center" }}>
                 <div>
-                  <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                  <span style={{ fontWeight: "700", color: "#000" }}>
                     {personTotalEUR.toFixed(2)} €
                   </span>
                   <div
                     style={{
                       fontSize: "6.5pt",
-                      color: "#64748b",
+                      color: "#000",
                       lineHeight: "1.1",
                     }}
                   >
@@ -2047,13 +2046,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {sliceTransportEUR > 0 ? (
                   <div>
-                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "700", color: "#000" }}>
                       {(sliceTransportEUR / 2).toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         fontWeight: "normal",
                         lineHeight: "1.1",
                       }}
@@ -2068,13 +2067,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {sliceTransportEUR > 0 ? (
                   <div>
-                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "700", color: "#000" }}>
                       {(sliceTransportEUR / 2).toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         fontWeight: "normal",
                         lineHeight: "1.1",
                       }}
@@ -2093,13 +2092,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasPerDiem ? (
                   <div>
-                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "700", color: "#000" }}>
                       {slicePerDiemEUR.toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         fontWeight: "normal",
                         lineHeight: "1.1",
                       }}
@@ -2121,15 +2120,13 @@ export function BusinessTripPdfTemplates({
                       if (sliceAccomEUR > 0) {
                         return (
                           <div>
-                            <span
-                              style={{ fontWeight: "700", color: "#0f172a" }}
-                            >
+                            <span style={{ fontWeight: "700", color: "#000" }}>
                               {sliceAccomEUR.toFixed(2)} €
                             </span>
                             <div
                               style={{
                                 fontSize: "6.5pt",
-                                color: "#64748b",
+                                color: "#000",
                                 fontWeight: "normal",
                                 lineHeight: "1.1",
                               }}
@@ -2140,7 +2137,7 @@ export function BusinessTripPdfTemplates({
                         );
                       }
                       return (
-                        <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>
+                        <span style={{ fontSize: "7.5pt", color: "#000" }}>
                           0.00 €
                         </span>
                       );
@@ -2149,13 +2146,13 @@ export function BusinessTripPdfTemplates({
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 <div>
-                  <span style={{ fontWeight: "800", color: "#0f172a" }}>
+                  <span style={{ fontWeight: "800", color: "#000" }}>
                     {sliceTotalEUR.toFixed(2)} €
                   </span>
                   <div
                     style={{
                       fontSize: "6.5pt",
-                      color: "#64748b",
+                      color: "#000",
                       fontWeight: "normal",
                       lineHeight: "1.1",
                     }}
@@ -2200,13 +2197,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {transportTotalEUR > 0 ? (
                   <div>
-                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "700", color: "#000" }}>
                       {(transportTotalEUR / 2).toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         fontWeight: "normal",
                         lineHeight: "1.1",
                       }}
@@ -2221,13 +2218,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {transportTotalEUR > 0 ? (
                   <div>
-                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "700", color: "#000" }}>
                       {(transportTotalEUR / 2).toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         fontWeight: "normal",
                         lineHeight: "1.1",
                       }}
@@ -2246,13 +2243,13 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasPerDiem ? (
                   <div>
-                    <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                    <span style={{ fontWeight: "700", color: "#000" }}>
                       {totalDiemEUR.toFixed(2)} €
                     </span>
                     <div
                       style={{
                         fontSize: "6.5pt",
-                        color: "#64748b",
+                        color: "#000",
                         fontWeight: "normal",
                         lineHeight: "1.1",
                       }}
@@ -2274,15 +2271,13 @@ export function BusinessTripPdfTemplates({
                       if (totalAccomEUR > 0) {
                         return (
                           <div>
-                            <span
-                              style={{ fontWeight: "700", color: "#0f172a" }}
-                            >
+                            <span style={{ fontWeight: "700", color: "#000" }}>
                               {totalAccomEUR.toFixed(2)} €
                             </span>
                             <div
                               style={{
                                 fontSize: "6.5pt",
-                                color: "#64748b",
+                                color: "#000",
                                 fontWeight: "normal",
                                 lineHeight: "1.1",
                               }}
@@ -2293,7 +2288,7 @@ export function BusinessTripPdfTemplates({
                         );
                       }
                       return (
-                        <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>
+                        <span style={{ fontSize: "7.5pt", color: "#000" }}>
                           0.00 €
                         </span>
                       );
@@ -2302,13 +2297,13 @@ export function BusinessTripPdfTemplates({
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 <div>
-                  <span style={{ fontWeight: "800", color: "#0f172a" }}>
+                  <span style={{ fontWeight: "800", color: "#000" }}>
                     {grandEUR.toFixed(2)} €
                   </span>
                   <div
                     style={{
                       fontSize: "6.5pt",
-                      color: "#64748b",
+                      color: "#000",
                       fontWeight: "normal",
                       lineHeight: "1.1",
                     }}
@@ -2347,7 +2342,7 @@ export function BusinessTripPdfTemplates({
                 <div
                   style={{
                     flex: 1,
-                    border: "1px solid #cbd5e1",
+                    border: "1px solid #000",
                     borderRadius: "6px",
                     padding: "6pt 8pt",
                     textAlign: "center",
@@ -2359,7 +2354,7 @@ export function BusinessTripPdfTemplates({
                       fontWeight: "600",
                       fontSize: "7.5pt",
                       margin: 0,
-                      color: "#64748b",
+                      color: "#000",
                       textTransform: "uppercase",
                     }}
                   >
@@ -2380,7 +2375,7 @@ export function BusinessTripPdfTemplates({
                         style={{ height: "30pt", objectFit: "contain" }}
                       />
                     ) : (
-                      <span style={{ color: "#cbd5e1" }}>
+                      <span style={{ color: "#000" }}>
                         ..................................
                       </span>
                     )}
@@ -2390,7 +2385,7 @@ export function BusinessTripPdfTemplates({
                       fontSize: "7.5pt",
                       margin: 0,
                       marginTop: "4pt",
-                      color: "#94a3b8",
+                      color: "#000",
                     }}
                   >
                     / {coachName} /
@@ -2400,7 +2395,7 @@ export function BusinessTripPdfTemplates({
                 <div
                   style={{
                     flex: 1,
-                    border: "1px solid #cbd5e1",
+                    border: "1px solid #000",
                     borderRadius: "6px",
                     padding: "6pt 8pt",
                     textAlign: "center",
@@ -2413,7 +2408,7 @@ export function BusinessTripPdfTemplates({
                       fontWeight: "600",
                       fontSize: "7.5pt",
                       margin: 0,
-                      color: "#64748b",
+                      color: "#000",
                       textTransform: "uppercase",
                     }}
                   >
@@ -2434,7 +2429,7 @@ export function BusinessTripPdfTemplates({
                         style={{ height: "30pt", objectFit: "contain" }}
                       />
                     ) : (
-                      <span style={{ color: "#cbd5e1" }}>
+                      <span style={{ color: "#000" }}>
                         ..................................
                       </span>
                     )}
@@ -2444,7 +2439,7 @@ export function BusinessTripPdfTemplates({
                       fontSize: "7.5pt",
                       margin: 0,
                       marginTop: "4pt",
-                      color: "#94a3b8",
+                      color: "#000",
                     }}
                   >
                     / {mol} /
@@ -2457,7 +2452,7 @@ export function BusinessTripPdfTemplates({
                   style={{
                     marginTop: "8pt",
                     fontSize: "7.5pt",
-                    borderTop: "1px dashed #cbd5e1",
+                    borderTop: "1px dashed #000",
                     paddingTop: "6pt",
                   }}
                 >
@@ -2513,7 +2508,7 @@ export function BusinessTripPdfTemplates({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              borderBottom: "2px solid #e2e8f0",
+              borderBottom: "2px solid #000",
               paddingBottom: "8pt",
               marginBottom: "8pt",
             }}
@@ -2530,7 +2525,7 @@ export function BusinessTripPdfTemplates({
                     fontWeight: "700",
                     fontSize: "11pt",
                     margin: 0,
-                    color: "#0f172a",
+                    color: "#000",
                   }}
                 >
                   {formatOrgName(site.shortName, true)}
@@ -2540,7 +2535,7 @@ export function BusinessTripPdfTemplates({
                     style={{
                       fontSize: "8pt",
                       margin: "2pt 0 0 0",
-                      color: "#64748b",
+                      color: "#000",
                     }}
                   >
                     БУЛСТАТ: {site.bulstat} | {site.contact.address}
@@ -2548,12 +2543,10 @@ export function BusinessTripPdfTemplates({
                 )}
               </div>
             </div>
-            <div
-              style={{ textAlign: "right", fontSize: "8pt", color: "#475569" }}
-            >
+            <div style={{ textAlign: "right", fontSize: "8pt", color: "#000" }}>
               <p style={{ margin: 0 }}>
                 Спортна проява:{" "}
-                <strong style={{ color: "#0f172a" }}>
+                <strong style={{ color: "#000" }}>
                   {event?.title || trip.title}
                 </strong>
               </p>
@@ -2579,7 +2572,7 @@ export function BusinessTripPdfTemplates({
                 fontSize: "13pt",
                 letterSpacing: "4px",
                 margin: 0,
-                color: "#0f172a",
+                color: "#000",
               }}
             >
               В Е Д О М О С Т № {statementNum}
@@ -2587,7 +2580,7 @@ export function BusinessTripPdfTemplates({
             <p
               style={{
                 fontSize: "8pt",
-                color: "#64748b",
+                color: "#000",
                 margin: "2pt 0 0 0",
                 fontWeight: "500",
               }}
@@ -2631,8 +2624,8 @@ export function BusinessTripPdfTemplates({
                     justifyContent: "space-between",
                     alignItems: "center",
                     fontSize: "7.5pt",
-                    color: "#94a3b8",
-                    borderTop: "1px solid #f1f5f9",
+                    color: "#000",
+                    borderTop: "1px solid #000",
                     paddingTop: "4pt",
                     marginTop: "auto",
                   }}
@@ -2678,8 +2671,8 @@ export function BusinessTripPdfTemplates({
                     justifyContent: "space-between",
                     alignItems: "center",
                     fontSize: "7.5pt",
-                    color: "#94a3b8",
-                    borderTop: "1px solid #f1f5f9",
+                    color: "#000",
+                    borderTop: "1px solid #000",
                     paddingTop: "4pt",
                     marginTop: "auto",
                   }}
@@ -2727,8 +2720,8 @@ export function BusinessTripPdfTemplates({
                   justifyContent: "space-between",
                   alignItems: "center",
                   fontSize: "7.5pt",
-                  color: "#94a3b8",
-                  borderTop: "1px solid #f1f5f9",
+                  color: "#000",
+                  borderTop: "1px solid #000",
                   paddingTop: "4pt",
                   marginTop: "auto",
                 }}
@@ -2753,7 +2746,7 @@ export function BusinessTripPdfTemplates({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              borderBottom: "2px solid #e2e8f0",
+              borderBottom: "2px solid #000",
               paddingBottom: "10pt",
               marginBottom: "12pt",
             }}
@@ -2770,7 +2763,7 @@ export function BusinessTripPdfTemplates({
                     fontWeight: "700",
                     fontSize: "14pt",
                     margin: 0,
-                    color: "#0f172a",
+                    color: "#000",
                   }}
                 >
                   {formatOrgName(site.shortName, true)}
@@ -2780,7 +2773,7 @@ export function BusinessTripPdfTemplates({
                     style={{
                       fontSize: "9pt",
                       margin: "2pt 0 0 0",
-                      color: "#64748b",
+                      color: "#000",
                     }}
                   >
                     БУЛСТАТ: {site.bulstat} | {site.contact.address}
@@ -2795,10 +2788,10 @@ export function BusinessTripPdfTemplates({
                 marginRight: "100pt",
               }}
             >
-              <p style={{ fontWeight: "600", margin: 0, color: "#0f172a" }}>
+              <p style={{ fontWeight: "600", margin: 0, color: "#000" }}>
                 ОДОБРЯВАМ
               </p>
-              <p style={{ margin: "2pt 0 4pt 0", color: "#475569" }}>
+              <p style={{ margin: "2pt 0 4pt 0", color: "#000" }}>
                 Председател:
               </p>
               {trip.signatures?.chairman ? (
@@ -2819,7 +2812,7 @@ export function BusinessTripPdfTemplates({
               fontSize: "15pt",
               letterSpacing: "3px",
               marginBottom: "4pt",
-              color: "#0f172a",
+              color: "#000",
             }}
           >
             ПЪТЕН ЛИСТ № {fuelNum} — ОТЧЕТ ЗА РАЗХОД НА ГОРИВО
@@ -2829,7 +2822,7 @@ export function BusinessTripPdfTemplates({
               textAlign: "center",
               fontSize: "11pt",
               margin: "0 0 10pt 0",
-              color: "#475569",
+              color: "#000",
             }}
           >
             към Нареждане за командировка № {orderNum} от {orderDate} г.{" "}
@@ -2890,12 +2883,12 @@ export function BusinessTripPdfTemplates({
                 <td style={TD}>
                   {trip.title.replace(/^[Кк]омандировка:\s*/u, "")}
                   <br />
-                  <span style={{ fontSize: "8pt", color: "#555" }}>
+                  <span style={{ fontSize: "8pt", color: "#000" }}>
                     {routeLabel}
                     {isDailyCommute && actualTrips > 0 && singleKm > 0 && (
                       <>
                         <br />
-                        <strong style={{ color: "#1e3a8a" }}>
+                        <strong style={{ color: "#000" }}>
                           {actualTrips === 1
                             ? "Еднодневно пътуване:"
                             : "Ежедневно пътуване:"}{" "}
@@ -2999,7 +2992,7 @@ export function BusinessTripPdfTemplates({
               marginTop: "20pt",
             }}
           >
-            <div style={{ flex: 1, fontSize: "11pt", color: "#475569" }}>
+            <div style={{ flex: 1, fontSize: "11pt", color: "#000" }}>
               <p>
                 гр. Гълъбово &nbsp;&nbsp;{" "}
                 {fmtDate(trip.endDate || trip.startDate)} г.
@@ -3010,7 +3003,7 @@ export function BusinessTripPdfTemplates({
               style={{
                 flex: 1,
                 maxWidth: "250pt",
-                border: "1px solid #cbd5e1",
+                border: "1px solid #000",
                 borderRadius: "8px",
                 padding: "10pt",
                 textAlign: "center",
@@ -3022,7 +3015,7 @@ export function BusinessTripPdfTemplates({
                   fontWeight: "700",
                   fontSize: "9pt",
                   margin: 0,
-                  color: "#64748b",
+                  color: "#000",
                   textTransform: "uppercase",
                 }}
               >
@@ -3043,12 +3036,12 @@ export function BusinessTripPdfTemplates({
                     style={{ height: "45pt", objectFit: "contain" }}
                   />
                 ) : (
-                  <span style={{ color: "#cbd5e1" }}>
+                  <span style={{ color: "#000" }}>
                     ..................................
                   </span>
                 )}
               </div>
-              <p style={{ fontSize: "8pt", margin: 0, color: "#94a3b8" }}>
+              <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
                 / {coachName} /
               </p>
             </div>
@@ -3088,7 +3081,7 @@ export function BusinessTripPdfTemplates({
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  borderBottom: "2px solid #e2e8f0",
+                  borderBottom: "2px solid #000",
                   paddingBottom: "8pt",
                   marginBottom: "10pt",
                 }}
@@ -3107,7 +3100,7 @@ export function BusinessTripPdfTemplates({
                         fontWeight: "700",
                         fontSize: "13pt",
                         margin: 0,
-                        color: "#0f172a",
+                        color: "#000",
                       }}
                     >
                       {formatOrgName(site.shortName, true)}
@@ -3117,7 +3110,7 @@ export function BusinessTripPdfTemplates({
                         style={{
                           fontSize: "8.5pt",
                           margin: "2pt 0 0 0",
-                          color: "#64748b",
+                          color: "#000",
                         }}
                       >
                         БУЛСТАТ: {site.bulstat} | {site.contact.address}
@@ -3135,7 +3128,7 @@ export function BusinessTripPdfTemplates({
                     fontSize: "13pt",
                     letterSpacing: "2px",
                     margin: 0,
-                    color: "#0f172a",
+                    color: "#000",
                   }}
                 >
                   С П И С Ъ К № {attendanceNum}
@@ -3145,7 +3138,7 @@ export function BusinessTripPdfTemplates({
                     fontSize: "10.5pt",
                     marginTop: "3pt",
                     marginBottom: 0,
-                    color: "#0f172a",
+                    color: "#000",
                     fontWeight: "600",
                   }}
                 >
@@ -3156,7 +3149,7 @@ export function BusinessTripPdfTemplates({
                     fontSize: "9pt",
                     marginTop: "2pt",
                     marginBottom: 0,
-                    color: "#64748b",
+                    color: "#000",
                   }}
                 >
                   към Нареждане за командировка № {orderNum} от {orderDate} г.
@@ -3166,11 +3159,11 @@ export function BusinessTripPdfTemplates({
                     fontSize: "10pt",
                     marginTop: "2pt",
                     marginBottom: 0,
-                    color: "#475569",
+                    color: "#000",
                   }}
                 >
                   участници на{" "}
-                  <strong style={{ color: "#0f172a" }}>
+                  <strong style={{ color: "#000" }}>
                     {event?.title || trip.title}
                   </strong>
                 </p>
@@ -3179,7 +3172,7 @@ export function BusinessTripPdfTemplates({
                     fontSize: "9.5pt",
                     marginTop: "2pt",
                     marginBottom: 0,
-                    color: "#475569",
+                    color: "#000",
                   }}
                 >
                   {fmtDate(trip.startDate)} г. - {fmtDate(trip.endDate)} г. —{" "}
@@ -3213,7 +3206,7 @@ export function BusinessTripPdfTemplates({
                   fontWeight: "700",
                   fontSize: "10pt",
                   margin: "0 0 6pt 0",
-                  color: "#0f172a",
+                  color: "#000",
                 }}
               >
                 СПИСЪК НА УЧАСТНИЦИТЕ
@@ -3249,7 +3242,7 @@ export function BusinessTripPdfTemplates({
                     fontWeight: "700",
                     fontSize: "9.5pt",
                     margin: "0 0 4pt 0",
-                    color: "#0f172a",
+                    color: "#000",
                   }}
                 >
                   УДОСТОВЕРЕНИЕ ОТ РЪКОВОДИТЕЛЯ НА ГРУПАТА
@@ -3308,7 +3301,7 @@ export function BusinessTripPdfTemplates({
                         style={{ height: "35pt", objectFit: "contain" }}
                       />
                     ) : (
-                      <span style={{ color: "#cbd5e1" }}>
+                      <span style={{ color: "#000" }}>
                         ..................................
                       </span>
                     )}
@@ -3319,7 +3312,7 @@ export function BusinessTripPdfTemplates({
               <div
                 style={{
                   width: "250pt",
-                  borderLeft: "2px dashed #cbd5e1",
+                  borderLeft: "2px dashed #000",
                   paddingLeft: "16pt",
                 }}
               >
@@ -3339,7 +3332,7 @@ export function BusinessTripPdfTemplates({
                   style={{
                     margin: 0,
                     fontSize: "7.5pt",
-                    color: "#64748b",
+                    color: "#000",
                     lineHeight: "1.2",
                   }}
                 >
@@ -3390,7 +3383,7 @@ export function BusinessTripPdfTemplates({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                borderBottom: "2px solid #e2e8f0",
+                borderBottom: "2px solid #000",
                 paddingBottom: "6pt",
                 marginBottom: "8pt",
               }}
@@ -3409,7 +3402,7 @@ export function BusinessTripPdfTemplates({
                       fontWeight: "700",
                       fontSize: "12pt",
                       margin: 0,
-                      color: "#0f172a",
+                      color: "#000",
                     }}
                   >
                     {formatOrgName(site.shortName, true)}
@@ -3419,7 +3412,7 @@ export function BusinessTripPdfTemplates({
                       style={{
                         fontSize: "8pt",
                         margin: "1pt 0 0 0",
-                        color: "#64748b",
+                        color: "#000",
                       }}
                     >
                       БУЛСТАТ: {site.bulstat} | {site.contact.address}
@@ -3429,13 +3422,13 @@ export function BusinessTripPdfTemplates({
               </div>
 
               <div style={{ textAlign: "right", fontSize: "8pt" }}>
-                <p style={{ margin: 0, fontWeight: "700", color: "#0f172a" }}>
+                <p style={{ margin: 0, fontWeight: "700", color: "#000" }}>
                   УТВЪРЖДАВАМ:
                 </p>
                 <p style={{ margin: "1pt 0" }}>
                   Председател на УС: ....................
                 </p>
-                <p style={{ margin: "1pt 0", color: "#64748b" }}>
+                <p style={{ margin: "1pt 0", color: "#000" }}>
                   / {site.contact.mol || "М. Георгиева"} /
                 </p>
                 <p style={{ margin: "1pt 0" }}>
@@ -3451,7 +3444,7 @@ export function BusinessTripPdfTemplates({
                   fontSize: "12pt",
                   letterSpacing: "1.5px",
                   margin: 0,
-                  color: "#0f172a",
+                  color: "#000",
                 }}
               >
                 Д О К Л А Д № {reportNum}
@@ -3461,7 +3454,7 @@ export function BusinessTripPdfTemplates({
                   fontSize: "10pt",
                   marginTop: "2pt",
                   marginBottom: 0,
-                  color: "#0f172a",
+                  color: "#000",
                   fontWeight: "700",
                 }}
               >
@@ -3470,7 +3463,7 @@ export function BusinessTripPdfTemplates({
               <p
                 style={{
                   fontSize: "8pt",
-                  color: "#64748b",
+                  color: "#000",
                   margin: "1pt 0 0 0",
                 }}
               >
@@ -3481,7 +3474,7 @@ export function BusinessTripPdfTemplates({
             <div
               style={{
                 background: "#f8fafc",
-                border: "1px solid #e2e8f0",
+                border: "1px solid #000",
                 borderRadius: "4pt",
                 padding: "6pt 10pt",
                 marginBottom: "8pt",
@@ -3513,7 +3506,7 @@ export function BusinessTripPdfTemplates({
                 lineHeight: "1.42",
                 textAlign: "justify",
                 whiteSpace: "pre-line",
-                color: "#1e293b",
+                color: "#000",
                 marginBottom: "10pt",
                 flex: "1 1 auto",
               }}
@@ -3558,7 +3551,7 @@ export function BusinessTripPdfTemplates({
                       style={{ height: "30pt", objectFit: "contain" }}
                     />
                   ) : (
-                    <span style={{ color: "#cbd5e1" }}>
+                    <span style={{ color: "#000" }}>
                       ........................................
                     </span>
                   )}
