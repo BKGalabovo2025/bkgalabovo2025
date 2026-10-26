@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { BoardMembersInput } from "@/components/business-trips/BoardMembersInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -37,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
+import { DEFAULT_BOARD_MEMBERS_TEXT } from "@/lib/business-trip-protocol";
 import { businessTripService } from "@/services/business-trip-service";
 import { BusinessTrip, BusinessTripSchema } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
@@ -116,7 +118,8 @@ export function CreateBusinessTripDialog({
           usDecisionNotes: initialData.usDecisionNotes || "",
           usMeetingLocation: initialData.usMeetingLocation || "",
           usMeetingTime: initialData.usMeetingTime || "",
-          usBoardMembers: initialData.usBoardMembers || "",
+          usBoardMembers:
+            initialData.usBoardMembers || DEFAULT_BOARD_MEMBERS_TEXT,
           usMeetingChair: initialData.usMeetingChair || "",
           usMeetingSecretary: initialData.usMeetingSecretary || "",
           protocolText: initialData.protocolText || "",
@@ -164,7 +167,7 @@ export function CreateBusinessTripDialog({
           usDecisionNotes: "",
           usMeetingLocation: "",
           usMeetingTime: "",
-          usBoardMembers: "",
+          usBoardMembers: DEFAULT_BOARD_MEMBERS_TEXT,
           usMeetingChair: "",
           usMeetingSecretary: "",
           protocolText: "",
@@ -539,16 +542,14 @@ export function CreateBusinessTripDialog({
                       <FormItem>
                         <FormLabel>Присъстващи членове на УС</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Списък с присъстващи членове на УС за Протокола..."
-                            rows={2}
-                            {...field}
+                          <BoardMembersInput
                             value={field.value || ""}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormDescription className="text-[11px]">
-                          Ако не е попълнено, ще се използва стандартният кворум
-                          на клуба.
+                          Изберете от официалните членове на УС или допишете
+                          допълнителни присъстващи лица.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

@@ -190,6 +190,63 @@ export function formatProtocolDate(dateStr?: string): string {
   }
 }
 
+export const STANDARD_BOARD_MEMBERS = [
+  {
+    id: "mira",
+    name: "Мира Георгиева",
+    role: "Председател на Управителния съвет",
+    line: "1. Мира Георгиева - Председател на Управителния съвет",
+  },
+  {
+    id: "nevena",
+    name: "Невена Георгиева",
+    role: "Член на Управителния съвет",
+    line: "2. Невена Георгиева - Член на Управителния съвет",
+  },
+  {
+    id: "nasko",
+    name: "Наско Маджаров",
+    role: "Член на Управителния съвет",
+    line: "3. Наско Маджаров - Член на Управителния съвет",
+  },
+] as const;
+
+export const DEFAULT_BOARD_MEMBERS_TEXT = `1. Мира Георгиева - Председател на Управителния съвет
+2. Невена Георгиева - Член на Управителния съвет
+3. Наско Маджаров - Член на Управителния съвет`;
+
+export function toggleMemberInText(
+  currentText: string,
+  member: (typeof STANDARD_BOARD_MEMBERS)[number]
+): string {
+  const lines = currentText
+    ? currentText
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+    : [];
+
+  const exists = lines.some((l) =>
+    l.toLowerCase().includes(member.name.toLowerCase())
+  );
+
+  let updatedLines: string[];
+  if (exists) {
+    updatedLines = lines.filter(
+      (l) => !l.toLowerCase().includes(member.name.toLowerCase())
+    );
+  } else {
+    updatedLines = [...lines, member.line];
+  }
+
+  return updatedLines
+    .map((line, idx) => {
+      const stripped = line.replace(/^\d+[\.\)]\s*/, "");
+      return `${idx + 1}. ${stripped}`;
+    })
+    .join("\n");
+}
+
 /**
  * Генерира стандартния пълен текст на протокола от заседание на УС.
  * Позволява пълно редактиране в диалога за протоколи.
@@ -262,9 +319,11 @@ export function generateDefaultProtocolText(
   const chairDetermined = isChairFemale ? "определена" : "определен";
 
   const defaultBoardMembers =
-    secretary && secretary.toLowerCase() !== "член на ус"
-      ? `1. ${chair} — Председател на Управителния съвет\n2. ${secretary} — Член на Управителния съвет (редовно уведомен по установения ред)`
-      : `1. ${chair} — Председател на Управителния съвет\n2. Членове на Управителния съвет (редовно уведомени по установения ред)`;
+    secretary &&
+    secretary.toLowerCase() !== "член на ус" &&
+    secretary.toLowerCase() !== "невена георгиева"
+      ? `1. ${chair} — Председател на Управителния съвет\n2. ${secretary} — Член на Управителния съвет\n3. Наско Маджаров — Член на Управителния съвет`
+      : DEFAULT_BOARD_MEMBERS_TEXT;
   const boardMembers =
     options?.boardMembers || trip.usBoardMembers || defaultBoardMembers;
 

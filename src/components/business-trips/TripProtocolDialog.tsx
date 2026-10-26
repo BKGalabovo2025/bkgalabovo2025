@@ -15,6 +15,7 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { BoardMembersInput } from "@/components/business-trips/BoardMembersInput";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -32,6 +33,7 @@ import { getSiteConfig } from "@/config/sites";
 import { getTripProtocolNumber } from "@/lib/business-trip-numbers";
 import {
   cleanProtocolText,
+  DEFAULT_BOARD_MEMBERS_TEXT,
   generateDefaultProtocolText,
   isFemalePerson,
 } from "@/lib/business-trip-protocol";
@@ -97,10 +99,7 @@ export function TripProtocolDialog({
         trip.usMeetingLocation || "гр. Гълъбово, в седалището на сдружението";
       const chairVal = trip.usMeetingChair || mol;
       const secVal = trip.usMeetingSecretary || "Невена Георгиева";
-      const defMembers =
-        secVal && secVal.toLowerCase() !== "член на ус"
-          ? `1. ${chairVal} — Председател на Управителния съвет\n2. ${secVal} — Член на Управителния съвет (редовно уведомен по установения ред)`
-          : `1. ${chairVal} — Председател на Управителния съвет\n2. Членове на Управителния съвет (редовно уведомени по установения ред)`;
+      const defMembers = DEFAULT_BOARD_MEMBERS_TEXT;
       const membersVal = trip.usBoardMembers || defMembers;
       const protoNumVal = trip.usProtocolNumber || getTripProtocolNumber(trip);
 
@@ -381,15 +380,11 @@ export function TripProtocolDialog({
                     Имената се извличат автоматично за подписите под протокола
                   </span>
                 </div>
-                <Textarea
+                <BoardMembersInput
                   id="proto-members"
                   rows={3}
                   value={boardMembers}
-                  onChange={(e) =>
-                    updateFieldsAndSync({ members: e.target.value })
-                  }
-                  placeholder={`1. ${meetingChair || mol} — Председател на УС\n2. ${meetingSecretary || "Невена Георгиева"} — Член на УС\n3. Име на член — Член на УС`}
-                  className="bg-white text-xs dark:bg-slate-950"
+                  onChange={(val) => updateFieldsAndSync({ members: val })}
                 />
                 <p className="text-[11px] text-slate-500">
                   Въведете всеки член на нов ред. Присъстващите членове (без
