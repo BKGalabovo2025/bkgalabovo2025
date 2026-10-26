@@ -525,6 +525,17 @@ export function BusinessTripPdfTemplates({
     return `${cleanNum} / ${cleanDate} г.`;
   };
 
+  const formatDecisionWithDate = (rawDecision?: string | null): string => {
+    const raw = (rawDecision || decisionNum || "").trim();
+    if (!raw || raw === "____") return "";
+    const cleanNum = raw.startsWith("№") ? raw : `№ ${raw}`;
+    if (cleanNum.includes("/") || cleanNum.toLowerCase().includes("от")) {
+      return cleanNum;
+    }
+    const cleanDate = decisionDate.replace(/\s*г\.?$/u, "").trim();
+    return `${cleanNum} от ${cleanDate} г.`;
+  };
+
   const getProtocolHeader = (): string => {
     const raw = protocolNum;
     const cleanNum = raw.startsWith("№") ? raw : `№ ${raw}`;
@@ -2554,8 +2565,10 @@ export function BusinessTripPdfTemplates({
                 {destCity}
               </p>
               <p style={{ margin: 0 }}>
-                Нареждане № {orderNum} от {orderDate} г. | Решение на УС №{" "}
-                {decisionNum}
+                Нареждане № {orderNum} от {orderDate} г.
+                {formatDecisionWithDate(decisionNum)
+                  ? ` | Решение на УС ${formatDecisionWithDate(decisionNum)}`
+                  : ""}
               </p>
             </div>
           </div>
@@ -2822,8 +2835,10 @@ export function BusinessTripPdfTemplates({
               color: "#475569",
             }}
           >
-            към Нареждане за командировка № {orderNum} от {orderDate} г.
-            (Решение на УС № {decisionNum})
+            към Нареждане за командировка № {orderNum} от {orderDate} г.{" "}
+            {formatDecisionWithDate(decisionNum)
+              ? `(Решение на УС ${formatDecisionWithDate(decisionNum)})`
+              : ""}
           </p>
           <p style={{ marginBottom: "4pt" }}>
             От <strong>{coachName}</strong>,&nbsp; длъжност{" "}
@@ -2840,10 +2855,13 @@ export function BusinessTripPdfTemplates({
             ,&nbsp; рег. №{" "}
             <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>,
             използван за служебни цели — <strong>{titleWithLabel}</strong>
-            {trip.usDecision ? (
+            {formatDecisionWithDate(trip.usDecision || decisionNum) ? (
               <>
                 {" "}
-                съгласно решение на УС <strong>{trip.usDecision}</strong>
+                съгласно решение на УС{" "}
+                <strong>
+                  {formatDecisionWithDate(trip.usDecision || decisionNum)}
+                </strong>
               </>
             ) : null}
           </p>
@@ -2985,7 +3003,10 @@ export function BusinessTripPdfTemplates({
             }}
           >
             <div style={{ flex: 1, fontSize: "11pt", color: "#475569" }}>
-              <p>гр. Гълъбово &nbsp;&nbsp; .............. {yearStr} г.</p>
+              <p>
+                гр. Гълъбово &nbsp;&nbsp;{" "}
+                {fmtDate(trip.endDate || trip.startDate)} г.
+              </p>
             </div>
 
             <div
