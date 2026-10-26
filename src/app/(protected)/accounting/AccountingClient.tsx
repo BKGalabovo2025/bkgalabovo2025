@@ -1465,378 +1465,529 @@ export default function AccountingClient() {
         )}
       </div>
 
-      {/* Hidden PDF Template for Protocol */}
+      {/* Hidden PDF Template for Protocol (Fit in EXACTLY 1 page A4) */}
       <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
-        <div
-          id="pdf-protocol-template"
-          className="bg-white p-12 text-black"
-          style={{
-            width: "210mm",
-            minHeight: "297mm",
-            fontFamily: "Arial, sans-serif",
-            fontSize: "10pt",
-            color: "#000",
-            lineHeight: "1.5",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderBottom: "2px solid #e2e8f0",
-              paddingBottom: "10pt",
-              marginBottom: "12pt",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/icons/LOGO.jpg"
-                alt="Logo"
-                style={{ height: "45pt", objectFit: "contain" }}
-              />
+        {(() => {
+          const tripsCount = filteredTrips.length;
+          const isCompact = tripsCount >= 3;
+          const isUltraCompact = tripsCount >= 6;
+
+          const pPadding = isUltraCompact
+            ? "6mm 10mm"
+            : isCompact
+              ? "8mm 12mm"
+              : "10mm 14mm";
+          const pFontSize = isUltraCompact
+            ? "7pt"
+            : isCompact
+              ? "7.5pt"
+              : "8.5pt";
+          const cellPadding = isUltraCompact
+            ? "2pt 3.5pt"
+            : isCompact
+              ? "2.5pt 4.5pt"
+              : "4pt 6pt";
+          const logoHeight = isUltraCompact
+            ? "26pt"
+            : isCompact
+              ? "30pt"
+              : "36pt";
+
+          return (
+            <div
+              id="pdf-protocol-template"
+              className="pdf-page bg-white text-black"
+              style={{
+                width: "210mm",
+                height: "297mm",
+                minHeight: "297mm",
+                maxHeight: "297mm",
+                fontFamily:
+                  'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                fontSize: pFontSize,
+                color: "#000",
+                backgroundColor: "#fff",
+                lineHeight: "1.25",
+                padding: pPadding,
+                boxSizing: "border-box",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                overflow: "hidden",
+                position: "relative",
+              }}
+            >
+              {/* Top Section: Header & Title & Intro */}
               <div>
-                <p
+                {/* Club Header */}
+                <div
                   style={{
-                    fontWeight: "700",
-                    fontSize: "14pt",
-                    margin: 0,
-                    color: "#0f172a",
-                    textAlign: "left",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    borderBottom: "1.5px solid #000",
+                    paddingBottom: isCompact ? "4pt" : "6pt",
+                    marginBottom: isCompact ? "5pt" : "8pt",
                   }}
                 >
-                  &bdquo;{site.shortName.toUpperCase()}&ldquo;
-                </p>
-                {site.bulstat && (
-                  <p
+                  <div
                     style={{
-                      fontSize: "9pt",
-                      margin: "2pt 0 0 0",
-                      color: "#64748b",
-                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8pt",
                     }}
                   >
-                    БУЛСТАТ: {site.bulstat} | {site.contact.address}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ textAlign: "center", margin: "20pt 0" }}>
-            <h2 style={{ fontSize: "14pt", fontWeight: "bold" }}>
-              МЕСЕЧЕН ПРИЕМО-ПРЕДАВАТЕЛЕН ПРОТОКОЛ
-            </h2>
-            <p style={{ fontSize: "11pt", marginTop: "4pt" }}>
-              За отчитане на транспортни и командировъчни разходи
-            </p>
-            <p
-              style={{ fontSize: "11pt", marginTop: "8pt", fontWeight: "bold" }}
-            >
-              Отчетен месец:{" "}
-              <span style={{ textTransform: "capitalize" }}>
-                {format(selectedMonth, "MMMM yyyy", { locale: bg })}
-              </span>
-            </p>
-          </div>
-
-          <p
-            style={{
-              fontSize: "11pt",
-              marginBottom: "16pt",
-              textIndent: "20pt",
-              textAlign: "justify",
-            }}
-          >
-            Днес, {format(endOfMonth(selectedMonth), "dd.MM.yyyy")} г., се
-            състави настоящият приемо-предавателен протокол, удостоверяващ
-            предаването на първични счетоводни документи (фактури, фискални
-            бонове, билети и др.), ведно с прилежащите им Заповеди за
-            командировки, Пътни листи и отчети, доказващи извършените разходи за
-            дейността на клуба през месец{" "}
-            {format(selectedMonth, "MMMM yyyy", { locale: bg })}.
-          </p>
-
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "10pt",
-              marginBottom: "20pt",
-            }}
-          >
-            <thead>
-              <tr>
-                <th
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    backgroundColor: "#f8fafc",
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    color: "#000",
-                  }}
-                >
-                  №
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    backgroundColor: "#f8fafc",
-                    fontWeight: "bold",
-                    textAlign: "left",
-                    color: "#000",
-                  }}
-                >
-                  Командировка / Събитие
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    backgroundColor: "#f8fafc",
-                    fontWeight: "bold",
-                    textAlign: "left",
-                    color: "#000",
-                  }}
-                >
-                  Водач / Треньор
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    backgroundColor: "#f8fafc",
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    color: "#000",
-                  }}
-                >
-                  Вид дейност
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    backgroundColor: "#f8fafc",
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    color: "#000",
-                  }}
-                >
-                  Документи (бр.)
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    backgroundColor: "#f8fafc",
-                    fontWeight: "bold",
-                    textAlign: "right",
-                    color: "#000",
-                  }}
-                >
-                  Сума (EUR)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTrips.map((trip, idx) => {
-                const coach = membersDict[trip.coachId];
-                const coachName = coach
-                  ? `${coach.firstName} ${coach.lastName}`
-                  : "Неизвестен";
-                const sDate = parseISO(trip.startDate);
-                const eDate = parseISO(trip.endDate);
-                const tripExps = expenses[trip.id!] || [];
-                const { total } = computeTripRowTotals(trip, tripExps);
-
-                const hasFuelDoc = Boolean(
-                  trip.vehicle?.distanceKm || trip.vehicle?.brand
-                );
-                const hasDecisionDoc = Boolean(
-                  trip.usDecision || trip.decisionDownloadedAt
-                );
-                const docLabels: string[] = [
-                  "Заповед",
-                  "Ведомост",
-                  "Присъств. лист",
-                  "Доклад",
-                ];
-                if (hasDecisionDoc) docLabels.push("Решение УС");
-                if (hasFuelDoc) docLabels.push("Отчет гориво");
-                if (tripExps.length > 0)
-                  docLabels.push(`+${tripExps.length} разх. док.`);
-                const matchProtocolsCount = trip.matchProtocols?.length || 0;
-                if (matchProtocolsCount > 0)
-                  docLabels.push(`+${matchProtocolsCount} спортни прот.`);
-                const totalDocsCount =
-                  4 +
-                  (hasDecisionDoc ? 1 : 0) +
-                  (hasFuelDoc ? 1 : 0) +
-                  tripExps.length +
-                  matchProtocolsCount;
-
-                return (
-                  <tr key={trip.id}>
-                    <td
-                      style={{
-                        border: "1px solid #000",
-                        padding: "6pt 8pt",
-                        textAlign: "center",
-                        color: "#000",
-                      }}
-                    >
-                      {idx + 1}
-                    </td>
-                    <td
-                      style={{
-                        border: "1px solid #000",
-                        padding: "6pt 8pt",
-                        color: "#000",
-                      }}
-                    >
-                      {trip.title}, от {format(sDate, "dd.MM.yyyy")} до{" "}
-                      {format(eDate, "dd.MM.yyyy")} в {trip.destination}
-                    </td>
-                    <td
-                      style={{
-                        border: "1px solid #000",
-                        padding: "6pt 8pt",
-                        color: "#000",
-                      }}
-                    >
-                      {coachName}
-                    </td>
-                    <td
-                      style={{
-                        border: "1px solid #000",
-                        padding: "6pt 8pt",
-                        textAlign: "center",
-                        color: "#000",
-                      }}
-                    >
-                      {trip.financials.isCommercialActivity
-                        ? "Стопанска"
-                        : "Нестопанска"}
-                    </td>
-                    <td
-                      style={{
-                        border: "1px solid #000",
-                        padding: "6pt 8pt",
-                        textAlign: "center",
-                        color: "#000",
-                      }}
-                    >
-                      {totalDocsCount}
-                      <div
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/icons/LOGO.jpg"
+                      alt="Logo"
+                      style={{ height: logoHeight, objectFit: "contain" }}
+                    />
+                    <div>
+                      <p
                         style={{
-                          fontSize: "7pt",
+                          fontWeight: "700",
+                          fontSize: isCompact ? "11pt" : "13pt",
+                          margin: 0,
                           color: "#000",
-                          marginTop: "2pt",
+                          textAlign: "left",
                           lineHeight: "1.2",
                         }}
                       >
-                        ({docLabels.join(", ")})
-                      </div>
-                    </td>
-                    <td
+                        &bdquo;{site.shortName.toUpperCase()}&ldquo;
+                      </p>
+                      {site.bulstat && (
+                        <p
+                          style={{
+                            fontSize: isCompact ? "7pt" : "8pt",
+                            margin: "1pt 0 0 0",
+                            color: "#000",
+                            textAlign: "left",
+                          }}
+                        >
+                          БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Protocol Title */}
+                <div
+                  style={{
+                    textAlign: "center",
+                    margin: isCompact ? "4pt 0 6pt 0" : "8pt 0 10pt 0",
+                  }}
+                >
+                  <h2
+                    style={{
+                      fontSize: isCompact ? "11.5pt" : "13pt",
+                      fontWeight: "bold",
+                      margin: 0,
+                      color: "#000",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    МЕСЕЧЕН ПРИЕМО-ПРЕДАВАТЕЛЕН ПРОТОКОЛ
+                  </h2>
+                  <p
+                    style={{
+                      fontSize: isCompact ? "8pt" : "9pt",
+                      margin: "2pt 0 0 0",
+                      color: "#000",
+                    }}
+                  >
+                    За отчитане на транспортни и командировъчни разходи
+                  </p>
+                  <p
+                    style={{
+                      fontSize: isCompact ? "8.5pt" : "9.5pt",
+                      margin: "2pt 0 0 0",
+                      fontWeight: "bold",
+                      color: "#000",
+                    }}
+                  >
+                    Отчетен месец:{" "}
+                    <span style={{ textTransform: "capitalize" }}>
+                      {format(selectedMonth, "MMMM yyyy", { locale: bg })}
+                    </span>
+                  </p>
+                </div>
+
+                {/* Intro paragraph */}
+                <p
+                  style={{
+                    fontSize: isCompact ? "7.5pt" : "8pt",
+                    marginBottom: isCompact ? "5pt" : "8pt",
+                    textIndent: "15pt",
+                    textAlign: "justify",
+                    lineHeight: "1.25",
+                    color: "#000",
+                  }}
+                >
+                  Днес, {format(endOfMonth(selectedMonth), "dd.MM.yyyy")} г., се
+                  състави настоящият приемо-предавателен протокол, удостоверяващ
+                  предаването на първични счетоводни документи (фактури,
+                  фискални бонове, билети и др.), ведно с прилежащите им
+                  Заповеди за командировки, Пътни листи и отчети, доказващи
+                  извършените разходи за дейността на клуба през месец{" "}
+                  {format(selectedMonth, "MMMM yyyy", { locale: bg })}.
+                </p>
+
+                {/* Table of Trips */}
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: pFontSize,
+                    marginBottom: isCompact ? "4pt" : "6pt",
+                    color: "#000",
+                  }}
+                >
+                  <thead>
+                    <tr>
+                      <th
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          backgroundColor: "#f8fafc",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          color: "#000",
+                          width: "18pt",
+                        }}
+                      >
+                        №
+                      </th>
+                      <th
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          backgroundColor: "#f8fafc",
+                          fontWeight: "bold",
+                          textAlign: "left",
+                          color: "#000",
+                        }}
+                      >
+                        Командировка / Събитие
+                      </th>
+                      <th
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          backgroundColor: "#f8fafc",
+                          fontWeight: "bold",
+                          textAlign: "left",
+                          color: "#000",
+                          width: isCompact ? "70pt" : "80pt",
+                        }}
+                      >
+                        Водач / Треньор
+                      </th>
+                      <th
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          backgroundColor: "#f8fafc",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          color: "#000",
+                          width: isCompact ? "55pt" : "60pt",
+                        }}
+                      >
+                        Вид дейност
+                      </th>
+                      <th
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          backgroundColor: "#f8fafc",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          color: "#000",
+                          width: isCompact ? "80pt" : "90pt",
+                        }}
+                      >
+                        Документи (бр.)
+                      </th>
+                      <th
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          backgroundColor: "#f8fafc",
+                          fontWeight: "bold",
+                          textAlign: "right",
+                          color: "#000",
+                          width: isCompact ? "50pt" : "55pt",
+                        }}
+                      >
+                        Сума (EUR)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTrips.map((trip, idx) => {
+                      const coach = membersDict[trip.coachId];
+                      const coachName = coach
+                        ? `${coach.firstName} ${coach.lastName}`
+                        : "Неизвестен";
+                      const sDate = parseISO(trip.startDate);
+                      const eDate = parseISO(trip.endDate);
+                      const tripExps = expenses[trip.id!] || [];
+                      const { total } = computeTripRowTotals(trip, tripExps);
+
+                      const hasFuelDoc = Boolean(
+                        trip.vehicle?.distanceKm || trip.vehicle?.brand
+                      );
+                      const hasDecisionDoc = Boolean(
+                        trip.usDecision || trip.decisionDownloadedAt
+                      );
+                      const docLabels: string[] = [
+                        "Заповед",
+                        "Ведомост",
+                        "Присъств. лист",
+                        "Доклад",
+                      ];
+                      if (hasDecisionDoc) docLabels.push("Решение УС");
+                      if (hasFuelDoc) docLabels.push("Отчет гориво");
+                      if (tripExps.length > 0)
+                        docLabels.push(`+${tripExps.length} разх. док.`);
+                      const matchProtocolsCount =
+                        trip.matchProtocols?.length || 0;
+                      if (matchProtocolsCount > 0)
+                        docLabels.push(`+${matchProtocolsCount} спортни прот.`);
+                      const totalDocsCount =
+                        4 +
+                        (hasDecisionDoc ? 1 : 0) +
+                        (hasFuelDoc ? 1 : 0) +
+                        tripExps.length +
+                        matchProtocolsCount;
+
+                      return (
+                        <tr key={trip.id}>
+                          <td
+                            style={{
+                              border: "1px solid #000",
+                              padding: cellPadding,
+                              textAlign: "center",
+                              color: "#000",
+                            }}
+                          >
+                            {idx + 1}
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid #000",
+                              padding: cellPadding,
+                              color: "#000",
+                            }}
+                          >
+                            <div
+                              style={{ fontWeight: "600", lineHeight: "1.2" }}
+                            >
+                              {trip.title}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: isCompact ? "6.5pt" : "7pt",
+                                marginTop: "1pt",
+                              }}
+                            >
+                              {format(sDate, "dd.MM.yyyy")}
+                              {eDate &&
+                                trip.endDate !== trip.startDate &&
+                                ` до ${format(eDate, "dd.MM.yyyy")}`}
+                              {trip.destination ? ` в ${trip.destination}` : ""}
+                            </div>
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid #000",
+                              padding: cellPadding,
+                              color: "#000",
+                            }}
+                          >
+                            {coachName}
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid #000",
+                              padding: cellPadding,
+                              textAlign: "center",
+                              color: "#000",
+                            }}
+                          >
+                            {trip.financials.isCommercialActivity
+                              ? "Стопанска"
+                              : "Нестопанска"}
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid #000",
+                              padding: cellPadding,
+                              textAlign: "center",
+                              color: "#000",
+                            }}
+                          >
+                            <div style={{ fontWeight: "700" }}>
+                              {totalDocsCount} бр.
+                            </div>
+                            <div
+                              style={{
+                                fontSize: isCompact ? "5.5pt" : "6.5pt",
+                                color: "#000",
+                                marginTop: "1pt",
+                                lineHeight: "1.1",
+                              }}
+                            >
+                              ({docLabels.join(", ")})
+                            </div>
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid #000",
+                              padding: cellPadding,
+                              textAlign: "right",
+                              color: "#000",
+                              fontWeight: "600",
+                            }}
+                          >
+                            €{total.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    <tr style={{ fontWeight: "bold", color: "#000" }}>
+                      <td
+                        colSpan={5}
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          textAlign: "right",
+                          backgroundColor: "#f8fafc",
+                          color: "#000",
+                        }}
+                      >
+                        ОБЩО ЗА МЕСЕЦА (EUR):
+                      </td>
+                      <td
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          textAlign: "right",
+                          backgroundColor: "#f8fafc",
+                          color: "#000",
+                        }}
+                      >
+                        €{kpis.totalEur.toFixed(2)}
+                      </td>
+                    </tr>
+                    <tr style={{ fontWeight: "bold", color: "#000" }}>
+                      <td
+                        colSpan={5}
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          textAlign: "right",
+                          backgroundColor: "#f8fafc",
+                          color: "#000",
+                        }}
+                      >
+                        РАВНОСМЕТКА В ЛЕВА (BGN):
+                      </td>
+                      <td
+                        style={{
+                          border: "1px solid #000",
+                          padding: cellPadding,
+                          textAlign: "right",
+                          backgroundColor: "#f8fafc",
+                          color: "#000",
+                        }}
+                      >
+                        {kpis.totalBgn.toFixed(2)} лв.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Bottom Section: Declaration & Signatures */}
+              <div>
+                <p
+                  style={{
+                    fontSize: isUltraCompact
+                      ? "6.5pt"
+                      : isCompact
+                        ? "7.2pt"
+                        : "8pt",
+                    textIndent: "15pt",
+                    textAlign: "justify",
+                    lineHeight: "1.2",
+                    margin: "4pt 0 6pt 0",
+                    color: "#000",
+                  }}
+                >
+                  Долуподписаният Председател на {site.name} декларира, че
+                  отразените в протокола разходи са реално извършени, свързани
+                  са изцяло с основната дейност на сдружението и приложените към
+                  тях разходооправдателни документи отговарят на изискванията на
+                  Закона за счетоводството (ЗСч) и ЗКПО. Всички командировъчни
+                  разходи са оформени съгласно Наредбата за командировките в
+                  страната (НКС).
+                </p>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "0 25pt",
+                    marginTop: isCompact ? "4pt" : "8pt",
+                    color: "#000",
+                  }}
+                >
+                  <div style={{ textAlign: "center" }}>
+                    <p
                       style={{
-                        border: "1px solid #000",
-                        padding: "6pt 8pt",
-                        textAlign: "right",
-                        color: "#000",
+                        fontWeight: "bold",
+                        margin: 0,
+                        fontSize: isCompact ? "7.5pt" : "8.5pt",
                       }}
                     >
-                      €{total.toFixed(2)}
-                    </td>
-                  </tr>
-                );
-              })}
-              <tr style={{ fontWeight: "bold", color: "#000" }}>
-                <td
-                  colSpan={5}
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    textAlign: "right",
-                    backgroundColor: "#f8fafc",
-                    color: "#000",
-                  }}
-                >
-                  ОБЩО ЗА МЕСЕЦА (EUR):
-                </td>
-                <td
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    textAlign: "right",
-                    backgroundColor: "#f8fafc",
-                    color: "#000",
-                  }}
-                >
-                  €{kpis.totalEur.toFixed(2)}
-                </td>
-              </tr>
-              <tr style={{ fontWeight: "bold", color: "#000" }}>
-                <td
-                  colSpan={5}
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    textAlign: "right",
-                    backgroundColor: "#f8fafc",
-                    color: "#000",
-                  }}
-                >
-                  РАВНОСМЕТКА В ЛЕВА (BGN):
-                </td>
-                <td
-                  style={{
-                    border: "1px solid #000",
-                    padding: "6pt 8pt",
-                    textAlign: "right",
-                    backgroundColor: "#f8fafc",
-                    color: "#000",
-                  }}
-                >
-                  {kpis.totalBgn.toFixed(2)} лв.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <p
-            style={{
-              fontSize: "11pt",
-              textIndent: "20pt",
-              textAlign: "justify",
-              marginBottom: "40pt",
-            }}
-          >
-            Долуподписаният Председател на {site.name} декларира, че отразените
-            в протокола разходи са реално извършени, свързани са изцяло с
-            основната дейност на сдружението и приложените към тях
-            разходооправдателни документи отговарят на изискванията на Закона за
-            счетоводството (ЗСч) и ЗКПО. Всички командировъчни разходи са
-            оформени съгласно Наредбата за командировките в страната (НКС).
-          </p>
-
-          <div className="mt-24 flex justify-between px-10">
-            <div className="text-center">
-              <p className="mb-8 font-bold">ПРЕДАЛ (Председател):</p>
-              <p>.......................................</p>
-              <p className="text-xs text-gray-500">(подпис)</p>
+                      ПРЕДАЛ (Председател):
+                    </p>
+                    <p
+                      style={{
+                        margin: isCompact ? "12pt 0 2pt 0" : "18pt 0 2pt 0",
+                      }}
+                    >
+                      .......................................
+                    </p>
+                    <p style={{ fontSize: "6.5pt", margin: 0 }}>(подпис)</p>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <p
+                      style={{
+                        fontWeight: "bold",
+                        margin: 0,
+                        fontSize: isCompact ? "7.5pt" : "8.5pt",
+                      }}
+                    >
+                      ПРИЕЛ (Счетоводител):
+                    </p>
+                    <p
+                      style={{
+                        margin: isCompact ? "12pt 0 2pt 0" : "18pt 0 2pt 0",
+                      }}
+                    >
+                      .......................................
+                    </p>
+                    <p style={{ fontSize: "6.5pt", margin: 0 }}>(подпис)</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="mb-10">ПРИЕЛ (Счетоводител):</p>
-              <p>.......................................</p>
-              <p className="text-xs">(подпис)</p>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
       </div>
 
       {/* Dialog for selecting an event to create/manage business trip */}
