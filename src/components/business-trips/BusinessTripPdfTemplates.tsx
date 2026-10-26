@@ -28,10 +28,7 @@ import {
   formatOrgName,
   isFemalePerson,
 } from "@/lib/business-trip-protocol";
-import {
-  generateDefaultReportText,
-  updateReportTextStaySection,
-} from "@/lib/business-trip-report";
+import { generateDefaultReportText } from "@/lib/business-trip-report";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
@@ -3371,11 +3368,7 @@ export function BusinessTripPdfTemplates({
 
         const displayReportText =
           trip.reportText && trip.reportText.trim().length > 0
-            ? updateReportTextStaySection(
-                trip.reportText.trim(),
-                trip,
-                membersDict
-              )
+            ? trip.reportText.trim()
             : defaultReportText;
 
         // Приблизителна оценка на редовете: при дълъг текст докладът заема точно 2 листа А4

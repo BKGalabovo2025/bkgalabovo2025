@@ -129,12 +129,16 @@ function buildReducedStayText(
     const names = fullStayAthletes.map((a) => a.name).join(", ");
     const fullDays = fullStayAthletes[0].days;
     const fullNights = fullStayAthletes[0].nights;
+    const fullDaysWord = fullDays === 1 ? "ден" : "дни";
+    const fullNightsWord = fullNights === 1 ? "нощувка" : "нощувки";
     lines.push(
-      `• Останалите ${fullStayAthletes.length} състезатели (${names}) и ${coachStat.name} проведоха пълен престой от ${fullDays} дни с ${fullNights} нощувки съгласно състезателния график.`
+      `• Останалите ${fullStayAthletes.length} състезатели (${names}) и ${coachStat.name} проведоха пълен престой от ${fullDays} ${fullDaysWord} с ${fullNights} ${fullNightsWord} съгласно състезателния график.`
     );
   } else {
+    const coachDayWord = coachStat.days === 1 ? "ден" : "дни";
+    const coachNightWord = coachStat.nights === 1 ? "нощувка" : "нощувки";
     lines.push(
-      `• ${coachStat.name} проведе престой от ${coachStat.days} дни и ${coachStat.nights} нощувки съгласно утвърдените условия.`
+      `• ${coachStat.name} проведе престой от ${coachStat.days} ${coachDayWord} и ${coachStat.nights} ${coachNightWord} съгласно утвърдените условия.`
     );
   }
 

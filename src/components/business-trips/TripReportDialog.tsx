@@ -57,7 +57,7 @@ interface TripReportDialogProps {
   membersDict: Record<string, Member>;
   expenses?: TripExpense[];
   event?: ScheduleEvent | null;
-  onSuccess?: () => void;
+  onSuccess?: (savedReportText?: string) => void;
 }
 
 export function TripReportDialog({
@@ -88,21 +88,8 @@ export function TripReportDialog({
       setAttachMatchProtocols(hasProtocols);
       setProtocols(trip.matchProtocols || []);
 
-      const hasOldPlaceholder =
-        trip.reportText &&
-        (trip.reportText.includes(
-          "Ако състезателите са отпаднали по-рано от турнира"
-        ) ||
-          trip.reportText.includes("Забележка при съкращаване на престоя:"));
-
-      if (
-        trip.reportText &&
-        trip.reportText.trim() !== "" &&
-        !hasOldPlaceholder
-      ) {
-        setReportText(
-          updateReportTextStaySection(trip.reportText, trip, membersDict)
-        );
+      if (trip.reportText && trip.reportText.trim() !== "") {
+        setReportText(trip.reportText);
       } else {
         setReportText(
           generateDefaultReportText(
@@ -115,7 +102,7 @@ export function TripReportDialog({
         );
       }
     }
-  }, [open, trip, membersDict, expenses, event]);
+  }, [open, trip?.id]);
 
   const handleToggleProtocols = (checked: boolean) => {
     setAttachMatchProtocols(checked);
@@ -290,14 +277,15 @@ export function TripReportDialog({
   const handleSave = async () => {
     if (!trip?.id) return;
     setIsSaving(true);
+    const trimmedText = reportText.trim();
     try {
       await businessTripService.updateTrip(trip.id, {
-        reportText: reportText.trim(),
+        reportText: trimmedText,
         attachMatchProtocols,
         matchProtocols: protocols,
       });
       toast.success("Докладът за извършената работа е записан успешно!");
-      onSuccess?.();
+      onSuccess?.(trimmedText);
       onOpenChange(false);
     } catch (err) {
       console.error(err);

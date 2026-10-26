@@ -1895,7 +1895,19 @@ export function BusinessTripManagerDialog({
               : []
           }
           event={event}
-          onSuccess={() => {
+          onSuccess={(savedReportText) => {
+            if (selectedTripForReport?.id) {
+              setBusinessTrips((prev) =>
+                prev.map((t) =>
+                  t.id === selectedTripForReport.id
+                    ? {
+                        ...t,
+                        reportText: savedReportText ?? t.reportText,
+                      }
+                    : t
+                )
+              );
+            }
             setSelectedTripForReport(null);
             loadData();
           }}

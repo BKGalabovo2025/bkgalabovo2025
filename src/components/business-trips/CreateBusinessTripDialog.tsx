@@ -37,7 +37,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
-import { updateReportTextStaySection } from "@/lib/business-trip-report";
 import { businessTripService } from "@/services/business-trip-service";
 import { BusinessTrip, BusinessTripSchema } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
@@ -255,19 +254,7 @@ export function CreateBusinessTripDialog({
         usDecisionDate: values.usDecisionDate?.trim() || undefined,
         usProtocolNumber: values.usProtocolNumber?.trim() || undefined,
         usDecisionNotes: values.usDecisionNotes?.trim() || undefined,
-        reportText: values.reportText?.trim()
-          ? updateReportTextStaySection(
-              values.reportText.trim(),
-              {
-                ...values,
-                coachName,
-                coachRole,
-                participantsIds: effectiveParticipantsIds,
-                id: initialData?.id,
-              } as BusinessTrip,
-              membersDict
-            )
-          : undefined,
+        reportText: values.reportText?.trim() || undefined,
         attachMatchProtocols: Boolean(values.attachMatchProtocols),
         financials: {
           ...values.financials,
