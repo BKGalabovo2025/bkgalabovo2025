@@ -153,17 +153,24 @@ function numToWordsBG(amount: number, isEur: boolean = false): string {
 }
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
-const PAGE_A4: React.CSSProperties = {
+const PAGE_A4_PAGE: React.CSSProperties = {
   width: "210mm",
+  height: "297mm",
   minHeight: "297mm",
+  maxHeight: "297mm",
   fontFamily:
     'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-  fontSize: "10pt",
-  lineHeight: 1.5,
+  fontSize: "9pt",
+  lineHeight: 1.35,
   color: "#000",
   backgroundColor: "#fff",
-  padding: "12mm 15mm 12mm 15mm",
+  padding: "10mm 14mm",
   boxSizing: "border-box",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  overflow: "hidden",
+  position: "relative",
 };
 const PAGE_A4_REPORT: React.CSSProperties = {
   width: "210mm",
@@ -178,18 +185,6 @@ const PAGE_A4_REPORT: React.CSSProperties = {
   boxSizing: "border-box",
   display: "flex",
   flexDirection: "column",
-};
-const PAGE_LAND: React.CSSProperties = {
-  width: "297mm",
-  minHeight: "210mm",
-  fontFamily:
-    'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-  fontSize: "9pt",
-  lineHeight: 1.4,
-  color: "#000",
-  backgroundColor: "#fff",
-  padding: "10mm",
-  boxSizing: "border-box",
 };
 const PAGE_LAND_PAGE: React.CSSProperties = {
   width: "297mm",
@@ -212,7 +207,7 @@ const PAGE_LAND_PAGE: React.CSSProperties = {
 };
 const TH: React.CSSProperties = {
   border: "1px solid #000",
-  padding: "4pt 4pt",
+  padding: "3pt 3pt",
   textAlign: "center",
   fontWeight: "600",
   verticalAlign: "middle",
@@ -222,7 +217,7 @@ const TH: React.CSSProperties = {
 };
 const TD: React.CSSProperties = {
   border: "1px solid #000",
-  padding: "4pt 4pt",
+  padding: "3pt 3pt",
   verticalAlign: "middle",
   fontSize: "8pt",
   color: "#000",
@@ -670,7 +665,11 @@ export function BusinessTripPdfTemplates({
       {/* ══════════════════════════════════════════════════════
           DOC 0.0: ПРОТОКОЛ НА УПРАВИТЕЛНИЯ СЪВЕТ (BOARD PROTOCOL / MINUTES)
       ══════════════════════════════════════════════════════ */}
-      <div id={`pdf-board-protocol-template${idSuffix}`} style={PAGE_A4}>
+      <div
+        id={`pdf-board-protocol-template${idSuffix}`}
+        className="pdf-page bg-white text-black"
+        style={PAGE_A4_PAGE}
+      >
         <div
           style={{
             display: "flex",
@@ -1109,7 +1108,11 @@ export function BusinessTripPdfTemplates({
       {/* ══════════════════════════════════════════════════════
           DOC 0: РЕШЕНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ (BOARD DECISION)
       ══════════════════════════════════════════════════════ */}
-      <div id={`pdf-board-decision-template${idSuffix}`} style={PAGE_A4}>
+      <div
+        id={`pdf-board-decision-template${idSuffix}`}
+        className="pdf-page bg-white text-black"
+        style={PAGE_A4_PAGE}
+      >
         <div
           style={{
             display: "flex",
@@ -1466,286 +1469,322 @@ export function BusinessTripPdfTemplates({
         </div>
       </div>
 
-      <div id={`pdf-order-template${idSuffix}`} style={PAGE_A4}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            borderBottom: "2px solid #000",
-            paddingBottom: "10pt",
-            marginBottom: "12pt",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
-            <img
-              src="/icons/LOGO.jpg"
-              alt="Logo"
-              style={{ height: "45pt", objectFit: "contain" }}
-            />
-            <div>
-              <p
-                style={{
-                  fontWeight: "700",
-                  fontSize: "14pt",
-                  margin: 0,
-                  color: "#000",
-                }}
-              >
-                {formatOrgName(site.shortName, true)}
-              </p>
-              {site.bulstat && (
+      <div
+        id={`pdf-order-template${idSuffix}`}
+        className="pdf-page bg-white text-black"
+        style={PAGE_A4_PAGE}
+      >
+        <div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottom: "2px solid #000",
+              paddingBottom: "8pt",
+              marginBottom: "10pt",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+              <img
+                src="/icons/LOGO.jpg"
+                alt="Logo"
+                style={{ height: "40pt", objectFit: "contain" }}
+              />
+              <div>
                 <p
                   style={{
-                    fontSize: "9pt",
-                    margin: "2pt 0 0 0",
+                    fontWeight: "700",
+                    fontSize: "13pt",
+                    margin: 0,
                     color: "#000",
                   }}
                 >
-                  БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                  {formatOrgName(site.shortName, true)}
                 </p>
-              )}
+                {site.bulstat && (
+                  <p
+                    style={{
+                      fontSize: "8.5pt",
+                      margin: "2pt 0 0 0",
+                      color: "#000",
+                    }}
+                  >
+                    БУЛСТАТ: {site.bulstat} | {site.contact.address}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-        <div style={{ textAlign: "center", marginBottom: "14pt" }}>
+          <div style={{ textAlign: "center", marginBottom: "10pt" }}>
+            <p
+              style={{
+                fontWeight: "800",
+                fontSize: "13pt",
+                letterSpacing: "4px",
+                margin: 0,
+              }}
+            >
+              Н А Р Е Ж Д А Н Е
+            </p>
+            <p style={{ fontSize: "11pt", marginTop: "3pt", color: "#000" }}>
+              № {orderNum} / {orderDate} г.
+            </p>
+          </div>
           <p
             style={{
-              fontWeight: "800",
-              fontSize: "13pt",
-              letterSpacing: "4px",
-              margin: 0,
+              marginBottom: "6pt",
+              textAlign: "justify",
+              fontSize: "9pt",
+              lineHeight: "1.4",
             }}
           >
-            Н А Р Е Ж Д А Н Е
-          </p>
-          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#000" }}>
-            № {orderNum} / {orderDate} г.
-          </p>
-        </div>
-        <p style={{ marginBottom: "8pt", textAlign: "justify" }}>
-          На основание Наредбата за командировките в страната, Държавния спортен
-          календар на Б Ф Бадминтон
-          {trip.usDecision ? (
-            <>
-              {" "}
-              и Решение на Управителния съвет{" "}
-              <strong>
-                {trip.usDecision.startsWith("№")
-                  ? trip.usDecision
-                  : `№ ${trip.usDecision}`}
-              </strong>
-              {trip.usDecisionDate
-                ? ` от ${fmtDate(trip.usDecisionDate)} г.`
-                : ` от ${decisionDate} г.`}
-            </>
-          ) : (
-            <>
-              {" "}
-              и Решение на Управителния съвет № {decisionNum} от {decisionDate}{" "}
-              г.
-            </>
-          )}
-          ,
-        </p>
-        <p
-          style={{
-            textAlign: "center",
-            fontWeight: "700",
-            fontSize: "12pt",
-            marginBottom: "10pt",
-            letterSpacing: "3px",
-            color: "#000",
-          }}
-        >
-          К О М А Н Д И Р О В А М:
-        </p>
-        <p style={{ marginBottom: "8pt", lineHeight: "1.5" }}>
-          До <strong style={{ color: "#000" }}>{destCity}</strong> и обратно до
-          гр. Гълъбово, за участие в:{" "}
-          <strong style={{ color: "#000" }}>{trip.title}</strong> (
-          {fmtDate(trip.startDate)}
-          {trip.startDate !== trip.endDate ? ` - ${fmtDate(trip.endDate)}` : ""}
-          ), на следните служебни лица:
-        </p>
-        <div
-          style={{ marginLeft: "16pt", marginBottom: "16pt", marginTop: "4pt" }}
-        >
-          {plannedPeople.map((p, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "3pt 0",
-              }}
-            >
-              <span style={{ width: "24pt", color: "#000" }}>{i + 1}.</span>
-              <strong
-                style={{ fontWeight: "600", width: "180pt", color: "#000" }}
-              >
-                {p.name}
-              </strong>
-              <span style={{ color: "#000" }}>— {p.role.toLowerCase()}</span>
-            </div>
-          ))}
-        </div>
-        <p style={{ marginBottom: "6pt" }}>
-          На групата от <strong>{totalPlannedPeople}</strong>{" "}
-          {totalPlannedPeople === 1 ? "човек" : "човека"} да се осигурят
-          средства, както следва:
-        </p>
-        {hasPerDiem && (
-          <p style={{ marginBottom: "4pt" }}>
-            {snPlanned("diem")}. Дневни на <strong>{totalPlannedPeople}</strong>{" "}
-            {totalPlannedPeople === 1 ? "човек" : "човека"} по{" "}
-            <strong>{fmtEUR(perDiemEUR)}</strong> ({perDiemBGN.toFixed(2)} лв.)
-            / на ден за едно лице за <strong>{plannedDays}</strong>{" "}
-            {plannedDays === 1 ? "ден" : "дни"}.
-          </p>
-        )}
-        {renderOrderTransportText()}
-        {hasPlannedAccom && (
-          <p style={{ marginBottom: "4pt" }}>
-            {snPlanned("accom")}. Нощувки —{" "}
-            <strong>{totalPlannedPeople}</strong>{" "}
-            {totalPlannedPeople === 1 ? "човек" : "човека"}{" "}
-            {trip.financials.accommodationRateEUR > 0 ? (
+            На основание Наредбата за командировките в страната, Държавния
+            спортен календар на Б Ф Бадминтон
+            {trip.usDecision ? (
               <>
-                по <strong>{fmtEUR(accomEUR)}</strong> ({accomBGN.toFixed(2)}{" "}
-                лв.) / на нощ за едно лице (срещу фактура){" "}
+                {" "}
+                и Решение на Управителния съвет{" "}
+                <strong>
+                  {trip.usDecision.startsWith("№")
+                    ? trip.usDecision
+                    : `№ ${trip.usDecision}`}
+                </strong>
+                {trip.usDecisionDate
+                  ? ` от ${fmtDate(trip.usDecisionDate)} г.`
+                  : ` от ${decisionDate} г.`}
               </>
             ) : (
-              <>(срещу фактура) </>
-            )}{" "}
-            за <strong>{plannedNights}</strong>{" "}
-            {plannedNights === 1 ? "нощ" : "нощи"}.
-          </p>
-        )}
-        {hasEntryFee && (
-          <p style={{ marginBottom: "4pt" }}>
-            {snPlanned("entry")}. Входни такси за участие{" "}
-            {entryEUR > 0 ? (
               <>
-                — общо <strong>{fmtEUR(entryEUR)}</strong> (
-                {eurToBgn(entryEUR).toFixed(2)} лв.) (срещу фактура или
-                квитанция от организатора).
+                {" "}
+                и Решение на Управителния съвет № {decisionNum} от{" "}
+                {decisionDate} г.
               </>
-            ) : (
-              "(срещу фактура или квитанция от организатора)."
             )}
+            ,
           </p>
-        )}
-        <p
-          style={{
-            marginTop: "12pt",
-            marginBottom: "20pt",
-            fontSize: "11pt",
-            fontWeight: "600",
-            color: "#000",
-          }}
-        >
-          Разходите за командировката са за сметка на{" "}
-          {formatOrgName(site.shortName)} гр. Гълъбово.
-        </p>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: "24pt",
-            gap: "20pt",
-          }}
-        >
-          <div
+          <p
             style={{
-              flex: 1,
-              border: "1px solid #000",
-              borderRadius: "8px",
-              padding: "10pt",
               textAlign: "center",
-              minHeight: "60pt",
+              fontWeight: "700",
+              fontSize: "11pt",
+              marginBottom: "6pt",
+              letterSpacing: "3px",
+              color: "#000",
             }}
           >
-            <p
-              style={{
-                fontWeight: "700",
-                fontSize: "9pt",
-                margin: 0,
-                color: "#000",
-                textTransform: "uppercase",
-              }}
-            >
-              Подпис на Командирования
-            </p>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "50pt",
-              }}
-            >
-              {trip.signatures?.coach ? (
-                <img
-                  src={trip.signatures.coach}
-                  alt="signature"
-                  style={{ height: "45pt", objectFit: "contain" }}
-                />
-              ) : (
-                <span style={{ color: "#000" }}>
-                  ..................................
-                </span>
-              )}
-            </div>
-            <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
-              / {coachName} /
-            </p>
+            К О М А Н Д И Р О В А М:
+          </p>
+          <p
+            style={{ marginBottom: "6pt", lineHeight: "1.4", fontSize: "9pt" }}
+          >
+            До <strong style={{ color: "#000" }}>{destCity}</strong> и обратно
+            до гр. Гълъбово, за участие в:{" "}
+            <strong style={{ color: "#000" }}>{trip.title}</strong> (
+            {fmtDate(trip.startDate)}
+            {trip.startDate !== trip.endDate
+              ? ` - ${fmtDate(trip.endDate)}`
+              : ""}
+            ), на следните служебни лица:
+          </p>
+          <div
+            style={{
+              marginLeft: "6pt",
+              marginBottom: "8pt",
+              marginTop: "2pt",
+              ...(plannedPeople.length > 5
+                ? {
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    columnGap: "16pt",
+                    rowGap: "2pt",
+                  }
+                : {}),
+            }}
+          >
+            {plannedPeople.map((p, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: plannedPeople.length > 5 ? "1pt 0" : "2pt 0",
+                  fontSize: plannedPeople.length > 8 ? "8.5pt" : "9pt",
+                }}
+              >
+                <span style={{ width: "18pt", color: "#000" }}>{i + 1}.</span>
+                <strong
+                  style={{
+                    fontWeight: "600",
+                    color: "#000",
+                    marginRight: "4pt",
+                  }}
+                >
+                  {p.name}
+                </strong>
+                <span style={{ color: "#000" }}>— {p.role.toLowerCase()}</span>
+              </div>
+            ))}
           </div>
-          <div
+          <p style={{ marginBottom: "4pt", fontSize: "9pt" }}>
+            На групата от <strong>{totalPlannedPeople}</strong>{" "}
+            {totalPlannedPeople === 1 ? "човек" : "човека"} да се осигурят
+            средства, както следва:
+          </p>
+          {hasPerDiem && (
+            <p style={{ marginBottom: "3pt", fontSize: "9pt" }}>
+              {snPlanned("diem")}. Дневни на{" "}
+              <strong>{totalPlannedPeople}</strong>{" "}
+              {totalPlannedPeople === 1 ? "човек" : "човека"} по{" "}
+              <strong>{fmtEUR(perDiemEUR)}</strong> ({perDiemBGN.toFixed(2)}{" "}
+              лв.) / на ден за едно лице за <strong>{plannedDays}</strong>{" "}
+              {plannedDays === 1 ? "ден" : "дни"}.
+            </p>
+          )}
+          {renderOrderTransportText()}
+          {hasPlannedAccom && (
+            <p style={{ marginBottom: "3pt", fontSize: "9pt" }}>
+              {snPlanned("accom")}. Нощувки —{" "}
+              <strong>{totalPlannedPeople}</strong>{" "}
+              {totalPlannedPeople === 1 ? "човек" : "човека"}{" "}
+              {trip.financials.accommodationRateEUR > 0 ? (
+                <>
+                  по <strong>{fmtEUR(accomEUR)}</strong> ({accomBGN.toFixed(2)}{" "}
+                  лв.) / на нощ за едно лице (срещу фактура){" "}
+                </>
+              ) : (
+                <>(срещу фактура) </>
+              )}{" "}
+              за <strong>{plannedNights}</strong>{" "}
+              {plannedNights === 1 ? "нощ" : "нощи"}.
+            </p>
+          )}
+          {hasEntryFee && (
+            <p style={{ marginBottom: "3pt", fontSize: "9pt" }}>
+              {snPlanned("entry")}. Входни такси за участие{" "}
+              {entryEUR > 0 ? (
+                <>
+                  — общо <strong>{fmtEUR(entryEUR)}</strong> (
+                  {eurToBgn(entryEUR).toFixed(2)} лв.) (срещу фактура или
+                  квитанция от организатора).
+                </>
+              ) : (
+                "(срещу фактура или квитанция от организатора)."
+              )}
+            </p>
+          )}
+        </div>
+        <div style={{ marginTop: "auto" }}>
+          <p
             style={{
-              flex: 1,
-              border: "1px solid #000",
-              borderRadius: "8px",
-              padding: "10pt",
-              textAlign: "center",
-              minHeight: "60pt",
-              backgroundColor: "#f8fafc",
+              marginTop: "8pt",
+              marginBottom: "10pt",
+              fontSize: "9.5pt",
+              fontWeight: "600",
+              color: "#000",
             }}
           >
-            <p
-              style={{
-                fontWeight: "700",
-                fontSize: "9pt",
-                margin: 0,
-                color: "#000",
-                textTransform: "uppercase",
-              }}
-            >
-              Печат и Подпис на Председателя
-            </p>
+            Разходите за командировката са за сметка на{" "}
+            {formatOrgName(site.shortName)} гр. Гълъбово.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "20pt",
+            }}
+          >
             <div
               style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "50pt",
+                flex: 1,
+                border: "1px solid #000",
+                borderRadius: "8px",
+                padding: "8pt",
+                textAlign: "center",
+                minHeight: "48pt",
               }}
             >
-              {trip.signatures?.chairman ? (
-                <img
-                  src={trip.signatures.chairman}
-                  alt="signature"
-                  style={{ height: "45pt", objectFit: "contain" }}
-                />
-              ) : (
-                <span style={{ color: "#000" }}>
-                  ..................................
-                </span>
-              )}
+              <p
+                style={{
+                  fontWeight: "700",
+                  fontSize: "8.5pt",
+                  margin: 0,
+                  color: "#000",
+                  textTransform: "uppercase",
+                }}
+              >
+                Подпис на Командирования
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "36pt",
+                }}
+              >
+                {trip.signatures?.coach ? (
+                  <img
+                    src={trip.signatures.coach}
+                    alt="signature"
+                    style={{ height: "34pt", objectFit: "contain" }}
+                  />
+                ) : (
+                  <span style={{ color: "#000" }}>
+                    ..................................
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
+                / {coachName} /
+              </p>
             </div>
-            <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
-              / {mol} /
-            </p>
+            <div
+              style={{
+                flex: 1,
+                border: "1px solid #000",
+                borderRadius: "8px",
+                padding: "8pt",
+                textAlign: "center",
+                minHeight: "48pt",
+                backgroundColor: "#f8fafc",
+              }}
+            >
+              <p
+                style={{
+                  fontWeight: "700",
+                  fontSize: "8.5pt",
+                  margin: 0,
+                  color: "#000",
+                  textTransform: "uppercase",
+                }}
+              >
+                Печат и Подпис на Председателя
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "36pt",
+                }}
+              >
+                {trip.signatures?.chairman ? (
+                  <img
+                    src={trip.signatures.chairman}
+                    alt="signature"
+                    style={{ height: "34pt", objectFit: "contain" }}
+                  />
+                ) : (
+                  <span style={{ color: "#000" }}>
+                    ..................................
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
+                / {mol} /
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -1753,7 +1792,7 @@ export function BusinessTripPdfTemplates({
           DOC 2: ВЕДОМОСТ ЗА ИЗПЛАТЕНИ СУМИ (1 или 2 страници А4)
       ══════════════════════════════════════════════════════ */}
       {(() => {
-        const isMultiPage = totalPeople > 6;
+        const isMultiPage = totalPeople > 14;
         const page2Count = isMultiPage
           ? Math.min(7, Math.floor(totalPeople / 2))
           : 0;
@@ -2740,7 +2779,11 @@ export function BusinessTripPdfTemplates({
           DOC 3: ОТЧЕТ ЗА ГОРИВО (само за fuel_only)
       ══════════════════════════════════════════════════════ */}
       {hasFuel && (
-        <div id={`pdf-fuel-report-template${idSuffix}`} style={PAGE_LAND}>
+        <div
+          id={`pdf-fuel-report-template${idSuffix}`}
+          className="pdf-page bg-white text-black"
+          style={PAGE_LAND_PAGE}
+        >
           <div
             style={{
               display: "flex",
@@ -3061,18 +3104,8 @@ export function BusinessTripPdfTemplates({
         return (
           <div
             id={`pdf-attendance-template${idSuffix}`}
-            className="pdf-page"
-            style={{
-              ...PAGE_A4,
-              minHeight: "297mm",
-              maxHeight: "297mm",
-              boxSizing: "border-box",
-              padding: "10mm 15mm",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              overflow: "hidden",
-            }}
+            className="pdf-page bg-white text-black"
+            style={PAGE_A4_PAGE}
           >
             <div>
               {/* Хедър с лого и данни за клуба */}
@@ -3373,6 +3406,7 @@ export function BusinessTripPdfTemplates({
         return (
           <div
             id={`pdf-report-template${idSuffix}`}
+            className="pdf-page bg-white text-black"
             style={{
               ...PAGE_A4_REPORT,
               minHeight: `${297 * reportSheets}mm`,

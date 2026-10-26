@@ -1571,33 +1571,13 @@ export default function AccountingClient() {
         )}
       </div>
 
-      {/* Hidden PDF Template for Protocol (Fit in EXACTLY 1 page A4) */}
+      {/* Hidden PDF Template for Protocol (Fit in EXACTLY 1 page A4, Unified Template for All Months) */}
       <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
         {(() => {
-          const tripsCount = filteredTrips.length;
-          const isCompact = tripsCount >= 3;
-          const isUltraCompact = tripsCount >= 6;
-
-          const pPadding = isUltraCompact
-            ? "6mm 10mm"
-            : isCompact
-              ? "8mm 12mm"
-              : "10mm 14mm";
-          const pFontSize = isUltraCompact
-            ? "7pt"
-            : isCompact
-              ? "7.5pt"
-              : "8.5pt";
-          const cellPadding = isUltraCompact
-            ? "2pt 3.5pt"
-            : isCompact
-              ? "2.5pt 4.5pt"
-              : "4pt 6pt";
-          const logoHeight = isUltraCompact
-            ? "26pt"
-            : isCompact
-              ? "30pt"
-              : "36pt";
+          const pPadding = "8mm 12mm";
+          const pFontSize = "7.5pt";
+          const cellPadding = "2.5pt 4pt";
+          const logoHeight = "32pt";
 
           return (
             <div
@@ -1632,8 +1612,8 @@ export default function AccountingClient() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     borderBottom: "1.5px solid #000",
-                    paddingBottom: isCompact ? "4pt" : "6pt",
-                    marginBottom: isCompact ? "5pt" : "8pt",
+                    paddingBottom: "4pt",
+                    marginBottom: "6pt",
                   }}
                 >
                   <div
@@ -1653,7 +1633,7 @@ export default function AccountingClient() {
                       <p
                         style={{
                           fontWeight: "700",
-                          fontSize: isCompact ? "11pt" : "13pt",
+                          fontSize: "12pt",
                           margin: 0,
                           color: "#000",
                           textAlign: "left",
@@ -1665,7 +1645,7 @@ export default function AccountingClient() {
                       {site.bulstat && (
                         <p
                           style={{
-                            fontSize: isCompact ? "7pt" : "8pt",
+                            fontSize: "7.5pt",
                             margin: "1pt 0 0 0",
                             color: "#000",
                             textAlign: "left",
@@ -1682,12 +1662,12 @@ export default function AccountingClient() {
                 <div
                   style={{
                     textAlign: "center",
-                    margin: isCompact ? "4pt 0 6pt 0" : "8pt 0 10pt 0",
+                    margin: "5pt 0 7pt 0",
                   }}
                 >
                   <h2
                     style={{
-                      fontSize: isCompact ? "11.5pt" : "13pt",
+                      fontSize: "12pt",
                       fontWeight: "bold",
                       margin: 0,
                       color: "#000",
@@ -1698,7 +1678,7 @@ export default function AccountingClient() {
                   </h2>
                   <p
                     style={{
-                      fontSize: isCompact ? "8pt" : "9pt",
+                      fontSize: "8.5pt",
                       margin: "2pt 0 0 0",
                       color: "#000",
                     }}
@@ -1707,7 +1687,7 @@ export default function AccountingClient() {
                   </p>
                   <p
                     style={{
-                      fontSize: isCompact ? "8.5pt" : "9.5pt",
+                      fontSize: "8.5pt",
                       margin: "2pt 0 0 0",
                       fontWeight: "bold",
                       color: "#000",
@@ -1723,8 +1703,8 @@ export default function AccountingClient() {
                 {/* Intro paragraph */}
                 <p
                   style={{
-                    fontSize: isCompact ? "7.5pt" : "8pt",
-                    marginBottom: isCompact ? "5pt" : "8pt",
+                    fontSize: "7.5pt",
+                    marginBottom: "6pt",
                     textIndent: "15pt",
                     textAlign: "justify",
                     lineHeight: "1.25",
@@ -1746,7 +1726,7 @@ export default function AccountingClient() {
                     width: "100%",
                     borderCollapse: "collapse",
                     fontSize: pFontSize,
-                    marginBottom: isCompact ? "4pt" : "6pt",
+                    marginBottom: "5pt",
                     color: "#000",
                   }}
                 >
@@ -1785,7 +1765,7 @@ export default function AccountingClient() {
                           fontWeight: "bold",
                           textAlign: "left",
                           color: "#000",
-                          width: isCompact ? "70pt" : "80pt",
+                          width: "75pt",
                         }}
                       >
                         Водач / Треньор
@@ -1798,7 +1778,7 @@ export default function AccountingClient() {
                           fontWeight: "bold",
                           textAlign: "center",
                           color: "#000",
-                          width: isCompact ? "55pt" : "60pt",
+                          width: "55pt",
                         }}
                       >
                         Вид дейност
@@ -1811,7 +1791,7 @@ export default function AccountingClient() {
                           fontWeight: "bold",
                           textAlign: "center",
                           color: "#000",
-                          width: isCompact ? "80pt" : "90pt",
+                          width: "85pt",
                         }}
                       >
                         Документи (бр.)
@@ -1824,7 +1804,7 @@ export default function AccountingClient() {
                           fontWeight: "bold",
                           textAlign: "right",
                           color: "#000",
-                          width: isCompact ? "50pt" : "55pt",
+                          width: "55pt",
                         }}
                       >
                         Сума (EUR)
@@ -1895,7 +1875,7 @@ export default function AccountingClient() {
                             </div>
                             <div
                               style={{
-                                fontSize: isCompact ? "6.5pt" : "7pt",
+                                fontSize: "6.5pt",
                                 marginTop: "1pt",
                               }}
                             >
@@ -1940,7 +1920,7 @@ export default function AccountingClient() {
                             </div>
                             <div
                               style={{
-                                fontSize: isCompact ? "5.5pt" : "6.5pt",
+                                fontSize: "6pt",
                                 color: "#000",
                                 marginTop: "1pt",
                                 lineHeight: "1.1",
@@ -2021,11 +2001,7 @@ export default function AccountingClient() {
               <div>
                 <p
                   style={{
-                    fontSize: isUltraCompact
-                      ? "6.5pt"
-                      : isCompact
-                        ? "7.2pt"
-                        : "8pt",
+                    fontSize: "7.2pt",
                     textIndent: "15pt",
                     textAlign: "justify",
                     lineHeight: "1.2",
@@ -2047,7 +2023,7 @@ export default function AccountingClient() {
                     display: "flex",
                     justifyContent: "space-between",
                     padding: "0 25pt",
-                    marginTop: isCompact ? "4pt" : "8pt",
+                    marginTop: "6pt",
                     color: "#000",
                   }}
                 >
@@ -2056,14 +2032,14 @@ export default function AccountingClient() {
                       style={{
                         fontWeight: "bold",
                         margin: 0,
-                        fontSize: isCompact ? "7.5pt" : "8.5pt",
+                        fontSize: "8pt",
                       }}
                     >
                       ПРЕДАЛ (Председател):
                     </p>
                     <p
                       style={{
-                        margin: isCompact ? "12pt 0 2pt 0" : "18pt 0 2pt 0",
+                        margin: "14pt 0 2pt 0",
                       }}
                     >
                       .......................................
@@ -2075,14 +2051,14 @@ export default function AccountingClient() {
                       style={{
                         fontWeight: "bold",
                         margin: 0,
-                        fontSize: isCompact ? "7.5pt" : "8.5pt",
+                        fontSize: "8pt",
                       }}
                     >
                       ПРИЕЛ (Счетоводител):
                     </p>
                     <p
                       style={{
-                        margin: isCompact ? "12pt 0 2pt 0" : "18pt 0 2pt 0",
+                        margin: "14pt 0 2pt 0",
                       }}
                     >
                       .......................................
