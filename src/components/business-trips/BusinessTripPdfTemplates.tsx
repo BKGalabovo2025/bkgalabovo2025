@@ -207,18 +207,20 @@ const PAGE_LAND_PAGE: React.CSSProperties = {
 };
 const TH: React.CSSProperties = {
   border: "1px solid #000",
-  padding: "3pt 3pt",
+  padding: "3pt 5pt",
   textAlign: "center",
   fontWeight: "600",
   verticalAlign: "middle",
+  lineHeight: 1.3,
   fontSize: "8pt",
   backgroundColor: "#f8fafc",
   color: "#000",
 };
 const TD: React.CSSProperties = {
   border: "1px solid #000",
-  padding: "3pt 3pt",
+  padding: "3pt 5pt",
   verticalAlign: "middle",
+  lineHeight: 1.3,
   fontSize: "8pt",
   color: "#000",
 };
@@ -1869,7 +1871,16 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>{globalIndex + 1}.</td>
               <td style={TD}>{p.name}</td>
               <td style={{ ...TD, textAlign: "center" }}>{p.role}</td>
-              <td style={{ ...TD, textAlign: "center" }}>{routeLabel}</td>
+              <td
+                style={{
+                  ...TD,
+                  textAlign: "center",
+                  wordBreak: "break-word",
+                  overflowWrap: "break-word",
+                }}
+              >
+                {routeLabel}
+              </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 {isFirstPerson && transportTotalEUR > 0 ? (
                   <div>

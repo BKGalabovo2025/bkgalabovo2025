@@ -1576,7 +1576,7 @@ export default function AccountingClient() {
         {(() => {
           const pPadding = "8mm 12mm";
           const pFontSize = "7.5pt";
-          const cellPadding = "2.5pt 4pt";
+          const cellPadding = "3pt 5pt";
           const logoHeight = "32pt";
 
           return (
@@ -1738,6 +1738,7 @@ export default function AccountingClient() {
                           padding: cellPadding,
                           backgroundColor: "#f8fafc",
                           fontWeight: "bold",
+                          verticalAlign: "middle",
                           textAlign: "center",
                           color: "#000",
                           width: "18pt",
@@ -1751,6 +1752,7 @@ export default function AccountingClient() {
                           padding: cellPadding,
                           backgroundColor: "#f8fafc",
                           fontWeight: "bold",
+                          verticalAlign: "middle",
                           textAlign: "left",
                           color: "#000",
                         }}
@@ -1763,6 +1765,7 @@ export default function AccountingClient() {
                           padding: cellPadding,
                           backgroundColor: "#f8fafc",
                           fontWeight: "bold",
+                          verticalAlign: "middle",
                           textAlign: "left",
                           color: "#000",
                           width: "75pt",
@@ -1776,6 +1779,7 @@ export default function AccountingClient() {
                           padding: cellPadding,
                           backgroundColor: "#f8fafc",
                           fontWeight: "bold",
+                          verticalAlign: "middle",
                           textAlign: "center",
                           color: "#000",
                           width: "55pt",
@@ -1789,6 +1793,7 @@ export default function AccountingClient() {
                           padding: cellPadding,
                           backgroundColor: "#f8fafc",
                           fontWeight: "bold",
+                          verticalAlign: "middle",
                           textAlign: "center",
                           color: "#000",
                           width: "85pt",
@@ -1802,6 +1807,7 @@ export default function AccountingClient() {
                           padding: cellPadding,
                           backgroundColor: "#f8fafc",
                           fontWeight: "bold",
+                          verticalAlign: "middle",
                           textAlign: "right",
                           color: "#000",
                           width: "55pt",
@@ -1855,6 +1861,7 @@ export default function AccountingClient() {
                             style={{
                               border: "1px solid #000",
                               padding: cellPadding,
+                              verticalAlign: "middle",
                               textAlign: "center",
                               color: "#000",
                             }}
@@ -1865,6 +1872,7 @@ export default function AccountingClient() {
                             style={{
                               border: "1px solid #000",
                               padding: cellPadding,
+                              verticalAlign: "middle",
                               color: "#000",
                             }}
                           >
@@ -1890,6 +1898,7 @@ export default function AccountingClient() {
                             style={{
                               border: "1px solid #000",
                               padding: cellPadding,
+                              verticalAlign: "middle",
                               color: "#000",
                             }}
                           >
@@ -1899,6 +1908,7 @@ export default function AccountingClient() {
                             style={{
                               border: "1px solid #000",
                               padding: cellPadding,
+                              verticalAlign: "middle",
                               textAlign: "center",
                               color: "#000",
                             }}
@@ -1911,6 +1921,7 @@ export default function AccountingClient() {
                             style={{
                               border: "1px solid #000",
                               padding: cellPadding,
+                              verticalAlign: "middle",
                               textAlign: "center",
                               color: "#000",
                             }}
@@ -1933,6 +1944,7 @@ export default function AccountingClient() {
                             style={{
                               border: "1px solid #000",
                               padding: cellPadding,
+                              verticalAlign: "middle",
                               textAlign: "right",
                               color: "#000",
                               fontWeight: "600",
@@ -1949,6 +1961,7 @@ export default function AccountingClient() {
                         style={{
                           border: "1px solid #000",
                           padding: cellPadding,
+                          verticalAlign: "middle",
                           textAlign: "right",
                           backgroundColor: "#f8fafc",
                           color: "#000",
@@ -1960,6 +1973,7 @@ export default function AccountingClient() {
                         style={{
                           border: "1px solid #000",
                           padding: cellPadding,
+                          verticalAlign: "middle",
                           textAlign: "right",
                           backgroundColor: "#f8fafc",
                           color: "#000",
@@ -1974,6 +1988,7 @@ export default function AccountingClient() {
                         style={{
                           border: "1px solid #000",
                           padding: cellPadding,
+                          verticalAlign: "middle",
                           textAlign: "right",
                           backgroundColor: "#f8fafc",
                           color: "#000",
@@ -1985,6 +2000,7 @@ export default function AccountingClient() {
                         style={{
                           border: "1px solid #000",
                           padding: cellPadding,
+                          verticalAlign: "middle",
                           textAlign: "right",
                           backgroundColor: "#f8fafc",
                           color: "#000",
