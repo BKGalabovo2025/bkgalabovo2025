@@ -85,6 +85,99 @@ import {
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
 
+async function resolveAttachmentExtension(
+  blob: Blob,
+  fallbackName?: string | null,
+  fallbackUrl?: string | null
+): Promise<string> {
+  // 1. Check Magic Bytes from Blob
+  try {
+    const slice = await blob.slice(0, 16).arrayBuffer();
+    const bytes = new Uint8Array(slice);
+    const headerStr = String.fromCharCode(...bytes.subarray(0, 8));
+
+    if (headerStr.startsWith("%PDF")) return "pdf";
+    if (headerStr.startsWith("{\\rtf")) return "rtf";
+    if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff)
+      return "jpg";
+    if (
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47
+    )
+      return "png";
+    if (headerStr.startsWith("GIF8")) return "gif";
+    if (
+      bytes[0] === 0x50 &&
+      bytes[1] === 0x4b &&
+      bytes[2] === 0x03 &&
+      bytes[3] === 0x04
+    ) {
+      if (fallbackName) {
+        const m = fallbackName.match(/\.(docx|xlsx|pptx|zip)$/i);
+        if (m) return m[1].toLowerCase();
+      }
+      if (fallbackUrl) {
+        const m = fallbackUrl.split("?")[0].match(/\.(docx|xlsx|pptx|zip)$/i);
+        if (m) return m[1].toLowerCase();
+      }
+      return "docx";
+    }
+    if (
+      bytes[0] === 0xd0 &&
+      bytes[1] === 0xcf &&
+      bytes[2] === 0x11 &&
+      bytes[3] === 0xe0
+    ) {
+      if (fallbackName) {
+        const m = fallbackName.match(/\.(doc|xls)$/i);
+        if (m) return m[1].toLowerCase();
+      }
+      return "doc";
+    }
+  } catch (err) {
+    console.warn("Could not check magic bytes:", err);
+  }
+
+  // 2. Check original filename extension
+  if (fallbackName) {
+    const extMatch = fallbackName.match(/\.([a-zA-Z0-9]+)$/);
+    if (extMatch && extMatch[1].length <= 5) {
+      return extMatch[1].toLowerCase();
+    }
+  }
+
+  // 3. Check URL path before query parameters
+  if (fallbackUrl) {
+    try {
+      const cleanUrl = fallbackUrl.split("?")[0];
+      const extMatch = cleanUrl.match(/\.([a-zA-Z0-9]+)$/);
+      if (extMatch && extMatch[1].length <= 5) {
+        return extMatch[1].toLowerCase();
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // 4. Check MIME type
+  if (blob.type) {
+    const mime = blob.type.toLowerCase();
+    if (mime.includes("pdf")) return "pdf";
+    if (mime.includes("rtf")) return "rtf";
+    if (mime.includes("wordprocessingml") || mime.includes("msword"))
+      return "docx";
+    if (mime.includes("spreadsheetml") || mime.includes("excel")) return "xlsx";
+    if (mime.includes("jpeg") || mime.includes("jpg")) return "jpg";
+    if (mime.includes("png")) return "png";
+    if (mime.includes("webp")) return "webp";
+    if (mime.includes("gif")) return "gif";
+  }
+
+  return "pdf";
+}
+
 interface TripRowCalculations {
   total: number;
   expensesCount: number;
@@ -796,12 +889,18 @@ export default function AccountingClient() {
           if (exp.attachmentUrl) {
             try {
               const response = await fetch(exp.attachmentUrl);
-              const blob = await response.blob();
-              // Determine extension
-              let ext = "pdf";
-              if (blob.type.includes("image")) {
-                ext = blob.type.split("/")[1] || "png";
+              if (!response.ok) {
+                console.warn(
+                  `Could not fetch expense attachment: ${response.status}`
+                );
+                continue;
               }
+              const blob = await response.blob();
+              const ext = await resolveAttachmentExtension(
+                blob,
+                exp.documentNumber || null,
+                exp.attachmentUrl
+              );
               const filename = `05_Фактура_${exp.expenseType}_${exp.documentNumber || j + 1}.${ext}`;
               tripFolder.file(filename, blob);
 
@@ -823,11 +922,18 @@ export default function AccountingClient() {
           if (proto.url) {
             try {
               const response = await fetch(proto.url);
-              const blob = await response.blob();
-              let ext = "pdf";
-              if (blob.type.includes("image")) {
-                ext = blob.type.split("/")[1] || "png";
+              if (!response.ok) {
+                console.warn(
+                  `Could not fetch protocol attachment: ${response.status}`
+                );
+                continue;
               }
+              const blob = await response.blob();
+              const ext = await resolveAttachmentExtension(
+                blob,
+                proto.name,
+                proto.url
+              );
               const filename = `06_Протокол_срещи_${p + 1}_${safeTitle}.${ext}`;
               tripFolder.file(filename, blob);
 
