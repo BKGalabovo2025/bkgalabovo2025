@@ -23,6 +23,7 @@ import {
   resolveTripNumbers,
 } from "@/lib/business-trip-numbers";
 import {
+  DEFAULT_BOARD_MEMBERS_TEXT,
   extractBoardMembers,
   formatOrgName,
   isFemalePerson,
@@ -757,22 +758,9 @@ export function BusinessTripPdfTemplates({
             ПРИСЪСТВАТ ЧЛЕНОВЕТЕ НА УПРАВИТЕЛНИЯ СЪВЕТ:
           </p>
           <div style={{ marginLeft: "15pt", marginBottom: "5pt" }}>
-            {trip.usBoardMembers?.trim() ? (
-              <div style={{ whiteSpace: "pre-line" }}>
-                {trip.usBoardMembers.trim()}
-              </div>
-            ) : (
-              <>
-                <p style={{ margin: "2pt 0" }}>
-                  1. <strong>{chair}</strong> — Председател на Управителния
-                  съвет
-                </p>
-                <p style={{ margin: "2pt 0" }}>
-                  2. Членове на Управителния съвет (редовно уведомени по
-                  установения ред).
-                </p>
-              </>
-            )}
+            <div style={{ whiteSpace: "pre-line" }}>
+              {trip.usBoardMembers?.trim() || DEFAULT_BOARD_MEMBERS_TEXT}
+            </div>
           </div>
 
           <p style={{ marginBottom: "5pt", textIndent: "15pt" }}>
@@ -1002,7 +990,7 @@ export function BusinessTripPdfTemplates({
             >
               {(() => {
                 const extracted = extractBoardMembers(
-                  trip.usBoardMembers,
+                  trip.usBoardMembers || DEFAULT_BOARD_MEMBERS_TEXT,
                   chair
                 );
                 const displayMembers =
@@ -1391,7 +1379,10 @@ export function BusinessTripPdfTemplates({
               }}
             >
               {(() => {
-                const extracted = extractBoardMembers(trip.usBoardMembers, mol);
+                const extracted = extractBoardMembers(
+                  trip.usBoardMembers || DEFAULT_BOARD_MEMBERS_TEXT,
+                  mol
+                );
                 if (extracted.length > 0) {
                   return extracted.map((mName, idx) => (
                     <p key={idx} style={{ margin: "2pt 0" }}>
@@ -1492,7 +1483,7 @@ export function BusinessTripPdfTemplates({
             }}
           >
             На основание Наредбата за командировките в страната, Държавния
-            спортен календар на Б Ф Бадминтон
+            спортен календар на БФ Бадминтон
             {trip.usDecision ? (
               <>
                 {" "}
@@ -1580,14 +1571,14 @@ export function BusinessTripPdfTemplates({
           </div>
           <p style={{ marginBottom: "4pt", fontSize: "9pt" }}>
             На групата от <strong>{totalPlannedPeople}</strong>{" "}
-            {totalPlannedPeople === 1 ? "човек" : "човека"} да се осигурят
+            {totalPlannedPeople === 1 ? "човек" : "души"} да се осигурят
             средства, както следва:
           </p>
           {hasPerDiem && (
             <p style={{ marginBottom: "3pt", fontSize: "9pt" }}>
               {snPlanned("diem")}. Дневни на{" "}
               <strong>{totalPlannedPeople}</strong>{" "}
-              {totalPlannedPeople === 1 ? "човек" : "човека"} по{" "}
+              {totalPlannedPeople === 1 ? "човек" : "души"} по{" "}
               <strong>{fmtEUR(perDiemEUR)}</strong> ({perDiemBGN.toFixed(2)}{" "}
               лв.) / на ден за едно лице за <strong>{plannedDays}</strong>{" "}
               {plannedDays === 1 ? "ден" : "дни"}.
@@ -1598,7 +1589,7 @@ export function BusinessTripPdfTemplates({
             <p style={{ marginBottom: "3pt", fontSize: "9pt" }}>
               {snPlanned("accom")}. Нощувки —{" "}
               <strong>{totalPlannedPeople}</strong>{" "}
-              {totalPlannedPeople === 1 ? "човек" : "човека"}{" "}
+              {totalPlannedPeople === 1 ? "човек" : "души"}{" "}
               {trip.financials.accommodationRateEUR > 0 ? (
                 <>
                   по <strong>{fmtEUR(accomEUR)}</strong> ({accomBGN.toFixed(2)}{" "}
