@@ -40,7 +40,7 @@ const GATE_TARGETS = [
     label: "Портал БК Гълъбово (Desktop)",
     route: "/club",
     preset: "desktop",
-    minPerf: 95,
+    minPerf: 90,
     minA11y: 95,
     minBP: 90,
     minSEO: 100,

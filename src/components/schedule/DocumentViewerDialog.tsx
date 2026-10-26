@@ -11,7 +11,7 @@ import {
   Paperclip,
   Printer,
 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -406,6 +406,8 @@ interface ViewerBodyProps {
   documentName?: string | null;
   documentType?: DocumentAttachmentType | null;
   officeViewerUrl: string;
+  googleViewerUrl: string;
+  isLegacyBinary?: boolean;
   onDownload?: () => void | Promise<void>;
 }
 
@@ -420,8 +422,13 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   documentName,
   documentType,
   officeViewerUrl,
+  googleViewerUrl,
+  isLegacyBinary = false,
   onDownload,
 }) => {
+  const [activeViewer, setActiveViewer] = useState<"office" | "google">(
+    isLegacyBinary ? "google" : "office"
+  );
   if (!documentUrl) return null;
 
   if (isRtf) {
@@ -471,22 +478,43 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   }
 
   if (isOffice) {
+    const currentIframeSrc =
+      activeViewer === "google" ? googleViewerUrl : officeViewerUrl;
+    const currentViewerName =
+      activeViewer === "google" ? "Google Docs Viewer" : "Office Online Viewer";
+    const otherViewerName =
+      activeViewer === "google" ? "Office Online Viewer" : "Google Docs Viewer";
+
     return (
       <div className="flex size-full flex-col">
-        <div className="shrink-0 border-b border-zinc-200 bg-amber-50/80 px-4 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-          Визуализация през Office Online Viewer. Ако документът не се зареди,
-          можете да го{" "}
-          <a
-            href={documentUrl}
-            download={documentName || "document"}
-            className="font-semibold underline underline-offset-2"
-          >
-            изтеглите директно оттук
-          </a>
-          .
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 bg-amber-50/90 px-4 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
+          <span>
+            Визуализация през <strong>{currentViewerName}</strong>. Ако
+            документът не се зарежда:
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() =>
+                setActiveViewer(activeViewer === "google" ? "office" : "google")
+              }
+              className="font-semibold underline underline-offset-2 hover:text-amber-950 dark:hover:text-amber-100 cursor-pointer"
+            >
+              🔄 Превключи към {otherViewerName}
+            </button>
+            <span>•</span>
+            <a
+              href={documentUrl}
+              download={documentName || "document"}
+              className="font-semibold underline underline-offset-2 hover:text-amber-950 dark:hover:text-amber-100"
+              onClick={() => onDownload?.()}
+            >
+              ⬇️ Свали файла
+            </a>
+          </div>
         </div>
         <iframe
-          src={officeViewerUrl}
+          src={currentIframeSrc}
           className="size-full flex-1 border-none"
           title={documentName || "Office Viewer"}
         />
@@ -581,9 +609,18 @@ function parseDocumentViewerData(
     effectiveType = "word";
   }
 
+  const isLegacyBinary =
+    !isGoogleDrive &&
+    (/\.(xls|doc|ppt)(\?.*)?$/i.test(documentUrl) ||
+      /\.(xls|doc|ppt)$/i.test(documentName || ""));
+
   const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
     documentUrl
   )}`;
+
+  const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(
+    documentUrl
+  )}&embedded=true`;
 
   return {
     isGoogleDrive,
@@ -592,8 +629,10 @@ function parseDocumentViewerData(
     isPdf,
     isOffice,
     isRtf,
+    isLegacyBinary,
     effectiveType,
     officeViewerUrl,
+    googleViewerUrl,
   };
 }
 
@@ -615,8 +654,10 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
     isPdf,
     isOffice,
     isRtf,
+    isLegacyBinary,
     effectiveType,
     officeViewerUrl,
+    googleViewerUrl,
   } = parseDocumentViewerData(documentUrl, documentName, documentType);
 
   return (
@@ -715,6 +756,8 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
             documentName={documentName}
             documentType={effectiveType}
             officeViewerUrl={officeViewerUrl}
+            googleViewerUrl={googleViewerUrl}
+            isLegacyBinary={isLegacyBinary}
             onDownload={onDownload}
           />
         </div>
