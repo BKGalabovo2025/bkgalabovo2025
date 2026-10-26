@@ -334,7 +334,7 @@ export function generateDefaultProtocolText(
   const calendarOrg = trip.organizer?.trim() || "БФ Бадминтон";
 
   return cleanProtocolText(
-    `Днес, ${decisionDateFmt} г., в ${meetingLocation}, в ${meetingTime} се проведе редовно заседание на Управителния съвет на ${formatOrgName(site.name)}.
+    `Днес, ${decisionDateFmt} г., в ${meetingLocation}, в ${meetingTime} се проведе заседание на Управителния съвет на ${formatOrgName(site.name)}.
 
 ПРИСЪСТВАТ ЧЛЕНОВЕТЕ НА УПРАВИТЕЛНИЯ СЪВЕТ:
 ${boardMembers}
