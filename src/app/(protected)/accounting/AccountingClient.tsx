@@ -1570,66 +1570,72 @@ export default function AccountingClient() {
               <tr>
                 <th
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     backgroundColor: "#f8fafc",
                     fontWeight: "bold",
                     textAlign: "center",
+                    color: "#000",
                   }}
                 >
                   №
                 </th>
                 <th
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     backgroundColor: "#f8fafc",
                     fontWeight: "bold",
                     textAlign: "left",
+                    color: "#000",
                   }}
                 >
                   Командировка / Събитие
                 </th>
                 <th
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     backgroundColor: "#f8fafc",
                     fontWeight: "bold",
                     textAlign: "left",
+                    color: "#000",
                   }}
                 >
                   Водач / Треньор
                 </th>
                 <th
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     backgroundColor: "#f8fafc",
                     fontWeight: "bold",
                     textAlign: "center",
+                    color: "#000",
                   }}
                 >
                   Вид дейност
                 </th>
                 <th
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     backgroundColor: "#f8fafc",
                     fontWeight: "bold",
                     textAlign: "center",
+                    color: "#000",
                   }}
                 >
                   Документи (бр.)
                 </th>
                 <th
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     backgroundColor: "#f8fafc",
                     fontWeight: "bold",
                     textAlign: "right",
+                    color: "#000",
                   }}
                 >
                   Сума (EUR)
@@ -1637,109 +1643,59 @@ export default function AccountingClient() {
               </tr>
             </thead>
             <tbody>
-              {}
               {filteredTrips.map((trip, idx) => {
                 const coach = membersDict[trip.coachId];
                 const coachName = coach
                   ? `${coach.firstName} ${coach.lastName}`
                   : "Неизвестен";
-                let total = 0;
                 const sDate = parseISO(trip.startDate);
                 const eDate = parseISO(trip.endDate);
-
-                const { calcPerDiemEUR: calcPerDiem, calcAccomEUR: calcAccom } =
-                  calculateTripStatementTotals(trip);
-                const calcEntry = trip.financials.entryFeeEUR || 0;
-                let calcFuel = 0;
-
-                if (
-                  trip.vehicle &&
-                  trip.vehicle.distanceKm &&
-                  trip.vehicle.fuelNorm
-                ) {
-                  calcFuel =
-                    (trip.vehicle.distanceKm / 100) *
-                    trip.vehicle.fuelNorm *
-                    1.35;
-                }
-
                 const tripExps = expenses[trip.id!] || [];
-                let expPerDiem = 0,
-                  expAccom = 0,
-                  expEntry = 0,
-                  expOther = 0;
+                const { total } = computeTripRowTotals(trip, tripExps);
 
-                const fuelExpenses = tripExps.filter(
-                  (e) => e.expenseType === "fuel"
+                const hasFuelDoc = Boolean(
+                  trip.vehicle?.distanceKm || trip.vehicle?.brand
                 );
-                const transportExpenses = tripExps.filter(
-                  (e) => e.expenseType === "transport"
+                const hasDecisionDoc = Boolean(
+                  trip.usDecision || trip.decisionDownloadedAt
                 );
-
-                const avgPricePerLiterEUR =
-                  fuelExpenses.length > 0
-                    ? fuelExpenses.reduce((sum, e) => sum + e.amountEUR, 0) /
-                      fuelExpenses.length
-                    : 0;
-
-                let finalFuelEUR = calcFuel;
-                if (
-                  fuelExpenses.length > 0 &&
-                  trip.vehicle &&
-                  trip.vehicle.distanceKm &&
-                  trip.vehicle.fuelNorm
-                ) {
-                  const totalLiters =
-                    (trip.vehicle.distanceKm / 100) * trip.vehicle.fuelNorm;
-                  const avgPricePerLiterBGN = avgPricePerLiterEUR * 1.95583;
-                  const roundedPricePerLiterBGN =
-                    Math.round(avgPricePerLiterBGN * 100) / 100;
-                  const finalFuelBGN = totalLiters * roundedPricePerLiterBGN;
-                  finalFuelEUR = finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
-                }
-
-                const expTransport = transportExpenses.reduce(
-                  (sum, e) => sum + e.amountEUR,
-                  0
-                );
-
-                tripExps.forEach((ex) => {
-                  if (ex.expenseType === "accommodation")
-                    expAccom += ex.amountEUR;
-                  else if (ex.expenseType === "food")
-                    expPerDiem += ex.amountEUR;
-                  else if (ex.expenseType === "entry_fee")
-                    expEntry += ex.amountEUR;
-                  else if (
-                    ex.expenseType !== "fuel" &&
-                    ex.expenseType !== "transport"
-                  )
-                    expOther += ex.amountEUR;
-                });
-
-                total =
-                  (expPerDiem > 0 ? expPerDiem : calcPerDiem) +
-                  (expAccom > 0 ? expAccom : calcAccom) +
-                  (expEntry > 0 ? expEntry : calcEntry) +
-                  (fuelExpenses.length > 0 ? finalFuelEUR : calcFuel) +
-                  expTransport +
-                  expOther;
+                const docLabels: string[] = [
+                  "Заповед",
+                  "Ведомост",
+                  "Присъств. лист",
+                  "Доклад",
+                ];
+                if (hasDecisionDoc) docLabels.push("Решение УС");
+                if (hasFuelDoc) docLabels.push("Отчет гориво");
+                if (tripExps.length > 0)
+                  docLabels.push(`+${tripExps.length} разх. док.`);
+                const matchProtocolsCount = trip.matchProtocols?.length || 0;
+                if (matchProtocolsCount > 0)
+                  docLabels.push(`+${matchProtocolsCount} спортни прот.`);
+                const totalDocsCount =
+                  4 +
+                  (hasDecisionDoc ? 1 : 0) +
+                  (hasFuelDoc ? 1 : 0) +
+                  tripExps.length +
+                  matchProtocolsCount;
 
                 return (
                   <tr key={trip.id}>
                     <td
                       style={{
-                        border: "1px solid #0f172a",
+                        border: "1px solid #000",
                         padding: "6pt 8pt",
                         textAlign: "center",
+                        color: "#000",
                       }}
                     >
                       {idx + 1}
                     </td>
                     <td
                       style={{
-                        border: "1px solid #0f172a",
+                        border: "1px solid #000",
                         padding: "6pt 8pt",
+                        color: "#000",
                       }}
                     >
                       {trip.title}, от {format(sDate, "dd.MM.yyyy")} до{" "}
@@ -1747,17 +1703,19 @@ export default function AccountingClient() {
                     </td>
                     <td
                       style={{
-                        border: "1px solid #0f172a",
+                        border: "1px solid #000",
                         padding: "6pt 8pt",
+                        color: "#000",
                       }}
                     >
                       {coachName}
                     </td>
                     <td
                       style={{
-                        border: "1px solid #0f172a",
+                        border: "1px solid #000",
                         padding: "6pt 8pt",
                         textAlign: "center",
+                        color: "#000",
                       }}
                     >
                       {trip.financials.isCommercialActivity
@@ -1766,33 +1724,30 @@ export default function AccountingClient() {
                     </td>
                     <td
                       style={{
-                        border: "1px solid #0f172a",
+                        border: "1px solid #000",
                         padding: "6pt 8pt",
                         textAlign: "center",
+                        color: "#000",
                       }}
                     >
-                      {3 + (trip.vehicle?.distanceKm ? 1 : 0) + tripExps.length}
+                      {totalDocsCount}
                       <div
                         style={{
                           fontSize: "7pt",
-                          color: "#64748b",
+                          color: "#000",
                           marginTop: "2pt",
                           lineHeight: "1.2",
                         }}
                       >
-                        (Заповед, Ведомост, Присъств. лист
-                        {trip.vehicle?.distanceKm ? ", Отчет гориво" : ""}
-                        {tripExps.length > 0
-                          ? `, +${tripExps.length} разх. док.`
-                          : ""}
-                        )
+                        ({docLabels.join(", ")})
                       </div>
                     </td>
                     <td
                       style={{
-                        border: "1px solid #0f172a",
+                        border: "1px solid #000",
                         padding: "6pt 8pt",
                         textAlign: "right",
+                        color: "#000",
                       }}
                     >
                       €{total.toFixed(2)}
@@ -1800,47 +1755,51 @@ export default function AccountingClient() {
                   </tr>
                 );
               })}
-              <tr style={{ fontWeight: "bold" }}>
+              <tr style={{ fontWeight: "bold", color: "#000" }}>
                 <td
                   colSpan={5}
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     textAlign: "right",
                     backgroundColor: "#f8fafc",
+                    color: "#000",
                   }}
                 >
                   ОБЩО ЗА МЕСЕЦА (EUR):
                 </td>
                 <td
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     textAlign: "right",
                     backgroundColor: "#f8fafc",
+                    color: "#000",
                   }}
                 >
                   €{kpis.totalEur.toFixed(2)}
                 </td>
               </tr>
-              <tr style={{ fontWeight: "bold" }}>
+              <tr style={{ fontWeight: "bold", color: "#000" }}>
                 <td
                   colSpan={5}
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     textAlign: "right",
                     backgroundColor: "#f8fafc",
+                    color: "#000",
                   }}
                 >
                   РАВНОСМЕТКА В ЛЕВА (BGN):
                 </td>
                 <td
                   style={{
-                    border: "1px solid #0f172a",
+                    border: "1px solid #000",
                     padding: "6pt 8pt",
                     textAlign: "right",
                     backgroundColor: "#f8fafc",
+                    color: "#000",
                   }}
                 >
                   {kpis.totalBgn.toFixed(2)} лв.
