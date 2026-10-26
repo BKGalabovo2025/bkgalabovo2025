@@ -24,6 +24,7 @@ import {
   Plus,
   Search,
   Ticket,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -456,11 +457,34 @@ export default function AccountingClient() {
   const selectableEvents = useMemo(() => {
     return events
       .filter((ev) => {
+        // Exclude events of type "training"
+        if (ev.type === "training") return false;
+
+        const isCompetitionOrCamp =
+          ev.type === "competition" ||
+          ev.type === "camp" ||
+          Boolean((ev as { isTournament?: boolean }).isTournament) ||
+          Boolean(ev.tournamentUrl) ||
+          Boolean(ev.tournamentId);
+
+        // If not explicitly marked as competition/camp, exclude if title indicates routine training
+        if (!isCompetitionOrCamp) {
+          const titleLower = (ev.title || "").trim().toLowerCase();
+          if (
+            titleLower.includes("тренировк") ||
+            titleLower === "training" ||
+            titleLower.startsWith("training ")
+          ) {
+            return false;
+          }
+        }
+
         if (!eventSearchQuery.trim()) return true;
-        const q = eventSearchQuery.toLowerCase();
+        const q = eventSearchQuery.trim().toLowerCase();
         return (
           ev.title.toLowerCase().includes(q) ||
-          (ev.location && ev.location.toLowerCase().includes(q))
+          (ev.location && ev.location.toLowerCase().includes(q)) ||
+          (ev.description && ev.description.toLowerCase().includes(q))
         );
       })
       .sort(
@@ -1875,15 +1899,27 @@ export default function AccountingClient() {
                 placeholder="Търсене по име на събитие или град..."
                 value={eventSearchQuery}
                 onChange={(e) => setEventSearchQuery(e.target.value)}
-                className="h-9 rounded-xl pl-8.5 text-xs"
+                className="h-9 rounded-xl pl-8.5 pr-8 text-xs"
               />
+              {eventSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setEventSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                  aria-label="Изчисти търсенето"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
             </div>
           </div>
 
           <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-2 min-h-0">
             {selectableEvents.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                Няма намерени събития.
+                {eventSearchQuery.trim()
+                  ? "Няма намерени събития, отговарящи на търсенето."
+                  : "Няма намерени събития (турнири или лагери)."}
               </div>
             ) : (
               selectableEvents.map((ev) => {
@@ -1899,10 +1935,23 @@ export default function AccountingClient() {
                     className="group flex cursor-pointer items-center justify-between rounded-xl border border-slate-100 p-3.5 transition-colors hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/60"
                   >
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold text-slate-800 transition-colors group-hover:text-emerald-600 dark:text-zinc-100 dark:group-hover:text-emerald-400">
                           {ev.title}
                         </span>
+                        <Badge
+                          variant="outline"
+                          className="border-zinc-200 px-1.5 py-0 text-[10px] text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
+                        >
+                          {ev.type === "competition" ||
+                          (ev as { isTournament?: boolean }).isTournament
+                            ? "🏆 Състезание"
+                            : ev.type === "camp"
+                              ? "🏕️ Лагер"
+                              : ev.type === "event"
+                                ? "📅 Събитие"
+                                : "📌 Друго"}
+                        </Badge>
                         {hasTrip ? (
                           <Badge
                             variant="secondary"
