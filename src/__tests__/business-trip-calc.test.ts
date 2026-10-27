@@ -24,6 +24,10 @@ import {
   generateDefaultProtocolText,
   isFemalePerson,
 } from "../lib/business-trip-protocol";
+import {
+  buildStaySectionText,
+  generateDefaultReportText,
+} from "../lib/business-trip-report";
 import { BusinessTrip } from "../types/business-trip.types";
 import { Member } from "../types/member.types";
 
@@ -558,6 +562,126 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
         "Невена Георгиева",
         "Наско Маджаров",
       ]);
+    });
+  });
+
+  describe("Business Trip Report - Daily Commute (Kasabyan Brothers Scenario)", () => {
+    const membersDict: Record<string, Member> = {
+      "coach-1": {
+        id: "coach-1",
+        firstName: "Мира",
+        lastName: "Георгиева",
+        isCoach: true,
+      } as Member,
+      "ath-1": {
+        id: "ath-1",
+        firstName: "Добромир",
+        lastName: "Добрев",
+      } as Member,
+      "ath-2": {
+        id: "ath-2",
+        firstName: "Габриела",
+        lastName: "Атанасова",
+      } as Member,
+      "ath-3": {
+        id: "ath-3",
+        firstName: "Неделин",
+        lastName: "Маринов",
+      } as Member,
+      "ath-4": {
+        id: "ath-4",
+        firstName: "Живко",
+        lastName: "Иванов",
+      } as Member,
+    };
+
+    it("should generate correct stay and transport section for 3-day daily commute with free transport and food_only", () => {
+      const trip: BusinessTrip = {
+        id: "trip-kasabyan-2026",
+        siteId: "bkgalabovo",
+        title: "INTERNATIONAL TOURNAMENT „KASABYAN BROTHERS„ 2026",
+        destination: "Хасково",
+        startDate: "2026-01-09T08:00:00.000Z",
+        endDate: "2026-01-11T18:00:00.000Z",
+        coachId: "coach-1",
+        coachName: "Мира Георгиева",
+        coachRole: "Треньор",
+        participantsIds: ["ath-1", "ath-2", "ath-3", "ath-4"],
+        transportType: "free",
+        expensesCoverage: "food_only",
+        vehicle: {
+          commuteMode: "daily_commute",
+          singleRoundTripKm: 105,
+          distanceKm: 315,
+          plannedTripsCount: 3,
+        },
+        financials: {
+          perDiemRateEUR: 11,
+          accommodationRateEUR: 0,
+          isCommercialActivity: false,
+        },
+        status: "approved",
+      };
+
+      const staySection = buildStaySectionText(trip, membersDict);
+
+      // Must NOT contain overnight stays
+      expect(staySection).not.toContain("2 нощувки на място");
+      expect(staySection).not.toContain("нощувки на място");
+
+      // Must explicitly mention daily commute and no hotel used
+      expect(staySection).toContain(
+        "• Престой и настаняване: Отборът участва в режим на ежедневно пътуване (всеки ден отиване и връщане без нощувка) в рамките на 3 дни. Не са ползвани хотелски услуги (без преспиване на място)."
+      );
+
+      // Must explicitly mention daily commute courses and km for free transport
+      expect(staySection).toContain(
+        "• Транспорт (ежедневно пътуване без нощувка): Организиран и осигурен безплатно (осъществени са 3 курса отиване и връщане по маршрут гр. Гълъбово – гр. Хасково – гр. Гълъбово, 1 курс = 105 км, общо 315 км, без транспортен разход за клуба)."
+      );
+
+      // Must mention per diem
+      expect(staySection).toContain(
+        "• Финансово обезпечаване: На командированите лица са начислени и изплатени полагащите се командировъчни пари (дневни в размер на 11.00 € на ден на лице съгласно Наредбата за командировките в страната), подробно отразени във Финансовата ведомост."
+      );
+    });
+
+    it("should generate correct section 3 in full report text", () => {
+      const trip: BusinessTrip = {
+        id: "trip-kasabyan-2026",
+        siteId: "bkgalabovo",
+        title: "INTERNATIONAL TOURNAMENT „KASABYAN BROTHERS„ 2026",
+        destination: "Хасково",
+        startDate: "2026-01-09T08:00:00.000Z",
+        endDate: "2026-01-11T18:00:00.000Z",
+        coachId: "coach-1",
+        coachName: "Мира Георгиева",
+        coachRole: "Треньор",
+        participantsIds: ["ath-1", "ath-2", "ath-3", "ath-4"],
+        transportType: "free",
+        expensesCoverage: "food_only",
+        vehicle: {
+          commuteMode: "daily_commute",
+          singleRoundTripKm: 105,
+          distanceKm: 315,
+          plannedTripsCount: 3,
+        },
+        financials: {
+          perDiemRateEUR: 11,
+          accommodationRateEUR: 0,
+          isCommercialActivity: false,
+        },
+        status: "approved",
+      };
+
+      const fullReport = generateDefaultReportText(trip, membersDict);
+
+      expect(fullReport).toContain(
+        "3. ТРАНСПОРТ, ПРЕСТОЙ И МАТЕРИАЛНО-ФИНАНСОВО ОБЕЗПЕЧАВАНЕ:"
+      );
+      expect(fullReport).toContain(
+        "ежедневно пътуване (всеки ден отиване и връщане без нощувка)"
+      );
+      expect(fullReport).not.toContain("2 нощувки на място");
     });
   });
 });

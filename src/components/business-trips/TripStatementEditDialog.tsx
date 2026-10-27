@@ -149,11 +149,14 @@ export function TripStatementEditDialog({
   const rawAccomRate = trip?.financials.accommodationRateEUR ?? 0;
   const rawBasePerDiem =
     trip?.financials.perDiemOverrideEUR ?? trip?.financials.perDiemRateEUR ?? 0;
-  const coverageExcludesAccom = isTripCoverageWithoutAccom(
-    trip?.expensesCoverage,
-    rawAccomRate,
-    rawBasePerDiem
-  );
+  const isDailyCommute = trip?.vehicle?.commuteMode === "daily_commute";
+  const coverageExcludesAccom =
+    isDailyCommute ||
+    isTripCoverageWithoutAccom(
+      trip?.expensesCoverage,
+      rawAccomRate,
+      rawBasePerDiem
+    );
 
   let plannedNights = 0;
   if (trip && !coverageExcludesAccom) {
@@ -176,12 +179,14 @@ export function TripStatementEditDialog({
 
       // Default team days / nights
       const defDays = trip.actualDays != null ? trip.actualDays : plannedDays;
-      const defNights =
-        trip.actualNights != null ? trip.actualNights : plannedNights;
+      const defNights = coverageExcludesAccom
+        ? 0
+        : trip.actualNights != null
+          ? trip.actualNights
+          : plannedNights;
       setGlobalDays(defDays);
       setGlobalNights(defNights);
 
-      const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
       let initialTrips = 1;
       if (trip.vehicle?.actualTripsCount != null) {
         initialTrips = trip.vehicle.actualTripsCount;

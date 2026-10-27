@@ -1,6 +1,7 @@
 import { differenceInCalendarDays } from "date-fns";
 
 import { getSiteConfig } from "@/config/sites";
+import { isTripCoverageWithoutAccom } from "@/lib/business-trip-calc";
 import {
   getTripDecisionNumber,
   getTripOrderNumber,
@@ -145,6 +146,47 @@ function buildReducedStayText(
   return lines.join("\n");
 }
 
+function buildReducedCommuteDaysText(
+  reducedAthletes: PersonStat[],
+  fullStayAthletes: PersonStat[],
+  coachStat: PersonStat,
+  plannedDays: number,
+  isDailyCommute: boolean
+): string {
+  const intro = isDailyCommute
+    ? "Пътуването и участието се осъществиха в режим на ежедневно пътуване (всеки ден отиване и връщане без нощувка), с индивидуална промяна за част от отбора:"
+    : "Пътуването и престоят се осъществиха без ползване на хотелски услуги (без нощувки), с индивидуална промяна в участието на част от отбора:";
+  const lines: string[] = [intro];
+
+  const names = reducedAthletes.map((a) => a.name).join(", ");
+  const days = reducedAthletes[0]?.days ?? 1;
+  const dayWord = days === 1 ? "ден" : "дни";
+  const reasons = Array.from(
+    new Set(reducedAthletes.map((a) => a.note).filter(Boolean))
+  );
+  const reasonStr =
+    reasons.length > 0
+      ? ` (${reasons.join(", ")})`
+      : " (отпаднали от състезанието / ранно завръщане)";
+  lines.push(
+    `• Състезателите ${names} приключиха своето участие в турнира по-рано${reasonStr} с реално присъствие от ${days} ${dayWord}. За тях дневните пари са начислени за действително реализираните състезателни дни.`
+  );
+
+  if (fullStayAthletes.length > 0) {
+    const fullNames = fullStayAthletes.map((a) => a.name).join(", ");
+    lines.push(
+      `• Останалите ${fullStayAthletes.length} състезатели (${fullNames}) и ${coachStat.name} проведоха пълен ${plannedDays}-дневен състезателен график.`
+    );
+  } else {
+    const coachDayWord = coachStat.days === 1 ? "ден" : "дни";
+    lines.push(
+      `• ${coachStat.name} проведе участие от ${coachStat.days} ${coachDayWord} съгласно утвърдените условия.`
+    );
+  }
+
+  return lines.join("\n");
+}
+
 const fmtDate = (d?: string) => {
   if (!d) return "—";
   try {
@@ -167,10 +209,30 @@ export function buildStaySectionText(
   const startD = new Date(trip.startDate);
   const endD = new Date(trip.endDate);
   const plannedDays = Math.max(1, differenceInCalendarDays(endD, startD) + 1);
-  const plannedNights = Math.max(0, differenceInCalendarDays(endD, startD));
+
+  const vehicle = trip.vehicle;
+  const isDailyCommute = vehicle?.commuteMode === "daily_commute";
+
+  const basePerDiemEUR =
+    trip.financials?.perDiemOverrideEUR ?? trip.financials?.perDiemRateEUR ?? 0;
+  const rawAccomRateEUR = trip.financials?.accommodationRateEUR ?? 0;
+  const coverageExcludesAccom = isTripCoverageWithoutAccom(
+    trip.expensesCoverage,
+    rawAccomRateEUR,
+    basePerDiemEUR
+  );
+
+  const hasNoAccom = isDailyCommute || coverageExcludesAccom;
+
+  const plannedNights = hasNoAccom
+    ? 0
+    : Math.max(0, differenceInCalendarDays(endD, startD));
   const defDays = trip.actualDays != null ? trip.actualDays : plannedDays;
-  const defNights =
-    trip.actualNights != null ? trip.actualNights : plannedNights;
+  const defNights = hasNoAccom
+    ? 0
+    : trip.actualNights != null
+      ? trip.actualNights
+      : plannedNights;
 
   const overrides = trip.participantOverrides ?? {};
 
@@ -211,32 +273,55 @@ export function buildStaySectionText(
 
   const activeAthletes = athletesStats.filter((p) => !p.excluded);
 
-  const reducedAthletes = activeAthletes.filter(
-    (a) =>
-      a.nights < plannedNights ||
-      a.days < plannedDays ||
-      !a.stayed ||
-      a.nights === 0
-  );
+  const reducedAthletes = activeAthletes.filter((a) => {
+    if (a.days < plannedDays) return true;
+    if (plannedNights > 0) {
+      return a.nights < plannedNights || !a.stayed || a.nights === 0;
+    }
+    return false;
+  });
 
   const fullStayAthletes = activeAthletes.filter(
     (a) => !reducedAthletes.some((ra) => ra.id === a.id)
   );
 
   let stayText = "";
-  if (reducedAthletes.length > 0 && plannedNights > 0) {
-    stayText = buildReducedStayText(
-      reducedAthletes,
-      fullStayAthletes,
-      coachStat
-    );
+  if (reducedAthletes.length > 0) {
+    if (plannedNights > 0) {
+      stayText = buildReducedStayText(
+        reducedAthletes,
+        fullStayAthletes,
+        coachStat
+      );
+    } else {
+      stayText = buildReducedCommuteDaysText(
+        reducedAthletes,
+        fullStayAthletes,
+        coachStat,
+        plannedDays,
+        isDailyCommute
+      );
+    }
   } else if (defDays < plannedDays || defNights < plannedNights) {
     const dayWord = defDays === 1 ? "ден" : "дни";
-    const nightWord = defNights === 1 ? "нощувка" : "нощувки";
-    stayText = `• Престой: Отборът приключи своето участие по-рано от предвиденото в предварителния график. Реалният престой на състава бе ${defDays} ${dayWord} и ${defNights} ${nightWord} (вместо планираните ${plannedDays} дни / ${plannedNights} нощи). Финансовата ведомост за командировъчни разходи е преизчислена за действителния престой.`;
+    if (isDailyCommute) {
+      stayText = `• Престой: Отборът участва в режим на ежедневно пътуване (всеки ден отиване и връщане без нощувка), като приключи своето участие по-рано от предварителния график. Реалното състезателно участие на отбора бе в рамките на ${defDays} ${dayWord} (вместо планираните ${plannedDays} дни). Не са ползвани хотелски услуги. Финансовата ведомост за командировъчни разходи е преизчислена за действителния брой дни.`;
+    } else if (plannedNights === 0 || defNights === 0) {
+      stayText = `• Престой: Отборът приключи своето участие по-рано от предвиденото в предварителния график. Реалният престой на състава бе ${defDays} ${dayWord} (вместо планираните ${plannedDays} дни, без нощувки). Не са ползвани хотелски услуги. Финансовата ведомост за командировъчни разходи е преизчислена за действителния престой.`;
+    } else {
+      const nightWord = defNights === 1 ? "нощувка" : "нощувки";
+      stayText = `• Престой: Отборът приключи своето участие по-рано от предвиденото в предварителния график. Реалният престой на състава бе ${defDays} ${dayWord} и ${defNights} ${nightWord} (вместо планираните ${plannedDays} дни / ${plannedNights} нощи). Финансовата ведомост за командировъчни разходи е преизчислена за действителния престой.`;
+    }
+  } else if (isDailyCommute) {
+    const dayWord = defDays === 1 ? "ден" : "дни";
+    stayText = `• Престой и настаняване: Отборът участва в режим на ежедневно пътуване (всеки ден отиване и връщане без нощувка) в рамките на ${defDays} ${dayWord}. Не са ползвани хотелски услуги (без преспиване на място). Всички участници проведоха пълния престой съгласно състезателната програма.`;
   } else if (plannedNights === 0 || defNights === 0) {
     const dayWord = defDays === 1 ? "ден" : "дни";
-    stayText = `• Престой и настаняване: Отборът участва в режим на ежедневно пътуване (всеки ден отиване и връщане без нощувка) в рамките на ${defDays} ${dayWord}. Не са ползвани хотелски услуги.`;
+    if (plannedDays === 1) {
+      stayText = `• Престой и настаняване: Отборът проведе еднодневно участие (без нощувка) в рамките на 1 ден. Не са ползвани хотелски услуги.`;
+    } else {
+      stayText = `• Престой и настаняване: Престоят се осъществи съгласно предварителния график в рамките на ${defDays} ${dayWord}. Не са ползвани хотелски услуги за сметка на клуба (без ползвани нощувки).`;
+    }
   } else {
     const dayWord = plannedDays === 1 ? "ден" : "дни";
     const nightWord = plannedNights === 1 ? "нощувка" : "нощувки";
@@ -244,13 +329,16 @@ export function buildStaySectionText(
   }
 
   // Транспорт
-  const vehicle = trip.vehicle;
-  const isDailyCommute = vehicle?.commuteMode === "daily_commute";
-  let singleKm = vehicle?.distanceKm ?? 0;
-  if (vehicle?.singleRoundTripKm && vehicle.singleRoundTripKm > 0) {
-    singleKm = vehicle.singleRoundTripKm;
-  } else if (isDailyCommute && vehicle?.distanceKm && plannedDays > 0) {
+  let singleKm = vehicle?.singleRoundTripKm ?? 0;
+  if (
+    singleKm <= 0 &&
+    isDailyCommute &&
+    vehicle?.distanceKm &&
+    plannedDays > 0
+  ) {
     singleKm = Math.round(vehicle.distanceKm / plannedDays);
+  } else if (singleKm <= 0 && vehicle?.distanceKm) {
+    singleKm = vehicle.distanceKm;
   }
 
   let actualTrips = isDailyCommute ? defDays : 1;
@@ -262,31 +350,49 @@ export function buildStaySectionText(
     ? Math.round(actualTrips * singleKm * 10) / 10
     : (vehicle?.distanceKm ?? singleKm);
 
+  const rawDest = (trip.destination || "дестинацията").trim();
+  const destStr = rawDest.toLowerCase().startsWith("гр.")
+    ? rawDest
+    : `гр. ${rawDest}`;
+
+  const tripWord = actualTrips === 1 ? "курс" : "курса";
+
   let transportLine = "";
   if (trip.transportType === "free") {
-    transportLine = `• Транспорт: Организиран и осигурен безплатно от организатора/домакина (без транспортен разход за клуба).`;
+    if (isDailyCommute) {
+      if (singleKm > 0) {
+        transportLine = `• Транспорт (ежедневно пътуване без нощувка): Организиран и осигурен безплатно (осъществени са ${actualTrips} ${tripWord} отиване и връщане по маршрут гр. Гълъбово – ${destStr} – гр. Гълъбово, 1 курс = ${singleKm} км, общо ${totalEffectiveKm} км, без транспортен разход за клуба).`;
+      } else {
+        transportLine = `• Транспорт (ежедневно пътуване без нощувка): Организиран и осигурен безплатно от организатора/домакина за ${actualTrips} ${tripWord} (без транспортен разход за клуба).`;
+      }
+    } else {
+      transportLine = `• Транспорт: Организиран и осигурен безплатно от организатора/домакина (без транспортен разход за клуба).`;
+    }
   } else if (
     trip.transportType === "fuel_only" ||
     trip.transportType === "club_paid"
   ) {
-    const tripWord = actualTrips === 1 ? "курс" : "курса";
     if (isDailyCommute) {
       const commuteTypeWord =
         actualTrips === 1 ? "еднодневно пътуване" : "ежедневно пътуване";
-      transportLine = `• Транспорт с МПС (${commuteTypeWord} без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут гр. Гълъбово – ${trip.destination || "дестинацията"} – гр. Гълъбово (1 курс = ${singleKm} км, общо ${totalEffectiveKm} км по пътен лист).`;
+      transportLine = `• Транспорт с МПС (${commuteTypeWord} без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут гр. Гълъбово – ${destStr} – гр. Гълъбово (1 курс = ${singleKm} км, общо ${totalEffectiveKm} км по пътен лист).`;
     } else {
-      transportLine = `• Транспорт с МПС: Осъществено е двупосочно пътуване по маршрут гр. Гълъбово – ${trip.destination || "дестинацията"} – гр. Гълъбово (общо ${totalEffectiveKm} км по пътен лист).`;
+      transportLine = `• Транспорт с МПС: Осъществено е двупосочно пътуване по маршрут гр. Гълъбово – ${destStr} – гр. Гълъбово (общо ${totalEffectiveKm} км по пътен лист).`;
     }
   } else if (trip.transportType === "public") {
     if (isDailyCommute) {
       const commuteTypeWord =
         actualTrips === 1 ? "еднодневно пътуване" : "ежедневно пътуване";
-      transportLine = `• Обществен транспорт (${commuteTypeWord}): Закупени са билети за ${actualTrips} ${actualTrips === 1 ? "ден" : "дни"} състезателно пътуване на отбора.`;
+      transportLine = `• Обществен транспорт (${commuteTypeWord} без нощувка): Закупени са билети за ${actualTrips} ${actualTrips === 1 ? "ден" : "дни"} състезателно пътуване на отбора по маршрут гр. Гълъбово – ${destStr} – гр. Гълъбово.`;
     } else {
-      transportLine = `• Обществен транспорт: Закупени са двупосочни билети за пътуването на отбора.`;
+      transportLine = `• Обществен транспорт: Закупени са двупосочни билети за пътуването на отбора по маршрут гр. Гълъбово – ${destStr} – гр. Гълъбово.`;
     }
   } else {
-    transportLine = `• Транспорт: Осъществен съгласно утвърдените условия в Заповедта за командировка.`;
+    if (isDailyCommute) {
+      transportLine = `• Транспорт (ежедневно пътуване без нощувка): Осъществено е пътуване за ${actualTrips} ${tripWord} съгласно утвърдените условия в Заповедта за командировка.`;
+    } else {
+      transportLine = `• Транспорт: Осъществен съгласно утвърдените условия в Заповедта за командировка.`;
+    }
   }
 
   // Финансово обезпечаване

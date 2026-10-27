@@ -290,16 +290,30 @@ export function BusinessTripPdfTemplates({
   };
   const startD = new Date(trip.startDate);
   const endD = new Date(trip.endDate);
+  const coverage = trip.expensesCoverage;
+  const coverageHasAccom =
+    coverage === "food_and_sleep" || coverage === "transport_food_sleep";
+  const coverageExcludesAccom =
+    coverage === "food_only" ||
+    coverage === "transport_only" ||
+    coverage === "transport_and_food";
+  const transportCalc = calculateTripTransportTotals(trip);
+  const isDailyCommute = transportCalc.isDailyCommute;
+  const hasNoAccom = isDailyCommute || coverageExcludesAccom;
+
   // Първоначално планирани дни и нощи по дати на командировката (за Решение на УС и Нареждане)
   const plannedDays = Math.max(1, differenceInCalendarDays(endD, startD) + 1);
-  const plannedNights = Math.max(0, differenceInCalendarDays(endD, startD));
+  const plannedNights = hasNoAccom
+    ? 0
+    : Math.max(0, differenceInCalendarDays(endD, startD));
   // Действително реализирани дни/нощи на отбора (използват се САМО във Ведомостта)
   const numDays =
     trip.actualDays != null && trip.actualDays >= 0
       ? trip.actualDays
       : plannedDays;
-  const numNights =
-    trip.actualNights != null && trip.actualNights >= 0
+  const numNights = hasNoAccom
+    ? 0
+    : trip.actualNights != null && trip.actualNights >= 0
       ? trip.actualNights
       : plannedNights;
 
@@ -312,12 +326,10 @@ export function BusinessTripPdfTemplates({
   const accomBGN = eurToBgn(accomEUR);
   const hasFuel = trip.transportType === "fuel_only";
   const fuelNorm = trip.vehicle?.fuelNorm ?? 0;
-  const transportCalc = calculateTripTransportTotals(trip);
   const distKm =
     transportCalc.effectiveDistanceKm > 0
       ? transportCalc.effectiveDistanceKm
       : (trip.vehicle?.distanceKm ?? 0);
-  const isDailyCommute = transportCalc.isDailyCommute;
   const singleKm = transportCalc.singleRoundTripKm;
   const actualTrips = transportCalc.actualTripsCount;
 
@@ -364,14 +376,6 @@ export function BusinessTripPdfTemplates({
     (sum, e) => sum + e.amountEUR,
     0
   );
-
-  const coverage = trip.expensesCoverage;
-  const coverageHasAccom =
-    coverage === "food_and_sleep" || coverage === "transport_food_sleep";
-  const coverageExcludesAccom =
-    coverage === "food_only" ||
-    coverage === "transport_only" ||
-    coverage === "transport_and_food";
 
   // Планирани нощувки (за Решение на УС и Нареждане)
   const hasPlannedAccom =

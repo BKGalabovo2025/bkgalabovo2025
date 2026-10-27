@@ -187,11 +187,14 @@ export function calculateTripStatementTotals(
     trip.financials?.perDiemOverrideEUR ?? trip.financials?.perDiemRateEUR ?? 0;
   const rawAccomRateEUR = trip.financials?.accommodationRateEUR ?? 0;
 
-  const coverageExcludesAccom = isTripCoverageWithoutAccom(
-    trip.expensesCoverage,
-    rawAccomRateEUR,
-    basePerDiemEUR
-  );
+  const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
+  const coverageExcludesAccom =
+    isDailyCommute ||
+    isTripCoverageWithoutAccom(
+      trip.expensesCoverage,
+      rawAccomRateEUR,
+      basePerDiemEUR
+    );
 
   const plannedNights = coverageExcludesAccom
     ? 0
@@ -201,8 +204,11 @@ export function calculateTripStatementTotals(
   const accomRateEUR = coverageExcludesAccom ? 0 : rawAccomRateEUR;
 
   const defDays = trip.actualDays != null ? trip.actualDays : plannedDays;
-  const defNights =
-    trip.actualNights != null ? trip.actualNights : plannedNights;
+  const defNights = coverageExcludesAccom
+    ? 0
+    : trip.actualNights != null
+      ? trip.actualNights
+      : plannedNights;
 
   const overrides = trip.participantOverrides ?? {};
   const allIds = ["coach", ...(trip.participantsIds || [])];
