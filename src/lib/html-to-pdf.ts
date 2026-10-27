@@ -131,9 +131,15 @@ async function createPdf(
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
   // Check if the container explicitly defines multiple .pdf-page sections
-  const explicitPages = element.classList.contains("pdf-page")
-    ? [element]
-    : Array.from(element.querySelectorAll<HTMLElement>(".pdf-page"));
+  const childPages = Array.from(
+    element.querySelectorAll<HTMLElement>(".pdf-page")
+  );
+  const explicitPages =
+    childPages.length > 0
+      ? childPages
+      : element.classList.contains("pdf-page")
+        ? [element]
+        : [];
 
   if (explicitPages.length > 0) {
     for (let i = 0; i < explicitPages.length; i++) {

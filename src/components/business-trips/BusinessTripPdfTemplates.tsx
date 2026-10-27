@@ -164,27 +164,13 @@ const PAGE_A4_PAGE: React.CSSProperties = {
   lineHeight: 1.35,
   color: "#000",
   backgroundColor: "#fff",
-  padding: "10mm 14mm",
+  padding: "8mm 12mm",
   boxSizing: "border-box",
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
   overflow: "hidden",
   position: "relative",
-};
-const PAGE_A4_REPORT: React.CSSProperties = {
-  width: "210mm",
-  minHeight: "297mm",
-  fontFamily:
-    'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-  fontSize: "8.5pt",
-  lineHeight: 1.42,
-  color: "#000",
-  backgroundColor: "#fff",
-  padding: "10mm 15mm 10mm 15mm",
-  boxSizing: "border-box",
-  display: "flex",
-  flexDirection: "column",
 };
 const PAGE_LAND_PAGE: React.CSSProperties = {
   width: "297mm",
@@ -193,11 +179,11 @@ const PAGE_LAND_PAGE: React.CSSProperties = {
   maxHeight: "210mm",
   fontFamily:
     'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-  fontSize: "8.5pt",
-  lineHeight: 1.35,
+  fontSize: "8pt",
+  lineHeight: 1.25,
   color: "#000",
   backgroundColor: "#fff",
-  padding: "8mm 10mm",
+  padding: "6mm 8mm",
   boxSizing: "border-box",
   display: "flex",
   flexDirection: "column",
@@ -207,22 +193,24 @@ const PAGE_LAND_PAGE: React.CSSProperties = {
 };
 const TH: React.CSSProperties = {
   border: "1px solid #000",
-  padding: "3pt 5pt",
+  padding: "3.5pt 4.5pt",
   textAlign: "center",
   fontWeight: "600",
   verticalAlign: "middle",
-  lineHeight: 1.3,
-  fontSize: "8pt",
+  lineHeight: 1.25,
+  fontSize: "7.5pt",
   backgroundColor: "#f8fafc",
   color: "#000",
+  boxSizing: "border-box",
 };
 const TD: React.CSSProperties = {
   border: "1px solid #000",
-  padding: "3pt 5pt",
+  padding: "3.5pt 4.5pt",
   verticalAlign: "middle",
-  lineHeight: 1.3,
-  fontSize: "8pt",
+  lineHeight: 1.25,
+  fontSize: "7.5pt",
   color: "#000",
+  boxSizing: "border-box",
 };
 
 export function BusinessTripPdfTemplates({
@@ -677,22 +665,22 @@ export function BusinessTripPdfTemplates({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "2px solid #000",
-            paddingBottom: "10pt",
-            marginBottom: "12pt",
+            borderBottom: "1.5px solid #000",
+            paddingBottom: "6pt",
+            marginBottom: "8pt",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8pt" }}>
             <img
               src="/icons/LOGO.jpg"
               alt="Logo"
-              style={{ height: "45pt", objectFit: "contain" }}
+              style={{ height: "36pt", objectFit: "contain" }}
             />
             <div>
               <p
                 style={{
                   fontWeight: "700",
-                  fontSize: "14pt",
+                  fontSize: "13pt",
                   margin: 0,
                   color: "#000",
                 }}
@@ -702,8 +690,8 @@ export function BusinessTripPdfTemplates({
               {site.bulstat && (
                 <p
                   style={{
-                    fontSize: "9pt",
-                    margin: "2pt 0 0 0",
+                    fontSize: "8pt",
+                    margin: "1pt 0 0 0",
                     color: "#000",
                   }}
                 >
@@ -714,11 +702,11 @@ export function BusinessTripPdfTemplates({
           </div>
         </div>
 
-        <div style={{ textAlign: "center", marginBottom: "12pt" }}>
+        <div style={{ textAlign: "center", marginBottom: "8pt" }}>
           <p
             style={{
               fontWeight: "800",
-              fontSize: "13pt",
+              fontSize: "12.5pt",
               letterSpacing: "3px",
               margin: 0,
               color: "#000",
@@ -728,23 +716,23 @@ export function BusinessTripPdfTemplates({
           </p>
           <p
             style={{
-              fontSize: "11pt",
+              fontSize: "10pt",
               fontWeight: "700",
-              marginTop: "4pt",
+              marginTop: "2pt",
               color: "#000",
             }}
           >
             ОТ ЗАСЕДАНИЕ НА УПРАВИТЕЛНИЯ СЪВЕТ НА{" "}
             {formatOrgName(site.name, true)}
           </p>
-          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#000" }}>
+          <p style={{ fontSize: "10pt", marginTop: "2pt", color: "#000" }}>
             <span>{getProtocolHeader()}</span>
           </p>
         </div>
 
         <div
           style={{
-            lineHeight: "1.45",
+            lineHeight: "1.35",
             textAlign: "justify",
             fontSize: "8.5pt",
             color: "#000",
@@ -1060,22 +1048,22 @@ export function BusinessTripPdfTemplates({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "2px solid #000",
-            paddingBottom: "10pt",
-            marginBottom: "12pt",
+            borderBottom: "1.5px solid #000",
+            paddingBottom: "6pt",
+            marginBottom: "8pt",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "10pt" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8pt" }}>
             <img
               src="/icons/LOGO.jpg"
               alt="Logo"
-              style={{ height: "45pt", objectFit: "contain" }}
+              style={{ height: "36pt", objectFit: "contain" }}
             />
             <div>
               <p
                 style={{
                   fontWeight: "700",
-                  fontSize: "14pt",
+                  fontSize: "13pt",
                   margin: 0,
                   color: "#000",
                 }}
@@ -1085,8 +1073,8 @@ export function BusinessTripPdfTemplates({
               {site.bulstat && (
                 <p
                   style={{
-                    fontSize: "9pt",
-                    margin: "2pt 0 0 0",
+                    fontSize: "8pt",
+                    margin: "1pt 0 0 0",
                     color: "#000",
                   }}
                 >
@@ -1097,11 +1085,11 @@ export function BusinessTripPdfTemplates({
           </div>
         </div>
 
-        <div style={{ textAlign: "center", marginBottom: "14pt" }}>
+        <div style={{ textAlign: "center", marginBottom: "8pt" }}>
           <p
             style={{
               fontWeight: "800",
-              fontSize: "13pt",
+              fontSize: "12.5pt",
               letterSpacing: "3px",
               margin: 0,
               color: "#000",
@@ -1111,25 +1099,25 @@ export function BusinessTripPdfTemplates({
           </p>
           <p
             style={{
-              fontSize: "11pt",
+              fontSize: "10pt",
               fontWeight: "700",
-              marginTop: "4pt",
+              marginTop: "2pt",
               color: "#000",
             }}
           >
             НА УПРАВИТЕЛНИЯ СЪВЕТ НА {formatOrgName(site.name, true)}
           </p>
-          <p style={{ fontSize: "11pt", marginTop: "4pt", color: "#000" }}>
+          <p style={{ fontSize: "10pt", marginTop: "2pt", color: "#000" }}>
             <span>{getDecisionHeader()}</span>
           </p>
         </div>
 
         <p
           style={{
-            marginBottom: "8pt",
+            marginBottom: "4pt",
             textAlign: "justify",
             textIndent: "15pt",
-            lineHeight: "1.5",
+            lineHeight: "1.35",
           }}
         >
           Днес, <strong>{decisionDate} г.</strong>, Управителният съвет на{" "}
@@ -1144,8 +1132,8 @@ export function BusinessTripPdfTemplates({
           style={{
             textAlign: "center",
             fontWeight: "700",
-            fontSize: "11pt",
-            margin: "12pt 0 8pt 0",
+            fontSize: "10pt",
+            margin: "6pt 0 4pt 0",
             letterSpacing: "2px",
             color: "#000",
           }}
@@ -1153,8 +1141,8 @@ export function BusinessTripPdfTemplates({
           УПРАВИТЕЛНИЯТ СЪВЕТ РЕШИ:
         </p>
 
-        <div style={{ lineHeight: "1.6", textAlign: "justify" }}>
-          <p style={{ marginBottom: "6pt" }}>
+        <div style={{ lineHeight: "1.38", textAlign: "justify" }}>
+          <p style={{ marginBottom: "3.5pt" }}>
             <strong>1.</strong> Одобрява участието на състезатели и треньори на{" "}
             {formatOrgName(site.name)} в: <strong>{trip.title}</strong>,
             провеждащо се в периода{" "}
@@ -1167,17 +1155,17 @@ export function BusinessTripPdfTemplates({
             в гр./място <strong>{destCity}</strong>.
           </p>
 
-          <p style={{ marginBottom: "6pt" }}>
+          <p style={{ marginBottom: "3.5pt" }}>
             <strong>2.</strong> Утвърждава състава на официалната клубна
             делегация в общ брой от <strong>{totalPlannedPeople}</strong>{" "}
             {totalPlannedPeople === 1 ? "човек" : "души"}:
           </p>
-          <div style={{ marginLeft: "18pt", marginBottom: "8pt" }}>
-            <p style={{ margin: "2pt 0" }}>
+          <div style={{ marginLeft: "15pt", marginBottom: "4pt" }}>
+            <p style={{ margin: "1.5pt 0" }}>
               • Ръководител / Треньор: <strong>{coachName}</strong> ({coachRole}
               )
             </p>
-            <p style={{ margin: "2pt 0" }}>
+            <p style={{ margin: "1.5pt 0" }}>
               • Състезатели:{" "}
               <strong>
                 {plannedPeople
@@ -1190,17 +1178,21 @@ export function BusinessTripPdfTemplates({
             </p>
           </div>
 
-          <p style={{ marginBottom: "6pt" }}>
+          <p style={{ marginBottom: "3.5pt" }}>
             <strong>3.</strong> Транспортни условия и придвижване:
             <br />
             {renderDecisionTransportText()}
           </p>
 
-          <p style={{ marginBottom: "6pt" }}>
+          <p style={{ marginBottom: "3.5pt" }}>
             <strong>4.</strong> Финансово осигуряване на командированите лица:
             <br />
             <span
-              style={{ marginLeft: "15pt", display: "block", marginTop: "2pt" }}
+              style={{
+                marginLeft: "15pt",
+                display: "block",
+                marginTop: "1.5pt",
+              }}
             >
               а/ <strong>Дневни пари:</strong>{" "}
               {hasPerDiem ? (
@@ -1215,7 +1207,11 @@ export function BusinessTripPdfTemplates({
               )}
             </span>
             <span
-              style={{ marginLeft: "15pt", display: "block", marginTop: "2pt" }}
+              style={{
+                marginLeft: "15pt",
+                display: "block",
+                marginTop: "1.5pt",
+              }}
             >
               б/ <strong>Нощувки / Квартирни:</strong>{" "}
               {!hasPlannedAccom && "не се предвиждат нощувки."}
@@ -1239,7 +1235,7 @@ export function BusinessTripPdfTemplates({
                 style={{
                   marginLeft: "15pt",
                   display: "block",
-                  marginTop: "2pt",
+                  marginTop: "1.5pt",
                 }}
               >
                 в/ <strong>Входни такси за турнира:</strong>{" "}
@@ -1257,14 +1253,14 @@ export function BusinessTripPdfTemplates({
           </p>
 
           {trip.usDecisionNotes && (
-            <p style={{ marginBottom: "6pt" }}>
+            <p style={{ marginBottom: "3.5pt" }}>
               <strong>5.</strong> Допълнителни разпореждания на УС:
               <br />
               <span
                 style={{
                   marginLeft: "15pt",
                   display: "block",
-                  marginTop: "2pt",
+                  marginTop: "1.5pt",
                 }}
               >
                 {trip.usDecisionNotes}
@@ -1272,7 +1268,7 @@ export function BusinessTripPdfTemplates({
             </p>
           )}
 
-          <p style={{ marginBottom: "10pt" }}>
+          <p style={{ marginBottom: "4pt" }}>
             <strong>{trip.usDecisionNotes ? "6." : "5."}</strong> Възлага на
             Председателя на Управителния съвет (<strong>{mol}</strong>) да
             издаде писмена Заповед (Нареждане за командировка) на основание
@@ -1282,9 +1278,9 @@ export function BusinessTripPdfTemplates({
 
         <p
           style={{
-            marginTop: "14pt",
-            marginBottom: "18pt",
-            fontSize: "10pt",
+            marginTop: "6pt",
+            marginBottom: "8pt",
+            fontSize: "9pt",
             fontWeight: "600",
             color: "#000",
           }}
@@ -1297,24 +1293,25 @@ export function BusinessTripPdfTemplates({
           style={{
             display: "flex",
             justifyContent: "space-between",
-            marginTop: "20pt",
-            gap: "20pt",
+            marginTop: "auto",
+            paddingTop: "6pt",
+            gap: "16pt",
           }}
         >
           <div
             style={{
               flex: 1,
               border: "1px solid #000",
-              borderRadius: "8px",
-              padding: "10pt",
+              borderRadius: "6px",
+              padding: "6pt 8pt",
               textAlign: "center",
-              minHeight: "60pt",
+              minHeight: "48pt",
             }}
           >
             <p
               style={{
                 fontWeight: "700",
-                fontSize: "9pt",
+                fontSize: "8.5pt",
                 margin: 0,
                 color: "#000",
                 textTransform: "uppercase",
@@ -1327,14 +1324,14 @@ export function BusinessTripPdfTemplates({
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                height: "45pt",
+                height: "34pt",
               }}
             >
               {trip.signatures?.chairman ? (
                 <img
                   src={trip.signatures.chairman}
                   alt="signature"
-                  style={{ height: "40pt", objectFit: "contain" }}
+                  style={{ height: "32pt", objectFit: "contain" }}
                 />
               ) : (
                 <span style={{ color: "#000" }}>
@@ -1342,7 +1339,7 @@ export function BusinessTripPdfTemplates({
                 </span>
               )}
             </div>
-            <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
+            <p style={{ fontSize: "7.5pt", margin: 0, color: "#000" }}>
               / {mol} /
             </p>
           </div>
@@ -1351,17 +1348,17 @@ export function BusinessTripPdfTemplates({
             style={{
               flex: 1,
               border: "1px solid #000",
-              borderRadius: "8px",
-              padding: "10pt",
+              borderRadius: "6px",
+              padding: "6pt 8pt",
               textAlign: "center",
-              minHeight: "60pt",
+              minHeight: "48pt",
               backgroundColor: "#f8fafc",
             }}
           >
             <p
               style={{
                 fontWeight: "700",
-                fontSize: "9pt",
+                fontSize: "8.5pt",
                 margin: 0,
                 color: "#000",
                 textTransform: "uppercase",
@@ -1375,8 +1372,8 @@ export function BusinessTripPdfTemplates({
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
-                minHeight: "45pt",
-                fontSize: "8.5pt",
+                minHeight: "34pt",
+                fontSize: "8pt",
                 color: "#000",
               }}
             >
@@ -1387,7 +1384,7 @@ export function BusinessTripPdfTemplates({
                 );
                 if (extracted.length > 0) {
                   return extracted.map((mName, idx) => (
-                    <p key={idx} style={{ margin: "2pt 0" }}>
+                    <p key={idx} style={{ margin: "1.5pt 0" }}>
                       {idx + 1}. ........................................ /{" "}
                       {mName} /
                     </p>
@@ -1395,17 +1392,17 @@ export function BusinessTripPdfTemplates({
                 }
                 return (
                   <>
-                    <p style={{ margin: "2pt 0" }}>
+                    <p style={{ margin: "1.5pt 0" }}>
                       1. ........................................ (подпис)
                     </p>
-                    <p style={{ margin: "2pt 0" }}>
+                    <p style={{ margin: "1.5pt 0" }}>
                       2. ........................................ (подпис)
                     </p>
                   </>
                 );
               })()}
             </div>
-            <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
+            <p style={{ fontSize: "7.5pt", margin: 0, color: "#000" }}>
               {protocolNum && protocolNum !== "____"
                 ? `Протокол № ${protocolNum} от заседание на УС`
                 : "Протокол от заседание на УС"}
@@ -1535,14 +1532,14 @@ export function BusinessTripPdfTemplates({
           <div
             style={{
               marginLeft: "6pt",
-              marginBottom: "8pt",
+              marginBottom: "6pt",
               marginTop: "2pt",
-              ...(plannedPeople.length > 5
+              ...(plannedPeople.length > 7
                 ? {
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
-                    columnGap: "16pt",
-                    rowGap: "2pt",
+                    columnGap: "20pt",
+                    rowGap: plannedPeople.length > 14 ? "1pt" : "2pt",
                   }
                 : {}),
             }}
@@ -1553,11 +1550,16 @@ export function BusinessTripPdfTemplates({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  padding: plannedPeople.length > 5 ? "1pt 0" : "2pt 0",
-                  fontSize: plannedPeople.length > 8 ? "8.5pt" : "9pt",
+                  padding: plannedPeople.length > 4 ? "0.5pt 0" : "1.5pt 0",
+                  fontSize:
+                    plannedPeople.length > 12
+                      ? "8pt"
+                      : plannedPeople.length > 6
+                        ? "8.5pt"
+                        : "9pt",
                 }}
               >
-                <span style={{ width: "18pt", color: "#000" }}>{i + 1}.</span>
+                <span style={{ width: "16pt", color: "#000" }}>{i + 1}.</span>
                 <strong
                   style={{
                     fontWeight: "600",
@@ -1737,28 +1739,58 @@ export function BusinessTripPdfTemplates({
           DOC 2: ВЕДОМОСТ ЗА ИЗПЛАТЕНИ СУМИ (1 или 2 страници А4)
       ══════════════════════════════════════════════════════ */}
       {(() => {
-        const isMultiPage = totalPeople > 14;
-        const page2Count = isMultiPage
-          ? Math.min(7, Math.floor(totalPeople / 2))
-          : 0;
-        const page1Count = isMultiPage ? totalPeople - page2Count : totalPeople;
-
-        const page1People = allPeople.slice(0, page1Count);
-        const page2People = isMultiPage ? allPeople.slice(page1Count) : [];
+        const renderDualAmount = (
+          eur: number,
+          bgn: number,
+          isBold: boolean = false
+        ) => (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "1pt",
+            }}
+          >
+            <span
+              style={{
+                fontWeight: isBold ? "700" : "600",
+                color: "#000",
+                fontSize: "7.5pt",
+                lineHeight: "1.15",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {eur.toFixed(2)} €
+            </span>
+            <span
+              style={{
+                fontSize: "6.5pt",
+                color: "#222",
+                lineHeight: "1.1",
+                whiteSpace: "nowrap",
+                fontWeight: "normal",
+              }}
+            >
+              ({bgn.toFixed(2)} лв.)
+            </span>
+          </div>
+        );
 
         const renderTableHeader = () => (
           <thead>
             <tr>
-              <th rowSpan={2} style={{ ...TH, width: "16pt" }}>
+              <th rowSpan={2} style={{ ...TH, width: "18pt" }}>
                 №
               </th>
-              <th rowSpan={2} style={{ ...TH, width: "95pt" }}>
+              <th rowSpan={2} style={{ ...TH, width: "105pt" }}>
                 Име
               </th>
-              <th rowSpan={2} style={{ ...TH, width: "48pt" }}>
+              <th rowSpan={2} style={{ ...TH, width: "52pt" }}>
                 Длъжност
               </th>
-              <th rowSpan={2} style={{ ...TH, width: "90pt" }}>
+              <th rowSpan={2} style={{ ...TH, width: "95pt" }}>
                 Маршрут
               </th>
               <th colSpan={2} style={TH}>
@@ -1770,7 +1802,7 @@ export function BusinessTripPdfTemplates({
               <th colSpan={3} style={TH}>
                 Кв. пари (EUR / лв.)
               </th>
-              <th rowSpan={2} style={{ ...TH, width: "68pt" }}>
+              <th rowSpan={2} style={{ ...TH, width: "74pt" }}>
                 Общо (EUR / лв.)
               </th>
               <th rowSpan={2} style={{ ...TH, width: "48pt" }}>
@@ -1778,14 +1810,14 @@ export function BusinessTripPdfTemplates({
               </th>
             </tr>
             <tr>
-              <th style={{ ...TH, width: "32pt" }}>отиване</th>
-              <th style={{ ...TH, width: "32pt" }}>връщане</th>
-              <th style={{ ...TH, width: "20pt" }}>дни</th>
-              <th style={{ ...TH, width: "42pt" }}>за 1 ден</th>
-              <th style={{ ...TH, width: "46pt" }}>сума</th>
-              <th style={{ ...TH, width: "20pt" }}>нощ</th>
-              <th style={{ ...TH, width: "42pt" }}>за 1 нощ</th>
-              <th style={{ ...TH, width: "46pt" }}>сума</th>
+              <th style={{ ...TH, width: "44pt" }}>отиване</th>
+              <th style={{ ...TH, width: "44pt" }}>връщане</th>
+              <th style={{ ...TH, width: "22pt" }}>дни</th>
+              <th style={{ ...TH, width: "46pt" }}>за 1 ден</th>
+              <th style={{ ...TH, width: "52pt" }}>сума</th>
+              <th style={{ ...TH, width: "22pt" }}>нощ</th>
+              <th style={{ ...TH, width: "46pt" }}>за 1 нощ</th>
+              <th style={{ ...TH, width: "52pt" }}>сума</th>
             </tr>
           </thead>
         );
@@ -1813,38 +1845,11 @@ export function BusinessTripPdfTemplates({
 
           if (hasAccom) {
             if (pNights > 0 && accomRatePerNightEUR > 0) {
-              accomRateCell = (
-                <div>
-                  <span style={{ fontWeight: "600", color: "#000" }}>
-                    {accomRatePerNightEUR.toFixed(2)} €
-                  </span>
-                  <div
-                    style={{
-                      fontSize: "6.5pt",
-                      color: "#000",
-                      lineHeight: "1.1",
-                    }}
-                  >
-                    ({accomRatePerNightBGN.toFixed(2)} лв.)
-                  </div>
-                </div>
+              accomRateCell = renderDualAmount(
+                accomRatePerNightEUR,
+                accomRatePerNightBGN
               );
-              accomTotalCell = (
-                <div>
-                  <span style={{ fontWeight: "600", color: "#000" }}>
-                    {pAcomEURpp.toFixed(2)} €
-                  </span>
-                  <div
-                    style={{
-                      fontSize: "6.5pt",
-                      color: "#000",
-                      lineHeight: "1.1",
-                    }}
-                  >
-                    ({pAcomBGNpp.toFixed(2)} лв.)
-                  </div>
-                </div>
-              );
+              accomTotalCell = renderDualAmount(pAcomEURpp, pAcomBGNpp);
             } else if (pNights === 0) {
               accomRateCell = (
                 <span style={{ fontSize: "7.5pt", color: "#000" }}>—</span>
@@ -1854,12 +1859,12 @@ export function BusinessTripPdfTemplates({
               );
             } else {
               accomRateCell = (
-                <span style={{ fontSize: "7.5pt", color: "#000" }}>
+                <span style={{ fontSize: "7pt", color: "#000" }}>
                   (по фактура)
                 </span>
               );
               accomTotalCell = (
-                <span style={{ fontSize: "7.5pt", color: "#000" }}>
+                <span style={{ fontSize: "7pt", color: "#000" }}>
                   (по фактура)
                 </span>
               );
@@ -1882,87 +1887,31 @@ export function BusinessTripPdfTemplates({
                 {routeLabel}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {isFirstPerson && transportTotalEUR > 0 ? (
-                  <div>
-                    <span style={{ fontWeight: "600", color: "#000" }}>
-                      {(transportTotalEUR / 2).toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({(transportTotalBGN / 2).toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  ""
-                )}
+                {isFirstPerson && transportTotalEUR > 0
+                  ? renderDualAmount(
+                      transportTotalEUR / 2,
+                      transportTotalBGN / 2
+                    )
+                  : ""}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {isFirstPerson && transportTotalEUR > 0 ? (
-                  <div>
-                    <span style={{ fontWeight: "600", color: "#000" }}>
-                      {(transportTotalEUR / 2).toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({(transportTotalBGN / 2).toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  ""
-                )}
+                {isFirstPerson && transportTotalEUR > 0
+                  ? renderDualAmount(
+                      transportTotalEUR / 2,
+                      transportTotalBGN / 2
+                    )
+                  : ""}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasPerDiem ? pDays : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasPerDiem ? (
-                  <div>
-                    <span style={{ fontWeight: "600", color: "#000" }}>
-                      {pPerDiemRateEUR.toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({pPerDiemRateBGN.toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  "—"
-                )}
+                {hasPerDiem
+                  ? renderDualAmount(pPerDiemRateEUR, pPerDiemRateBGN)
+                  : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasPerDiem ? (
-                  <div>
-                    <span style={{ fontWeight: "600", color: "#000" }}>
-                      {pDiemEURpp.toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({pDiemBGNpp.toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  "—"
-                )}
+                {hasPerDiem ? renderDualAmount(pDiemEURpp, pDiemBGNpp) : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasAccom ? pNights : "—"}
@@ -1970,20 +1919,7 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>{accomRateCell}</td>
               <td style={{ ...TD, textAlign: "center" }}>{accomTotalCell}</td>
               <td style={{ ...TD, textAlign: "center" }}>
-                <div>
-                  <span style={{ fontWeight: "700", color: "#000" }}>
-                    {personTotalEUR.toFixed(2)} €
-                  </span>
-                  <div
-                    style={{
-                      fontSize: "6.5pt",
-                      color: "#000",
-                      lineHeight: "1.1",
-                    }}
-                  >
-                    ({personTotalBGN.toFixed(2)} лв.)
-                  </div>
-                </div>
+                {renderDualAmount(personTotalEUR, personTotalBGN, true)}
               </td>
               <td style={TD}>&nbsp;</td>
             </tr>
@@ -2037,122 +1973,51 @@ export function BusinessTripPdfTemplates({
                 МЕЖДИНЕН СБОР ({label}):
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {sliceTransportEUR > 0 ? (
-                  <div>
-                    <span style={{ fontWeight: "700", color: "#000" }}>
-                      {(sliceTransportEUR / 2).toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        fontWeight: "normal",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({(sliceTransportBGN / 2).toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  "—"
-                )}
+                {sliceTransportEUR > 0
+                  ? renderDualAmount(
+                      sliceTransportEUR / 2,
+                      sliceTransportBGN / 2,
+                      true
+                    )
+                  : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {sliceTransportEUR > 0 ? (
-                  <div>
-                    <span style={{ fontWeight: "700", color: "#000" }}>
-                      {(sliceTransportEUR / 2).toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        fontWeight: "normal",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({(sliceTransportBGN / 2).toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  "—"
-                )}
+                {sliceTransportEUR > 0
+                  ? renderDualAmount(
+                      sliceTransportEUR / 2,
+                      sliceTransportBGN / 2,
+                      true
+                    )
+                  : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasPerDiem ? sliceDays : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>—</td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasPerDiem ? (
-                  <div>
-                    <span style={{ fontWeight: "700", color: "#000" }}>
-                      {slicePerDiemEUR.toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        fontWeight: "normal",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({slicePerDiemBGN.toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  "—"
-                )}
+                {hasPerDiem
+                  ? renderDualAmount(slicePerDiemEUR, slicePerDiemBGN, true)
+                  : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasAccom ? sliceNights : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>—</td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasAccom
-                  ? (() => {
-                      if (sliceAccomEUR > 0) {
-                        return (
-                          <div>
-                            <span style={{ fontWeight: "700", color: "#000" }}>
-                              {sliceAccomEUR.toFixed(2)} €
-                            </span>
-                            <div
-                              style={{
-                                fontSize: "6.5pt",
-                                color: "#000",
-                                fontWeight: "normal",
-                                lineHeight: "1.1",
-                              }}
-                            >
-                              ({sliceAccomBGN.toFixed(2)} лв.)
-                            </div>
-                          </div>
-                        );
-                      }
-                      return (
-                        <span style={{ fontSize: "7.5pt", color: "#000" }}>
-                          0.00 €
-                        </span>
-                      );
-                    })()
-                  : "—"}
+                {hasAccom ? (
+                  sliceAccomEUR > 0 ? (
+                    renderDualAmount(sliceAccomEUR, sliceAccomBGN, true)
+                  ) : (
+                    <span style={{ fontSize: "7.5pt", color: "#000" }}>
+                      0.00 €
+                    </span>
+                  )
+                ) : (
+                  "—"
+                )}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                <div>
-                  <span style={{ fontWeight: "800", color: "#000" }}>
-                    {sliceTotalEUR.toFixed(2)} €
-                  </span>
-                  <div
-                    style={{
-                      fontSize: "6.5pt",
-                      color: "#000",
-                      fontWeight: "normal",
-                      lineHeight: "1.1",
-                    }}
-                  >
-                    ({sliceTotalBGN.toFixed(2)} лв.)
-                  </div>
-                </div>
+                {renderDualAmount(sliceTotalEUR, sliceTotalBGN, true)}
               </td>
               <td style={TD}>&nbsp;</td>
             </tr>
@@ -2188,122 +2053,51 @@ export function BusinessTripPdfTemplates({
                 ВСИЧКО:
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {transportTotalEUR > 0 ? (
-                  <div>
-                    <span style={{ fontWeight: "700", color: "#000" }}>
-                      {(transportTotalEUR / 2).toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        fontWeight: "normal",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({(transportTotalBGN / 2).toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  "—"
-                )}
+                {transportTotalEUR > 0
+                  ? renderDualAmount(
+                      transportTotalEUR / 2,
+                      transportTotalBGN / 2,
+                      true
+                    )
+                  : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {transportTotalEUR > 0 ? (
-                  <div>
-                    <span style={{ fontWeight: "700", color: "#000" }}>
-                      {(transportTotalEUR / 2).toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        fontWeight: "normal",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({(transportTotalBGN / 2).toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  "—"
-                )}
+                {transportTotalEUR > 0
+                  ? renderDualAmount(
+                      transportTotalEUR / 2,
+                      transportTotalBGN / 2,
+                      true
+                    )
+                  : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasPerDiem ? totalDays : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>—</td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasPerDiem ? (
-                  <div>
-                    <span style={{ fontWeight: "700", color: "#000" }}>
-                      {totalDiemEUR.toFixed(2)} €
-                    </span>
-                    <div
-                      style={{
-                        fontSize: "6.5pt",
-                        color: "#000",
-                        fontWeight: "normal",
-                        lineHeight: "1.1",
-                      }}
-                    >
-                      ({totalDiemBGN.toFixed(2)} лв.)
-                    </div>
-                  </div>
-                ) : (
-                  "—"
-                )}
+                {hasPerDiem
+                  ? renderDualAmount(totalDiemEUR, totalDiemBGN, true)
+                  : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
                 {hasAccom ? totalNights : "—"}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>—</td>
               <td style={{ ...TD, textAlign: "center" }}>
-                {hasAccom
-                  ? (() => {
-                      if (totalAccomEUR > 0) {
-                        return (
-                          <div>
-                            <span style={{ fontWeight: "700", color: "#000" }}>
-                              {totalAccomEUR.toFixed(2)} €
-                            </span>
-                            <div
-                              style={{
-                                fontSize: "6.5pt",
-                                color: "#000",
-                                fontWeight: "normal",
-                                lineHeight: "1.1",
-                              }}
-                            >
-                              ({totalAccomBGN.toFixed(2)} лв.)
-                            </div>
-                          </div>
-                        );
-                      }
-                      return (
-                        <span style={{ fontSize: "7.5pt", color: "#000" }}>
-                          0.00 €
-                        </span>
-                      );
-                    })()
-                  : "—"}
+                {hasAccom ? (
+                  totalAccomEUR > 0 ? (
+                    renderDualAmount(totalAccomEUR, totalAccomBGN, true)
+                  ) : (
+                    <span style={{ fontSize: "7.5pt", color: "#000" }}>
+                      0.00 €
+                    </span>
+                  )
+                ) : (
+                  "—"
+                )}
               </td>
               <td style={{ ...TD, textAlign: "center" }}>
-                <div>
-                  <span style={{ fontWeight: "800", color: "#000" }}>
-                    {grandEUR.toFixed(2)} €
-                  </span>
-                  <div
-                    style={{
-                      fontSize: "6.5pt",
-                      color: "#000",
-                      fontWeight: "normal",
-                      lineHeight: "1.1",
-                    }}
-                  >
-                    ({grandBGN.toFixed(2)} лв.)
-                  </div>
-                </div>
+                {renderDualAmount(grandEUR, grandBGN, true)}
               </td>
               <td style={TD}>&nbsp;</td>
             </tr>
@@ -2316,8 +2110,8 @@ export function BusinessTripPdfTemplates({
           );
 
           return (
-            <div style={{ marginTop: "6pt" }}>
-              <p style={{ fontSize: "8.5pt", margin: "4pt 0" }}>
+            <div style={{ marginTop: "4pt" }}>
+              <p style={{ fontSize: "7.5pt", margin: "2pt 0" }}>
                 <strong>Словом: </strong>
                 {grandEUR > 0
                   ? `${numToWordsBG(grandEUR, true)} (${numToWordsBG(grandBGN, false)})`
@@ -2328,8 +2122,8 @@ export function BusinessTripPdfTemplates({
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  marginTop: "8pt",
-                  gap: "20pt",
+                  marginTop: "4pt",
+                  gap: "16pt",
                 }}
               >
                 <div
@@ -2337,7 +2131,7 @@ export function BusinessTripPdfTemplates({
                     flex: 1,
                     border: "1px solid #000",
                     borderRadius: "6px",
-                    padding: "6pt 8pt",
+                    padding: "4pt 6pt",
                     textAlign: "center",
                     position: "relative",
                   }}
@@ -2345,7 +2139,7 @@ export function BusinessTripPdfTemplates({
                   <p
                     style={{
                       fontWeight: "600",
-                      fontSize: "7.5pt",
+                      fontSize: "7pt",
                       margin: 0,
                       color: "#000",
                       textTransform: "uppercase",
@@ -2358,26 +2152,26 @@ export function BusinessTripPdfTemplates({
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
-                      height: "32pt",
+                      height: "26pt",
                     }}
                   >
                     {trip.signatures?.coach ? (
                       <img
                         src={trip.signatures.coach}
                         alt="signature"
-                        style={{ height: "30pt", objectFit: "contain" }}
+                        style={{ height: "24pt", objectFit: "contain" }}
                       />
                     ) : (
-                      <span style={{ color: "#000" }}>
+                      <span style={{ color: "#000", fontSize: "7.5pt" }}>
                         ..................................
                       </span>
                     )}
                   </div>
                   <p
                     style={{
-                      fontSize: "7.5pt",
+                      fontSize: "7pt",
                       margin: 0,
-                      marginTop: "4pt",
+                      marginTop: "2pt",
                       color: "#000",
                     }}
                   >
@@ -2390,7 +2184,7 @@ export function BusinessTripPdfTemplates({
                     flex: 1,
                     border: "1px solid #000",
                     borderRadius: "6px",
-                    padding: "6pt 8pt",
+                    padding: "4pt 6pt",
                     textAlign: "center",
                     position: "relative",
                     backgroundColor: "#f8fafc",
@@ -2399,7 +2193,7 @@ export function BusinessTripPdfTemplates({
                   <p
                     style={{
                       fontWeight: "600",
-                      fontSize: "7.5pt",
+                      fontSize: "7pt",
                       margin: 0,
                       color: "#000",
                       textTransform: "uppercase",
@@ -2412,26 +2206,26 @@ export function BusinessTripPdfTemplates({
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
-                      height: "32pt",
+                      height: "26pt",
                     }}
                   >
                     {trip.signatures?.chairman ? (
                       <img
                         src={trip.signatures.chairman}
                         alt="signature"
-                        style={{ height: "30pt", objectFit: "contain" }}
+                        style={{ height: "24pt", objectFit: "contain" }}
                       />
                     ) : (
-                      <span style={{ color: "#000" }}>
+                      <span style={{ color: "#000", fontSize: "7.5pt" }}>
                         ..................................
                       </span>
                     )}
                   </div>
                   <p
                     style={{
-                      fontSize: "7.5pt",
+                      fontSize: "7pt",
                       margin: 0,
-                      marginTop: "4pt",
+                      marginTop: "2pt",
                       color: "#000",
                     }}
                   >
@@ -2443,13 +2237,13 @@ export function BusinessTripPdfTemplates({
               {nonFuelExpenses.length > 0 && (
                 <div
                   style={{
-                    marginTop: "8pt",
-                    fontSize: "7.5pt",
+                    marginTop: "4pt",
+                    fontSize: "7pt",
                     borderTop: "1px dashed #000",
-                    paddingTop: "6pt",
+                    paddingTop: "3pt",
                   }}
                 >
-                  <p style={{ fontWeight: "600", margin: "0 0 3pt 0" }}>
+                  <p style={{ fontWeight: "600", margin: "0 0 2pt 0" }}>
                     Приложени разходооправдателни документи:
                   </p>
                   {nonFuelExpenses.map((exp, idx) => {
@@ -2480,7 +2274,7 @@ export function BusinessTripPdfTemplates({
                     }
 
                     return (
-                      <p key={idx} style={{ margin: "1.5pt 0" }}>
+                      <p key={idx} style={{ margin: "1pt 0" }}>
                         {idx + 1}. {typeLabel} —{" "}
                         {exp.documentNumber
                           ? `Фактура/Бон № ${exp.documentNumber}`
@@ -2501,22 +2295,22 @@ export function BusinessTripPdfTemplates({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              borderBottom: "2px solid #000",
-              paddingBottom: "8pt",
-              marginBottom: "8pt",
+              borderBottom: "1.5px solid #000",
+              paddingBottom: "4pt",
+              marginBottom: "5pt",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "8pt" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6pt" }}>
               <img
                 src="/icons/LOGO.jpg"
                 alt="Logo"
-                style={{ height: "35pt", objectFit: "contain" }}
+                style={{ height: "30pt", objectFit: "contain" }}
               />
               <div>
                 <p
                   style={{
                     fontWeight: "700",
-                    fontSize: "11pt",
+                    fontSize: "10pt",
                     margin: 0,
                     color: "#000",
                   }}
@@ -2526,8 +2320,8 @@ export function BusinessTripPdfTemplates({
                 {site.bulstat && (
                   <p
                     style={{
-                      fontSize: "8pt",
-                      margin: "2pt 0 0 0",
+                      fontSize: "7.5pt",
+                      margin: "1pt 0 0 0",
                       color: "#000",
                     }}
                   >
@@ -2536,14 +2330,16 @@ export function BusinessTripPdfTemplates({
                 )}
               </div>
             </div>
-            <div style={{ textAlign: "right", fontSize: "8pt", color: "#000" }}>
+            <div
+              style={{ textAlign: "right", fontSize: "7.5pt", color: "#000" }}
+            >
               <p style={{ margin: 0 }}>
                 Спортна проява:{" "}
                 <strong style={{ color: "#000" }}>
                   {event?.title || trip.title}
                 </strong>
               </p>
-              <p style={{ margin: "2pt 0" }}>
+              <p style={{ margin: "1.5pt 0" }}>
                 От {fmtDate(trip.startDate)} г. до {fmtDate(trip.endDate)} г. в{" "}
                 {destCity}
               </p>
@@ -2558,12 +2354,12 @@ export function BusinessTripPdfTemplates({
         );
 
         const renderStatementTitle = (subtitle: string) => (
-          <div style={{ marginBottom: "6pt", textAlign: "center" }}>
+          <div style={{ marginBottom: "4pt", textAlign: "center" }}>
             <p
               style={{
                 fontWeight: "800",
-                fontSize: "13pt",
-                letterSpacing: "4px",
+                fontSize: "11.5pt",
+                letterSpacing: "3px",
                 margin: 0,
                 color: "#000",
               }}
@@ -2572,9 +2368,9 @@ export function BusinessTripPdfTemplates({
             </p>
             <p
               style={{
-                fontSize: "8pt",
+                fontSize: "7.5pt",
                 color: "#000",
-                margin: "2pt 0 0 0",
+                margin: "1pt 0 0 0",
                 fontWeight: "500",
               }}
             >
@@ -2583,102 +2379,56 @@ export function BusinessTripPdfTemplates({
           </div>
         );
 
-        if (isMultiPage) {
-          return (
-            <div
-              id={`pdf-statement-template${idSuffix}`}
-              style={{
-                width: "297mm",
-                backgroundColor: "#fff",
-              }}
-            >
-              {/* ─── СТРАНИЦА 1 ─── */}
-              <div className="pdf-page" style={PAGE_LAND_PAGE}>
-                <div>
-                  {renderHeader()}
-                  {renderStatementTitle("за изплатени суми за командировка")}
-                  <table
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      marginBottom: "6pt",
-                    }}
-                  >
-                    {renderTableHeader()}
-                    <tbody>
-                      {page1People.map((p, i) => renderPersonRow(p, i))}
-                      {renderSubtotalRow("Лист 1", page1People, true)}
-                    </tbody>
-                  </table>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    fontSize: "7.5pt",
-                    color: "#000",
-                    borderTop: "1px solid #000",
-                    paddingTop: "4pt",
-                    marginTop: "auto",
-                  }}
-                >
-                  <span>
-                    {trip.title} — {site.name}
-                  </span>
-                  <span>Лист 1 от 2</span>
-                </div>
-              </div>
+        const nonFuelExpensesCount = expenses.filter(
+          (e) => e.expenseType !== "fuel"
+        ).length;
 
-              {/* ─── СТРАНИЦА 2 ─── */}
-              <div className="pdf-page" style={PAGE_LAND_PAGE}>
-                <div>
-                  {renderHeader()}
-                  {renderStatementTitle("Продължение — Лист 2")}
-                  <table
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      marginBottom: "6pt",
-                    }}
-                  >
-                    {renderTableHeader()}
-                    <tbody>
-                      {page2People.map((p, i) =>
-                        renderPersonRow(p, page1Count + i)
-                      )}
-                      {renderSubtotalRow(
-                        "Лист 2",
-                        page2People,
-                        false,
-                        page1Count
-                      )}
-                      {renderGrandTotalRow()}
-                    </tbody>
-                  </table>
-                  {renderSignaturesAndDocs()}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    fontSize: "7.5pt",
-                    color: "#000",
-                    borderTop: "1px solid #000",
-                    paddingTop: "4pt",
-                    marginTop: "auto",
-                  }}
-                >
-                  <span>
-                    {trip.title} — {site.name}
-                  </span>
-                  <span>Лист 2 от 2</span>
-                </div>
-              </div>
-            </div>
-          );
+        // How many people can fit on the last page (with signatures & attached docs):
+        const maxOnLastPage = nonFuelExpensesCount > 2 ? 6 : 7;
+        // How many people can fit on earlier pages (table + subtotal only):
+        const maxOnNormalPage = 11;
+
+        let pageChunks: { people: typeof allPeople; startIndex: number }[] = [];
+
+        if (
+          totalPeople <= 7 &&
+          !(totalPeople > 5 && nonFuelExpensesCount > 2)
+        ) {
+          // Fits safely on 1 single page
+          pageChunks = [{ people: allPeople, startIndex: 0 }];
+        } else if (totalPeople <= maxOnNormalPage + maxOnLastPage) {
+          // Exactly 2 pages - balanced distribution
+          const p2Count = Math.min(maxOnLastPage, Math.ceil(totalPeople / 2));
+          const p1Count = totalPeople - p2Count;
+          pageChunks = [
+            { people: allPeople.slice(0, p1Count), startIndex: 0 },
+            { people: allPeople.slice(p1Count), startIndex: p1Count },
+          ];
+        } else {
+          // 3 or more pages
+          let remaining = [...allPeople];
+          let currentIndex = 0;
+          while (remaining.length > maxOnLastPage) {
+            const take = Math.min(
+              maxOnNormalPage,
+              remaining.length - maxOnLastPage
+            );
+            pageChunks.push({
+              people: remaining.slice(0, take),
+              startIndex: currentIndex,
+            });
+            remaining = remaining.slice(take);
+            currentIndex += take;
+          }
+          if (remaining.length > 0) {
+            pageChunks.push({
+              people: remaining,
+              startIndex: currentIndex,
+            });
+          }
         }
+
+        const totalSheetCount = pageChunks.length;
 
         return (
           <div
@@ -2688,43 +2438,72 @@ export function BusinessTripPdfTemplates({
               backgroundColor: "#fff",
             }}
           >
-            <div className="pdf-page" style={PAGE_LAND_PAGE}>
-              <div>
-                {renderHeader()}
-                {renderStatementTitle("за изплатени суми за командировка")}
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    marginBottom: "6pt",
-                  }}
+            {pageChunks.map((chunk, pageIndex) => {
+              const isLastPage = pageIndex === totalSheetCount - 1;
+              const isFirstPage = pageIndex === 0;
+              const sheetNum = pageIndex + 1;
+
+              return (
+                <div
+                  key={`statement_page_${pageIndex}`}
+                  className="pdf-page bg-white text-black"
+                  style={PAGE_LAND_PAGE}
                 >
-                  {renderTableHeader()}
-                  <tbody>
-                    {allPeople.map((p, i) => renderPersonRow(p, i))}
-                    {renderGrandTotalRow()}
-                  </tbody>
-                </table>
-                {renderSignaturesAndDocs()}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  fontSize: "7.5pt",
-                  color: "#000",
-                  borderTop: "1px solid #000",
-                  paddingTop: "4pt",
-                  marginTop: "auto",
-                }}
-              >
-                <span>
-                  {trip.title} — {site.name}
-                </span>
-                <span>Лист 1 от 1</span>
-              </div>
-            </div>
+                  <div>
+                    {renderHeader()}
+                    {renderStatementTitle(
+                      isFirstPage && totalSheetCount === 1
+                        ? "за изплатени суми за командировка"
+                        : isFirstPage
+                          ? "за изплатени суми за командировка — Лист 1"
+                          : `Продължение — Лист ${sheetNum}`
+                    )}
+                    <table
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        marginBottom: "4pt",
+                      }}
+                    >
+                      {renderTableHeader()}
+                      <tbody>
+                        {chunk.people.map((p, i) =>
+                          renderPersonRow(p, chunk.startIndex + i)
+                        )}
+                        {totalSheetCount > 1 &&
+                          renderSubtotalRow(
+                            `Лист ${sheetNum}`,
+                            chunk.people,
+                            isFirstPage,
+                            chunk.startIndex
+                          )}
+                        {isLastPage && renderGrandTotalRow()}
+                      </tbody>
+                    </table>
+                    {isLastPage && renderSignaturesAndDocs()}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      fontSize: "7.5pt",
+                      color: "#000",
+                      borderTop: "1px solid #000",
+                      paddingTop: "3pt",
+                      marginTop: "auto",
+                    }}
+                  >
+                    <span>
+                      {trip.title} — {site.name}
+                    </span>
+                    <span>
+                      Лист {sheetNum} от {totalSheetCount}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         );
       })()}
@@ -2831,7 +2610,7 @@ export function BusinessTripPdfTemplates({
             От <strong>{coachName}</strong>,&nbsp; длъжност{" "}
             <strong>{coachRole}</strong>
           </p>
-          <p style={{ marginBottom: "18pt", lineHeight: "1.5" }}>
+          <p style={{ marginBottom: "8pt", lineHeight: "1.4" }}>
             За разход на{" "}
             <strong>
               {trip.vehicle?.fuelType ||
@@ -2856,20 +2635,20 @@ export function BusinessTripPdfTemplates({
             style={{
               width: "100%",
               borderCollapse: "collapse",
-              marginBottom: "20pt",
+              marginBottom: "10pt",
             }}
           >
             <thead>
               <tr>
-                <th style={{ ...TH, width: "18pt" }}>№</th>
+                <th style={{ ...TH, width: "22pt" }}>№</th>
                 <th style={TH}>Спортни мероприятия</th>
-                <th style={{ ...TH, width: "55pt" }}>Общо изминати км.</th>
-                <th style={{ ...TH, width: "50pt" }}>Норма за 100 км</th>
-                <th style={{ ...TH, width: "55pt" }}>Общо разход литри</th>
-                <th style={{ ...TH, width: "80pt" }}>
+                <th style={{ ...TH, width: "65pt" }}>Общо изминати км.</th>
+                <th style={{ ...TH, width: "60pt" }}>Норма за 100 км</th>
+                <th style={{ ...TH, width: "65pt" }}>Общо разход литри</th>
+                <th style={{ ...TH, width: "105pt" }}>
                   Единична цена за 1 л в EUR (лв.)
                 </th>
-                <th style={{ ...TH, width: "70pt" }}>
+                <th style={{ ...TH, width: "105pt" }}>
                   За изплащане в EUR (лв.)
                 </th>
               </tr>
@@ -2912,17 +2691,75 @@ export function BusinessTripPdfTemplates({
                   {totalLiters > 0 ? totalLiters.toFixed(2) : ""}
                 </td>
                 <td style={{ ...TD, textAlign: "center" }}>
-                  {avgPricePerLiterEUR > 0
-                    ? `€${avgPricePerLiterEUR.toFixed(2)} (${avgPricePerLiterBGN.toFixed(2)} лв.)`
-                    : ""}
+                  {avgPricePerLiterEUR > 0 ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "1pt",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontWeight: "600",
+                          color: "#000",
+                          fontSize: "7.5pt",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {avgPricePerLiterEUR.toFixed(2)} €
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "6.5pt",
+                          color: "#222",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ({avgPricePerLiterBGN.toFixed(2)} лв.)
+                      </span>
+                    </div>
+                  ) : (
+                    ""
+                  )}
                 </td>
-                <td style={{ ...TD, textAlign: "center", fontWeight: "bold" }}>
-                  {finalFuelEUR > 0
-                    ? `€${finalFuelEUR.toFixed(2)} (${finalFuelBGN.toFixed(2)} лв.)`
-                    : ""}
+                <td style={{ ...TD, textAlign: "center" }}>
+                  {finalFuelEUR > 0 ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "1pt",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontWeight: "700",
+                          color: "#000",
+                          fontSize: "7.5pt",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {finalFuelEUR.toFixed(2)} €
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "6.5pt",
+                          color: "#222",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ({finalFuelBGN.toFixed(2)} лв.)
+                      </span>
+                    </div>
+                  ) : (
+                    ""
+                  )}
                 </td>
               </tr>
-              <tr style={{ fontWeight: "bold" }}>
+              <tr style={{ fontWeight: "bold", backgroundColor: "#f8fafc" }}>
                 <td colSpan={2} style={{ ...TD, textAlign: "center" }}>
                   ВСИЧКО:
                 </td>
@@ -2934,15 +2771,44 @@ export function BusinessTripPdfTemplates({
                   {totalLiters > 0 ? totalLiters.toFixed(2) : ""}
                 </td>
                 <td style={TD}>&nbsp;</td>
-                <td style={{ ...TD, textAlign: "center", fontWeight: "bold" }}>
-                  {finalFuelEUR > 0
-                    ? `€${finalFuelEUR.toFixed(2)} (${finalFuelBGN.toFixed(2)} лв.)`
-                    : ""}
+                <td style={{ ...TD, textAlign: "center" }}>
+                  {finalFuelEUR > 0 ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "1pt",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontWeight: "700",
+                          color: "#000",
+                          fontSize: "7.5pt",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {finalFuelEUR.toFixed(2)} €
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "6.5pt",
+                          color: "#222",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ({finalFuelBGN.toFixed(2)} лв.)
+                      </span>
+                    </div>
+                  ) : (
+                    ""
+                  )}
                 </td>
               </tr>
             </tbody>
           </table>
-          <div style={{ fontSize: "10pt", marginBottom: "16pt" }}>
+          <div style={{ fontSize: "9pt", marginBottom: "8pt" }}>
             {(() => {
               const fuelExpenses = expenses.filter(
                 (e) => e.expenseType === "fuel"
@@ -2955,7 +2821,10 @@ export function BusinessTripPdfTemplates({
                   return (
                     <p
                       key={idx}
-                      style={{ paddingLeft: idx === 0 ? "0" : "118pt" }}
+                      style={{
+                        paddingLeft: idx === 0 ? "0" : "118pt",
+                        margin: "1pt 0",
+                      }}
                     >
                       {idx === 0 ? "Приложение: фискален бон    № " : "№ "}
                       {exp.documentNumber ||
@@ -2967,14 +2836,14 @@ export function BusinessTripPdfTemplates({
               // Fallback to 3 empty lines if no fuel expenses found
               return (
                 <>
-                  <p>
+                  <p style={{ margin: "1pt 0" }}>
                     Приложение: фискален бон &nbsp;&nbsp; №
                     ........................... / ............ {yearStr} г.
                   </p>
-                  <p style={{ paddingLeft: "118pt" }}>
+                  <p style={{ paddingLeft: "118pt", margin: "1pt 0" }}>
                     № ........................... / ............ {yearStr} г.
                   </p>
-                  <p style={{ paddingLeft: "118pt" }}>
+                  <p style={{ paddingLeft: "118pt", margin: "1pt 0" }}>
                     № ........................... / ............ {yearStr} г.
                   </p>
                 </>
@@ -2986,10 +2855,11 @@ export function BusinessTripPdfTemplates({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              marginTop: "20pt",
+              marginTop: "auto",
+              paddingTop: "6pt",
             }}
           >
-            <div style={{ flex: 1, fontSize: "11pt", color: "#000" }}>
+            <div style={{ flex: 1, fontSize: "10pt", color: "#000" }}>
               <p>
                 гр. Гълъбово &nbsp;&nbsp;{" "}
                 {fmtDate(trip.endDate || trip.startDate)} г.
@@ -2999,10 +2869,10 @@ export function BusinessTripPdfTemplates({
             <div
               style={{
                 flex: 1,
-                maxWidth: "250pt",
+                maxWidth: "240pt",
                 border: "1px solid #000",
                 borderRadius: "8px",
-                padding: "10pt",
+                padding: "6pt 10pt",
                 textAlign: "center",
                 backgroundColor: "#f8fafc",
               }}
@@ -3010,7 +2880,7 @@ export function BusinessTripPdfTemplates({
               <p
                 style={{
                   fontWeight: "700",
-                  fontSize: "9pt",
+                  fontSize: "8.5pt",
                   margin: 0,
                   color: "#000",
                   textTransform: "uppercase",
@@ -3023,14 +2893,14 @@ export function BusinessTripPdfTemplates({
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
-                  height: "50pt",
+                  height: "36pt",
                 }}
               >
                 {trip.signatures?.coach ? (
                   <img
                     src={trip.signatures.coach}
                     alt="signature"
-                    style={{ height: "45pt", objectFit: "contain" }}
+                    style={{ height: "32pt", objectFit: "contain" }}
                   />
                 ) : (
                   <span style={{ color: "#000" }}>
@@ -3053,7 +2923,7 @@ export function BusinessTripPdfTemplates({
         const athletes = allPeople.filter(
           (p) => p.role !== "Треньор" && p.role !== "Ръководител"
         );
-        const useTwoCols = athletes.length > 8;
+        const isTwoCols = athletes.length > 7;
 
         return (
           <div
@@ -3108,11 +2978,11 @@ export function BusinessTripPdfTemplates({
               </div>
 
               {/* Заглавие на списъка */}
-              <div style={{ textAlign: "center", marginBottom: "10pt" }}>
+              <div style={{ textAlign: "center", marginBottom: "8pt" }}>
                 <p
                   style={{
                     fontWeight: "800",
-                    fontSize: "13pt",
+                    fontSize: "12.5pt",
                     letterSpacing: "2px",
                     margin: 0,
                     color: "#000",
@@ -3123,7 +2993,7 @@ export function BusinessTripPdfTemplates({
                 <p
                   style={{
                     fontSize: "10.5pt",
-                    marginTop: "3pt",
+                    marginTop: "2pt",
                     marginBottom: 0,
                     color: "#000",
                     fontWeight: "600",
@@ -3133,7 +3003,7 @@ export function BusinessTripPdfTemplates({
                 </p>
                 <p
                   style={{
-                    fontSize: "9pt",
+                    fontSize: "8.5pt",
                     marginTop: "2pt",
                     marginBottom: 0,
                     color: "#000",
@@ -3143,7 +3013,7 @@ export function BusinessTripPdfTemplates({
                 </p>
                 <p
                   style={{
-                    fontSize: "10pt",
+                    fontSize: "9.5pt",
                     marginTop: "2pt",
                     marginBottom: 0,
                     color: "#000",
@@ -3156,7 +3026,7 @@ export function BusinessTripPdfTemplates({
                 </p>
                 <p
                   style={{
-                    fontSize: "9.5pt",
+                    fontSize: "9pt",
                     marginTop: "2pt",
                     marginBottom: 0,
                     color: "#000",
@@ -3170,17 +3040,17 @@ export function BusinessTripPdfTemplates({
               {/* Организатор и клуб домакин */}
               <div
                 style={{
-                  marginBottom: "10pt",
-                  fontSize: "9.5pt",
-                  lineHeight: "1.4",
+                  marginBottom: "8pt",
+                  fontSize: "9pt",
+                  lineHeight: "1.35",
                 }}
               >
-                <p style={{ margin: "2pt 0" }}>
+                <p style={{ margin: "1.5pt 0" }}>
                   <strong>Организатор:</strong>{" "}
                   {trip.organizer ||
                     "..............................................."}
                 </p>
-                <p style={{ margin: "2pt 0" }}>
+                <p style={{ margin: "1.5pt 0" }}>
                   <strong>Клуб домакин:</strong>{" "}
                   {trip.hostClub ||
                     "..............................................."}
@@ -3191,8 +3061,8 @@ export function BusinessTripPdfTemplates({
               <p
                 style={{
                   fontWeight: "700",
-                  fontSize: "10pt",
-                  margin: "0 0 6pt 0",
+                  fontSize: "9.5pt",
+                  margin: "0 0 4pt 0",
                   color: "#000",
                 }}
               >
@@ -3202,21 +3072,21 @@ export function BusinessTripPdfTemplates({
               {/* Списък със състезатели */}
               <div
                 style={{
-                  marginBottom: "10pt",
-                  fontSize: "9.5pt",
-                  lineHeight: "1.35",
-                  ...(useTwoCols
+                  marginBottom: "8pt",
+                  fontSize: athletes.length > 12 ? "8pt" : "9pt",
+                  lineHeight: "1.3",
+                  ...(isTwoCols
                     ? {
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr",
-                        columnGap: "30pt",
-                        rowGap: "2pt",
+                        columnGap: "24pt",
+                        rowGap: athletes.length > 14 ? "1pt" : "2pt",
                       }
                     : {}),
                 }}
               >
                 {athletes.map((p, i) => (
-                  <p key={i} style={{ margin: useTwoCols ? 0 : "2pt 0" }}>
+                  <p key={i} style={{ margin: isTwoCols ? 0 : "1.5pt 0" }}>
                     {i + 1}. {p.name}
                   </p>
                 ))}
@@ -3262,7 +3132,7 @@ export function BusinessTripPdfTemplates({
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                marginTop: "12pt",
+                marginTop: "auto",
                 paddingTop: "8pt",
                 fontSize: "9pt",
               }}
@@ -3272,20 +3142,20 @@ export function BusinessTripPdfTemplates({
                   Дата: {fmtDate(trip.startDate || trip.endDate)} г.
                 </p>
                 <p style={{ margin: 0 }}>гр. Гълъбово</p>
-                <div style={{ marginTop: "10pt" }}>
+                <div style={{ marginTop: "6pt" }}>
                   <p style={{ margin: "0 0 2pt 0", fontWeight: "600" }}>
                     Ръководител на групата / Треньор:
                   </p>
-                  <p style={{ margin: "0 0 10pt 0" }}>
+                  <p style={{ margin: "0 0 6pt 0" }}>
                     Име и фамилия: {coachName}
                   </p>
                   <div style={{ display: "flex", alignItems: "flex-end" }}>
-                    <span style={{ marginRight: "10pt" }}>Подпис:</span>
+                    <span style={{ marginRight: "8pt" }}>Подпис:</span>
                     {trip.signatures?.coach ? (
                       <img
                         src={trip.signatures.coach}
                         alt="signature"
-                        style={{ height: "35pt", objectFit: "contain" }}
+                        style={{ height: "28pt", objectFit: "contain" }}
                       />
                     ) : (
                       <span style={{ color: "#000" }}>
@@ -3351,85 +3221,133 @@ export function BusinessTripPdfTemplates({
             ? trip.reportText.trim()
             : defaultReportText;
 
-        // Приблизителна оценка на редовете: при дълъг текст докладът заема точно 2 листа А4
+        // Оценка на редовете: стандартните доклади се побират чисто на 1 страница А4 (до ~52 реда).
+        // Само при изключително дълги текстове (>52 реда) се преминава на 2 листа.
         const estimatedLines = displayReportText
           .split("\n")
-          .reduce((sum, l) => sum + Math.max(1, Math.ceil(l.length / 100)), 0);
-        const reportSheets = estimatedLines > 38 ? 2 : 1;
+          .reduce((sum, l) => sum + Math.max(1, Math.ceil(l.length / 95)), 0);
+        const reportSheets = estimatedLines > 52 ? 2 : 1;
 
-        return (
+        let part1 = displayReportText;
+        let part2 = "";
+
+        if (reportSheets === 2) {
+          const section3Match = displayReportText.search(
+            /\n(?=\s*3\.\s+(?:ТРАНСПОРТ|ПРЕСТОЙ))/i
+          );
+          if (section3Match > 0) {
+            part1 = displayReportText.slice(0, section3Match).trim();
+            part2 = displayReportText.slice(section3Match).trim();
+          } else {
+            const lines = displayReportText.split("\n");
+            let splitLine = Math.min(26, Math.ceil(lines.length / 2));
+            for (let offset = 0; offset <= 6; offset++) {
+              if (
+                lines[splitLine + offset] !== undefined &&
+                !lines[splitLine + offset].trim()
+              ) {
+                splitLine = splitLine + offset + 1;
+                break;
+              }
+              if (
+                lines[splitLine - offset] !== undefined &&
+                !lines[splitLine - offset].trim()
+              ) {
+                splitLine = splitLine - offset + 1;
+                break;
+              }
+            }
+            part1 = lines.slice(0, splitLine).join("\n").trim();
+            part2 = lines.slice(splitLine).join("\n").trim();
+          }
+        }
+
+        const REPORT_PAGE_STYLE: React.CSSProperties = {
+          width: "210mm",
+          height: "297mm",
+          minHeight: "297mm",
+          maxHeight: "297mm",
+          fontFamily:
+            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+          fontSize: "8pt",
+          lineHeight: 1.32,
+          color: "#000",
+          backgroundColor: "#fff",
+          padding: "8mm 12mm",
+          boxSizing: "border-box",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          overflow: "hidden",
+          position: "relative",
+        };
+
+        const renderReportHeader = () => (
           <div
-            id={`pdf-report-template${idSuffix}`}
-            className="pdf-page bg-white text-black"
             style={{
-              ...PAGE_A4_REPORT,
-              minHeight: `${297 * reportSheets}mm`,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottom: "1.5px solid #000",
+              paddingBottom: "4pt",
+              marginBottom: "5pt",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                borderBottom: "2px solid #000",
-                paddingBottom: "6pt",
-                marginBottom: "8pt",
-              }}
-            >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "8pt" }}
-              >
-                <img
-                  src="/icons/LOGO.jpg"
-                  alt="Logo"
-                  style={{ height: "36pt", objectFit: "contain" }}
-                />
-                <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "6pt" }}>
+              <img
+                src="/icons/LOGO.jpg"
+                alt="Logo"
+                style={{ height: "30pt", objectFit: "contain" }}
+              />
+              <div>
+                <p
+                  style={{
+                    fontWeight: "700",
+                    fontSize: "11pt",
+                    margin: 0,
+                    color: "#000",
+                  }}
+                >
+                  {formatOrgName(site.shortName, true)}
+                </p>
+                {site.bulstat && (
                   <p
                     style={{
-                      fontWeight: "700",
-                      fontSize: "12pt",
-                      margin: 0,
+                      fontSize: "7.5pt",
+                      margin: "1pt 0 0 0",
                       color: "#000",
                     }}
                   >
-                    {formatOrgName(site.shortName, true)}
+                    БУЛСТАТ: {site.bulstat} | {site.contact.address}
                   </p>
-                  {site.bulstat && (
-                    <p
-                      style={{
-                        fontSize: "8pt",
-                        margin: "1pt 0 0 0",
-                        color: "#000",
-                      }}
-                    >
-                      БУЛСТАТ: {site.bulstat} | {site.contact.address}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div style={{ textAlign: "right", fontSize: "8pt" }}>
-                <p style={{ margin: 0, fontWeight: "700", color: "#000" }}>
-                  УТВЪРЖДАВАМ:
-                </p>
-                <p style={{ margin: "1pt 0" }}>
-                  Председател на УС: ....................
-                </p>
-                <p style={{ margin: "1pt 0", color: "#000" }}>
-                  / {site.contact.mol || "М. Георгиева"} /
-                </p>
-                <p style={{ margin: "1pt 0" }}>
-                  Дата: {fmtDate(trip.endDate || trip.startDate)} г.
-                </p>
+                )}
               </div>
             </div>
 
-            <div style={{ textAlign: "center", marginBottom: "8pt" }}>
+            <div style={{ textAlign: "right", fontSize: "7.5pt" }}>
+              <p style={{ margin: 0, fontWeight: "700", color: "#000" }}>
+                УТВЪРЖДАВАМ:
+              </p>
+              <p style={{ margin: "1pt 0" }}>
+                Председател на УС: ....................
+              </p>
+              <p style={{ margin: "1pt 0", color: "#000" }}>
+                / {site.contact.mol || "М. Георгиева"} /
+              </p>
+              <p style={{ margin: "1pt 0" }}>
+                Дата: {fmtDate(trip.endDate || trip.startDate)} г.
+              </p>
+            </div>
+          </div>
+        );
+
+        const renderReportTitleAndMeta = () => (
+          <>
+            <div style={{ textAlign: "center", marginBottom: "4pt" }}>
               <p
                 style={{
                   fontWeight: "800",
-                  fontSize: "12pt",
+                  fontSize: "11.5pt",
                   letterSpacing: "1.5px",
                   margin: 0,
                   color: "#000",
@@ -3439,8 +3357,8 @@ export function BusinessTripPdfTemplates({
               </p>
               <p
                 style={{
-                  fontSize: "10pt",
-                  marginTop: "2pt",
+                  fontSize: "9pt",
+                  marginTop: "1.5pt",
                   marginBottom: 0,
                   color: "#000",
                   fontWeight: "700",
@@ -3450,7 +3368,7 @@ export function BusinessTripPdfTemplates({
               </p>
               <p
                 style={{
-                  fontSize: "8pt",
+                  fontSize: "7pt",
                   color: "#000",
                   margin: "1pt 0 0 0",
                 }}
@@ -3463,89 +3381,235 @@ export function BusinessTripPdfTemplates({
               style={{
                 background: "#f8fafc",
                 border: "1px solid #000",
-                borderRadius: "4pt",
-                padding: "6pt 10pt",
-                marginBottom: "8pt",
-                fontSize: "8.5pt",
-                lineHeight: "1.35",
+                borderRadius: "3pt",
+                padding: "4pt 8pt",
+                marginBottom: "5pt",
+                fontSize: "7.5pt",
+                lineHeight: "1.25",
               }}
             >
-              <p style={{ margin: "1pt 0" }}>
+              <p style={{ margin: "0.5pt 0" }}>
                 <strong>ОТ:</strong> {coachName} — {coachRole}
               </p>
-              <p style={{ margin: "1pt 0" }}>
+              <p style={{ margin: "0.5pt 0" }}>
                 <strong>ОТНОСНО:</strong> Командировка за участие в:{" "}
                 <strong>{trip.title}</strong>
               </p>
-              <p style={{ margin: "1pt 0" }}>
+              <p style={{ margin: "0.5pt 0" }}>
                 <strong>НА ОСНОВАНИЕ:</strong> Нареждане №{" "}
                 <strong>{orderNum}</strong> от {orderDate} г. и Решение на УС{" "}
                 <strong>{getDecisionHeader()}</strong>
               </p>
-              <p style={{ margin: "1pt 0" }}>
+              <p style={{ margin: "0.5pt 0" }}>
                 <strong>МЯСТО И ПЕРИОД:</strong> {destCity} (
                 {fmtDate(trip.startDate)} г. — {fmtDate(trip.endDate)} г.)
               </p>
             </div>
+          </>
+        );
 
-            <div
-              style={{
-                fontSize: "8.5pt",
-                lineHeight: "1.42",
-                textAlign: "justify",
-                whiteSpace: "pre-line",
-                color: "#000",
-                marginBottom: "10pt",
-                flex: "1 1 auto",
-              }}
-            >
-              {displayReportText}
+        const renderReportSignatures = () => (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+              marginTop: "auto",
+              paddingTop: "6pt",
+            }}
+          >
+            <div style={{ fontSize: "7.5pt" }}>
+              <p style={{ margin: "0 0 1.5pt 0" }}>
+                Дата: {fmtDate(trip.endDate || trip.startDate)} г.
+              </p>
+              <p style={{ margin: 0 }}>гр. Гълъбово</p>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
-                marginTop: "auto",
-                paddingTop: "12pt",
-                pageBreakInside: "avoid",
-              }}
-            >
-              <div style={{ fontSize: "8.5pt" }}>
-                <p style={{ margin: "0 0 2pt 0" }}>
-                  Дата: {fmtDate(trip.endDate || trip.startDate)} г.
-                </p>
-                <p style={{ margin: 0 }}>гр. Гълъбово</p>
+            <div style={{ textAlign: "right", fontSize: "7.5pt" }}>
+              <p style={{ margin: "0 0 1.5pt 0", fontWeight: "600" }}>
+                Докладчик (Командировано лице):
+              </p>
+              <p style={{ margin: "0 0 2pt 0" }}>{coachName}</p>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <span style={{ marginRight: "6pt" }}>Подпис:</span>
+                {trip.signatures?.coach ? (
+                  <img
+                    src={trip.signatures.coach}
+                    alt="signature"
+                    style={{ height: "26pt", objectFit: "contain" }}
+                  />
+                ) : (
+                  <span style={{ color: "#000" }}>
+                    ........................................
+                  </span>
+                )}
               </div>
+            </div>
+          </div>
+        );
 
-              <div style={{ textAlign: "right", fontSize: "8.5pt" }}>
-                <p style={{ margin: "0 0 2pt 0", fontWeight: "600" }}>
-                  Докладчик (Командировано лице):
-                </p>
-                <p style={{ margin: "0 0 4pt 0" }}>{coachName}</p>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-end",
-                    justifyContent: "flex-end",
-                  }}
-                >
-                  <span style={{ marginRight: "8pt" }}>Подпис:</span>
-                  {trip.signatures?.coach ? (
-                    <img
-                      src={trip.signatures.coach}
-                      alt="signature"
-                      style={{ height: "30pt", objectFit: "contain" }}
-                    />
-                  ) : (
-                    <span style={{ color: "#000" }}>
-                      ........................................
-                    </span>
-                  )}
+        const renderReportFooter = (sheet: number, total: number) => (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              fontSize: "7pt",
+              color: "#000",
+              borderTop: "1px solid #000",
+              paddingTop: "2.5pt",
+              marginTop: "4pt",
+            }}
+          >
+            <span>
+              {trip.title} — {site.shortName}
+            </span>
+            <span>
+              Лист {sheet} от {total}
+            </span>
+          </div>
+        );
+
+        return (
+          <div
+            id={`pdf-report-template${idSuffix}`}
+            style={{
+              width: "210mm",
+              backgroundColor: "#fff",
+            }}
+          >
+            {reportSheets === 1 ? (
+              <div
+                className="pdf-page bg-white text-black"
+                style={REPORT_PAGE_STYLE}
+              >
+                <div>
+                  {renderReportHeader()}
+                  {renderReportTitleAndMeta()}
+                  <div
+                    style={{
+                      fontSize: "8pt",
+                      lineHeight: "1.32",
+                      textAlign: "justify",
+                      whiteSpace: "pre-line",
+                      color: "#000",
+                      marginBottom: "4pt",
+                    }}
+                  >
+                    {displayReportText}
+                  </div>
+                </div>
+                <div>
+                  {renderReportSignatures()}
+                  {renderReportFooter(1, 1)}
                 </div>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* Лист 1 */}
+                <div
+                  className="pdf-page bg-white text-black"
+                  style={REPORT_PAGE_STYLE}
+                >
+                  <div>
+                    {renderReportHeader()}
+                    {renderReportTitleAndMeta()}
+                    <div
+                      style={{
+                        fontSize: "8pt",
+                        lineHeight: "1.32",
+                        textAlign: "justify",
+                        whiteSpace: "pre-line",
+                        color: "#000",
+                        marginBottom: "4pt",
+                      }}
+                    >
+                      {part1}
+                    </div>
+                  </div>
+                  <div>{renderReportFooter(1, 2)}</div>
+                </div>
+
+                {/* Лист 2 */}
+                <div
+                  className="pdf-page bg-white text-black"
+                  style={REPORT_PAGE_STYLE}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        borderBottom: "1.5px solid #000",
+                        paddingBottom: "4pt",
+                        marginBottom: "6pt",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6pt",
+                        }}
+                      >
+                        <img
+                          src="/icons/LOGO.jpg"
+                          alt="Logo"
+                          style={{ height: "24pt", objectFit: "contain" }}
+                        />
+                        <span
+                          style={{
+                            fontWeight: "700",
+                            fontSize: "10pt",
+                            color: "#000",
+                          }}
+                        >
+                          {formatOrgName(site.shortName, true)}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          textAlign: "right",
+                          fontSize: "7.5pt",
+                          color: "#000",
+                        }}
+                      >
+                        <span style={{ fontWeight: "700" }}>
+                          Д О К Л А Д № {reportNum}
+                        </span>
+                        <span style={{ marginLeft: "6pt", color: "#333" }}>
+                          — Продължение
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: "8pt",
+                        lineHeight: "1.32",
+                        textAlign: "justify",
+                        whiteSpace: "pre-line",
+                        color: "#000",
+                        marginBottom: "4pt",
+                      }}
+                    >
+                      {part2}
+                    </div>
+                  </div>
+                  <div>
+                    {renderReportSignatures()}
+                    {renderReportFooter(2, 2)}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         );
       })()}
