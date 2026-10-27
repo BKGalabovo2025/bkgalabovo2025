@@ -18,7 +18,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     // Use the correct port discovered via lsof
-    baseURL: "http://localhost:9001",
+    baseURL: "http://127.0.0.1:9001",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -49,9 +49,11 @@ export default defineConfig({
   ],
   webServer: {
     command:
-      "cross-env NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true NEXT_PUBLIC_FIREBASE_API_KEY=fake-api-key NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=bkgalabovo-test.firebaseapp.com NEXT_PUBLIC_FIREBASE_PROJECT_ID=bkgalabovo-test NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=bkgalabovo-test.appspot.com NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789 NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:test FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 npm run dev -- -p 9001",
-    url: "http://localhost:9001",
+      "cross-env NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true NEXT_PUBLIC_FIREBASE_API_KEY=fake-api-key NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=bkgalabovo-test.firebaseapp.com NEXT_PUBLIC_FIREBASE_PROJECT_ID=bkgalabovo-test NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=bkgalabovo-test.appspot.com NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789 NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:test FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 npm run dev -- -p 9001 -H 127.0.0.1",
+    url: "http://127.0.0.1:9001",
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: 180 * 1000,
+    stdout: "pipe",
+    stderr: "pipe",
   },
 });

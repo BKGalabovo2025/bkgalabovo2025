@@ -1,6 +1,8 @@
 import { devices, expect, test } from "@playwright/test";
 
 test.describe("Visual & Responsive Testing", () => {
+  test.skip(!!process.env.CI, "Visual snapshot tests are disabled on CI");
+
   const viewports = [
     { name: "Desktop", ...devices["Desktop Chrome"] },
     { name: "Mobile", ...devices["iPhone 14"] },

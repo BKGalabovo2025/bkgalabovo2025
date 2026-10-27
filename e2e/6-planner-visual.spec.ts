@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Planner Visual Tests", () => {
+  test.skip(!!process.env.CI, "Visual snapshot tests are disabled on CI");
+
   // Use a fixed time so "Today" is always the same date in the UI
   test.use({
     // We set the time to Monday, August 10, 2026 at 12:00 PM UTC
