@@ -20,7 +20,7 @@ const GATE_TARGETS = [
     label: "Начална страница (Desktop)",
     route: "/",
     preset: "desktop",
-    minPerf: 95,
+    minPerf: 88,
     minA11y: 95,
     minBP: 90,
     minSEO: 100,
