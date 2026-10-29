@@ -10,9 +10,19 @@ dotenv.config({ path: ".env.local" });
 // Parse command line arguments
 const args = process.argv.slice(2);
 const isLocal = args.includes("--local");
-const includeDynamic = args.includes("--include-dynamic");
-const formFactor =
-  args.find((a) => a.startsWith("--preset="))?.split("=")[1] || "desktop";
+const staticOnly = args.includes("--static-only");
+const includeDynamic = !staticOnly; // По подразбиране: включва абсолютно всички открити страници
+const modeArg = args.find((a) => a.startsWith("--mode="))?.split("=")[1];
+const presetArg = args.find((a) => a.startsWith("--preset="))?.split("=")[1];
+
+// По подразбиране сканираме и ДВАТА режима: DESKTOP и MOBILE за всяка една страница
+let modes = ["desktop", "mobile"];
+if (modeArg === "desktop" || presetArg === "desktop") {
+  modes = ["desktop"];
+} else if (modeArg === "mobile" || presetArg === "mobile") {
+  modes = ["mobile"];
+}
+
 const limitArg = args.find((a) => a.startsWith("--limit="))?.split("=")[1];
 const pageLimit = limitArg ? parseInt(limitArg, 10) : Infinity;
 const targetUrlArg = args.find((a) => a.startsWith("--url="))?.split("=")[1];
@@ -22,9 +32,69 @@ const baseUrl =
   (isLocal ? "http://localhost:3001" : "https://bkgalabovo2025.vercel.app");
 
 /**
- * 1. Динамично откриване на всички маршрути в src/app
+ * 1. Извличане на примерни ID-та от Firestore за реалистичен одит на динамичните маршрути
  */
-function discoverRoutes() {
+async function getSampleRouteParams(adminApp) {
+  const params = {
+    id: "demo",
+    serviceId: "default",
+    sessionId: "default",
+    campaignId: "default",
+    token: "demo",
+  };
+
+  if (!adminApp) return params;
+
+  try {
+    const db = adminApp.firestore();
+    const [membersSnap, servicesSnap, eventsSnap, campaignsSnap] =
+      await Promise.all([
+        db
+          .collection("members")
+          .limit(1)
+          .get()
+          .catch(() => null),
+        db
+          .collection("services")
+          .limit(1)
+          .get()
+          .catch(() => null),
+        db
+          .collection("events")
+          .where("type", "==", "training")
+          .limit(1)
+          .get()
+          .catch(() => null),
+        db
+          .collection("feedback_campaigns")
+          .limit(1)
+          .get()
+          .catch(() => null),
+      ]);
+
+    if (membersSnap && !membersSnap.empty) {
+      params.id = membersSnap.docs[0].id;
+    }
+    if (servicesSnap && !servicesSnap.empty) {
+      params.serviceId = servicesSnap.docs[0].id;
+    }
+    if (eventsSnap && !eventsSnap.empty) {
+      params.sessionId = eventsSnap.docs[0].id;
+    }
+    if (campaignsSnap && !campaignsSnap.empty) {
+      params.campaignId = campaignsSnap.docs[0].id;
+    }
+  } catch {
+    // fallback
+  }
+
+  return params;
+}
+
+/**
+ * 2. Динамично откриване на всички маршрути в src/app (без ограничение)
+ */
+function discoverRoutes(sampleParams = {}) {
   const rootDir = path.resolve(process.cwd(), "src", "app");
   const routes = [];
 
@@ -61,39 +131,25 @@ function discoverRoutes() {
         const route = routePath === "" ? "/" : routePath;
         const isDynamic = route.includes("[");
 
-        // Проверка за страници, които са просто redirect към друг маршрут
-        let isRedirectOnly = false;
-        try {
-          const fileContent = fs.readFileSync(fullPath, "utf8");
-          if (
-            fileContent.includes("redirect(") &&
-            !fileContent.includes("<") &&
-            fileContent.length < 300
-          ) {
-            isRedirectOnly = true;
-          }
-        } catch (e) {}
-
-        // Заместване на параметри с тестови стойности за динамичните маршрути
+        // Заместване на параметри с валидни/тестови стойности за динамичните маршрути
         let testRoute = route;
         if (isDynamic) {
           testRoute = testRoute
-            .replace(/\[serviceId\]/g, "default")
-            .replace(/\[campaignId\]/g, "default")
-            .replace(/\[sessionId\]/g, "default")
-            .replace(/\[token\]/g, "demo")
-            .replace(/\[id\]/g, "demo");
+            .replace(/\[serviceId\]/g, sampleParams.serviceId || "default")
+            .replace(/\[campaignId\]/g, sampleParams.campaignId || "default")
+            .replace(/\[sessionId\]/g, sampleParams.sessionId || "default")
+            .replace(/\[token\]/g, sampleParams.token || "demo")
+            .replace(/\[id\]/g, sampleParams.id || "demo");
         }
 
         routes.push({
           rawRoute: route,
           urlRoute: testRoute,
           isDynamic,
-          isRedirectOnly,
           filePath: fullPath,
           name: (route === "/"
             ? "home"
-            : route.replace(/^\//, "").replace(/\//g, "-")
+            : route.replace(/^\//, "").replace(/\//g, "-").replace(/\[|\]/g, "")
           ).toLowerCase(),
         });
       }
@@ -105,27 +161,40 @@ function discoverRoutes() {
 }
 
 /**
- * 2. Автентикация за достъп до защитените страници
+ * 3. Автентикация за достъп до защитените страници
  */
-async function getSessionCookie(serverBaseUrl) {
+async function getSessionCookieAndApp(serverBaseUrl) {
   console.log("--- Автентикация на Lighthouse за административен достъп ---");
-  const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const serviceAccountStr =
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
+    process.env.FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON;
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
   const adminEmail = process.env.EMAIL_USER;
+
+  let adminApp = null;
+  let sessionCookie = "";
 
   if (!serviceAccountStr || !apiKey || !adminEmail) {
     console.warn(
       "⚠️ Липсват Firebase данни в .env.local. Тестът ще се изпълни като публичен потребител."
     );
-    return "";
+    return { sessionCookie, adminApp };
   }
 
   try {
     const serviceAccount = JSON.parse(serviceAccountStr);
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(
+        /\\n/g,
+        "\n"
+      );
+    }
     if (!admin.apps.length) {
-      admin.initializeApp({
+      adminApp = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
+    } else {
+      adminApp = admin.app();
     }
 
     const userRecord = await admin.auth().getUserByEmail(adminEmail);
@@ -146,7 +215,7 @@ async function getSessionCookie(serverBaseUrl) {
         "⚠️ Неуспешно генериране на ID Token:",
         JSON.stringify(data)
       );
-      return "";
+      return { sessionCookie, adminApp };
     }
 
     const sessionRes = await fetch(`${serverBaseUrl}/api/auth/session`, {
@@ -158,7 +227,7 @@ async function getSessionCookie(serverBaseUrl) {
     const setCookieHeader = sessionRes.headers.get("set-cookie");
     if (!setCookieHeader) {
       console.warn("⚠️ Не е получен set-cookie хедър.");
-      return "";
+      return { sessionCookie, adminApp };
     }
 
     const match = setCookieHeader.match(/(session=[^;]+)/);
@@ -166,7 +235,7 @@ async function getSessionCookie(serverBaseUrl) {
       console.log(
         "✅ Успешно придобита администраторска сесийна бисквитка (session cookie)!"
       );
-      return match[1];
+      sessionCookie = match[1];
     }
   } catch (err) {
     console.warn(
@@ -174,11 +243,11 @@ async function getSessionCookie(serverBaseUrl) {
       err.message
     );
   }
-  return "";
+  return { sessionCookie, adminApp };
 }
 
 /**
- * 3. Главно изпълнение на одита
+ * 4. Главно изпълнение на одита
  */
 async function run() {
   const reportsDir = path.join(process.cwd(), ".lighthouse-reports");
@@ -201,20 +270,28 @@ async function run() {
     await new Promise((r) => setTimeout(r, 10000));
   }
 
-  // Откриване на всички страници
-  const allDiscovered = discoverRoutes();
+  // Придобиване на сесийна бисквитка и Firebase Admin за параметрите
+  const { sessionCookie, adminApp } = await getSessionCookieAndApp(baseUrl);
+  const extraHeaders = sessionCookie
+    ? `--extra-headers="{\\"Cookie\\":\\"${sessionCookie}\\"}"`
+    : "";
+
+  const sampleParams = await getSampleRouteParams(adminApp);
+
+  // Откриване на ВСИЧКИ страници
+  const allDiscovered = discoverRoutes(sampleParams);
   console.log(`\n🔍 Открити общо ${allDiscovered.length} страници в src/app.`);
 
-  // Филтриране
-  let targetPages = allDiscovered.filter((p) => !p.isRedirectOnly);
-  if (!includeDynamic) {
+  // Избор на страници за одит (сканира се всяка открита страница)
+  let targetPages = allDiscovered;
+  if (staticOnly) {
     targetPages = targetPages.filter((p) => !p.isDynamic);
     console.log(
-      `ℹ️ Избрани за одит: ${targetPages.length} статични/фиксирани страници (използвайте --include-dynamic за динамичните).`
+      `ℹ️ Избрани за одит: ${targetPages.length} статични страници (--static-only).`
     );
   } else {
     console.log(
-      `ℹ️ Избрани за одит: ${targetPages.length} страници (включително динамичните с примерни параметри).`
+      `ℹ️ Избрани за одит: ${targetPages.length} страници (всички открити страници в проекта).`
     );
   }
 
@@ -225,84 +302,107 @@ async function run() {
     );
   }
 
-  // Придобиване на сесийна бисквитка
-  const sessionCookie = await getSessionCookie(baseUrl);
-  const extraHeaders = sessionCookie
-    ? `--extra-headers="{\\"Cookie\\":\\"${sessionCookie}\\"}"`
-    : "";
-
+  const modesDisplay = modes.map((m) => m.toUpperCase()).join(" + ");
   console.log(`\n🎯 Базов URL: ${baseUrl}`);
-  console.log(`📱 Режим: ${formFactor.toUpperCase()}`);
+  console.log(`📱 Режим: ${modesDisplay} (за всяка отделна страница)`);
   console.log(
-    `🚀 Стартиране на сканирането на ${targetPages.length} страници...\n`
+    `🚀 Стартиране на сканирането на ${targetPages.length} страници в ${modes.length} режим/а (общо ${targetPages.length * modes.length} одита)...\n`
   );
 
   const results = [];
-  const presetFlag = formFactor === "desktop" ? "--preset=desktop" : "";
 
   for (let i = 0; i < targetPages.length; i++) {
     const page = targetPages[i];
     const fullUrl = `${baseUrl}${page.urlRoute}`;
-    const outputBase = path.join(reportsDir, page.name);
-    const outputHtml = path.join(reportsDir, `${page.name}.report.html`);
-    const outputJson = path.join(reportsDir, `${page.name}.report.json`);
-    const fallbackHtml = path.join(reportsDir, `${page.name}.html`);
-    const fallbackJson = path.join(reportsDir, `${page.name}.json`);
 
-    console.log(
-      `[${i + 1}/${targetPages.length}] Одит на: ${page.rawRoute} (${fullUrl})...`
-    );
+    for (const mode of modes) {
+      const isDesktop = mode === "desktop";
+      const modeLabel = isDesktop ? "DESKTOP 🖥️" : "MOBILE 📱";
+      const presetFlag = isDesktop ? "--preset=desktop" : "";
+      const fileSuffix = `-${mode}`;
+      const outputBase = path.join(reportsDir, `${page.name}${fileSuffix}`);
+      const outputHtml = path.join(
+        reportsDir,
+        `${page.name}${fileSuffix}.report.html`
+      );
+      const outputJson = path.join(
+        reportsDir,
+        `${page.name}${fileSuffix}.report.json`
+      );
+      const fallbackHtml = path.join(
+        reportsDir,
+        `${page.name}${fileSuffix}.html`
+      );
+      const fallbackJson = path.join(
+        reportsDir,
+        `${page.name}${fileSuffix}.json`
+      );
 
-    const cmd = `npx lighthouse "${fullUrl}" --output=html,json --output-path="${outputBase}" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} ${extraHeaders} --quiet`;
+      console.log(
+        `[${i + 1}/${targetPages.length}] Одит на: ${page.rawRoute} (${fullUrl}) [${modeLabel}]...`
+      );
 
-    try {
-      execSync(cmd, { stdio: "ignore" });
-    } catch (e) {
-      // Windows chrome-launcher EPERM warning се игнорира, ако репортът е генериран успешно
-    }
+      const cmd = `npx lighthouse "${fullUrl}" --output=html,json --output-path="${outputBase}" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} ${extraHeaders} --quiet`;
 
-    const actualJson = fs.existsSync(outputJson)
-      ? outputJson
-      : fs.existsSync(fallbackJson)
-        ? fallbackJson
-        : null;
-    const actualHtml = fs.existsSync(outputHtml)
-      ? `${page.name}.report.html`
-      : fs.existsSync(fallbackHtml)
-        ? `${page.name}.html`
-        : "#";
-
-    if (actualJson) {
       try {
-        const data = JSON.parse(fs.readFileSync(actualJson, "utf8"));
-        const cats = data.categories || {};
-        const audits = data.audits || {};
+        execSync(cmd, { stdio: "ignore" });
+      } catch {
+        // Windows chrome-launcher EPERM warning се игнорира, ако репортът е генериран успешно
+      }
 
-        results.push({
-          route: page.rawRoute,
-          url: fullUrl,
-          performance: Math.round((cats.performance?.score || 0) * 100),
-          accessibility: Math.round((cats.accessibility?.score || 0) * 100),
-          bestPractices: Math.round((cats["best-practices"]?.score || 0) * 100),
-          seo: Math.round((cats.seo?.score || 0) * 100),
-          fcp: audits["first-contentful-paint"]?.displayValue || "N/A",
-          lcp: audits["largest-contentful-paint"]?.displayValue || "N/A",
-          cls: audits["cumulative-layout-shift"]?.displayValue || "0",
-          reportFile: actualHtml,
-        });
+      const actualJson = fs.existsSync(outputJson)
+        ? outputJson
+        : fs.existsSync(fallbackJson)
+          ? fallbackJson
+          : null;
+      const actualHtml = fs.existsSync(outputHtml)
+        ? `${page.name}${fileSuffix}.report.html`
+        : fs.existsSync(fallbackHtml)
+          ? `${page.name}${fileSuffix}.html`
+          : "#";
 
-        console.log(
-          `  ✓ Perf: ${results[results.length - 1].performance} | A11y: ${results[results.length - 1].accessibility} | BP: ${results[results.length - 1].bestPractices} | SEO: ${results[results.length - 1].seo}`
-        );
-      } catch (err) {
-        console.error(
-          "  ✗ Грешка при четене на резултатите за %s: %s",
+      if (actualJson) {
+        try {
+          const data = JSON.parse(fs.readFileSync(actualJson, "utf8"));
+          const cats = data.categories || {};
+          const audits = data.audits || {};
+
+          const resItem = {
+            route: page.rawRoute,
+            url: fullUrl,
+            mode,
+            performance: Math.round((cats.performance?.score || 0) * 100),
+            accessibility: Math.round((cats.accessibility?.score || 0) * 100),
+            bestPractices: Math.round(
+              (cats["best-practices"]?.score || 0) * 100
+            ),
+            seo: Math.round((cats.seo?.score || 0) * 100),
+            fcp: audits["first-contentful-paint"]?.displayValue || "N/A",
+            lcp: audits["largest-contentful-paint"]?.displayValue || "N/A",
+            cls: audits["cumulative-layout-shift"]?.displayValue || "0",
+            reportFile: actualHtml,
+          };
+
+          results.push(resItem);
+
+          console.log(
+            `  ✓ [${mode.toUpperCase()}] Perf: ${resItem.performance} | A11y: ${resItem.accessibility} | BP: ${resItem.bestPractices} | SEO: ${resItem.seo}`
+          );
+        } catch (err) {
+          console.error(
+            "  ✗ Грешка при четене на резултатите за %s (%s): %s",
+            page.rawRoute,
+            mode,
+            err.message
+          );
+        }
+      } else {
+        console.warn(
+          "  ⚠️ Не беше генериран репорт за %s (%s).",
           page.rawRoute,
-          err.message
+          mode
         );
       }
-    } else {
-      console.warn("  ⚠️ Не беше генериран репорт за %s.", page.rawRoute);
     }
   }
 
@@ -310,35 +410,100 @@ async function run() {
   const summaryPath = path.join(reportsDir, "summary.json");
   fs.writeFileSync(summaryPath, JSON.stringify(results, null, 2), "utf8");
 
+  // Изчисляване на статистики
+  const desktopResults = results.filter((r) => r.mode === "desktop");
+  const mobileResults = results.filter((r) => r.mode === "mobile");
+
+  const calcAverages = (list) => {
+    if (!list.length) return { perf: 0, a11y: 0, bp: 0, seo: 0 };
+    return {
+      perf: Math.round(
+        list.reduce((a, b) => a + b.performance, 0) / list.length
+      ),
+      a11y: Math.round(
+        list.reduce((a, b) => a + b.accessibility, 0) / list.length
+      ),
+      bp: Math.round(
+        list.reduce((a, b) => a + b.bestPractices, 0) / list.length
+      ),
+      seo: Math.round(list.reduce((a, b) => a + b.seo, 0) / list.length),
+    };
+  };
+
+  const desktopAvg = calcAverages(desktopResults);
+  const mobileAvg = calcAverages(mobileResults);
+
   // Генериране на интерактивен HTML Dashboard
   const htmlDashboard = `<!DOCTYPE html>
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
-  <title>Lighthouse Пълен Одит на Проекта</title>
+  <title>Lighthouse Пълен Одит на Проекта (Desktop & Mobile)</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 2rem; }
-    h1 { margin-bottom: 0.5rem; }
-    p.sub { color: #94a3b8; margin-bottom: 2rem; }
+    h1 { margin-bottom: 0.25rem; font-size: 1.8rem; }
+    p.sub { color: #94a3b8; margin-bottom: 1.5rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; }
+    .stat-card h3 { margin-top: 0; margin-bottom: 0.75rem; font-size: 1.1rem; display: flex; items-center; gap: 0.5rem; }
+    .stat-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; text-align: center; }
+    .metric-box { background: #0f172a; padding: 0.5rem; border-radius: 8px; }
+    .metric-val { font-size: 1.25rem; font-weight: bold; color: #38bdf8; }
+    .metric-label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
+    .filter-bar { margin-bottom: 1rem; display: flex; gap: 0.5rem; }
+    .filter-btn { background: #1e293b; border: 1px solid #334155; color: #f8fafc; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; }
+    .filter-btn.active { background: #2563eb; border-color: #3b82f6; }
     table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden; }
-    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #334155; }
-    th { background: #0f172a; color: #94a3b8; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #334155; font-size: 0.9rem; }
+    th { background: #0f172a; color: #94a3b8; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; }
     tr:hover { background: #334155; }
-    .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; display: inline-block; min-width: 28px; text-align: center; }
     .good { background: #065f46; color: #34d399; }
     .average { background: #854d0e; color: #facc15; }
     .poor { background: #991b1b; color: #f87171; }
+    .mode-tag { padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .mode-desktop { background: #1e3a8a; color: #93c5fd; }
+    .mode-mobile { background: #701a75; color: #f0abfc; }
     a { color: #38bdf8; text-decoration: none; }
     a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <h1>⚡ Lighthouse Обобщен Доклад за Проекта</h1>
-  <p class="sub">Тествани ${results.length} страници в режим <b>${formFactor.toUpperCase()}</b> на адрес: <code>${baseUrl}</code></p>
-  <table>
+  <p class="sub">Тествани общо <b>${results.length} одита</b> на адрес: <code>${baseUrl}</code></p>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>🖥️ Desktop Режим (${desktopResults.length} страници)</h3>
+      <div class="stat-metrics">
+        <div class="metric-box"><div class="metric-val">${desktopAvg.perf}</div><div class="metric-label">Perf</div></div>
+        <div class="metric-box"><div class="metric-val">${desktopAvg.a11y}</div><div class="metric-label">A11y</div></div>
+        <div class="metric-box"><div class="metric-val">${desktopAvg.bp}</div><div class="metric-label">BP</div></div>
+        <div class="metric-box"><div class="metric-val">${desktopAvg.seo}</div><div class="metric-label">SEO</div></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <h3>📱 Mobile Режим (${mobileResults.length} страници)</h3>
+      <div class="stat-metrics">
+        <div class="metric-box"><div class="metric-val">${mobileAvg.perf}</div><div class="metric-label">Perf</div></div>
+        <div class="metric-box"><div class="metric-val">${mobileAvg.a11y}</div><div class="metric-label">A11y</div></div>
+        <div class="metric-box"><div class="metric-val">${mobileAvg.bp}</div><div class="metric-label">BP</div></div>
+        <div class="metric-box"><div class="metric-val">${mobileAvg.seo}</div><div class="metric-label">SEO</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterMode('all', this)">Всички (${results.length})</button>
+    <button class="filter-btn" onclick="filterMode('desktop', this)">🖥️ Само Desktop (${desktopResults.length})</button>
+    <button class="filter-btn" onclick="filterMode('mobile', this)">📱 Само Mobile (${mobileResults.length})</button>
+  </div>
+
+  <table id="auditTable">
     <thead>
       <tr>
         <th>Маршрут</th>
+        <th>Режим</th>
         <th>Performance</th>
         <th>Accessibility</th>
         <th>Best Practices</th>
@@ -351,8 +516,9 @@ async function run() {
     <tbody>
       ${results
         .map(
-          (r) => `<tr>
+          (r) => `<tr data-mode="${r.mode}">
         <td><b>${r.route}</b></td>
+        <td><span class="mode-tag ${r.mode === "desktop" ? "mode-desktop" : "mode-mobile"}">${r.mode === "desktop" ? "🖥️ Desktop" : "📱 Mobile"}</span></td>
         <td><span class="badge ${r.performance >= 90 ? "good" : r.performance >= 50 ? "average" : "poor"}">${r.performance}</span></td>
         <td><span class="badge ${r.accessibility >= 90 ? "good" : r.accessibility >= 50 ? "average" : "poor"}">${r.accessibility}</span></td>
         <td><span class="badge ${r.bestPractices >= 90 ? "good" : r.bestPractices >= 50 ? "average" : "poor"}">${r.bestPractices}</span></td>
@@ -365,6 +531,21 @@ async function run() {
         .join("\n")}
     </tbody>
   </table>
+
+  <script>
+    function filterMode(mode, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const rows = document.querySelectorAll('#auditTable tbody tr');
+      rows.forEach(r => {
+        if (mode === 'all' || r.getAttribute('data-mode') === mode) {
+          r.style.display = '';
+        } else {
+          r.style.display = 'none';
+        }
+      });
+    }
+  </script>
 </body>
 </html>`;
 
@@ -378,28 +559,24 @@ async function run() {
   console.log(`📊 Обобщени JSON данни: ${summaryPath}`);
   console.log("=======================================================\n");
 
-  // Изчисляване на средни стойности
-  if (results.length > 0) {
-    const avgPerf = Math.round(
-      results.reduce((a, b) => a + b.performance, 0) / results.length
-    );
-    const avgA11y = Math.round(
-      results.reduce((a, b) => a + b.accessibility, 0) / results.length
-    );
-    const avgBP = Math.round(
-      results.reduce((a, b) => a + b.bestPractices, 0) / results.length
-    );
-    const avgSEO = Math.round(
-      results.reduce((a, b) => a + b.seo, 0) / results.length
-    );
-
+  if (desktopResults.length > 0) {
     console.log(
-      `📈 СРЕДНИ ОЦЕНКИ ЗА ЦЕЛИЯ ПРОЕКТ (${results.length} страници):`
+      `📈 СРЕДНИ ОЦЕНКИ - DESKTOP 🖥️ (${desktopResults.length} страници):`
     );
-    console.log(`   - Performance:    ${avgPerf} / 100`);
-    console.log(`   - Accessibility:  ${avgA11y} / 100`);
-    console.log(`   - Best Practices: ${avgBP} / 100`);
-    console.log(`   - SEO:            ${avgSEO} / 100\n`);
+    console.log(`   - Performance:    ${desktopAvg.perf} / 100`);
+    console.log(`   - Accessibility:  ${desktopAvg.a11y} / 100`);
+    console.log(`   - Best Practices: ${desktopAvg.bp} / 100`);
+    console.log(`   - SEO:            ${desktopAvg.seo} / 100\n`);
+  }
+
+  if (mobileResults.length > 0) {
+    console.log(
+      `📈 СРЕДНИ ОЦЕНКИ - MOBILE 📱 (${mobileResults.length} страници):`
+    );
+    console.log(`   - Performance:    ${mobileAvg.perf} / 100`);
+    console.log(`   - Accessibility:  ${mobileAvg.a11y} / 100`);
+    console.log(`   - Best Practices: ${mobileAvg.bp} / 100`);
+    console.log(`   - SEO:            ${mobileAvg.seo} / 100\n`);
   }
 
   if (server) {
@@ -410,7 +587,7 @@ async function run() {
       } else {
         server.kill();
       }
-    } catch (e) {}
+    } catch {}
   }
 }
 
