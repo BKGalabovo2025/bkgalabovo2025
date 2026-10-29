@@ -185,15 +185,69 @@ export async function GET(request: NextRequest) {
       user = await getAuthUserFromSessionCookie();
     }
 
+    const fileName = searchParams.get("fileName") || "";
+    const isImageRequest =
+      /\.(webp|png|jpe?g|gif|svg|avif)$/i.test(fileName) ||
+      searchParams.get("type") === "image";
+
     const adminDb = (await import("@/lib/firebase-admin")).getAdminDb();
-    const docSnap = await adminDb
+    let docSnap = await adminDb
       .collection("sites")
       .doc(siteId)
       .collection("uploaded_files")
       .doc(fileId)
       .get();
 
+    // Fallback 1: Try default siteId
+    if (!docSnap.exists && siteId !== "default") {
+      try {
+        const fallbackSnap = await adminDb
+          .collection("sites")
+          .doc("default")
+          .collection("uploaded_files")
+          .doc(fileId)
+          .get();
+        if (fallbackSnap.exists) {
+          docSnap = fallbackSnap;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // Fallback 2: If primary is exhausted or doc not found, check backup DB directly
     if (!docSnap.exists) {
+      try {
+        const { getBackupDb } = await import("@/lib/firebase-admin-backup");
+        const backupDb = getBackupDb();
+        if (backupDb) {
+          const bSnap = await backupDb
+            .collection("sites")
+            .doc(siteId)
+            .collection("uploaded_files")
+            .doc(fileId)
+            .get();
+          if (bSnap.exists) {
+            docSnap = bSnap;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!docSnap.exists) {
+      if (isImageRequest) {
+        // Return a clean fallback avatar SVG so browser/UI never receives a broken 404
+        const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none"><rect width="128" height="128" rx="28" fill="#F1F5F9"/><circle cx="64" cy="50" r="22" fill="#94A3B8"/><path d="M28 110c0-19.882 16.118-36 36-36s36 16.118 36 36" fill="#94A3B8"/></svg>`;
+        return new NextResponse(fallbackSvg, {
+          status: 200,
+          headers: {
+            "Content-Type": "image/svg+xml",
+            "Cache-Control": "public, max-age=60",
+          },
+        });
+      }
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
@@ -238,11 +292,7 @@ export async function GET(request: NextRequest) {
 
     let buffer: Buffer;
     if (fileDoc?.chunksCount && Number(fileDoc.chunksCount) > 0) {
-      const chunksSnap = await adminDb
-        .collection("sites")
-        .doc(siteId)
-        .collection("uploaded_files")
-        .doc(fileId)
+      const chunksSnap = await docSnap.ref
         .collection("chunks")
         .orderBy("index", "asc")
         .get();
@@ -266,13 +316,19 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Error reading file";
-    if (message.includes("RESOURCE_EXHAUSTED")) {
-      const placeholderSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="#f8fafc" rx="12"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#94a3b8" font-weight="bold">Лого</text></svg>`;
-      return new NextResponse(placeholderSvg, {
+    const { searchParams } = new URL(request.url);
+    const fileName = searchParams.get("fileName") || "";
+    const isImageRequest =
+      /\.(webp|png|jpe?g|gif|svg|avif)$/i.test(fileName) ||
+      searchParams.get("type") === "image";
+
+    if (message.includes("RESOURCE_EXHAUSTED") || isImageRequest) {
+      const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none"><rect width="128" height="128" rx="28" fill="#F1F5F9"/><circle cx="64" cy="50" r="22" fill="#94A3B8"/><path d="M28 110c0-19.882 16.118-36 36-36s36 16.118 36 36" fill="#94A3B8"/></svg>`;
+      return new NextResponse(fallbackSvg, {
         status: 200,
         headers: {
           "Content-Type": "image/svg+xml",
-          "Cache-Control": "public, max-age=30",
+          "Cache-Control": "public, max-age=60",
         },
       });
     }
