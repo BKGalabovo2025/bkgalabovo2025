@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 5 минути (Vercel Pro/Hobby позволява до 5мин за cron)
 
 const COLLECTIONS_TO_SYNC = [
+  "sites",
   "clubServices",
   "clubGeneralServices",
   "prices",
@@ -24,6 +25,11 @@ const COLLECTIONS_TO_SYNC = [
   "members",
   "families",
   "users",
+  "parent_users",
+  "parent_requests",
+  "parent_absences",
+  "parent_corrections",
+  "parent_activity_logs",
   "certificate_templates",
   "events",
   "exercises",
@@ -51,47 +57,161 @@ function isQuotaError(err: unknown): boolean {
   );
 }
 
+function getDocTime(data: FirebaseFirestore.DocumentData | undefined): number {
+  if (!data) return 0;
+  const val =
+    data.updatedAt ||
+    data.updated_at ||
+    data.createdAt ||
+    data.created_at ||
+    data.timestamp ||
+    data.date;
+  if (!val) return 0;
+  if (
+    typeof val === "object" &&
+    typeof (val as { toMillis?: () => number }).toMillis === "function"
+  ) {
+    return (val as { toMillis: () => number }).toMillis();
+  }
+  if (
+    typeof val === "object" &&
+    typeof (val as { _seconds?: number })._seconds === "number"
+  ) {
+    return (val as { _seconds: number })._seconds * 1000;
+  }
+  if (typeof val === "number") return val;
+  if (typeof val === "string") {
+    const parsed = Date.parse(val);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  if (val instanceof Date) return val.getTime();
+  return 0;
+}
+
 async function syncCollection(
   primaryDb: FirebaseFirestore.Firestore,
   backupDb: FirebaseFirestore.Firestore,
   collectionName: string
-): Promise<{ synced: number; skipped: boolean; error?: string }> {
+): Promise<{
+  syncedToBackup: number;
+  syncedToPrimary: number;
+  synced: number;
+  skipped: boolean;
+  error?: string;
+}> {
   try {
-    const snapshot = await primaryDb.collection(collectionName).get();
+    const [primarySnap, backupSnap] = await Promise.all([
+      primaryDb.collection(collectionName).get(),
+      backupDb.collection(collectionName).get(),
+    ]);
 
-    if (snapshot.empty) {
-      return { synced: 0, skipped: false };
-    }
+    const primaryDocs = new Map<string, FirebaseFirestore.DocumentData>();
+    primarySnap.docs.forEach((doc) => primaryDocs.set(doc.id, doc.data()));
 
-    // Batch write in chunks of 400
-    let batch = backupDb.batch();
-    let count = 0;
-    let totalSynced = 0;
+    const backupDocs = new Map<string, FirebaseFirestore.DocumentData>();
+    backupSnap.docs.forEach((doc) => backupDocs.set(doc.id, doc.data()));
 
-    for (const doc of snapshot.docs) {
-      const targetRef = backupDb.collection(collectionName).doc(doc.id);
-      batch.set(targetRef, doc.data(), { merge: true });
-      count++;
-      totalSynced++;
+    const toWriteToBackup: Array<{
+      id: string;
+      data: FirebaseFirestore.DocumentData;
+    }> = [];
+    const toWriteToPrimary: Array<{
+      id: string;
+      data: FirebaseFirestore.DocumentData;
+    }> = [];
 
-      if (count >= 400) {
-        await batch.commit();
-        batch = backupDb.batch();
-        count = 0;
+    // 1. Check primary documents against backup
+    for (const [id, pData] of primaryDocs.entries()) {
+      if (!backupDocs.has(id)) {
+        toWriteToBackup.push({ id, data: pData });
+      } else {
+        const bData = backupDocs.get(id);
+        const pTime = getDocTime(pData);
+        const bTime = getDocTime(bData);
+        if (pTime > 0 && bTime > 0) {
+          if (pTime > bTime) {
+            toWriteToBackup.push({ id, data: pData });
+          } else if (bTime > pTime) {
+            toWriteToPrimary.push({ id, data: bData! });
+          }
+        }
       }
     }
 
-    if (count > 0) {
-      await batch.commit();
+    // 2. Check backup documents missing in primary
+    for (const [id, bData] of backupDocs.entries()) {
+      if (!primaryDocs.has(id)) {
+        toWriteToPrimary.push({ id, data: bData });
+      }
     }
 
-    return { synced: totalSynced, skipped: false };
+    // 3. Batch commit to backup
+    if (toWriteToBackup.length > 0) {
+      let batch = backupDb.batch();
+      let count = 0;
+      for (const item of toWriteToBackup) {
+        batch.set(backupDb.collection(collectionName).doc(item.id), item.data, {
+          merge: true,
+        });
+        count++;
+        if (count >= 400) {
+          await batch.commit();
+          batch = backupDb.batch();
+          count = 0;
+        }
+      }
+      if (count > 0) {
+        await batch.commit();
+      }
+    }
+
+    // 4. Batch commit to primary
+    if (toWriteToPrimary.length > 0) {
+      let batch = primaryDb.batch();
+      let count = 0;
+      for (const item of toWriteToPrimary) {
+        batch.set(
+          primaryDb.collection(collectionName).doc(item.id),
+          item.data,
+          { merge: true }
+        );
+        count++;
+        if (count >= 400) {
+          await batch.commit();
+          batch = primaryDb.batch();
+          count = 0;
+        }
+      }
+      if (count > 0) {
+        await batch.commit();
+      }
+    }
+
+    const total = toWriteToBackup.length + toWriteToPrimary.length;
+    return {
+      syncedToBackup: toWriteToBackup.length,
+      syncedToPrimary: toWriteToPrimary.length,
+      synced: total,
+      skipped: false,
+    };
   } catch (err) {
     if (isQuotaError(err)) {
-      return { synced: 0, skipped: true, error: "RESOURCE_EXHAUSTED" };
+      return {
+        syncedToBackup: 0,
+        syncedToPrimary: 0,
+        synced: 0,
+        skipped: true,
+        error: "RESOURCE_EXHAUSTED",
+      };
     }
     const msg = err instanceof Error ? err.message : String(err);
-    return { synced: 0, skipped: false, error: msg };
+    return {
+      syncedToBackup: 0,
+      syncedToPrimary: 0,
+      synced: 0,
+      skipped: false,
+      error: msg,
+    };
   }
 }
 
@@ -142,7 +262,13 @@ export async function GET(request: Request) {
 
   const results: Record<
     string,
-    { synced: number; skipped: boolean; error?: string }
+    {
+      syncedToBackup: number;
+      syncedToPrimary: number;
+      synced: number;
+      skipped: boolean;
+      error?: string;
+    }
   > = {};
   let totalSynced = 0;
   let quotaHit = false;

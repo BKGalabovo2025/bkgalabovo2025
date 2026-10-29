@@ -10,9 +10,15 @@
     "scripts/**/*.cjs",
     "scripts/**/*.mjs",
     "src/components/ui/calendar.tsx",
+    "src/components/documents/DocumentLegalText.tsx",
     "public/vendor/pdfjs/**"
   ],
-  "ignoreDependencies": ["stylelint-config-tailwindcss", "@storybook/nextjs"],
+  "ignoreDependencies": [
+    "stylelint-config-tailwindcss",
+    "@storybook/nextjs",
+    "react-day-picker"
+  ],
+  "ignoreBinaries": ["netstat", "findstr"],
   "ignoreExportsUsedInFile": true,
   "rules": {
     "exports": "off",

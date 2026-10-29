@@ -77,6 +77,20 @@ export function GeneralTab() {
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label className={labelClass}>
+              <Building2 className="mr-1 inline size-3" />
+              Спортна зала / Комплекс (Пълно наименование)
+            </Label>
+            <Input
+              value={bkgData.hallName || ""}
+              onChange={(e) =>
+                handleInputChange("bkgalabovo", "hallName", e.target.value)
+              }
+              placeholder="напр. Спортен комплекс „Енергетик“ град Гълъбово"
+              className={inputClass}
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label className={labelClass}>
               <MapPin className="mr-1 inline size-3" />
               Адрес
             </Label>

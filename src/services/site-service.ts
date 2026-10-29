@@ -14,6 +14,7 @@ const SITES_COLLECTION = "sites";
 
 interface SiteDocumentData {
   name?: string;
+  hallName?: string;
   address?: string;
   description?: string;
   email?: string;
@@ -72,6 +73,7 @@ const docToSite = (doc: {
   return {
     id: doc.id,
     name: data.name || doc.id,
+    hallName: data.hallName || "",
     address: data.address || "",
     description: data.description || "",
     email: data.email || "",

@@ -67,8 +67,18 @@ export const MemberForm = ({
       phone: "",
       email: "",
       address: "",
-      emergencyContactName: "",
-      emergencyContactPhone: "",
+      hasEmergencyContact: Boolean(
+        safeInitialData.hasEmergencyContact ||
+        safeInitialData.emergencyContactName ||
+        safeInitialData.emergencyContactPhone ||
+        safeInitialData.emergencyContactRole
+      ),
+      emergencyContactRole:
+        (safeInitialData.emergencyContactRole as string) || "mother",
+      emergencyContactName:
+        (safeInitialData.emergencyContactName as string) || "",
+      emergencyContactPhone:
+        (safeInitialData.emergencyContactPhone as string) || "",
       apparelSize: "",
       status: "active",
       notes: "",
@@ -77,6 +87,17 @@ export const MemberForm = ({
       showOnPublicTeam: false,
       familyId: undefined,
       skillLevel: undefined,
+      parentName: (safeInitialData.parentName as string) || "",
+      parentPhone: (safeInitialData.parentPhone as string) || "",
+      parentEmail: (safeInitialData.parentEmail as string) || "",
+      fatherName: (safeInitialData.fatherName as string) || "",
+      fatherPhone: (safeInitialData.fatherPhone as string) || "",
+      fatherEGN: (safeInitialData.fatherEGN as string) || "",
+      fatherCity: (safeInitialData.fatherCity as string) || "",
+      motherName: (safeInitialData.motherName as string) || "",
+      motherPhone: (safeInitialData.motherPhone as string) || "",
+      motherEGN: (safeInitialData.motherEGN as string) || "",
+      motherCity: (safeInitialData.motherCity as string) || "",
       hasSignedDeclaration: false,
       hasMedicalCertificate: false,
       isLicensed: false,
@@ -156,12 +177,50 @@ export const MemberForm = ({
         "gender",
       ]);
     } else if (step === 2) {
+      const hasEmergency = form.getValues("hasEmergencyContact");
+      if (hasEmergency) {
+        const contactName = (
+          form.getValues("emergencyContactName") || ""
+        ).trim();
+        const contactPhone = (
+          form.getValues("emergencyContactPhone") || ""
+        ).trim();
+        let emergencyHasError = false;
+
+        if (!contactName) {
+          form.setError("emergencyContactName", {
+            type: "manual",
+            message: "Моля, въведете име на контакт.",
+          });
+          emergencyHasError = true;
+        } else {
+          form.clearErrors("emergencyContactName");
+        }
+
+        if (!contactPhone) {
+          form.setError("emergencyContactPhone", {
+            type: "manual",
+            message: "Моля, въведете телефон на контакт.",
+          });
+          emergencyHasError = true;
+        } else {
+          form.clearErrors("emergencyContactPhone");
+        }
+
+        if (emergencyHasError) {
+          return;
+        }
+      } else {
+        form.clearErrors(["emergencyContactName", "emergencyContactPhone"]);
+      }
+
       isValid = await trigger([
         "phone",
         "email",
         "address",
-        "emergencyContactName",
-        "emergencyContactPhone",
+        "parentName",
+        "parentPhone",
+        "parentEmail",
       ]);
     }
 
@@ -175,6 +234,13 @@ export const MemberForm = ({
   };
 
   const onSubmit = async (data: MemberFormValues) => {
+    // If emergency contact is not checked, clear its values
+    if (!data.hasEmergencyContact) {
+      data.emergencyContactName = "";
+      data.emergencyContactPhone = "";
+      data.emergencyContactRole = null;
+    }
+
     // Determine primary memberType for backward compatibility
     if (data.isClubMember) {
       data.memberType = "regular";

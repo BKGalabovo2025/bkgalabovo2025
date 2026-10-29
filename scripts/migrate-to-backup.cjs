@@ -61,6 +61,7 @@ function initApps() {
 }
 
 const COLLECTIONS_TO_MIGRATE = [
+  "sites",
   "clubServices",
   "clubGeneralServices",
   "prices",
@@ -68,6 +69,11 @@ const COLLECTIONS_TO_MIGRATE = [
   "members",
   "families",
   "users",
+  "parent_users",
+  "parent_requests",
+  "parent_absences",
+  "parent_corrections",
+  "parent_activity_logs",
   "certificate_templates",
   "events",
   "exercises",
@@ -77,6 +83,11 @@ const COLLECTIONS_TO_MIGRATE = [
   "focus_tags",
   "memberSubscriptions",
   "sales",
+  "sponsors",
+  "inventory",
+  "trainings",
+  "reservations",
+  "sessions",
 ];
 
 async function migrateCollection(primaryDb, backupDb, collectionName) {

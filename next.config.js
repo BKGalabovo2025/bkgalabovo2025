@@ -3,6 +3,7 @@ import { fileURLToPath } from "url";
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Hot reload trigger: 2026-10-29T00:26:00Z
 
 const withPWA = withPWAInit({
   dest: "public",

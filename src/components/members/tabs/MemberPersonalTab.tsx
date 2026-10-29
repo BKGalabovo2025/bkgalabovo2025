@@ -159,7 +159,15 @@ export const MemberPersonalTab = ({
           label="Спешен контакт"
           value={
             member.emergencyContactName
-              ? `${member.emergencyContactName} (${member.emergencyContactPhone || "—"})`
+              ? `${member.emergencyContactName}${
+                  member.emergencyContactRole === "mother"
+                    ? " (Майка)"
+                    : member.emergencyContactRole === "father"
+                      ? " (Баща)"
+                      : member.emergencyContactRole
+                        ? ` (${member.emergencyContactRole})`
+                        : ""
+                }${member.emergencyContactPhone ? ` (${member.emergencyContactPhone})` : ""}`
               : null
           }
         />
@@ -250,18 +258,25 @@ export const MemberPersonalTab = ({
             value={member.birthPlace}
           />
         )}
-        {(member.fatherName || member.parentName) && (
+        {(() => {
+          const displayParentName =
+            member.parentName || member.motherName || member.fatherName;
+          const displayParentPhone =
+            member.parentPhone || member.motherPhone || member.fatherPhone;
+          if (!displayParentName && !displayParentPhone) return null;
+          return (
+            <InfoRow
+              icon={Users}
+              label="Родител / Настойник"
+              value={`${displayParentName || ""}${displayParentPhone ? ` (${displayParentPhone})` : ""}`.trim()}
+            />
+          );
+        })()}
+        {member.parentEmail && (
           <InfoRow
-            icon={Users}
-            label="Баща"
-            value={`${member.fatherName || member.parentName}${member.fatherPhone || member.parentPhone ? ` (${member.fatherPhone || member.parentPhone})` : ""}`}
-          />
-        )}
-        {member.motherName && (
-          <InfoRow
-            icon={Users}
-            label="Майка"
-            value={`${member.motherName}${member.motherPhone ? ` (${member.motherPhone})` : ""}`}
+            icon={Mail}
+            label="Имейл на родител"
+            value={member.parentEmail}
           />
         )}
 

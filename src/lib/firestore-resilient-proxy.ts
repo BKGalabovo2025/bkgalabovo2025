@@ -92,15 +92,45 @@ export function resetPrimaryQuotaStatus(): void {
   );
 }
 
+let cachedPrimaryDb: admin.firestore.Firestore | null = null;
+let isProbingPrimary = false;
+
+async function probePrimaryDbInBackground(
+  primaryDb: admin.firestore.Firestore
+) {
+  if (isProbingPrimary) return;
+  isProbingPrimary = true;
+  try {
+    await primaryDb.collection("members").limit(1).get();
+    console.log(
+      `[firestore-failover] 🟢 Primary Firestore probe SUCCEEDED! Quota is restored. Resuming primary DB.`
+    );
+    resetPrimaryQuotaStatus();
+  } catch (err) {
+    if (isQuotaError(err)) {
+      console.warn(
+        `[firestore-failover] ⏳ Primary Firestore probe still exhausted. Staying on backup DB.`
+      );
+      quotaExhaustedTimestamp = Date.now();
+    }
+  } finally {
+    isProbingPrimary = false;
+  }
+}
+
 export function isPrimaryQuotaCurrentlyExhausted(): boolean {
   if (!isPrimaryQuotaExhausted) return false;
   if (
     quotaExhaustedTimestamp &&
     Date.now() - quotaExhaustedTimestamp > CIRCUIT_RESET_MS
   ) {
-    console.log(
-      `[firestore-failover] ⏳ Circuit breaker cooldown elapsed (${CIRCUIT_RESET_MS / 60000}m). Probing primary DB.`
-    );
+    if (cachedPrimaryDb) {
+      console.log(
+        `[firestore-failover] ⏳ Circuit breaker cooldown elapsed (${CIRCUIT_RESET_MS / 60000}m). Launching background probe of primary DB...`
+      );
+      probePrimaryDbInBackground(cachedPrimaryDb).catch(() => {});
+      return true;
+    }
     isPrimaryQuotaExhausted = false;
     quotaExhaustedTimestamp = null;
     return false;
@@ -154,13 +184,14 @@ function replayChain(
 ): unknown {
   let current: unknown = baseDb;
   for (const step of steps) {
-    const fn = (current as Record<string, unknown>)?.[step.method];
+    const targetObj = current as Record<string, unknown>;
+    const fn = targetObj?.[step.method];
     if (typeof fn === "function") {
       let args = step.args;
       if (step.method === "doc" && args.length === 0 && step.docIdHint) {
         args = [step.docIdHint];
       }
-      current = (fn as AnyFn)(...args);
+      current = Reflect.apply(fn as AnyFn, targetObj, args);
     } else {
       throw new Error(
         `[firestore-failover] Method ${step.method} not found during backup replay.`
@@ -259,7 +290,7 @@ async function tryInMemoryIndexFallback(
     if (typeof fn !== "function") return null;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rawSnapshot = (await (fn as AnyFn)()) as any;
+    const rawSnapshot = (await Reflect.apply(fn as AnyFn, target, [])) as any;
     if (!rawSnapshot || !Array.isArray(rawSnapshot.docs)) {
       return rawSnapshot;
     }
@@ -288,7 +319,7 @@ async function executeOnBackup(
     >;
     const fn = backupTarget[prop];
     if (typeof fn === "function") {
-      return await (fn as AnyFn)(...args);
+      return await Reflect.apply(fn as AnyFn, backupTarget, args);
     }
     return undefined;
   } catch (err) {
@@ -341,6 +372,8 @@ async function handleIndexErrorOnExecution(
   return await tryInMemoryIndexFallback(baseDb, steps, err);
 }
 
+const WRITE_METHODS = new Set(["set", "update", "delete", "create", "add"]);
+
 async function handleExecutionMethod(
   origFn: AnyFn,
   obj: object,
@@ -357,7 +390,22 @@ async function handleExecutionMethod(
   }
 
   try {
-    return await origFn.apply(obj, args);
+    const primaryResult = await origFn.apply(obj, args);
+
+    // Asynchronous dual-write replication: keep backup DB in sync with primary
+    if (WRITE_METHODS.has(prop)) {
+      const backupDb = getBackupDb();
+      if (backupDb) {
+        executeOnBackup(backupDb, steps, prop, args).catch((repErr) => {
+          console.warn(
+            `[firestore-replication] ⚠️ Dual-write replication of ${prop}() to backup DB failed:`,
+            repErr instanceof Error ? repErr.message : String(repErr)
+          );
+        });
+      }
+    }
+
+    return primaryResult;
   } catch (err) {
     if (isQuotaError(err)) {
       return await handleQuotaExhaustionOnExecution(
@@ -517,7 +565,17 @@ function wrapWriteBatch(
       }
 
       try {
-        return await primaryBatch.commit();
+        const result = await primaryBatch.commit();
+        const backupDb = getBackupDb();
+        if (backupDb) {
+          replayBatchOps(backupDb, ops).catch((repErr) => {
+            console.warn(
+              "[firestore-replication] ⚠️ Dual-write batch replication to backup DB failed:",
+              repErr instanceof Error ? repErr.message : String(repErr)
+            );
+          });
+        }
+        return result;
       } catch (err) {
         if (isQuotaError(err)) {
           markPrimaryQuotaExhausted();
@@ -579,6 +637,7 @@ export function createResilientFirestoreProxy(
   primaryDb: admin.firestore.Firestore,
   getBackupDb: () => admin.firestore.Firestore | null
 ): admin.firestore.Firestore {
+  cachedPrimaryDb = primaryDb;
   return new Proxy(primaryDb, {
     get(target, prop, receiver) {
       if (prop === "then") {

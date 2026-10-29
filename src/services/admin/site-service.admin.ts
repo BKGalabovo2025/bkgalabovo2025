@@ -56,6 +56,7 @@ export const getSiteByIdAdmin = async (id: string): Promise<Site | null> => {
     return {
       id: docSnap.id,
       name: data.name || docSnap.id,
+      hallName: data.hallName || "",
       address: data.address || "",
       description: data.description || "",
       email: data.email || "",

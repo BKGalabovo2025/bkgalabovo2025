@@ -5,6 +5,7 @@ export { type SignedDeclaration } from "./declaration.types";
 export * from "./document-request.types";
 export { type Member } from "./member.types";
 export { type ClientPackage } from "./package.types";
+export * from "./parent-portal.types";
 export { type BlockedSlot, type Reservation } from "./reservation";
 
 export type Family = {

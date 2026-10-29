@@ -28,6 +28,17 @@ import { MemberAssessmentsTab } from "./tabs/MemberAssessmentsTab";
 import { MemberDocumentsTab } from "./tabs/MemberDocumentsTab";
 import { MemberPersonalTab } from "./tabs/MemberPersonalTab";
 
+const MemberParentsTab = dynamic(
+  () => import("./tabs/MemberParentsTab").then((mod) => mod.MemberParentsTab),
+  {
+    loading: () => (
+      <div className="animate-pulse p-8 text-center text-slate-400">
+        Зареждане на данни за родители...
+      </div>
+    ),
+  }
+);
+
 const MemberSalesHistory = dynamic(
   () => import("./member-sales-history").then((mod) => mod.MemberSalesHistory),
   {
@@ -362,6 +373,12 @@ export const MemberDetailsCard = ({
               Документи
             </TabsTrigger>
             <TabsTrigger
+              value="parents"
+              className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-emerald-600 uppercase transition-all data-[state=active]:border data-[state=active]:border-emerald-100 data-[state=active]:bg-emerald-50/70 data-[state=active]:text-emerald-950 data-[state=active]:shadow-2xs dark:text-emerald-400 dark:data-[state=active]:bg-emerald-950/40 dark:data-[state=active]:text-emerald-200"
+            >
+              Родителски достъп
+            </TabsTrigger>
+            <TabsTrigger
               value="sales"
               className="h-8 flex-none rounded-lg border-transparent px-3 text-[10px] font-semibold tracking-wider whitespace-nowrap text-zinc-500 uppercase transition-all data-[state=active]:border data-[state=active]:border-zinc-100 data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-2xs"
             >
@@ -424,6 +441,10 @@ export const MemberDetailsCard = ({
             formatDocDate={formatDocDate}
             updateDocumentStatus={updateDocumentStatus}
           />
+        </TabsContent>
+
+        <TabsContent value="parents" className="focus-visible:outline-none">
+          <MemberParentsTab member={member} onUpdate={onRefresh} />
         </TabsContent>
 
         <TabsContent value="sales" className="focus-visible:outline-none">

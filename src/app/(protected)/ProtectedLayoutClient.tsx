@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import { ParentNotificationsBell } from "@/components/layout/ParentNotificationsBell";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { UserNav } from "@/components/layout/user-nav";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -108,6 +109,7 @@ function GlobalHeader() {
       </div>
 
       <div className="flex items-center gap-3">
+        {activeBranch === "bkgalabovo" && <ParentNotificationsBell />}
         <UserNav />
       </div>
     </header>

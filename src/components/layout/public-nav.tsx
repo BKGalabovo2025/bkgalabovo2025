@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, Users, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -76,7 +76,14 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
           </Link>
         </div>
 
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
+          <Link
+            href="/club/parents/login"
+            className="flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-linear-to-r from-blue-600/90 to-indigo-600/90 px-3.5 py-1.5 text-[11px] font-bold text-white shadow-[0_0_15px_rgba(37,99,235,0.35)] transition-all hover:scale-105 hover:border-blue-400 hover:shadow-[0_0_20px_rgba(37,99,235,0.55)]"
+          >
+            <Users size={13} />
+            <span>Родителски вход</span>
+          </Link>
           <Link
             href="/"
             className="text-xs font-medium tracking-widest text-zinc-400 uppercase transition-colors hover:text-white"
@@ -159,6 +166,14 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
               >
                 <span>⭐</span>
                 <span>Отзиви</span>
+              </Link>
+              <Link
+                href="/club/parents/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-950/40 px-3.5 py-2.5 font-bold text-blue-300 hover:bg-blue-900/60 hover:text-white"
+              >
+                <Users size={16} />
+                <span>Родителски портал</span>
               </Link>
               <Link
                 href="/"

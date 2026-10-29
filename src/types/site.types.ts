@@ -64,6 +64,7 @@ export interface SiteSchedule {
 export interface Site {
   id: string;
   name: string;
+  hallName?: string;
   address?: string;
   description?: string;
   email?: string;

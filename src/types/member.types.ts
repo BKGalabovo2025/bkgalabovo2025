@@ -59,6 +59,8 @@ export const MemberSchema = z.object({
   weightKg: z.number().positive().nullable().optional(),
 
   // --- ADDED: Emergency Contact ---
+  hasEmergencyContact: z.boolean().optional(),
+  emergencyContactRole: z.string().nullable().optional(),
   emergencyContactName: z.string().nullable().optional(),
   emergencyContactPhone: z.string().nullable().optional(),
 

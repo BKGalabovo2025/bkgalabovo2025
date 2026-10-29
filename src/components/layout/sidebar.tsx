@@ -13,6 +13,7 @@ import {
   FileText,
   GraduationCap,
   Handshake,
+  HeartHandshake,
   Home,
   Inbox,
   ListTree,
@@ -44,6 +45,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth-context";
+import { useParentPortalAdmin } from "@/hooks/useParentPortalAdmin";
 import { useAppStore } from "@/store/use-app-store";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -51,6 +53,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { setOpen, isMobile, open } = useSidebar();
   const { logout } = useAuth();
   const { activeBranch, setActiveBranch } = useAppStore();
+  const { stats, parents, onlineParentsCount, isParentOnline } =
+    useParentPortalAdmin();
 
   // Handle Hydration
   const [mounted, setMounted] = React.useState(false);
@@ -170,6 +174,107 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            {!isRecoveryZone && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/parents")}
+                  className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+                >
+                  <Link
+                    href="/parents"
+                    className="flex w-full items-center justify-between"
+                    onClick={() => isMobile && setOpen(false)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <HeartHandshake
+                        size={18}
+                        strokeWidth={1.5}
+                        className="text-blue-500"
+                      />
+                      <span className="text-[14px]">Родителски достъп</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {onlineParentsCount > 0 && (
+                        <span
+                          className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800"
+                          title={`${onlineParentsCount} родител(и) на линия в портала`}
+                        >
+                          <span className="relative flex size-2">
+                            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+                          </span>
+                          <span>{onlineParentsCount} на линия</span>
+                        </span>
+                      )}
+
+                      {stats?.totalPending > 0 && (
+                        <span className="flex size-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm animate-pulse">
+                          {stats.totalPending}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </SidebarMenuButton>
+
+                {/* Live Parent Activity Widget inside expanded sidebar */}
+                {open && parents.length > 0 && (
+                  <div className="mx-2 mt-1 mb-2 rounded-xl border border-zinc-200/70 bg-zinc-50/70 p-2.5 text-xs dark:border-zinc-800/80 dark:bg-zinc-900/50">
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">
+                      <span className="flex items-center gap-1">
+                        <Users size={11} />
+                        <span>Родители на живо</span>
+                      </span>
+                      <Link
+                        href="/parents?tab=activity"
+                        className="text-[10px] text-blue-600 hover:underline dark:text-blue-400 font-semibold"
+                      >
+                        История ↗
+                      </Link>
+                    </div>
+
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                      {parents.slice(0, 4).map((p) => {
+                        const online = isParentOnline(p);
+                        return (
+                          <div
+                            key={p.id}
+                            className="flex items-start justify-between gap-1.5 rounded-lg bg-white/80 p-1.5 dark:bg-zinc-800/60 shadow-2xs"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span
+                                  className={`size-2 shrink-0 rounded-full ${
+                                    online
+                                      ? "bg-emerald-500 ring-2 ring-emerald-300 dark:ring-emerald-900 animate-pulse"
+                                      : "bg-zinc-300 dark:bg-zinc-600"
+                                  }`}
+                                  title={
+                                    online ? "На линия в момента" : "Офлайн"
+                                  }
+                                />
+                                <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate text-[11px]">
+                                  {p.name}
+                                </span>
+                              </div>
+                              <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400 truncate pl-3.5">
+                                {online
+                                  ? p.lastAction || "Разглежда портала"
+                                  : p.lastActiveAt
+                                    ? `Последно: ${new Date(p.lastActiveAt).toLocaleDateString("bg-BG", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}`
+                                    : "Очаква първи вход"}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </SidebarMenuItem>
+            )}
 
             <SidebarMenuItem>
               <SidebarMenuButton

@@ -344,6 +344,13 @@ export default function ClubClient({
             >
               График и Тренировки
             </a>
+            <Link
+              href="/club/parents/login"
+              className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-indigo-500/50 bg-indigo-950/40 px-6 py-3.5 text-xs font-bold tracking-widest text-indigo-200 uppercase transition-all hover:-translate-y-1 hover:border-indigo-400 hover:bg-indigo-900/60 hover:text-white hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] sm:px-8 sm:py-4 sm:text-sm"
+            >
+              <Users size={16} />
+              Родителски вход
+            </Link>
           </div>
         </div>
       </section>

@@ -79,17 +79,20 @@ service cloud.firestore {
         // 2. Колекции с достъп за четене и писане само от админи със SiteId
         allow read: if isAdmin() && collection in [
           'sales', 'products', 'inventoryEvents', 'inventory_events', 'inventory', 'finances',
-          'client_packages', 'clients', 'reviews', 'config'
+          'client_packages', 'clients', 'reviews', 'config',
+          'parent_requests', 'parent_users', 'parent_absences', 'parent_corrections'
         ] && checkResourceSiteAccess();
 
         allow create, update: if isAdmin() && hasValidSiteId() && collection in [
           'sales', 'products', 'inventoryEvents', 'inventory_events', 'inventory', 'finances',
-          'client_packages', 'clients', 'reviews', 'config'
+          'client_packages', 'clients', 'reviews', 'config',
+          'parent_requests', 'parent_users', 'parent_absences', 'parent_corrections'
         ] && hasAccessToSite(request.resource.data.siteId);
 
         allow delete: if isAdmin() && collection in [
           'sales', 'products', 'inventoryEvents', 'inventory_events', 'inventory', 'finances',
-          'client_packages', 'clients', 'reviews', 'config'
+          'client_packages', 'clients', 'reviews', 'config',
+          'parent_requests', 'parent_users', 'parent_absences', 'parent_corrections'
         ] && checkResourceSiteAccess();
 
         // 3. Колекции за администратори без изискване за SiteId (глобални)

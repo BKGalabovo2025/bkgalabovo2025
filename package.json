@@ -48,6 +48,7 @@
     "migrate:siteid": "tsx scripts/migrate-siteid-legacy.ts",
     "deploy:rules": "npx -y firebase-tools@latest deploy --only firestore:rules --project bkgalabovo2025",
     "deploy:indexes": "npx -y firebase-tools@latest deploy --only firestore:indexes --project bkgalabovo2025",
+    "sync:dbs": "node scripts/sync-bidirectional.cjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -69,7 +70,7 @@
     "@radix-ui/react-slot": "^1.4.0",
     "@radix-ui/react-tabs": "^1.1.22",
     "@radix-ui/react-tooltip": "^1.3.0",
-    "@react-email/render": "^2.1.0",
+    "@react-email/render": "^2.2.0",
     "@tanstack/react-table": "^8.21.3",
     "@vercel/analytics": "^2.0.1",
     "canvas-confetti": "^1.9.4",
