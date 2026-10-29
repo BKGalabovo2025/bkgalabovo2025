@@ -26,8 +26,11 @@ function initBackupAdmin(): admin.firestore.Firestore | null {
   }
 
   try {
+    const resolvedAdmin: typeof admin =
+      (admin as unknown as { default?: typeof admin }).default || admin;
+    const apps = resolvedAdmin.apps || [];
     // Проверяваме дали вече е инициализирано (hot reload в dev)
-    const existing = admin.apps.find((a) => a?.name === BACKUP_APP_NAME);
+    const existing = apps.find((a) => a?.name === BACKUP_APP_NAME);
     const app =
       existing ??
       (() => {
@@ -42,8 +45,8 @@ function initBackupAdmin(): admin.firestore.Firestore | null {
         if (sa.private_key) {
           sa.private_key = sa.private_key.replace(/\\n/g, "\n");
         }
-        return admin.initializeApp(
-          { credential: admin.credential.cert(sa) },
+        return resolvedAdmin.initializeApp(
+          { credential: resolvedAdmin.credential.cert(sa) },
           BACKUP_APP_NAME
         );
       })();
@@ -59,6 +62,7 @@ function initBackupAdmin(): admin.firestore.Firestore | null {
     );
     return backupDb;
   } catch (err) {
+    initAttempted = false; // Allow retry on subsequent attempts
     console.error("[backup-db] ❌ Failed to initialize backup Firestore:", err);
     return null;
   }

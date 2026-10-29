@@ -43,6 +43,9 @@ const COLLECTIONS_TO_SYNC = [
   "trainings",
   "reservations",
   "sessions",
+  "tournaments",
+  "tournament_entries",
+  "tournament_matches",
 ];
 
 function isQuotaError(err: unknown): boolean {
