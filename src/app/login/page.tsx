@@ -122,7 +122,7 @@ function LoginForm() {
     <div className="relative z-10 w-full max-w-sm sm:max-w-md duration-700 animate-in fade-in slide-in-from-bottom-6">
       <Link
         href="/"
-        className="mb-2.5 sm:mb-3 inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] text-zinc-400 uppercase transition-colors hover:text-zinc-950"
+        className="mb-2.5 sm:mb-3 inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400"
       >
         <ArrowLeft size={13} strokeWidth={2} /> Обратно към порталите
       </Link>
@@ -139,7 +139,7 @@ function LoginForm() {
           <h1 className="font-bento text-xl font-bold tracking-tight text-zinc-950 uppercase sm:text-2xl">
             Админ Портал
           </h1>
-          <p className="mt-0.5 text-[9px] sm:text-[10px] font-semibold tracking-[0.25em] text-zinc-400 uppercase">
+          <p className="mt-0.5 text-[9px] sm:text-[10px] font-semibold tracking-[0.25em] text-zinc-600 uppercase dark:text-zinc-400">
             Бадминтон Клуб Гълъбово
           </p>
         </div>
@@ -148,7 +148,7 @@ function LoginForm() {
           <div className="space-y-1 sm:space-y-1.5">
             <Label
               htmlFor="email"
-              className="ml-1 text-[10px] sm:text-[11px] font-medium tracking-[0.15em] text-zinc-500 uppercase"
+              className="ml-1 text-[10px] sm:text-[11px] font-medium tracking-[0.15em] text-zinc-700 uppercase dark:text-zinc-300"
             >
               Имейл
             </Label>
@@ -169,13 +169,13 @@ function LoginForm() {
             <div className="ml-1 flex items-center justify-between">
               <Label
                 htmlFor="password"
-                className="text-[10px] sm:text-[11px] font-medium tracking-[0.15em] text-zinc-500 uppercase"
+                className="text-[10px] sm:text-[11px] font-medium tracking-[0.15em] text-zinc-700 uppercase dark:text-zinc-300"
               >
                 Парола
               </Label>
               <Link
                 href="#"
-                className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-zinc-400 uppercase transition-colors hover:text-zinc-950"
+                className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400"
               >
                 Забравена парола?
               </Link>
@@ -214,13 +214,13 @@ function LoginForm() {
         </form>
 
         <div className="mt-4 sm:mt-5 border-t border-zinc-100 pt-3 sm:pt-3.5 text-center">
-          <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-zinc-400 uppercase leading-snug">
+          <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-zinc-600 uppercase leading-snug dark:text-zinc-400">
             Система за управление на спортен клуб и възстановителен център
           </p>
         </div>
       </BentoCard>
 
-      <p className="mt-2.5 sm:mt-3 text-center text-[9px] sm:text-[10px] font-medium tracking-[0.25em] text-zinc-400 uppercase">
+      <p className="mt-2.5 sm:mt-3 text-center text-[9px] sm:text-[10px] font-medium tracking-[0.25em] text-zinc-600 uppercase dark:text-zinc-400">
         © 2026 БК Гълъбово & Recovery Zone by ZM
       </p>
     </div>
@@ -229,7 +229,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="relative flex min-h-dvh w-full items-center justify-center overflow-x-hidden bg-zinc-50 px-4 py-8 font-sans">
+    <main className="relative flex min-h-dvh w-full items-center justify-center overflow-x-hidden bg-zinc-50 px-4 py-8 font-sans">
       {/* Background Decorative Elements bounded in overflow-hidden */}
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -248,6 +248,6 @@ export default function LoginPage() {
       >
         <LoginForm />
       </Suspense>
-    </div>
+    </main>
   );
 }

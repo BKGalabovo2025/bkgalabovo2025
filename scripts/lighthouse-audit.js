@@ -26,6 +26,7 @@ if (modeArg === "desktop" || presetArg === "desktop") {
 const limitArg = args.find((a) => a.startsWith("--limit="))?.split("=")[1];
 const pageLimit = limitArg ? parseInt(limitArg, 10) : Infinity;
 const targetUrlArg = args.find((a) => a.startsWith("--url="))?.split("=")[1];
+const routeArg = args.find((a) => a.startsWith("--route="))?.split("=")[1];
 
 const baseUrl =
   targetUrlArg ||
@@ -272,9 +273,18 @@ async function run() {
 
   // Придобиване на сесийна бисквитка и Firebase Admin за параметрите
   const { sessionCookie, adminApp } = await getSessionCookieAndApp(baseUrl);
-  const extraHeaders = sessionCookie
-    ? `--extra-headers="{\\"Cookie\\":\\"${sessionCookie}\\"}"`
-    : "";
+  let extraHeaders = "";
+  if (sessionCookie) {
+    const headersFilePath = path.join(reportsDir, ".lighthouse-headers.json");
+    fs.writeFileSync(
+      headersFilePath,
+      JSON.stringify({
+        Cookie: sessionCookie,
+      }),
+      "utf8"
+    );
+    extraHeaders = `--extra-headers="${headersFilePath}"`;
+  }
 
   const sampleParams = await getSampleRouteParams(adminApp);
 
@@ -292,6 +302,16 @@ async function run() {
   } else {
     console.log(
       `ℹ️ Избрани за одит: ${targetPages.length} страници (всички открити страници в проекта).`
+    );
+  }
+
+  if (routeArg) {
+    const normalized = routeArg.startsWith("/") ? routeArg : `/${routeArg}`;
+    targetPages = targetPages.filter(
+      (p) => p.rawRoute === normalized || p.urlRoute === normalized
+    );
+    console.log(
+      `🎯 Филтриране за конкретен маршрут: ${normalized} (${targetPages.length} намерена страница).`
     );
   }
 
@@ -383,11 +403,52 @@ async function run() {
             reportFile: actualHtml,
           };
 
+          const failures = [];
+          if (resItem.performance < 100)
+            failures.push(`Perf: ${resItem.performance}`);
+          if (resItem.accessibility < 100)
+            failures.push(`A11y: ${resItem.accessibility}`);
+          if (resItem.bestPractices < 100)
+            failures.push(`BP: ${resItem.bestPractices}`);
+          if (resItem.seo < 100) failures.push(`SEO: ${resItem.seo}`);
+
+          const failedAudits = [];
+          for (const [auditKey, auditVal] of Object.entries(audits)) {
+            if (
+              auditVal &&
+              auditVal.score !== null &&
+              auditVal.score < 1 &&
+              auditVal.title
+            ) {
+              failedAudits.push({
+                id: auditKey,
+                title: auditVal.title,
+                score: Math.round(auditVal.score * 100),
+              });
+            }
+          }
+
+          resItem.failedAudits = failedAudits;
+          resItem.isFailed = failures.length > 0;
           results.push(resItem);
 
-          console.log(
-            `  ✓ [${mode.toUpperCase()}] Perf: ${resItem.performance} | A11y: ${resItem.accessibility} | BP: ${resItem.bestPractices} | SEO: ${resItem.seo}`
-          );
+          if (failures.length === 0) {
+            console.log(
+              `  ✅ [${mode.toUpperCase()}] 100/100/100/100 (Perf: 100 | A11y: 100 | BP: 100 | SEO: 100)`
+            );
+          } else {
+            console.log(
+              `  ❌ [${mode.toUpperCase()}] ПОД 100 -> ${failures.join(" | ")}`
+            );
+            if (failedAudits.length > 0) {
+              console.log(
+                `     🔍 Причини за намалена оценка (${failedAudits.length}):`
+              );
+              failedAudits.slice(0, 5).forEach((fa) => {
+                console.log(`        - [${fa.id}] ${fa.title}`);
+              });
+            }
+          }
         } catch (err) {
           console.error(
             "  ✗ Грешка при четене на резултатите за %s (%s): %s",
@@ -466,6 +527,8 @@ async function run() {
     .mode-mobile { background: #701a75; color: #f0abfc; }
     a { color: #38bdf8; text-decoration: none; }
     a:hover { text-decoration: underline; }
+    .failed-btn { border-color: #ef4444; color: #f87171; }
+    .failed-btn.active { background: #ef4444; color: #ffffff; }
   </style>
 </head>
 <body>
@@ -497,6 +560,7 @@ async function run() {
     <button class="filter-btn active" onclick="filterMode('all', this)">Всички (${results.length})</button>
     <button class="filter-btn" onclick="filterMode('desktop', this)">🖥️ Само Desktop (${desktopResults.length})</button>
     <button class="filter-btn" onclick="filterMode('mobile', this)">📱 Само Mobile (${mobileResults.length})</button>
+    <button class="filter-btn failed-btn" onclick="filterMode('failed', this)">🚨 Само под 100 (${results.filter((r) => r.isFailed).length})</button>
   </div>
 
   <table id="auditTable">
@@ -516,13 +580,15 @@ async function run() {
     <tbody>
       ${results
         .map(
-          (r) => `<tr data-mode="${r.mode}">
+          (
+            r
+          ) => `<tr data-mode="${r.mode}" data-failed="${r.isFailed ? "true" : "false"}">
         <td><b>${r.route}</b></td>
         <td><span class="mode-tag ${r.mode === "desktop" ? "mode-desktop" : "mode-mobile"}">${r.mode === "desktop" ? "🖥️ Desktop" : "📱 Mobile"}</span></td>
-        <td><span class="badge ${r.performance >= 90 ? "good" : r.performance >= 50 ? "average" : "poor"}">${r.performance}</span></td>
-        <td><span class="badge ${r.accessibility >= 90 ? "good" : r.accessibility >= 50 ? "average" : "poor"}">${r.accessibility}</span></td>
-        <td><span class="badge ${r.bestPractices >= 90 ? "good" : r.bestPractices >= 50 ? "average" : "poor"}">${r.bestPractices}</span></td>
-        <td><span class="badge ${r.seo >= 90 ? "good" : r.seo >= 50 ? "average" : "poor"}">${r.seo}</span></td>
+        <td><span class="badge ${r.performance === 100 ? "good" : r.performance >= 90 ? "average" : "poor"}">${r.performance}</span></td>
+        <td><span class="badge ${r.accessibility === 100 ? "good" : r.accessibility >= 90 ? "average" : "poor"}">${r.accessibility}</span></td>
+        <td><span class="badge ${r.bestPractices === 100 ? "good" : r.bestPractices >= 90 ? "average" : "poor"}">${r.bestPractices}</span></td>
+        <td><span class="badge ${r.seo === 100 ? "good" : r.seo >= 90 ? "average" : "poor"}">${r.seo}</span></td>
         <td>${r.fcp}</td>
         <td>${r.lcp}</td>
         <td><a href="${r.reportFile}" target="_blank">Виж HTML</a></td>
@@ -538,10 +604,12 @@ async function run() {
       btn.classList.add('active');
       const rows = document.querySelectorAll('#auditTable tbody tr');
       rows.forEach(r => {
-        if (mode === 'all' || r.getAttribute('data-mode') === mode) {
+        if (mode === 'all') {
           r.style.display = '';
+        } else if (mode === 'failed') {
+          r.style.display = r.getAttribute('data-failed') === 'true' ? '' : 'none';
         } else {
-          r.style.display = 'none';
+          r.style.display = r.getAttribute('data-mode') === mode ? '' : 'none';
         }
       });
     }
@@ -552,7 +620,7 @@ async function run() {
   fs.writeFileSync(path.join(reportsDir, "index.html"), htmlDashboard, "utf8");
 
   console.log("\n=======================================================");
-  console.log("🎉 ОДИТЪТ НА ВСИЧКИ СТРАНИЦИ ЗАВЪРШИ УСПЕШНО!");
+  console.log("🎉 ОДИТЪТ ПРИКЛЮЧИ!");
   console.log(
     `📁 Интерактивен HTML дашборд: ${path.join(reportsDir, "index.html")}`
   );
@@ -579,6 +647,8 @@ async function run() {
     console.log(`   - SEO:            ${mobileAvg.seo} / 100\n`);
   }
 
+  const under100 = results.filter((r) => r.isFailed);
+
   if (server) {
     console.log("Спиране на локалния сървър...");
     try {
@@ -588,6 +658,32 @@ async function run() {
         server.kill();
       }
     } catch {}
+  }
+
+  if (under100.length > 0) {
+    console.log("=======================================================");
+    console.log(`🚨 ВНИМАНИЕ: ${under100.length} ОДИТА СА С ОЦЕНКА ПОД 100:`);
+    console.log("=======================================================");
+    under100.forEach((r) => {
+      console.log(`❌ [${r.mode.toUpperCase()}] ${r.route} (${r.url})`);
+      console.log(
+        `   Perf: ${r.performance} | A11y: ${r.accessibility} | BP: ${r.bestPractices} | SEO: ${r.seo}`
+      );
+      if (r.failedAudits && r.failedAudits.length > 0) {
+        r.failedAudits.slice(0, 3).forEach((fa) => {
+          console.log(`   • ${fa.title}`);
+        });
+      }
+    });
+    console.log("=======================================================\n");
+
+    const noFail = args.includes("--no-fail");
+    if (!noFail) {
+      console.error(
+        "❌ Одитът приключи с ГРЕШКА, защото има страници с резултат под 100!"
+      );
+      process.exit(1);
+    }
   }
 }
 
