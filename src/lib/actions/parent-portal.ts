@@ -22,11 +22,13 @@ import {
   notifyAdminNewCorrection,
   notifyAdminNewRequest,
   notifyAdminParentCreated,
+  notifyAdminParentSessionReport,
   notifyParentApproved,
   notifyParentCorrectionApproved,
   notifyParentCreatedManually,
   notifyParentPasswordReset,
   notifyParentRejected,
+  ParentSessionReportData,
 } from "@/lib/parent-email-templates";
 import { arePhoneNumbersEqual, normalizePhoneNumber } from "@/lib/phone-utils";
 import { formatDobString, serializeFirestoreData } from "@/lib/serialize-utils";
@@ -1102,6 +1104,28 @@ export async function resetParentPasswordByAdminAction(parentUserId: string) {
  */
 export async function resendParentCredentialsAction(parentUserId: string) {
   return resetParentPasswordByAdminAction(parentUserId);
+}
+
+/**
+ * 10c. Send parent session activity report to admin email.
+ * Writes ZERO documents to Firestore (0 quota usage), delivering full session tracking via email.
+ */
+export async function sendParentSessionReportAction(
+  report: ParentSessionReportData
+) {
+  try {
+    if (!report || !report.actions || report.actions.length === 0) {
+      return { success: true, skipped: true };
+    }
+    const sent = await notifyAdminParentSessionReport(report);
+    return { success: sent };
+  } catch (error) {
+    console.error(
+      "[parent-portal] Failed to send parent session email report:",
+      error
+    );
+    return { success: false, error: (error as Error).message };
+  }
 }
 
 /**

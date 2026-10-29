@@ -35,7 +35,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -73,6 +73,7 @@ import {
   changeParentPasswordAction,
   parentLogoutAction,
   recordParentHeartbeatAction,
+  sendParentSessionReportAction,
   submitDataCorrectionAction,
   submitParentAbsenceAction,
 } from "@/lib/actions/parent-portal";
@@ -188,8 +189,14 @@ export default function ParentPortalClient() {
     {}
   );
 
-  const toggleEventExpanded = (id: string) => {
-    setExpandedEvents((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleEventExpanded = (id: string, title?: string) => {
+    setExpandedEvents((prev) => {
+      const next = !prev[id];
+      if (next && title) {
+        logSessionAction(`Преглед на детайли и бележки за събитие: „${title}“`);
+      }
+      return { ...prev, [id]: next };
+    });
   };
 
   // Welcome Tour Modal
@@ -286,8 +293,126 @@ export default function ParentPortalClient() {
     };
   }, [parent?.id]);
 
-  const handleTabChange = (_tab: string) => {
-    // No-op: tab changes are local navigation and do not write to Firestore to save quota
+  // Session audit trail in memory (writes ZERO documents to Firestore)
+  const sessionLogsRef = useRef<Array<{ time: string; text: string }>>([]);
+  const sessionStartTimeRef = useRef<number>(0);
+  const hasSentReportRef = useRef<boolean>(false);
+  const hasLoggedLoginRef = useRef<boolean>(false);
+
+  const logSessionAction = useCallback((text: string) => {
+    try {
+      const time = new Date().toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      sessionLogsRef.current.push({ time, text });
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Initial login session log
+  useEffect(() => {
+    if (!sessionStartTimeRef.current) {
+      sessionStartTimeRef.current = Date.now();
+    }
+    if (parent?.name && !hasLoggedLoginRef.current) {
+      hasLoggedLoginRef.current = true;
+      logSessionAction(`Вход в профила в Родителския портал (${parent.name})`);
+    }
+  }, [parent?.name, logSessionAction]);
+
+  const dispatchSessionReport = useCallback(
+    (reason: "logout" | "close") => {
+      if (hasSentReportRef.current) return;
+      if (!parent?.name) return;
+      const actions = [...sessionLogsRef.current];
+      if (actions.length === 0) return;
+
+      const exitTime = new Date().toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      actions.push({
+        time: exitTime,
+        text:
+          reason === "logout"
+            ? "Успешен изход от профила (бутон „Изход“)"
+            : "Затваряне на портала / браузъра",
+      });
+
+      hasSentReportRef.current = true;
+
+      const startMs = sessionStartTimeRef.current || Date.now();
+      const startTimeStr = new Date(startMs).toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      const durationMinutes = Math.max(
+        0,
+        Math.round((Date.now() - startMs) / 60000)
+      );
+      const childrenNames =
+        children && children.length > 0
+          ? children.map((c) => c.fullName || c.firstName).join(", ")
+          : selectedChild?.fullName || "";
+
+      const payload = {
+        parentName: parent.name,
+        parentEmail: parent.email || undefined,
+        childrenNames: childrenNames || undefined,
+        startTime: startTimeStr,
+        endTime: exitTime,
+        durationMinutes,
+        actions,
+      };
+
+      if (reason === "logout") {
+        sendParentSessionReportAction(payload).catch(() => {});
+      } else {
+        try {
+          const blob = new Blob([JSON.stringify(payload)], {
+            type: "application/json",
+          });
+          if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+            navigator.sendBeacon("/api/parents/session-report", blob);
+          } else {
+            fetch("/api/parents/session-report", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+              keepalive: true,
+            }).catch(() => {});
+          }
+        } catch {
+          // ignore
+        }
+      }
+    },
+    [parent, children, selectedChild?.fullName]
+  );
+
+  // Send session summary on window / tab close
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      dispatchSessionReport("close");
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [dispatchSessionReport]);
+
+  const handleTabChange = (tab: string) => {
+    const tabLabels: Record<string, string> = {
+      attendance: "Присъствия и посещаемост",
+      profile: "Данни за детето",
+      absences: "Заявени отсъствия",
+    };
+    logSessionAction(`Преглед на раздел: „${tabLabels[tab] || tab}“`);
   };
 
   const handleCloseWelcomeTour = () => {
@@ -300,6 +425,7 @@ export default function ParentPortalClient() {
   // Logout Handler
   const handleLogout = async () => {
     try {
+      dispatchSessionReport("logout");
       await parentLogoutAction();
       toast.success("Успешно излязохте от профила.");
       router.push("/club/parents/login");
@@ -360,6 +486,9 @@ export default function ParentPortalClient() {
       });
 
       if (res.success) {
+        logSessionAction(
+          `Подадено уведомление за отсъствие на състезател (${absenceStartDate}${absenceType === "period" ? ` до ${absenceEndDate}` : ""}, причина: ${absenceReason})`
+        );
         toast.success("Уведомлението за отсъствие е изпратено на треньора!");
         setAbsenceDialogOpen(false);
         setAbsenceNote("");
@@ -381,6 +510,7 @@ export default function ParentPortalClient() {
     try {
       const res = await cancelParentAbsenceAction(absenceId);
       if (res.success) {
+        logSessionAction("Отменено уведомление за отсъствие");
         toast.success("Отсъствието беше отменено.");
         refetch();
       } else {
@@ -413,6 +543,9 @@ export default function ParentPortalClient() {
       });
 
       if (res.success) {
+        logSessionAction(
+          `Подадена заявка за корекция на данни: ${activeCorrectionField.label} -> „${proposedValue.trim()}“`
+        );
         toast.success(
           "Заявката за корекция е изпратена! Треньорът ще я прегледа и одобри."
         );
@@ -465,6 +598,7 @@ export default function ParentPortalClient() {
       if (!res.success) {
         toast.error(res.error || "Грешка при смяна на паролата.");
       } else {
+        logSessionAction("Успешна смяна на паролата на профила");
         toast.success(
           "Паролата е сменена успешно! Вече можете да влизате с новата си парола."
         );
@@ -635,7 +769,10 @@ export default function ParentPortalClient() {
                       <div className="flex shrink-0 items-center gap-2">
                         <Button
                           size="sm"
-                          onClick={() =>
+                          onClick={() => {
+                            logSessionAction(
+                              `Клик върху „Запиши се“ за събитие: „${a.title}“`
+                            );
                             setActiveInquiryEvent({
                               id: a.id,
                               title: a.title,
@@ -643,8 +780,8 @@ export default function ParentPortalClient() {
                               endTime: a.endDate || a.startDate || a.date,
                               location: a.location,
                               type: a.type,
-                            })
-                          }
+                            });
+                          }}
                           className="h-9 rounded-xl bg-blue-600 px-3.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
                         >
                           Запиши се
@@ -699,16 +836,20 @@ export default function ParentPortalClient() {
                         <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() =>
+                            onClick={() => {
+                              const docName =
+                                a.attachmentName || "Наредба за състезанието";
+                              logSessionAction(
+                                `Отваряне за преглед на наредба / документ: „${docName}“ (${a.title})`
+                              );
                               setActiveDocViewer({
                                 url: a.attachmentUrl!,
-                                name:
-                                  a.attachmentName || "Наредба за състезанието",
+                                name: docName,
                                 type:
                                   (a.attachmentType as DocumentAttachmentType) ||
                                   "pdf",
-                              })
-                            }
+                              });
+                            }}
                             className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-1.5 text-xs font-semibold text-blue-900 transition-colors hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/50"
                           >
                             {getDocumentIcon(
@@ -738,7 +879,7 @@ export default function ParentPortalClient() {
                       {a.description && (
                         <button
                           type="button"
-                          onClick={() => toggleEventExpanded(a.id)}
+                          onClick={() => toggleEventExpanded(a.id, a.title)}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50/70 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-zinc-800"
                         >
                           <Info className="size-3.5 text-blue-500" />
@@ -812,7 +953,12 @@ export default function ParentPortalClient() {
               return (
                 <button
                   key={child.id}
-                  onClick={() => setSelectedChildId(child.id)}
+                  onClick={() => {
+                    setSelectedChildId(child.id);
+                    logSessionAction(
+                      `Избор на картон на състезател: ${child.fullName}`
+                    );
+                  }}
                   className={cn(
                     "flex items-center gap-2.5 rounded-2xl border px-3.5 py-2 text-left transition-all",
                     isSelected
@@ -1031,6 +1177,12 @@ export default function ParentPortalClient() {
                 variant="outline"
                 size="icon"
                 onClick={() => {
+                  const newMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+                  const newYear =
+                    selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+                  logSessionAction(
+                    `Преглед на присъствия за ${monthNames[newMonth]} ${newYear} г.`
+                  );
                   if (selectedMonth === 0) {
                     setSelectedMonth(11);
                     setSelectedYear((y) => y - 1);
@@ -1053,6 +1205,12 @@ export default function ParentPortalClient() {
                 variant="outline"
                 size="icon"
                 onClick={() => {
+                  const newMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
+                  const newYear =
+                    selectedMonth === 11 ? selectedYear + 1 : selectedYear;
+                  logSessionAction(
+                    `Преглед на присъствия за ${monthNames[newMonth]} ${newYear} г.`
+                  );
                   if (selectedMonth === 11) {
                     setSelectedMonth(0);
                     setSelectedYear((y) => y + 1);

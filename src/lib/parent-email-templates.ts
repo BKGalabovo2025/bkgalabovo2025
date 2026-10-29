@@ -415,3 +415,90 @@ export async function notifyParentCorrectionApproved(
     html,
   });
 }
+
+export interface ParentSessionAction {
+  time: string;
+  text: string;
+}
+
+export interface ParentSessionReportData {
+  parentName: string;
+  parentEmail?: string;
+  childrenNames?: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  actions: ParentSessionAction[];
+}
+
+export async function notifyAdminParentSessionReport(
+  report: ParentSessionReportData
+) {
+  if (!report.actions || report.actions.length === 0) {
+    return false;
+  }
+
+  const durationStr =
+    report.durationMinutes <= 0
+      ? "под 1 мин."
+      : `${report.durationMinutes} мин.`;
+
+  const rowsHtml = report.actions
+    .map(
+      (act, idx) => `
+    <tr style="background: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"}; border-bottom: 1px solid #e2e8f0;">
+      <td style="padding: 10px 12px; font-weight: 600; color: #475569; white-space: nowrap; vertical-align: top; font-size: 13px;">${act.time}</td>
+      <td style="padding: 10px 12px; color: #1e293b; font-size: 13px; line-height: 1.5;">${act.text}</td>
+    </tr>
+  `
+    )
+    .join("");
+
+  const childrenLine = report.childrenNames
+    ? `<p style="margin: 4px 0;"><strong>Състезател(и):</strong> ${report.childrenNames}</p>`
+    : "";
+
+  const emailLine = report.parentEmail
+    ? `<p style="margin: 4px 0;"><strong>Имейл на родителя:</strong> ${report.parentEmail}</p>`
+    : "";
+
+  const html = await wrapEmailTemplate(`
+    <h2 style="color: #1e3a8a; margin-top: 0; font-size: 19px;">📋 Отчет за активност в Родителския портал</h2>
+    <p style="margin-bottom: 16px;">Родителят <strong>${report.parentName}</strong> приключи сесия в портала на клуба.</p>
+    
+    <div class="card" style="border-left: 4px solid #3b82f6;">
+      <p style="margin: 4px 0;"><strong>Родител:</strong> ${report.parentName}</p>
+      ${emailLine}
+      ${childrenLine}
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;" />
+      <p style="margin: 4px 0;"><strong>Вход (начало):</strong> ${report.startTime}</p>
+      <p style="margin: 4px 0;"><strong>Край на сесията:</strong> ${report.endTime}</p>
+      <p style="margin: 4px 0;"><strong>Продължителност:</strong> ${durationStr}</p>
+      <p style="margin: 4px 0;"><strong>Общо извършени действия:</strong> <strong>${report.actions.length}</strong></p>
+    </div>
+
+    <h3 style="color: #0f172a; font-size: 15px; margin: 24px 0 10px;">Хронологичен дневник на действията:</h3>
+    <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
+      <thead>
+        <tr style="background: #1e293b; color: #ffffff;">
+          <th style="padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; width: 90px;">Час</th>
+          <th style="padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Действие в портала</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+    
+    <p style="font-size: 12px; color: #64748b; margin-top: 20px;">
+      * Този отчет се генерира директно от сесията на родителя без да се записва в базата данни, спестявайки квоти и ресурси на клуба.
+    </p>
+  `);
+
+  const childSubject = report.childrenNames ? ` (${report.childrenNames})` : "";
+  return sendParentPortalEmail({
+    to: ADMIN_EMAIL,
+    subject: `📋 Отчет: ${report.parentName}${childSubject} в Родителски портал [${report.actions.length} действия]`,
+    html,
+  });
+}
