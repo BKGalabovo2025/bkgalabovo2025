@@ -71,9 +71,22 @@ export async function loginAction(email: string, password: string) {
 
     // Create session cookie with 5 days expiration
     const expiresIn = 60 * 60 * 24 * 5 * 1000;
-    const sessionCookie = await adminAuth.createSessionCookie(idToken, {
-      expiresIn,
-    });
+    let sessionCookie: string;
+    try {
+      sessionCookie = await adminAuth.createSessionCookie(idToken, {
+        expiresIn,
+      });
+    } catch (cookieErr) {
+      if (useEmulator) {
+        console.log(
+          "[auth] Using idToken as session in emulator mode:",
+          cookieErr
+        );
+        sessionCookie = idToken;
+      } else {
+        throw cookieErr;
+      }
+    }
 
     const cookieStore = await cookies();
 
@@ -102,6 +115,10 @@ export async function createSessionAction(idToken: string) {
       return { success: false, error: "Липсва токен за оторизация." };
     }
 
+    const useEmulator =
+      process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true" ||
+      Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
+
     const adminAuth = getAdminAuth();
 
     // Verify token first
@@ -109,9 +126,22 @@ export async function createSessionAction(idToken: string) {
 
     // Create session cookie with 5 days expiration
     const expiresIn = 60 * 60 * 24 * 5 * 1000;
-    const sessionCookie = await adminAuth.createSessionCookie(idToken, {
-      expiresIn,
-    });
+    let sessionCookie: string;
+    try {
+      sessionCookie = await adminAuth.createSessionCookie(idToken, {
+        expiresIn,
+      });
+    } catch (cookieErr) {
+      if (useEmulator) {
+        console.log(
+          "[auth] Using idToken as session in emulator mode:",
+          cookieErr
+        );
+        sessionCookie = idToken;
+      } else {
+        throw cookieErr;
+      }
+    }
 
     const cookieStore = await cookies();
 

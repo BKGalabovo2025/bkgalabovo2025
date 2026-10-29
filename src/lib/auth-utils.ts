@@ -39,8 +39,18 @@ export async function getAuthUserFromSessionCookie() {
 
     const adminAuth = getAdminAuth();
     // Verify session cookie locally without remote revocation checks to prevent network latency/crashes
-    const decodedToken = await adminAuth.verifySessionCookie(session, false);
-    return decodedToken;
+    try {
+      const decodedToken = await adminAuth.verifySessionCookie(session, false);
+      return decodedToken;
+    } catch (sessionErr) {
+      const useEmulator =
+        process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true" ||
+        Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
+      if (useEmulator) {
+        return await adminAuth.verifyIdToken(session);
+      }
+      throw sessionErr;
+    }
   } catch (error) {
     console.error("Error verifying session cookie:", error);
     return null;

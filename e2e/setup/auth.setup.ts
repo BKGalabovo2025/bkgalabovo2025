@@ -31,6 +31,7 @@ setup("authenticate as admin", async ({ page }) => {
   let userRecord;
   try {
     userRecord = await auth.getUserByEmail(email);
+    await auth.updateUser(userRecord.uid, { password });
   } catch {
     userRecord = await auth.createUser({
       email,
