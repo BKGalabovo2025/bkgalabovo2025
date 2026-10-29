@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Award,
   Cake,
@@ -7,10 +8,16 @@ import {
   CalendarDays,
   CalendarX2,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  Clock,
+  Download,
   Dumbbell,
   Edit3,
+  ExternalLink,
+  Eye,
   Hourglass,
   Info,
   KeyRound,
@@ -20,6 +27,7 @@ import {
   Plus,
   ShieldCheck,
   Sparkles,
+  Trophy,
   User,
   Users,
   XCircle,
@@ -30,6 +38,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  DocumentAttachmentType,
+  DocumentViewerDialog,
+  getDocumentIcon,
+} from "@/components/schedule/DocumentViewerDialog";
+import { EventInquiryDialog } from "@/components/shared/schedule/EventInquiryDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -96,6 +110,43 @@ const FIELD_CONFIG: Array<{
   },
 ];
 
+const URL_OR_ROUTE_REGEX = /(https?:\/\/[^\s]+|\/tournaments\/[a-zA-Z0-9_-]+)/g;
+
+const renderPublicTextWithLinks = (text: string) => {
+  const parts = text.split(URL_OR_ROUTE_REGEX);
+  return parts.map((part, index) => {
+    if (part.startsWith("http://") || part.startsWith("https://")) {
+      return (
+        <a
+          key={`ext-link-${index}`}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          <span>{part}</span>
+          <ExternalLink className="inline size-3 shrink-0 opacity-70" />
+        </a>
+      );
+    }
+    if (part.startsWith("/tournaments/")) {
+      return (
+        <a
+          key={`int-link-${index}`}
+          href={part}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 font-semibold text-amber-600 underline underline-offset-2 hover:text-amber-500 dark:text-amber-400 dark:hover:text-amber-300"
+        >
+          <span>{part}</span>
+          <ExternalLink className="inline size-3 shrink-0 opacity-70" />
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 export default function ParentPortalClient() {
   const router = useRouter();
   const {
@@ -115,6 +166,32 @@ export default function ParentPortalClient() {
     isLoading,
     isUnauthorized,
   } = useParentPortal();
+
+  // Document preview dialog
+  const [activeDocViewer, setActiveDocViewer] = useState<{
+    url: string;
+    name?: string | null;
+    type?: DocumentAttachmentType | null;
+  } | null>(null);
+
+  // Event inquiry / sign-up dialog
+  const [activeInquiryEvent, setActiveInquiryEvent] = useState<{
+    id?: string;
+    title: string;
+    startTime: string;
+    endTime: string;
+    location?: string;
+    type?: string;
+  } | null>(null);
+
+  // Expanded event descriptions
+  const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>(
+    {}
+  );
+
+  const toggleEventExpanded = (id: string) => {
+    setExpandedEvents((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Welcome Tour Modal
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
@@ -487,43 +564,220 @@ export default function ParentPortalClient() {
         </div>
       </header>
 
-      {/* ── Coach Bulletin / Announcements ───────────────────────────── */}
+      {/* ── Upcoming Competitions, Camps & Events ───────────────────── */}
       {announcements.length > 0 && (
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h2 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              <CalendarDays className="size-3.5 text-blue-600 dark:text-blue-400" />
-              Предстоящи турнири и клубни събития
+            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+              <Trophy className="size-4 text-amber-500" />
+              Предстоящи състезания, лагери и събития
             </h2>
             <Link
               href="/club/schedule"
               className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
             >
-              Към графика →
+              Пълен календар →
             </Link>
           </div>
-          <div className="space-y-2">
-            {announcements.map((a) => (
-              <div
-                key={a.id}
-                className={cn(
-                  "flex items-start gap-3 rounded-2xl border p-4 text-xs transition-all",
-                  a.priority === "warning"
-                    ? "border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-200"
-                    : "border-blue-200 bg-blue-50/80 text-blue-950 dark:border-blue-800/40 dark:bg-blue-950/30 dark:text-blue-200"
-                )}
-              >
-                <Info className="size-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
-                <div className="flex-1 space-y-0.5">
-                  <p className="font-semibold text-zinc-900 dark:text-white">
-                    {a.title}
-                  </p>
-                  <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed">
-                    {a.content}
-                  </p>
+
+          <div className="space-y-3">
+            {announcements.map((a) => {
+              const isExpanded = !!expandedEvents[a.id];
+              const eventType =
+                a.type || (a.isTournament ? "competition" : "event");
+              const isCompetition =
+                eventType === "competition" || a.isTournament;
+              const isCamp = eventType === "camp";
+
+              return (
+                <div
+                  key={a.id}
+                  className={cn(
+                    "group relative overflow-hidden rounded-3xl border bg-white p-5 shadow-xs transition-all dark:bg-zinc-900",
+                    isCompetition
+                      ? "border-amber-200/90 hover:border-amber-400/80 dark:border-amber-900/40 dark:hover:border-amber-700/60"
+                      : isCamp
+                        ? "border-emerald-200/90 hover:border-emerald-400/80 dark:border-emerald-900/40 dark:hover:border-emerald-700/60"
+                        : "border-blue-200/90 hover:border-blue-400/80 dark:border-blue-900/40 dark:hover:border-blue-700/60"
+                  )}
+                >
+                  <div className="flex flex-col gap-3.5">
+                    {/* Top Row: Type Badge, Title, Sign-up button */}
+                    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-lg border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                              isCompetition
+                                ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300"
+                                : isCamp
+                                  ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                  : "border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800/60 dark:bg-blue-950/40 dark:text-blue-300"
+                            )}
+                          >
+                            <span>
+                              {isCamp ? "⛺" : isCompetition ? "🏆" : "🏸"}
+                            </span>
+                            <span>
+                              {isCamp
+                                ? "Спортен лагер"
+                                : isCompetition
+                                  ? "Държавно първенство / Турнир"
+                                  : "Клубно събитие"}
+                            </span>
+                          </span>
+                        </div>
+
+                        <h3 className="text-base font-bold text-zinc-900 dark:text-white leading-snug sm:text-lg">
+                          {a.title.replace(/^[^\w\sа-яА-ЯёЁ]+/, "").trim()}
+                        </h3>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            setActiveInquiryEvent({
+                              id: a.id,
+                              title: a.title,
+                              startTime: a.startDate || a.date,
+                              endTime: a.endDate || a.startDate || a.date,
+                              location: a.location,
+                              type: a.type,
+                            })
+                          }
+                          className="h-9 rounded-xl bg-blue-600 px-3.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
+                        >
+                          Запиши се
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Period and Location details */}
+                    <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 text-xs">
+                      <div className="flex items-center gap-1.5 font-semibold text-zinc-800 dark:text-zinc-200">
+                        <Clock className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                        <span>Период: {a.periodText || a.content}</span>
+                      </div>
+
+                      {a.location && (
+                        <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
+                          <MapPin className="size-4 shrink-0 text-rose-500 dark:text-rose-400" />
+                          <span>{a.location}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Optional Event Image */}
+                    {a.imageUrl && (
+                      <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                        <img
+                          src={a.imageUrl}
+                          alt={a.title}
+                          className="max-h-64 w-full object-cover"
+                        />
+                      </div>
+                    )}
+
+                    {/* Action Bar: Tournament Links, Document Attachments, Notes */}
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                      {/* Tournament link */}
+                      {a.tournamentUrl && (
+                        <a
+                          href={a.tournamentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50/70 px-3 py-1.5 text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/50"
+                        >
+                          <Trophy className="size-3.5 text-amber-600 dark:text-amber-400" />
+                          <span>Страница на състезанието / Схема</span>
+                          <ExternalLink className="size-3 opacity-70" />
+                        </a>
+                      )}
+
+                      {/* Document attachment / regulations */}
+                      {a.attachmentUrl && (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setActiveDocViewer({
+                                url: a.attachmentUrl!,
+                                name:
+                                  a.attachmentName || "Наредба за състезанието",
+                                type:
+                                  (a.attachmentType as DocumentAttachmentType) ||
+                                  "pdf",
+                              })
+                            }
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-1.5 text-xs font-semibold text-blue-900 transition-colors hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                          >
+                            {getDocumentIcon(
+                              (a.attachmentType as DocumentAttachmentType) ||
+                                "pdf",
+                              "size-3.5"
+                            )}
+                            <span className="max-w-44 truncate sm:max-w-72">
+                              {a.attachmentName || "Наредба за състезанието"}
+                            </span>
+                            <Eye className="size-3 opacity-70" />
+                          </button>
+                          <a
+                            href={a.attachmentUrl}
+                            download={a.attachmentName || "document"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center size-8 rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                            title="Изтегли файла"
+                          >
+                            <Download className="size-3.5" />
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Description toggle */}
+                      {a.description && (
+                        <button
+                          type="button"
+                          onClick={() => toggleEventExpanded(a.id)}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50/70 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        >
+                          <Info className="size-3.5 text-blue-500" />
+                          <span>
+                            {isExpanded
+                              ? "Свий описанието"
+                              : "Виж подробности и бележки"}
+                          </span>
+                          {isExpanded ? (
+                            <ChevronUp className="size-3.5" />
+                          ) : (
+                            <ChevronDown className="size-3.5" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Expandable Description Content */}
+                    <AnimatePresence>
+                      {isExpanded && a.description && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 text-xs leading-relaxed text-zinc-700 whitespace-pre-wrap dark:border-blue-900/30 dark:bg-blue-950/20 dark:text-zinc-300">
+                            {renderPublicTextWithLinks(a.description)}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -1591,6 +1845,26 @@ export default function ParentPortalClient() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ── Document Viewer Dialog (for regulations, attachments) ──── */}
+      {activeDocViewer && (
+        <DocumentViewerDialog
+          isOpen={!!activeDocViewer}
+          onClose={() => setActiveDocViewer(null)}
+          documentUrl={activeDocViewer.url}
+          documentName={activeDocViewer.name || "Наредба за състезанието"}
+          documentType={activeDocViewer.type}
+        />
+      )}
+
+      {/* ── Event Inquiry / Sign-up Dialog ─────────────────────────── */}
+      {activeInquiryEvent && (
+        <EventInquiryDialog
+          isOpen={!!activeInquiryEvent}
+          onClose={() => setActiveInquiryEvent(null)}
+          event={activeInquiryEvent}
+        />
+      )}
     </div>
   );
 }

@@ -164,3 +164,24 @@ export const ParentActivityLogSchema = z.object({
   timestamp: z.string(),
 });
 export type ParentActivityLog = z.infer<typeof ParentActivityLogSchema>;
+
+export interface ParentAnnouncement {
+  id: string;
+  title: string;
+  content: string;
+  date: string;
+  priority: "info" | "warning";
+  startDate?: string;
+  endDate?: string;
+  periodText?: string;
+  location?: string;
+  description?: string;
+  tournamentUrl?: string | null;
+  tournamentId?: string | null;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
+  attachmentType?: string | null;
+  imageUrl?: string | null;
+  isTournament?: boolean;
+  type?: string;
+}

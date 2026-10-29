@@ -2,6 +2,8 @@
 import "server-only";
 
 // Cache invalidation trigger
+import { format, isValid } from "date-fns";
+import { bg } from "date-fns/locale";
 import { revalidatePath } from "next/cache";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -34,6 +36,7 @@ import {
   ParentAbsence,
   ParentAccessRequest,
   ParentActivityLog,
+  ParentAnnouncement,
   ParentMemberPermissions,
   ParentRole,
   ParentUser,
@@ -1724,7 +1727,7 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
               date: new Date().toISOString(),
               priority: "info",
             },
-          ],
+          ] as ParentAnnouncement[],
         },
       };
     }
@@ -1908,13 +1911,7 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
 
     // 1. Fetch club events from the Schedule module (siteId: "bkgalabovo")
     // This is the EXACT same source used by the Admin Schedule and Public Club Schedule.
-    let announcements: Array<{
-      id: string;
-      title: string;
-      content: string;
-      date: string;
-      priority: "info" | "warning";
-    }> = [];
+    let announcements: ParentAnnouncement[] = [];
 
     try {
       const now = new Date();
@@ -2130,24 +2127,111 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
         .map((e) => {
           const eTitle =
             typeof e.title === "string" ? e.title : "Предстоящо събитие";
-          const eLocation = typeof e.location === "string" ? e.location : "";
+          const eLocation =
+            typeof e.location === "string" && e.location.trim()
+              ? e.location.trim()
+              : defaultHallLocation;
           const eStartDate = typeof e.startDate === "string" ? e.startDate : "";
-          const dateFormatted = eStartDate
-            ? new Date(eStartDate).toLocaleDateString("bg-BG", {
-                timeZone: "Europe/Sofia",
-                day: "numeric",
-                month: "numeric",
-                year: "numeric",
-              }) + " г."
-            : "";
+          const eEndDate =
+            typeof e.endDate === "string" ? e.endDate : eStartDate;
+          const eDescription =
+            typeof e.description === "string" ? e.description : "";
+          const eTournamentUrl =
+            typeof e.tournamentUrl === "string" ? e.tournamentUrl : null;
+          const eTournamentId =
+            typeof e.tournamentId === "string" ? e.tournamentId : null;
+          const eAttachmentUrl =
+            typeof e.attachmentUrl === "string" ? e.attachmentUrl : null;
+          const eAttachmentName =
+            typeof e.attachmentName === "string" ? e.attachmentName : null;
+          const eAttachmentType =
+            typeof e.attachmentType === "string" ? e.attachmentType : null;
+          const eImageUrl = typeof e.imageUrl === "string" ? e.imageUrl : null;
+          const eType = typeof e.type === "string" ? e.type : "competition";
+          const isTournament =
+            eType === "competition" ||
+            Boolean(eTournamentUrl) ||
+            Boolean(eTournamentId);
 
-          const icon = e.type === "camp" ? "🏕️" : "🏸";
+          let periodText = "";
+          if (eStartDate) {
+            const s = new Date(eStartDate);
+            const eDate = eEndDate ? new Date(eEndDate) : null;
+            if (isValid(s)) {
+              if (
+                !eDate ||
+                !isValid(eDate) ||
+                format(s, "yyyyMMdd") === format(eDate, "yyyyMMdd")
+              ) {
+                const dateStr = format(s, "dd.MM.yyyy 'г.' (EEEE)", {
+                  locale: bg,
+                });
+                const timeS = format(s, "HH:mm");
+                const timeE =
+                  eDate && isValid(eDate) ? format(eDate, "HH:mm") : "";
+                if (
+                  timeS !== "00:00" &&
+                  timeE &&
+                  timeE !== timeS &&
+                  timeE !== "00:00"
+                ) {
+                  periodText = `${dateStr} | ${timeS} — ${timeE} ч.`;
+                } else if (timeS !== "00:00") {
+                  periodText = `${dateStr} | ${timeS} ч.`;
+                } else {
+                  periodText = dateStr;
+                }
+              } else {
+                const hasHours =
+                  format(s, "HH:mm") !== "00:00" ||
+                  format(eDate, "HH:mm") !== "00:00";
+                if (hasHours) {
+                  const startStr = format(
+                    s,
+                    "dd.MM.yyyy 'г.' (EE) HH:mm 'ч.'",
+                    {
+                      locale: bg,
+                    }
+                  );
+                  const endStr = format(
+                    eDate,
+                    "dd.MM.yyyy 'г.' (EE) HH:mm 'ч.'",
+                    {
+                      locale: bg,
+                    }
+                  );
+                  periodText = `${startStr} — ${endStr}`;
+                } else {
+                  const startStr = format(s, "dd.MM.yyyy", { locale: bg });
+                  const endStr = format(eDate, "dd.MM.yyyy 'г.'", {
+                    locale: bg,
+                  });
+                  periodText = `${startStr} — ${endStr}`;
+                }
+              }
+            }
+          }
+
+          const icon = eType === "camp" ? "⛺" : isTournament ? "🏆" : "🏸";
 
           return {
             id: String(e.id),
             title: `${icon} ${eTitle}`,
-            content: `${eLocation ? `Място: ${eLocation}. ` : ""}${dateFormatted ? `Дата: ${dateFormatted}` : ""}`,
+            content: `${eLocation ? `Място: ${eLocation}. ` : ""}${periodText ? `Период: ${periodText}` : ""}`,
             date: eStartDate || new Date().toISOString(),
+            startDate: eStartDate,
+            endDate: eEndDate,
+            periodText,
+            location: eLocation,
+            description: eDescription,
+            tournamentUrl: eTournamentUrl,
+            tournamentId: eTournamentId,
+            attachmentUrl: eAttachmentUrl,
+            attachmentName: eAttachmentName,
+            attachmentType: eAttachmentType,
+            imageUrl: eImageUrl,
+            isTournament,
+            type: eType,
             priority: "info" as const,
           };
         });
