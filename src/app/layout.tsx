@@ -15,7 +15,7 @@ const OfflineStatusIndicator = dynamic(() =>
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
-  display: "swap",
+  display: "optional",
   variable: "--font-inter",
   preload: false,
   fallback: [
@@ -91,9 +91,7 @@ export default function RootLayout({
   return (
     <html lang="bg" suppressHydrationWarning>
       <head />
-      <body
-        className={`${inter.className} ${inter.variable} font-sans antialiased`}
-      >
+      <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

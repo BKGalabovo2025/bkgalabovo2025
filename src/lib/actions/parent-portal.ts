@@ -1906,113 +1906,8 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
       groupName: string;
     } | null = null;
 
-    if (activeChildId) {
-      try {
-        const eventsSnap = await adminDb
-          .collection("events")
-          .where("attendeeMemberIds", "array-contains", activeChildId)
-          .get();
-
-        const now = new Date();
-        const todayStr = now.toISOString().slice(0, 10);
-
-        // Resolve default hall location from site settings
-        let defaultHallLocation = "Спортен комплекс „Енергетик“";
-        try {
-          const siteDoc = await adminDb
-            .collection("sites")
-            .doc("bkgalabovo")
-            .get();
-          if (siteDoc.exists) {
-            const sData = siteDoc.data();
-            if (sData?.hallName?.trim()) {
-              defaultHallLocation = sData.hallName.trim();
-            } else if (sData?.address?.trim()) {
-              defaultHallLocation = sData.address.split(",")[0].trim();
-            }
-          }
-        } catch {
-          // fallback
-        }
-
-        for (const doc of eventsSnap.docs) {
-          const e = doc.data();
-          const attendeesList = (
-            Array.isArray(e.attendees) ? e.attendees : []
-          ) as AttendeeRecord[];
-          const attendeeEntry = attendeesList.find(
-            (a) => a.memberId === activeChildId
-          );
-          const attended = attendeeEntry ? !!attendeeEntry.attended : false;
-
-          const startIso = typeof e.startDate === "string" ? e.startDate : "";
-          const endIso = typeof e.endDate === "string" ? e.endDate : "";
-
-          attendances.push({
-            id: doc.id,
-            title: e.title || "Тренировка",
-            type: e.type || "training",
-            startDate: startIso,
-            endDate: endIso,
-            location: e.location || defaultHallLocation,
-            attended,
-          });
-        }
-
-        // Sort attendances desc
-        attendances.sort((a, b) => b.startDate.localeCompare(a.startDate));
-
-        // Find next future training from real events
-        const futureTrainings = eventsSnap.docs
-          .map((d) => d.data())
-          .filter((e) => {
-            const start = typeof e.startDate === "string" ? e.startDate : "";
-            const isTrain =
-              e.type === "training" ||
-              (typeof e.title === "string" &&
-                e.title.toLowerCase().includes("трениров"));
-            return isTrain && start.slice(0, 10) >= todayStr;
-          })
-          .sort((a, b) => (a.startDate || "").localeCompare(b.startDate || ""));
-
-        if (futureTrainings.length > 0) {
-          const nextEv = futureTrainings[0];
-          const evDate = new Date(nextEv.startDate);
-          const isToday = (nextEv.startDate || "").slice(0, 10) === todayStr;
-
-          const dateOptions: Intl.DateTimeFormatOptions = {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-          };
-          const dateText = isToday
-            ? "Днес"
-            : evDate.toLocaleDateString("bg-BG", dateOptions);
-
-          const timeText = evDate.toLocaleTimeString("bg-BG", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-
-          nextTraining = {
-            title:
-              typeof nextEv.title === "string" ? nextEv.title : "Тренировка",
-            dateText,
-            timeText: `${timeText} ч.`,
-            location:
-              typeof nextEv.location === "string"
-                ? nextEv.location
-                : defaultHallLocation,
-            isToday,
-            groupName: selectedChildSummary?.trainingGroup || "",
-          };
-        }
-      } catch (err) {
-        console.warn("Error fetching child events:", err);
-      }
-    }
-
-    // Fetch upcoming non-training club events/competitions for announcements
+    // 1. Fetch club events from the Schedule module (siteId: "bkgalabovo")
+    // This is the EXACT same source used by the Admin Schedule and Public Club Schedule.
     let announcements: Array<{
       id: string;
       title: string;
@@ -2022,34 +1917,242 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
     }> = [];
 
     try {
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const now = new Date();
+      // Formatted in Europe/Sofia timezone
+      const todaySofiaStr = now.toLocaleDateString("en-CA", {
+        timeZone: "Europe/Sofia",
+      });
+      const tomorrow = new Date(now.getTime() + 86400000);
+      const tomorrowSofiaStr = tomorrow.toLocaleDateString("en-CA", {
+        timeZone: "Europe/Sofia",
+      });
+
+      // Resolve default hall location dynamically from site settings
+      let defaultHallLocation = "Спортна зала „Енергетик“";
+      try {
+        const siteDoc = await adminDb
+          .collection("sites")
+          .doc("bkgalabovo")
+          .get();
+        if (siteDoc.exists) {
+          const sData = siteDoc.data();
+          if (sData?.hallName?.trim()) {
+            defaultHallLocation = sData.hallName.trim();
+          } else if (sData?.address?.trim()) {
+            defaultHallLocation = sData.address.split(",")[0].trim();
+          }
+        }
+      } catch {
+        // fallback
+      }
+
       const clubEventsSnap = await adminDb
         .collection("events")
         .where("siteId", "==", "bkgalabovo")
         .get();
 
-      announcements = clubEventsSnap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .filter((e: Record<string, unknown>) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const allClubEvents: Array<{ id: string } & Record<string, any>> =
+        clubEventsSnap.docs.map((d) => ({
+          id: d.id,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(d.data() as Record<string, any>),
+        }));
+
+      // A. Populate attendance history for the active child (any event where child is in attendees/attendeeMemberIds)
+      if (activeChildId) {
+        for (const e of allClubEvents) {
+          const attendeesList = (
+            Array.isArray(e.attendees) ? e.attendees : []
+          ) as AttendeeRecord[];
+          const attendeeEntry = attendeesList.find(
+            (a) => a.memberId === activeChildId
+          );
+          const attendeeMemberIds = Array.isArray(e.attendeeMemberIds)
+            ? e.attendeeMemberIds
+            : [];
+
+          if (attendeeEntry || attendeeMemberIds.includes(activeChildId)) {
+            const attended = attendeeEntry ? !!attendeeEntry.attended : false;
+            const startIso = typeof e.startDate === "string" ? e.startDate : "";
+            const endIso = typeof e.endDate === "string" ? e.endDate : "";
+
+            attendances.push({
+              id: String(e.id),
+              title:
+                (typeof e.title === "string" && e.title.trim()) || "Тренировка",
+              type: (typeof e.type === "string" && e.type.trim()) || "training",
+              startDate: startIso,
+              endDate: endIso,
+              location:
+                (typeof e.location === "string" && e.location.trim()) ||
+                defaultHallLocation,
+              attended,
+            });
+          }
+        }
+
+        // Sort attendances desc (newest first)
+        attendances.sort((a, b) => b.startDate.localeCompare(a.startDate));
+      }
+
+      // B. Resolve NEXT TRAINING directly from the official Club Schedule
+      // Training events (not cancelled, endDate >= now) matching the child's group if set
+      const childGroup = selectedChildSummary?.trainingGroup;
+      const upcomingTrainings = allClubEvents
+        .filter((e) => {
+          if (e.isCancelled) return false;
+          const isTrain =
+            e.type === "training" ||
+            (typeof e.title === "string" &&
+              e.title.toLowerCase().includes("трениров"));
+          if (!isTrain) return false;
+
           const start = typeof e.startDate === "string" ? e.startDate : "";
-          return e.type !== "training" && start.slice(0, 10) >= todayStr;
+          const end = typeof e.endDate === "string" ? e.endDate : start;
+          if (!start) return false;
+
+          // Event end time must not be in the past
+          const endDateObj = new Date(end || start);
+          if (endDateObj.getTime() < now.getTime()) {
+            return false;
+          }
+
+          // If event has group assigned, verify child matches (or event is open to all)
+          if (e.trainingGroup && childGroup && e.trainingGroup !== childGroup) {
+            return false;
+          }
+
+          // If child already checked-in and attended today's session and it ended or is in progress
+          if (activeChildId) {
+            const attendeesList = (
+              Array.isArray(e.attendees) ? e.attendees : []
+            ) as AttendeeRecord[];
+            const attendeeEntry = attendeesList.find(
+              (a) => a.memberId === activeChildId
+            );
+            if (
+              attendeeEntry &&
+              attendeeEntry.attended &&
+              endDateObj.getTime() < now.getTime()
+            ) {
+              return false;
+            }
+          }
+
+          return true;
         })
-        .slice(0, 3)
-        .map((e: Record<string, unknown>) => {
+        .sort((a, b) => {
+          const aStart = typeof a.startDate === "string" ? a.startDate : "";
+          const bStart = typeof b.startDate === "string" ? b.startDate : "";
+          return aStart.localeCompare(bStart);
+        });
+
+      if (upcomingTrainings.length > 0) {
+        const nextEv = upcomingTrainings[0];
+        const evDate = new Date(nextEv.startDate as string);
+        const evDateSofiaStr = evDate.toLocaleDateString("en-CA", {
+          timeZone: "Europe/Sofia",
+        });
+        const isToday = evDateSofiaStr === todaySofiaStr;
+        const isTomorrow = evDateSofiaStr === tomorrowSofiaStr;
+
+        let dateText = evDate.toLocaleDateString("bg-BG", {
+          timeZone: "Europe/Sofia",
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        });
+        dateText = dateText.charAt(0).toUpperCase() + dateText.slice(1);
+        if (isToday) dateText = "Днес";
+        else if (isTomorrow) dateText = "Утре";
+
+        const startTimeFormatted = evDate.toLocaleTimeString("bg-BG", {
+          timeZone: "Europe/Sofia",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        let timeText = `${startTimeFormatted} ч.`;
+        if (nextEv.endDate) {
+          const endEvDate = new Date(nextEv.endDate as string);
+          const endTimeFormatted = endEvDate.toLocaleTimeString("bg-BG", {
+            timeZone: "Europe/Sofia",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          timeText = `${startTimeFormatted} - ${endTimeFormatted} ч.`;
+        }
+
+        nextTraining = {
+          title:
+            typeof nextEv.title === "string" && nextEv.title.trim()
+              ? nextEv.title.trim()
+              : "Тренировка",
+          dateText,
+          timeText,
+          location:
+            typeof nextEv.location === "string" && nextEv.location.trim()
+              ? nextEv.location.trim()
+              : defaultHallLocation,
+          isToday,
+          groupName:
+            (typeof nextEv.trainingGroup === "string" &&
+              nextEv.trainingGroup) ||
+            childGroup ||
+            "Всички групи",
+        };
+      }
+
+      // C. Upcoming Club Events & Tournaments for Announcements (Chronological order)
+      announcements = allClubEvents
+        .filter((e) => {
+          if (e.isCancelled) return false;
+          const isTrain =
+            e.type === "training" ||
+            (typeof e.title === "string" &&
+              e.title.toLowerCase().includes("трениров"));
+          if (isTrain) return false;
+
+          const start = typeof e.startDate === "string" ? e.startDate : "";
+          if (!start) return false;
+          const startSofiaStr = new Date(start).toLocaleDateString("en-CA", {
+            timeZone: "Europe/Sofia",
+          });
+          return startSofiaStr >= todaySofiaStr;
+        })
+        .sort((a, b) => {
+          const aStart = typeof a.startDate === "string" ? a.startDate : "";
+          const bStart = typeof b.startDate === "string" ? b.startDate : "";
+          return aStart.localeCompare(bStart);
+        })
+        .slice(0, 5)
+        .map((e) => {
           const eTitle =
             typeof e.title === "string" ? e.title : "Предстоящо събитие";
           const eLocation = typeof e.location === "string" ? e.location : "";
           const eStartDate = typeof e.startDate === "string" ? e.startDate : "";
+          const dateFormatted = eStartDate
+            ? new Date(eStartDate).toLocaleDateString("bg-BG", {
+                timeZone: "Europe/Sofia",
+                day: "numeric",
+                month: "numeric",
+                year: "numeric",
+              }) + " г."
+            : "";
+
+          const icon = e.type === "camp" ? "🏕️" : "🏸";
+
           return {
             id: String(e.id),
-            title: `🏸 ${eTitle}`,
-            content: `${eLocation ? `Място: ${eLocation}. ` : ""}${eStartDate ? `Дата: ${new Date(eStartDate).toLocaleDateString("bg-BG")}` : ""}`,
+            title: `${icon} ${eTitle}`,
+            content: `${eLocation ? `Място: ${eLocation}. ` : ""}${dateFormatted ? `Дата: ${dateFormatted}` : ""}`,
             date: eStartDate || new Date().toISOString(),
             priority: "info" as const,
           };
         });
-    } catch {
-      announcements = [];
+    } catch (err) {
+      console.warn("Error fetching schedule events for parent portal:", err);
     }
 
     return {

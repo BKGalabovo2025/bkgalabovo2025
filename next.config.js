@@ -81,6 +81,7 @@ const nextConfig = {
       // Vercel Hobby ограничава HTTP payload до 4.5MB — задаваме явен лимит
       bodySizeLimit: "4mb",
     },
+    optimizePackageImports: ["lucide-react", "date-fns"],
   },
   allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS
     ? process.env.ALLOWED_DEV_ORIGINS.split(",")

@@ -17,7 +17,7 @@ const HomeAdminLink = dynamic(() =>
 
 export default function HomePage() {
   return (
-    <div className="relative flex min-h-screen flex-col justify-between overflow-x-hidden bg-zinc-950 bg-[radial-gradient(ellipse_80%_80%_at_0%_0%,rgba(37,99,235,0.12),transparent_50%),radial-gradient(ellipse_80%_80%_at_100%_100%,rgba(16,185,129,0.10),transparent_50%)] text-white selection:bg-zinc-800 lg:h-screen lg:overflow-hidden">
+    <div className="relative flex min-h-screen flex-col justify-between overflow-x-hidden bg-zinc-950 bg-[radial-gradient(ellipse_80%_80%_at_0%_0%,rgba(37,99,235,0.12),transparent_50%),radial-gradient(ellipse_80%_80%_at_100%_100%,rgba(16,185,129,0.10),transparent_50%)] text-white selection:bg-zinc-800 lg:h-screen lg:overflow-hidden font-[system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif]">
       {/* Background Grid Pattern */}
       <div className="pointer-events-none absolute inset-0 opacity-25 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-[32px_32px]" />
 
@@ -51,7 +51,7 @@ export default function HomePage() {
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-1.5 sm:px-6 md:py-2">
         <div className="flex w-full flex-col items-center">
           {/* Tagline */}
-          <h1 className="my-2 max-w-3xl text-center text-4xl font-light tracking-tight text-white leading-tight sm:text-5xl md:my-2.5 md:text-6xl">
+          <h1 className="my-2 max-w-3xl text-center text-4xl font-light tracking-tight text-white leading-tight sm:text-5xl md:my-2.5 md:text-6xl font-[system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif]">
             Изберете
             <br />
             <span className="text-zinc-400">своя портал</span>

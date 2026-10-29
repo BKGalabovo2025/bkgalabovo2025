@@ -4,6 +4,7 @@ import {
   Award,
   Cake,
   Calendar as CalendarIcon,
+  CalendarDays,
   CalendarX2,
   CheckCircle2,
   ChevronLeft,
@@ -24,6 +25,7 @@ import {
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -487,28 +489,42 @@ export default function ParentPortalClient() {
 
       {/* ── Coach Bulletin / Announcements ───────────────────────────── */}
       {announcements.length > 0 && (
-        <div className="space-y-2">
-          {announcements.map((a) => (
-            <div
-              key={a.id}
-              className={cn(
-                "flex items-start gap-3 rounded-2xl border p-4 text-xs transition-all",
-                a.priority === "warning"
-                  ? "border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-200"
-                  : "border-blue-200 bg-blue-50/80 text-blue-950 dark:border-blue-800/40 dark:bg-blue-950/30 dark:text-blue-200"
-              )}
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              <CalendarDays className="size-3.5 text-blue-600 dark:text-blue-400" />
+              Предстоящи турнири и клубни събития
+            </h2>
+            <Link
+              href="/club/schedule"
+              className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
             >
-              <Info className="size-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
-              <div className="flex-1 space-y-0.5">
-                <p className="font-semibold text-zinc-900 dark:text-white">
-                  {a.title}
-                </p>
-                <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed">
-                  {a.content}
-                </p>
+              Към графика →
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {announcements.map((a) => (
+              <div
+                key={a.id}
+                className={cn(
+                  "flex items-start gap-3 rounded-2xl border p-4 text-xs transition-all",
+                  a.priority === "warning"
+                    ? "border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-200"
+                    : "border-blue-200 bg-blue-50/80 text-blue-950 dark:border-blue-800/40 dark:bg-blue-950/30 dark:text-blue-200"
+                )}
+              >
+                <Info className="size-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+                <div className="flex-1 space-y-0.5">
+                  <p className="font-semibold text-zinc-900 dark:text-white">
+                    {a.title}
+                  </p>
+                  <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                    {a.content}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
@@ -611,8 +627,11 @@ export default function ParentPortalClient() {
                   )}
                 </div>
                 <h3 className="text-base font-bold text-zinc-900 dark:text-white sm:text-lg">
-                  {nextTraining.dateText}, {nextTraining.timeText}
+                  {nextTraining.title}
                 </h3>
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                  {nextTraining.dateText}, {nextTraining.timeText}
+                </p>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
                   <span className="flex items-center gap-1">
                     <MapPin className="size-3 text-zinc-400" />
@@ -627,15 +646,27 @@ export default function ParentPortalClient() {
               </div>
             </div>
 
-            <Button
-              onClick={() => setAbsenceDialogOpen(true)}
-              variant="outline"
-              size="sm"
-              className="h-10 rounded-xl border-amber-300 bg-amber-50/70 text-xs font-semibold text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
-            >
-              <CalendarX2 className="mr-1.5 size-3.5" />
-              Уведоми за отсъствие
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link href="/club/schedule">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-10 rounded-xl border-zinc-200 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                >
+                  <CalendarDays className="mr-1.5 size-3.5" />
+                  График
+                </Button>
+              </Link>
+              <Button
+                onClick={() => setAbsenceDialogOpen(true)}
+                variant="outline"
+                size="sm"
+                className="h-10 rounded-xl border-amber-300 bg-amber-50/70 text-xs font-semibold text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+              >
+                <CalendarX2 className="mr-1.5 size-3.5" />
+                Уведоми за отсъствие
+              </Button>
+            </div>
           </div>
         </div>
       )}
