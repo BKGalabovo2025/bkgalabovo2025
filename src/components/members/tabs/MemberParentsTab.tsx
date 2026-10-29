@@ -4,8 +4,8 @@ import {
   AlertTriangle,
   Check,
   CheckCircle2,
+  Clock,
   Copy,
-  Eye,
   HeartHandshake,
   KeyRound,
   Loader2,
@@ -78,7 +78,7 @@ const PERMISSION_FIELDS: {
 ];
 
 export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
-  const { parents, requests, activityLogs, refetch } = useParentPortalAdmin();
+  const { parents, requests, refetch } = useParentPortalAdmin();
 
   // Linked parents for this specific child
   const linkedParents = parents.filter((p) =>
@@ -113,9 +113,6 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
   const [parentEmail, setParentEmail] = useState(member.parentEmail || "");
   const [parentRole, setParentRole] = useState<ParentRole>("mother");
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
-  const [expandedHistoryParentId, setExpandedHistoryParentId] = useState<
-    string | null
-  >(null);
 
   // Credentials Success Modal (Permanent, not disappearing toast)
   const [credentialsModal, setCredentialsModal] = useState<{
@@ -547,92 +544,48 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
                 </div>
 
                 {/* Expandable Activity / View History for this child */}
-                <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
-                  <div className="flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setExpandedHistoryParentId((prev) =>
-                          prev === parent.id ? null : parent.id
-                        )
-                      }
-                      className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
-                    >
-                      <Eye size={13} className="text-blue-500" />
-                      <span>
-                        История на прегледите на родителя (
-                        {
-                          (activityLogs || []).filter(
-                            (l) => l.parentUserId === parent.id
-                          ).length
-                        }
-                        )
+                <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    {isParentOnline(parent) ? (
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                        🟢 На линия в момента
                       </span>
-                      <span className="text-[10px] text-zinc-400">
-                        {expandedHistoryParentId === parent.id
-                          ? "▲ Скрий"
-                          : "▼ Виж какво е отварял"}
+                    ) : (
+                      <span className="text-zinc-400 flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+                        Офлайн
                       </span>
-                    </button>
+                    )}
 
-                    {isParentOnline(parent) && (
-                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                        <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        На линия: {parent.lastAction || "В портала"}
+                    {parent.lastAction && (
+                      <span className="text-[11px] text-zinc-500">
+                        • {parent.lastAction}
                       </span>
                     )}
                   </div>
 
-                  {expandedHistoryParentId === parent.id && (
-                    <div className="mt-2.5 rounded-xl border border-zinc-100 bg-zinc-50/70 p-3 text-xs dark:border-zinc-800/60 dark:bg-zinc-950/40">
-                      {(() => {
-                        const logs = (activityLogs || []).filter(
-                          (l) => l.parentUserId === parent.id
-                        );
-                        if (logs.length === 0) {
-                          return (
-                            <p className="text-zinc-400 text-center py-2 text-[11px]">
-                              Все още няма регистрирани прегледи от този
-                              родител.
-                            </p>
-                          );
-                        }
-                        return (
-                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                            {logs.map((log) => (
-                              <div
-                                key={log.id}
-                                className="flex items-center justify-between gap-2 rounded-lg bg-white p-2 border border-zinc-100 shadow-2xs dark:bg-zinc-900 dark:border-zinc-800"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="text-blue-500 font-bold text-[11px]">
-                                    👁️ {log.actionTitle}
-                                  </span>
-                                  {log.details && (
-                                    <span className="text-zinc-500 text-[10px]">
-                                      ({log.details})
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-zinc-400 text-[10px] shrink-0">
-                                  {new Date(log.timestamp).toLocaleDateString(
-                                    "bg-BG",
-                                    {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    }
-                                  )}{" "}
-                                  ч.
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
+                  <div className="text-[11px] text-zinc-400 flex items-center gap-1">
+                    <Clock size={12} className="text-zinc-400" />
+                    {parent.lastLoginAt ? (
+                      <span>
+                        Последен вход:{" "}
+                        {new Date(parent.lastLoginAt).toLocaleDateString(
+                          "bg-BG",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}{" "}
+                        ч.
+                      </span>
+                    ) : (
+                      <span>Все още не е влизал</span>
+                    )}
+                  </div>
                 </div>
               </div>
             );

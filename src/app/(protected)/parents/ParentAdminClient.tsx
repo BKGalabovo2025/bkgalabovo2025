@@ -3,7 +3,6 @@
 import {
   AlertTriangle,
   ArrowRight,
-  Calendar,
   CalendarDays,
   Check,
   CheckCircle2,
@@ -19,7 +18,6 @@ import {
   RefreshCw,
   Search,
   Trash2,
-  User,
   UserCheck,
   UserPlus,
   Users,
@@ -71,7 +69,6 @@ export default function ParentAdminClient() {
     parents,
     absences,
     corrections,
-    activityLogs,
     onlineParents,
     onlineParentsCount,
     isParentOnline,
@@ -684,7 +681,7 @@ export default function ParentAdminClient() {
             className="rounded-xl px-4 text-xs font-bold uppercase data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-950"
           >
             <div className="flex items-center gap-1.5">
-              <span>Дневник & На линия</span>
+              <span>На линия & Вход</span>
               {onlineParentsCount > 0 ? (
                 <span className="flex items-center gap-1 rounded-full bg-emerald-500 px-1.5 py-0.2 text-[10px] text-white font-black animate-pulse">
                   <span className="size-1.5 rounded-full bg-white" />
@@ -692,7 +689,7 @@ export default function ParentAdminClient() {
                 </span>
               ) : (
                 <span className="text-[11px] text-zinc-400">
-                  ({activityLogs.length})
+                  ({parents.length})
                 </span>
               )}
             </div>
@@ -1387,99 +1384,166 @@ export default function ParentAdminClient() {
             </div>
           )}
 
-          {/* Activity Logs Stream */}
+          {/* Parents Presence & Last Login Overview */}
           <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center justify-between mb-4 border-b border-zinc-100 pb-3 dark:border-zinc-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-zinc-100 pb-4 dark:border-zinc-800">
               <div>
-                <h4 className="text-sm font-bold uppercase text-zinc-900 dark:text-white">
-                  Хронология на прегледите и действията ({activityLogs.length})
+                <h4 className="text-sm font-bold uppercase text-zinc-900 dark:text-white flex items-center gap-2">
+                  <span>Статус на профилите & Последен вход</span>
+                  <Badge variant="outline" className="text-xs">
+                    {parents.length} регистрирани родители
+                  </Badge>
                 </h4>
-                <p className="text-xs text-zinc-500">
-                  Подреден дневник на всяко отваряне на присъствия, картон,
-                  график или подаване на извинение.
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Следене на живо кой родител е на линия в момента и кога е бил
+                  последният му успешен вход в системата.
                 </p>
               </div>
             </div>
 
-            {activityLogs.length === 0 ? (
+            {parents.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-zinc-200 p-10 text-center dark:border-zinc-800">
                 <Clock size={36} className="mx-auto text-zinc-400 opacity-60" />
                 <h5 className="mt-2 text-sm font-bold text-zinc-900 dark:text-white">
-                  Все още няма записани действия
+                  Няма регистрирани родители
                 </h5>
                 <p className="mt-1 text-xs text-zinc-500 max-w-sm mx-auto">
-                  Когато родител влезе в портала и преглежда присъствия или
-                  досието на детето си, записите ще се появят тук в реално
-                  време.
+                  След одобряване на родителски заявки или ръчно добавяне, тук
+                  ще виждате техния онлайн статус и последно влизане.
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {activityLogs.map((log) => {
-                  const dateStr = new Date(log.timestamp).toLocaleDateString(
-                    "bg-BG",
-                    {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }
-                  );
+                {parents
+                  .slice()
+                  .sort((a, b) => {
+                    const aOnline = isParentOnline(a) ? 1 : 0;
+                    const bOnline = isParentOnline(b) ? 1 : 0;
+                    if (aOnline !== bOnline) return bOnline - aOnline;
+                    return (b.lastLoginAt || "").localeCompare(
+                      a.lastLoginAt || ""
+                    );
+                  })
+                  .map((p) => {
+                    const online = isParentOnline(p);
+                    const roleLabel =
+                      p.parentRole === "mother"
+                        ? "Майка"
+                        : p.parentRole === "father"
+                          ? "Баща"
+                          : "Настойник";
 
-                  return (
-                    <div
-                      key={log.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3.5 text-xs transition-all hover:bg-white hover:border-zinc-200 dark:border-zinc-800/80 dark:bg-zinc-950/40 dark:hover:bg-zinc-900"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400 mt-0.5">
-                          {log.action === "view_attendance" ? (
-                            <Calendar size={16} />
-                          ) : log.action === "view_profile" ? (
-                            <User size={16} />
-                          ) : log.action === "submit_absence" ? (
-                            <CalendarDays size={16} />
-                          ) : log.action === "submit_correction" ? (
-                            <Pencil size={16} />
-                          ) : (
-                            <KeyRound size={16} />
-                          )}
-                        </div>
+                    const matchedMembers = members.filter((m) =>
+                      p.linkedMemberIds?.includes(m.id)
+                    );
 
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-black text-zinc-900 dark:text-white">
-                              {log.parentName}
-                            </span>
-                            {log.memberName && (
+                    return (
+                      <div
+                        key={p.id}
+                        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border p-4 text-xs transition-all ${
+                          online
+                            ? "border-emerald-300 bg-emerald-50/40 shadow-xs dark:border-emerald-800/80 dark:bg-emerald-950/20"
+                            : "border-zinc-200/80 bg-zinc-50/50 hover:bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950/40 dark:hover:bg-zinc-900"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3.5">
+                          <div
+                            className={`flex size-10 shrink-0 items-center justify-center rounded-2xl font-black text-sm shadow-xs ${
+                              online
+                                ? "bg-emerald-500 text-white"
+                                : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                            }`}
+                          >
+                            {p.name.charAt(0).toUpperCase()}
+                          </div>
+
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-black text-zinc-900 dark:text-white text-sm">
+                                {p.name}
+                              </span>
                               <Badge
                                 variant="outline"
                                 className="text-[10px] font-semibold"
                               >
-                                За {log.memberName}
+                                {roleLabel}
                               </Badge>
-                            )}
-                            <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
-                              • {log.actionTitle}
-                            </span>
-                          </div>
+                              {online ? (
+                                <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+                                  🟢 На линия
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px]"
+                                >
+                                  Офлайн
+                                </Badge>
+                              )}
+                            </div>
 
-                          {log.details && (
-                            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">
-                              {log.details}
-                            </p>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
+                              <span>{p.phone}</span>
+                              <span>•</span>
+                              <span>{p.email}</span>
+                              {matchedMembers.length > 0 && (
+                                <>
+                                  <span>•</span>
+                                  <span className="font-semibold text-blue-600 dark:text-blue-400">
+                                    Дете:{" "}
+                                    {matchedMembers
+                                      .map((m) => m.fullName)
+                                      .join(", ")}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:items-end gap-1 shrink-0 text-[11px]">
+                          {online ? (
+                            <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                              <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
+                              <span>
+                                Последно: {p.lastAction || "Активен в портала"}
+                              </span>
+                            </div>
+                          ) : p.lastLoginAt ? (
+                            <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
+                              <Clock size={13} className="text-zinc-400" />
+                              <span>
+                                Последен вход:{" "}
+                                <strong>
+                                  {new Date(p.lastLoginAt).toLocaleDateString(
+                                    "bg-BG",
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )}{" "}
+                                  ч.
+                                </strong>
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-zinc-400">
+                              Все още не е влизал
+                            </span>
+                          )}
+
+                          {p.lastAction && !online && (
+                            <span className="text-[10px] text-zinc-400">
+                              Действие: {p.lastAction}
+                            </span>
                           )}
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2 sm:text-right shrink-0 text-zinc-400 text-[11px]">
-                        <Clock size={12} />
-                        <span>{dateStr} ч.</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             )}
           </div>

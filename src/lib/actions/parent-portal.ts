@@ -47,8 +47,28 @@ const PARENT_REQUESTS_COLLECTION = "parent_requests";
 const PARENT_USERS_COLLECTION = "parent_users";
 const PARENT_ABSENCES_COLLECTION = "parent_absences";
 const PARENT_CORRECTIONS_COLLECTION = "parent_corrections";
-const PARENT_ACTIVITY_LOGS_COLLECTION = "parent_activity_logs";
 const MEMBERS_COLLECTION = "members";
+
+interface CachedMemberSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  dateOfBirth: string;
+  phone: string;
+  parentPhone: string;
+  motherPhone: string;
+  fatherPhone: string;
+  motherName: string;
+  fatherName: string;
+  familyId: string | null;
+  avatarUrl: string | null;
+}
+
+let cachedMembersData: {
+  data: CachedMemberSummary[];
+  expiresAt: number;
+} | null = null;
 
 /**
  * 1. Submit parent access request from public registration form.
@@ -333,24 +353,6 @@ export async function parentLoginAction(
       updatedAt: nowIso,
     });
 
-    // Record login activity log
-    try {
-      const logRef = adminDb.collection(PARENT_ACTIVITY_LOGS_COLLECTION).doc();
-      await logRef.set({
-        id: logRef.id,
-        siteId: "bkgalabovo",
-        parentUserId: parentDoc.id,
-        parentName: parentUser.name,
-        parentRole: parentUser.parentRole,
-        action: "login",
-        actionTitle: "Вход в родителския портал",
-        details: rememberMe ? "Запомнен профил" : "Сесия",
-        timestamp: nowIso,
-      });
-    } catch (err) {
-      console.warn("Could not record login log:", err);
-    }
-
     return {
       success: true,
       parent: {
@@ -419,24 +421,9 @@ export async function changeParentPasswordAction(
     await adminDb.collection(PARENT_USERS_COLLECTION).doc(parent.id).update({
       passwordHash: newHash,
       updatedAt: new Date().toISOString(),
+      lastAction: "Смяна на парола",
+      lastActionAt: new Date().toISOString(),
     });
-
-    try {
-      const logRef = adminDb.collection(PARENT_ACTIVITY_LOGS_COLLECTION).doc();
-      await logRef.set({
-        id: logRef.id,
-        siteId: "bkgalabovo",
-        parentUserId: parent.id,
-        parentName: parent.name,
-        parentRole: parent.parentRole,
-        action: "password_change",
-        actionTitle: "Смяна на парола",
-        details: "Успешна смяна на временната парола с лична",
-        timestamp: new Date().toISOString(),
-      });
-    } catch {
-      // Non-blocking log
-    }
 
     return { success: true };
   } catch (error) {
@@ -1577,35 +1564,60 @@ export async function deleteParentUserAction(parentUserId: string) {
 export async function getAdminParentPortalDataAction() {
   try {
     const adminDb = getAdminDb();
+    const now = Date.now();
+    let members: CachedMemberSummary[];
 
-    const [reqsSnap, usersSnap, absSnap, corrsSnap, membersSnap, logsSnap] =
-      await Promise.all([
-        adminDb
-          .collection(PARENT_REQUESTS_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-        adminDb
-          .collection(PARENT_USERS_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-        adminDb
-          .collection(PARENT_ABSENCES_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-        adminDb
-          .collection(PARENT_CORRECTIONS_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-        adminDb
-          .collection(MEMBERS_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-        adminDb
-          .collection(PARENT_ACTIVITY_LOGS_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .limit(100)
-          .get(),
-      ]);
+    if (cachedMembersData && cachedMembersData.expiresAt > now) {
+      members = cachedMembersData.data;
+    } else {
+      const membersSnap = await adminDb
+        .collection(MEMBERS_COLLECTION)
+        .where("siteId", "==", "bkgalabovo")
+        .get();
+
+      members = membersSnap.docs.map((d) => {
+        const m = d.data();
+        return {
+          id: d.id,
+          firstName: m.firstName || "",
+          lastName: m.lastName || "",
+          fullName: `${m.firstName || ""} ${m.lastName || ""}`.trim(),
+          dateOfBirth: formatDobString(m.dateOfBirth),
+          phone: m.phone || "",
+          parentPhone: m.parentPhone || "",
+          motherPhone: m.motherPhone || "",
+          fatherPhone: m.fatherPhone || "",
+          motherName: m.motherName || "",
+          fatherName: m.fatherName || "",
+          familyId: m.familyId || null,
+          avatarUrl: m.avatarUrl || null,
+        };
+      });
+
+      cachedMembersData = {
+        data: members,
+        expiresAt: now + 5 * 60 * 1000, // 5 minutes cache
+      };
+    }
+
+    const [reqsSnap, usersSnap, absSnap, corrsSnap] = await Promise.all([
+      adminDb
+        .collection(PARENT_REQUESTS_COLLECTION)
+        .where("siteId", "==", "bkgalabovo")
+        .get(),
+      adminDb
+        .collection(PARENT_USERS_COLLECTION)
+        .where("siteId", "==", "bkgalabovo")
+        .get(),
+      adminDb
+        .collection(PARENT_ABSENCES_COLLECTION)
+        .where("siteId", "==", "bkgalabovo")
+        .get(),
+      adminDb
+        .collection(PARENT_CORRECTIONS_COLLECTION)
+        .where("siteId", "==", "bkgalabovo")
+        .get(),
+    ]);
 
     const requests: ParentAccessRequest[] = reqsSnap.docs
       .map((d) => ({ ...d.data(), id: d.id }) as ParentAccessRequest)
@@ -1623,28 +1635,7 @@ export async function getAdminParentPortalDataAction() {
       .map((d) => ({ ...d.data(), id: d.id }) as DataCorrectionRequest)
       .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 
-    const activityLogs: ParentActivityLog[] = logsSnap.docs
-      .map((d) => ({ ...d.data(), id: d.id }) as ParentActivityLog)
-      .sort((a, b) => (b.timestamp || "").localeCompare(a.timestamp || ""));
-
-    const members = membersSnap.docs.map((d) => {
-      const m = d.data();
-      return {
-        id: d.id,
-        firstName: m.firstName || "",
-        lastName: m.lastName || "",
-        fullName: `${m.firstName || ""} ${m.lastName || ""}`.trim(),
-        dateOfBirth: formatDobString(m.dateOfBirth),
-        phone: m.phone || "",
-        parentPhone: m.parentPhone || "",
-        motherPhone: m.motherPhone || "",
-        fatherPhone: m.fatherPhone || "",
-        motherName: m.motherName || "",
-        fatherName: m.fatherName || "",
-        familyId: m.familyId || null,
-        avatarUrl: m.avatarUrl || null,
-      };
-    });
+    const activityLogs: ParentActivityLog[] = [];
 
     const pendingRequestsCount = requests.filter(
       (r) => r.status === "pending"
@@ -1656,11 +1647,10 @@ export async function getAdminParentPortalDataAction() {
       (c) => c.status === "pending"
     ).length;
 
-    const now = Date.now();
     const onlineParentsCount = parents.filter(
       (p) =>
         p.lastActiveAt &&
-        now - new Date(p.lastActiveAt).getTime() < 3 * 60 * 1000
+        now - new Date(p.lastActiveAt).getTime() < 4 * 60 * 1000
     ).length;
 
     return {
@@ -2334,39 +2324,17 @@ export async function recordParentActivityAction(data: {
     if (!session) return { success: false, error: "Няма активна сесия." };
 
     const adminDb = getAdminDb();
-    const parentRef = adminDb
-      .collection(PARENT_USERS_COLLECTION)
-      .doc(session.parentId);
-    const parentSnap = await parentRef.get();
-    if (!parentSnap.exists)
-      return { success: false, error: "Родителят не е намерен." };
-
-    const parentData = parentSnap.data() as ParentUser;
     const nowIso = new Date().toISOString();
 
-    // Update parent presence & latest action
-    await parentRef.update({
-      lastActiveAt: nowIso,
-      lastAction: data.actionTitle,
-      lastActionAt: nowIso,
-    });
-
-    // Write to activity logs
-    const logRef = adminDb.collection(PARENT_ACTIVITY_LOGS_COLLECTION).doc();
-    const logObj: ParentActivityLog = {
-      id: logRef.id,
-      siteId: "bkgalabovo",
-      parentUserId: parentData.id,
-      parentName: parentData.name,
-      parentRole: parentData.parentRole,
-      memberId: data.memberId || null,
-      memberName: data.memberName || null,
-      action: data.action,
-      actionTitle: data.actionTitle,
-      details: data.details || "",
-      timestamp: nowIso,
-    };
-    await logRef.set(logObj);
+    // Update parent presence & latest action directly on parent user doc (0 extra collection writes)
+    await adminDb
+      .collection(PARENT_USERS_COLLECTION)
+      .doc(session.parentId)
+      .update({
+        lastActiveAt: nowIso,
+        lastAction: data.actionTitle,
+        lastActionAt: nowIso,
+      });
 
     return { success: true };
   } catch (err) {
@@ -2400,36 +2368,14 @@ export async function recordParentHeartbeatAction() {
 
 /**
  * 24. Fetch activity logs for admin or member profile.
+ * Retained for backwards-compatibility; returns empty to protect Firestore quota.
  */
 export async function getParentActivityLogsAction(
-  limitCount: number = 50,
-  memberId?: string
+  _limitCount: number = 50,
+  _memberId?: string
 ) {
-  try {
-    const adminDb = getAdminDb();
-    let query: FirebaseFirestore.Query = adminDb
-      .collection(PARENT_ACTIVITY_LOGS_COLLECTION)
-      .where("siteId", "==", "bkgalabovo");
-
-    if (memberId) {
-      query = query.where("memberId", "==", memberId);
-    }
-
-    const snap = await query.limit(limitCount).get();
-    const logs = snap.docs
-      .map((d) => ({ ...d.data(), id: d.id }) as ParentActivityLog)
-      .sort((a, b) => (b.timestamp || "").localeCompare(a.timestamp || ""));
-
-    return {
-      success: true,
-      logs: serializeFirestoreData(logs) as ParentActivityLog[],
-    };
-  } catch (error) {
-    console.error("getParentActivityLogsAction error:", error);
-    return {
-      success: false,
-      error: "Грешка при извличане на историята.",
-      logs: [],
-    };
-  }
+  return {
+    success: true,
+    logs: [] as ParentActivityLog[],
+  };
 }

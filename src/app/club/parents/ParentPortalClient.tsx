@@ -72,7 +72,6 @@ import {
   cancelParentAbsenceAction,
   changeParentPasswordAction,
   parentLogoutAction,
-  recordParentActivityAction,
   recordParentHeartbeatAction,
   submitDataCorrectionAction,
   submitParentAbsenceAction,
@@ -257,43 +256,38 @@ export default function ParentPortalClient() {
     }
   }, [parent?.id]);
 
-  // Heartbeat presence & initial view log
+  // Eco-friendly presence heartbeat (only when tab is open & visible, interval 3 minutes)
   useEffect(() => {
     if (!parent?.id) return;
 
+    // Send initial presence ping
     recordParentHeartbeatAction().catch(() => {});
-    recordParentActivityAction({
-      action: "view_dashboard",
-      actionTitle: "Преглед на родителското табло",
-      memberId: selectedChild?.id,
-      memberName: selectedChild?.fullName,
-    }).catch(() => {});
 
+    // Periodic heartbeat every 3 minutes, only if tab is visible to avoid burning quota
     const interval = setInterval(() => {
-      recordParentHeartbeatAction().catch(() => {});
-    }, 45000);
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "visible"
+      ) {
+        recordParentHeartbeatAction().catch(() => {});
+      }
+    }, 180000);
 
-    return () => clearInterval(interval);
-  }, [parent?.id, selectedChild?.id, selectedChild?.fullName]);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        recordParentHeartbeatAction().catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
-  const handleTabChange = (tab: string) => {
-    let actionTitle = "Преглед на месечни присъствия";
-    let action: "view_attendance" | "view_profile" | "view_dashboard" =
-      "view_attendance";
-    if (tab === "profile") {
-      actionTitle = "Преглед на картона на детето";
-      action = "view_profile";
-    } else if (tab === "absences") {
-      actionTitle = "Преглед на извиненията";
-      action = "view_dashboard";
-    }
-    recordParentActivityAction({
-      action,
-      actionTitle,
-      details: selectedChild ? `За ${selectedChild.fullName}` : undefined,
-      memberId: selectedChild?.id,
-      memberName: selectedChild?.fullName,
-    }).catch(() => {});
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [parent?.id]);
+
+  const handleTabChange = (_tab: string) => {
+    // No-op: tab changes are local navigation and do not write to Firestore to save quota
   };
 
   const handleCloseWelcomeTour = () => {
@@ -523,6 +517,7 @@ export default function ParentPortalClient() {
                 src="/icons/LOGO.jpg"
                 alt="Бадминтон Клуб Гълъбово"
                 fill
+                sizes="48px"
                 className="object-contain p-1"
                 priority
               />

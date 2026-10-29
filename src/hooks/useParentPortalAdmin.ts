@@ -68,7 +68,7 @@ const DEFAULT_STATS: AdminParentPortalStats = {
 export function isParentOnline(parent: ParentUser | null | undefined): boolean {
   if (!parent || !parent.lastActiveAt) return false;
   const diffMs = Date.now() - new Date(parent.lastActiveAt).getTime();
-  return diffMs >= 0 && diffMs < 3 * 60 * 1000; // Active within last 3 minutes
+  return diffMs >= 0 && diffMs < 4 * 60 * 1000; // Active within last 4 minutes
 }
 
 export function useParentPortalAdmin() {
@@ -76,8 +76,9 @@ export function useParentPortalAdmin() {
     "admin-parent-portal-data",
     fetcher,
     {
-      refreshInterval: 15000, // Refresh every 15s for live notifications & presence
+      refreshInterval: 0, // Disabled aggressive polling to preserve Firestore quota; updates on focus or manual refetch
       revalidateOnFocus: true,
+      dedupingInterval: 10000,
     }
   );
 

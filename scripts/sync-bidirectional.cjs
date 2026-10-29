@@ -72,7 +72,6 @@ const COLLECTIONS_TO_SYNC = [
   "parent_requests",
   "parent_absences",
   "parent_corrections",
-  "parent_activity_logs",
   "certificate_templates",
   "events",
   "exercises",
