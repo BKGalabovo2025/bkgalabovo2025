@@ -4,7 +4,10 @@ import { useState } from "react";
 import useSWR from "swr";
 
 import { getParentDashboardDataAction } from "@/lib/actions/parent-portal";
-import { ParentAnnouncement } from "@/types/parent-portal.types";
+import {
+  ParentAnnouncement,
+  ParentAttendanceRecord,
+} from "@/types/parent-portal.types";
 
 export function useParentPortal(initialChildId?: string) {
   const [selectedChildId, setSelectedChildId] = useState<string>(
@@ -45,7 +48,7 @@ export function useParentPortal(initialChildId?: string) {
       { proposedValue: string; createdAt: string }
     >,
     absences: data?.absences || [],
-    attendances: data?.attendances || [],
+    attendances: (data?.attendances || []) as ParentAttendanceRecord[],
     nextTraining: data?.nextTraining || null,
     announcements: (data?.announcements || []) as ParentAnnouncement[],
     selectedChildId,

@@ -185,3 +185,17 @@ export interface ParentAnnouncement {
   isTournament?: boolean;
   type?: string;
 }
+
+export interface ParentAttendanceRecord {
+  id: string;
+  title: string;
+  type: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  attended: boolean;
+  isUpcoming?: boolean;
+  isExcused?: boolean;
+  absenceReason?: string | null;
+  coachReply?: string | null;
+}

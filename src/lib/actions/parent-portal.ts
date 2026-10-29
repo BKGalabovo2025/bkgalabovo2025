@@ -37,6 +37,7 @@ import {
   ParentAccessRequest,
   ParentActivityLog,
   ParentAnnouncement,
+  ParentAttendanceRecord,
   ParentMemberPermissions,
   ParentRole,
   ParentUser,
@@ -1716,7 +1717,7 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
           visibleData: null,
           pendingCorrections: {},
           absences: [],
-          attendances: [],
+          attendances: [] as ParentAttendanceRecord[],
           nextTraining: null,
           announcements: [
             {
@@ -1890,15 +1891,7 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
       name?: string;
     }
 
-    const attendances: Array<{
-      id: string;
-      title: string;
-      type: string;
-      startDate: string;
-      endDate: string;
-      location: string;
-      attended: boolean;
-    }> = [];
+    const attendances: ParentAttendanceRecord[] = [];
 
     let nextTraining: {
       title: string;
@@ -1956,9 +1949,18 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
           ...(d.data() as Record<string, any>),
         }));
 
-      // A. Populate attendance history for the active child (any event where child is in attendees/attendeeMemberIds)
+      // A. Populate attendance history for the active child
+      // Includes ALL scheduled training sessions for the club / child's group + any event where child is an explicit attendee
       if (activeChildId) {
+        const childGroup =
+          selectedChildSummary?.trainingGroup?.trim().toLowerCase() || "";
+        const childRegDate = selectedChildSummary?.registrationDate
+          ? new Date(selectedChildSummary.registrationDate)
+          : null;
+
         for (const e of allClubEvents) {
+          if (e.isCancelled) continue;
+
           const attendeesList = (
             Array.isArray(e.attendees) ? e.attendees : []
           ) as AttendeeRecord[];
@@ -1968,25 +1970,78 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
           const attendeeMemberIds = Array.isArray(e.attendeeMemberIds)
             ? e.attendeeMemberIds
             : [];
+          const isExplicitAttendee =
+            !!attendeeEntry || attendeeMemberIds.includes(activeChildId);
 
-          if (attendeeEntry || attendeeMemberIds.includes(activeChildId)) {
-            const attended = attendeeEntry ? !!attendeeEntry.attended : false;
-            const startIso = typeof e.startDate === "string" ? e.startDate : "";
-            const endIso = typeof e.endDate === "string" ? e.endDate : "";
+          const isTraining =
+            e.type === "training" ||
+            (typeof e.title === "string" &&
+              e.title.toLowerCase().includes("трениров"));
 
-            attendances.push({
-              id: String(e.id),
-              title:
-                (typeof e.title === "string" && e.title.trim()) || "Тренировка",
-              type: (typeof e.type === "string" && e.type.trim()) || "training",
-              startDate: startIso,
-              endDate: endIso,
-              location:
-                (typeof e.location === "string" && e.location.trim()) ||
-                defaultHallLocation,
-              attended,
-            });
+          // If not an explicit attendee and not a training session, skip
+          if (!isExplicitAttendee && !isTraining) {
+            continue;
           }
+
+          // If not explicit attendee, check if this training session matches child's group
+          if (!isExplicitAttendee && isTraining) {
+            const eventGroup =
+              typeof e.trainingGroup === "string"
+                ? e.trainingGroup.trim().toLowerCase()
+                : "";
+            if (eventGroup && childGroup && eventGroup !== childGroup) {
+              continue;
+            }
+          }
+
+          const startIso = typeof e.startDate === "string" ? e.startDate : "";
+          const endIso = typeof e.endDate === "string" ? e.endDate : startIso;
+          if (!startIso) continue;
+
+          const eventStartDate = new Date(startIso);
+          if (isNaN(eventStartDate.getTime())) continue;
+
+          // If event was strictly before the child's registration date, skip
+          if (
+            childRegDate &&
+            !isNaN(childRegDate.getTime()) &&
+            eventStartDate.getTime() < childRegDate.getTime()
+          ) {
+            continue;
+          }
+
+          const isUpcoming = eventStartDate.getTime() > now.getTime();
+          const attended = attendeeEntry
+            ? !!attendeeEntry.attended
+            : attendeeMemberIds.includes(activeChildId);
+
+          // Check if parent submitted an active absence for this event's date
+          const eventDateKey = eventStartDate.toLocaleDateString("en-CA", {
+            timeZone: "Europe/Sofia",
+          });
+          const matchedAbsence = absences.find((abs) => {
+            if (abs.status === "cancelled_by_parent") return false;
+            const absStart = abs.startDate;
+            const absEnd = abs.endDate || abs.startDate;
+            return eventDateKey >= absStart && eventDateKey <= absEnd;
+          });
+
+          attendances.push({
+            id: String(e.id),
+            title:
+              (typeof e.title === "string" && e.title.trim()) || "Тренировка",
+            type: (typeof e.type === "string" && e.type.trim()) || "training",
+            startDate: startIso,
+            endDate: endIso,
+            location:
+              (typeof e.location === "string" && e.location.trim()) ||
+              defaultHallLocation,
+            attended,
+            isUpcoming,
+            isExcused: !!matchedAbsence,
+            absenceReason: matchedAbsence?.reason || null,
+            coachReply: matchedAbsence?.coachReply || null,
+          });
         }
 
         // Sort attendances desc (newest first)

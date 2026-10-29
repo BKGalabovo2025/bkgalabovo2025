@@ -341,8 +341,11 @@ export default function ParentPortalClient() {
   const attendanceStats = useMemo(() => {
     const total = monthlyAttendances.length;
     const attended = monthlyAttendances.filter((a) => a.attended).length;
-    const missed = total - attended;
-    const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
+    const pastTrainings = monthlyAttendances.filter((a) => !a.isUpcoming);
+    const denominator = pastTrainings.length > 0 ? pastTrainings.length : total;
+    const rate =
+      denominator > 0 ? Math.round((attended / denominator) * 100) : 0;
+    const missed = Math.max(0, pastTrainings.length - attended);
     return { total, attended, missed, rate };
   }, [monthlyAttendances]);
 
@@ -1145,10 +1148,25 @@ export default function ParentPortalClient() {
                       </div>
                     </div>
 
-                    <div>
+                    <div className="flex flex-col items-end gap-1">
                       {item.attended ? (
                         <Badge className="border-emerald-200 bg-emerald-50 text-[10px] font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300">
                           <CheckCircle2 className="mr-1 size-3" /> Присъствал
+                        </Badge>
+                      ) : item.isUpcoming ? (
+                        <Badge
+                          variant="outline"
+                          className="border-sky-200 bg-sky-50/70 text-[10px] font-semibold text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300"
+                        >
+                          <Clock className="mr-1 size-3" /> Предстояща
+                        </Badge>
+                      ) : item.isExcused ? (
+                        <Badge
+                          variant="outline"
+                          className="border-amber-200 bg-amber-50/80 text-[10px] font-semibold text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300"
+                        >
+                          <CalendarX2 className="mr-1 size-3" /> Заявено
+                          отсъствие
                         </Badge>
                       ) : (
                         <Badge
@@ -1157,6 +1175,11 @@ export default function ParentPortalClient() {
                         >
                           <XCircle className="mr-1 size-3" /> Отсъствал
                         </Badge>
+                      )}
+                      {item.isExcused && item.coachReply && (
+                        <span className="text-[10px] text-amber-600 dark:text-amber-400 italic">
+                          Треньор: „{item.coachReply}“
+                        </span>
                       )}
                     </div>
                   </div>
