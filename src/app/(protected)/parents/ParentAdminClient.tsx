@@ -49,12 +49,14 @@ import {
   approveParentAccessRequestAction,
   createParentUserManuallyAction,
   deleteParentUserAction,
+  linkChildToParentAction,
   markAbsenceSeenByAdminAction,
   rejectDataCorrectionAction,
   rejectParentAccessRequestAction,
   resetParentPasswordByAdminAction,
   sendDocumentToParentPortalAction,
   toggleParentUserStatusAction,
+  unlinkChildFromParentAction,
   updateParentMemberPermissionsAction,
 } from "@/lib/actions/parent-portal";
 import { formatPhoneDisplay } from "@/lib/phone-utils";
@@ -138,6 +140,64 @@ export default function ParentAdminClient() {
   const [parentFilter, setParentFilter] = useState<
     "all" | "active" | "suspended"
   >("all");
+
+  // Child Link / Unlink States
+  const [linkingParentId, setLinkingParentId] = useState<string | null>(null);
+  const [selectedChildToLink, setSelectedChildToLink] = useState<string>("");
+  const [isLinkingChild, setIsLinkingChild] = useState(false);
+  const [isUnlinkingChild, setIsUnlinkingChild] = useState<string | null>(null);
+
+  const handleLinkChild = async (parentId: string) => {
+    if (!selectedChildToLink) {
+      toast.error("Моля, изберете дете от списъка.");
+      return;
+    }
+    setIsLinkingChild(true);
+    try {
+      const res = await linkChildToParentAction(parentId, selectedChildToLink);
+      if (res.success) {
+        toast.success("Детето беше успешно свързано към профила!");
+        setLinkingParentId(null);
+        setSelectedChildToLink("");
+        refetch();
+      } else {
+        toast.error(res.error || "Грешка при свързване.");
+      }
+    } catch {
+      toast.error("Възникна системна грешка.");
+    } finally {
+      setIsLinkingChild(false);
+    }
+  };
+
+  const handleUnlinkChild = async (
+    parentId: string,
+    memberId: string,
+    memberName: string
+  ) => {
+    if (
+      !confirm(
+        `Сигурни ли сте, че искате да разкачите ${memberName} от този родителски профил?`
+      )
+    ) {
+      return;
+    }
+    const key = `${parentId}_${memberId}`;
+    setIsUnlinkingChild(key);
+    try {
+      const res = await unlinkChildFromParentAction(parentId, memberId);
+      if (res.success) {
+        toast.success(`${memberName} беше разкачен(а) от профила.`);
+        refetch();
+      } else {
+        toast.error(res.error || "Грешка при разкачане.");
+      }
+    } catch {
+      toast.error("Възникна системна грешка.");
+    } finally {
+      setIsUnlinkingChild(null);
+    }
+  };
 
   // Dialog States
   const [approveDialogReq, setApproveDialogReq] =
@@ -1084,9 +1144,88 @@ export default function ParentAdminClient() {
 
                       {/* Linked Children & Document Sending */}
                       <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50/80 p-3 dark:border-zinc-800/60 dark:bg-zinc-950/40 space-y-3">
-                        <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Свързани деца & Изпращане на документи:
+                        <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                          <span>
+                            Свързани деца &amp; Изпращане на документи:
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLinkingParentId(
+                                linkingParentId === parent.id ? null : parent.id
+                              );
+                              setSelectedChildToLink("");
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
+                          >
+                            <UserPlus size={12} />
+                            <span>+ Свържи още едно дете</span>
+                          </button>
                         </div>
+
+                        {/* Inline selector for linking child */}
+                        {linkingParentId === parent.id && (
+                          <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-2.5 dark:border-blue-900/50 dark:bg-zinc-900 space-y-2">
+                            <div className="text-[11px] font-semibold text-blue-900 dark:text-blue-200">
+                              Свързване на състезател към {parent.name}:
+                            </div>
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                              <select
+                                aria-label="Изберете състезател за свързване"
+                                value={selectedChildToLink}
+                                onChange={(e) =>
+                                  setSelectedChildToLink(e.target.value)
+                                }
+                                className="flex-1 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+                              >
+                                <option value="">
+                                  -- Изберете състезател --
+                                </option>
+                                {members
+                                  .filter(
+                                    (m) =>
+                                      !(parent.linkedMemberIds || []).includes(
+                                        m.id
+                                      )
+                                  )
+                                  .map((m) => (
+                                    <option key={m.id} value={m.id}>
+                                      {m.fullName ||
+                                        `${m.firstName} ${m.lastName}`}
+                                    </option>
+                                  ))}
+                              </select>
+                              <div className="flex items-center gap-1.5 justify-end">
+                                <Button
+                                  size="sm"
+                                  disabled={
+                                    !selectedChildToLink || isLinkingChild
+                                  }
+                                  onClick={() => handleLinkChild(parent.id)}
+                                  className="h-8 rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white hover:bg-blue-500"
+                                >
+                                  {isLinkingChild ? (
+                                    <Loader2
+                                      size={12}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    "Свържи"
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setLinkingParentId(null)}
+                                  className="h-8 px-2.5 text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400"
+                                >
+                                  Отказ
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="space-y-2.5">
                           {(parent.linkedMemberIds || []).map((mId) => {
                             const child = members.find((m) => m.id === mId);
@@ -1114,16 +1253,47 @@ export default function ParentAdminClient() {
                                     />
                                   </Link>
 
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleOpenEditPerms(parent, mId)
-                                    }
-                                    className="text-[11px] text-blue-600 hover:text-blue-700 underline font-semibold dark:text-blue-400"
-                                    title="Настройка на права за видимост"
-                                  >
-                                    ⚙️ Права за видимост
-                                  </button>
+                                  <div className="flex items-center gap-2.5">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleOpenEditPerms(parent, mId)
+                                      }
+                                      className="text-[11px] text-blue-600 hover:text-blue-700 underline font-semibold dark:text-blue-400"
+                                      title="Настройка на права за видимост"
+                                    >
+                                      ⚙️ Права за видимост
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        isUnlinkingChild ===
+                                        `${parent.id}_${mId}`
+                                      }
+                                      onClick={() =>
+                                        handleUnlinkChild(
+                                          parent.id,
+                                          mId,
+                                          childName
+                                        )
+                                      }
+                                      className="inline-flex items-center gap-1 text-[11px] text-rose-600 hover:text-rose-700 hover:underline font-semibold dark:text-rose-400 cursor-pointer"
+                                      title="Разкачване на това дете от профила"
+                                    >
+                                      {isUnlinkingChild ===
+                                      `${parent.id}_${mId}` ? (
+                                        <Loader2
+                                          size={11}
+                                          className="animate-spin"
+                                        />
+                                      ) : (
+                                        <>
+                                          <Trash2 size={11} />
+                                          <span>Разкачи</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
                                 </div>
 
                                 {/* Send official document to parent portal */}

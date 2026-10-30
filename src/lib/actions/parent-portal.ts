@@ -3341,3 +3341,147 @@ export async function markDocumentViewedByParentAction(requestId: string) {
     return { success: false, error: "Грешка при отбелязване на преглед." };
   }
 }
+
+/**
+ * 27. Get active excused absences for a specific date (used by /schedule AttendeesDialog).
+ * Returns a map of memberId -> { reason: string; note: string; status: string }
+ */
+export async function getActiveAbsencesForDateAction(
+  dateStr: string,
+  memberIds?: string[]
+): Promise<{
+  success: boolean;
+  absences: Record<
+    string,
+    { reason: string; note: string; status: string; type: string }
+  >;
+}> {
+  try {
+    const adminDb = getAdminDb();
+    const snap = await adminDb
+      .collection(PARENT_ABSENCES_COLLECTION)
+      .where("siteId", "==", "bkgalabovo")
+      .get();
+
+    const result: Record<
+      string,
+      { reason: string; note: string; status: string; type: string }
+    > = {};
+
+    const targetDate = dateStr.split("T")[0];
+
+    snap.docs.forEach((doc) => {
+      const data = doc.data() as ParentAbsence;
+      if (data.status === "cancelled_by_parent") return;
+
+      if (
+        memberIds &&
+        memberIds.length > 0 &&
+        !memberIds.includes(data.memberId)
+      ) {
+        return;
+      }
+
+      const start = (data.startDate || "").split("T")[0];
+      const end = (data.endDate || data.startDate || "").split("T")[0];
+
+      if (start && start <= targetDate && end >= targetDate) {
+        result[data.memberId] = {
+          reason: data.reason || "Извинено отсъствие",
+          note: data.note || "",
+          status: data.status,
+          type: data.type,
+        };
+      }
+    });
+
+    return { success: true, absences: result };
+  } catch (err) {
+    console.error("getActiveAbsencesForDateAction error:", err);
+    return { success: false, absences: {} };
+  }
+}
+
+/**
+ * 28. Link an additional child member to an existing parent user.
+ */
+export async function linkChildToParentAction(
+  parentId: string,
+  memberId: string
+) {
+  try {
+    const adminDb = getAdminDb();
+    const parentRef = adminDb.collection(PARENT_USERS_COLLECTION).doc(parentId);
+    const snap = await parentRef.get();
+
+    if (!snap.exists) {
+      return { success: false, error: "Родителят не е намерен." };
+    }
+
+    const parentData = snap.data() as ParentUser;
+    const currentLinked = parentData.linkedMemberIds || [];
+
+    if (currentLinked.includes(memberId)) {
+      return { success: true, message: "Детето вече е свързано." };
+    }
+
+    const updatedLinked = [...currentLinked, memberId];
+    const updatedPerms = {
+      ...(parentData.permissionsPerMember || {}),
+      [memberId]: DefaultParentMemberPermissions,
+    };
+
+    await parentRef.update({
+      linkedMemberIds: updatedLinked,
+      permissionsPerMember: updatedPerms,
+      updatedAt: new Date().toISOString(),
+    });
+
+    revalidatePath("/parents");
+    revalidatePath(`/members/${memberId}`);
+
+    return { success: true };
+  } catch (err) {
+    console.error("linkChildToParentAction error:", err);
+    return { success: false, error: "Грешка при свързване на детето." };
+  }
+}
+
+/**
+ * 29. Unlink a child member from an existing parent user.
+ */
+export async function unlinkChildFromParentAction(
+  parentId: string,
+  memberId: string
+) {
+  try {
+    const adminDb = getAdminDb();
+    const parentRef = adminDb.collection(PARENT_USERS_COLLECTION).doc(parentId);
+    const snap = await parentRef.get();
+
+    if (!snap.exists) {
+      return { success: false, error: "Родителят не е намерен." };
+    }
+
+    const parentData = snap.data() as ParentUser;
+    const currentLinked = parentData.linkedMemberIds || [];
+
+    const updatedLinked = currentLinked.filter((id) => id !== memberId);
+    const updatedPerms = { ...(parentData.permissionsPerMember || {}) };
+    delete updatedPerms[memberId];
+
+    await parentRef.update({
+      linkedMemberIds: updatedLinked,
+      permissionsPerMember: updatedPerms,
+      updatedAt: new Date().toISOString(),
+    });
+
+    revalidatePath("/parents");
+    revalidatePath(`/members/${memberId}`);
+
+    return { success: true };
+  } catch (err) {
+    console.error("unlinkChildFromParentAction error:", err);
+    return { success: false, error: "Грешка при разкачане на детето." };
+  }
+}

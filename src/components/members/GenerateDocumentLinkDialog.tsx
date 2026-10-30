@@ -7,9 +7,8 @@ import {
   ExternalLink,
   Link as LinkIcon,
   Loader2,
-  MessageCircle,
+  Mail,
   RefreshCw,
-  Share2,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -141,16 +140,23 @@ export function GenerateDocumentLinkDialog({
     generatedUrl || ""
   }`;
 
-  const handleViberShare = () => {
-    if (!generatedUrl) return;
-    const viberUrl = `viber://forward?text=${encodeURIComponent(shareText)}`;
-    window.open(viberUrl, "_blank");
+  const handleCopyMessage = async () => {
+    if (!shareText) return;
+    try {
+      await navigator.clipboard.writeText(shareText);
+      toast.success("Съобщението с линк е копирано в клипборда!");
+    } catch {
+      toast.error("Неуспешно копиране.");
+    }
   };
 
-  const handleWhatsAppShare = () => {
+  const handleEmailShare = () => {
     if (!generatedUrl) return;
-    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
-    window.open(waUrl, "_blank");
+    const subject = encodeURIComponent(
+      `Документ за подписване: ${documentTitle} - ${memberName}`
+    );
+    const body = encodeURIComponent(shareText);
+    window.location.href = `mailto:${member.parentEmail || ""}?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -237,7 +243,7 @@ export function GenerateDocumentLinkDialog({
                 </div>
               </div>
 
-              {/* Direct Messenger Share Buttons */}
+              {/* Quick Share Buttons */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                   Бързо изпращане
@@ -246,20 +252,20 @@ export function GenerateDocumentLinkDialog({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handleViberShare}
-                    className="h-11 rounded-xl border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-800 text-xs font-semibold gap-2"
+                    onClick={handleCopyMessage}
+                    className="h-11 rounded-xl border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 text-xs font-semibold gap-2"
                   >
-                    <MessageCircle className="size-4" />
-                    Viber
+                    <Copy className="size-4" />
+                    Копирай текст
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handleWhatsAppShare}
-                    className="h-11 rounded-xl border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 text-xs font-semibold gap-2"
+                    onClick={handleEmailShare}
+                    className="h-11 rounded-xl border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-800 text-xs font-semibold gap-2"
                   >
-                    <Share2 className="size-4" />
-                    WhatsApp
+                    <Mail className="size-4" />
+                    Изпрати имейл
                   </Button>
                 </div>
               </div>

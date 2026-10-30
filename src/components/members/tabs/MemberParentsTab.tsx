@@ -965,8 +965,8 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
                     валидна парола за приложение в Google).
                     <div className="mt-1 font-medium text-amber-800 dark:text-amber-200">
                       Профилът е създаден успешно в системата! Използвайте
-                      бутона <strong>„Копирай съобщение за Viber / SMS“</strong>{" "}
-                      по-долу, за да изпратите данните за вход на родителя.
+                      бутона <strong>„Копирай данни за вход“</strong> по-долу,
+                      за да изпратите данните на родителя.
                     </div>
                   </div>
                 </div>
@@ -1046,7 +1046,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
                 </div>
               </div>
 
-              {/* Action Buttons for Viber / SMS share */}
+              {/* Action Buttons for login credentials share */}
               <div className="space-y-2">
                 <Button
                   type="button"
@@ -1065,9 +1065,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
                       ...prev,
                       copiedMessage: true,
                     }));
-                    toast.success(
-                      "Съобщението за Viber/SMS е копирано в клипборда!"
-                    );
+                    toast.success("Данните за вход са копирани в клипборда!");
                     setTimeout(() => {
                       setCredentialsModal((prev) => ({
                         ...prev,
@@ -1085,7 +1083,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
                   ) : (
                     <>
                       <Copy size={14} className="mr-1.5" />
-                      <span>📋 Копирай съобщение за Viber / SMS</span>
+                      <span>📋 Копирай съобщение с данни за вход</span>
                     </>
                   )}
                 </Button>

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { getActiveAbsencesForDateAction } from "@/lib/actions/parent-portal";
 import {
   ActiveWorkoutScheduleDay,
   getActiveWorkoutsMapForScheduleAction,
@@ -43,6 +44,12 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
   const [activeWorkouts, setActiveWorkouts] = useState<
     Record<string, ActiveWorkoutScheduleDay>
   >({});
+  const [parentAbsences, setParentAbsences] = useState<
+    Record<
+      string,
+      { reason: string; note: string; status: string; type: string }
+    >
+  >({});
   const [selectedWorkoutPreview, setSelectedWorkoutPreview] = useState<{
     memberName: string;
     memberId?: string;
@@ -57,7 +64,7 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
 
       setAttendeeIds(presentIds);
 
-      // Fetch active AI workouts for this event's date
+      // Fetch active AI workouts & parent-excused absences for this event's date
       if (event.startDate) {
         const dateClean = event.startDate.split("T")[0];
         const memberIds = members.map((m) => m.id);
@@ -68,9 +75,15 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
             }
           }
         );
+        getActiveAbsencesForDateAction(dateClean, memberIds).then((res) => {
+          if (res.success && res.absences) {
+            setParentAbsences(res.absences);
+          }
+        });
       }
     } else {
       setActiveWorkouts({});
+      setParentAbsences({});
     }
   }, [event, isOpen, members]);
 
@@ -298,6 +311,21 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
                           {member.isCoach && (
                             <span className="shrink-0 rounded-full border border-orange-500/10 bg-orange-500/10 px-2 py-0.5 text-[9px] font-medium tracking-wide text-orange-600 uppercase dark:bg-orange-950/20 dark:text-orange-400">
                               Треньор
+                            </span>
+                          )}
+                          {parentAbsences[member.id] && (
+                            <span
+                              className="inline-flex items-center gap-1 shrink-0 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-900 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300 shadow-2xs"
+                              title={
+                                parentAbsences[member.id].note
+                                  ? `Бележка от родител: ${parentAbsences[member.id].note}`
+                                  : "Извинено отсъствие от родител"
+                              }
+                            >
+                              <span>🤒 Извинен от родител</span>
+                              <span className="font-bold opacity-90">
+                                ({parentAbsences[member.id].reason})
+                              </span>
                             </span>
                           )}
                           {activeWorkouts[member.id] && (

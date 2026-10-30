@@ -38,6 +38,12 @@ interface EventInquiryDialogProps {
     type?: string;
   } | null;
   clubPhone?: string;
+  defaultName?: string;
+  defaultPhone?: string;
+  defaultTarget?: "self" | "child";
+  defaultChildAge?: string;
+  defaultNotes?: string;
+  onSuccess?: () => void;
 }
 
 export function EventInquiryDialog({
@@ -45,22 +51,47 @@ export function EventInquiryDialog({
   onClose,
   event,
   clubPhone = "+359 899 82 99 23",
+  defaultName = "",
+  defaultPhone = "",
+  defaultTarget = "self",
+  defaultChildAge = "",
+  defaultNotes = "",
+  onSuccess,
 }: EventInquiryDialogProps) {
   const [mode, setMode] = useState<"form" | "phone">("form");
 
   // Form fields
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [target, setTarget] = useState<"self" | "child">("self");
-  const [childAge, setChildAge] = useState("");
+  const [name, setName] = useState(defaultName);
+  const [phone, setPhone] = useState(defaultPhone);
+  const [target, setTarget] = useState<"self" | "child">(defaultTarget);
+  const [childAge, setChildAge] = useState(defaultChildAge);
   const [level, setLevel] = useState<"beginner" | "intermediate" | "advanced">(
     "beginner"
   );
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(defaultNotes);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      if (defaultName) setName(defaultName);
+      if (defaultPhone) setPhone(defaultPhone);
+      if (defaultTarget) setTarget(defaultTarget);
+      if (defaultChildAge) setChildAge(defaultChildAge);
+      if (defaultNotes) setNotes(defaultNotes);
+      setIsSuccess(false);
+      setErrorMessage(null);
+    }
+  }, [
+    isOpen,
+    defaultName,
+    defaultPhone,
+    defaultTarget,
+    defaultChildAge,
+    defaultNotes,
+  ]);
 
   if (!event) return null;
 
@@ -148,6 +179,7 @@ export function EventInquiryDialog({
 
       setIsSuccess(true);
       toast.success("Запитването беше изпратено успешно!");
+      onSuccess?.();
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Възникна грешка при изпращане.";

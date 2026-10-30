@@ -256,6 +256,9 @@ export default function ParentPortalClient() {
     location?: string;
     type?: string;
   } | null>(null);
+  const [submittedInquiries, setSubmittedInquiries] = useState<Set<string>>(
+    new Set()
+  );
 
   // Expanded event descriptions
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>(
@@ -522,6 +525,23 @@ export default function ParentPortalClient() {
       );
     } catch {
       return false;
+    }
+  }, [selectedChild]);
+
+  // Calculated child age
+  const selectedChildAgeStr = useMemo(() => {
+    if (!selectedChild?.dateOfBirth) return "";
+    try {
+      const birth = new Date(selectedChild.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      return `${Math.max(0, age)} г.`;
+    } catch {
+      return "";
     }
   }, [selectedChild]);
 
@@ -843,25 +863,31 @@ export default function ParentPortalClient() {
                       </div>
 
                       <div className="flex shrink-0 items-center gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            logSessionAction(
-                              `Клик върху „Запиши се“ за събитие: „${a.title}“`
-                            );
-                            setActiveInquiryEvent({
-                              id: a.id,
-                              title: a.title,
-                              startTime: a.startDate || a.date,
-                              endTime: a.endDate || a.startDate || a.date,
-                              location: a.location,
-                              type: a.type,
-                            });
-                          }}
-                          className="h-9 rounded-xl bg-blue-600 px-3.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
-                        >
-                          Запиши се
-                        </Button>
+                        {submittedInquiries.has(a.id) ? (
+                          <Badge className="bg-emerald-600 text-white hover:bg-emerald-600 px-3 py-1.5 text-xs font-semibold rounded-xl">
+                            ✓ Заявката е подадена
+                          </Badge>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              logSessionAction(
+                                `Клик върху „Запиши се“ за събитие: „${a.title}“`
+                              );
+                              setActiveInquiryEvent({
+                                id: a.id,
+                                title: a.title,
+                                startTime: a.startDate || a.date,
+                                endTime: a.endDate || a.startDate || a.date,
+                                location: a.location,
+                                type: a.type,
+                              });
+                            }}
+                            className="h-9 rounded-xl bg-blue-600 px-3.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer"
+                          >
+                            Запиши се
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -2950,6 +2976,22 @@ export default function ParentPortalClient() {
           isOpen={!!activeInquiryEvent}
           onClose={() => setActiveInquiryEvent(null)}
           event={activeInquiryEvent}
+          defaultName={parent?.name || ""}
+          defaultPhone={parent?.phone || ""}
+          defaultTarget="child"
+          defaultChildAge={selectedChildAgeStr}
+          defaultNotes={
+            selectedChild
+              ? `Желание за участие на състезател: ${selectedChild.firstName} ${selectedChild.lastName}. Моля администраторът да потвърди записването.`
+              : ""
+          }
+          onSuccess={() => {
+            if (activeInquiryEvent.id) {
+              setSubmittedInquiries((prev) =>
+                new Set(prev).add(activeInquiryEvent.id!)
+              );
+            }
+          }}
         />
       )}
 

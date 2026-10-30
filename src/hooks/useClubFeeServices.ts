@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { getClubFeeServicesAction } from "@/lib/actions/services";
+import { getFirebaseAuth } from "@/lib/firebase";
 import {
   ClubFeeOption,
   DEFAULT_CLUB_FEES,
@@ -10,13 +12,9 @@ import {
 import { ClubService } from "@/types";
 
 /**
- * Real-time hook that listens to the `clubServices` collection ("Каталози - Услуги").
- * Automatically calculates dynamic options for:
- * 1. "Месечни абонаменти за деца"
- * 2. "Еднократни посещения и персонални тренировки"
- *
- * If prices or names are modified in the Catalog, all document components
- * update immediately in real time.
+ * Hook that provides formatted training and membership fee options.
+ * Fetches dynamic fees via server action first, and connects a real-time
+ * listener only when a valid authenticated Firebase user is present.
  */
 export function useClubFeeServices() {
   const [feeOptions, setFeeOptions] =
@@ -24,17 +22,27 @@ export function useClubFeeServices() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const hasAuth =
-      typeof window !== "undefined" &&
-      (window.localStorage.getItem("firebase:hasAuth") === "1" ||
-        document.cookie.includes("session="));
-
-    if (!hasAuth) {
-      return;
-    }
-
-    let unsubscribe: (() => void) | undefined;
     let isCancelled = false;
+    let unsubscribe: (() => void) | undefined;
+
+    // 1. Always load the latest fee options via Server Action (zero permissions issues)
+    getClubFeeServicesAction()
+      .then((res) => {
+        if (!isCancelled && res?.success && res.data && res.data.length > 0) {
+          setFeeOptions(res.data);
+        }
+      })
+      .catch(() => {
+        // Fallback to default club fees silently
+      });
+
+    // 2. Only attach real-time Firestore listener if a Firebase Auth user is signed in
+    const auth = getFirebaseAuth();
+    if (!auth || !auth.currentUser) {
+      return () => {
+        isCancelled = true;
+      };
+    }
 
     const attachListener = async () => {
       try {
@@ -44,6 +52,10 @@ export function useClubFeeServices() {
             import("@/lib/firebase-collections"),
           ]);
         if (isCancelled) return;
+
+        // Verify currentUser is still present
+        if (!auth.currentUser) return;
+
         const colRef = getClubServicesCollection();
         unsubscribe = onSnapshot(
           colRef,
@@ -55,23 +67,16 @@ export function useClubFeeServices() {
               }));
               const filtered = filterTrainingServicesForDocuments(rawServices);
               setFeeOptions(filtered);
-            } else {
-              setFeeOptions(DEFAULT_CLUB_FEES);
             }
             setLoading(false);
           },
-          (error) => {
-            console.warn(
-              "Could not listen to clubServices in real-time, using defaults:",
-              error
-            );
-            setFeeOptions(DEFAULT_CLUB_FEES);
+          () => {
+            // Silently fallback without logging console permission warnings
             setLoading(false);
           }
         );
-      } catch (err) {
-        console.warn("Failed to attach clubServices listener:", err);
-        setFeeOptions(DEFAULT_CLUB_FEES);
+      } catch {
+        // Silently fallback without logging console errors
         setLoading(false);
       }
     };
