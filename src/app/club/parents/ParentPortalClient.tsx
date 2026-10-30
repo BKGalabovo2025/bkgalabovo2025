@@ -806,11 +806,13 @@ export default function ParentPortalClient() {
 
                     {/* Optional Event Image */}
                     {a.imageUrl && (
-                      <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
-                        <img
+                      <div className="relative h-48 sm:h-64 w-full overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                        <Image
                           src={a.imageUrl}
                           alt={a.title}
-                          className="max-h-64 w-full object-cover"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 600px"
+                          className="object-cover"
                         />
                       </div>
                     )}

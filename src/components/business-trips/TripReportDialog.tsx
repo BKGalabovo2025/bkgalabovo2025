@@ -102,7 +102,7 @@ export function TripReportDialog({
         );
       }
     }
-  }, [open, trip?.id]);
+  }, [open, trip, membersDict, expenses, event]);
 
   const handleToggleProtocols = (checked: boolean) => {
     setAttachMatchProtocols(checked);
