@@ -1,9 +1,7 @@
 "use client";
 
-import { onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
-import { getClubServicesCollection } from "@/lib/firebase-collections";
 import {
   ClubFeeOption,
   DEFAULT_CLUB_FEES,
@@ -23,44 +21,65 @@ import { ClubService } from "@/types";
 export function useClubFeeServices() {
   const [feeOptions, setFeeOptions] =
     useState<ClubFeeOption[]>(DEFAULT_CLUB_FEES);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
+    const hasAuth =
+      typeof window !== "undefined" &&
+      (window.localStorage.getItem("firebase:hasAuth") === "1" ||
+        document.cookie.includes("session="));
 
-    try {
-      const colRef = getClubServicesCollection();
-      unsubscribe = onSnapshot(
-        colRef,
-        (snapshot) => {
-          if (!snapshot.empty) {
-            const rawServices: ClubService[] = snapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-            }));
-            const filtered = filterTrainingServicesForDocuments(rawServices);
-            setFeeOptions(filtered);
-          } else {
-            setFeeOptions(DEFAULT_CLUB_FEES);
-          }
-          setLoading(false);
-        },
-        (error) => {
-          console.warn(
-            "Could not listen to clubServices in real-time, using defaults:",
-            error
-          );
-          setFeeOptions(DEFAULT_CLUB_FEES);
-          setLoading(false);
-        }
-      );
-    } catch (err) {
-      console.warn("Failed to attach clubServices listener:", err);
-      setFeeOptions(DEFAULT_CLUB_FEES);
-      setLoading(false);
+    if (!hasAuth) {
+      return;
     }
 
+    let unsubscribe: (() => void) | undefined;
+    let isCancelled = false;
+
+    const attachListener = async () => {
+      try {
+        const [{ onSnapshot }, { getClubServicesCollection }] =
+          await Promise.all([
+            import("firebase/firestore"),
+            import("@/lib/firebase-collections"),
+          ]);
+        if (isCancelled) return;
+        const colRef = getClubServicesCollection();
+        unsubscribe = onSnapshot(
+          colRef,
+          (snapshot) => {
+            if (!snapshot.empty) {
+              const rawServices: ClubService[] = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+                id: doc.id,
+              }));
+              const filtered = filterTrainingServicesForDocuments(rawServices);
+              setFeeOptions(filtered);
+            } else {
+              setFeeOptions(DEFAULT_CLUB_FEES);
+            }
+            setLoading(false);
+          },
+          (error) => {
+            console.warn(
+              "Could not listen to clubServices in real-time, using defaults:",
+              error
+            );
+            setFeeOptions(DEFAULT_CLUB_FEES);
+            setLoading(false);
+          }
+        );
+      } catch (err) {
+        console.warn("Failed to attach clubServices listener:", err);
+        setFeeOptions(DEFAULT_CLUB_FEES);
+        setLoading(false);
+      }
+    };
+
+    attachListener();
+
     return () => {
+      isCancelled = true;
       if (unsubscribe) unsubscribe();
     };
   }, []);

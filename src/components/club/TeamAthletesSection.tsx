@@ -8,16 +8,21 @@ import {
   Share2,
   User as UserIcon,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  getValidImageSrc,
-  ShareAthleteDialog,
-} from "@/components/club/ShareAthleteDialog";
+import { getValidImageSrc } from "@/components/club/ShareAthleteDialog";
 import { TeamMemberForCard } from "@/lib/athlete-card-generator";
 import { cn } from "@/lib/utils";
+
+const ShareAthleteDialog = dynamic(
+  () =>
+    import("@/components/club/ShareAthleteDialog").then(
+      (mod) => mod.ShareAthleteDialog
+    ),
+  { ssr: false }
+);
 
 interface TeamAthletesSectionProps {
   groupedMembers: Record<string, TeamMemberForCard[]>;
@@ -28,7 +33,6 @@ function TeamAthletesContent({
   groupedMembers,
   sortedAgeGroups,
 }: TeamAthletesSectionProps) {
-  const searchParams = useSearchParams();
   const [selectedAthlete, setSelectedAthlete] =
     useState<TeamMemberForCard | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -52,7 +56,10 @@ function TeamAthletesContent({
 
   // Deep-link check: if ?athlete=[id] is present in URL, auto open dialog
   useEffect(() => {
-    const athleteId = searchParams.get("athlete");
+    if (typeof window === "undefined") return;
+    const athleteId = new URLSearchParams(window.location.search).get(
+      "athlete"
+    );
     if (!athleteId) return;
 
     const matched = allMembers.find((m) => m.id === athleteId);
@@ -66,11 +73,11 @@ function TeamAthletesContent({
         }
       }, 300);
     }
-  }, [searchParams, allMembers]);
+  }, [allMembers]);
 
   if (sortedAgeGroups.length === 0) {
     return (
-      <p className="py-12 text-center text-lg text-zinc-500">
+      <p className="py-12 text-center text-lg text-zinc-400">
         Все още няма добавени състезатели.
       </p>
     );
@@ -118,7 +125,7 @@ function TeamAthletesContent({
                           src={validAvatar}
                           alt={athleteName}
                           fill
-                          unoptimized
+                          unoptimized={validAvatar.startsWith("data:")}
                           priority={isAboveTheFold}
                           loading={isAboveTheFold ? "eager" : "lazy"}
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -170,7 +177,7 @@ function TeamAthletesContent({
                           <div className="flex items-start gap-2.5 rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-2.5 sm:p-3">
                             <GraduationCap className="mt-0.5 size-4 shrink-0 text-blue-400" />
                             <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
+                              <p className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
                                 Училище / Градина
                               </p>
                               <p className="text-xs font-medium text-zinc-200 leading-snug wrap-break-word">
@@ -204,7 +211,7 @@ function TeamAthletesContent({
                           </button>
 
                           {tournaments.length === 0 ? (
-                            <p className="py-1 text-xs text-zinc-500 italic">
+                            <p className="py-1 text-xs text-zinc-400 italic">
                               В подготовка за турнири
                             </p>
                           ) : (
@@ -278,41 +285,33 @@ function TeamAthletesContent({
       </div>
 
       {/* Share Athlete Dialog */}
-      <ShareAthleteDialog
-        member={selectedAthlete}
-        open={Boolean(selectedAthlete)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedAthlete(null);
-            if (
-              typeof window !== "undefined" &&
-              window.location.search.includes("athlete=")
-            ) {
-              const url = new URL(window.location.href);
-              url.searchParams.delete("athlete");
-              window.history.replaceState(
-                {},
-                "",
-                url.pathname + (url.search ? url.search : "")
-              );
+      {selectedAthlete && (
+        <ShareAthleteDialog
+          member={selectedAthlete}
+          open={Boolean(selectedAthlete)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedAthlete(null);
+              if (
+                typeof window !== "undefined" &&
+                window.location.search.includes("athlete=")
+              ) {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("athlete");
+                window.history.replaceState(
+                  {},
+                  "",
+                  url.pathname + (url.search ? url.search : "")
+                );
+              }
             }
-          }
-        }}
-      />
+          }}
+        />
+      )}
     </>
   );
 }
 
 export function TeamAthletesSection(props: TeamAthletesSectionProps) {
-  return (
-    <Suspense
-      fallback={
-        <div className="py-20 text-center text-sm text-zinc-500">
-          Зареждане на състезателите...
-        </div>
-      }
-    >
-      <TeamAthletesContent {...props} />
-    </Suspense>
-  );
+  return <TeamAthletesContent {...props} />;
 }

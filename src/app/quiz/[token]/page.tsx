@@ -2,6 +2,9 @@ import { Loader2 } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { getAdminDb } from "@/lib/firebase-admin";
+import type { Quiz, TheoryResult } from "@/types/quiz.types";
+
 import QuizPlayer from "./quiz-player";
 
 export const metadata: Metadata = {
@@ -12,12 +15,45 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+async function loadQuizByTokenAdmin(token: string): Promise<{
+  initialResult: TheoryResult | null;
+  initialQuiz: Quiz | null;
+}> {
+  try {
+    const db = getAdminDb();
+    const resSnap = await db
+      .collection("theory_results")
+      .where("shareToken", "==", token)
+      .limit(1)
+      .get();
+    if (resSnap.empty) {
+      return { initialResult: null, initialQuiz: null };
+    }
+    const rDoc = resSnap.docs[0];
+    const initialResult = { id: rDoc.id, ...rDoc.data() } as TheoryResult;
+    let initialQuiz: Quiz | null = null;
+    if (initialResult.quizId) {
+      const qDoc = await db
+        .collection("quizzes")
+        .doc(initialResult.quizId)
+        .get();
+      if (qDoc.exists) {
+        initialQuiz = { id: qDoc.id, ...qDoc.data() } as Quiz;
+      }
+    }
+    return { initialResult, initialQuiz };
+  } catch {
+    return { initialResult: null, initialQuiz: null };
+  }
+}
+
 export default async function QuizTokenPage({
   params,
 }: {
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
+  const { initialResult, initialQuiz } = await loadQuizByTokenAdmin(token);
   return (
     <Suspense
       fallback={
@@ -26,7 +62,11 @@ export default async function QuizTokenPage({
         </div>
       }
     >
-      <QuizPlayer token={token} />
+      <QuizPlayer
+        token={token}
+        initialResult={initialResult}
+        initialQuiz={initialQuiz}
+      />
     </Suspense>
   );
 }

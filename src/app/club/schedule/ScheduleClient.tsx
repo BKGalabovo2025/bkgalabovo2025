@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Calendar as CalendarIcon,
@@ -189,12 +188,7 @@ export default function ScheduleClient({ schedule }: Props) {
       <main className="px-4 pt-20 pb-16 sm:px-6 sm:pt-24 sm:pb-20">
         <div className="m-auto max-w-4xl">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-6 w-full sm:mb-8"
-          >
+          <div className="mb-6 w-full sm:mb-8">
             <div className="flex w-full flex-col items-start justify-between gap-4 sm:flex-row sm:items-center sm:gap-5">
               <div className="flex items-center gap-4 sm:gap-5">
                 <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-blue-800/50 bg-black text-blue-400 shadow-[0_0_20px_rgba(30,58,138,0.25)] sm:size-14">
@@ -237,7 +231,7 @@ export default function ScheduleClient({ schedule }: Props) {
                   className={`py-0.2 rounded-full px-1.5 text-[10px] ${
                     filter === "all"
                       ? "bg-zinc-300 text-zinc-900"
-                      : "bg-zinc-800 text-zinc-500"
+                      : "bg-zinc-800 text-zinc-300"
                   }`}
                 >
                   {schedule.length}
@@ -258,7 +252,7 @@ export default function ScheduleClient({ schedule }: Props) {
                   className={`py-0.2 rounded-full px-1.5 text-[10px] ${
                     filter === "trainings"
                       ? "bg-white/20 text-white"
-                      : "bg-zinc-800 text-zinc-500"
+                      : "bg-zinc-800 text-zinc-300"
                   }`}
                 >
                   {trainingsCount}
@@ -279,7 +273,7 @@ export default function ScheduleClient({ schedule }: Props) {
                   className={`py-0.2 rounded-full px-1.5 text-[10px] ${
                     filter === "tournaments"
                       ? "bg-zinc-950/20 font-black text-zinc-950"
-                      : "bg-zinc-800 text-zinc-500"
+                      : "bg-zinc-800 text-zinc-300"
                   }`}
                 >
                   {tournamentsCount}
@@ -300,37 +294,28 @@ export default function ScheduleClient({ schedule }: Props) {
                   className={`py-0.2 rounded-full px-1.5 text-[10px] ${
                     filter === "events"
                       ? "bg-white/20 text-white"
-                      : "bg-zinc-800 text-zinc-500"
+                      : "bg-zinc-800 text-zinc-300"
                   }`}
                 >
                   {eventsCount}
                 </span>
               </button>
             </div>
-          </motion.div>
+          </div>
 
           {/* Content */}
           {filteredEvents.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="rounded-3xl border border-zinc-800 bg-black/60 p-16 text-center"
-            >
+            <div className="rounded-3xl border border-zinc-800 bg-black/60 p-16 text-center">
               <CalendarIcon size={56} className="mx-auto mb-6 text-zinc-700" />
               <p className="mb-2 text-2xl font-light text-white">
                 {getEmptyTitle(filter)}
               </p>
               <p className="text-zinc-400">{getEmptySubtitle(filter)}</p>
-            </motion.div>
+            </div>
           ) : (
             <div className="space-y-10">
               {groups.map(([dateLabel, events], groupIdx) => (
-                <motion.div
-                  key={dateLabel}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: groupIdx * 0.07 }}
-                >
+                <div key={dateLabel}>
                   {/* Date Header */}
                   <div className="mb-4 flex items-center gap-4">
                     <span
@@ -358,19 +343,14 @@ export default function ScheduleClient({ schedule }: Props) {
                       />
                     ))}
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           )}
 
           {/* Footer CTA */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-16 text-center"
-          >
-            <p className="mb-4 text-sm text-zinc-500">
+          <div className="mt-16 text-center">
+            <p className="mb-4 text-sm text-zinc-400">
               Имате въпроси за графика?
             </p>
             <Link
@@ -379,7 +359,7 @@ export default function ScheduleClient({ schedule }: Props) {
             >
               Свържете се с нас <ChevronRight size={16} />
             </Link>
-          </motion.div>
+          </div>
         </div>
       </main>
     </div>

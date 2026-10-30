@@ -1,7 +1,6 @@
 "use client";
 
 import type { User } from "firebase/auth";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   createContext,
@@ -36,23 +35,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Optimization: avoid booting Firebase Auth only on truly public pages for anonymous visitors with no active session
-    const pathname =
-      typeof window !== "undefined" ? window.location.pathname : "";
-    const isExplicitlyPublic =
-      pathname === "/" ||
-      pathname.startsWith("/club") ||
-      pathname.startsWith("/recovery-zone") ||
-      pathname.startsWith("/quiz") ||
-      pathname.startsWith("/sign") ||
-      pathname.startsWith("/cert") ||
-      pathname.startsWith("/feedback/") ||
-      pathname.startsWith("/_next") ||
-      pathname.startsWith("/api");
-
+    // Optimization: avoid booting Firebase Auth when no stored auth session exists in browser
     let hasStoredAuth = false;
     try {
       hasStoredAuth =
+        localStorage.getItem("firebase:hasAuth") === "1" ||
         Object.keys(localStorage).some((k) =>
           k.startsWith("firebase:authUser")
         ) ||
@@ -62,11 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Ignore storage restrictions
     }
 
-    if (
-      isExplicitlyPublic &&
-      !hasStoredAuth &&
-      !pathname.startsWith("/login")
-    ) {
+    if (!hasStoredAuth) {
       setUser(null);
       setIdToken(null);
       setLoading(false);
@@ -142,6 +125,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async () => {
     try {
+      try {
+        localStorage.removeItem("firebase:hasAuth");
+      } catch {
+        // Ignore storage restrictions
+      }
       const [{ getFirebaseAuth }, { signOut: firebaseSignOut }] =
         await Promise.all([import("@/lib/firebase"), import("firebase/auth")]);
       const auth = getFirebaseAuth();
@@ -171,15 +159,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     () => ({ user, idToken, loading, logout, getFreshToken }),
     [user, idToken, loading, logout, getFreshToken]
   );
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="size-12 animate-spin text-primary" />
-        <p className="ml-4 text-lg text-muted-foreground">Аутентикация...</p>
-      </div>
-    );
-  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -483,7 +483,7 @@ export default function CampPublicClient({
             <p className="text-base font-semibold text-zinc-400">
               Няма планирани дейности за този ден
             </p>
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="mt-1 text-xs text-zinc-400">
               Програмата се обновява в реално време от треньорския щаб.
             </p>
           </div>
@@ -587,7 +587,7 @@ export default function CampPublicClient({
                       )}
                     </div>
 
-                    <h3
+                    <h2
                       className={cn(
                         "text-sm font-extrabold tracking-tight sm:text-base",
                         session.isCancelled
@@ -598,7 +598,7 @@ export default function CampPublicClient({
                       {session.title?.trim() ||
                         sessionTypeLabels[session.type] ||
                         "Тренировка"}
-                    </h3>
+                    </h2>
 
                     {session.location && (
                       <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-zinc-200">

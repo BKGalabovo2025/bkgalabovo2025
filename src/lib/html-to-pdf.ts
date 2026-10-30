@@ -1,5 +1,4 @@
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import type { jsPDF as JsPDFType } from "jspdf";
 
 /**
  * Shared helper to create a jsPDF instance from an HTML element.
@@ -10,6 +9,7 @@ async function renderElementToCanvas(
   element: HTMLElement,
   cleanCSS: string
 ): Promise<HTMLCanvasElement> {
+  const { default: html2canvas } = await import("html2canvas");
   return html2canvas(element, {
     scale: 2,
     useCORS: true,
@@ -91,7 +91,8 @@ async function renderElementToCanvas(
 async function createPdf(
   element: HTMLElement,
   orientation: "portrait" | "landscape" = "portrait"
-): Promise<jsPDF> {
+): Promise<JsPDFType> {
+  const { jsPDF } = await import("jspdf");
   // 1. Gather all active CSS rules and remove unsupported colors
   let allCSS = "";
   for (let i = 0; i < document.styleSheets.length; i++) {

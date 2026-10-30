@@ -1,10 +1,8 @@
 "use client";
 
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { BentoCard } from "@/components/ui/bento-card";
@@ -12,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSessionAction, loginAction } from "@/lib/actions/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
 
 function getFriendlyErrorMessage(err: unknown): string {
   const firebaseErr = err as { code?: string; message?: string };
@@ -63,7 +60,6 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +77,19 @@ function LoginForm() {
       // 1. Try client-side sign-in first (ideal for Vercel/production)
       let clientSuccess = false;
       try {
+        const [
+          {
+            signInWithEmailAndPassword,
+            setPersistence,
+            browserLocalPersistence,
+          },
+          { getFirebaseAuth },
+        ] = await Promise.all([
+          import("firebase/auth"),
+          import("@/lib/firebase"),
+        ]);
         const auth = getFirebaseAuth();
+        await setPersistence(auth, browserLocalPersistence).catch(() => {});
         const cred = await signInWithEmailAndPassword(
           auth,
           cleanEmail,
@@ -102,13 +110,23 @@ function LoginForm() {
         }
       }
 
+      try {
+        localStorage.setItem("firebase:hasAuth", "1");
+      } catch {
+        // Ignore storage restrictions
+      }
+
       toast.success("Успешен вход", {
         description: "Пренасочваме ви към системата...",
       });
 
       // 3. Hard navigation: guarantees cookies are sent in request headers
       // and prevents the client-side AuthProvider race condition from bouncing back to /login
-      const redirectTarget = searchParams.get("redirect") || "/dashboard";
+      const redirectParam =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("redirect")
+          : null;
+      const redirectTarget = redirectParam || "/dashboard";
       window.location.href = redirectTarget;
     } catch (err: unknown) {
       const friendlyMessage = getFriendlyErrorMessage(err);
@@ -119,10 +137,10 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative z-10 w-full max-w-sm sm:max-w-md duration-700 animate-in fade-in slide-in-from-bottom-6">
+    <div className="relative z-10 w-full max-w-sm sm:max-w-md">
       <Link
         href="/"
-        className="mb-2.5 sm:mb-3 inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400"
+        className="mb-2.5 sm:mb-3 inline-flex min-h-6 items-center gap-1.5 py-1 text-[10px] font-semibold tracking-[0.2em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400"
       >
         <ArrowLeft size={13} strokeWidth={2} /> Обратно към порталите
       </Link>
@@ -166,7 +184,7 @@ function LoginForm() {
           </div>
 
           <div className="space-y-1 sm:space-y-1.5">
-            <div className="ml-1 flex items-center justify-between">
+            <div className="mb-1 ml-1 flex items-center justify-between">
               <Label
                 htmlFor="password"
                 className="text-[10px] sm:text-[11px] font-medium tracking-[0.15em] text-zinc-700 uppercase dark:text-zinc-300"
@@ -175,7 +193,7 @@ function LoginForm() {
               </Label>
               <Link
                 href="#"
-                className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400"
+                className="inline-flex min-h-6 items-center py-1 text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400"
               >
                 Забравена парола?
               </Link>
@@ -229,7 +247,10 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="relative flex min-h-dvh w-full items-center justify-center overflow-x-hidden bg-zinc-50 px-4 py-8 font-sans">
+    <main
+      id="main-content"
+      className="relative flex min-h-dvh w-full items-center justify-center overflow-x-hidden bg-zinc-50 px-4 py-8 font-sans"
+    >
       {/* Background Decorative Elements bounded in overflow-hidden */}
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -239,15 +260,7 @@ export default function LoginPage() {
         <div className="absolute bottom-0 left-0 -mb-28 -ml-28 size-96 rounded-full bg-zinc-200/40 blur-[100px]" />
       </div>
 
-      <Suspense
-        fallback={
-          <div className="relative z-10 flex size-20 items-center justify-center">
-            <Loader2 className="size-6 animate-spin text-zinc-400" />
-          </div>
-        }
-      >
-        <LoginForm />
-      </Suspense>
+      <LoginForm />
     </main>
   );
 }

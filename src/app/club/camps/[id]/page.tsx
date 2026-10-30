@@ -3,7 +3,6 @@ import { bg } from "date-fns/locale";
 import { ArrowLeft, MapPin, Tent } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -106,145 +105,42 @@ export default async function CampPublicPage({
     const adminDb = getAdminDb();
     const doc = await adminDb.collection("events").doc(id).get();
 
-    if (!doc.exists) {
-      notFound();
-    }
-
-    const data = doc.data() || {};
-    const startDate =
-      serializeTimestamp(data.startDate) || new Date().toISOString();
-    const endDate =
-      serializeTimestamp(data.endDate) || new Date().toISOString();
-    const rawSessions = Array.isArray(data.campSessions)
-      ? data.campSessions
-      : [];
-
-    // Normalize date to yyyy-MM-dd format for consistent filtering
-    const normalizeDate = (val: unknown): string => {
-      if (!val) return "";
-      if (typeof val === "string") return val;
-      if (typeof val === "object" && val !== null) {
-        if (
-          "toDate" in (val as object) &&
-          typeof (val as { toDate: () => Date }).toDate === "function"
-        ) {
-          return format((val as { toDate: () => Date }).toDate(), "yyyy-MM-dd");
-        }
-        if ("_seconds" in (val as object)) {
-          return format(
-            new Date((val as { _seconds: number })._seconds * 1000),
-            "yyyy-MM-dd"
-          );
-        }
-      }
-      return String(val);
-    };
-
-    const resolveSessionType = (type: unknown): CampSession["type"] => {
-      const allowed = [
-        "training",
-        "meal",
-        "quiet_hour",
-        "leisure",
-        "attraction",
-        "travel",
-        "other",
-      ];
-      return (
-        typeof type === "string" && allowed.includes(type) ? type : "training"
-      ) as CampSession["type"];
-    };
-
-    const resolveStartTime = (
-      ps: Record<string, unknown>,
-      blocks: Record<string, unknown>[]
-    ): string => {
-      if (typeof ps.startTime === "string" && ps.startTime) return ps.startTime;
-      if (blocks.length > 0 && typeof blocks[0].startTime === "string")
-        return blocks[0].startTime;
-      return "09:00";
-    };
-
-    const resolveEndTime = (
-      ps: Record<string, unknown>,
-      blocks: Record<string, unknown>[]
-    ): string => {
-      if (typeof ps.endTime === "string" && ps.endTime) return ps.endTime;
-      if (blocks.length > 0) {
-        const last = blocks[blocks.length - 1];
-        if (typeof last.endTime === "string") return last.endTime;
-      }
-      return "11:00";
-    };
-
-    const resolveDescription = (
-      ps: Record<string, unknown>
-    ): string | undefined => {
-      if (typeof ps.coachNotes === "string") return ps.coachNotes;
-      if (typeof ps.description === "string") return ps.description;
-      return undefined;
-    };
-
-    // Convert planner sessions to CampSession format
-    const convertPlannerSession = (
-      ps: Record<string, unknown>
-    ): CampSession => {
-      const blocks = (Array.isArray(ps.blocks) ? ps.blocks : []) as Record<
-        string,
-        unknown
-      >[];
-      const sessionGroups = Array.isArray(ps.sessionGroups)
-        ? ps.sessionGroups
+    if (doc.exists) {
+      const data = doc.data() || {};
+      const startDate =
+        serializeTimestamp(data.startDate) || new Date().toISOString();
+      const endDate =
+        serializeTimestamp(data.endDate) || new Date().toISOString();
+      const rawSessions = Array.isArray(data.campSessions)
+        ? data.campSessions
         : [];
-      return {
-        id: typeof ps.id === "string" ? ps.id : "",
-        date: normalizeDate(ps.date),
-        type: resolveSessionType(ps.type),
-        title: typeof ps.title === "string" ? ps.title : "",
-        location: typeof ps.location === "string" ? ps.location : undefined,
-        startTime: resolveStartTime(ps, blocks),
-        endTime: resolveEndTime(ps, blocks),
-        isCancelled: Boolean(ps.isCancelled),
-        cancelledReason:
-          typeof ps.cancelledReason === "string"
-            ? ps.cancelledReason
-            : undefined,
-        exercises: [],
-        groups: sessionGroups.map((g: Record<string, unknown>) => ({
-          id: typeof g.id === "string" ? g.id : "",
-          name: typeof g.name === "string" ? g.name : "",
-          memberIds: Array.isArray(g.memberIds) ? g.memberIds : [],
-        })),
-        description: resolveDescription(ps),
+
+      // Normalize date to yyyy-MM-dd format for consistent filtering
+      const normalizeDate = (val: unknown): string => {
+        if (!val) return "";
+        if (typeof val === "string") return val;
+        if (typeof val === "object" && val !== null) {
+          if (
+            "toDate" in (val as object) &&
+            typeof (val as { toDate: () => Date }).toDate === "function"
+          ) {
+            return format(
+              (val as { toDate: () => Date }).toDate(),
+              "yyyy-MM-dd"
+            );
+          }
+          if ("_seconds" in (val as object)) {
+            return format(
+              new Date((val as { _seconds: number })._seconds * 1000),
+              "yyyy-MM-dd"
+            );
+          }
+        }
+        return String(val);
       };
-    };
 
-    // Fetch planner sessions for this camp
-    let plannerSessions: CampSession[] = [];
-    try {
-      const siteId = await getSiteIdForCamp(id);
-      if (siteId) {
-        const plannerSnap = await adminDb
-          .collection("planner_sessions")
-          .where("siteId", "==", siteId)
-          .where("campId", "==", id)
-          .get();
-        plannerSessions = plannerSnap.docs.map((doc) =>
-          convertPlannerSession({ ...doc.data(), id: doc.id })
-        );
-      }
-    } catch (err) {
-      console.warn("Failed to fetch planner sessions for camp:", err);
-    }
-
-    const campSessions: CampSession[] = rawSessions.map(
-      (s: Record<string, unknown>) => ({
-        id: typeof s.id === "string" ? s.id : "",
-        date: normalizeDate(s.date),
-        startTime: typeof s.startTime === "string" ? s.startTime : "",
-        endTime: typeof s.endTime === "string" ? s.endTime : "",
-        title: typeof s.title === "string" ? s.title : "",
-        type: ([
+      const resolveSessionType = (type: unknown): CampSession["type"] => {
+        const allowed = [
           "training",
           "meal",
           "quiet_hour",
@@ -252,53 +148,184 @@ export default async function CampPublicPage({
           "attraction",
           "travel",
           "other",
-        ].includes(s.type as string)
-          ? s.type
-          : "other") as CampSession["type"],
-        isCancelled: Boolean(s.isCancelled),
-        cancelledReason:
-          typeof s.cancelledReason === "string" ? s.cancelledReason : undefined,
-        description:
-          typeof s.description === "string" ? s.description : undefined,
-        exercises: Array.isArray(s.exercises)
-          ? (s.exercises as string[])
-          : undefined,
-        groups: Array.isArray(s.groups)
-          ? (
-              s.groups as Array<{
-                id: string;
-                name: string;
-                memberIds: string[];
-              }>
-            ).map((g) => ({
-              id: typeof g.id === "string" ? g.id : "",
-              name: typeof g.name === "string" ? g.name : "",
-              memberIds: Array.isArray(g.memberIds) ? g.memberIds : [],
+        ];
+        return (
+          typeof type === "string" && allowed.includes(type) ? type : "training"
+        ) as CampSession["type"];
+      };
+
+      const resolveStartTime = (
+        ps: Record<string, unknown>,
+        blocks: Record<string, unknown>[]
+      ): string => {
+        if (typeof ps.startTime === "string" && ps.startTime)
+          return ps.startTime;
+        if (blocks.length > 0 && typeof blocks[0].startTime === "string")
+          return blocks[0].startTime;
+        return "09:00";
+      };
+
+      const resolveEndTime = (
+        ps: Record<string, unknown>,
+        blocks: Record<string, unknown>[]
+      ): string => {
+        if (typeof ps.endTime === "string" && ps.endTime) return ps.endTime;
+        if (blocks.length > 0) {
+          const last = blocks[blocks.length - 1];
+          if (typeof last.endTime === "string") return last.endTime;
+        }
+        return "11:00";
+      };
+
+      const resolveDescription = (
+        ps: Record<string, unknown>
+      ): string | undefined => {
+        if (typeof ps.coachNotes === "string") return ps.coachNotes;
+        if (typeof ps.description === "string") return ps.description;
+        return undefined;
+      };
+
+      // Convert planner sessions to CampSession format
+      const convertPlannerSession = (
+        ps: Record<string, unknown>
+      ): CampSession => {
+        const blocks = (Array.isArray(ps.blocks) ? ps.blocks : []) as Record<
+          string,
+          unknown
+        >[];
+        const sessionGroups = Array.isArray(ps.sessionGroups)
+          ? ps.sessionGroups
+          : [];
+        return {
+          id: typeof ps.id === "string" ? ps.id : "",
+          date: normalizeDate(ps.date),
+          type: resolveSessionType(ps.type),
+          title: typeof ps.title === "string" ? ps.title : "",
+          location: typeof ps.location === "string" ? ps.location : undefined,
+          startTime: resolveStartTime(ps, blocks),
+          endTime: resolveEndTime(ps, blocks),
+          isCancelled: Boolean(ps.isCancelled),
+          cancelledReason:
+            typeof ps.cancelledReason === "string"
+              ? ps.cancelledReason
+              : undefined,
+          exercises: [],
+          groups: sessionGroups.map((g: Record<string, unknown>) => ({
+            id: typeof g.id === "string" ? g.id : "",
+            name: typeof g.name === "string" ? g.name : "",
+            memberIds: Array.isArray(g.memberIds) ? g.memberIds : [],
+          })),
+          description: resolveDescription(ps),
+        };
+      };
+
+      // Fetch planner sessions for this camp
+      let plannerSessions: CampSession[] = [];
+      try {
+        const siteId = await getSiteIdForCamp(id);
+        if (siteId) {
+          const plannerSnap = await adminDb
+            .collection("planner_sessions")
+            .where("siteId", "==", siteId)
+            .where("campId", "==", id)
+            .get();
+          plannerSessions = plannerSnap.docs.map((doc) =>
+            convertPlannerSession({ ...doc.data(), id: doc.id })
+          );
+        }
+      } catch (err) {
+        console.warn("Failed to fetch planner sessions for camp:", err);
+      }
+
+      const campSessions: CampSession[] = rawSessions.map(
+        (s: Record<string, unknown>) => ({
+          id: typeof s.id === "string" ? s.id : "",
+          date: normalizeDate(s.date),
+          startTime: typeof s.startTime === "string" ? s.startTime : "",
+          endTime: typeof s.endTime === "string" ? s.endTime : "",
+          title: typeof s.title === "string" ? s.title : "",
+          type: ([
+            "training",
+            "meal",
+            "quiet_hour",
+            "leisure",
+            "attraction",
+            "travel",
+            "other",
+          ].includes(s.type as string)
+            ? s.type
+            : "other") as CampSession["type"],
+          isCancelled: Boolean(s.isCancelled),
+          cancelledReason:
+            typeof s.cancelledReason === "string"
+              ? s.cancelledReason
+              : undefined,
+          description:
+            typeof s.description === "string" ? s.description : undefined,
+          exercises: Array.isArray(s.exercises)
+            ? (s.exercises as string[])
+            : undefined,
+          groups: Array.isArray(s.groups)
+            ? (
+                s.groups as Array<{
+                  id: string;
+                  name: string;
+                  memberIds: string[];
+                }>
+              ).map((g) => ({
+                id: typeof g.id === "string" ? g.id : "",
+                name: typeof g.name === "string" ? g.name : "",
+                memberIds: Array.isArray(g.memberIds) ? g.memberIds : [],
+              }))
+            : undefined,
+        })
+      );
+
+      // Merge camp sessions with planner sessions
+      const allSessions = [...campSessions, ...plannerSessions];
+
+      campData = {
+        id: doc.id,
+        title: typeof data.title === "string" ? data.title : "Лагер",
+        location: typeof data.location === "string" ? data.location : "",
+        startDate,
+        endDate,
+        campSessions: allSessions,
+        attendees: Array.isArray(data.attendees)
+          ? data.attendees.map((a: Record<string, unknown>) => ({
+              memberId: typeof a.memberId === "string" ? a.memberId : "",
+              name: typeof a.name === "string" ? a.name : "",
             }))
-          : undefined,
-      })
-    );
-
-    // Merge camp sessions with planner sessions
-    const allSessions = [...campSessions, ...plannerSessions];
-
-    campData = {
-      id: doc.id,
-      title: typeof data.title === "string" ? data.title : "Лагер",
-      location: typeof data.location === "string" ? data.location : "",
-      startDate,
-      endDate,
-      campSessions: allSessions,
-      attendees: Array.isArray(data.attendees)
-        ? data.attendees.map((a: Record<string, unknown>) => ({
-            memberId: typeof a.memberId === "string" ? a.memberId : "",
-            name: typeof a.name === "string" ? a.name : "",
-          }))
-        : [],
-    };
+          : [],
+      };
+    }
   } catch (err) {
     console.error("Failed to load camp for public page:", err);
-    notFound();
+  }
+
+  if (!campData) {
+    return (
+      <main
+        id="main-content"
+        className="dark flex min-h-screen flex-col items-center justify-center bg-zinc-950 p-6 text-center text-zinc-100"
+      >
+        <div className="max-w-md space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
+          <Tent className="mx-auto size-12 text-blue-400" />
+          <h1 className="text-xl font-bold text-white">Лагерът не е намерен</h1>
+          <p className="text-sm text-zinc-400">
+            Възможно е програмата на лагера да е архивирана или линкът да е
+            невалиден.
+          </p>
+          <Link
+            href="/club"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
+          >
+            <ArrowLeft size={16} />
+            Към БК Гълъбово
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   const startDateFormatted = format(
@@ -367,8 +394,8 @@ export default async function CampPublicPage({
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800/50 py-8 text-center text-xs text-zinc-600">
-        <Link href="/club" className="transition-colors hover:text-zinc-400">
+      <footer className="border-t border-zinc-800/50 py-8 text-center text-xs text-zinc-400">
+        <Link href="/club" className="transition-colors hover:text-zinc-200">
           БК Гълъбово
         </Link>{" "}
         · Бадминтон клуб Гълъбово

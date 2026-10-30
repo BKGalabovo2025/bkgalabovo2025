@@ -9,11 +9,12 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { quizService } from "@/services/quiz-service";
 import type { Quiz, QuizQuestion, TheoryResult } from "@/types/quiz.types";
 
 interface QuizPlayerProps {
   token: string;
+  initialResult?: TheoryResult | null;
+  initialQuiz?: Quiz | null;
 }
 
 type Step = "loading" | "not-found" | "answering" | "submitting" | "done";
@@ -130,9 +131,9 @@ function QuizPlayerResult({
 
             {quiz && result.answers && (
               <div className="mt-6 space-y-4 border-t border-zinc-100 pt-6">
-                <h3 className="mb-4 text-lg font-black text-indigo-900">
+                <h2 className="mb-4 text-lg font-black text-indigo-900">
                   Твоите отговори
-                </h3>
+                </h2>
                 {quiz.questions.map((q: QuizQuestion, i: number) => {
                   const isSingleChoice = q.type === "SINGLE_CHOICE";
                   const userAnswer = result.answers?.[q.id];
@@ -267,21 +268,36 @@ function QuizPlayerResult({
   );
 }
 
-export default function QuizPlayer({ token }: QuizPlayerProps) {
-  const [step, setStep] = useState<Step>("loading");
-  const [result, setResult] = useState<TheoryResult | null>(null);
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
+export default function QuizPlayer({
+  token,
+  initialResult,
+  initialQuiz,
+}: QuizPlayerProps) {
+  const [step, setStep] = useState<Step>(() => {
+    if (initialResult === undefined) return "loading";
+    if (!initialResult) return "not-found";
+    if (initialResult.status === "REVIEWED" || initialResult.answers) {
+      return "done";
+    }
+    return "answering";
+  });
+  const [result, setResult] = useState<TheoryResult | null>(
+    initialResult ?? null
+  );
+  const [quiz, setQuiz] = useState<Quiz | null>(initialQuiz ?? null);
   const [answers, setAnswers] = useState<Record<string, number | string>>({});
   const [currentQ, setCurrentQ] = useState(0);
 
   useEffect(() => {
+    if (initialResult !== undefined) return;
     void loadResult();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, initialResult]);
 
   const loadResult = async () => {
     setStep("loading");
     try {
+      const { quizService } = await import("@/services/quiz-service");
       const r = await quizService.getResultByToken(token);
       if (!r) {
         setStep("not-found");
@@ -326,6 +342,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
       const tacticalAnswer = openQ ? String(answers[openQ.id] ?? "") : "";
 
       // Submit initially
+      const { quizService } = await import("@/services/quiz-service");
       await quizService.submitTacticalAnswer(
         result.id,
         autoScore,

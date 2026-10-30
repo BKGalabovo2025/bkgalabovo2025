@@ -192,7 +192,7 @@ export default function ParentLoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 right-3.5 -translate-y-1/2 text-zinc-500 transition-colors hover:text-zinc-300"
+                  className="absolute top-1/2 right-2 flex size-8 -translate-y-1/2 items-center justify-center text-zinc-400 transition-colors hover:text-zinc-200"
                   aria-label={
                     showPassword ? "Скрий паролата" : "Покажи паролата"
                   }
@@ -253,7 +253,7 @@ export default function ParentLoginPage() {
         </div>
 
         {/* Security badge */}
-        <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-zinc-500">
+        <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-zinc-400">
           <ShieldCheck size={14} className="text-emerald-500" />
           <span>Сигурна криптирана връзка • БК „Гълъбово“ 2026</span>
         </div>

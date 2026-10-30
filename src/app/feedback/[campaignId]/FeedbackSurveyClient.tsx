@@ -22,11 +22,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { feedbackService } from "@/services/feedback-service";
 import { FeedbackCampaign, RespondentRole } from "@/types/feedback.types";
 
 interface Props {
   campaignId: string;
+  initialCampaign?: FeedbackCampaign | null;
 }
 
 type SurveyAnswerValue = string | number | boolean;
@@ -78,14 +78,25 @@ function getSection3Title(eventType: string, isRecovery: boolean) {
   }
 }
 
-export default function FeedbackSurveyClient({ campaignId }: Props) {
-  const [campaign, setCampaign] = useState<FeedbackCampaign | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export default function FeedbackSurveyClient({
+  campaignId,
+  initialCampaign,
+}: Props) {
+  const [campaign, setCampaign] = useState<FeedbackCampaign | null>(
+    initialCampaign ?? null
+  );
+  const [isLoading, setIsLoading] = useState(initialCampaign === undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const isInitialRecovery =
+    initialCampaign?.siteId === "recoveryzone" ||
+    initialCampaign?.eventType === "recovery";
+
   // Form State
-  const [role, setRole] = useState<RespondentRole>("parent");
+  const [role, setRole] = useState<RespondentRole>(
+    isInitialRecovery ? "client" : "parent"
+  );
   const [respondentName, setRespondentName] = useState("");
   const [childName, setChildName] = useState("");
   const [phone, setPhone] = useState("");
@@ -93,15 +104,26 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
   const [overallRating, setOverallRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState("");
-  const [answers, setAnswers] = useState<Record<string, SurveyAnswerValue>>({});
+  const [answers, setAnswers] = useState<Record<string, SurveyAnswerValue>>(
+    () => {
+      const initialAns: Record<string, SurveyAnswerValue> = {};
+      initialCampaign?.questions?.forEach((q) => {
+        if (q.type === "rating") initialAns[q.id] = 5;
+        if (q.type === "boolean") initialAns[q.id] = true;
+      });
+      return initialAns;
+    }
+  );
 
   const isRecovery =
     campaign?.siteId === "recoveryzone" || campaign?.eventType === "recovery";
 
   useEffect(() => {
+    if (initialCampaign !== undefined) return;
     const loadCampaign = async () => {
       setIsLoading(true);
       try {
+        const { feedbackService } = await import("@/services/feedback-service");
         const data = await feedbackService.getCampaignById(campaignId);
         setCampaign(data);
 
@@ -127,7 +149,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
     };
 
     loadCampaign();
-  }, [campaignId]);
+  }, [campaignId, initialCampaign]);
 
   const handleAnswerChange = (
     questionId: string,
@@ -172,6 +194,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
     setIsSubmitting(true);
 
     try {
+      const { feedbackService } = await import("@/services/feedback-service");
       await feedbackService.submitFeedback(campaignId, {
         siteId: campaign?.siteId || "bkgalabovo",
         eventType: campaign?.eventType || "camp",
@@ -258,10 +281,10 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
       >
         <div className="max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
           <MessageSquareHeart className="mx-auto mb-3 size-12 text-zinc-300" />
-          <h2 className="text-xl font-bold text-zinc-900">
+          <h1 className="text-xl font-bold text-zinc-900">
             Анкетата не е намерена
-          </h2>
-          <p className="mt-2 text-xs text-zinc-500">
+          </h1>
+          <p className="mt-2 text-xs text-zinc-600">
             Възможно е линкът да е невалиден или анкетата да е била премахната.
           </p>
           <Button asChild className="mt-6 rounded-xl bg-zinc-900 text-xs">
@@ -282,10 +305,10 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
           <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
             <CheckCircle2 className="size-6" />
           </div>
-          <h2 className="text-xl font-bold text-zinc-900">
+          <h1 className="text-xl font-bold text-zinc-900">
             Тази анкета вече е приключила
-          </h2>
-          <p className="mt-2 text-xs text-zinc-500">
+          </h1>
+          <p className="mt-2 text-xs text-zinc-600">
             {isRecovery
               ? "Благодарим на всички клиенти, които споделиха своето мнение!"
               : "Благодарим на всички родители и състезатели, които споделиха своето мнение!"}
@@ -424,18 +447,18 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Section 1: Respondent Info */}
             <div className="space-y-4">
-              <h3
+              <h2
                 className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase`}
               >
                 <Users className={`size-4 ${brand.sectionIconColor}`} />
                 1. Информация за Вас
-              </h3>
+              </h2>
 
               {/* Role selection */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-zinc-700">
+                <p className="text-xs font-bold text-zinc-700">
                   Вие попълвате анкетата като:
-                </Label>
+                </p>
                 <div className="grid grid-cols-3 gap-2">
                   {availableRoles.map((r) => {
                     const isActive = role === r.id;
@@ -450,7 +473,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                         className={`rounded-xl border p-2.5 text-xs font-bold transition-all ${
                           isActive
                             ? activeCls
-                            : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                            : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
                         }`}
                       >
                         {r.label}
@@ -463,7 +486,10 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
               {/* Names */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-zinc-700">
+                  <Label
+                    htmlFor="respondentName"
+                    className="text-xs font-bold text-zinc-700"
+                  >
                     {role === "parent"
                       ? "Вашето име (Родител) *"
                       : role === "client"
@@ -508,7 +534,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="surveyPhone"
-                    className="text-xs font-semibold text-zinc-500"
+                    className="text-xs font-semibold text-zinc-600"
                   >
                     Телефон за връзка (по избор)
                   </Label>
@@ -527,7 +553,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="surveyEmail"
-                    className="text-xs font-semibold text-zinc-500"
+                    className="text-xs font-semibold text-zinc-600"
                   >
                     Имейл (по избор)
                   </Label>
@@ -547,14 +573,14 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
 
             {/* Section 2: Overall Rating */}
             <div className="space-y-4">
-              <h3
+              <h2
                 className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase`}
               >
                 <Sparkles className={`size-4 ${brand.sectionIconColor}`} />
                 {isRecovery
                   ? "2. Цялостна оценка за Recovery Zone"
                   : "2. Цялостна оценка за клуба"}
-              </h3>
+              </h2>
 
               <div
                 className={`space-y-4 rounded-2xl border bg-linear-to-br p-6 text-center shadow-xs ${brand.cardGradient}`}
@@ -578,6 +604,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                           onMouseLeave={() => setHoverRating(0)}
                           className="p-1 transition-transform hover:scale-125 focus:outline-hidden"
                           title={RATING_DEFINITIONS[star]?.label}
+                          aria-label={`Обща оценка ${star} от 5 - ${RATING_DEFINITIONS[star]?.label || ""}`}
                         >
                           <Star
                             className={`size-8 transition-colors sm:size-10 ${
@@ -587,7 +614,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                             }`}
                           />
                         </button>
-                        <span className="text-[10px] font-extrabold text-zinc-400">
+                        <span className="text-[10px] font-extrabold text-zinc-600">
                           {star}★
                         </span>
                       </div>
@@ -610,12 +637,12 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
             {/* Section 3: Questions Breakdown */}
             {campaign.questions && campaign.questions.length > 0 && (
               <div className="space-y-5">
-                <h3
+                <h2
                   className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase`}
                 >
                   <Star className={`size-4 ${brand.sectionIconColor}`} />
                   {getSection3Title(campaign.eventType, isRecovery)}
-                </h3>
+                </h2>
 
                 <div className="space-y-6">
                   {campaign.questions.map((q, idx) => {
@@ -627,25 +654,46 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                         className="space-y-2 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 transition-all hover:border-zinc-200 hover:bg-zinc-50"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <Label className="text-xs leading-relaxed font-bold text-zinc-900 sm:text-sm">
-                            <span
-                              className={`mr-1.5 font-black ${
-                                isRecovery
-                                  ? "text-emerald-700"
-                                  : "text-indigo-600"
-                              }`}
+                          {q.type === "text" ? (
+                            <Label
+                              htmlFor={`question_${q.id}`}
+                              className="text-xs leading-relaxed font-bold text-zinc-900 sm:text-sm"
                             >
-                              {idx + 1}.
-                            </span>
-                            {q.label}
-                            {q.required && (
-                              <span className="ml-1 text-rose-500">*</span>
-                            )}
-                          </Label>
+                              <span
+                                className={`mr-1.5 font-black ${
+                                  isRecovery
+                                    ? "text-emerald-700"
+                                    : "text-indigo-600"
+                                }`}
+                              >
+                                {idx + 1}.
+                              </span>
+                              {q.label}
+                              {q.required && (
+                                <span className="ml-1 text-rose-500">*</span>
+                              )}
+                            </Label>
+                          ) : (
+                            <p className="text-xs leading-relaxed font-bold text-zinc-900 sm:text-sm">
+                              <span
+                                className={`mr-1.5 font-black ${
+                                  isRecovery
+                                    ? "text-emerald-700"
+                                    : "text-indigo-600"
+                                }`}
+                              >
+                                {idx + 1}.
+                              </span>
+                              {q.label}
+                              {q.required && (
+                                <span className="ml-1 text-rose-500">*</span>
+                              )}
+                            </p>
+                          )}
                         </div>
 
                         {q.description && (
-                          <p className="text-[11px] text-zinc-500">
+                          <p className="text-[11px] text-zinc-600">
                             {q.description}
                           </p>
                         )}
@@ -663,6 +711,8 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                                       handleAnswerChange(q.id, star)
                                     }
                                     className="p-1 transition-transform hover:scale-110 focus:outline-hidden"
+                                    title={RATING_DEFINITIONS[star]?.label}
+                                    aria-label={`Оценка ${star} от 5 за ${q.label} - ${RATING_DEFINITIONS[star]?.label || ""}`}
                                   >
                                     <Star
                                       className={`size-6 transition-colors ${
@@ -690,7 +740,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                               )}
                             </div>
 
-                            <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+                            <div className="flex items-center gap-2 text-[10px] text-zinc-600">
                               <span>1★ = Слабо</span>
                               <span>•</span>
                               <span>3★ = Добро</span>
@@ -823,7 +873,7 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
                   </>
                 )}
               </Button>
-              <p className="mt-2 text-center text-[11px] text-zinc-400">
+              <p className="mt-2 text-center text-[11px] text-zinc-600">
                 {isRecovery
                   ? "Благодарим Ви, че се грижите за Вашето възстановяване с нас! ⚡"
                   : "Благодарим Ви, че ни помагате да бъдем все по-добри! 🏸"}

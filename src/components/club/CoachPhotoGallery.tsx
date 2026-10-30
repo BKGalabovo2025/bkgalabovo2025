@@ -170,7 +170,7 @@ export function CoachPhotoGallery({
                 alt={coach.name}
                 fill
                 sizes="128px"
-                unoptimized
+                unoptimized={primaryUrl.startsWith("data:")}
                 priority={priority}
                 loading={priority ? "eager" : "lazy"}
                 className="object-cover transition-transform duration-500 group-hover/avatar:scale-105"
@@ -226,7 +226,7 @@ export function CoachPhotoGallery({
                       alt={`${coach.name} миниатюра ${idx + 1}`}
                       fill
                       sizes="64px"
-                      unoptimized
+                      unoptimized={photo.url.startsWith("data:")}
                       className="object-cover transition-transform duration-500 group-hover/thumb:scale-110"
                     />
 

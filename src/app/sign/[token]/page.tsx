@@ -13,24 +13,11 @@ interface SignPageProps {
   }>;
 }
 
-export async function generateMetadata({
-  params,
-}: SignPageProps): Promise<Metadata> {
-  const { token } = await params;
-  const res = await getPublicDocumentRequestAction(token);
-
-  if (!res.success || !res.data) {
-    return {
-      title: "Подписване на документ | БК Гълъбово",
-      description: "Система за онлайн подписване на клубни документи",
-    };
-  }
-
-  return {
-    title: `${res.data.documentTitle} — ${res.data.memberName} | БК Гълъбово`,
-    description: `Онлайн подписване на ${res.data.documentTitle} за ${res.data.memberName} в СНЦ „Бадминтон клуб Гълъбово”`,
-  };
-}
+export const metadata: Metadata = {
+  title: "Подписване на документ | БК Гълъбово",
+  description:
+    "Система за онлайн електронно подписване на официални клубни документи в СНЦ Бадминтон клуб Гълъбово.",
+};
 
 export default async function SignDocumentPage({ params }: SignPageProps) {
   const { token } = await params;

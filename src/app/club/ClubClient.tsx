@@ -309,6 +309,7 @@ export default function ClubClient({
             sizes="100vw"
             className="object-cover opacity-45"
             priority
+            fetchPriority="high"
           />
           {/* Rich Dark gradient overlay */}
           <div className="absolute inset-0 bg-linear-to-b from-black/70 via-zinc-950/75 to-zinc-950" />

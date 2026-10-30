@@ -5,6 +5,10 @@ import { redirect } from "next/navigation";
 import path from "path";
 
 import { serverCache } from "@/lib/server-cache";
+import {
+  getActiveStandingCampaignsAdmin,
+  getPublicReviewsAdmin,
+} from "@/services/admin/feedback-service.admin";
 import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 
 import RecoveryZoneClient from "./RecoveryZoneClient";
@@ -48,11 +52,20 @@ export default async function RecoveryZonePage(props: {
     redirect(`/cert/${encodeURIComponent(searchParams.verify)}`);
   }
 
-  const site = await serverCache.get(
-    "site:recoveryzone",
-    () => getSiteByIdAdmin("recoveryzone"),
-    300_000
-  );
+  const [site, initialReviews, campaigns] = await Promise.all([
+    serverCache.get(
+      "site:recoveryzone",
+      () => getSiteByIdAdmin("recoveryzone"),
+      300_000
+    ),
+    getPublicReviewsAdmin("recoveryzone"),
+    getActiveStandingCampaignsAdmin("recoveryzone"),
+  ]);
+
+  const standingSurveyId =
+    campaigns.length > 0
+      ? (campaigns.find((c) => c.eventType === "recovery") || campaigns[0]).id
+      : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -92,14 +105,14 @@ export default async function RecoveryZonePage(props: {
 
   if (!site) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+      <main className="flex min-h-screen items-center justify-center bg-black text-white">
         <div className="text-center">
           <h1 className="mb-4 text-2xl font-bold">Обектът не е намерен</h1>
           <Link href="/" className="text-emerald-500 hover:underline">
             Обратно към началната страница
           </Link>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -109,7 +122,12 @@ export default async function RecoveryZonePage(props: {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <RecoveryZoneClient site={site} hallImages={hallImages} />
+      <RecoveryZoneClient
+        site={site}
+        hallImages={hallImages}
+        initialReviews={initialReviews}
+        initialStandingSurveyId={standingSurveyId}
+      />
     </>
   );
 }

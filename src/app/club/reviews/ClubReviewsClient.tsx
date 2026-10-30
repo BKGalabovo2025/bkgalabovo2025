@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   CheckCircle2,
   ChevronDown,
@@ -27,7 +26,6 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { feedbackService } from "@/services/feedback-service";
 import { FeedbackCampaign, FeedbackSubmission } from "@/types/feedback.types";
 
 const QUESTION_LABELS_FALLBACK: Record<string, string> = {
@@ -58,10 +56,10 @@ const QUESTION_LABELS_FALLBACK: Record<string, string> = {
 
 interface ReviewCardProps {
   rev: FeedbackSubmission;
-  index: number;
+  index?: number;
 }
 
-function ReviewCardItem({ rev, index }: ReviewCardProps) {
+function ReviewCardItem({ rev }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const initial = rev.respondentName?.trim()?.charAt(0)?.toUpperCase() || "К";
@@ -122,12 +120,7 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
     : "";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="h-full"
-    >
+    <div className="h-full">
       <Card className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-zinc-800/80 bg-linear-to-b from-zinc-900/95 via-zinc-900/80 to-zinc-950/95 p-5 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-blue-500/50 hover:shadow-blue-500/10 sm:rounded-3xl sm:p-6">
         {/* Top ambient glow */}
         <div className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-blue-500/10 blur-2xl transition-all group-hover:bg-blue-500/20" />
@@ -280,22 +273,32 @@ function ReviewCardItem({ rev, index }: ReviewCardProps) {
             </div>
           </div>
 
-          <div className="text-[11px] font-medium text-zinc-500">
+          <div className="text-[11px] font-medium text-zinc-400">
             {formattedDate}
           </div>
         </div>
       </Card>
-    </motion.div>
+    </div>
   );
 }
 
-export default function ClubReviewsClient() {
-  const [reviews, setReviews] = useState<FeedbackSubmission[]>([]);
+interface ClubReviewsClientProps {
+  initialReviews?: FeedbackSubmission[];
+  initialCampaigns?: FeedbackCampaign[];
+}
+
+export default function ClubReviewsClient({
+  initialReviews,
+  initialCampaigns,
+}: ClubReviewsClientProps = {}) {
+  const [reviews, setReviews] = useState<FeedbackSubmission[]>(
+    initialReviews ?? []
+  );
   const [standingCampaigns, setStandingCampaigns] = useState<
     FeedbackCampaign[]
-  >([]);
+  >(initialCampaigns ?? []);
   const [isSurveyPickerOpen, setIsSurveyPickerOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(initialReviews === undefined);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const categoryCounts = useMemo(() => {
@@ -310,9 +313,11 @@ export default function ClubReviewsClient() {
   }, [reviews]);
 
   useEffect(() => {
+    if (initialReviews !== undefined) return;
     const loadData = async () => {
       setIsLoading(true);
       try {
+        const { feedbackService } = await import("@/services/feedback-service");
         const [reviewsData, activeCampaigns] = await Promise.all([
           feedbackService.getPublicReviews("bkgalabovo"),
           feedbackService.getActiveStandingCampaigns("bkgalabovo"),
@@ -326,7 +331,7 @@ export default function ClubReviewsClient() {
       }
     };
     loadData();
-  }, []);
+  }, [initialReviews]);
 
   const filteredReviews = useMemo(() => {
     if (selectedCategory === "all") return reviews;
@@ -360,45 +365,26 @@ export default function ClubReviewsClient() {
 
         {/* Hero Section */}
         <div className="relative z-10 m-auto max-w-3xl space-y-1.5 text-center sm:space-y-2">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-blue-400 uppercase sm:text-xs"
-          >
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-blue-400 uppercase sm:text-xs">
             <Sparkles className="size-3" />
             Реални отзиви и препоръки
-          </motion.div>
+          </div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="text-xl font-black tracking-tight text-white uppercase sm:text-2xl md:text-3xl"
-          >
+          <h1 className="text-xl font-black tracking-tight text-white uppercase sm:text-2xl md:text-3xl">
             Какво казват{" "}
             <span className="bg-linear-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
               родителите и децата
             </span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="text-xs leading-relaxed text-zinc-400 sm:text-sm"
-          >
+          <p className="text-xs leading-relaxed text-zinc-400 sm:text-sm">
             Споделените преживявания и обратна връзка за нашите летни лагери,
             състезателни турнири и целогодишни тренировки в БК Гълъбово.
-          </motion.p>
+          </p>
 
           {/* Direct Public Review Button when any standing campaign is active */}
           {standingCampaigns.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="pt-0.5"
-            >
+            <div className="pt-0.5">
               {standingCampaigns.length === 1 ? (
                 <Button
                   asChild
@@ -418,17 +404,12 @@ export default function ClubReviewsClient() {
                   ✍️ Споделете Вашия отзив ({standingCampaigns.length} анкети)
                 </Button>
               )}
-            </motion.div>
+            </div>
           )}
         </div>
 
         {/* Rating Metrics Showcase Bar */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.25 }}
-          className="relative z-10 rounded-xl border border-blue-500/20 bg-zinc-900/60 p-2.5 shadow-lg backdrop-blur-xl sm:rounded-2xl sm:p-3 sm:py-3.5"
-        >
+        <div className="relative z-10 rounded-xl border border-blue-500/20 bg-zinc-900/60 p-2.5 shadow-lg backdrop-blur-xl sm:rounded-2xl sm:p-3 sm:py-3.5">
           <div className="grid grid-cols-1 divide-y divide-zinc-800 text-center sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {/* Avg Stars */}
             <div className="space-y-0.5 sm:px-4">
@@ -446,12 +427,12 @@ export default function ClubReviewsClient() {
               </div>
               <div className="mt-0.5 text-xl font-black text-white sm:text-2xl">
                 {stats.total > 0 ? stats.avg : "—"}{" "}
-                <span className="text-xs text-zinc-500">/ 5.0</span>
+                <span className="text-xs text-zinc-400">/ 5.0</span>
               </div>
               <p className="text-[11px] font-bold text-zinc-300">
                 Обща удовлетвореност
               </p>
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[10px] text-zinc-400">
                 {stats.total > 0
                   ? "От родители и състезатели"
                   : "Очакваме първите отзиви"}
@@ -466,7 +447,7 @@ export default function ClubReviewsClient() {
               <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">
                 Препоръчват клуба
               </p>
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[10px] text-zinc-400">
                 {stats.total > 0
                   ? "Бихте ли препоръчали на приятели"
                   : "Оценка от попълнените анкети"}
@@ -481,12 +462,12 @@ export default function ClubReviewsClient() {
               <p className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase">
                 {stats.total === 1 ? "Проверен отзив" : "Проверени отзива"}
               </p>
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[10px] text-zinc-400">
                 От тренировки, лагери и турнири
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Categories Filter Tabs with Badges */}
         <div className="relative z-10 flex flex-wrap items-center justify-center gap-2">
@@ -540,10 +521,10 @@ export default function ClubReviewsClient() {
         ) : filteredReviews.length === 0 ? (
           <div className="relative z-10 rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/40 py-20 text-center">
             <MessageSquare className="mx-auto mb-3 size-12 text-zinc-700" />
-            <h3 className="text-lg font-bold text-zinc-400">
+            <h2 className="text-lg font-bold text-zinc-300">
               Все още няма публикувани отзиви в тази категория
-            </h3>
-            <p className="mx-auto mt-1 max-w-sm text-xs text-zinc-500">
+            </h2>
+            <p className="mx-auto mt-1 max-w-sm text-xs text-zinc-400">
               След провеждане на предстоящите събития и лагери тук ще се появят
               първите отзиви от родителите.
             </p>

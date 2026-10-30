@@ -223,9 +223,9 @@ export default function ParentRequestPage() {
 
                 {/* Role selection */}
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-zinc-300">
+                  <p className="mb-1.5 block text-xs font-semibold text-zinc-300">
                     Вие сте: *
-                  </label>
+                  </p>
                   <div className="grid grid-cols-3 gap-2">
                     {(
                       [
@@ -389,7 +389,7 @@ export default function ParentRequestPage() {
                       className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white focus:border-blue-500 focus:outline-hidden"
                     />
                   </div>
-                  <p className="mt-1 text-[11px] text-zinc-500">
+                  <p className="mt-1 text-[11px] text-zinc-400">
                     Използва се за сигурно разпознаване на детето в клубната
                     картотека.
                   </p>

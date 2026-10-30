@@ -10,15 +10,17 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { resetParentPasswordWithTokenAction } from "@/lib/actions/parent-portal";
 
 function ResetPasswordContent() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
+  const [token] = useState(() =>
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("token") || ""
+      : ""
+  );
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -198,18 +200,10 @@ export default function ResetPasswordPage() {
             </p>
           </div>
 
-          <Suspense
-            fallback={
-              <div className="flex justify-center p-8">
-                <Loader2 size={24} className="animate-spin text-blue-500" />
-              </div>
-            }
-          >
-            <ResetPasswordContent />
-          </Suspense>
+          <ResetPasswordContent />
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-zinc-500">
+        <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-zinc-400">
           <ShieldCheck size={14} className="text-emerald-500" />
           <span>Сигурно нулиране на парола • БК „Гълъбово“</span>
         </div>

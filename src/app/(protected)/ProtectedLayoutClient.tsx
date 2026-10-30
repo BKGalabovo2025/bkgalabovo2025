@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import LoginPage from "@/app/login/page";
 import { ParentNotificationsBell } from "@/components/layout/ParentNotificationsBell";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { UserNav } from "@/components/layout/user-nav";
@@ -121,39 +122,37 @@ export default function ProtectedLayoutClient({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const { isSidebarOpen, setSidebarOpen, activeBranch } = useAppStore();
   const pathname = usePathname() || "";
 
   useEffect(() => {
-    const hasSessionCookie =
-      typeof document !== "undefined" &&
-      document.cookie.split(";").some((c) => c.trim().startsWith("session="));
-
-    if (!loading && !user && !hasSessionCookie) {
-      router.replace("/login");
-      return;
-    }
-
     if (user && activeBranch) {
       const safeRedirect = getSafeRedirectForBranch(pathname, activeBranch);
       if (safeRedirect !== pathname) {
         router.replace(safeRedirect);
       }
     }
-  }, [user, loading, router, activeBranch, pathname]);
+  }, [user, router, activeBranch, pathname]);
 
-  const hasSessionCookie =
-    typeof document !== "undefined" &&
-    document.cookie.split(";").some((c) => c.trim().startsWith("session="));
+  const [hasClientSession, setHasClientSession] = useState(false);
 
-  if (loading && !hasSessionCookie) {
-    return null;
-  }
+  useEffect(() => {
+    try {
+      if (
+        localStorage.getItem("firebase:hasAuth") === "1" ||
+        document.cookie.split(";").some((c) => c.trim().startsWith("session="))
+      ) {
+        setHasClientSession(true);
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
 
-  if (!loading && !user && !hasSessionCookie) {
-    return null;
+  if (!user && !hasClientSession) {
+    return <LoginPage />;
   }
 
   return (

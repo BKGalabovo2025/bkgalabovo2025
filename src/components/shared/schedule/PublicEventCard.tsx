@@ -165,8 +165,6 @@ interface PublicEventCardProps {
 
 export function PublicEventCard({
   event,
-  groupIdx,
-  i,
   showAdminLinks = false,
 }: PublicEventCardProps) {
   const [expanded, setExpanded] = useState(false);
@@ -180,10 +178,7 @@ export function PublicEventCard({
   const typeConfig = EVENT_TYPE_STYLES[rawType] || EVENT_TYPE_STYLES.training;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, delay: groupIdx * 0.05 + i * 0.04 }}
+    <div
       className={`group overflow-hidden rounded-2xl border transition-all duration-300 ${
         event.isCancelled
           ? "border-rose-900/30 bg-black/40 opacity-80"
@@ -294,7 +289,7 @@ export function PublicEventCard({
           {showAdminLinks && (
             <Link
               href={`/marketing?template=reservationConfirmation&date=${new Date(event.startTime).toISOString()}&end=${new Date(event.endTime).toISOString()}&loc=${encodeURIComponent(event.location || "")}`}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-emerald-400"
+              className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-400 transition-colors hover:text-emerald-400"
               title="Изпрати потвърждение (Админ)"
             >
               <Mail size={16} />
@@ -367,6 +362,6 @@ export function PublicEventCard({
         onClose={() => setIsInquiryOpen(false)}
         event={event}
       />
-    </motion.div>
+    </div>
   );
 }

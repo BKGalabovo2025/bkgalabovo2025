@@ -20,7 +20,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { feedbackService } from "@/services/feedback-service";
 import { FeedbackCampaign, FeedbackSubmission } from "@/types/feedback.types";
 
 const QUESTION_LABELS_FALLBACK: Record<string, string> = {
@@ -233,18 +232,30 @@ function RecoveryReviewCardItem({ rev, index }: ReviewCardProps) {
   );
 }
 
-export default function RecoveryReviewsClient() {
-  const [reviews, setReviews] = useState<FeedbackSubmission[]>([]);
+interface RecoveryReviewsClientProps {
+  initialReviews?: FeedbackSubmission[];
+  initialCampaigns?: FeedbackCampaign[];
+}
+
+export default function RecoveryReviewsClient({
+  initialReviews,
+  initialCampaigns,
+}: RecoveryReviewsClientProps = {}) {
+  const [reviews, setReviews] = useState<FeedbackSubmission[]>(
+    initialReviews ?? []
+  );
   const [standingCampaigns, setStandingCampaigns] = useState<
     FeedbackCampaign[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
+  >(initialCampaigns ?? []);
+  const [isLoading, setIsLoading] = useState(initialReviews === undefined);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   useEffect(() => {
+    if (initialReviews !== undefined) return;
     const loadData = async () => {
       setIsLoading(true);
       try {
+        const { feedbackService } = await import("@/services/feedback-service");
         const [reviewsData, activeCampaigns] = await Promise.all([
           feedbackService.getPublicReviews("recoveryzone"),
           feedbackService.getActiveStandingCampaigns("recoveryzone"),
@@ -258,7 +269,7 @@ export default function RecoveryReviewsClient() {
       }
     };
     loadData();
-  }, []);
+  }, [initialReviews]);
 
   const filteredReviews = useMemo(() => {
     if (selectedCategory === "all") return reviews;
@@ -325,157 +336,167 @@ export default function RecoveryReviewsClient() {
 
           <div className="flex items-center gap-3">
             {primarySurveyLink && (
-              <Link href={primarySurveyLink}>
-                <Button className="h-9 rounded-xl border border-emerald-500/40 bg-emerald-600 px-4 text-xs font-bold text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-500">
+              <Button
+                asChild
+                className="h-9 rounded-xl border border-emerald-500/40 bg-emerald-500 px-4 text-xs font-bold text-black shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-400"
+              >
+                <Link href={primarySurveyLink}>
                   <Sparkles size={14} className="mr-1.5" />
                   Дайте отзив
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             )}
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
-        <div className="pointer-events-none absolute -top-40 left-1/2 size-96 -translate-x-1/2 rounded-full bg-emerald-500/15 blur-[120px]" />
+      <main id="main-content">
+        {/* Hero Section */}
+        <section className="relative overflow-hidden px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
+          <div className="pointer-events-none absolute -top-40 left-1/2 size-96 -translate-x-1/2 rounded-full bg-emerald-500/15 blur-[120px]" />
 
-        <div className="relative mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-400">
-            <Activity size={14} />
-            <span>Hyperice Normatec 3 Възстановяване</span>
-          </div>
-
-          <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
-            Отзиви от клиенти и спортисти
-          </h1>
-
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg">
-            Вижте какво споделят хората след компресионните процедури с
-            ботушите, ръкавите и колана на Hyperice Normatec 3 в нашата зона за
-            възстановяване.
-          </p>
-
-          {/* Stats Bar */}
-          <div className="mt-10 grid grid-cols-3 gap-3 rounded-2xl border border-emerald-500/20 bg-zinc-900/60 p-4 shadow-2xl backdrop-blur-md sm:gap-6 sm:p-6">
-            <div>
-              <div className="flex items-center justify-center gap-1 text-2xl font-black text-amber-400 sm:text-3xl">
-                <span>{stats.avg.toFixed(1)}</span>
-                <Star size={20} className="fill-amber-400" />
-              </div>
-              <p className="mt-1 text-xs text-zinc-400">Средна оценка</p>
+          <div className="relative mx-auto max-w-4xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-400">
+              <Activity size={14} />
+              <span>Hyperice Normatec 3 Възстановяване</span>
             </div>
 
-            <div className="border-x border-zinc-800">
-              <div className="text-2xl font-black text-white sm:text-3xl">
-                {stats.total}
-              </div>
-              <p className="mt-1 text-xs text-zinc-400">Одобрени отзива</p>
-            </div>
+            <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+              Отзиви от клиенти и спортисти
+            </h1>
 
-            <div>
-              <div className="text-2xl font-black text-emerald-400 sm:text-3xl">
-                {stats.recommendPercent}%
-              </div>
-              <p className="mt-1 text-xs text-zinc-400">Бихте препоръчали</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Reviews Grid */}
-      <section className="mx-auto max-w-7xl px-6 pb-24">
-        {/* Category Filter */}
-        <div className="mb-8 flex flex-wrap items-center justify-center gap-2">
-          {[
-            { id: "all", label: "Всички отзиви", count: reviews.length },
-            {
-              id: "recovery",
-              label: "Normatec 3 Сесии",
-              count: reviews.filter((r) => r.eventType === "recovery").length,
-            },
-            {
-              id: "general",
-              label: "Общи впечатления",
-              count: reviews.filter(
-                (r) => r.eventType === "general" || !r.eventType
-              ).length,
-            },
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
-                selectedCategory === cat.id
-                  ? "border border-emerald-500/60 bg-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-                  : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-white"
-              }`}
-            >
-              <span>{cat.label}</span>
-              <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-300">
-                {cat.count}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Content */}
-        {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Loader2 className="size-8 animate-spin text-emerald-500" />
-          </div>
-        ) : filteredReviews.length === 0 ? (
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/40 p-12 text-center">
-            <MessageSquare className="mx-auto size-12 text-zinc-600" />
-            <h3 className="mt-4 text-lg font-bold text-white">
-              Все още няма публикувани отзиви в тази категория
-            </h3>
-            <p className="mt-2 text-sm text-zinc-400">
-              Бъдете първите, които споделят своето мнение за възстановяването!
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg">
+              Вижте какво споделят хората след компресионните процедури с
+              ботушите, ръкавите и колана на Hyperice Normatec 3 в нашата зона
+              за възстановяване.
             </p>
-            {primarySurveyLink && (
-              <Link href={primarySurveyLink} className="mt-6 inline-block">
-                <Button className="rounded-xl bg-emerald-600 font-bold hover:bg-emerald-500">
-                  Попълнете отзив
-                </Button>
-              </Link>
-            )}
+
+            {/* Stats Bar */}
+            <div className="mt-10 grid grid-cols-3 gap-3 rounded-2xl border border-emerald-500/20 bg-zinc-900/60 p-4 shadow-2xl backdrop-blur-md sm:gap-6 sm:p-6">
+              <div>
+                <div className="flex items-center justify-center gap-1 text-2xl font-black text-amber-400 sm:text-3xl">
+                  <span>{stats.avg.toFixed(1)}</span>
+                  <Star size={20} className="fill-amber-400" />
+                </div>
+                <p className="mt-1 text-xs text-zinc-400">Средна оценка</p>
+              </div>
+
+              <div className="border-x border-zinc-800">
+                <div className="text-2xl font-black text-white sm:text-3xl">
+                  {stats.total}
+                </div>
+                <p className="mt-1 text-xs text-zinc-400">Одобрени отзива</p>
+              </div>
+
+              <div>
+                <div className="text-2xl font-black text-emerald-400 sm:text-3xl">
+                  {stats.recommendPercent}%
+                </div>
+                <p className="mt-1 text-xs text-zinc-400">Бихте препоръчали</p>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredReviews.map((rev, index) => (
-              <RecoveryReviewCardItem key={rev.id} rev={rev} index={index} />
+        </section>
+
+        {/* Main Reviews Grid */}
+        <section className="mx-auto max-w-7xl px-6 pb-24">
+          {/* Category Filter */}
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-2">
+            {[
+              { id: "all", label: "Всички отзиви", count: reviews.length },
+              {
+                id: "recovery",
+                label: "Normatec 3 Сесии",
+                count: reviews.filter((r) => r.eventType === "recovery").length,
+              },
+              {
+                id: "general",
+                label: "Общи впечатления",
+                count: reviews.filter(
+                  (r) => r.eventType === "general" || !r.eventType
+                ).length,
+              },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                  selectedCategory === cat.id
+                    ? "border border-emerald-500/60 bg-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                    : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                }`}
+              >
+                <span>{cat.label}</span>
+                <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-300">
+                  {cat.count}
+                </span>
+              </button>
             ))}
           </div>
-        )}
 
-        {/* Bottom CTA Banner */}
-        {primarySurveyLink && (
-          <div className="mt-16 overflow-hidden rounded-3xl border border-emerald-500/30 bg-linear-to-r from-emerald-950/40 via-zinc-900/90 to-emerald-950/40 p-8 text-center shadow-2xl backdrop-blur-xl sm:p-12">
-            <div className="mx-auto max-w-2xl space-y-4">
-              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-                Вашето мнение е важно за нас
-              </span>
-              <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
-                Били ли сте на процедура в Recovery Zone by ZM?
+          {/* Content */}
+          {isLoading ? (
+            <div className="flex h-64 items-center justify-center">
+              <Loader2 className="size-8 animate-spin text-emerald-500" />
+            </div>
+          ) : filteredReviews.length === 0 ? (
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/40 p-12 text-center">
+              <MessageSquare className="mx-auto size-12 text-zinc-600" />
+              <h2 className="mt-4 text-lg font-bold text-white">
+                Все още няма публикувани отзиви в тази категория
               </h2>
-              <p className="text-sm leading-relaxed text-zinc-400 sm:text-base">
-                Споделете усещането за лекота след сесията с Hyperice Normatec
-                3. Отнема само 1-2 минути и помага на други спортисти да изберат
-                най-добрата програма за възстановяване.
+              <p className="mt-2 text-sm text-zinc-400">
+                Бъдете първите, които споделят своето мнение за
+                възстановяването!
               </p>
-              <div className="pt-2">
-                <Link href={primarySurveyLink}>
-                  <Button className="h-12 rounded-2xl bg-emerald-500 px-8 text-sm font-bold text-black shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-400">
-                    <Sparkles size={16} className="mr-2" />
-                    Оставете Вашия отзив тук
+              {primarySurveyLink && (
+                <Button
+                  asChild
+                  className="mt-6 rounded-xl bg-emerald-500 font-bold text-black hover:bg-emerald-400"
+                >
+                  <Link href={primarySurveyLink}>Попълнете отзив</Link>
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredReviews.map((rev, index) => (
+                <RecoveryReviewCardItem key={rev.id} rev={rev} index={index} />
+              ))}
+            </div>
+          )}
+
+          {/* Bottom CTA Banner */}
+          {primarySurveyLink && (
+            <div className="mt-16 overflow-hidden rounded-3xl border border-emerald-500/30 bg-linear-to-r from-emerald-950/40 via-zinc-900/90 to-emerald-950/40 p-8 text-center shadow-2xl backdrop-blur-xl sm:p-12">
+              <div className="mx-auto max-w-2xl space-y-4">
+                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                  Вашето мнение е важно за нас
+                </span>
+                <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
+                  Били ли сте на процедура в Recovery Zone by ZM?
+                </h2>
+                <p className="text-sm leading-relaxed text-zinc-400 sm:text-base">
+                  Споделете усещането за лекота след сесията с Hyperice Normatec
+                  3. Отнема само 1-2 минути и помага на други спортисти да
+                  изберат най-добрата програма за възстановяване.
+                </p>
+                <div className="pt-2">
+                  <Button
+                    asChild
+                    className="h-12 rounded-2xl bg-emerald-500 px-8 text-sm font-bold text-black shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-400"
+                  >
+                    <Link href={primarySurveyLink}>
+                      <Sparkles size={16} className="mr-2" />
+                      Оставете Вашия отзив тук
+                    </Link>
                   </Button>
-                </Link>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </section>
+          )}
+        </section>
+      </main>
 
       {/* Footer */}
       <footer className="border-t border-zinc-900 bg-black/60 px-6 py-8 text-center text-xs text-zinc-400">
@@ -503,7 +524,7 @@ export default function RecoveryReviewsClient() {
           Спортна зала „Енергетик“, град Гълъбово • Мобилна зона: Турнирите на
           НВ Бадминтон
         </p>
-        <p className="mt-1.5 text-zinc-500">
+        <p className="mt-1.5 text-zinc-400">
           © {new Date().getFullYear()} Recovery Zone by ZM. Всички права
           запазени
         </p>

@@ -4,10 +4,7 @@
 
 import { endOfMonth, format, parseISO, startOfMonth } from "date-fns";
 import { bg } from "date-fns/locale";
-import ExcelJS from "exceljs";
-import { saveAs } from "file-saver";
 import { getDocs } from "firebase/firestore";
-import JSZip from "jszip";
 import {
   Bed,
   Calculator,
@@ -697,6 +694,7 @@ export default function AccountingClient() {
   };
 
   const handleExportExcel = async () => {
+    const ExcelJS = (await import("exceljs")).default;
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Отчет Разходи");
 
@@ -794,6 +792,10 @@ export default function AccountingClient() {
     toast.info("Генериране на пакета с документи... Моля, изчакайте.");
 
     try {
+      const [{ default: JSZip }, { saveAs }] = await Promise.all([
+        import("jszip"),
+        import("file-saver"),
+      ]);
       const zip = new JSZip();
 
       // 1. Generate Monthly Protocol

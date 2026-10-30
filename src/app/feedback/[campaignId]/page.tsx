@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { feedbackService } from "@/services/feedback-service";
+import { getCampaignByIdAdmin } from "@/services/admin/feedback-service.admin";
 
 import FeedbackSurveyClient from "./FeedbackSurveyClient";
 
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let ogImage = "/og-image.jpg";
 
   try {
-    const campaign = await feedbackService.getCampaignById(campaignId);
+    const campaign = await getCampaignByIdAdmin(campaignId);
     if (campaign) {
       const isRecovery =
         campaign.siteId === "recoveryzone" || campaign.eventType === "recovery";
@@ -64,5 +64,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function FeedbackSurveyPage({ params }: Props) {
   const { campaignId } = await params;
-  return <FeedbackSurveyClient campaignId={campaignId} />;
+  const campaign = await getCampaignByIdAdmin(campaignId);
+  return (
+    <FeedbackSurveyClient campaignId={campaignId} initialCampaign={campaign} />
+  );
 }

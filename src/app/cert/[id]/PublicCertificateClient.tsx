@@ -1,7 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import confetti from "canvas-confetti";
 import {
   Award,
   Check,
@@ -23,8 +22,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { PDFDocument } from "pdf-lib";
-import QRCode from "qrcode";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -142,15 +139,18 @@ export function PublicCertificateClient({
   const [pdfAspectRatio, setPdfAspectRatio] = useState<number>(1260 / 708);
 
   useEffect(() => {
-    try {
-      confetti({
-        particleCount: 70,
-        spread: 70,
-        origin: { y: 0.35 },
+    import("canvas-confetti")
+      .then((mod) => {
+        const confetti = mod.default || mod;
+        confetti({
+          particleCount: 70,
+          spread: 70,
+          origin: { y: 0.35 },
+        });
+      })
+      .catch(() => {
+        // Ignored if unavailable
       });
-    } catch {
-      // Ignored if unavailable
-    }
   }, []);
 
   const isVoucher = cert.type === "voucher";
@@ -220,14 +220,17 @@ export function PublicCertificateClient({
         : cert.qrCodeDataUrl || "";
 
     if (targetUrl) {
-      QRCode.toDataURL(targetUrl, {
-        margin: 1,
-        width: 320,
-        color: {
-          dark: "#09090b",
-          light: "#ffffff",
-        },
-      })
+      import("qrcode")
+        .then((QRCode) =>
+          QRCode.toDataURL(targetUrl, {
+            margin: 1,
+            width: 320,
+            color: {
+              dark: "#09090b",
+              light: "#ffffff",
+            },
+          })
+        )
         .then((url) => setDynamicQrUrl(url))
         .catch((err) => {
           console.warn("Could not generate client QR code:", err);
@@ -288,9 +291,11 @@ export function PublicCertificateClient({
 
   useEffect(() => {
     if (uploadedDoc?.fileType === "pdf" && uploadedDoc.fileUrl) {
-      fetch(uploadedDoc.fileUrl)
-        .then((res) => res.arrayBuffer())
-        .then(async (buf) => {
+      Promise.all([
+        fetch(uploadedDoc.fileUrl).then((res) => res.arrayBuffer()),
+        import("pdf-lib"),
+      ])
+        .then(async ([buf, { PDFDocument }]) => {
           const doc = await PDFDocument.load(buf, { ignoreEncryption: true });
           const firstPage = doc.getPages()[0];
           if (firstPage) {
@@ -582,9 +587,9 @@ export function PublicCertificateClient({
                   />
                 </div>
                 <div>
-                  <h2 className="text-base font-black tracking-tight text-zinc-900 sm:text-lg dark:text-white">
+                  <div className="text-base font-black tracking-tight text-zinc-900 sm:text-lg dark:text-white">
                     {clubName}
-                  </h2>
+                  </div>
                   <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
                     Официален издател
                   </p>
@@ -856,10 +861,10 @@ export function PublicCertificateClient({
         {/* ================================================================= */}
         <Card className="no-print print:hidden space-y-4 rounded-3xl border-zinc-200/80 bg-white p-6 text-center shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="space-y-1">
-            <h4 className="text-sm font-bold text-zinc-900 dark:text-white">
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-white">
               Споделете този ваучер
-            </h4>
-            <p className="text-xs text-zinc-500">
+            </h2>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400">
               Ваучерът може да бъде отворен, принтиран или представен директно
               от мобилен телефон.
             </p>
@@ -903,11 +908,11 @@ export function PublicCertificateClient({
           </div>
 
           {/* Club Info & Location */}
-          <div className="space-y-1 border-t border-zinc-100 pt-4 text-[11px] text-zinc-500 dark:border-zinc-800">
+          <div className="space-y-1 border-t border-zinc-100 pt-4 text-[11px] text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
             <div className="font-semibold text-zinc-700 dark:text-zinc-300">
               Бадминтон Клуб Гълъбово & Recovery Zone by ZM
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-3 text-zinc-400">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-zinc-600 dark:text-zinc-400">
               <span className="flex items-center gap-1">
                 <MapPin className="size-3 text-red-500" />
                 гр. Гълъбово

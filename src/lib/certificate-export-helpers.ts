@@ -1,7 +1,5 @@
 "use client";
 
-import html2canvas from "html2canvas";
-
 import { generatePdfFromElement } from "@/lib/html-to-pdf";
 
 export type CertificateExportResolution = "standard" | "ultra_300dpi";
@@ -24,6 +22,7 @@ export async function exportCertificatePng(
     }
 
     const scale = resolution === "ultra_300dpi" ? 4 : 2;
+    const { default: html2canvas } = await import("html2canvas");
 
     const canvas = await html2canvas(el, {
       scale,
@@ -101,7 +100,10 @@ export async function exportTwoPageCertificatePdf(
       return false;
     }
 
-    const { jsPDF } = await import("jspdf");
+    const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
+      import("jspdf"),
+      import("html2canvas"),
+    ]);
     const pdf = new jsPDF({
       orientation,
       unit: "mm",
@@ -186,7 +188,10 @@ export async function exportBatchMultiCertificatePdf(
   }
 
   try {
-    const { jsPDF } = await import("jspdf");
+    const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
+      import("jspdf"),
+      import("html2canvas"),
+    ]);
     const pdf = new jsPDF({
       orientation,
       unit: "mm",
