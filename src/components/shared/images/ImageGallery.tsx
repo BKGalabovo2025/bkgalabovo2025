@@ -44,9 +44,9 @@ export function ImageGallery({
 
   if (images.length === 0) {
     return (
-      <div className="flex size-full flex-col items-center justify-center bg-zinc-900/40 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-800">
+      <div className="flex size-full flex-col items-center justify-center bg-zinc-900/40 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-400">
         {fallbackIcon}
-        <span className="mt-3 text-[9px] font-semibold tracking-[0.2em] uppercase opacity-40">
+        <span className="mt-3 text-[9px] font-semibold tracking-[0.2em] text-zinc-300 uppercase">
           {fallbackText}
         </span>
       </div>

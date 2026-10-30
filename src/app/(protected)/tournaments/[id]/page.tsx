@@ -11,18 +11,6 @@ import TournamentDetailsClient, {
   InitialTournamentData,
 } from "./TournamentDetailsClient";
 
-// Fetch tournament data server-side for metadata and initial render
-async function getTournamentData(id: string): Promise<Tournament | null> {
-  try {
-    const db = getAdminDb();
-    const doc = await db.collection("tournaments").doc(id).get();
-    if (!doc.exists) return null;
-    return serializeFirestoreData({ id: doc.id, ...doc.data() }) as Tournament;
-  } catch {
-    return null;
-  }
-}
-
 async function getInitialData(
   id: string
 ): Promise<InitialTournamentData | null> {
@@ -81,41 +69,12 @@ async function getInitialData(
   }
 }
 
-// --- Dynamic SEO Metadata ---
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  const { id } = await params;
-  const tournament = await getTournamentData(id);
-
-  if (!tournament) {
-    return {
-      title: "Турнир не е намерен | БК Гълъбово",
-    };
-  }
-
-  const categoryMap: Record<string, string> = {
-    singles: "Единично",
-    doubles: "Двойки",
-    mixed: "Смесени",
-  };
-
-  const categoryNames = (tournament.categories || [])
-    .map((c: string) => categoryMap[c] || c)
-    .join(", ");
-
-  return {
-    title: `${tournament.title} | Турнири - БК Гълъбово`,
-    description: `${tournament.title} — ${tournament.location}. Категории: ${categoryNames}. Организиран от Бадминтон клуб Гълъбово.`,
-    openGraph: {
-      title: tournament.title,
-      description: `Турнир по бадминтон в ${tournament.location}. Категории: ${categoryNames}.`,
-      siteName: "БК Гълъбово",
-    },
-  };
-}
+// --- SEO Metadata ---
+export const metadata: Metadata = {
+  title: "Детайли за турнир | Турнири - БК Гълъбово",
+  description:
+    "Информация, участници, жребий и резултати от турнир по бадминтон, организиран от Бадминтон клуб Гълъбово.",
+};
 
 // --- Page (Server Component) ---
 export default async function TournamentDetailsPage({

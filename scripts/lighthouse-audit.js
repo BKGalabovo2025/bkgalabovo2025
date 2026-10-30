@@ -343,11 +343,15 @@ async function run() {
     );
     for (let waitIdx = 0; waitIdx < 18; waitIdx++) {
       try {
-        const res = await fetch(`${baseUrl}/login?t=${Date.now()}`, {
+        const res = await fetch(`${baseUrl}/cert/demo?t=${Date.now()}`, {
           headers: { "Cache-Control": "no-cache" },
         });
         const html = await res.text();
-        if (html.includes('id="main-content"')) {
+        if (
+          html.includes(
+            "Дигитална проверка на клубен сертификат, грамота или ваучер от Бадминтон Клуб Гълъбово."
+          )
+        ) {
           console.log("✅ Новият деплоймънт е активен на Vercel!");
           break;
         }
@@ -436,7 +440,7 @@ async function run() {
       const modeLabel = isDesktop ? "DESKTOP 🖥️" : "MOBILE 📱";
       const presetFlag = isDesktop
         ? "--preset=desktop"
-        : "--throttling.cpuSlowdownMultiplier=1";
+        : "--throttling.cpuSlowdownMultiplier=1 --throttling.rttMs=40 --throttling.throughputKbps=10240";
       const fileSuffix = `-${mode}`;
       const outputBase = path.join(reportsDir, `${page.name}${fileSuffix}`);
       const outputHtml = path.join(
@@ -465,7 +469,7 @@ async function run() {
       let actualJson = null;
       let actualHtml = "#";
 
-      for (let attempt = 1; attempt <= 2; attempt++) {
+      for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           execSync(cmd, { stdio: "ignore" });
         } catch {

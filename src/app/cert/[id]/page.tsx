@@ -10,38 +10,11 @@ interface CertificatePageProps {
   params: Promise<{ id: string }>;
 }
 
-export async function generateMetadata({
-  params,
-}: CertificatePageProps): Promise<Metadata> {
-  const { id } = await params;
-  const res = await getCertificateByIdAction(id);
-
-  if (!res.success || !res.data) {
-    return {
-      title: "Официален сертификат | БК Гълъбово",
-      description:
-        "Дигитална проверка на клубен сертификат, грамота или ваучер.",
-    };
-  }
-
-  const cert = res.data;
-  return {
-    title: `${cert.visualSnapshot.templateTitle} - ${cert.recipient.name} | БК Гълъбово`,
-    description: `Официален клубен документ № ${cert.serialNumber} на ${cert.recipient.name} от Бадминтон Клуб Гълъбово.`,
-    openGraph: {
-      title: `${cert.visualSnapshot.templateTitle} - ${cert.recipient.name}`,
-      description: `Официално отличие № ${cert.serialNumber} от БК Гълъбово.`,
-      images: [
-        {
-          url: "/icons/badge-option-3-light-squircle.png",
-          width: 512,
-          height: 512,
-          alt: "Бадминтон Клуб Гълъбово",
-        },
-      ],
-    },
-  };
-}
+export const metadata: Metadata = {
+  title: "Официален сертификат | БК Гълъбово",
+  description:
+    "Дигитална проверка на клубен сертификат, грамота или ваучер от Бадминтон Клуб Гълъбово.",
+};
 
 export default async function CertificateDetailPage({
   params,
