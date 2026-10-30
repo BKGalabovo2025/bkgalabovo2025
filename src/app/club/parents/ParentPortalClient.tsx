@@ -792,6 +792,49 @@ export default function ParentPortalClient() {
         </div>
       </header>
 
+      {/* ── Active Pending Signature Banner ─────────────────────────── */}
+      {(() => {
+        const pendingDoc = documentsData?.sentDocuments.find(
+          (d) => d.status === "pending"
+        );
+        if (!pendingDoc) return null;
+        return (
+          <div className="rounded-3xl border-2 border-indigo-400 bg-linear-to-r from-indigo-600 via-indigo-700 to-blue-700 p-4 sm:p-5 text-white shadow-lg">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-xs text-white shadow-inner">
+                  <FileSignature className="size-6 animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-black tracking-wider text-amber-950 uppercase">
+                      Изисква се подпис
+                    </span>
+                    <span className="text-[11px] text-indigo-100">
+                      за {pendingDoc.memberName || selectedChild?.fullName}
+                    </span>
+                  </div>
+                  <h3 className="mt-1 text-sm font-bold text-white sm:text-base leading-snug">
+                    Имате официален документ за електронно подписване: „
+                    {pendingDoc.documentTitle}“
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  size="sm"
+                  onClick={() => handlePreviewSentDocument(pendingDoc)}
+                  className="h-9 rounded-xl bg-white px-4 text-xs font-bold text-indigo-800 shadow-sm hover:bg-indigo-50 cursor-pointer"
+                >
+                  ✍️ Прегледай и подпиши
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── Upcoming Competitions, Camps & Events ───────────────────── */}
       {announcements.length > 0 && (
         <div className="space-y-3">

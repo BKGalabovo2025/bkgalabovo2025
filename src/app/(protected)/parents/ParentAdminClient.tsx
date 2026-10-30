@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   Clock,
+  Copy,
   Download,
   Eye,
   FileSignature,
@@ -236,6 +237,27 @@ export default function ParentAdminClient() {
   );
   const [isDeletingUser, setIsDeletingUser] = useState(false);
 
+  // Persistent Credentials Modal State
+  const [credentialsModal, setCredentialsModal] = useState<{
+    open: boolean;
+    parentName: string;
+    parentPhone: string;
+    parentEmail: string;
+    tempPassword: string;
+    childName?: string;
+    title: string;
+    emailSent?: boolean;
+    copiedPassword?: boolean;
+    copiedMessage?: boolean;
+  }>({
+    open: false,
+    parentName: "",
+    parentPhone: "",
+    parentEmail: "",
+    tempPassword: "",
+    title: "",
+  });
+
   // Filtered Parents
   const filteredParents = useMemo(() => {
     return parents.filter((p) => {
@@ -342,7 +364,7 @@ export default function ParentAdminClient() {
         toast.error(res.error || "Грешка при одобрение.");
       } else {
         toast.success(
-          `Заявката беше одобрена! Данните за родител са вписани в досието на детето и е изпратен потвърдителен имейл.`
+          `Заявката за ${approveDialogReq.parentName} беше одобрена успешно! Данните са вписани в досието на детето и е изпратен потвърдителен имейл.`
         );
         setApproveDialogReq(null);
         refetch();
@@ -413,15 +435,31 @@ export default function ParentAdminClient() {
     if (!res.success) {
       toast.error(res.error || "Грешка при рестартиране на парола.");
     } else {
+      const childNames = (parent.linkedMemberIds || [])
+        .map((mId) => members.find((m) => m.id === mId)?.fullName || mId)
+        .join(", ");
+
+      setCredentialsModal({
+        open: true,
+        parentName: parent.name,
+        parentPhone: parent.phone,
+        parentEmail: parent.email,
+        tempPassword: res.tempPassword || "",
+        childName: childNames,
+        title: "Генерирана е нова парола за родителя!",
+        emailSent: res.emailSent,
+      });
+
       if (res.emailSent) {
         toast.success(
-          `Генерирана нова парола: "${res.tempPassword}". На ${parent.email} е изпратен имейл.`
+          `Генерирана нова парола! На ${parent.email} е изпратен имейл.`
         );
       } else {
         toast.warning(
-          `Генерирана нова парола: "${res.tempPassword}". Имейлът не можа да бъде доставен от Gmail (проверете конфигурацията на пощата).`
+          `Генерирана нова парола, но имейлът не можа да бъде доставен автоматично.`
         );
       }
+      refetch();
     }
   };
 
@@ -466,8 +504,20 @@ export default function ParentAdminClient() {
       if (!res.success) {
         toast.error(res.error || "Грешка при създаване на родител.");
       } else {
+        const matchedMember = members.find((m) => m.id === manualMemberId);
+        setCredentialsModal({
+          open: true,
+          parentName: manualName,
+          parentPhone: manualPhone,
+          parentEmail: manualEmail,
+          tempPassword: res.tempPassword || "",
+          childName: matchedMember?.fullName || "",
+          title: "Родителският профил е създаден успешно!",
+          emailSent: res.emailSent,
+        });
+
         toast.success(
-          `Родителят беше добавен успешно! Временна парола: "${res.tempPassword}". Изпратен е имейл за достъп.`
+          `Родителят беше добавен успешно! Временна парола: "${res.tempPassword}".`
         );
         setManualAddOpen(false);
         setManualName("");
@@ -2416,6 +2466,172 @@ export default function ParentAdminClient() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* DIALOG 7: PERSISTENT CREDENTIALS MODAL */}
+      <Dialog
+        open={credentialsModal.open}
+        onOpenChange={(open) =>
+          setCredentialsModal((prev) => ({ ...prev, open }))
+        }
+      >
+        <DialogContent className="max-w-md rounded-3xl p-6">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <span className="flex size-7 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                <CheckCircle2 size={16} />
+              </span>
+              <DialogTitle className="text-base font-bold text-zinc-900 dark:text-white">
+                {credentialsModal.title}
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-zinc-500 pt-1">
+              {credentialsModal.emailSent
+                ? `Данните за вход са изпратени автоматично на ${credentialsModal.parentEmail} и bkgalabovo2014@gmail.com.`
+                : `Можете да копирате данните за вход с бутона по-долу и да ги изпратите на родителя.`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            {!credentialsModal.emailSent && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+                <div className="font-semibold">Внимание:</div>
+                <div className="mt-0.5 text-[11px] text-amber-800 dark:text-amber-200">
+                  Имейлът не можа да бъде доставен автоматично от Gmail
+                  (проверете конфигурацията). Използвайте бутона по-долу, за да
+                  копирате данните.
+                </div>
+              </div>
+            )}
+
+            {/* Credentials Card */}
+            <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-900/40 dark:bg-blue-950/20 space-y-3">
+              <div className="text-xs space-y-1.5 text-zinc-700 dark:text-zinc-300">
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Родител:</span>
+                  <span className="font-bold">
+                    {credentialsModal.parentName}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Потребител (вход с):</span>
+                  <span className="font-mono font-semibold">
+                    {credentialsModal.parentPhone}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Имейл:</span>
+                  <span className="font-medium">
+                    {credentialsModal.parentEmail}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Линк за вход:</span>
+                  <span className="font-medium text-blue-600 dark:text-blue-400">
+                    bkgalabovo2025.vercel.app/club/parents/login
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-blue-200/60 dark:border-blue-900/60">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-blue-900 dark:text-blue-300 mb-1.5">
+                  Временна парола:
+                </div>
+                <div className="flex items-center justify-between rounded-xl bg-white p-3 border border-blue-200 dark:bg-zinc-900 dark:border-zinc-800 shadow-xs">
+                  <span className="font-mono text-lg font-black tracking-widest text-blue-700 dark:text-blue-400 select-all">
+                    {credentialsModal.tempPassword}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        credentialsModal.tempPassword
+                      );
+                      setCredentialsModal((prev) => ({
+                        ...prev,
+                        copiedPassword: true,
+                      }));
+                      toast.success("Паролата е копирана!");
+                      setTimeout(() => {
+                        setCredentialsModal((prev) => ({
+                          ...prev,
+                          copiedPassword: false,
+                        }));
+                      }, 2500);
+                    }}
+                    className="h-8 px-2.5 rounded-lg text-xs font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer"
+                  >
+                    {credentialsModal.copiedPassword ? (
+                      <>
+                        <Check size={14} className="mr-1 text-emerald-600" />
+                        <span>Копирана!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} className="mr-1" />
+                        <span>Копирай</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Button: Copy full message */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const siteUrl = "https://bkgalabovo2025.vercel.app";
+                const message = `Здравейте, ${credentialsModal.parentName}!
+Вашият профил в Родителския портал на БК „Гълъбово“${credentialsModal.childName ? ` за ${credentialsModal.childName}` : ""} е активен:
+🌐 Вход: ${siteUrl}/club/parents/login
+👤 Потребител: ${credentialsModal.parentPhone} (или ${credentialsModal.parentEmail})
+🔑 Временна парола: ${credentialsModal.tempPassword}
+
+При първия вход можете да промените паролата си с лична от настройките.`;
+                navigator.clipboard.writeText(message);
+                setCredentialsModal((prev) => ({
+                  ...prev,
+                  copiedMessage: true,
+                }));
+                toast.success("Данните за вход са копирани в клипборда!");
+                setTimeout(() => {
+                  setCredentialsModal((prev) => ({
+                    ...prev,
+                    copiedMessage: false,
+                  }));
+                }, 2500);
+              }}
+              className="w-full rounded-xl border-zinc-200 text-xs font-bold py-2.5 hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 cursor-pointer"
+            >
+              {credentialsModal.copiedMessage ? (
+                <>
+                  <Check size={14} className="mr-1.5 text-emerald-600" />
+                  <span>Съобщението е копирано!</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={14} className="mr-1.5" />
+                  <span>📋 Копирай съобщение с данни за вход</span>
+                </>
+              )}
+            </Button>
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button
+              type="button"
+              onClick={() =>
+                setCredentialsModal((prev) => ({ ...prev, open: false }))
+              }
+              className="w-full rounded-xl bg-blue-600 text-white font-semibold text-xs hover:bg-blue-500 py-2.5 cursor-pointer"
+            >
+              Затвори
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
