@@ -166,7 +166,22 @@ async function runGate() {
         // Игнорира се потенциален Windows chrome-launcher cleanup lock
       }
 
-      actualJson = candidateFiles.find((p) => fs.existsSync(p));
+      const found = candidateFiles.find((p) => fs.existsSync(p));
+      if (found) {
+        try {
+          const testData = JSON.parse(fs.readFileSync(found, "utf8"));
+          if (testData.runtimeError) {
+            console.warn(
+              `  ⚠️ Временна грешка на браузъра (${testData.runtimeError.code}), повторен опит...`
+            );
+            fs.unlinkSync(found);
+          } else {
+            actualJson = found;
+          }
+        } catch {
+          actualJson = found;
+        }
+      }
     }
 
     if (!actualJson) {
