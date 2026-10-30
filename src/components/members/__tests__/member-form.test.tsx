@@ -44,7 +44,7 @@ describe("MemberForm", () => {
     expect(screen.getByLabelText(/^Име/i)).toHaveValue("");
     expect(screen.getByLabelText(/Фамилия/i)).toHaveValue("");
     expect(screen.getByRole("button", { name: /Напред/i })).toBeInTheDocument();
-  }, 10000);
+  }, 30000);
 
   it("should render correctly in edit mode with initialData", async () => {
     render(

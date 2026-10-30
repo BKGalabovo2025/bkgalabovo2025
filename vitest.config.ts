@@ -8,6 +8,7 @@ export default defineConfig({
     globals: true,
     testTimeout: 20000,
     hookTimeout: 20000,
+    maxWorkers: 3,
     setupFiles:
       process.env.TEST_ENV === "integration" ? [] : ["./vitest.setup.ts"],
     exclude: [
