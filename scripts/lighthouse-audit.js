@@ -38,6 +38,9 @@ const baseUrl =
 async function getSampleRouteParams(adminApp) {
   const params = {
     id: "demo",
+    certId: "demo",
+    campId: "demo",
+    tournamentId: "BOnOr5KWLoyU7xs3z4z8",
     serviceId: "default",
     sessionId: "default",
     campaignId: "default",
@@ -48,30 +51,59 @@ async function getSampleRouteParams(adminApp) {
 
   try {
     const db = adminApp.firestore();
-    const [membersSnap, servicesSnap, eventsSnap, campaignsSnap] =
-      await Promise.all([
-        db
-          .collection("members")
-          .limit(1)
-          .get()
-          .catch(() => null),
-        db
-          .collection("services")
-          .limit(1)
-          .get()
-          .catch(() => null),
-        db
-          .collection("events")
-          .where("type", "==", "training")
-          .limit(1)
-          .get()
-          .catch(() => null),
-        db
-          .collection("feedback_campaigns")
-          .limit(1)
-          .get()
-          .catch(() => null),
-      ]);
+    const [
+      membersSnap,
+      servicesSnap,
+      eventsSnap,
+      campaignsSnap,
+      tournamentsSnap,
+      campsSnap,
+      certsSnap,
+      docsSnap,
+    ] = await Promise.all([
+      db
+        .collection("members")
+        .limit(1)
+        .get()
+        .catch(() => null),
+      db
+        .collection("services")
+        .limit(1)
+        .get()
+        .catch(() => null),
+      db
+        .collection("events")
+        .where("type", "==", "training")
+        .limit(1)
+        .get()
+        .catch(() => null),
+      db
+        .collection("feedback_campaigns")
+        .limit(1)
+        .get()
+        .catch(() => null),
+      db
+        .collection("tournaments")
+        .limit(1)
+        .get()
+        .catch(() => null),
+      db
+        .collection("events")
+        .where("type", "==", "camp")
+        .limit(1)
+        .get()
+        .catch(() => null),
+      db
+        .collection("certificates")
+        .limit(1)
+        .get()
+        .catch(() => null),
+      db
+        .collection("document_requests")
+        .limit(1)
+        .get()
+        .catch(() => null),
+    ]);
 
     if (membersSnap && !membersSnap.empty) {
       params.id = membersSnap.docs[0].id;
@@ -84,6 +116,21 @@ async function getSampleRouteParams(adminApp) {
     }
     if (campaignsSnap && !campaignsSnap.empty) {
       params.campaignId = campaignsSnap.docs[0].id;
+    }
+    if (tournamentsSnap && !tournamentsSnap.empty) {
+      params.tournamentId = tournamentsSnap.docs[0].id;
+    }
+    if (campsSnap && !campsSnap.empty) {
+      params.campId = campsSnap.docs[0].id;
+    }
+    if (certsSnap && !certsSnap.empty) {
+      params.certId = certsSnap.docs[0].id;
+    }
+    if (docsSnap && !docsSnap.empty) {
+      const docData = docsSnap.docs[0].data();
+      if (docData && docData.token) {
+        params.token = docData.token;
+      }
     }
   } catch {
     // fallback
@@ -139,8 +186,29 @@ function discoverRoutes(sampleParams = {}) {
             .replace(/\[serviceId\]/g, sampleParams.serviceId || "default")
             .replace(/\[campaignId\]/g, sampleParams.campaignId || "default")
             .replace(/\[sessionId\]/g, sampleParams.sessionId || "default")
-            .replace(/\[token\]/g, sampleParams.token || "demo")
-            .replace(/\[id\]/g, sampleParams.id || "demo");
+            .replace(/\[token\]/g, sampleParams.token || "demo");
+
+          if (route.startsWith("/cert/")) {
+            testRoute = testRoute.replace(
+              /\[id\]/g,
+              sampleParams.certId || sampleParams.id || "demo"
+            );
+          } else if (
+            route.startsWith("/club/camps/") ||
+            route.startsWith("/training/camps/")
+          ) {
+            testRoute = testRoute.replace(
+              /\[id\]/g,
+              sampleParams.campId || "demo"
+            );
+          } else if (route.startsWith("/tournaments/")) {
+            testRoute = testRoute.replace(
+              /\[id\]/g,
+              sampleParams.tournamentId || "demo"
+            );
+          } else {
+            testRoute = testRoute.replace(/\[id\]/g, sampleParams.id || "demo");
+          }
         }
 
         routes.push({

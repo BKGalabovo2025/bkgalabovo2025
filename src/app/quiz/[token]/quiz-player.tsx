@@ -43,7 +43,10 @@ function QuizPlayerResult({
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
+    <main
+      id="main-content"
+      className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4"
+    >
       <div className="mx-auto max-w-lg space-y-6 py-8">
         <div className="text-center">
           <div className="mb-2 text-5xl">{isReviewed ? emoji : "⏳"}</div>
@@ -260,7 +263,7 @@ function QuizPlayerResult({
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -379,20 +382,26 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
 
   if (step === "loading" || step === "submitting") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <main
+        id="main-content"
+        className="flex min-h-screen flex-col items-center justify-center gap-4 bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50"
+      >
         <Loader2 className="size-12 animate-spin text-indigo-500" />
         <p className="text-lg font-semibold text-indigo-700">
           {step === "submitting"
             ? "Анализират се отговорите ти...  "
             : "Зареждане на теста..."}
         </p>
-      </div>
+      </main>
     );
   }
 
   if (step === "not-found") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-linear-to-br from-red-50 to-orange-50 p-6">
+      <main
+        id="main-content"
+        className="flex min-h-screen flex-col items-center justify-center gap-6 bg-linear-to-br from-red-50 to-orange-50 p-6"
+      >
         <div className="text-6xl">😕</div>
         <h1 className="text-2xl font-black text-red-600">
           Тестът не е намерен
@@ -400,7 +409,7 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
         <p className="max-w-sm text-center text-zinc-600">
           Линкът може да е изтекъл. Попитай треньора си за нов линк!
         </p>
-      </div>
+      </main>
     );
   }
 
@@ -415,7 +424,10 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
   const progress = Math.round((currentQ / questions.length) * 100);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
+    <main
+      id="main-content"
+      className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4"
+    >
       <div className="mx-auto max-w-lg space-y-6 py-8">
         <div>
           <div className="mb-1 flex items-center gap-2">
@@ -504,6 +516,6 @@ export default function QuizPlayer({ token }: QuizPlayerProps) {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

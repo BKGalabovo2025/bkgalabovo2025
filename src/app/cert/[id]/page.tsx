@@ -51,7 +51,10 @@ export default async function CertificateDetailPage({
 
   if (!res.success || !res.data) {
     return (
-      <div className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
+      <main
+        id="main-content"
+        className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center"
+      >
         <div className="max-w-md space-y-4 rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-red-50 text-red-500 dark:bg-red-950/60">
             🔍
@@ -70,7 +73,7 @@ export default async function CertificateDetailPage({
             <Link href="/">Към началната страница</Link>
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 

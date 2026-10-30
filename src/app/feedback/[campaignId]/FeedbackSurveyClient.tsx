@@ -237,19 +237,25 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4">
+      <main
+        id="main-content"
+        className="flex min-h-screen items-center justify-center bg-zinc-50 p-4"
+      >
         <Loader2
           className={`size-8 animate-spin ${
             isRecovery ? "text-emerald-600" : "text-indigo-600"
           }`}
         />
-      </div>
+      </main>
     );
   }
 
   if (!campaign) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4 text-center">
+      <main
+        id="main-content"
+        className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4 text-center"
+      >
         <div className="max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
           <MessageSquareHeart className="mx-auto mb-3 size-12 text-zinc-300" />
           <h2 className="text-xl font-bold text-zinc-900">
@@ -262,13 +268,16 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
             <Link href={brand.url}>Към сайта</Link>
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (campaign.status === "closed" && !isSubmitted) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4 text-center">
+      <main
+        id="main-content"
+        className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4 text-center"
+      >
         <div className="max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
           <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
             <CheckCircle2 className="size-6" />
@@ -288,13 +297,14 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
             <Link href={brand.url}>Към сайта</Link>
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (isSubmitted) {
     return (
-      <div
+      <main
+        id="main-content"
         className={`flex min-h-screen flex-col items-center justify-center bg-linear-to-b ${brand.accentBg} p-4 text-center`}
       >
         <div
@@ -355,14 +365,15 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
             </Button>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   const activeRatingDisplay = hoverRating || overallRating;
 
   return (
-    <div
+    <main
+      id="main-content"
       className={`min-h-screen bg-linear-to-b ${brand.accentBg} px-4 py-10 sm:px-6`}
     >
       <div className="mx-auto max-w-2xl">
@@ -821,6 +832,6 @@ export default function FeedbackSurveyClient({ campaignId }: Props) {
           </form>
         </Card>
       </div>
-    </div>
+    </main>
   );
 }

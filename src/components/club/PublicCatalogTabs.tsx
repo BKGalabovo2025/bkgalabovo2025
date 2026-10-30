@@ -138,7 +138,7 @@ export default function PublicCatalogTabs({
               className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
                 activeTab === "trainings"
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
-                  : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
+                  : "text-zinc-300 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
               <Trophy size={14} className="sm:size-3.5" />{" "}
@@ -151,7 +151,7 @@ export default function PublicCatalogTabs({
               className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
                 activeTab === "general"
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
-                  : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
+                  : "text-zinc-300 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
               <Activity size={14} className="sm:size-3.5" />{" "}
@@ -164,7 +164,7 @@ export default function PublicCatalogTabs({
               className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
                 activeTab === "products"
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
-                  : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
+                  : "text-zinc-300 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
               <Package size={14} className="sm:size-3.5" />{" "}
@@ -177,7 +177,7 @@ export default function PublicCatalogTabs({
               className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
                 activeTab === "recovery"
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
-                  : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
+                  : "text-zinc-300 hover:bg-zinc-900/50 hover:text-white"
               }`}
             >
               <Zap size={14} className="sm:size-3.5" />{" "}
@@ -190,7 +190,7 @@ export default function PublicCatalogTabs({
       {/* Category Pills */}
       {categories.length > 2 && (
         <div className="flex flex-wrap items-center gap-1.5 px-1">
-          <span className="mr-1 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+          <span className="mr-1 text-[10px] font-semibold tracking-widest text-zinc-300 uppercase">
             {" "}
             {t("Категория:", "Category:", lang)}{" "}
           </span>
@@ -201,7 +201,7 @@ export default function PublicCatalogTabs({
               className={`rounded-full border px-3 py-1 text-[10px] font-semibold tracking-wider uppercase transition-all ${
                 selectedCategory === cat
                   ? "border-white bg-white text-zinc-950"
-                  : "border-zinc-800/80 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                  : "border-zinc-800/80 bg-zinc-900/40 text-zinc-300 hover:border-zinc-700 hover:text-white"
               }`}
             >
               {cat === "all" ? t("Всички", "All", lang) : cat}

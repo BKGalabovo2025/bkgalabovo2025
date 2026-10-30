@@ -98,7 +98,10 @@ export default function ParentRequestPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12 text-slate-100 sm:px-6">
+    <main
+      id="main-content"
+      className="relative flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12 text-slate-100 sm:px-6"
+    >
       {/* Background glow effects */}
       <div className="pointer-events-none absolute -top-40 left-1/2 size-96 -translate-x-1/2 rounded-full bg-blue-600/15 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-0 left-0 size-80 rounded-full bg-indigo-600/10 blur-[100px]" />
@@ -108,14 +111,14 @@ export default function ParentRequestPage() {
         <div className="mb-6 flex items-center justify-between">
           <Link
             href="/club/parents/login"
-            className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider text-zinc-400 uppercase transition-colors hover:text-white"
+            className="inline-flex min-h-11 items-center gap-2 py-2 text-xs font-semibold tracking-wider text-zinc-300 uppercase transition-colors hover:text-white"
           >
             <ArrowLeft size={16} />
             <span>Към вход за родители</span>
           </Link>
           <Link
             href="/club"
-            className="text-xs text-zinc-500 hover:text-zinc-300"
+            className="inline-flex min-h-11 items-center py-2 text-xs text-zinc-400 hover:text-white"
           >
             Към сайта на клуба
           </Link>
@@ -435,6 +438,6 @@ export default function ParentRequestPage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

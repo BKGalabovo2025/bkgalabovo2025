@@ -38,7 +38,10 @@ export default async function SignDocumentPage({ params }: SignPageProps) {
 
   if (!res.success || !res.data) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4">
+      <main
+        id="main-content"
+        className="flex min-h-screen items-center justify-center bg-zinc-50 p-4"
+      >
         <div className="max-w-md w-full rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-lg">
           <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 font-bold text-xl">
             !
@@ -59,7 +62,7 @@ export default async function SignDocumentPage({ params }: SignPageProps) {
             </Link>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 

@@ -333,7 +333,10 @@ export function PublicCertificateClient({
     : null;
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-amber-50/40 via-zinc-100/50 to-zinc-50 px-3 py-6 sm:px-6 lg:px-8 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+    <main
+      id="main-content"
+      className="min-h-screen bg-linear-to-b from-amber-50/40 via-zinc-100/50 to-zinc-50 px-3 py-6 sm:px-6 lg:px-8 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950"
+    >
       {/* Explicit Print CSS guaranteeing fit on exactly 1 single A4 sheet with full vertical balance */}
       <style>{`
         @media print {
@@ -972,6 +975,6 @@ export function PublicCertificateClient({
           onRedeemed={handleRefreshCert}
         />
       )}
-    </div>
+    </main>
   );
 }

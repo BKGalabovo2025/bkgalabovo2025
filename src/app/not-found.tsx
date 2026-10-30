@@ -3,7 +3,10 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[80vh] flex-col items-center justify-center bg-zinc-950 p-6 text-center text-zinc-100">
+    <main
+      id="main-content"
+      className="flex min-h-[80vh] flex-col items-center justify-center bg-zinc-950 p-6 text-center text-zinc-100"
+    >
       <div className="relative flex w-full max-w-lg flex-col items-center overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-900/60 p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
         {/* Subtle decorative glow */}
         <div className="pointer-events-none absolute -top-24 size-48 rounded-full bg-primary/20 blur-3xl" />
@@ -59,6 +62,6 @@ export default function NotFound() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

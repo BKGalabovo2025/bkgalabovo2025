@@ -201,7 +201,10 @@ export function DocumentSignerClient({
       : "";
 
     return (
-      <div className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6 lg:px-8">
+      <main
+        id="main-content"
+        className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6 lg:px-8"
+      >
         <div className="mx-auto max-w-xl">
           <div className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-xl">
             {/* Header banner */}
@@ -277,14 +280,17 @@ export function DocumentSignerClient({
             </div>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   // ── Render: Expired Screen ───────────────────────────────────────────────────
   if (data.status === "expired") {
     return (
-      <div className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6">
+      <main
+        id="main-content"
+        className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6"
+      >
         <div className="mx-auto max-w-lg overflow-hidden rounded-3xl border border-amber-200 bg-white p-8 text-center shadow-xl">
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
             <Clock className="size-7" />
@@ -298,14 +304,17 @@ export function DocumentSignerClient({
             генериране на нов линк.
           </p>
         </div>
-      </div>
+      </main>
     );
   }
 
   // ── Render: Cancelled Screen ─────────────────────────────────────────────────
   if (data.status === "cancelled") {
     return (
-      <div className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6">
+      <main
+        id="main-content"
+        className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6"
+      >
         <div className="mx-auto max-w-lg overflow-hidden rounded-3xl border border-rose-200 bg-white p-8 text-center shadow-xl">
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
             <AlertCircle className="size-7" />
@@ -316,7 +325,7 @@ export function DocumentSignerClient({
             клуба.
           </p>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -324,7 +333,10 @@ export function DocumentSignerClient({
   const formattedExpiry = new Date(data.expiresAt).toLocaleDateString("bg-BG");
 
   return (
-    <div className="min-h-screen bg-zinc-100/70 pb-20 pt-6 px-3 sm:px-6 lg:px-8 font-sans">
+    <main
+      id="main-content"
+      className="min-h-screen bg-zinc-100/70 pb-20 pt-6 px-3 sm:px-6 lg:px-8 font-sans"
+    >
       <div className="mx-auto max-w-2xl space-y-6">
         {/* Top Header Card */}
         <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-6 shadow-sm">
@@ -770,6 +782,6 @@ export function DocumentSignerClient({
           </div>
         </form>
       </div>
-    </div>
+    </main>
   );
 }

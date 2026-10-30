@@ -1,7 +1,14 @@
 import { Loader2 } from "lucide-react";
+import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import QuizPlayer from "./quiz-player";
+
+export const metadata: Metadata = {
+  title: "Интерактивен тест по бадминтон | БК Гълъбово",
+  description:
+    "Тест за бадминтон тактика, правила и теория за състезатели и любители на Бадминтон Клуб Гълъбово.",
+};
 
 export const dynamic = "force-dynamic";
 

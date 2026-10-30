@@ -43,7 +43,13 @@ export async function generateMetadata({
   try {
     const adminDb = getAdminDb();
     const doc = await adminDb.collection("events").doc(id).get();
-    if (!doc.exists) return { title: "Програма на лагер | БК Гълъбово" };
+    if (!doc.exists) {
+      return {
+        title: "Програма на лагер | БК Гълъбово",
+        description:
+          "Информация и дневна програма за тренировъчни лагери на Бадминтон Клуб Гълъбово.",
+      };
+    }
     const data = doc.data() || {};
     const title = typeof data.title === "string" ? data.title : "Лагер";
     const location = typeof data.location === "string" ? data.location : "";
@@ -69,7 +75,11 @@ export async function generateMetadata({
       },
     };
   } catch {
-    return { title: "Програма на лагер | БК Гълъбово" };
+    return {
+      title: "Програма на лагер | БК Гълъбово",
+      description:
+        "Информация и дневна програма за тренировъчни лагери на Бадминтон Клуб Гълъбово.",
+    };
   }
 }
 
@@ -350,7 +360,7 @@ export default async function CampPublicPage({
       </div>
 
       {/* Main content */}
-      <main className="relative z-10 px-4 pb-24 sm:px-6">
+      <main id="main-content" className="relative z-10 px-4 pb-24 sm:px-6">
         <div className="mx-auto max-w-3xl">
           <CampPublicClient camp={campData} initialDate={date} />
         </div>
