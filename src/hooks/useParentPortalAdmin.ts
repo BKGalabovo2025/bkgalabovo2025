@@ -3,6 +3,7 @@
 import useSWR from "swr";
 
 import { getAdminParentPortalDataAction } from "@/lib/actions/parent-portal";
+import { DocumentRequest } from "@/types/document-request.types";
 import {
   DataCorrectionRequest,
   ParentAbsence,
@@ -31,6 +32,8 @@ export interface AdminParentPortalStats {
   pendingRequestsCount: number;
   pendingAbsencesCount: number;
   pendingCorrectionsCount: number;
+  recentlySignedDocsCount?: number;
+  pendingSentDocsCount?: number;
   onlineParentsCount?: number;
   totalPending: number;
 }
@@ -54,6 +57,7 @@ const EMPTY_REQUESTS: ParentAccessRequest[] = [];
 const EMPTY_PARENTS: ParentUser[] = [];
 const EMPTY_ABSENCES: ParentAbsence[] = [];
 const EMPTY_CORRECTIONS: DataCorrectionRequest[] = [];
+const EMPTY_DOC_REQUESTS: DocumentRequest[] = [];
 const EMPTY_LOGS: ParentActivityLog[] = [];
 const EMPTY_MEMBERS: AdminMemberSummary[] = [];
 
@@ -61,6 +65,8 @@ const DEFAULT_STATS: AdminParentPortalStats = {
   pendingRequestsCount: 0,
   pendingAbsencesCount: 0,
   pendingCorrectionsCount: 0,
+  recentlySignedDocsCount: 0,
+  pendingSentDocsCount: 0,
   onlineParentsCount: 0,
   totalPending: 0,
 };
@@ -87,6 +93,8 @@ export function useParentPortalAdmin() {
   const absences: ParentAbsence[] = data?.absences || EMPTY_ABSENCES;
   const corrections: DataCorrectionRequest[] =
     data?.corrections || EMPTY_CORRECTIONS;
+  const documentRequests: DocumentRequest[] =
+    data?.documentRequests || EMPTY_DOC_REQUESTS;
   const activityLogs: ParentActivityLog[] = data?.activityLogs || EMPTY_LOGS;
   const members: AdminMemberSummary[] = (data?.members ||
     EMPTY_MEMBERS) as AdminMemberSummary[];
@@ -108,6 +116,7 @@ export function useParentPortalAdmin() {
     parents,
     absences,
     corrections,
+    documentRequests,
     activityLogs,
     onlineParents,
     onlineParentsCount,

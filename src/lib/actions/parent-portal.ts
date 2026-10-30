@@ -2,11 +2,13 @@
 import "server-only";
 
 // Cache invalidation trigger
+import crypto from "crypto";
 import { format, isValid } from "date-fns";
 import { bg } from "date-fns/locale";
 import { revalidatePath } from "next/cache";
 
 import { getAdminDb } from "@/lib/firebase-admin";
+import { checkIsMemberOverdue } from "@/lib/membership-utils";
 import {
   clearParentSession,
   generatePasswordResetToken,
@@ -32,6 +34,14 @@ import {
 } from "@/lib/parent-email-templates";
 import { arePhoneNumbersEqual, normalizePhoneNumber } from "@/lib/phone-utils";
 import { formatDobString, serializeFirestoreData } from "@/lib/serialize-utils";
+import { getAgeGroup } from "@/lib/utils";
+import {
+  DOCUMENT_TITLES,
+  type DocumentRequest,
+  type DocumentType,
+  DocumentTypeEnum,
+} from "@/types/document-request.types";
+import { DEFAULT_OFFICIAL_TEMPLATES } from "@/types/document-template.types";
 import {
   DataCorrectionRequest,
   DefaultParentMemberPermissions,
@@ -40,8 +50,17 @@ import {
   ParentActivityLog,
   ParentAnnouncement,
   ParentAttendanceRecord,
+  ParentDocumentChecklistItem,
+  ParentDocumentsData,
+  ParentFeeMonthItem,
+  ParentFeeStatusData,
+  ParentFinancialItemDetail,
+  ParentFinancialTransactionItem,
   ParentMemberPermissions,
+  ParentRankingData,
   ParentRole,
+  ParentSentDocumentItem,
+  ParentShadowAndQuizzesData,
   ParentUser,
 } from "@/types/parent-portal.types";
 
@@ -1498,11 +1517,85 @@ export async function approveDataCorrectionAction(correctionId: string) {
       return { success: false, error: "Членът не съществува." };
     }
 
-    // Automatically update the field in the member card!
-    await memberRef.update({
-      [corr.fieldKey]: corr.proposedValue,
+    // Map parent portal field keys to official MemberSchema fields
+    const val = corr.proposedValue.trim();
+    const memberUpdates: Record<string, unknown> = {
       updatedAt: new Date().toISOString(),
-    });
+    };
+
+    switch (corr.fieldKey) {
+      case "fullName": {
+        const parts = val.split(/\s+/).filter(Boolean);
+        if (parts.length === 1) {
+          memberUpdates.firstName = parts[0];
+        } else if (parts.length === 2) {
+          memberUpdates.firstName = parts[0];
+          memberUpdates.lastName = parts[1];
+        } else if (parts.length > 2) {
+          memberUpdates.firstName = parts[0];
+          memberUpdates.middleName = parts.slice(1, -1).join(" ");
+          memberUpdates.lastName = parts[parts.length - 1];
+        }
+        break;
+      }
+      case "birthDate": {
+        memberUpdates.dateOfBirth = val;
+        const calcGroup = getAgeGroup(val);
+        if (calcGroup) {
+          memberUpdates.ageGroup = calcGroup;
+        }
+        break;
+      }
+      case "ageGroup":
+        memberUpdates.ageGroup = val;
+        break;
+      case "phone":
+        memberUpdates.phone = val;
+        break;
+      case "address":
+        memberUpdates.address = val;
+        break;
+      case "school":
+        memberUpdates.educationInstitution = val;
+        break;
+      case "apparelSize":
+        memberUpdates.apparelSize = val;
+        break;
+      case "emergencyContact": {
+        memberUpdates.hasEmergencyContact = true;
+        const phoneMatch = val.match(/(\+?\d[\d\s-]{5,}\d)/);
+        if (phoneMatch) {
+          const extractedPhone = normalizePhoneNumber(phoneMatch[1]);
+          memberUpdates.emergencyContactPhone =
+            extractedPhone || phoneMatch[1].trim();
+          const namePart = val
+            .replace(phoneMatch[0], "")
+            .replace(/[()\-–—]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+          if (namePart.length >= 2) {
+            memberUpdates.emergencyContactName = namePart;
+          } else {
+            const existingData = memberSnap.data() || {};
+            if (!existingData.emergencyContactName && corr.parentName) {
+              memberUpdates.emergencyContactName = corr.parentName;
+            }
+          }
+        } else {
+          memberUpdates.emergencyContactPhone = val;
+        }
+        break;
+      }
+      case "healthNotes":
+        memberUpdates.healthConditionNotes = val;
+        break;
+      default:
+        memberUpdates[corr.fieldKey] = val;
+        break;
+    }
+
+    // Automatically update the mapped fields in the member card!
+    await memberRef.update(memberUpdates);
 
     await corrRef.update({
       status: "approved",
@@ -1624,24 +1717,29 @@ export async function getAdminParentPortalDataAction() {
       };
     }
 
-    const [reqsSnap, usersSnap, absSnap, corrsSnap] = await Promise.all([
-      adminDb
-        .collection(PARENT_REQUESTS_COLLECTION)
-        .where("siteId", "==", "bkgalabovo")
-        .get(),
-      adminDb
-        .collection(PARENT_USERS_COLLECTION)
-        .where("siteId", "==", "bkgalabovo")
-        .get(),
-      adminDb
-        .collection(PARENT_ABSENCES_COLLECTION)
-        .where("siteId", "==", "bkgalabovo")
-        .get(),
-      adminDb
-        .collection(PARENT_CORRECTIONS_COLLECTION)
-        .where("siteId", "==", "bkgalabovo")
-        .get(),
-    ]);
+    const [reqsSnap, usersSnap, absSnap, corrsSnap, docReqsSnap] =
+      await Promise.all([
+        adminDb
+          .collection(PARENT_REQUESTS_COLLECTION)
+          .where("siteId", "==", "bkgalabovo")
+          .get(),
+        adminDb
+          .collection(PARENT_USERS_COLLECTION)
+          .where("siteId", "==", "bkgalabovo")
+          .get(),
+        adminDb
+          .collection(PARENT_ABSENCES_COLLECTION)
+          .where("siteId", "==", "bkgalabovo")
+          .get(),
+        adminDb
+          .collection(PARENT_CORRECTIONS_COLLECTION)
+          .where("siteId", "==", "bkgalabovo")
+          .get(),
+        adminDb
+          .collection("document_requests")
+          .where("siteId", "==", "bkgalabovo")
+          .get(),
+      ]);
 
     const requests: ParentAccessRequest[] = reqsSnap.docs
       .map((d) => ({ ...d.data(), id: d.id }) as ParentAccessRequest)
@@ -1659,6 +1757,10 @@ export async function getAdminParentPortalDataAction() {
       .map((d) => ({ ...d.data(), id: d.id }) as DataCorrectionRequest)
       .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 
+    const documentRequests: DocumentRequest[] = docReqsSnap.docs
+      .map((d) => ({ ...d.data(), id: d.id }) as DocumentRequest)
+      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+
     const activityLogs: ParentActivityLog[] = [];
 
     const pendingRequestsCount = requests.filter(
@@ -1669,6 +1771,17 @@ export async function getAdminParentPortalDataAction() {
     ).length;
     const pendingCorrectionsCount = corrections.filter(
       (c) => c.status === "pending"
+    ).length;
+
+    const sevenDaysAgoMs = now - 7 * 24 * 60 * 60 * 1000;
+    const recentlySignedDocsCount = documentRequests.filter(
+      (dr) =>
+        dr.status === "completed" &&
+        dr.signedAt &&
+        new Date(dr.signedAt).getTime() >= sevenDaysAgoMs
+    ).length;
+    const pendingSentDocsCount = documentRequests.filter(
+      (dr) => dr.status === "pending"
     ).length;
 
     const onlineParentsCount = parents.filter(
@@ -1684,6 +1797,7 @@ export async function getAdminParentPortalDataAction() {
         parents,
         absences,
         corrections,
+        documentRequests,
         members,
         activityLogs,
         onlineParentsCount,
@@ -1691,6 +1805,8 @@ export async function getAdminParentPortalDataAction() {
           pendingRequestsCount,
           pendingAbsencesCount,
           pendingCorrectionsCount,
+          recentlySignedDocsCount,
+          pendingSentDocsCount,
           onlineParentsCount,
           totalPending:
             pendingRequestsCount +
@@ -1743,6 +1859,10 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
               priority: "info",
             },
           ] as ParentAnnouncement[],
+          documentsData: null as ParentDocumentsData | null,
+          feeStatus: null as ParentFeeStatusData | null,
+          rankingData: null as ParentRankingData | null,
+          shadowAndQuizzes: null as ParentShadowAndQuizzesData | null,
         },
       };
     }
@@ -1821,28 +1941,27 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
             ? selectedChildSummary.status
             : "active",
           isLicensed: selectedChildSummary.isLicensed,
-          // Granular permission protected fields:
+          // Granular permission protected fields mapped to MemberSchema:
           birthDate: permissions.showBirthDate
-            ? selectedChildRaw.dateOfBirth || null
+            ? formatDobString(selectedChildRaw.dateOfBirth) ||
+              selectedChildSummary.dateOfBirth ||
+              null
             : null,
           ageGroup: permissions.showAgeGroup
-            ? selectedChildRaw.ageGroup || null
+            ? selectedChildRaw.ageGroup ||
+              getAgeGroup(
+                selectedChildSummary.dateOfBirth || selectedChildRaw.dateOfBirth
+              ) ||
+              null
             : null,
           phone: permissions.showPhone ? selectedChildRaw.phone || null : null,
           address: permissions.showAddress
             ? selectedChildRaw.address || null
             : null,
           school: permissions.showSchool
-            ? selectedChildRaw.school || null
-            : null,
-          height: permissions.showHeight
-            ? selectedChildRaw.height || null
-            : null,
-          weight: permissions.showWeight
-            ? selectedChildRaw.weight || null
-            : null,
-          dominantHand: permissions.showDominantHand
-            ? selectedChildRaw.dominantHand || null
+            ? selectedChildRaw.educationInstitution ||
+              selectedChildRaw.school ||
+              null
             : null,
           apparelSize: permissions.showApparelSize
             ? selectedChildRaw.apparelSize ||
@@ -1850,14 +1969,37 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
               null
             : null,
           emergencyContact: permissions.showEmergencyContact
-            ? selectedChildRaw.emergencyContact ||
-              selectedChildRaw.parentPhone ||
-              selectedChildRaw.motherPhone ||
-              selectedChildRaw.fatherPhone ||
-              null
+            ? (() => {
+                const emName =
+                  typeof selectedChildRaw.emergencyContactName === "string"
+                    ? selectedChildRaw.emergencyContactName.trim()
+                    : "";
+                const emPhone =
+                  typeof selectedChildRaw.emergencyContactPhone === "string"
+                    ? selectedChildRaw.emergencyContactPhone.trim()
+                    : "";
+                const emRole =
+                  selectedChildRaw.emergencyContactRole === "mother"
+                    ? "Майка"
+                    : selectedChildRaw.emergencyContactRole === "father"
+                      ? "Баща"
+                      : "";
+                if (emName || emPhone) {
+                  return `${emName}${emRole ? ` (${emRole})` : ""}${emPhone ? `${emName ? " - " : ""}${emPhone}` : ""}`.trim();
+                }
+                return (
+                  selectedChildRaw.emergencyContact ||
+                  selectedChildRaw.parentPhone ||
+                  selectedChildRaw.motherPhone ||
+                  selectedChildRaw.fatherPhone ||
+                  null
+                );
+              })()
             : null,
           healthNotes: permissions.showHealthNotes
-            ? selectedChildRaw.healthNotes || selectedChildRaw.notes || null
+            ? selectedChildRaw.healthConditionNotes ||
+              selectedChildRaw.healthNotes ||
+              null
             : null,
         }
       : null;
@@ -1919,6 +2061,8 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
     // 1. Fetch club events from the Schedule module (siteId: "bkgalabovo")
     // This is the EXACT same source used by the Admin Schedule and Public Club Schedule.
     let announcements: ParentAnnouncement[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let allClubEvents: Array<{ id: string } & Record<string, any>> = [];
 
     try {
       const now = new Date();
@@ -1955,13 +2099,11 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
         .where("siteId", "==", "bkgalabovo")
         .get();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const allClubEvents: Array<{ id: string } & Record<string, any>> =
-        clubEventsSnap.docs.map((d) => ({
-          id: d.id,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(d.data() as Record<string, any>),
-        }));
+      allClubEvents = clubEventsSnap.docs.map((d) => ({
+        id: d.id,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...(d.data() as Record<string, any>),
+      }));
 
       // A. Populate attendance history for the active child
       // Includes ALL scheduled training sessions for the club / child's group + any event where child is an explicit attendee
@@ -2308,6 +2450,589 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
       console.warn("Error fetching schedule events for parent portal:", err);
     }
 
+    // ---------------------------------------------------------------------------
+    // 2. Fetch Optional Extended Sections Controlled by Admin Permissions
+    // ---------------------------------------------------------------------------
+    let documentsData: ParentDocumentsData | null = null;
+    let feeStatus: ParentFeeStatusData | null = null;
+    let rankingData: ParentRankingData | null = null;
+    let shadowAndQuizzes: ParentShadowAndQuizzesData | null = null;
+
+    if (activeChildId) {
+      // A. Documents & Medical Certificate Status + Sent Document Requests
+      try {
+        const docReqsSnap = await adminDb
+          .collection("document_requests")
+          .where("memberId", "==", activeChildId)
+          .get();
+
+        const sentDocuments: ParentSentDocumentItem[] = docReqsSnap.docs
+          .map((d) => {
+            const raw = d.data();
+            const isExpired =
+              raw.status === "pending" &&
+              raw.expiresAt &&
+              new Date(raw.expiresAt).getTime() < Date.now();
+            return {
+              id: d.id,
+              token: String(raw.token || ""),
+              memberId: String(raw.memberId || activeChildId),
+              memberName: String(
+                raw.memberName || selectedChildSummary?.fullName || ""
+              ),
+              documentType: String(raw.documentType || ""),
+              documentTitle: String(
+                raw.documentTitleSnapshot || raw.documentTitle || "Документ"
+              ),
+              status: (isExpired ? "expired" : raw.status || "pending") as
+                "pending" | "completed" | "expired" | "cancelled",
+              createdAt: String(raw.createdAt || ""),
+              expiresAt: String(raw.expiresAt || ""),
+              viewedByParentAt: raw.viewedByParentAt || null,
+              signedAt: raw.signedAt || null,
+              signatureUrl: raw.signatureUrl || null,
+              documentLegalTextSnapshot: raw.documentLegalTextSnapshot || null,
+              documentTitleSnapshot:
+                raw.documentTitleSnapshot || raw.documentTitle || null,
+            };
+          })
+          .filter((d) => d.status !== "cancelled")
+          .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+
+        const hasPendingSentDocs = sentDocuments.some(
+          (d) => d.status === "pending"
+        );
+
+        if (permissions.showDocumentsStatus !== false || hasPendingSentDocs) {
+          // Periodic medical certificate validity (6 months / 180 days from issueDate)
+          const medIssueStr = formatDobString(
+            selectedChildRaw.medicalCertificateDate
+          );
+          let medExpiresAt: string | null = null;
+          let medIsExpired = false;
+          let daysUntilExpiry: number | null = null;
+
+          if (medIssueStr) {
+            const issueDateObj = new Date(medIssueStr);
+            if (!isNaN(issueDateObj.getTime())) {
+              const expDate = new Date(issueDateObj.getTime());
+              expDate.setMonth(expDate.getMonth() + 6);
+              medExpiresAt = expDate.toISOString().slice(0, 10);
+              const diffMs = expDate.getTime() - Date.now();
+              daysUntilExpiry = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+              medIsExpired = daysUntilExpiry < 0;
+            }
+          }
+
+          const hasMedCert =
+            Boolean(selectedChildRaw.hasMedicalCertificate) ||
+            Boolean(medIssueStr);
+
+          const checklist: ParentDocumentChecklistItem[] =
+            permissions.showDocumentsStatus !== false
+              ? [
+                  {
+                    key: "membershipApplication",
+                    title: DOCUMENT_TITLES.membershipApplication,
+                    hasDocument: Boolean(
+                      selectedChildRaw.hasMembershipApplication
+                    ),
+                    handedAt:
+                      selectedChildRaw.membershipApplicationHandedAt || null,
+                    signatureUrl:
+                      selectedChildRaw.membershipApplicationSignatureUrl ||
+                      selectedChildRaw.membershipApplicationUrl ||
+                      null,
+                  },
+                  {
+                    key: "signedDeclaration",
+                    title: DOCUMENT_TITLES.signedDeclaration,
+                    hasDocument: Boolean(selectedChildRaw.hasSignedDeclaration),
+                    handedAt:
+                      selectedChildRaw.signedDeclarationHandedAt || null,
+                    signatureUrl: selectedChildRaw.signedDeclarationUrl || null,
+                  },
+                  {
+                    key: "travelDeclaration",
+                    title: DOCUMENT_TITLES.travelDeclaration,
+                    hasDocument: Boolean(selectedChildRaw.hasTravelDeclaration),
+                    handedAt:
+                      selectedChildRaw.travelDeclarationHandedAt || null,
+                    signatureUrl: selectedChildRaw.travelDeclarationUrl || null,
+                  },
+                  {
+                    key: "safetyInstruction",
+                    title: DOCUMENT_TITLES.safetyInstruction,
+                    hasDocument: Boolean(selectedChildRaw.hasSafetyInstruction),
+                    handedAt:
+                      selectedChildRaw.safetyInstructionHandedAt || null,
+                    signatureUrl:
+                      selectedChildRaw.safetyDeclarationSignatureUrl ||
+                      selectedChildRaw.safetyInstructionUrl ||
+                      null,
+                  },
+                  {
+                    key: "internalRules",
+                    title: DOCUMENT_TITLES.internalRules,
+                    hasDocument: Boolean(selectedChildRaw.hasInternalRules),
+                    handedAt: selectedChildRaw.internalRulesHandedAt || null,
+                    signatureUrl:
+                      selectedChildRaw.internalRulesSignatureUrl ||
+                      selectedChildRaw.internalRulesUrl ||
+                      null,
+                  },
+                  {
+                    key: "amateurContract",
+                    title: DOCUMENT_TITLES.amateurContract,
+                    hasDocument: Boolean(selectedChildRaw.hasAmateurContract),
+                    handedAt: selectedChildRaw.amateurContractHandedAt || null,
+                    signatureUrl:
+                      selectedChildRaw.amateurContractSignatureUrl ||
+                      selectedChildRaw.amateurContractUrl ||
+                      null,
+                  },
+                  {
+                    key: "licenseApplication",
+                    title: DOCUMENT_TITLES.licenseApplication,
+                    hasDocument: Boolean(
+                      selectedChildRaw.hasLicenseApplication ||
+                      selectedChildRaw.isLicensed
+                    ),
+                    handedAt:
+                      selectedChildRaw.licenseApplicationHandedAt ||
+                      selectedChildRaw.isLicensedHandedAt ||
+                      null,
+                    signatureUrl:
+                      selectedChildRaw.licenseApplicationSignatureUrl ||
+                      selectedChildRaw.licenseApplicationUrl ||
+                      null,
+                  },
+                ]
+              : [];
+
+          documentsData = {
+            medicalCertificate: {
+              hasCertificate: hasMedCert,
+              issueDate: medIssueStr || null,
+              expiresAt: medExpiresAt,
+              isExpired: medIsExpired,
+              daysUntilExpiry,
+            },
+            checklist,
+            sentDocuments,
+          };
+        }
+      } catch (err) {
+        console.warn("Error fetching parent documents data:", err);
+      }
+
+      // B. Monthly Fee & Club Subscription Status
+      if (permissions.showFeeStatus !== false) {
+        try {
+          const nowDate = new Date();
+          const currentMonthKey = format(nowDate, "yyyy-MM");
+          const currentMonthRawLabel = format(nowDate, "LLLL yyyy", {
+            locale: bg,
+          });
+          const currentMonthLabel =
+            currentMonthRawLabel.charAt(0).toUpperCase() +
+            currentMonthRawLabel.slice(1);
+
+          // Query sales for this child (and family if familyId is present)
+          const salesSnap = await adminDb
+            .collection("sales")
+            .where("memberId", "==", activeChildId)
+            .get();
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const childSales: Array<{ id: string } & Record<string, any>> =
+            salesSnap.docs.map((d) => ({
+              id: d.id,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ...(d.data() as Record<string, any>),
+            }));
+
+          if (selectedChildRaw.familyId) {
+            try {
+              const famSalesSnap = await adminDb
+                .collection("sales")
+                .where("familyId", "==", selectedChildRaw.familyId)
+                .get();
+              for (const fd of famSalesSnap.docs) {
+                if (!childSales.some((cs) => cs.id === fd.id)) {
+                  childSales.push({
+                    id: fd.id,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ...(fd.data() as Record<string, any>),
+                  });
+                }
+              }
+            } catch {
+              // ignore
+            }
+          }
+
+          childSales.sort((a, b) =>
+            String(b.saleDate || b.createdAt || "").localeCompare(
+              String(a.saleDate || a.createdAt || "")
+            )
+          );
+
+          let unpaidSalesCount = 0;
+          let unpaidSalesAmount = 0;
+
+          const isSubscriptionItemName = (name: string): boolean => {
+            const lower = name.toLowerCase();
+            return (
+              lower.includes("месечна") ||
+              lower.includes("такса") ||
+              lower.includes("членски") ||
+              lower.includes("абонамент") ||
+              lower.includes("годишна")
+            );
+          };
+
+          const transactions: ParentFinancialTransactionItem[] = childSales.map(
+            (s) => {
+              const isPaid =
+                s.isPaid === true ||
+                s.status === "paid" ||
+                s.status === "completed";
+              const amount = Number(s.totalAmount || s.amount || 0);
+              if (!isPaid && s.status !== "cancelled") {
+                unpaidSalesCount++;
+                unpaidSalesAmount += amount;
+              }
+
+              const itemsList = Array.isArray(s.items) ? s.items : [];
+              const mappedItems: ParentFinancialItemDetail[] = itemsList.map(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (it: any) => {
+                  const qty = Number(it?.quantity || 1);
+                  const price = Number(it?.price || 0);
+                  const itemTotal = Number((qty * price).toFixed(2));
+                  return {
+                    name: String(it?.name || it?.serviceName || "Артикул"),
+                    quantity: qty,
+                    price,
+                    total: itemTotal,
+                  };
+                }
+              );
+
+              const itemNames = mappedItems
+                .map((it) => it.name)
+                .join(" ")
+                .toLowerCase();
+              let type:
+                "inventory" | "subscription" | "service" | "general_service" =
+                "service";
+              let typeLabel = "🏸 Тренировка / Такса";
+
+              if (
+                s.type === "inventory" ||
+                s.category === "inventory" ||
+                itemNames.includes("ракета") ||
+                itemNames.includes("грип") ||
+                itemNames.includes("перца") ||
+                itemNames.includes("перо") ||
+                itemNames.includes("кордаж") ||
+                itemNames.includes("екип") ||
+                itemNames.includes("тениска") ||
+                itemNames.includes("шорти") ||
+                itemNames.includes("чорапи") ||
+                itemNames.includes("сак") ||
+                itemNames.includes("бутилка") ||
+                itemNames.includes("магазин")
+              ) {
+                type = "inventory";
+                typeLabel = "🛍️ Магазин / Екипировка";
+              } else if (
+                s.type === "subscription" ||
+                isSubscriptionItemName(itemNames) ||
+                (s.targetMonthLabels && s.targetMonthLabels.length > 0)
+              ) {
+                type = "subscription";
+                typeLabel = "💳 Членски внос / Абонамент";
+              } else if (s.type === "general_service") {
+                type = "general_service";
+                typeLabel = "🏸 Клубна услуга";
+              }
+
+              const desc =
+                mappedItems
+                  .map(
+                    (it) =>
+                      `${it.name}${it.quantity > 1 ? ` (x${it.quantity})` : ""}`
+                  )
+                  .join(", ") ||
+                s.description ||
+                s.notes ||
+                typeLabel;
+
+              const rawDate = String(s.saleDate || s.createdAt || "");
+              let issueDate = "";
+              if (rawDate) {
+                try {
+                  issueDate = format(new Date(rawDate), "dd.MM.yyyy г.");
+                } catch {
+                  issueDate = rawDate.slice(0, 10);
+                }
+              }
+
+              return {
+                id: s.id,
+                receiptNumber: (s.id || "").substring(0, 8).toUpperCase(),
+                date: rawDate,
+                issueDate,
+                amount: Number(amount.toFixed(2)),
+                description: desc,
+                isPaid,
+                status: String(s.status || (isPaid ? "completed" : "pending")),
+                type,
+                typeLabel,
+                paymentMethod: String(s.paymentMethod || "В брой"),
+                items: mappedItems,
+                note: s.note ? String(s.note) : null,
+                targetMonthLabels: Array.isArray(s.targetMonthLabels)
+                  ? s.targetMonthLabels
+                  : undefined,
+                targetEventDates: Array.isArray(s.targetEventDates)
+                  ? s.targetEventDates
+                  : undefined,
+              };
+            }
+          );
+
+          const recentPayments = transactions.slice(0, 8).map((t) => ({
+            id: t.id,
+            date: t.date,
+            amount: t.amount,
+            description: t.description,
+            isPaid: t.isPaid,
+          }));
+
+          // Monthly breakdown for the last 6 months from allClubEvents
+          const monthMap = new Map<
+            string,
+            { paid: number; unpaid: number; total: number }
+          >();
+          for (let i = 0; i < 6; i++) {
+            const d = new Date(
+              nowDate.getFullYear(),
+              nowDate.getMonth() - i,
+              1
+            );
+            const mKey = format(d, "yyyy-MM");
+            monthMap.set(mKey, { paid: 0, unpaid: 0, total: 0 });
+          }
+
+          for (const ev of allClubEvents) {
+            if (ev.isCancelled) continue;
+            const startIso =
+              typeof ev.startDate === "string" ? ev.startDate : "";
+            if (!startIso) continue;
+            const mKey = startIso.slice(0, 7);
+            const bucket = monthMap.get(mKey);
+            if (!bucket) continue;
+
+            const attendeesList = Array.isArray(ev.attendees)
+              ? ev.attendees
+              : [];
+
+            const entry = attendeesList.find(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (a: any) => a?.memberId === activeChildId && a?.attended
+            );
+            if (entry) {
+              bucket.total++;
+              if (entry.paymentStatus === "paid") {
+                bucket.paid++;
+              } else {
+                bucket.unpaid++;
+              }
+            }
+          }
+
+          // Check if member has a paid subscription sale in a given month
+          const paidSubscriptionMonths = new Set<string>();
+          for (const s of childSales) {
+            const isPaid =
+              s.isPaid === true ||
+              s.status === "paid" ||
+              s.status === "completed";
+            if (isPaid) {
+              const sDate = String(s.saleDate || s.createdAt || "");
+              if (sDate.length >= 7) {
+                paidSubscriptionMonths.add(sDate.slice(0, 7));
+              }
+            }
+          }
+
+          const lastPaymentDateStr =
+            formatDobString(selectedChildRaw.lastPaymentDate) ||
+            recentPayments.find((p) => p.isPaid)?.date?.slice(0, 10) ||
+            null;
+
+          if (lastPaymentDateStr && lastPaymentDateStr.length >= 7) {
+            paidSubscriptionMonths.add(lastPaymentDateStr.slice(0, 7));
+          }
+
+          const overdueCheck = checkIsMemberOverdue({
+            id: activeChildId,
+            lastPaymentDate:
+              selectedChildRaw.lastPaymentDate || lastPaymentDateStr,
+            registrationDate:
+              selectedChildRaw.registrationDate || new Date().toISOString(),
+            status: selectedChildSummary?.status || "active",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any);
+          const isOverdue = Boolean(overdueCheck.isOverdue);
+
+          const monthlyBreakdown: ParentFeeMonthItem[] = Array.from(
+            monthMap.entries()
+          ).map(([mKey, counts]) => {
+            const [yStr, mStr] = mKey.split("-");
+            const dObj = new Date(Number(yStr), Number(mStr) - 1, 1);
+            const rawLbl = format(dObj, "LLLL yyyy", { locale: bg });
+            const monthLabel = rawLbl.charAt(0).toUpperCase() + rawLbl.slice(1);
+
+            const hasPaidSubInMonth = paidSubscriptionMonths.has(mKey);
+            let status: "paid" | "unpaid" | "partial" | "no_trainings" =
+              "no_trainings";
+
+            if (counts.total === 0) {
+              status = hasPaidSubInMonth ? "paid" : "no_trainings";
+            } else if (counts.unpaid === 0 || hasPaidSubInMonth) {
+              status = "paid";
+            } else if (counts.paid > 0) {
+              status = "partial";
+            } else {
+              status = "unpaid";
+            }
+
+            return {
+              monthKey: mKey,
+              monthLabel,
+              totalTrainings: counts.total,
+              paidTrainings: hasPaidSubInMonth ? counts.total : counts.paid,
+              unpaidTrainings: hasPaidSubInMonth ? 0 : counts.unpaid,
+              status,
+            };
+          });
+
+          const currMonthEntry = monthlyBreakdown[0];
+          let currentMonthStatus:
+            "paid" | "unpaid" | "partial" | "active_subscription" =
+            "active_subscription";
+
+          if (paidSubscriptionMonths.has(currentMonthKey) || !isOverdue) {
+            currentMonthStatus = "paid";
+          } else if (
+            currMonthEntry?.status === "unpaid" ||
+            unpaidSalesCount > 0
+          ) {
+            currentMonthStatus = "unpaid";
+          } else if (currMonthEntry?.status === "partial") {
+            currentMonthStatus = "partial";
+          } else if (isOverdue) {
+            currentMonthStatus = "unpaid";
+          }
+
+          feeStatus = {
+            currentMonthKey,
+            currentMonthLabel,
+            currentMonthStatus,
+            isOverdue: isOverdue || unpaidSalesCount > 0,
+            lastPaymentDate: lastPaymentDateStr,
+            unpaidSalesCount,
+            unpaidSalesAmount: Number(unpaidSalesAmount.toFixed(2)),
+            transactions,
+            recentPayments,
+            monthlyBreakdown,
+          };
+        } catch (err) {
+          console.warn("Error computing parent fee status:", err);
+        }
+      }
+
+      // C. Club Ranking (Optional)
+      if (permissions.showRanking) {
+        rankingData = {
+          rankingPoints: Number(selectedChildRaw.rankingPoints || 0),
+          rankingPosition:
+            typeof selectedChildRaw.rankingPosition === "number" &&
+            selectedChildRaw.rankingPosition > 0
+              ? selectedChildRaw.rankingPosition
+              : null,
+          isLicensed: Boolean(selectedChildRaw.isLicensed),
+        };
+      }
+
+      // D. Shadow Badminton & Educational Quizzes (Optional)
+      if (permissions.showShadowAndQuizzes) {
+        try {
+          const [trainingsSnap, quizSnap] = await Promise.all([
+            adminDb
+              .collection("trainings")
+              .where("memberIds", "array-contains", activeChildId)
+              .get(),
+            adminDb
+              .collection("theory_results")
+              .where("playerId", "==", activeChildId)
+              .get(),
+          ]);
+
+          const shadowDocs = trainingsSnap.docs
+            .map((d) => d.data())
+            .filter((t) => t.type === "shadow" || Boolean(t.shadowDetails))
+            .sort((a, b) =>
+              String(b.date || "").localeCompare(String(a.date || ""))
+            );
+
+          let reactionSum = 0;
+          let reactionCount = 0;
+          for (const s of shadowDocs) {
+            if (typeof s.shadowDetails?.paceSec === "number") {
+              reactionSum += s.shadowDetails.paceSec;
+              reactionCount++;
+            }
+          }
+
+          const quizDocs = quizSnap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .sort((a, b) =>
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              String((b as any).submittedAt || "").localeCompare(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                String((a as any).submittedAt || "")
+              )
+            );
+
+          shadowAndQuizzes = {
+            shadowSessionsCount: shadowDocs.length,
+            lastShadowDate: shadowDocs[0]?.date || null,
+            averageReactionSec:
+              reactionCount > 0
+                ? Number((reactionSum / reactionCount).toFixed(2))
+                : null,
+            quizzesCompletedCount: quizDocs.length,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            recentQuizzes: quizDocs.slice(0, 6).map((q: any) => ({
+              id: String(q.id),
+              title: String(q.quizTitle || "Теоретичен тест"),
+              totalScore: Number(q.totalScore || q.autoScore || 0),
+              submittedAt: String(q.submittedAt || ""),
+              status: String(q.status || "COMPLETED"),
+              coachFeedback: q.coachFeedback || q.aiFeedback || null,
+            })),
+          };
+        } catch (err) {
+          console.warn("Error fetching shadow and quizzes data:", err);
+        }
+      }
+    }
+
     return {
       success: true,
       data: serializeFirestoreData({
@@ -2321,6 +3046,10 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
         attendances,
         nextTraining,
         announcements,
+        documentsData,
+        feeStatus,
+        rankingData,
+        shadowAndQuizzes,
       }),
     };
   } catch (error) {
@@ -2402,4 +3131,213 @@ export async function getParentActivityLogsAction(
     success: true,
     logs: [] as ParentActivityLog[],
   };
+}
+
+/**
+ * 25. Send an official club document directly to a parent's profile for preview and online signing (Admin action).
+ * Pulls the latest template from `document_templates/{documentType}` (or DEFAULT_OFFICIAL_TEMPLATES).
+ */
+export async function sendDocumentToParentPortalAction(input: {
+  memberId: string;
+  parentUserId?: string;
+  documentType: DocumentType;
+}) {
+  try {
+    const typeResult = DocumentTypeEnum.safeParse(input.documentType);
+    if (!typeResult.success) {
+      return { success: false, error: "Невалиден тип документ." };
+    }
+
+    const adminDb = getAdminDb();
+    const memberDoc = await adminDb
+      .collection(MEMBERS_COLLECTION)
+      .doc(input.memberId)
+      .get();
+
+    if (!memberDoc.exists) {
+      return { success: false, error: "Състезателят не е намерен." };
+    }
+
+    const memberData = memberDoc.data() || {};
+    const memberName =
+      (memberData.name as string) ||
+      [memberData.firstName, memberData.middleName, memberData.lastName]
+        .filter(Boolean)
+        .join(" ") ||
+      "Член на клуба";
+
+    const memberBirthDate =
+      formatDobString(memberData.dateOfBirth || memberData.birthDate) || null;
+    const siteId = (memberData.siteId as string) || "bkgalabovo";
+    const documentType = typeResult.data;
+    const documentTitle = DOCUMENT_TITLES[documentType] || "Клубен документ";
+
+    // Always pull the latest template version from `document_templates/{documentType}`
+    const defaultTpl = DEFAULT_OFFICIAL_TEMPLATES.find(
+      (t) => t.id === documentType
+    );
+    let templateId: string | null = defaultTpl?.id || documentType;
+    let templateVersion = defaultTpl?.version || 1;
+    let documentLegalTextSnapshot: string | null = defaultTpl?.content || null;
+    let documentTitleSnapshot = defaultTpl?.title || documentTitle;
+
+    try {
+      const tplSnap = await adminDb
+        .collection("document_templates")
+        .doc(documentType)
+        .get();
+      if (tplSnap.exists) {
+        const tplData = tplSnap.data();
+        templateId = tplSnap.id;
+        templateVersion =
+          typeof tplData?.version === "number" ? tplData.version : 1;
+        documentLegalTextSnapshot =
+          tplData?.content || documentLegalTextSnapshot;
+        documentTitleSnapshot = tplData?.title || documentTitleSnapshot;
+      }
+    } catch {
+      // fallback to defaultTpl
+    }
+
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+    // Check if an active pending request already exists for this member + documentType
+    const existingSnap = await adminDb
+      .collection("document_requests")
+      .where("memberId", "==", input.memberId)
+      .where("documentType", "==", documentType)
+      .where("status", "==", "pending")
+      .limit(1)
+      .get();
+
+    let requestId: string;
+    let token: string;
+
+    if (!existingSnap.empty) {
+      const existingDoc = existingSnap.docs[0];
+      const existingData = existingDoc.data();
+      requestId = existingDoc.id;
+      token = existingData.token;
+
+      // Refresh with the latest template version & extend expiry
+      await existingDoc.ref.update({
+        documentTitle: documentTitleSnapshot,
+        templateId,
+        templateVersion,
+        documentLegalTextSnapshot,
+        documentTitleSnapshot,
+        expiresAt: expiresAt.toISOString(),
+        sentToParentUserId:
+          input.parentUserId || existingData.sentToParentUserId || null,
+      });
+    } else {
+      token = crypto.randomUUID();
+      const newReq = {
+        token,
+        memberId: input.memberId,
+        memberName,
+        memberBirthDate,
+        siteId,
+        documentType,
+        documentTitle: documentTitleSnapshot,
+        templateId,
+        templateVersion,
+        documentLegalTextSnapshot,
+        documentTitleSnapshot,
+        status: "pending",
+        createdAt: now.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        viewedByParentAt: null,
+        sentToParentUserId: input.parentUserId || null,
+        signedAt: null,
+        signatureUrl: null,
+        parentData: null,
+      };
+      const docRef = await adminDb.collection("document_requests").add(newReq);
+      requestId = docRef.id;
+    }
+
+    // Ensure showDocumentsStatus is enabled on linked parent(s) so they see the Documents section
+    try {
+      const parentSnap = await adminDb
+        .collection(PARENT_USERS_COLLECTION)
+        .where("linkedMemberIds", "array-contains", input.memberId)
+        .get();
+      for (const pDoc of parentSnap.docs) {
+        if (input.parentUserId && pDoc.id !== input.parentUserId) continue;
+        const pData = pDoc.data() as ParentUser;
+        const currPerms =
+          pData.permissionsPerMember?.[input.memberId] ||
+          DefaultParentMemberPermissions;
+        if (currPerms.showDocumentsStatus === false) {
+          await pDoc.ref.update({
+            [`permissionsPerMember.${input.memberId}.showDocumentsStatus`]: true,
+          });
+        }
+      }
+    } catch {
+      // non-blocking
+    }
+
+    revalidatePath("/parents");
+    revalidatePath(`/members/${input.memberId}`);
+    revalidatePath("/club/parents");
+
+    return {
+      success: true,
+      requestId,
+      token,
+      documentTitle: documentTitleSnapshot,
+    };
+  } catch (err) {
+    console.error("sendDocumentToParentPortalAction error:", err);
+    return {
+      success: false,
+      error: "Грешка при изпращане на документа до родителския профил.",
+    };
+  }
+}
+
+/**
+ * 26. Mark a sent document as viewed by the parent in the Parent Portal.
+ * Updates `viewedByParentAt` on `document_requests` and updates the parent's `lastAction` so Admin sees it immediately.
+ */
+export async function markDocumentViewedByParentAction(requestId: string) {
+  try {
+    const parent = await getActiveParentUserAction();
+    if (!parent) {
+      return { success: false, error: "UNAUTHORIZED" };
+    }
+
+    const adminDb = getAdminDb();
+    const docRef = adminDb.collection("document_requests").doc(requestId);
+    const snap = await docRef.get();
+    if (!snap.exists) {
+      return { success: false, error: "Документът не е намерен." };
+    }
+
+    const docData = snap.data() || {};
+    const nowIso = new Date().toISOString();
+    const viewedByParentAt = docData.viewedByParentAt || nowIso;
+
+    if (!docData.viewedByParentAt) {
+      await docRef.update({ viewedByParentAt });
+    }
+
+    const actionTitle = `👁️ Прегледан документ: ${docData.documentTitleSnapshot || docData.documentTitle || "Документ"}`;
+    await adminDb.collection(PARENT_USERS_COLLECTION).doc(parent.id).update({
+      lastActiveAt: nowIso,
+      lastAction: actionTitle,
+      lastActionAt: nowIso,
+    });
+
+    return {
+      success: true,
+      viewedByParentAt,
+    };
+  } catch (err) {
+    console.error("markDocumentViewedByParentAction error:", err);
+    return { success: false, error: "Грешка при отбелязване на преглед." };
+  }
 }

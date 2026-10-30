@@ -6,6 +6,8 @@ import {
   CheckCircle2,
   Edit3,
   ExternalLink,
+  Eye,
+  FileSignature,
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
@@ -63,9 +65,13 @@ function playChime() {
 }
 
 export function ParentNotificationsBell() {
-  const { counts } = useParentPortalAdmin();
+  const { counts, documentRequests } = useParentPortalAdmin();
   const [isOpen, setIsOpen] = useState(false);
   const prevTotalRef = useRef<number | null>(null);
+
+  const recentSignedOrViewedDocs = documentRequests
+    .filter((d) => d.status === "completed" || Boolean(d.viewedByParentAt))
+    .slice(0, 4);
 
   useEffect(() => {
     if (
@@ -212,8 +218,8 @@ export function ParentNotificationsBell() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-6 text-center text-zinc-400">
-            <CheckCircle2 className="size-8 text-emerald-500/80 mb-2 stroke-1.5" />
+          <div className="flex flex-col items-center justify-center py-4 text-center text-zinc-400">
+            <CheckCircle2 className="size-7 text-emerald-500/80 mb-1.5 stroke-1.5" />
             <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
               Няма чакащи известия
             </p>
@@ -221,6 +227,55 @@ export function ParentNotificationsBell() {
               Всички заявки и отсъствия са обработени
             </p>
           </div>
+        )}
+
+        {recentSignedOrViewedDocs.length > 0 && (
+          <>
+            <DropdownMenuSeparator className="my-1 bg-zinc-100 dark:bg-zinc-800" />
+            <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              Документи (Прегледани / Подписани)
+            </div>
+            <div className="space-y-1 p-1">
+              {recentSignedOrViewedDocs.map((doc) => {
+                const isSigned = doc.status === "completed";
+                return (
+                  <DropdownMenuItem key={doc.id} asChild>
+                    <Link
+                      href={`/members/${doc.memberId}`}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-between rounded-xl px-2.5 py-2 text-xs text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className={cn(
+                            "flex size-6 shrink-0 items-center justify-center rounded-lg",
+                            isSigned
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400"
+                              : "bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-400"
+                          )}
+                        >
+                          {isSigned ? (
+                            <FileSignature className="size-3.5" />
+                          ) : (
+                            <Eye className="size-3.5" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-[11px]">
+                            {doc.documentTitle}
+                          </p>
+                          <p className="truncate text-[10px] text-zinc-400">
+                            {doc.memberName} •{" "}
+                            {isSigned ? "✍️ Подписан" : "👁️ Прегледан"}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                );
+              })}
+            </div>
+          </>
         )}
 
         <DropdownMenuSeparator className="my-1 bg-zinc-100 dark:bg-zinc-800" />

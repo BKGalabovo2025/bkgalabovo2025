@@ -7,6 +7,10 @@ import { getParentDashboardDataAction } from "@/lib/actions/parent-portal";
 import {
   ParentAnnouncement,
   ParentAttendanceRecord,
+  ParentDocumentsData,
+  ParentFeeStatusData,
+  ParentRankingData,
+  ParentShadowAndQuizzesData,
 } from "@/types/parent-portal.types";
 
 export function useParentPortal(initialChildId?: string) {
@@ -51,6 +55,11 @@ export function useParentPortal(initialChildId?: string) {
     attendances: (data?.attendances || []) as ParentAttendanceRecord[],
     nextTraining: data?.nextTraining || null,
     announcements: (data?.announcements || []) as ParentAnnouncement[],
+    documentsData: (data?.documentsData || null) as ParentDocumentsData | null,
+    feeStatus: (data?.feeStatus || null) as ParentFeeStatusData | null,
+    rankingData: (data?.rankingData || null) as ParentRankingData | null,
+    shadowAndQuizzes: (data?.shadowAndQuizzes ||
+      null) as ParentShadowAndQuizzesData | null,
     selectedChildId,
     setSelectedChildId,
     refetch: mutate,

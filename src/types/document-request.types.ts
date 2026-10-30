@@ -68,6 +68,8 @@ export const DocumentRequestSchema = z.object({
   status: DocumentRequestStatusEnum,
   createdAt: z.string(),
   expiresAt: z.string(),
+  viewedByParentAt: z.string().nullable().optional(),
+  sentToParentUserId: z.string().nullable().optional(),
   signedAt: z.string().nullable().optional(),
   signatureUrl: z.string().nullable().optional(),
   secondParentSignatureUrl: z.string().nullable().optional(),
@@ -107,6 +109,8 @@ export interface PublicDocumentRequestDTO {
   status: DocumentRequestStatus;
   createdAt: string;
   expiresAt: string;
+  viewedByParentAt?: string | null;
+  sentToParentUserId?: string | null;
   signedAt?: string | null;
   parentData?: ParentData | null;
   signatureUrl?: string | null;

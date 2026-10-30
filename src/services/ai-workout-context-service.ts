@@ -37,9 +37,6 @@ export interface AthleteGeminiContext {
     gender: "male" | "female" | "unspecified";
     ageGroup: string;
     skillLevel: "beginner" | "intermediate" | "advanced" | "professional";
-    dominantHand?: "left" | "right" | null;
-    heightCm?: number | null;
-    weightKg?: number | null;
   };
   safetyAndMedical: {
     activeInjuries: Array<
@@ -646,9 +643,6 @@ export function buildAthleteContext(params: {
       gender: (member.gender as "male" | "female") || "unspecified",
       ageGroup: member.ageGroup || "U15",
       skillLevel: member.skillLevel || "intermediate",
-      dominantHand: member.dominantHand ?? null,
-      heightCm: member.heightCm ?? null,
-      weightKg: member.weightKg ?? null,
     },
     safetyAndMedical: {
       activeInjuries,

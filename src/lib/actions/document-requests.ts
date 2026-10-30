@@ -21,6 +21,7 @@ import {
   ParentDataSchema,
 } from "@/types/document-request.types";
 import type { ActionResult } from "@/types/document-template.types";
+import { DEFAULT_OFFICIAL_TEMPLATES } from "@/types/document-template.types";
 
 /**
  * Creates a new document signing request for a member (Admin only).
@@ -71,6 +72,33 @@ export async function createDocumentRequestAction(input: {
     const documentType = typeResult.data;
     const documentTitle = DOCUMENT_TITLES[documentType] || "Клубен документ";
 
+    // Fetch active template to snapshot version and text (immutability guarantee)
+    const defaultTpl = DEFAULT_OFFICIAL_TEMPLATES.find(
+      (t) => t.id === documentType
+    );
+    let templateId: string | null = defaultTpl?.id || documentType;
+    let templateVersion = defaultTpl?.version || 1;
+    let documentLegalTextSnapshot: string | null = defaultTpl?.content || null;
+    let documentTitleSnapshot = defaultTpl?.title || documentTitle;
+
+    try {
+      const tplSnap = await adminDb
+        .collection("document_templates")
+        .doc(documentType)
+        .get();
+      if (tplSnap.exists) {
+        const tplData = tplSnap.data();
+        templateId = tplSnap.id;
+        templateVersion =
+          typeof tplData?.version === "number" ? tplData.version : 1;
+        documentLegalTextSnapshot =
+          tplData?.content || documentLegalTextSnapshot;
+        documentTitleSnapshot = tplData?.title || documentTitleSnapshot;
+      }
+    } catch {
+      // If template doc is not yet seeded, fall back smoothly to defaultTpl
+    }
+
     // Check if an active pending request already exists for this member and doc type
     const existingSnap = await adminDb
       .collection("document_requests")
@@ -84,6 +112,19 @@ export async function createDocumentRequestAction(input: {
       const existingDoc = existingSnap.docs[0];
       const existingData = existingDoc.data();
       if (new Date(existingData.expiresAt).getTime() > Date.now()) {
+        // Refresh template snapshot on pending request if template was updated
+        if (
+          documentLegalTextSnapshot &&
+          existingData.documentLegalTextSnapshot !== documentLegalTextSnapshot
+        ) {
+          await existingDoc.ref.update({
+            templateId,
+            templateVersion,
+            documentLegalTextSnapshot,
+            documentTitleSnapshot,
+            documentTitle: documentTitleSnapshot,
+          });
+        }
         return {
           success: true,
           message: "Линкът за подписване е зареден успешно.",
@@ -93,29 +134,6 @@ export async function createDocumentRequestAction(input: {
           },
         };
       }
-    }
-
-    // Fetch active template to snapshot version and text (immutability guarantee)
-    let templateId: string | null = null;
-    let templateVersion = 1;
-    let documentLegalTextSnapshot: string | null = null;
-    let documentTitleSnapshot = documentTitle;
-
-    try {
-      const tplSnap = await adminDb
-        .collection("document_templates")
-        .doc(documentType)
-        .get();
-      if (tplSnap.exists) {
-        const tplData = tplSnap.data();
-        templateId = tplSnap.id;
-        templateVersion =
-          typeof tplData?.version === "number" ? tplData.version : 1;
-        documentLegalTextSnapshot = tplData?.content || null;
-        documentTitleSnapshot = tplData?.title || documentTitle;
-      }
-    } catch {
-      // If template doc is not yet seeded, fall back smoothly
     }
 
     // Generate secure token (UUIDv4)
@@ -223,6 +241,16 @@ export async function getPublicDocumentRequestAction(
       currentStatus = "expired";
     }
 
+    let viewedByParentAt: string | null = rawData.viewedByParentAt || null;
+    if (currentStatus === "pending" && !viewedByParentAt) {
+      viewedByParentAt = new Date().toISOString();
+      try {
+        await docSnap.ref.update({ viewedByParentAt });
+      } catch {
+        // non-blocking
+      }
+    }
+
     // Safe DTO - only return required public fields
     const safeDto: PublicDocumentRequestDTO = {
       id: docSnap.id,
@@ -236,6 +264,8 @@ export async function getPublicDocumentRequestAction(
       status: currentStatus,
       createdAt: rawData.createdAt,
       expiresAt: rawData.expiresAt,
+      viewedByParentAt,
+      sentToParentUserId: rawData.sentToParentUserId || null,
       signedAt: rawData.signedAt || null,
       parentData: rawData.parentData || null,
       signatureUrl: rawData.signatureUrl || null,
@@ -344,6 +374,7 @@ export async function submitSignedDocumentAction(input: {
     // 1. Update the document request status to completed
     const docUpdates: Record<string, unknown> = {
       status: "completed",
+      viewedByParentAt: docData.viewedByParentAt || signedAt,
       signedAt,
       signatureUrl: signatureBase64,
       secondParentSignatureUrl: input.secondParentSignatureBase64 || null,
@@ -438,9 +469,41 @@ export async function submitSignedDocumentAction(input: {
         memberUpdates.terminationRequestHandedAt = signedAt;
         memberUpdates.terminationRequestUrl = signatureBase64;
         memberUpdates.terminationRequestSignatureUrl = signatureBase64;
+      } else if (docType === "amateurContract") {
+        memberUpdates.hasAmateurContract = true;
+        memberUpdates.amateurContractHandedAt = signedAt;
+        memberUpdates.amateurContractUrl = signatureBase64;
+        memberUpdates.amateurContractSignatureUrl = signatureBase64;
+      } else if (docType === "licenseApplication") {
+        memberUpdates.hasLicenseApplication = true;
+        memberUpdates.licenseApplicationHandedAt = signedAt;
+        memberUpdates.licenseApplicationUrl = signatureBase64;
+        memberUpdates.licenseApplicationSignatureUrl = signatureBase64;
       }
 
       await memberRef.update(memberUpdates);
+    }
+
+    // 2b. Update linked Parent Portal user activity so Admin immediately sees the signature in Parent Portal logs
+    try {
+      const parentSnap = await adminDb
+        .collection("parent_users")
+        .where("linkedMemberIds", "array-contains", docData.memberId)
+        .limit(5)
+        .get();
+      if (!parentSnap.empty) {
+        const targetParentDoc =
+          parentSnap.docs.find((d) => d.id === docData.sentToParentUserId) ||
+          parentSnap.docs[0];
+        const actionTitle = `✍️ Подписан документ: ${docData.documentTitle}`;
+        await targetParentDoc.ref.update({
+          lastActiveAt: signedAt,
+          lastAction: actionTitle,
+          lastActionAt: signedAt,
+        });
+      }
+    } catch {
+      // non-blocking
     }
 
     // 3. Log audit event

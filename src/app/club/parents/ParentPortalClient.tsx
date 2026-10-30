@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Award,
+  BookOpen,
   Cake,
   Calendar as CalendarIcon,
   CalendarDays,
@@ -13,11 +14,16 @@ import {
   ChevronRight,
   ChevronUp,
   Clock,
+  CreditCard,
   Download,
   Dumbbell,
   Edit3,
   ExternalLink,
   Eye,
+  FileCheck2,
+  FileSignature,
+  FileText,
+  HeartPulse,
   Hourglass,
   Info,
   KeyRound,
@@ -25,12 +31,15 @@ import {
   LogOut,
   MapPin,
   Plus,
+  Receipt,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
   Trophy,
   User,
   Users,
   XCircle,
+  Zap,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -38,6 +47,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { ParentReceiptDialog } from "@/components/parents/ParentReceiptDialog";
 import {
   DocumentAttachmentType,
   DocumentViewerDialog,
@@ -71,14 +81,20 @@ import { useParentPortal } from "@/hooks/useParentPortal";
 import {
   cancelParentAbsenceAction,
   changeParentPasswordAction,
+  markDocumentViewedByParentAction,
   parentLogoutAction,
   recordParentHeartbeatAction,
   sendParentSessionReportAction,
   submitDataCorrectionAction,
   submitParentAbsenceAction,
 } from "@/lib/actions/parent-portal";
+import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
-import { ParentMemberPermissions } from "@/types/parent-portal.types";
+import {
+  ParentFinancialTransactionItem,
+  ParentMemberPermissions,
+  ParentSentDocumentItem,
+} from "@/types/parent-portal.types";
 
 const FIELD_CONFIG: Array<{
   key: string;
@@ -90,9 +106,6 @@ const FIELD_CONFIG: Array<{
   { key: "phone", label: "Телефон на детето", permKey: "showPhone" },
   { key: "address", label: "Адрес", permKey: "showAddress" },
   { key: "school", label: "Училище", permKey: "showSchool" },
-  { key: "height", label: "Ръст (см)", permKey: "showHeight" },
-  { key: "weight", label: "Тегло (кг)", permKey: "showWeight" },
-  { key: "dominantHand", label: "Водеща ръка", permKey: "showDominantHand" },
   {
     key: "apparelSize",
     label: "Размер екипировка",
@@ -160,12 +173,72 @@ export default function ParentPortalClient() {
     attendances,
     nextTraining,
     announcements,
+    documentsData,
+    feeStatus,
+    rankingData,
+    shadowAndQuizzes,
     selectedChildId,
     setSelectedChildId,
     refetch,
     isLoading,
     isUnauthorized,
   } = useParentPortal();
+
+  const [previewSentDoc, setPreviewSentDoc] =
+    useState<ParentSentDocumentItem | null>(null);
+  const [showFeeHistory, setShowFeeHistory] = useState(false);
+  const [activeReceiptTx, setActiveReceiptTx] =
+    useState<ParentFinancialTransactionItem | null>(null);
+  const [financeFilter, setFinanceFilter] = useState<
+    "all" | "inventory" | "subscription" | "service"
+  >("all");
+
+  const transactionsList = useMemo(() => {
+    return feeStatus?.transactions || [];
+  }, [feeStatus?.transactions]);
+
+  const filteredTransactions = useMemo(() => {
+    if (financeFilter === "all") return transactionsList;
+    if (financeFilter === "service") {
+      return transactionsList.filter(
+        (t) => t.type === "service" || t.type === "general_service"
+      );
+    }
+    return transactionsList.filter((t) => t.type === financeFilter);
+  }, [transactionsList, financeFilter]);
+
+  const inventoryTransactionsCount = useMemo(() => {
+    return transactionsList.filter((t) => t.type === "inventory").length;
+  }, [transactionsList]);
+
+  const subscriptionTransactionsCount = useMemo(() => {
+    return transactionsList.filter((t) => t.type === "subscription").length;
+  }, [transactionsList]);
+
+  const serviceTransactionsCount = useMemo(() => {
+    return transactionsList.filter(
+      (t) => t.type === "service" || t.type === "general_service"
+    ).length;
+  }, [transactionsList]);
+
+  const handlePreviewSentDocument = async (doc: ParentSentDocumentItem) => {
+    setPreviewSentDoc(doc);
+    logSessionAction(`Преглед на официален документ: „${doc.documentTitle}“`);
+    if (!doc.viewedByParentAt) {
+      await markDocumentViewedByParentAction(doc.id).catch(() => {});
+      refetch();
+    }
+  };
+
+  const handleOpenSignDocument = async (doc: ParentSentDocumentItem) => {
+    logSessionAction(
+      `Отваряне за онлайн подписване на документ: „${doc.documentTitle}“`
+    );
+    if (!doc.viewedByParentAt) {
+      await markDocumentViewedByParentAction(doc.id).catch(() => {});
+    }
+    window.open(`/sign/${doc.token}`, "_blank", "noopener,noreferrer");
+  };
 
   // Document preview dialog
   const [activeDocViewer, setActiveDocViewer] = useState<{
@@ -315,6 +388,7 @@ export default function ParentPortalClient() {
   // Initial login session log
   useEffect(() => {
     if (!sessionStartTimeRef.current) {
+      // eslint-disable-next-line react-hooks/purity -- runs inside useEffect, not during render
       sessionStartTimeRef.current = Date.now();
     }
     if (parent?.name && !hasLoggedLoginRef.current) {
@@ -409,6 +483,8 @@ export default function ParentPortalClient() {
   const handleTabChange = (tab: string) => {
     const tabLabels: Record<string, string> = {
       attendance: "Присъствия и посещаемост",
+      documents: "Документи и медицинско",
+      development: "Спортно развитие и турнири",
       profile: "Данни за детето",
       absences: "Заявени отсъствия",
     };
@@ -1132,30 +1208,474 @@ export default function ParentPortalClient() {
         </div>
       )}
 
+      {/* ── PRIORITY ALERT: Sent Official Documents for Preview & Online Signature ── */}
+      {documentsData &&
+        documentsData.sentDocuments.filter((d) => d.status === "pending")
+          .length > 0 && (
+          <div className="rounded-3xl border-2 border-indigo-400/80 bg-linear-to-br from-indigo-50/90 via-white to-blue-50/80 p-5 shadow-md dark:border-indigo-700/60 dark:from-indigo-950/40 dark:via-zinc-900 dark:to-blue-950/30 space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-sm">
+                <FileSignature className="size-5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase">
+                  Важно • Очаква преглед и подпис
+                </span>
+                <h3 className="text-base font-black text-zinc-900 dark:text-white pt-0.5">
+                  Изпратени официални документи за {selectedChild?.firstName}
+                </h3>
+                <p className="text-xs text-zinc-600 dark:text-zinc-300">
+                  Администраторът е изпратил документ до вашия профил. Можете да
+                  го прегледате и подпишете онлайн — след подписване той
+                  автоматично се добавя към досието на детето.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2.5 pt-1">
+              {documentsData.sentDocuments
+                .filter((d) => d.status === "pending")
+                .map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex flex-col gap-3 rounded-2xl border border-indigo-200/80 bg-white p-4 shadow-2xs sm:flex-row sm:items-center sm:justify-between dark:border-indigo-900/50 dark:bg-zinc-900"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-black text-zinc-900 dark:text-white">
+                          📄 {doc.documentTitle}
+                        </span>
+                        {doc.viewedByParentAt ? (
+                          <Badge
+                            variant="outline"
+                            className="border-sky-300 bg-sky-50 text-[10px] font-semibold text-sky-700 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300"
+                          >
+                            👁️ Прегледан от вас
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-amber-500 text-white text-[10px] font-bold">
+                            Нов документ
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-zinc-500">
+                        Изпратен на:{" "}
+                        {new Date(doc.createdAt).toLocaleDateString("bg-BG")} •
+                        Валиден до:{" "}
+                        {new Date(doc.expiresAt).toLocaleDateString("bg-BG")}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePreviewSentDocument(doc)}
+                        className="h-9 rounded-xl border-indigo-200 text-xs font-semibold text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300"
+                      >
+                        <Eye className="mr-1.5 size-3.5" />
+                        Прегледай текста
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleOpenSignDocument(doc)}
+                        className="h-9 rounded-xl bg-indigo-600 text-xs font-bold text-white shadow-xs hover:bg-indigo-500"
+                      >
+                        <FileSignature className="mr-1.5 size-3.5" />
+                        ✍️ Попълни и подпиши онлайн
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+      {/* ── Monthly Membership Fee & Club Subscriptions Card 💳 ────── */}
+      {permissions?.showFeeStatus !== false && feeStatus && (
+        <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3.5">
+              <div
+                className={cn(
+                  "flex size-11 shrink-0 items-center justify-center rounded-2xl text-white shadow-xs",
+                  feeStatus.currentMonthStatus === "paid"
+                    ? "bg-emerald-600"
+                    : feeStatus.currentMonthStatus === "unpaid"
+                      ? "bg-amber-500"
+                      : "bg-blue-600"
+                )}
+              >
+                <CreditCard className="size-5" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-black uppercase text-zinc-900 dark:text-white">
+                    Месечен членски внос, такси и закупени артикули
+                  </h3>
+                  {feeStatus.currentMonthStatus === "paid" ? (
+                    <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+                      ✓ Редовен за {feeStatus.currentMonthLabel}
+                    </Badge>
+                  ) : feeStatus.currentMonthStatus === "unpaid" ? (
+                    <Badge className="bg-amber-500 text-white text-[10px] font-bold">
+                      ⏳ Очаква плащане за {feeStatus.currentMonthLabel}
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="border-blue-300 bg-blue-50 text-blue-700 text-[10px] font-bold dark:bg-blue-950/40 dark:text-blue-300"
+                    >
+                      Активен профил ({feeStatus.currentMonthLabel})
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500">
+                  <span>
+                    Последно отчетено плащане:{" "}
+                    <strong className="text-zinc-800 dark:text-zinc-200">
+                      {feeStatus.lastPaymentDate
+                        ? new Date(
+                            feeStatus.lastPaymentDate
+                          ).toLocaleDateString("bg-BG")
+                        : "Няма въведена дата"}
+                    </strong>
+                  </span>
+                  {feeStatus.unpaidSalesCount > 0 ? (
+                    <span className="font-semibold text-amber-600 dark:text-amber-400">
+                      • Текущо дължимо:{" "}
+                      {formatPrice(feeStatus.unpaidSalesAmount)} (
+                      {feeStatus.unpaidSalesCount} неплатени)
+                    </span>
+                  ) : (
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                      • Нямате непокрити задължения
+                    </span>
+                  )}
+                  <span>
+                    • Общо финансови записи:{" "}
+                    <strong className="text-zinc-800 dark:text-zinc-200">
+                      {transactionsList.length}
+                    </strong>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setShowFeeHistory((prev) => !prev);
+                logSessionAction(
+                  "Преглед на пълна финансова история и електронни бележки"
+                );
+              }}
+              className="h-9 rounded-xl text-xs font-semibold"
+            >
+              <span>
+                {showFeeHistory
+                  ? "Скрий историята"
+                  : `Финансова история & Бележки (${transactionsList.length})`}
+              </span>
+              {showFeeHistory ? (
+                <ChevronUp className="ml-1.5 size-3.5" />
+              ) : (
+                <ChevronDown className="ml-1.5 size-3.5" />
+              )}
+            </Button>
+          </div>
+
+          {showFeeHistory && (
+            <div className="space-y-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+              {/* Monthly breakdown */}
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Помесечен статус на тренировките (последни 6 месеца):
+                </p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {feeStatus.monthlyBreakdown.map((m) => (
+                    <div
+                      key={m.monthKey}
+                      className="rounded-2xl border border-zinc-200/70 bg-zinc-50/60 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950/50"
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-bold text-zinc-800 dark:text-zinc-200">
+                          {m.monthLabel}
+                        </span>
+                        {m.status === "paid" ? (
+                          <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                            Платен
+                          </span>
+                        ) : m.status === "unpaid" ? (
+                          <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                            Дължим
+                          </span>
+                        ) : m.status === "partial" ? (
+                          <span className="rounded-md bg-sky-100 px-1.5 py-0.5 text-[10px] font-bold text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+                            Частично
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-zinc-400">
+                            Без тренировки
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-[11px] text-zinc-500">
+                        Посетени тренировки: <strong>{m.totalTrainings}</strong>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Complete Financial History from member dossier */}
+              <div className="space-y-3 pt-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                      <ShoppingBag size={14} className="text-blue-600" />
+                      <span>
+                        Финансова история на покупките и абонаментите на детето
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-zinc-500">
+                      Тук виждате всички такси, абонаменти и закупени артикули
+                      от клубния магазин (ракети, грипове, екипи).
+                    </p>
+                  </div>
+                </div>
+
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Button
+                    variant={financeFilter === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFinanceFilter("all")}
+                    className="h-8 rounded-xl text-xs font-semibold"
+                  >
+                    Всички ({transactionsList.length})
+                  </Button>
+                  <Button
+                    variant={
+                      financeFilter === "inventory" ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => setFinanceFilter("inventory")}
+                    className="h-8 rounded-xl text-xs font-semibold"
+                  >
+                    🛍️ Магазин / Екипировка ({inventoryTransactionsCount})
+                  </Button>
+                  <Button
+                    variant={
+                      financeFilter === "subscription" ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => setFinanceFilter("subscription")}
+                    className="h-8 rounded-xl text-xs font-semibold"
+                  >
+                    💳 Членски внос / Абонаменти (
+                    {subscriptionTransactionsCount})
+                  </Button>
+                  <Button
+                    variant={
+                      financeFilter === "service" ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => setFinanceFilter("service")}
+                    className="h-8 rounded-xl text-xs font-semibold"
+                  >
+                    🏸 Тренировки и услуги ({serviceTransactionsCount})
+                  </Button>
+                </div>
+
+                {filteredTransactions.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-zinc-200 p-8 text-center text-xs text-zinc-500 dark:border-zinc-800">
+                    Няма регистрирани записи в избраната категория.
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {filteredTransactions.map((tx) => (
+                      <div
+                        key={tx.id}
+                        className="flex flex-col justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 p-4 transition-all hover:bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950/40 dark:hover:bg-zinc-900 shadow-2xs"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[10px] font-bold",
+                                  tx.type === "inventory"
+                                    ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300"
+                                    : tx.type === "subscription"
+                                      ? "border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
+                                      : "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                )}
+                              >
+                                {tx.typeLabel}
+                              </Badge>
+                              <span className="font-mono text-[10px] text-zinc-400">
+                                № {tx.receiptNumber}
+                              </span>
+                            </div>
+
+                            <Badge
+                              className={cn(
+                                "text-[10px] font-bold",
+                                tx.isPaid
+                                  ? "bg-emerald-600 text-white"
+                                  : "bg-amber-500 text-white"
+                              )}
+                            >
+                              {tx.isPaid ? "✓ Платено" : "⏳ Очаква плащане"}
+                            </Badge>
+                          </div>
+
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+                            <div>
+                              <h4 className="text-sm font-bold text-zinc-900 dark:text-white">
+                                {tx.description}
+                              </h4>
+                              {tx.items && tx.items.length > 0 && (
+                                <div className="mt-1 flex flex-wrap gap-1.5">
+                                  {tx.items.map((it, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="inline-flex items-center rounded-md bg-white px-2 py-0.5 text-[10px] font-medium text-zinc-700 border border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300"
+                                    >
+                                      {it.name}
+                                      {it.quantity > 1 &&
+                                        ` (x${it.quantity})`}{" "}
+                                      • {formatPrice(it.total)}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="text-right sm:shrink-0">
+                              <div className="text-base font-black text-zinc-900 dark:text-white">
+                                {formatPrice(tx.amount)}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-500 pt-1 border-t border-zinc-100 dark:border-zinc-800/80">
+                            <span>
+                              Дата:{" "}
+                              <strong className="text-zinc-700 dark:text-zinc-300">
+                                {tx.issueDate ||
+                                  (tx.date
+                                    ? new Date(tx.date).toLocaleDateString(
+                                        "bg-BG"
+                                      )
+                                    : "")}
+                              </strong>
+                            </span>
+                            <span>•</span>
+                            <span>
+                              Начин на плащане:{" "}
+                              <strong className="text-zinc-700 dark:text-zinc-300">
+                                {tx.paymentMethod}
+                              </strong>
+                            </span>
+                            {tx.note && (
+                              <>
+                                <span>•</span>
+                                <span className="italic text-zinc-500">
+                                  Бележка: &quot;{tx.note}&quot;
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-end pt-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              logSessionAction(
+                                `Преглед на електронна разписка № ${tx.receiptNumber} (${tx.description})`
+                              );
+                              setActiveReceiptTx(tx);
+                            }}
+                            className="h-8 gap-1.5 rounded-xl border-blue-200 bg-blue-50/70 text-xs font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300 shadow-2xs"
+                          >
+                            <Receipt className="size-3.5 text-blue-600 dark:text-blue-400" />
+                            <span>🧾 Електронна бележка / Разписка</span>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Main Navigation Tabs ────────────────────────────────────── */}
       <Tabs
         defaultValue="attendance"
         onValueChange={handleTabChange}
         className="w-full"
       >
-        <TabsList className="grid h-12 w-full grid-cols-3 rounded-2xl border border-zinc-200/80 bg-zinc-100/70 p-1 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <TabsList className="flex h-auto w-full flex-wrap gap-1 rounded-2xl border border-zinc-200/80 bg-zinc-100/70 p-1.5 dark:border-zinc-800 dark:bg-zinc-900/60">
           <TabsTrigger
             value="attendance"
-            className="rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 rounded-xl py-2 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <CalendarIcon className="mr-1.5 size-3.5" />
             Присъствия
           </TabsTrigger>
+
+          {(permissions?.showDocumentsStatus !== false || documentsData) && (
+            <TabsTrigger
+              value="documents"
+              className="flex-1 rounded-xl py-2 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            >
+              <FileText className="mr-1.5 size-3.5" />
+              Документи
+              {documentsData &&
+                documentsData.sentDocuments.filter(
+                  (d) => d.status === "pending"
+                ).length > 0 && (
+                  <span className="ml-1.5 rounded-full bg-indigo-600 px-1.5 py-0.2 text-[9px] font-bold text-white">
+                    {
+                      documentsData.sentDocuments.filter(
+                        (d) => d.status === "pending"
+                      ).length
+                    }
+                  </span>
+                )}
+            </TabsTrigger>
+          )}
+
+          {(permissions?.showRanking || permissions?.showShadowAndQuizzes) && (
+            <TabsTrigger
+              value="development"
+              className="flex-1 rounded-xl py-2 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            >
+              <Trophy className="mr-1.5 size-3.5" />
+              Спортно развитие
+            </TabsTrigger>
+          )}
+
           <TabsTrigger
             value="profile"
-            className="rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 rounded-xl py-2 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <User className="mr-1.5 size-3.5" />
             Данни за детето
           </TabsTrigger>
           <TabsTrigger
             value="absences"
-            className="rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
+            className="flex-1 rounded-xl py-2 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
           >
             <CalendarX2 className="mr-1.5 size-3.5" />
             Заявени отсъствия
@@ -1343,6 +1863,395 @@ export default function ParentPortalClient() {
             )}
           </div>
         </TabsContent>
+
+        {/* ── TAB: Documents & Medical Certificate Status ───────────── */}
+        {(permissions?.showDocumentsStatus !== false || documentsData) && (
+          <TabsContent
+            value="documents"
+            className="mt-4 space-y-4 focus-visible:outline-none"
+          >
+            {/* 1. Periodic Medical Certificate Card */}
+            {permissions?.showDocumentsStatus !== false &&
+              documentsData?.medicalCertificate && (
+                <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-3.5">
+                      <div
+                        className={cn(
+                          "flex size-11 shrink-0 items-center justify-center rounded-2xl text-white shadow-xs",
+                          documentsData.medicalCertificate.hasCertificate &&
+                            !documentsData.medicalCertificate.isExpired
+                            ? "bg-emerald-600"
+                            : "bg-rose-600"
+                        )}
+                      >
+                        <HeartPulse className="size-5" />
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-sm font-black uppercase text-zinc-900 dark:text-white">
+                            Периодично медицинско удостоверение
+                          </h3>
+                          {documentsData.medicalCertificate.hasCertificate &&
+                          !documentsData.medicalCertificate.isExpired ? (
+                            <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+                              ✓ Валидно медицинско
+                            </Badge>
+                          ) : documentsData.medicalCertificate.isExpired ? (
+                            <Badge className="bg-rose-600 text-white text-[10px] font-bold">
+                              ⚠️ Изтекло медицинско
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="border-amber-400 bg-amber-50 text-amber-800 text-[10px] font-bold dark:bg-amber-950/40 dark:text-amber-300"
+                            >
+                              ⏳ Липсва в досието
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+                          {documentsData.medicalCertificate.issueDate ? (
+                            <span>
+                              Издадено на:{" "}
+                              <strong className="text-zinc-800 dark:text-zinc-200">
+                                {new Date(
+                                  documentsData.medicalCertificate.issueDate
+                                ).toLocaleDateString("bg-BG")}
+                              </strong>
+                            </span>
+                          ) : (
+                            <span>
+                              Няма въведена дата на последен медицински преглед
+                            </span>
+                          )}
+                          {documentsData.medicalCertificate.expiresAt && (
+                            <span>
+                              • Валидно до:{" "}
+                              <strong
+                                className={
+                                  documentsData.medicalCertificate.isExpired
+                                    ? "text-rose-600 dark:text-rose-400"
+                                    : "text-emerald-700 dark:text-emerald-400"
+                                }
+                              >
+                                {new Date(
+                                  documentsData.medicalCertificate.expiresAt
+                                ).toLocaleDateString("bg-BG")}
+                              </strong>
+                              {typeof documentsData.medicalCertificate
+                                .daysUntilExpiry === "number" &&
+                                !documentsData.medicalCertificate.isExpired && (
+                                  <span className="ml-1 text-[11px] text-zinc-400">
+                                    (остават{" "}
+                                    {
+                                      documentsData.medicalCertificate
+                                        .daysUntilExpiry
+                                    }{" "}
+                                    дни)
+                                  </span>
+                                )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            {/* 2. Sent Official Documents (Pending & Completed Online Signatures) */}
+            {documentsData && documentsData.sentDocuments.length > 0 && (
+              <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 space-y-3">
+                <div>
+                  <h3 className="text-sm font-black uppercase text-zinc-900 dark:text-white flex items-center gap-2">
+                    <FileSignature className="size-4 text-indigo-600" />
+                    <span>
+                      Изпратени документи за преглед и дигитален подпис
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-500">
+                    Всеки подписан от вас документ се съхранява автоматично в
+                    досието на {selectedChild?.firstName}.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5">
+                  {documentsData.sentDocuments.map((doc) => {
+                    const isSigned = doc.status === "completed";
+                    return (
+                      <div
+                        key={doc.id}
+                        className="flex flex-col gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-950/50"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-bold text-zinc-900 dark:text-white">
+                              📄 {doc.documentTitle}
+                            </span>
+                            {isSigned ? (
+                              <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+                                ✓ Подписан и добавен в досието
+                              </Badge>
+                            ) : doc.viewedByParentAt ? (
+                              <Badge
+                                variant="outline"
+                                className="border-sky-300 bg-sky-50 text-sky-700 text-[10px] font-semibold"
+                              >
+                                👁️ Прегледан (Очаква подпис)
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-amber-500 text-white text-[10px] font-bold">
+                                ⏳ Очаква преглед и подпис
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-zinc-500">
+                            {isSigned && doc.signedAt
+                              ? `Подписан онлайн на: ${new Date(
+                                  doc.signedAt
+                                ).toLocaleString("bg-BG")}`
+                              : `Изпратен на: ${new Date(
+                                  doc.createdAt
+                                ).toLocaleDateString("bg-BG")}`}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePreviewSentDocument(doc)}
+                            className="h-8 rounded-xl text-xs font-semibold"
+                          >
+                            <Eye className="mr-1.5 size-3.5" />
+                            Прегледай текста
+                          </Button>
+                          {!isSigned ? (
+                            <Button
+                              size="sm"
+                              onClick={() => handleOpenSignDocument(doc)}
+                              className="h-8 rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-500"
+                            >
+                              <FileSignature className="mr-1.5 size-3.5" />
+                              ✍️ Подпиши онлайн
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenSignDocument(doc)}
+                              className="h-8 rounded-xl border-emerald-200 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-300"
+                            >
+                              <FileCheck2 className="mr-1.5 size-3.5" />
+                              Преглед на подписания документ
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Mandatory Club Documents Dossier Checklist */}
+            {permissions?.showDocumentsStatus !== false &&
+              documentsData &&
+              documentsData.checklist.length > 0 && (
+                <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 space-y-3">
+                  <div>
+                    <h3 className="text-sm font-black uppercase text-zinc-900 dark:text-white">
+                      Досие със задължителни клубни документи
+                    </h3>
+                    <p className="text-[11px] text-zinc-400">
+                      Статус на наличните документи в картотеката на{" "}
+                      {selectedChild?.fullName}.
+                    </p>
+                  </div>
+
+                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {documentsData.checklist.map((item) => {
+                      const matchingSent = documentsData.sentDocuments.find(
+                        (sd) =>
+                          sd.documentType === item.key &&
+                          sd.status === "pending"
+                      );
+                      return (
+                        <div
+                          key={item.key}
+                          className="flex flex-wrap items-center justify-between gap-2 py-3"
+                        >
+                          <div>
+                            <p className="text-xs font-semibold text-zinc-900 dark:text-white">
+                              {item.title}
+                            </p>
+                            {item.handedAt && (
+                              <p className="text-[10px] text-zinc-400">
+                                Дата на предаване/подписване:{" "}
+                                {new Date(item.handedAt).toLocaleDateString(
+                                  "bg-BG"
+                                )}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {matchingSent ? (
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleOpenSignDocument(matchingSent)
+                                }
+                                className="h-8 rounded-xl bg-indigo-600 text-[11px] font-bold text-white hover:bg-indigo-500"
+                              >
+                                ✍️ Подпиши документа онлайн
+                              </Button>
+                            ) : item.hasDocument ? (
+                              <Badge className="border-emerald-200 bg-emerald-50 text-[10px] font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                <CheckCircle2 className="mr-1 size-3" /> Наличен
+                                в досието
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="border-zinc-200 text-[10px] text-zinc-400 dark:border-zinc-800"
+                              >
+                                Не е представен
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+          </TabsContent>
+        )}
+
+        {/* ── TAB: Sports Development, Ranking & Shadow/Quizzes ──────── */}
+        {(permissions?.showRanking || permissions?.showShadowAndQuizzes) && (
+          <TabsContent
+            value="development"
+            className="mt-4 space-y-4 focus-visible:outline-none"
+          >
+            {/* 1. Club Ranking Card */}
+            {permissions?.showRanking && rankingData && (
+              <div className="rounded-3xl border border-amber-200/80 bg-linear-to-br from-amber-50/70 via-white to-orange-50/40 p-5 shadow-xs dark:border-amber-900/40 dark:from-amber-950/30 dark:via-zinc-900 dark:to-orange-950/20">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3.5">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-sm">
+                      <Trophy className="size-6" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                        Официална клубна ранглиста
+                      </p>
+                      <h3 className="text-base font-black text-zinc-900 dark:text-white">
+                        {rankingData.rankingPosition
+                          ? `Позиция #${rankingData.rankingPosition} в клуба`
+                          : "Активен състезател в ранглистата"}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl border border-amber-200 bg-white px-4 py-2 text-center shadow-2xs dark:border-amber-800 dark:bg-zinc-900">
+                      <p className="text-[10px] font-semibold uppercase text-zinc-400">
+                        Точки
+                      </p>
+                      <p className="text-lg font-black text-amber-600 dark:text-amber-400">
+                        {rankingData.rankingPoints} т.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. Shadow Badminton & Educational Quizzes */}
+            {permissions?.showShadowAndQuizzes && shadowAndQuizzes && (
+              <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-black uppercase text-zinc-900 dark:text-white flex items-center gap-2">
+                      <Zap className="size-4 text-purple-600" />
+                      <span>
+                        Тренировки „Сянка“ (Shadow Badminton) & Теоретични
+                        куизове
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-zinc-400">
+                      Специализирани упражнения за работа с крака и тактическа
+                      подготовка
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-purple-100 bg-purple-50/50 p-3 dark:border-purple-900/40 dark:bg-purple-950/20">
+                    <p className="text-[10px] font-semibold uppercase text-purple-700 dark:text-purple-300">
+                      Сесии „Сянка“
+                    </p>
+                    <p className="mt-1 text-lg font-black text-purple-900 dark:text-purple-200">
+                      {shadowAndQuizzes.shadowSessionsCount}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-3 dark:border-sky-900/40 dark:bg-sky-950/20">
+                    <p className="text-[10px] font-semibold uppercase text-sky-700 dark:text-sky-300">
+                      Средно темпо / Реакция
+                    </p>
+                    <p className="mt-1 text-lg font-black text-sky-900 dark:text-sky-200">
+                      {shadowAndQuizzes.averageReactionSec
+                        ? `${shadowAndQuizzes.averageReactionSec} сек`
+                        : "—"}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3 col-span-2 sm:col-span-1 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+                    <p className="text-[10px] font-semibold uppercase text-emerald-700 dark:text-emerald-300">
+                      Решени куизове
+                    </p>
+                    <p className="mt-1 text-lg font-black text-emerald-900 dark:text-emerald-200">
+                      {shadowAndQuizzes.quizzesCompletedCount}
+                    </p>
+                  </div>
+                </div>
+
+                {shadowAndQuizzes.recentQuizzes.length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      Последни образователни тестове:
+                    </p>
+                    <div className="space-y-2">
+                      {shadowAndQuizzes.recentQuizzes.map((q) => (
+                        <div
+                          key={q.id}
+                          className="rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950/50"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                              <BookOpen className="size-3.5 text-blue-600" />
+                              {q.title}
+                            </span>
+                            <Badge className="bg-blue-600 text-white text-[10px] font-bold">
+                              {q.totalScore} т.
+                            </Badge>
+                          </div>
+                          {q.coachFeedback && (
+                            <p className="mt-1.5 text-[11px] text-zinc-600 dark:text-zinc-400 italic">
+                              Насока от треньора: „{q.coachFeedback}“
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
+        )}
 
         {/* ── TAB 2: Child Profile (Strict Granular Permissions) ────── */}
         <TabsContent
@@ -2041,6 +2950,79 @@ export default function ParentPortalClient() {
           isOpen={!!activeInquiryEvent}
           onClose={() => setActiveInquiryEvent(null)}
           event={activeInquiryEvent}
+        />
+      )}
+
+      {/* ── Official Sent Document Preview & Online Signing Dialog ──── */}
+      {previewSentDoc && (
+        <Dialog
+          open={Boolean(previewSentDoc)}
+          onOpenChange={(open) => !open && setPreviewSentDoc(null)}
+        >
+          <DialogContent className="max-w-2xl rounded-3xl p-6 max-h-[85vh] flex flex-col">
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-indigo-600 text-white text-[10px] font-bold">
+                  Официален клубен документ
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="border-emerald-300 bg-emerald-50 text-emerald-700 text-[10px] font-semibold"
+                >
+                  ✓ Прегледът е отчетен в системата
+                </Badge>
+              </div>
+              <DialogTitle className="text-base font-black uppercase text-zinc-900 dark:text-white pt-1">
+                {previewSentDoc.documentTitle}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-zinc-500">
+                За състезател:{" "}
+                <strong className="text-zinc-800 dark:text-zinc-200">
+                  {previewSentDoc.memberName || selectedChild?.fullName}
+                </strong>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="my-2 flex-1 overflow-y-auto rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 text-xs leading-relaxed text-zinc-800 whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-200">
+              {previewSentDoc.documentLegalTextSnapshot ||
+                "Официалният текст на документа ще се визуализира на страницата за подписване."}
+            </div>
+
+            <DialogFooter className="gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPreviewSentDoc(null)}
+                className="rounded-xl text-xs"
+              >
+                Затвори прегледа
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  const docToSign = previewSentDoc;
+                  setPreviewSentDoc(null);
+                  handleOpenSignDocument(docToSign);
+                }}
+                className="rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-500"
+              >
+                <FileSignature className="mr-1.5 size-3.5" />
+                {previewSentDoc.status === "completed"
+                  ? "Преглед на подписаното копие ↗"
+                  : "✍️ Продължи към онлайн подписване ↗"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* ── Official Payment Receipt Dialog (Print & PDF) ──────────── */}
+      {activeReceiptTx && (
+        <ParentReceiptDialog
+          isOpen={Boolean(activeReceiptTx)}
+          onClose={() => setActiveReceiptTx(null)}
+          transaction={activeReceiptTx}
+          childName={selectedChild?.fullName || "Състезател"}
         />
       )}
     </div>

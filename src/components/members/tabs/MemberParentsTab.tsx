@@ -6,6 +6,8 @@ import {
   CheckCircle2,
   Clock,
   Copy,
+  Eye,
+  FileSignature,
   HeartHandshake,
   KeyRound,
   Loader2,
@@ -13,6 +15,7 @@ import {
   Pause,
   Phone,
   Play,
+  Send,
   Trash2,
   UserPlus,
 } from "lucide-react";
@@ -40,11 +43,16 @@ import {
   createParentUserManuallyAction,
   deleteParentUserAction,
   resetParentPasswordByAdminAction,
+  sendDocumentToParentPortalAction,
   toggleParentUserStatusAction,
   updateParentMemberPermissionsAction,
 } from "@/lib/actions/parent-portal";
 import { formatPhoneDisplay } from "@/lib/phone-utils";
 import { Member } from "@/types";
+import {
+  DOCUMENT_TITLES,
+  type DocumentType,
+} from "@/types/document-request.types";
 import {
   DefaultParentMemberPermissions,
   ParentMemberPermissions,
@@ -66,19 +74,68 @@ const PERMISSION_FIELDS: {
   { key: "showPhone", label: "Телефон на детето" },
   { key: "showAddress", label: "Адрес на живеене" },
   { key: "showSchool", label: "Учебно заведение" },
-  { key: "showHeight", label: "Ръст (см)" },
-  { key: "showWeight", label: "Тегло (кг)" },
-  { key: "showDominantHand", label: "Доминантна ръка" },
   { key: "showApparelSize", label: "Размер на екип" },
   { key: "showEmergencyContact", label: "Спешен телефон за връзка" },
   { key: "showHealthNotes", label: "Здравни и медицински бележки" },
   { key: "showAttendance", label: "Месечни присъствия (Календар)" },
   { key: "showStatusBadge", label: "Клубна значка / Статус" },
   { key: "showNextTrainingCard", label: "Карта за следваща тренировка" },
+  { key: "showFeeStatus", label: "💳 Членски внос и месечни такси" },
+  { key: "showDocumentsStatus", label: "📄 Документи и медицинско" },
+  { key: "showRanking", label: "🏆 Точки и позиция в ранглистата" },
+  { key: "showShadowAndQuizzes", label: "⚡ Тренировки „Сянка“ и куизове" },
+];
+
+const OFFICIAL_DOC_OPTIONS: { value: DocumentType; label: string }[] = [
+  {
+    value: "membershipApplication",
+    label: DOCUMENT_TITLES.membershipApplication,
+  },
+  { value: "signedDeclaration", label: DOCUMENT_TITLES.signedDeclaration },
+  { value: "travelDeclaration", label: DOCUMENT_TITLES.travelDeclaration },
+  { value: "safetyInstruction", label: DOCUMENT_TITLES.safetyInstruction },
+  { value: "internalRules", label: DOCUMENT_TITLES.internalRules },
+  { value: "amateurContract", label: DOCUMENT_TITLES.amateurContract },
+  { value: "licenseApplication", label: DOCUMENT_TITLES.licenseApplication },
+  { value: "terminationRequest", label: DOCUMENT_TITLES.terminationRequest },
 ];
 
 export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
-  const { parents, requests, refetch } = useParentPortalAdmin();
+  const { parents, requests, documentRequests, refetch } =
+    useParentPortalAdmin();
+
+  const memberDocRequests = documentRequests.filter(
+    (d) => d.memberId === member.id && d.status !== "cancelled"
+  );
+  const [selectedDocType, setSelectedDocType] = useState<
+    Record<string, DocumentType>
+  >({});
+  const [isSendingDoc, setIsSendingDoc] = useState<Record<string, boolean>>({});
+
+  const handleSendDocumentToParent = async (parentId: string) => {
+    const docType = selectedDocType[parentId] || "membershipApplication";
+    setIsSendingDoc((prev) => ({ ...prev, [parentId]: true }));
+    try {
+      const res = await sendDocumentToParentPortalAction({
+        memberId: member.id,
+        parentUserId: parentId,
+        documentType: docType,
+      });
+      if (!res.success) {
+        toast.error(res.error || "Грешка при изпращане на документа.");
+      } else {
+        toast.success(
+          `Документът „${res.documentTitle}“ е изпратен в профила на родителя за преглед и подпис!`
+        );
+        refetch();
+        onUpdate?.();
+      }
+    } catch {
+      toast.error("Системна грешка при изпращане на документа.");
+    } finally {
+      setIsSendingDoc((prev) => ({ ...prev, [parentId]: false }));
+    }
+  };
 
   // Linked parents for this specific child
   const linkedParents = parents.filter((p) =>
@@ -541,6 +598,149 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
                       );
                     })}
                   </div>
+                </div>
+
+                {/* Изпращане на документи за преглед и подпис до родителския профил */}
+                <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800/80 space-y-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                        <FileSignature size={14} className="text-blue-600" />
+                        <span>
+                          Изпрати официален документ в профила на родителя (за
+                          преглед и подпис)
+                        </span>
+                      </p>
+                      <p className="text-[11px] text-zinc-500">
+                        Използва актуалния шаблон от админ панела. При подпис
+                        автоматично се добавя към досието на {member.firstName}.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <select
+                      aria-label="Изберете документ за изпращане"
+                      value={
+                        selectedDocType[parent.id] || "membershipApplication"
+                      }
+                      onChange={(e) =>
+                        setSelectedDocType((prev) => ({
+                          ...prev,
+                          [parent.id]: e.target.value as DocumentType,
+                        }))
+                      }
+                      className="flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+                    >
+                      {OFFICIAL_DOC_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          📄 {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      size="sm"
+                      disabled={isSendingDoc[parent.id]}
+                      onClick={() => handleSendDocumentToParent(parent.id)}
+                      className="rounded-xl bg-indigo-600 text-white font-semibold text-xs h-9 hover:bg-indigo-500 shrink-0"
+                    >
+                      {isSendingDoc[parent.id] ? (
+                        <>
+                          <Loader2 size={13} className="mr-1.5 animate-spin" />
+                          <span>Изпращане...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send size={13} className="mr-1.5" />
+                          <span>Изпрати до родителя</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {memberDocRequests.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <p className="text-[11px] font-bold text-zinc-500 uppercase">
+                        Статус на изпратените документи за {member.firstName}:
+                      </p>
+                      <div className="grid gap-1.5">
+                        {memberDocRequests.map((docReq) => {
+                          const isSigned = docReq.status === "completed";
+                          const isViewed = Boolean(docReq.viewedByParentAt);
+                          return (
+                            <div
+                              key={docReq.id}
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200/80 bg-zinc-50/70 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/50"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="font-bold text-zinc-800 dark:text-zinc-200 truncate">
+                                  📄 {docReq.documentTitle}
+                                </span>
+                                <span className="text-[10px] text-zinc-400">
+                                  (изпратен:{" "}
+                                  {new Date(
+                                    docReq.createdAt
+                                  ).toLocaleDateString("bg-BG")}
+                                  )
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {isSigned ? (
+                                  <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+                                    ✍️ Подписан на{" "}
+                                    {docReq.signedAt
+                                      ? new Date(
+                                          docReq.signedAt
+                                        ).toLocaleString("bg-BG", {
+                                          day: "2-digit",
+                                          month: "2-digit",
+                                          year: "numeric",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })
+                                      : ""}{" "}
+                                    (В досието)
+                                  </Badge>
+                                ) : isViewed ? (
+                                  <Badge className="bg-sky-600 text-white text-[10px] font-bold">
+                                    <Eye size={11} className="mr-1" />
+                                    Прегледан от родителя на{" "}
+                                    {docReq.viewedByParentAt
+                                      ? new Date(
+                                          docReq.viewedByParentAt
+                                        ).toLocaleString("bg-BG", {
+                                          day: "2-digit",
+                                          month: "2-digit",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })
+                                      : ""}{" "}
+                                    (Очаква подпис)
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-amber-500/40 bg-amber-50 text-amber-800 text-[10px] font-semibold dark:bg-amber-950/30 dark:text-amber-300"
+                                  >
+                                    ⏳ Изпратен (Все още не е отворен)
+                                  </Badge>
+                                )}
+
+                                <Link
+                                  href={`/sign/${docReq.token}`}
+                                  target="_blank"
+                                  className="text-[11px] font-bold text-blue-600 hover:underline dark:text-blue-400"
+                                >
+                                  {isSigned ? "Преглед ↗" : "Линк ↗"}
+                                </Link>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Expandable Activity / View History for this child */}

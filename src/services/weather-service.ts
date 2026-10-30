@@ -229,20 +229,15 @@ export async function fetchLiveCampForecast(
   const result: Record<string, LocationWeatherForecast> = {};
 
   try {
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=auto`;
-    const marineUrl = coords.isCoastal
-      ? `https://marine-api.open-meteo.com/v1/marine?latitude=${coords.lat}&longitude=${coords.lon}&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=auto`
-      : null;
+    // Same-origin proxy (server calls Open-Meteo) so upstream failures never
+    // surface as browser console/network errors.
+    const proxyUrl = `/api/weather/forecast?lat=${coords.lat}&lon=${coords.lon}&coastal=${coords.isCoastal ? "1" : "0"}`;
+    const proxyRes = await fetch(proxyUrl).catch(() => null);
+    const proxyData =
+      proxyRes && proxyRes.ok ? await proxyRes.json().catch(() => null) : null;
 
-    const [weatherRes, marineRes] = await Promise.all([
-      fetch(weatherUrl).catch(() => null),
-      marineUrl ? fetch(marineUrl).catch(() => null) : Promise.resolve(null),
-    ]);
-
-    const weatherData =
-      weatherRes && weatherRes.ok ? await weatherRes.json() : null;
-    const marineData =
-      marineRes && marineRes.ok ? await marineRes.json() : null;
+    const weatherData = proxyData?.weather ?? null;
+    const marineData = proxyData?.marine ?? null;
 
     if (weatherData?.daily?.time) {
       const dates: string[] = weatherData.daily.time;

@@ -53,11 +53,6 @@ export const MemberSchema = z.object({
     )
     .optional(),
 
-  // --- Biometric & Playing Style ---
-  dominantHand: z.enum(["left", "right"]).nullable().optional(),
-  heightCm: z.number().positive().nullable().optional(),
-  weightKg: z.number().positive().nullable().optional(),
-
   // --- ADDED: Emergency Contact ---
   hasEmergencyContact: z.boolean().optional(),
   emergencyContactRole: z.string().nullable().optional(),

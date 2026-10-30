@@ -45,12 +45,6 @@ function formatGender(gender: "male" | "female" | "unspecified"): string {
   return "Неуточнен";
 }
 
-function formatHand(dominantHand?: "left" | "right" | null): string {
-  if (dominantHand === "left") return "Лява";
-  if (dominantHand === "right") return "Дясна";
-  return "Неуточнена";
-}
-
 function formatBeepTest(
   beep: AthleteGeminiContext["conditioning"]["beepTest"]
 ) {
@@ -184,9 +178,6 @@ function buildGeminiPrompt(context: AthleteGeminiContext): string {
 - Възраст: ${context.profile.age} г. (${context.profile.ageGroup})
 - Пол: ${formatGender(context.profile.gender)}
 - Ниво: ${context.profile.skillLevel}
-- Доминираща ръка: ${formatHand(context.profile.dominantHand)}
-- Ръст: ${context.profile.heightCm ? context.profile.heightCm + " см" : "N/A"}
-- Тегло: ${context.profile.weightKg ? context.profile.weightKg + " кг" : "N/A"}
 
 ### БЕЗОПАСНОСТ И МЕДИЦИНСКИ СТАТУС:
 - Активни контузии: ${injuriesList}

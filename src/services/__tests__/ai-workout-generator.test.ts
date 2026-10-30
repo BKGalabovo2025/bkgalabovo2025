@@ -14,7 +14,7 @@ import { Tournament } from "@/types/tournament.types";
 import { TrainingSession } from "@/types/training.types";
 
 describe("AI Workout Generator Suite", () => {
-  describe("1. MemberSchema Biometrics Validation", () => {
+  describe("1. MemberSchema Validation", () => {
     const baseMember = {
       id: "mem_123",
       siteId: "bkgalabovo",
@@ -24,38 +24,15 @@ describe("AI Workout Generator Suite", () => {
       registrationDate: "2025-01-01T10:00:00.000Z",
     };
 
-    it("successfully validates dominantHand, heightCm, and weightKg", () => {
+    it("successfully validates core member profile", () => {
       const parsed = MemberSchema.parse({
         ...baseMember,
-        dominantHand: "right",
-        heightCm: 182,
-        weightKg: 74.5,
+        educationInstitution: "СУ Васил Левски",
+        apparelSize: "M",
       });
 
-      expect(parsed.dominantHand).toBe("right");
-      expect(parsed.heightCm).toBe(182);
-      expect(parsed.weightKg).toBe(74.5);
-    });
-
-    it("allows left-handed athletes and null/optional biometrics", () => {
-      const parsed = MemberSchema.parse({
-        ...baseMember,
-        dominantHand: "left",
-        heightCm: null,
-        weightKg: null,
-      });
-
-      expect(parsed.dominantHand).toBe("left");
-      expect(parsed.heightCm).toBeNull();
-    });
-
-    it("rejects invalid dominantHand", () => {
-      expect(() =>
-        MemberSchema.parse({
-          ...baseMember,
-          dominantHand: "ambidextrous",
-        })
-      ).toThrow();
+      expect(parsed.educationInstitution).toBe("СУ Васил Левски");
+      expect(parsed.apparelSize).toBe("M");
     });
   });
 

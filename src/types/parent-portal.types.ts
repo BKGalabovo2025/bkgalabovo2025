@@ -9,15 +9,16 @@ export const ParentMemberPermissionsSchema = z.object({
   showPhone: z.boolean().default(false),
   showAddress: z.boolean().default(false),
   showSchool: z.boolean().default(false),
-  showHeight: z.boolean().default(false),
-  showWeight: z.boolean().default(false),
-  showDominantHand: z.boolean().default(false),
   showApparelSize: z.boolean().default(false),
   showEmergencyContact: z.boolean().default(false),
   showHealthNotes: z.boolean().default(false),
   showAttendance: z.boolean().default(true),
   showStatusBadge: z.boolean().default(true),
   showNextTrainingCard: z.boolean().default(true),
+  showFeeStatus: z.boolean().default(true),
+  showDocumentsStatus: z.boolean().default(true),
+  showRanking: z.boolean().default(false),
+  showShadowAndQuizzes: z.boolean().default(false),
 });
 export type ParentMemberPermissions = z.infer<
   typeof ParentMemberPermissionsSchema
@@ -29,15 +30,16 @@ export const DefaultParentMemberPermissions: ParentMemberPermissions = {
   showPhone: false,
   showAddress: false,
   showSchool: false,
-  showHeight: false,
-  showWeight: false,
-  showDominantHand: false,
   showApparelSize: false,
   showEmergencyContact: false,
   showHealthNotes: false,
   showAttendance: true,
   showStatusBadge: true,
   showNextTrainingCard: true,
+  showFeeStatus: true,
+  showDocumentsStatus: true,
+  showRanking: false,
+  showShadowAndQuizzes: false,
 };
 
 export const ParentAccessRequestSchema = z.object({
@@ -155,6 +157,9 @@ export const ParentActivityLogSchema = z.object({
     "view_attendance",
     "view_schedule",
     "view_profile",
+    "view_document",
+    "sign_document",
+    "view_fees",
     "submit_absence",
     "submit_correction",
     "change_password",
@@ -198,4 +203,115 @@ export interface ParentAttendanceRecord {
   isExcused?: boolean;
   absenceReason?: string | null;
   coachReply?: string | null;
+}
+
+export interface ParentDocumentChecklistItem {
+  key: string;
+  title: string;
+  hasDocument: boolean;
+  handedAt?: string | null;
+  signatureUrl?: string | null;
+}
+
+export interface ParentSentDocumentItem {
+  id: string;
+  token: string;
+  memberId: string;
+  memberName: string;
+  documentType: string;
+  documentTitle: string;
+  status: "pending" | "completed" | "expired" | "cancelled";
+  createdAt: string;
+  expiresAt: string;
+  viewedByParentAt?: string | null;
+  signedAt?: string | null;
+  signatureUrl?: string | null;
+  documentLegalTextSnapshot?: string | null;
+  documentTitleSnapshot?: string | null;
+}
+
+export interface ParentDocumentsData {
+  medicalCertificate: {
+    hasCertificate: boolean;
+    issueDate?: string | null;
+    expiresAt?: string | null;
+    isExpired: boolean;
+    daysUntilExpiry?: number | null;
+  };
+  checklist: ParentDocumentChecklistItem[];
+  sentDocuments: ParentSentDocumentItem[];
+}
+
+export interface ParentFeeMonthItem {
+  monthKey: string; // YYYY-MM
+  monthLabel: string; // напр. "Октомври 2026"
+  totalTrainings: number;
+  paidTrainings: number;
+  unpaidTrainings: number;
+  status: "paid" | "unpaid" | "partial" | "no_trainings";
+}
+
+export interface ParentFinancialItemDetail {
+  name: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+export interface ParentFinancialTransactionItem {
+  id: string;
+  receiptNumber: string; // № на разписката, напр. "4A29F81B"
+  date: string;
+  issueDate: string;
+  amount: number;
+  description: string;
+  isPaid: boolean;
+  status: string; // "completed" | "pending" | "cancelled"
+  type: "inventory" | "subscription" | "service" | "general_service";
+  typeLabel: string; // "🛍️ Магазин / Екипировка" | "💳 Месечен абонамент / Такса" | "🏸 Тренировка / Услуга"
+  paymentMethod: string;
+  items: ParentFinancialItemDetail[];
+  note?: string | null;
+  targetMonthLabels?: string[];
+  targetEventDates?: string[];
+}
+
+export interface ParentFeeStatusData {
+  currentMonthKey: string;
+  currentMonthLabel: string;
+  currentMonthStatus: "paid" | "unpaid" | "partial" | "active_subscription";
+  isOverdue: boolean;
+  lastPaymentDate?: string | null;
+  unpaidSalesCount: number;
+  unpaidSalesAmount: number;
+  transactions: ParentFinancialTransactionItem[];
+  recentPayments: Array<{
+    id: string;
+    date: string;
+    amount: number;
+    description: string;
+    isPaid: boolean;
+  }>;
+  monthlyBreakdown: ParentFeeMonthItem[];
+}
+
+export interface ParentRankingData {
+  rankingPoints: number;
+  rankingPosition: number | null;
+  isLicensed: boolean;
+}
+
+export interface ParentShadowAndQuizzesData {
+  shadowSessionsCount: number;
+  lastShadowDate?: string | null;
+  averageReactionSec?: number | null;
+  quizzesCompletedCount: number;
+  recentQuizzes: Array<{
+    id: string;
+    title: string;
+    totalScore: number;
+    submittedAt: string;
+    status: string;
+    coachFeedback?: string | null;
+  }>;
 }

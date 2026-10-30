@@ -261,37 +261,35 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
 
         {(isRecoveryMember || isClubMember) && (
           <div className="mt-2 grid grid-cols-1 gap-5 border-t border-zinc-100 pt-6 sm:col-span-2 sm:grid-cols-2 sm:gap-6">
-            {isRecoveryMember && (
-              <FormField
-                name="healthConditionNotes"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
-                      Здравно състояние / Предишни травми
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        value={field.value || ""}
-                        rows={4}
-                        placeholder="Опишете предишни травми, операции, алергии или други важни състояния..."
-                        className="resize-none rounded-2xl border-zinc-200 bg-white p-4 text-sm shadow-sm focus:border-primary focus:bg-white focus:ring-primary"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              name="healthConditionNotes"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
+                    Здравно състояние / Алергии / Предишни травми
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      value={field.value || ""}
+                      rows={4}
+                      placeholder="Опишете предишни травми, операции, алергии или други важни състояния..."
+                      className="resize-none rounded-2xl border-zinc-200 bg-white p-4 text-sm shadow-sm focus:border-primary focus:bg-white focus:ring-primary"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               name="notes"
               control={form.control}
               render={({ field }) => (
-                <FormItem className={cn(!isRecoveryMember && "sm:col-span-2")}>
+                <FormItem>
                   <FormLabel className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase sm:text-[11px]">
-                    Общи Бележки
+                    Общи Бележки (вътрешни за треньора)
                   </FormLabel>
                   <FormControl>
                     <Textarea
