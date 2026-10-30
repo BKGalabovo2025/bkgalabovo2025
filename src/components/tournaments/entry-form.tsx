@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Save, Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -27,6 +27,8 @@ import {
 import { getAllMembers } from "@/services/member-service";
 import { Member } from "@/types/member.types";
 import { TournamentEntrySchema } from "@/types/tournament.types";
+
+import { SearchableMemberSelect } from "./searchable-member-select";
 
 type EntryFormValues = z.input<typeof TournamentEntrySchema>;
 
@@ -53,6 +55,7 @@ export function EntryForm({
   const [p1IsGuest, setP1IsGuest] = useState(false);
   const [p2IsGuest, setP2IsGuest] = useState(false);
   const [isBulkMode, setIsBulkMode] = useState(false);
+  const [bulkSearch, setBulkSearch] = useState("");
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -81,6 +84,17 @@ export function EntryForm({
     );
     return !alreadyRegistered;
   });
+
+  const filteredBulkMembers = useMemo(() => {
+    const q = bulkSearch.trim().toLowerCase();
+    if (!q) return availableMembers;
+    return availableMembers.filter((m) => {
+      const full = `${m.firstName || ""} ${m.lastName || ""}`.toLowerCase();
+      const reversed = `${m.lastName || ""} ${m.firstName || ""}`.toLowerCase();
+      const age = (m.ageGroup || "").toLowerCase();
+      return full.includes(q) || reversed.includes(q) || age.includes(q);
+    });
+  }, [availableMembers, bulkSearch]);
 
   const onSubmit = async (data: EntryFormValues) => {
     setIsSubmitting(true);
@@ -185,15 +199,70 @@ export function EntryForm({
           </div>
 
           {isBulkMode && !isDoubles ? (
-            <div className="space-y-2.5 rounded-xl border p-3">
-              <FormLabel className="text-xs font-semibold">
-                Избери участници ({selectedMemberIds.length})
-              </FormLabel>
-              <div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
-                {availableMembers.map((m) => (
+            <div className="space-y-2.5 rounded-xl border border-zinc-200/90 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-900/30">
+              <div className="flex items-center justify-between">
+                <FormLabel className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                  Избери участници ({selectedMemberIds.length})
+                </FormLabel>
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const allIds = Array.from(
+                        new Set([
+                          ...selectedMemberIds,
+                          ...filteredBulkMembers.map((m) => m.id!),
+                        ])
+                      );
+                      setSelectedMemberIds(allIds);
+                    }}
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Избери всички намерени ({filteredBulkMembers.length})
+                  </button>
+                  {selectedMemberIds.length > 0 && (
+                    <>
+                      <span className="text-zinc-300 dark:text-zinc-700">
+                        |
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMemberIds([])}
+                        className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                      >
+                        Изчисти
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Търсачка за състезатели в групов режим */}
+              <div className="relative">
+                <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-zinc-400" />
+                <Input
+                  value={bulkSearch}
+                  onChange={(e) => setBulkSearch(e.target.value)}
+                  placeholder="Търсене на състезател по име..."
+                  className="h-8.5 rounded-lg border-zinc-200 bg-white pr-7 pl-8 text-xs focus-visible:ring-1 focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900"
+                />
+                {bulkSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setBulkSearch("")}
+                    aria-label="Изчисти търсенето"
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                  >
+                    <X className="size-3" />
+                  </button>
+                )}
+              </div>
+
+              <div className="custom-scrollbar max-h-60 space-y-1 overflow-y-auto pr-1">
+                {filteredBulkMembers.map((m) => (
                   <div
                     key={m.id}
-                    className="flex items-center space-x-2 rounded-lg border border-transparent p-1.5 transition-colors hover:border-border hover:bg-accent"
+                    className="flex items-center space-x-2.5 rounded-lg border border-transparent p-1.5 transition-colors hover:border-zinc-200 hover:bg-zinc-100/60 dark:hover:border-zinc-800 dark:hover:bg-zinc-800/50"
                   >
                     <Checkbox
                       id={`member-${m.id}`}
@@ -209,15 +278,24 @@ export function EntryForm({
                     />
                     <label
                       htmlFor={`member-${m.id}`}
-                      className="flex-1 cursor-pointer text-xs"
+                      className="flex flex-1 cursor-pointer items-center justify-between text-xs"
                     >
-                      {m.firstName} {m.lastName}
+                      <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {m.firstName} {m.lastName}
+                      </span>
+                      {m.ageGroup && (
+                        <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                          {m.ageGroup}
+                        </span>
+                      )}
                     </label>
                   </div>
                 ))}
-                {availableMembers.length === 0 && (
-                  <p className="py-3 text-center text-xs text-muted-foreground">
-                    Няма свободни членове за тази категория.
+                {filteredBulkMembers.length === 0 && (
+                  <p className="py-4 text-center text-xs text-muted-foreground">
+                    {bulkSearch
+                      ? `Няма намерени състезатели за "${bulkSearch}"`
+                      : "Няма свободни членове за тази категория."}
                   </p>
                 )}
               </div>
@@ -252,25 +330,16 @@ export function EntryForm({
                     render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="text-xs font-medium">
-                          Избери член на клуба
+                          Избери състезател
                         </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-9 rounded-xl text-xs sm:text-sm">
-                              <SelectValue placeholder="Търсене..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="z-50 max-h-75 overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-                            {availableMembers.map((m) => (
-                              <SelectItem key={m.id} value={m.id as string}>
-                                {m.firstName} {m.lastName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <SearchableMemberSelect
+                            value={field.value}
+                            onChange={field.onChange}
+                            members={availableMembers}
+                            placeholder="Търсене на състезател по име..."
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -326,25 +395,18 @@ export function EntryForm({
                       render={({ field }) => (
                         <FormItem className="space-y-1">
                           <FormLabel className="text-xs font-medium">
-                            Избери член на клуба
+                            Избери партньор
                           </FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-9 rounded-xl text-xs sm:text-sm">
-                                <SelectValue placeholder="Търсене..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="z-50 max-h-75 overflow-y-auto border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-                              {availableMembers.map((m) => (
-                                <SelectItem key={m.id} value={m.id as string}>
-                                  {m.firstName} {m.lastName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <SearchableMemberSelect
+                              value={field.value}
+                              onChange={field.onChange}
+                              members={availableMembers.filter(
+                                (m) => m.id !== form.watch("memberId")
+                              )}
+                              placeholder="Търсене на партньор по име..."
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
