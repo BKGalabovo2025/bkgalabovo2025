@@ -5,31 +5,50 @@ import {
   CheckCircle,
   ClipboardCheck,
   Contact,
+  Eye,
   FileText,
   GraduationCap,
   Link as LinkIcon,
+  Loader2,
   LucideIcon,
   Printer,
   ScrollText,
   ShieldCheck,
   Stethoscope,
   Trash2,
+  Upload,
   UserMinus,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
+import { ViewSignedDocumentDialog } from "@/components/documents/ViewSignedDocumentDialog";
 import { DocumentRequestsHistory } from "@/components/members/DocumentRequestsHistory";
 import { GenerateDocumentLinkDialog } from "@/components/members/GenerateDocumentLinkDialog";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/auth-context";
+import { useClubFeeServices } from "@/hooks/useClubFeeServices";
+import {
   deleteDeclarationAction,
   getMemberDeclarationsAction,
 } from "@/lib/actions/declarations";
+import { getMemberDocumentRequestsAction } from "@/lib/actions/document-requests";
 import { getDocumentTemplatesAction } from "@/lib/actions/document-templates";
+import { uploadAdminMedicalCertificateAction } from "@/lib/actions/members";
 import { getCalendarYearValidity } from "@/lib/document-validity";
+import { isMatchingParticipation } from "@/lib/services-fees";
 import { cn } from "@/lib/utils";
 import { Member, SignedDeclaration } from "@/types";
-import { DocumentType } from "@/types/document-request.types";
+import { DocumentRequest, DocumentType } from "@/types/document-request.types";
 import { DocumentTemplate } from "@/types/document-template.types";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -71,6 +90,9 @@ interface DocumentRowProps {
   onPrint: () => void;
   onToggle: () => void;
   onGenerateLink?: () => void;
+  onViewSignature?: () => void;
+  onUploadFile?: () => void;
+  onViewFile?: () => void;
 }
 
 const DocumentRow = ({
@@ -85,6 +107,9 @@ const DocumentRow = ({
   onPrint,
   onToggle,
   onGenerateLink,
+  onViewSignature,
+  onUploadFile,
+  onViewFile,
 }: DocumentRowProps) => {
   const IconComponent = isCompleted || !AltIcon ? Icon : AltIcon;
 
@@ -117,6 +142,51 @@ const DocumentRow = ({
       </div>
 
       <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 lg:w-auto">
+        {onViewSignature && (
+          <Button
+            variant="outline"
+            className="h-10 flex-1 rounded-lg border-emerald-300 bg-emerald-50/60 px-3 text-[9px] font-bold tracking-wider text-emerald-800 uppercase transition-all hover:bg-emerald-100 hover:text-emerald-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
+            onClick={onViewSignature}
+            title="Прегледай положения електронен подпис"
+          >
+            <Eye
+              className="mr-1.5 size-3.5 sm:size-4 text-emerald-600"
+              strokeWidth={2}
+            />
+            Подпис
+          </Button>
+        )}
+
+        {onViewFile && (
+          <Button
+            variant="outline"
+            className="h-10 flex-1 rounded-lg border-sky-300 bg-sky-50/60 px-3 text-[9px] font-bold tracking-wider text-sky-800 uppercase transition-all hover:bg-sky-100 hover:text-sky-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
+            onClick={onViewFile}
+            title="Прегледай прикачения документ"
+          >
+            <Eye
+              className="mr-1.5 size-3.5 sm:size-4 text-sky-600"
+              strokeWidth={2}
+            />
+            Виж файл
+          </Button>
+        )}
+
+        {onUploadFile && (
+          <Button
+            variant="outline"
+            className="h-10 flex-1 rounded-lg border-zinc-200 bg-zinc-50/60 px-3 text-[9px] font-semibold tracking-wider text-zinc-700 uppercase transition-all hover:bg-zinc-100 hover:text-zinc-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
+            onClick={onUploadFile}
+            title="Прикачи скан или снимка на документ"
+          >
+            <Upload
+              className="mr-1.5 size-3.5 sm:size-4 text-zinc-600"
+              strokeWidth={2}
+            />
+            Качи файл
+          </Button>
+        )}
+
         {onGenerateLink && (
           <Button
             variant="outline"
@@ -319,12 +389,44 @@ function getMedicalStatus(
   member: Member,
   fmt: (d: string | null | undefined) => string | null
 ): StatusResult {
-  if (member.hasMedicalCertificate)
-    return completedText(
-      "Предадено на",
-      fmt(member.medicalCertificateHandedAt),
-      member.medicalCertificateHandedAt
+  if (member.hasMedicalCertificate) {
+    const isPendingReview =
+      member.medicalCertificateStatus === "pending_review";
+    return (
+      <div className="space-y-1">
+        {completedText(
+          "Предадено на",
+          fmt(
+            member.medicalCertificateHandedAt || member.medicalCertificateDate
+          ),
+          member.medicalCertificateDate || member.medicalCertificateHandedAt
+        )}
+        {member.medicalCertificateDate && (
+          <div className="text-[11px] text-zinc-500">
+            Дата на преглед:{" "}
+            <b>
+              {new Date(member.medicalCertificateDate).toLocaleDateString(
+                "bg-BG"
+              )}{" "}
+              г.
+            </b>
+          </div>
+        )}
+        {member.medicalCertificateUrl && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+            <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-200">
+              📎 Прикачен скан/файл
+            </span>
+            {isPendingReview && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
+                ⏳ Качен от родител (очаква преглед)
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     );
+  }
   if (member.medicalCertificatePrintedAt)
     return printedText(
       "Разпечатано на",
@@ -373,18 +475,55 @@ export const MemberDocumentsTab = ({
   formatDocDate,
   updateDocumentStatus,
 }: MemberDocumentsTabProps) => {
+  const { idToken, getFreshToken } = useAuth();
+  const { feeOptions } = useClubFeeServices();
   const [declarations, setDeclarations] = useState<SignedDeclaration[]>([]);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([]);
+  const [requests, setRequests] = useState<DocumentRequest[]>([]);
+  const [previewRequest, setPreviewRequest] = useState<DocumentRequest | null>(
+    null
+  );
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState<DocumentType>(
     "membershipApplication"
   );
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
+  // Medical Certificate Upload Modal State
+  const [medicalModalOpen, setMedicalModalOpen] = useState(false);
+  const [medicalCertDate, setMedicalCertDate] = useState(
+    member.medicalCertificateDate || new Date().toISOString().split("T")[0]
+  );
+  const [medicalFileBase64, setMedicalFileBase64] = useState<string | null>(
+    null
+  );
+  const [medicalFileName, setMedicalFileName] = useState("");
+  const [isUploadingMedical, setIsUploadingMedical] = useState(false);
+
   const handleOpenLinkDialog = (docType: DocumentType) => {
     setSelectedDocType(docType);
     setLinkDialogOpen(true);
   };
+
+  const fetchRequests = useCallback(async () => {
+    try {
+      const token = idToken || (await getFreshToken());
+      if (!token) return;
+      const res = await getMemberDocumentRequestsAction({
+        memberId: member.id,
+        idToken: token,
+      });
+      if (res.success && res.data) {
+        setRequests(res.data);
+      }
+    } catch (err) {
+      console.error("Error fetching requests:", err);
+    }
+  }, [idToken, getFreshToken, member.id]);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests, historyRefreshKey]);
 
   useEffect(() => {
     async function loadTemplates() {
@@ -413,6 +552,54 @@ export const MemberDocumentsTab = ({
     }
     fetchDeclarations();
   }, [member.id]);
+
+  const handleMedicalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMedicalFileName(file.name);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setMedicalFileBase64(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveMedicalCertificate = async () => {
+    if (!medicalFileBase64) {
+      toast.error("Моля, изберете файл (снимка или PDF).");
+      return;
+    }
+    const token = idToken || (await getFreshToken());
+    if (!token) {
+      toast.error("Не сте оторизиран.");
+      return;
+    }
+
+    setIsUploadingMedical(true);
+    try {
+      const res = await uploadAdminMedicalCertificateAction({
+        memberId: member.id,
+        fileBase64: medicalFileBase64,
+        fileName: medicalFileName,
+        certificateDate: medicalCertDate,
+        idToken: token,
+      });
+      if (res.success) {
+        toast.success("Медицинското свидетелство е качено успешно!");
+        setMedicalModalOpen(false);
+        setMedicalFileBase64(null);
+        setMedicalFileName("");
+        window.location.reload();
+      } else {
+        toast.error(res.error || "Грешка при качване на медицинско.");
+      }
+    } catch (err) {
+      console.error("Medical upload error:", err);
+      toast.error("Възникна грешка при качването на файла.");
+    } finally {
+      setIsUploadingMedical(false);
+    }
+  };
 
   const openPrint = (path: string, field: DocumentField) => {
     updateDocumentStatus(field, "print");
@@ -487,9 +674,60 @@ export const MemberDocumentsTab = ({
       ].includes(t.id)
   );
 
-  const handlePrintCustomTemplate = (tpl: DocumentTemplate) => {
+  const handlePrintDocumentTemplate = (
+    tpl: DocumentTemplate | undefined,
+    field: DocumentField,
+    fallbackPath: string
+  ) => {
+    updateDocumentStatus(field, "print");
+
+    if (!tpl) {
+      window.open(fallbackPath, "_blank");
+      return;
+    }
+
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
+
+    const matchingReq = requests.find(
+      (r) => r.documentType === tpl.id && r.status === "completed"
+    );
+    const signatureUrl =
+      matchingReq?.signatureUrl ||
+      ((member as Record<string, unknown>)[`${field}SignatureUrl`] as string) ||
+      ((member as Record<string, unknown>)[`${field}Url`] as string) ||
+      null;
+
+    const memberBirthStr = member.dateOfBirth
+      ? new Date(member.dateOfBirth).toLocaleDateString("bg-BG")
+      : "";
+
+    const printCheckboxes =
+      (tpl.id === "internalRules" || tpl.id === "membershipApplication") &&
+      feeOptions.length > 0
+        ? feeOptions.map((f) => ({
+            id: f.id,
+            label: `${f.name} ( ${f.price} ${f.currency} )`,
+          }))
+        : tpl.checkboxes || [];
+
+    const participationType = matchingReq?.parentData?.participationType || "";
+    const renderedCheckboxesHtml =
+      printCheckboxes.length > 0
+        ? `
+          <div class="checkboxes-box">
+            <div style="font-weight: bold; margin-bottom: 6px;">ИЗБИРАМ/Е СЛЕДНАТА ФОРМА НА УЧАСТИЕ:</div>
+            ${printCheckboxes
+              .map((c) => {
+                const isSelected =
+                  Boolean(participationType) &&
+                  isMatchingParticipation(participationType, c.label);
+                return `<div class="chk-row">${isSelected ? "☑ <b>" : "☐ "}${c.label}${isSelected ? "</b>" : ""}</div>`;
+              })
+              .join("")}
+          </div>
+        `
+        : "";
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -552,11 +790,12 @@ export const MemberDocumentsTab = ({
             border: 1px solid #cbd5e1;
             background: #f8fafc;
             padding: 8px 12px;
-            font-size: 10pt;
+            font-size: 9.5pt;
             margin-bottom: 15px;
+            line-height: 1.4;
           }
           .body-content {
-            font-size: 10.5pt;
+            font-size: 10pt;
             line-height: 1.5;
             text-align: justify;
             white-space: pre-line;
@@ -564,19 +803,26 @@ export const MemberDocumentsTab = ({
           }
           .checkboxes-box {
             margin: 15px 0;
-            font-size: 10pt;
+            font-size: 9.5pt;
           }
           .chk-row {
             margin: 4px 0;
           }
           .footer-box {
-            margin-top: 35px;
+            margin-top: 30px;
             padding-top: 15px;
             border-top: 1px solid #cbd5e1;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
             font-size: 10pt;
+          }
+          .sig-img {
+            height: 44px;
+            max-width: 160px;
+            object-fit: contain;
+            display: block;
+            margin-bottom: 4px;
           }
         </style>
       </head>
@@ -612,32 +858,39 @@ export const MemberDocumentsTab = ({
         }
 
         <div class="applicant-box">
-          <div><b>Състезател / Член:</b> ${member.name}</div>
+          <div><b>Състезател / Член:</b> ${member.name} ${
+            memberBirthStr ? `(роден/а на: ${memberBirthStr} г.)` : ""
+          }</div>
+          ${member.egn ? `<div><b>ЕГН:</b> ${member.egn}</div>` : ""}
+          ${
+            member.parentName
+              ? `<div><b>Родител / Настойник:</b> ${member.parentName} ${
+                  member.parentPhone ? `(тел: ${member.parentPhone})` : ""
+                }</div>`
+              : member.phone
+                ? `<div><b>Тел. за връзка:</b> ${member.phone}</div>`
+                : ""
+          }
+          ${member.address ? `<div><b>Адрес:</b> ${member.address}</div>` : ""}
         </div>
 
         <div class="body-content">
           ${tpl.content}
         </div>
 
-        ${
-          tpl.checkboxes && tpl.checkboxes.length > 0
-            ? `
-          <div class="checkboxes-box">
-            ${tpl.checkboxes
-              .map((c) => `<div class="chk-row">☐ ${c.label}</div>`)
-              .join("")}
-          </div>
-        `
-            : ""
-        }
+        ${renderedCheckboxesHtml}
 
         <div class="footer-box">
           <div>
-            <div>${tpl.closingLocation || "гр. Гълъбово"}</div>
+            <div>${tpl.closingLocation || "спортна зала „Енергетик“, град Гълъбово"}</div>
             <div style="margin-top: 5px;">Дата: ${new Date().toLocaleDateString("bg-BG")} г.</div>
           </div>
           <div style="text-align: right;">
-            <div style="border-bottom: 1px solid #0f172a; width: 180px; margin-bottom: 4px; display: inline-block;"></div>
+            ${
+              signatureUrl
+                ? `<img src="${signatureUrl}" class="sig-img" alt="Подпис" />`
+                : `<div style="border-bottom: 1px solid #0f172a; width: 180px; margin-bottom: 4px; display: inline-block;"></div>`
+            }
             <div>(Подпис)</div>
             ${
               tpl.signatures?.requirePresident
@@ -672,6 +925,33 @@ export const MemberDocumentsTab = ({
     formatDocDate
   );
 
+  // Find completed requests with signatures for direct 1-click preview
+  const membershipReq = requests.find(
+    (r) =>
+      r.documentType === "membershipApplication" && r.status === "completed"
+  );
+  const terminationReq = requests.find(
+    (r) => r.documentType === "terminationRequest" && r.status === "completed"
+  );
+  const internalRulesReq = requests.find(
+    (r) => r.documentType === "internalRules" && r.status === "completed"
+  );
+  const declarationReq = requests.find(
+    (r) => r.documentType === "signedDeclaration" && r.status === "completed"
+  );
+  const travelReq = requests.find(
+    (r) => r.documentType === "travelDeclaration" && r.status === "completed"
+  );
+  const safetyReq = requests.find(
+    (r) => r.documentType === "safetyInstruction" && r.status === "completed"
+  );
+  const amateurContractReq = requests.find(
+    (r) => r.documentType === "amateurContract" && r.status === "completed"
+  );
+  const licenseApplicationReq = requests.find(
+    (r) => r.documentType === "licenseApplication" && r.status === "completed"
+  );
+
   return (
     <div className="space-y-4 rounded-3xl border border-zinc-100 bg-white p-4 sm:space-y-6 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
       <DocumentRow
@@ -684,11 +964,15 @@ export const MemberDocumentsTab = ({
         }
         statusText={membershipStatus}
         submitLabel="Отбележи предадена"
+        onViewSignature={
+          membershipReq ? () => setPreviewRequest(membershipReq) : undefined
+        }
         onGenerateLink={() => handleOpenLinkDialog("membershipApplication")}
         onPrint={() =>
-          openPrint(
-            `/members/${member.id}/membership-application`,
-            "membershipApplication"
+          handlePrintDocumentTemplate(
+            membershipTpl,
+            "membershipApplication",
+            `/members/${member.id}/membership-application`
           )
         }
         onToggle={() =>
@@ -706,11 +990,15 @@ export const MemberDocumentsTab = ({
         }
         statusText={terminationStatus}
         submitLabel="Отбележи предадена"
+        onViewSignature={
+          terminationReq ? () => setPreviewRequest(terminationReq) : undefined
+        }
         onGenerateLink={() => handleOpenLinkDialog("terminationRequest")}
         onPrint={() =>
-          openPrint(
-            `/members/${member.id}/termination-request`,
-            "terminationRequest"
+          handlePrintDocumentTemplate(
+            terminationTpl,
+            "terminationRequest",
+            `/members/${member.id}/termination-request`
           )
         }
         onToggle={() =>
@@ -728,9 +1016,18 @@ export const MemberDocumentsTab = ({
         }
         statusText={internalRulesStatus}
         submitLabel="Отбележи приет"
+        onViewSignature={
+          internalRulesReq
+            ? () => setPreviewRequest(internalRulesReq)
+            : undefined
+        }
         onGenerateLink={() => handleOpenLinkDialog("internalRules")}
         onPrint={() =>
-          openPrint(`/members/${member.id}/internal-rules`, "internalRules")
+          handlePrintDocumentTemplate(
+            internalRulesTpl,
+            "internalRules",
+            `/members/${member.id}/internal-rules`
+          )
         }
         onToggle={() => toggle("internalRules", !!member.hasInternalRules)}
       />
@@ -746,9 +1043,16 @@ export const MemberDocumentsTab = ({
         }
         statusText={declarationStatus}
         submitLabel="Отбележи предадена"
+        onViewSignature={
+          declarationReq ? () => setPreviewRequest(declarationReq) : undefined
+        }
         onGenerateLink={() => handleOpenLinkDialog("signedDeclaration")}
         onPrint={() =>
-          openPrint(`/members/${member.id}/declaration`, "signedDeclaration")
+          handlePrintDocumentTemplate(
+            declarationTpl,
+            "signedDeclaration",
+            `/members/${member.id}/declaration`
+          )
         }
         onToggle={() =>
           toggle("signedDeclaration", !!member.hasSignedDeclaration)
@@ -765,11 +1069,15 @@ export const MemberDocumentsTab = ({
         }
         statusText={travelStatus}
         submitLabel="Отбележи предадено"
+        onViewSignature={
+          travelReq ? () => setPreviewRequest(travelReq) : undefined
+        }
         onGenerateLink={() => handleOpenLinkDialog("travelDeclaration")}
         onPrint={() =>
-          openPrint(
-            `/members/${member.id}/participation-travel`,
-            "travelDeclaration"
+          handlePrintDocumentTemplate(
+            travelTpl,
+            "travelDeclaration",
+            `/members/${member.id}/participation-travel`
           )
         }
         onToggle={() =>
@@ -787,11 +1095,15 @@ export const MemberDocumentsTab = ({
         }
         statusText={safetyStatus}
         submitLabel="Отбележи предаден"
+        onViewSignature={
+          safetyReq ? () => setPreviewRequest(safetyReq) : undefined
+        }
         onGenerateLink={() => handleOpenLinkDialog("safetyInstruction")}
         onPrint={() =>
-          openPrint(
-            `/members/${member.id}/safety-instruction`,
-            "safetyInstruction"
+          handlePrintDocumentTemplate(
+            safetyTpl,
+            "safetyInstruction",
+            `/members/${member.id}/safety-instruction`
           )
         }
         onToggle={() =>
@@ -809,9 +1121,18 @@ export const MemberDocumentsTab = ({
         }
         statusText={amateurContractStatus}
         submitLabel="Отбележи подписан"
+        onViewSignature={
+          amateurContractReq
+            ? () => setPreviewRequest(amateurContractReq)
+            : undefined
+        }
         onGenerateLink={() => handleOpenLinkDialog("amateurContract")}
         onPrint={() =>
-          openPrint(`/members/${member.id}/amateur-contract`, "amateurContract")
+          handlePrintDocumentTemplate(
+            amateurContractTpl,
+            "amateurContract",
+            `/members/${member.id}/amateur-contract`
+          )
         }
         onToggle={() => toggle("amateurContract", !!member.hasAmateurContract)}
       />
@@ -822,6 +1143,11 @@ export const MemberDocumentsTab = ({
         title="Молба за картотекиране в БФБ"
         statusText={licenseApplicationStatus}
         submitLabel="Отбележи подадена"
+        onViewSignature={
+          licenseApplicationReq
+            ? () => setPreviewRequest(licenseApplicationReq)
+            : undefined
+        }
         onGenerateLink={() => handleOpenLinkDialog("licenseApplication")}
         onPrint={() =>
           openPrint(
@@ -853,6 +1179,12 @@ export const MemberDocumentsTab = ({
         statusText={medicalStatus}
         submitLabel="Отбележи предадено"
         pendingVariant="danger"
+        onViewFile={
+          member.medicalCertificateUrl
+            ? () => window.open(member.medicalCertificateUrl!, "_blank")
+            : undefined
+        }
+        onUploadFile={() => setMedicalModalOpen(true)}
         onPrint={() =>
           openPrint(
             `/members/${member.id}/medical-certificate`,
@@ -876,9 +1208,19 @@ export const MemberDocumentsTab = ({
               : purpose
           }
           submitLabel="Печат"
-          onPrint={() => window.open(`/members/${member.id}/${path}`, "_blank")}
+          onPrint={() =>
+            handlePrintDocumentTemplate(
+              tpl,
+              "signedDeclaration",
+              `/members/${member.id}/${path}`
+            )
+          }
           onToggle={() =>
-            window.open(`/members/${member.id}/${path}`, "_blank")
+            handlePrintDocumentTemplate(
+              tpl,
+              "signedDeclaration",
+              `/members/${member.id}/${path}`
+            )
           }
         />
       ))}
@@ -892,8 +1234,20 @@ export const MemberDocumentsTab = ({
           title={`${tpl.title} (v${tpl.version})`}
           statusText={tpl.description || "Официален клубен образец"}
           submitLabel="Печат"
-          onPrint={() => handlePrintCustomTemplate(tpl)}
-          onToggle={() => handlePrintCustomTemplate(tpl)}
+          onPrint={() =>
+            handlePrintDocumentTemplate(
+              tpl,
+              "signedDeclaration",
+              `/members/${member.id}`
+            )
+          }
+          onToggle={() =>
+            handlePrintDocumentTemplate(
+              tpl,
+              "signedDeclaration",
+              `/members/${member.id}`
+            )
+          }
         />
       ))}
 
@@ -966,6 +1320,97 @@ export const MemberDocumentsTab = ({
         onOpenChange={setLinkDialogOpen}
         onGenerated={() => setHistoryRefreshKey((k) => k + 1)}
       />
+
+      {/* View Signed Document Modal */}
+      <ViewSignedDocumentDialog
+        request={previewRequest}
+        open={!!previewRequest}
+        onOpenChange={(open) => !open && setPreviewRequest(null)}
+        onUpdated={fetchRequests}
+      />
+
+      {/* Admin Medical Certificate Upload Modal */}
+      <Dialog open={medicalModalOpen} onOpenChange={setMedicalModalOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-5 sm:p-6 bg-white shadow-xl">
+          <DialogHeader className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="flex size-8 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                <Stethoscope className="size-4" />
+              </span>
+              <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950">
+                Прикачи медицинско свидетелство
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-zinc-500">
+              Качете скан или снимка на издаденото от лекар медицинско
+              удостоверение за {member.name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-800">
+                Дата на медицинския преглед (по печат):
+              </label>
+              <Input
+                type="date"
+                value={medicalCertDate}
+                onChange={(e) => setMedicalCertDate(e.target.value)}
+                className="h-10 rounded-xl text-xs font-medium"
+              />
+              <p className="text-[10px] text-zinc-400">
+                Валидността е 6 месеца (180 дни) от тази дата.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-800">
+                Файл (снимка или PDF):
+              </label>
+              <Input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleMedicalFileChange}
+                className="h-10 rounded-xl text-xs cursor-pointer file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-xs file:font-semibold"
+              />
+              {medicalFileName && (
+                <p className="text-xs font-semibold text-emerald-600 truncate">
+                  ✓ Избран: {medicalFileName}
+                </p>
+              )}
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMedicalModalOpen(false)}
+                className="h-10 rounded-xl text-xs"
+              >
+                Отказ
+              </Button>
+              <Button
+                type="button"
+                disabled={!medicalFileBase64 || isUploadingMedical}
+                onClick={handleSaveMedicalCertificate}
+                className="h-10 rounded-xl bg-zinc-950 text-white text-xs font-bold hover:bg-zinc-800"
+              >
+                {isUploadingMedical ? (
+                  <>
+                    <Loader2 className="mr-2 size-3.5 animate-spin" />
+                    Качване...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-1.5 size-3.5 text-emerald-400" />
+                    Запази и прикачи
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

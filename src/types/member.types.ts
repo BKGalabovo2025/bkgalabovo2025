@@ -104,6 +104,11 @@ export const MemberSchema = z.object({
   medicalCertificatePrintedAt: z.string().nullable().optional(),
   medicalCertificateHandedAt: z.string().nullable().optional(),
   medicalCertificateUrl: z.string().nullable().optional(),
+  medicalCertificateFileName: z.string().nullable().optional(),
+  medicalCertificateUploadedAt: z.string().nullable().optional(),
+  medicalCertificateStatus: z
+    .enum(["valid", "pending_review", "rejected", "expired"])
+    .optional(),
 
   isLicensed: z.boolean().optional(),
   isLicensedPrintedAt: z.string().nullable().optional(),

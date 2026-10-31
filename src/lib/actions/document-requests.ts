@@ -59,14 +59,51 @@ export async function createDocumentRequestAction(input: {
       "Член на клуба";
 
     let memberBirthDate: string | null = null;
-    if (memberData.birthDate) {
+    const rawBirthDate = memberData.dateOfBirth || memberData.birthDate;
+    if (rawBirthDate) {
       memberBirthDate =
-        typeof memberData.birthDate === "string"
-          ? memberData.birthDate
-          : memberData.birthDate?.toDate?.()
-            ? memberData.birthDate.toDate().toISOString()
+        typeof rawBirthDate === "string"
+          ? rawBirthDate
+          : rawBirthDate?.toDate?.()
+            ? rawBirthDate.toDate().toISOString()
             : null;
     }
+
+    const defaultParentData: ParentData = {
+      parentName:
+        (memberData.parentName as string) ||
+        (memberData.fatherName as string) ||
+        (memberData.motherName as string) ||
+        "",
+      parentPhone:
+        (memberData.parentPhone as string) ||
+        (memberData.fatherPhone as string) ||
+        (memberData.motherPhone as string) ||
+        (memberData.phone as string) ||
+        "",
+      parentEmail:
+        (memberData.parentEmail as string) ||
+        (memberData.email as string) ||
+        "",
+      parentAddress:
+        (memberData.parentAddress as string) ||
+        (memberData.address as string) ||
+        "",
+      secondParentName:
+        (memberData.secondParentName as string) ||
+        (memberData.motherName &&
+        memberData.parentName !== memberData.motherName
+          ? (memberData.motherName as string)
+          : ""),
+      secondParentPhone:
+        (memberData.secondParentPhone as string) ||
+        (memberData.motherPhone &&
+        memberData.parentPhone !== memberData.motherPhone
+          ? (memberData.motherPhone as string)
+          : ""),
+      participationType: (memberData.participationType as string) || "",
+      notes: null,
+    };
 
     const siteId = (memberData.siteId as string) || "bkgalabovo";
     const documentType = typeResult.data;
@@ -112,19 +149,35 @@ export async function createDocumentRequestAction(input: {
       const existingDoc = existingSnap.docs[0];
       const existingData = existingDoc.data();
       if (new Date(existingData.expiresAt).getTime() > Date.now()) {
+        const pendingUpdates: Record<string, unknown> = {};
+
         // Refresh template snapshot on pending request if template was updated
         if (
           documentLegalTextSnapshot &&
           existingData.documentLegalTextSnapshot !== documentLegalTextSnapshot
         ) {
-          await existingDoc.ref.update({
-            templateId,
-            templateVersion,
-            documentLegalTextSnapshot,
-            documentTitleSnapshot,
-            documentTitle: documentTitleSnapshot,
-          });
+          pendingUpdates.templateId = templateId;
+          pendingUpdates.templateVersion = templateVersion;
+          pendingUpdates.documentLegalTextSnapshot = documentLegalTextSnapshot;
+          pendingUpdates.documentTitleSnapshot = documentTitleSnapshot;
+          pendingUpdates.documentTitle = documentTitleSnapshot;
         }
+
+        // Backfill parent data and member birth date if missing
+        if (
+          !existingData.parentData &&
+          (defaultParentData.parentName || defaultParentData.parentPhone)
+        ) {
+          pendingUpdates.parentData = defaultParentData;
+        }
+        if (!existingData.memberBirthDate && memberBirthDate) {
+          pendingUpdates.memberBirthDate = memberBirthDate;
+        }
+
+        if (Object.keys(pendingUpdates).length > 0) {
+          await existingDoc.ref.update(pendingUpdates);
+        }
+
         return {
           success: true,
           message: "Линкът за подписване е зареден успешно.",
@@ -158,7 +211,10 @@ export async function createDocumentRequestAction(input: {
       expiresAt: expiresAt.toISOString(),
       signedAt: null,
       signatureUrl: null,
-      parentData: null,
+      parentData:
+        defaultParentData.parentName || defaultParentData.parentPhone
+          ? defaultParentData
+          : null,
       createdBy: {
         uid: user.uid,
         email: user.email || undefined,

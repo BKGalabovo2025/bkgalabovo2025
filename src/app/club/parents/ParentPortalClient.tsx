@@ -8,6 +8,7 @@ import {
   Calendar as CalendarIcon,
   CalendarDays,
   CalendarX2,
+  Camera,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
@@ -31,6 +32,7 @@ import {
   LogOut,
   MapPin,
   Plus,
+  Printer,
   Receipt,
   ShieldCheck,
   ShoppingBag,
@@ -47,6 +49,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { OfficialDocumentRenderer } from "@/components/documents/OfficialDocumentRenderer";
 import { ParentReceiptDialog } from "@/components/parents/ParentReceiptDialog";
 import {
   DocumentAttachmentType,
@@ -87,8 +90,10 @@ import {
   sendParentSessionReportAction,
   submitDataCorrectionAction,
   submitParentAbsenceAction,
+  uploadParentMedicalCertificateAction,
 } from "@/lib/actions/parent-portal";
 import { formatPrice } from "@/lib/currency";
+import { generatePdfFromElement } from "@/lib/html-to-pdf";
 import { cn } from "@/lib/utils";
 import {
   ParentFinancialTransactionItem,
@@ -186,12 +191,82 @@ export default function ParentPortalClient() {
 
   const [previewSentDoc, setPreviewSentDoc] =
     useState<ParentSentDocumentItem | null>(null);
+  const [isExportingDocPdf, setIsExportingDocPdf] = useState(false);
+  const parentDocPrintRef = useRef<HTMLDivElement>(null);
   const [showFeeHistory, setShowFeeHistory] = useState(false);
   const [activeReceiptTx, setActiveReceiptTx] =
     useState<ParentFinancialTransactionItem | null>(null);
   const [financeFilter, setFinanceFilter] = useState<
     "all" | "inventory" | "subscription" | "service"
   >("all");
+
+  // Medical certificate upload state (Parent)
+  const [parentMedicalModalOpen, setParentMedicalModalOpen] = useState(false);
+  const [parentMedicalDate, setParentMedicalDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [parentMedicalBase64, setParentMedicalBase64] = useState<string | null>(
+    null
+  );
+  const [parentMedicalFileName, setParentMedicalFileName] = useState("");
+  const [isUploadingParentMedical, setIsUploadingParentMedical] =
+    useState(false);
+
+  const handleParentMedicalFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setParentMedicalFileName(file.name);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setParentMedicalBase64(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveParentMedicalCertificate = async () => {
+    if (!selectedChild) {
+      toast.error("Няма избрано дете.");
+      return;
+    }
+    if (!parentMedicalBase64) {
+      toast.error(
+        "Моля, изберете снимка или PDF на медицинското свидетелство."
+      );
+      return;
+    }
+
+    setIsUploadingParentMedical(true);
+    try {
+      const res = await uploadParentMedicalCertificateAction({
+        memberId: selectedChild.id,
+        fileBase64: parentMedicalBase64,
+        fileName: parentMedicalFileName,
+        certificateDate: parentMedicalDate,
+      });
+
+      if (res.success) {
+        toast.success(
+          "Медицинското свидетелство беше изпратено успешно на треньора за преглед!"
+        );
+        logSessionAction(
+          `Качено медицинско свидетелство за ${selectedChild.firstName} (дата: ${parentMedicalDate})`
+        );
+        setParentMedicalModalOpen(false);
+        setParentMedicalBase64(null);
+        setParentMedicalFileName("");
+        refetch();
+      } else {
+        toast.error(res.error || "Грешка при изпращане на документа.");
+      }
+    } catch (err) {
+      console.error("Error uploading parent medical:", err);
+      toast.error("Възникна грешка при качването на файла.");
+    } finally {
+      setIsUploadingParentMedical(false);
+    }
+  };
 
   const transactionsList = useMemo(() => {
     return feeStatus?.transactions || [];
@@ -227,6 +302,32 @@ export default function ParentPortalClient() {
     if (!doc.viewedByParentAt) {
       await markDocumentViewedByParentAction(doc.id).catch(() => {});
       refetch();
+    }
+  };
+
+  const handleDownloadParentDocPdf = async () => {
+    if (!parentDocPrintRef.current || !previewSentDoc) return;
+    setIsExportingDocPdf(true);
+    const toastId = toast.loading("Генериране на официален PDF документ...");
+    try {
+      const cleanFileName =
+        `${previewSentDoc.documentTitle}_${previewSentDoc.memberName || selectedChild?.fullName || "document"}`
+          .replace(/\s+/g, "_")
+          .replace(/[^\w\u0400-\u04FF_]/g, "");
+
+      await generatePdfFromElement(
+        parentDocPrintRef.current,
+        `${cleanFileName}.pdf`,
+        "portrait"
+      );
+      toast.success("PDF документът е изтеглен успешно!", { id: toastId });
+    } catch (err) {
+      console.error("PDF export error:", err);
+      toast.error("Възникна грешка при изтегляне на PDF документа.", {
+        id: toastId,
+      });
+    } finally {
+      setIsExportingDocPdf(false);
     }
   };
 
@@ -1961,8 +2062,13 @@ export default function ParentPortalClient() {
                           <h3 className="text-sm font-black uppercase text-zinc-900 dark:text-white">
                             Периодично медицинско удостоверение
                           </h3>
-                          {documentsData.medicalCertificate.hasCertificate &&
-                          !documentsData.medicalCertificate.isExpired ? (
+                          {documentsData.medicalCertificate.status ===
+                          "pending_review" ? (
+                            <Badge className="bg-amber-500 text-white text-[10px] font-bold">
+                              ⏳ Качено от вас (Очаква преглед)
+                            </Badge>
+                          ) : documentsData.medicalCertificate.hasCertificate &&
+                            !documentsData.medicalCertificate.isExpired ? (
                             <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
                               ✓ Валидно медицинско
                             </Badge>
@@ -2024,6 +2130,33 @@ export default function ParentPortalClient() {
                           )}
                         </div>
                       </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 sm:pt-0">
+                      {documentsData.medicalCertificate.url && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            window.open(
+                              documentsData.medicalCertificate.url!,
+                              "_blank"
+                            )
+                          }
+                          className="h-8 rounded-xl text-xs font-semibold gap-1.5"
+                        >
+                          <Eye className="size-3.5 text-sky-600" />
+                          Виж каченото
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        onClick={() => setParentMedicalModalOpen(true)}
+                        className="h-8 rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-500 shadow-xs gap-1.5 cursor-pointer"
+                      >
+                        <Camera className="size-3.5" />
+                        📷 Качи ново медицинско
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -2087,34 +2220,48 @@ export default function ParentPortalClient() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handlePreviewSentDocument(doc)}
-                            className="h-8 rounded-xl text-xs font-semibold"
-                          >
-                            <Eye className="mr-1.5 size-3.5" />
-                            Прегледай текста
-                          </Button>
                           {!isSigned ? (
-                            <Button
-                              size="sm"
-                              onClick={() => handleOpenSignDocument(doc)}
-                              className="h-8 rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-500"
-                            >
-                              <FileSignature className="mr-1.5 size-3.5" />
-                              ✍️ Подпиши онлайн
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handlePreviewSentDocument(doc)}
+                                className="h-8 rounded-xl text-xs font-semibold"
+                              >
+                                <Eye className="mr-1.5 size-3.5" />
+                                Прегледай текста
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleOpenSignDocument(doc)}
+                                className="h-8 rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-500"
+                              >
+                                <FileSignature className="mr-1.5 size-3.5" />
+                                ✍️ Подпиши онлайн
+                              </Button>
+                            </>
                           ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleOpenSignDocument(doc)}
-                              className="h-8 rounded-xl border-emerald-200 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-300"
-                            >
-                              <FileCheck2 className="mr-1.5 size-3.5" />
-                              Преглед на подписания документ
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handlePreviewSentDocument(doc)}
+                                className="h-8 rounded-xl border-emerald-200 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-300"
+                              >
+                                <FileCheck2 className="mr-1.5 size-3.5" />
+                                Преглед на документа
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handlePreviewSentDocument(doc)}
+                                className="h-8 rounded-xl border-zinc-200 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200"
+                                title="Преглед и сваляне на официален PDF документ"
+                              >
+                                <Download className="mr-1.5 size-3.5 text-zinc-500" />
+                                Свали PDF
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -3044,18 +3191,24 @@ export default function ParentPortalClient() {
           open={Boolean(previewSentDoc)}
           onOpenChange={(open) => !open && setPreviewSentDoc(null)}
         >
-          <DialogContent className="max-w-2xl rounded-3xl p-6 max-h-[85vh] flex flex-col">
+          <DialogContent className="max-w-4xl rounded-3xl p-6 max-h-[90vh] flex flex-col">
             <DialogHeader>
               <div className="flex items-center gap-2">
                 <Badge className="bg-indigo-600 text-white text-[10px] font-bold">
                   Официален клубен документ
                 </Badge>
-                <Badge
-                  variant="outline"
-                  className="border-emerald-300 bg-emerald-50 text-emerald-700 text-[10px] font-semibold"
-                >
-                  ✓ Прегледът е отчетен в системата
-                </Badge>
+                {previewSentDoc.status === "completed" ? (
+                  <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+                    ✓ Подписан с електронен подпис
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="border-emerald-300 bg-emerald-50 text-emerald-700 text-[10px] font-semibold"
+                  >
+                    ✓ Прегледът е отчетен в системата
+                  </Badge>
+                )}
               </div>
               <DialogTitle className="text-base font-black uppercase text-zinc-900 dark:text-white pt-1">
                 {previewSentDoc.documentTitle}
@@ -3065,37 +3218,121 @@ export default function ParentPortalClient() {
                 <strong className="text-zinc-800 dark:text-zinc-200">
                   {previewSentDoc.memberName || selectedChild?.fullName}
                 </strong>
+                {previewSentDoc.signedAt && (
+                  <span className="ml-2 text-zinc-600 dark:text-zinc-300">
+                    • Подписан на:{" "}
+                    {new Date(previewSentDoc.signedAt).toLocaleString("bg-BG")}
+                  </span>
+                )}
               </DialogDescription>
             </DialogHeader>
 
-            <div className="my-2 flex-1 overflow-y-auto rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 text-xs leading-relaxed text-zinc-800 whitespace-pre-wrap dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-200">
-              {previewSentDoc.documentLegalTextSnapshot ||
-                "Официалният текст на документа ще се визуализира на страницата за подписване."}
+            <div className="my-2 flex-1 overflow-y-auto rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 text-xs leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-200">
+              {previewSentDoc.status === "completed" ? (
+                <div
+                  ref={parentDocPrintRef}
+                  className="mx-auto max-w-[210mm] overflow-hidden rounded-xl bg-white p-4 sm:p-6 shadow-xs text-zinc-900 print:m-0 print:border-none print:p-0 print:shadow-none"
+                >
+                  <OfficialDocumentRenderer
+                    slug={previewSentDoc.documentType}
+                    title={previewSentDoc.documentTitle}
+                    bodyText={
+                      previewSentDoc.documentLegalTextSnapshot || undefined
+                    }
+                    memberName={
+                      previewSentDoc.memberName || selectedChild?.fullName
+                    }
+                    parentName={previewSentDoc.parentData?.parentName}
+                    parentPhone={previewSentDoc.parentData?.parentPhone}
+                    parentEmail={previewSentDoc.parentData?.parentEmail}
+                    parentAddress={previewSentDoc.parentData?.parentAddress}
+                    fatherName={previewSentDoc.parentData?.parentName}
+                    fatherPhone={previewSentDoc.parentData?.parentPhone}
+                    motherName={previewSentDoc.parentData?.secondParentName}
+                    motherPhone={previewSentDoc.parentData?.secondParentPhone}
+                    participationType={
+                      previewSentDoc.parentData?.participationType
+                    }
+                    documentDate={
+                      previewSentDoc.signedAt
+                        ? new Date(previewSentDoc.signedAt).toLocaleDateString(
+                            "bg-BG"
+                          )
+                        : new Date(previewSentDoc.createdAt).toLocaleDateString(
+                            "bg-BG"
+                          )
+                    }
+                    parentSignatureDataUrl={previewSentDoc.signatureUrl}
+                    secondParentSignatureDataUrl={
+                      previewSentDoc.secondParentSignatureUrl
+                    }
+                    memberSignatureDataUrl={previewSentDoc.memberSignatureUrl}
+                    presidentSignatureDataUrl={
+                      previewSentDoc.presidentSignatureUrl
+                    }
+                    presidentSignedAt={previewSentDoc.presidentSignedAt}
+                  />
+                </div>
+              ) : (
+                <div className="whitespace-pre-wrap">
+                  {previewSentDoc.documentLegalTextSnapshot ||
+                    "Официалният текст на документа ще се визуализира на страницата за подписване."}
+                </div>
+              )}
             </div>
 
-            <DialogFooter className="gap-2 pt-2">
+            <DialogFooter className="gap-2 pt-2 flex-wrap items-center justify-between sm:justify-between">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPreviewSentDoc(null)}
                 className="rounded-xl text-xs"
               >
-                Затвори прегледа
+                Затвори
               </Button>
-              <Button
-                size="sm"
-                onClick={() => {
-                  const docToSign = previewSentDoc;
-                  setPreviewSentDoc(null);
-                  handleOpenSignDocument(docToSign);
-                }}
-                className="rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-500"
-              >
-                <FileSignature className="mr-1.5 size-3.5" />
-                {previewSentDoc.status === "completed"
-                  ? "Преглед на подписаното копие ↗"
-                  : "✍️ Продължи към онлайн подписване ↗"}
-              </Button>
+              <div className="flex items-center gap-2">
+                {previewSentDoc.status === "completed" && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isExportingDocPdf}
+                      onClick={handleDownloadParentDocPdf}
+                      className="rounded-xl border-zinc-200 text-xs font-semibold hover:bg-zinc-50 shadow-2xs"
+                    >
+                      {isExportingDocPdf ? (
+                        <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                      ) : (
+                        <Download className="mr-1.5 size-3.5 text-zinc-600" />
+                      )}
+                      Свали PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.print()}
+                      className="rounded-xl border-zinc-200 text-xs font-semibold hover:bg-zinc-50 shadow-2xs"
+                    >
+                      <Printer className="mr-1.5 size-3.5 text-zinc-600" />
+                      Печат
+                    </Button>
+                  </>
+                )}
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const docToSign = previewSentDoc;
+                    setPreviewSentDoc(null);
+                    handleOpenSignDocument(docToSign);
+                  }}
+                  className="rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-500"
+                >
+                  <FileSignature className="mr-1.5 size-3.5" />
+                  {previewSentDoc.status === "completed"
+                    ? "Преглед на линка за подписване ↗"
+                    : "✍️ Продължи към онлайн подписване ↗"}
+                </Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -3110,6 +3347,93 @@ export default function ParentPortalClient() {
           childName={selectedChild?.fullName || "Състезател"}
         />
       )}
+
+      {/* ── Parent Medical Certificate Upload Dialog ──────────────── */}
+      <Dialog
+        open={parentMedicalModalOpen}
+        onOpenChange={setParentMedicalModalOpen}
+      >
+        <DialogContent className="max-w-md rounded-3xl p-5 sm:p-6 bg-white dark:bg-zinc-900 shadow-xl">
+          <DialogHeader className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="flex size-8 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400">
+                <HeartPulse className="size-4" />
+              </span>
+              <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white">
+                Качване на медицинско удостоверение
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+              Снимайте или прикачете издадената от спортен / личен лекар бележка
+              за {selectedChild?.firstName}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-bold text-zinc-800 dark:text-zinc-200">
+                Дата на извършения медицински преглед:
+              </label>
+              <Input
+                type="date"
+                value={parentMedicalDate}
+                onChange={(e) => setParentMedicalDate(e.target.value)}
+                className="h-10 rounded-xl text-xs font-medium"
+              />
+              <p className="text-[10px] text-zinc-400">
+                Медицинското свидетелство е с валидност 6 месеца (180 дни).
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-zinc-800 dark:text-zinc-200">
+                Снимка или сканиран файл (JPG, PNG, PDF):
+              </label>
+              <Input
+                type="file"
+                accept="image/*,application/pdf"
+                capture="environment"
+                onChange={handleParentMedicalFileChange}
+                className="h-10 rounded-xl text-xs cursor-pointer file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-xs file:font-semibold"
+              />
+              {parentMedicalFileName && (
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 truncate">
+                  ✓ Избран файл: {parentMedicalFileName}
+                </p>
+              )}
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setParentMedicalModalOpen(false)}
+                className="h-10 rounded-xl text-xs"
+              >
+                Отказ
+              </Button>
+              <Button
+                type="button"
+                disabled={!parentMedicalBase64 || isUploadingParentMedical}
+                onClick={handleSaveParentMedicalCertificate}
+                className="h-10 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500"
+              >
+                {isUploadingParentMedical ? (
+                  <>
+                    <Loader2 className="mr-2 size-3.5 animate-spin" />
+                    Изпращане към треньора...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="mr-1.5 size-3.5" />
+                    Изпрати за преглед
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

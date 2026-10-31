@@ -9,6 +9,7 @@ import {
   FileCheck,
   Lock,
   PenTool,
+  Printer,
   Send,
   ShieldCheck,
   User,
@@ -280,6 +281,18 @@ export function DocumentSignerClient({
                   Този линк е защитен и еднократен. Промени по подписания
                   документ не са възможни.
                 </span>
+              </div>
+
+              <div className="pt-2 flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => window.print()}
+                  className="rounded-xl border-zinc-200 text-xs font-semibold hover:bg-zinc-50 shadow-2xs"
+                >
+                  <Printer className="mr-1.5 size-3.5 text-zinc-600" />
+                  Принтирай / Запази като PDF
+                </Button>
               </div>
             </div>
           </div>

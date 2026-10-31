@@ -226,6 +226,20 @@ export interface ParentSentDocumentItem {
   viewedByParentAt?: string | null;
   signedAt?: string | null;
   signatureUrl?: string | null;
+  secondParentSignatureUrl?: string | null;
+  memberSignatureUrl?: string | null;
+  presidentSignatureUrl?: string | null;
+  presidentSignedAt?: string | null;
+  parentData?: {
+    parentName?: string | null;
+    parentPhone?: string | null;
+    parentEmail?: string | null;
+    parentAddress?: string | null;
+    secondParentName?: string | null;
+    secondParentPhone?: string | null;
+    participationType?: string | null;
+    notes?: string | null;
+  } | null;
   documentLegalTextSnapshot?: string | null;
   documentTitleSnapshot?: string | null;
 }
@@ -237,6 +251,10 @@ export interface ParentDocumentsData {
     expiresAt?: string | null;
     isExpired: boolean;
     daysUntilExpiry?: number | null;
+    url?: string | null;
+    fileName?: string | null;
+    status?: "valid" | "pending_review" | "rejected" | "expired";
+    uploadedAt?: string | null;
   };
   checklist: ParentDocumentChecklistItem[];
   sentDocuments: ParentSentDocumentItem[];

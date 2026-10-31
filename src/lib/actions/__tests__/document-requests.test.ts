@@ -79,6 +79,8 @@ describe("Document Requests Validation and Types", () => {
         "travelDeclaration",
         "internalRules",
         "terminationRequest",
+        "amateurContract",
+        "licenseApplication",
       ] as const;
 
       for (const docType of expectedTypes) {

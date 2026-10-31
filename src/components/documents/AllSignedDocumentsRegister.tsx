@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   Calendar,
   CheckCircle2,
   Clock,
@@ -11,6 +12,7 @@ import {
   Loader2,
   RefreshCw,
   Search,
+  Send,
   ShieldCheck,
   Trash2,
 } from "lucide-react";
@@ -18,6 +20,8 @@ import Link from "next/link";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { MissingDocumentsChecklistDialog } from "@/components/documents/MissingDocumentsChecklistDialog";
+import { SendDocumentRequestDialog } from "@/components/documents/SendDocumentRequestDialog";
 import { ViewSignedDocumentDialog } from "@/components/documents/ViewSignedDocumentDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +30,10 @@ import { deleteDocumentRequestAction } from "@/lib/actions/document-requests";
 import { getAllClubDocumentRequestsAction } from "@/lib/actions/document-templates";
 import { getCalendarYearValidity } from "@/lib/document-validity";
 import { cn } from "@/lib/utils";
-import { DocumentRequest } from "@/types/document-request.types";
+import {
+  DOCUMENT_TITLES,
+  DocumentRequest,
+} from "@/types/document-request.types";
 
 export function AllSignedDocumentsRegister() {
   const { user } = useAuth();
@@ -34,6 +41,9 @@ export function AllSignedDocumentsRegister() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedDocType, setSelectedDocType] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [missingDocsOpen, setMissingDocsOpen] = useState(false);
 
   // Signature Preview modal
   const [previewRequest, setPreviewRequest] = useState<DocumentRequest | null>(
@@ -41,6 +51,7 @@ export function AllSignedDocumentsRegister() {
   );
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
 
   const loadRequests = useCallback(async () => {
     if (!user) {
@@ -124,11 +135,28 @@ export function AllSignedDocumentsRegister() {
     return { total, completed, pending, rate };
   }, [requests]);
 
+  // Available years for filter
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    requests.forEach((r) => {
+      const y = (r.signedAt || r.createdAt || "").slice(0, 4);
+      if (y && y.length === 4) years.add(y);
+    });
+    years.add(new Date().getFullYear().toString());
+    return Array.from(years).sort().reverse();
+  }, [requests]);
+
   // Filtered list
   const filteredRequests = useMemo(() => {
     return requests.filter((r) => {
       const matchesStatus =
         selectedStatus === "all" || r.status === selectedStatus;
+      const matchesDocType =
+        selectedDocType === "all" || r.documentType === selectedDocType;
+      const requestYear = (r.signedAt || r.createdAt || "").slice(0, 4);
+      const matchesYear =
+        selectedYear === "all" || requestYear === selectedYear;
+
       const matchesSearch =
         r.memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.documentTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -137,9 +165,9 @@ export function AllSignedDocumentsRegister() {
           .includes(searchQuery.toLowerCase()) ||
         (r.parentData?.parentPhone || "").includes(searchQuery);
 
-      return matchesStatus && matchesSearch;
+      return matchesStatus && matchesDocType && matchesYear && matchesSearch;
     });
-  }, [requests, selectedStatus, searchQuery]);
+  }, [requests, selectedStatus, selectedDocType, selectedYear, searchQuery]);
 
   return (
     <div className="space-y-4">
@@ -250,6 +278,48 @@ export function AllSignedDocumentsRegister() {
             <option value="cancelled">Анулирани</option>
           </select>
 
+          <select
+            id="documents-type-filter"
+            name="selectedDocType"
+            aria-label="Филтриране по вид документ"
+            value={selectedDocType}
+            onChange={(e) => setSelectedDocType(e.target.value)}
+            className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 shadow-2xs"
+          >
+            <option value="all">Всички бланки</option>
+            {Object.entries(DOCUMENT_TITLES).map(([key, title]) => (
+              <option key={key} value={key}>
+                {title}
+              </option>
+            ))}
+          </select>
+
+          <select
+            id="documents-year-filter"
+            name="selectedYear"
+            aria-label="Филтриране по година"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 shadow-2xs"
+          >
+            <option value="all">Всички години</option>
+            {availableYears.map((yr) => (
+              <option key={yr} value={yr}>
+                {yr} г.
+              </option>
+            ))}
+          </select>
+
+          <Button
+            variant="outline"
+            onClick={() => setMissingDocsOpen(true)}
+            className="h-9 rounded-xl border-amber-300 bg-amber-50 text-amber-950 text-xs font-bold hover:bg-amber-100 hover:border-amber-400 shadow-2xs gap-1.5 shrink-0"
+            title="Справка за липсващи или изтекли документи и медицински за състезания"
+          >
+            <AlertTriangle className="size-3.5 text-amber-600" />
+            Чеклист за състезания
+          </Button>
+
           <Button
             variant="outline"
             onClick={loadRequests}
@@ -261,6 +331,14 @@ export function AllSignedDocumentsRegister() {
               className={cn("size-3.5 mr-1.5", isLoading && "animate-spin")}
             />
             Обнови
+          </Button>
+
+          <Button
+            onClick={() => setSendDialogOpen(true)}
+            className="h-9 rounded-xl bg-zinc-950 text-white text-xs font-bold hover:bg-zinc-800 shadow-2xs gap-1.5 shrink-0"
+            title="Генерирай и изпрати линк за подписване на състезател"
+          >
+            <Send className="size-3.5 text-emerald-400" />+ Изпрати документ
           </Button>
         </div>
       </div>
@@ -489,6 +567,20 @@ export function AllSignedDocumentsRegister() {
         open={!!previewRequest}
         onOpenChange={(open) => !open && setPreviewRequest(null)}
         onUpdated={loadRequests}
+      />
+
+      {/* DIALOG: SEND DOCUMENT TO MEMBER */}
+      <SendDocumentRequestDialog
+        open={sendDialogOpen}
+        onOpenChange={setSendDialogOpen}
+        onSuccess={loadRequests}
+      />
+
+      {/* DIALOG: TOURNAMENT MISSING DOCUMENTS CHECKLIST */}
+      <MissingDocumentsChecklistDialog
+        open={missingDocsOpen}
+        onOpenChange={setMissingDocsOpen}
+        onRefreshParent={loadRequests}
       />
     </div>
   );

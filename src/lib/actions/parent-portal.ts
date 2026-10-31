@@ -7,7 +7,7 @@ import { format, isValid } from "date-fns";
 import { bg } from "date-fns/locale";
 import { revalidatePath } from "next/cache";
 
-import { getAdminDb } from "@/lib/firebase-admin";
+import { getAdminDb, getAdminStorage } from "@/lib/firebase-admin";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
 import {
   clearParentSession,
@@ -2491,6 +2491,11 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
               viewedByParentAt: raw.viewedByParentAt || null,
               signedAt: raw.signedAt || null,
               signatureUrl: raw.signatureUrl || null,
+              secondParentSignatureUrl: raw.secondParentSignatureUrl || null,
+              memberSignatureUrl: raw.memberSignatureUrl || null,
+              presidentSignatureUrl: raw.presidentSignatureUrl || null,
+              presidentSignedAt: raw.presidentSignedAt || null,
+              parentData: raw.parentData || null,
               documentLegalTextSnapshot: raw.documentLegalTextSnapshot || null,
               documentTitleSnapshot:
                 raw.documentTitleSnapshot || raw.documentTitle || null,
@@ -2617,6 +2622,16 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
               expiresAt: medExpiresAt,
               isExpired: medIsExpired,
               daysUntilExpiry,
+              url: (selectedChildRaw.medicalCertificateUrl as string) || null,
+              fileName:
+                (selectedChildRaw.medicalCertificateFileName as string) || null,
+              status:
+                (selectedChildRaw.medicalCertificateStatus as
+                  "valid" | "pending_review" | "rejected" | "expired") ||
+                (hasMedCert ? "valid" : undefined),
+              uploadedAt:
+                (selectedChildRaw.medicalCertificateUploadedAt as string) ||
+                null,
             },
             checklist,
             sentDocuments,
@@ -3483,5 +3498,97 @@ export async function unlinkChildFromParentAction(
   } catch (err) {
     console.error("unlinkChildFromParentAction error:", err);
     return { success: false, error: "Грешка при разкачане на детето." };
+  }
+}
+
+/**
+ * Uploads a physical medical certificate (photo / scan / PDF) by authenticated parent.
+ */
+export async function uploadParentMedicalCertificateAction(input: {
+  memberId: string;
+  fileBase64: string;
+  fileName?: string;
+  certificateDate: string;
+}): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
+  try {
+    const session = await getParentSession();
+    if (!session) {
+      return { success: false, error: "Не сте оторизиран родител." };
+    }
+
+    const adminDb = getAdminDb();
+    const parentDoc = await adminDb
+      .collection("parents")
+      .doc(session.parentId)
+      .get();
+    if (!parentDoc.exists) {
+      return { success: false, error: "Родителският профил не е намерен." };
+    }
+
+    const parentData = parentDoc.data() || {};
+    const linkedIds: string[] = parentData.linkedMemberIds || [];
+    if (!linkedIds.includes(input.memberId)) {
+      return {
+        success: false,
+        error: "Нямате достъп до досието на този състезател.",
+      };
+    }
+
+    const memberRef = adminDb.collection("members").doc(input.memberId);
+    const memberDoc = await memberRef.get();
+    if (!memberDoc.exists) {
+      return { success: false, error: "Състезателят не е намерен." };
+    }
+
+    let fileUrl = input.fileBase64;
+    try {
+      const storage = getAdminStorage();
+      const bucket = storage.bucket();
+      const [header, base64Data] = input.fileBase64.split(",");
+      if (base64Data) {
+        const mimeType = header?.match(/:(.*?);/)?.[1] || "image/jpeg";
+        const ext = mimeType.includes("pdf") ? "pdf" : "jpg";
+        const filename = `medical-certificates/${input.memberId}_${Date.now()}.${ext}`;
+        const file = bucket.file(filename);
+        await file.save(Buffer.from(base64Data, "base64"), {
+          contentType: mimeType,
+          public: true,
+          metadata: { cacheControl: "public, max-age=31536000" },
+        });
+        fileUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+      }
+    } catch (storageErr) {
+      console.warn(
+        "Storage upload fallback for parent medical cert:",
+        storageErr
+      );
+      fileUrl = input.fileBase64;
+    }
+
+    const now = new Date().toISOString();
+    await memberRef.update({
+      hasMedicalCertificate: true,
+      medicalCertificateDate: input.certificateDate,
+      medicalCertificateHandedAt: now,
+      medicalCertificateUrl: fileUrl,
+      medicalCertificateFileName: input.fileName || "medical-certificate",
+      medicalCertificateUploadedAt: now,
+      medicalCertificateStatus: "pending_review",
+      updatedAt: new Date().toISOString(),
+    });
+
+    revalidatePath("/club/parents");
+    revalidatePath(`/members/${input.memberId}`);
+
+    return { success: true, fileUrl };
+  } catch (error) {
+    console.error("uploadParentMedicalCertificateAction error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Грешка при изпращане на медицинското свидетелство.",
+    };
   }
 }

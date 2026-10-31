@@ -12,7 +12,7 @@ import {
   ensureAdminWithSite,
   getAuthUserFromSessionCookie,
 } from "@/lib/auth-utils";
-import { getAdminDb } from "@/lib/firebase-admin";
+import { getAdminDb, getAdminStorage } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 import { serverCache } from "@/lib/server-cache";
 import { Member, Sale, ScheduleEvent } from "@/types";
@@ -588,6 +588,87 @@ export async function getMembersAction(siteId?: string): Promise<{
         error instanceof Error
           ? error.message
           : "Грешка при зареждане на списъка с членове",
+    };
+  }
+}
+
+/**
+ * Uploads a physical medical certificate (photo / PDF) for a member by Admin.
+ */
+export async function uploadAdminMedicalCertificateAction(input: {
+  memberId: string;
+  fileBase64: string;
+  fileName?: string;
+  certificateDate: string;
+  idToken: string;
+}): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
+  try {
+    const user = await ensureAdmin(input.idToken);
+    const adminDb = getAdminDb();
+    const memberRef = adminDb.collection("members").doc(input.memberId);
+    const memberDoc = await memberRef.get();
+
+    if (!memberDoc.exists) {
+      return { success: false, error: "Членът не е намерен." };
+    }
+
+    let fileUrl = input.fileBase64;
+    try {
+      const storage = getAdminStorage();
+      const bucket = storage.bucket();
+      const [header, base64Data] = input.fileBase64.split(",");
+      if (base64Data) {
+        const mimeType = header?.match(/:(.*?);/)?.[1] || "image/jpeg";
+        const ext = mimeType.includes("pdf") ? "pdf" : "jpg";
+        const filename = `medical-certificates/${input.memberId}_${Date.now()}.${ext}`;
+        const file = bucket.file(filename);
+        await file.save(Buffer.from(base64Data, "base64"), {
+          contentType: mimeType,
+          public: true,
+          metadata: { cacheControl: "public, max-age=31536000" },
+        });
+        fileUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+      }
+    } catch (storageErr) {
+      console.warn("Storage upload fallback to base64:", storageErr);
+      fileUrl = input.fileBase64;
+    }
+
+    const now = new Date().toISOString();
+    await memberRef.update({
+      hasMedicalCertificate: true,
+      medicalCertificateDate: input.certificateDate,
+      medicalCertificateHandedAt: now,
+      medicalCertificateUrl: fileUrl,
+      medicalCertificateFileName: input.fileName || "medical-certificate",
+      medicalCertificateUploadedAt: now,
+      medicalCertificateStatus: "valid",
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    await logAuditEvent({
+      action: "update_member",
+      targetCollection: "members",
+      targetId: input.memberId,
+      userId: user.uid,
+      userEmail: user.email || "admin@bkgalabovo.com",
+      details: `Качено медицинско свидетелство за състезател ID: ${input.memberId}`,
+    });
+
+    serverCache.invalidatePattern("members:");
+    revalidatePath(`/members/${input.memberId}`);
+    revalidatePath("/members");
+    revalidatePath("/club/parents");
+
+    return { success: true, fileUrl };
+  } catch (error) {
+    console.error("uploadAdminMedicalCertificateAction error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Грешка при качване на медицинско свидетелство.",
     };
   }
 }

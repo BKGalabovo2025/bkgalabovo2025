@@ -1898,8 +1898,10 @@ export function OfficialDocumentRenderer({
   if (
     slug === "licenseApplicationMinor" ||
     (slug === "licenseApplication" &&
-      memberBirthDate &&
-      new Date().getFullYear() - new Date(memberBirthDate).getFullYear() < 18)
+      (Boolean(parentName) ||
+        !memberBirthDate ||
+        new Date().getFullYear() - new Date(memberBirthDate).getFullYear() <
+          18))
   ) {
     return (
       <div
@@ -2076,6 +2078,118 @@ export function OfficialDocumentRenderer({
         presidentSignedAt={presidentSignedAt}
         isPrintMode={isPrintMode}
       />
+    );
+  }
+
+  // 12b. МОЛБА ЗА ПРЕКРАТЯВАНЕ НА ЧЛЕНСТВО
+  if (slug === "terminationRequest") {
+    return (
+      <div
+        className={cn(
+          "mx-auto max-w-[210mm] bg-white p-6 sm:p-8 font-serif text-slate-900 leading-relaxed",
+          isPrintMode ? "p-0" : "shadow-xs border border-slate-200 rounded-2xl"
+        )}
+      >
+        {renderHeader()}
+
+        <div className="mb-4 text-center">
+          <h2 className="text-base font-bold uppercase tracking-wider text-slate-950">
+            М О Л Б А
+          </h2>
+          <p className="text-xs font-semibold text-slate-700">
+            за прекратяване на членство в СНЦ „Бадминтон клуб Гълъбово”
+          </p>
+        </div>
+
+        <div className="mb-4 flex justify-end">
+          <div className="w-[55%] text-left text-xs whitespace-pre-line font-bold">
+            ДО{"\n"}ПРЕДСЕДАТЕЛЯ НА{"\n"}СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“{"\n"}ГРАД
+            ГЪЛЪБОВО
+          </div>
+        </div>
+
+        <div className="my-3">
+          <p className="font-bold text-sm">УВАЖАЕМА ГОСПОЖО ПРЕДСЕДАТЕЛ,</p>
+        </div>
+
+        <div className="mb-4 rounded-md border border-slate-300 bg-slate-50/70 p-3 text-xs leading-normal">
+          <div className="grid grid-cols-[55px_1fr] items-baseline gap-x-2 gap-y-1.5">
+            <span className="font-bold text-slate-900">ОТ:</span>
+            <span className="border-b border-dotted border-slate-500 pb-0.5 text-slate-950">
+              {parentName ||
+                "...................................................................................."}
+              {parentPhone ? ` (тел: ${parentPhone})` : ""}
+            </span>
+
+            <span className="font-bold text-slate-900">ЗА:</span>
+            <span className="border-b border-dotted border-slate-500 pb-0.5 text-slate-950 font-bold">
+              {memberName ||
+                "...................................................................................."}
+              {memberBirthDate
+                ? ` (роден/а на: ${new Date(memberBirthDate).toLocaleDateString("bg-BG")} г.)`
+                : ""}
+            </span>
+          </div>
+        </div>
+
+        <div className="my-4 space-y-3 text-xs leading-relaxed text-justify">
+          <p className="indent-4">
+            Моля да прекратите членството на горепосочения състезател в СНЦ
+            „Бадминтон клуб Гълъбово“.
+          </p>
+          <p className="font-bold">С настоящото декларирам, че:</p>
+          <ul className="space-y-1.5 pl-4">
+            <li className="flex items-start gap-2">
+              <span className="font-bold text-emerald-700">✓</span>
+              <span>
+                Всички финансови задължения към клуба са напълно уредени към
+                датата на подаване на настоящата молба;
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold text-emerald-700">✓</span>
+              <span>
+                Предоставената клубна състезателна екипировка, инвентар и
+                материална база са върнати в цялост и добро състояние на
+                ръководството на клуба.
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-end text-xs">
+          <div>
+            <p>Спортна зала „Енергетик“, град Гълъбово</p>
+            <p className="mt-1">
+              Дата: <span className="font-semibold">{formattedDate} г.</span>
+            </p>
+          </div>
+
+          <div className="text-right">
+            <p className="font-bold">С уважение (Подпис):</p>
+            {parentSignatureDataUrl ? (
+              <div className="flex justify-end items-center gap-2 py-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={parentSignatureDataUrl}
+                  alt="Подпис"
+                  className="h-10 max-w-36 object-contain inline"
+                />
+                <span className="text-[7.5pt] font-sans font-bold text-emerald-700">
+                  (Подписан онлайн)
+                </span>
+              </div>
+            ) : (
+              <p className="border-b border-slate-900 w-44 inline-block mt-2">
+                &nbsp;
+              </p>
+            )}
+            <p className="text-[8pt] text-slate-600 mt-0.5">
+              {parentName || memberName}
+            </p>
+          </div>
+        </div>
+      </div>
     );
   }
 
