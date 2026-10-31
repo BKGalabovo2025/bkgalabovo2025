@@ -3246,10 +3246,18 @@ export default function ParentPortalClient() {
                     parentPhone={previewSentDoc.parentData?.parentPhone}
                     parentEmail={previewSentDoc.parentData?.parentEmail}
                     parentAddress={previewSentDoc.parentData?.parentAddress}
+                    secondParentName={
+                      previewSentDoc.parentData?.secondParentName
+                    }
+                    secondParentPhone={
+                      previewSentDoc.parentData?.secondParentPhone
+                    }
                     fatherName={previewSentDoc.parentData?.parentName}
                     fatherPhone={previewSentDoc.parentData?.parentPhone}
+                    fatherCity={previewSentDoc.parentData?.parentAddress}
                     motherName={previewSentDoc.parentData?.secondParentName}
                     motherPhone={previewSentDoc.parentData?.secondParentPhone}
+                    motherCity={previewSentDoc.parentData?.parentAddress}
                     participationType={
                       previewSentDoc.parentData?.participationType
                     }
@@ -3274,9 +3282,71 @@ export default function ParentPortalClient() {
                   />
                 </div>
               ) : (
-                <div className="whitespace-pre-wrap">
-                  {previewSentDoc.documentLegalTextSnapshot ||
-                    "Официалният текст на документа ще се визуализира на страницата за подписване."}
+                <div
+                  ref={parentDocPrintRef}
+                  className="mx-auto max-w-[210mm] overflow-hidden rounded-xl bg-white p-4 sm:p-6 shadow-xs text-zinc-900 print:m-0 print:border-none print:p-0 print:shadow-none space-y-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2.5 text-xs font-semibold text-amber-800">
+                    <span className="flex items-center gap-1.5">
+                      <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
+                      ⏳ Документът очаква вашето онлайн подписване.
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        const docToSign = previewSentDoc;
+                        setPreviewSentDoc(null);
+                        handleOpenSignDocument(docToSign);
+                      }}
+                      className="h-7 rounded-lg bg-amber-600 text-[11px] font-bold text-white hover:bg-amber-700"
+                    >
+                      ✍️ Подпиши сега ↗
+                    </Button>
+                  </div>
+                  <OfficialDocumentRenderer
+                    slug={previewSentDoc.documentType}
+                    title={previewSentDoc.documentTitle}
+                    bodyText={
+                      previewSentDoc.documentLegalTextSnapshot || undefined
+                    }
+                    memberName={
+                      previewSentDoc.memberName || selectedChild?.fullName
+                    }
+                    parentName={
+                      previewSentDoc.parentData?.parentName || parent?.name
+                    }
+                    parentPhone={
+                      previewSentDoc.parentData?.parentPhone || parent?.phone
+                    }
+                    parentEmail={
+                      previewSentDoc.parentData?.parentEmail || parent?.email
+                    }
+                    parentAddress={previewSentDoc.parentData?.parentAddress}
+                    secondParentName={
+                      previewSentDoc.parentData?.secondParentName
+                    }
+                    secondParentPhone={
+                      previewSentDoc.parentData?.secondParentPhone
+                    }
+                    fatherName={
+                      previewSentDoc.parentData?.parentName || parent?.name
+                    }
+                    fatherPhone={
+                      previewSentDoc.parentData?.parentPhone || parent?.phone
+                    }
+                    fatherCity={previewSentDoc.parentData?.parentAddress}
+                    motherName={previewSentDoc.parentData?.secondParentName}
+                    motherPhone={previewSentDoc.parentData?.secondParentPhone}
+                    motherCity={previewSentDoc.parentData?.parentAddress}
+                    participationType={
+                      previewSentDoc.parentData?.participationType
+                    }
+                    documentDate={new Date(
+                      previewSentDoc.createdAt
+                    ).toLocaleDateString("bg-BG")}
+                    isPrintMode={false}
+                  />
                 </div>
               )}
             </div>

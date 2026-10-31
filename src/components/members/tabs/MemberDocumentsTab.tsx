@@ -697,6 +697,17 @@ export const MemberDocumentsTab = ({
       ((member as Record<string, unknown>)[`${field}SignatureUrl`] as string) ||
       ((member as Record<string, unknown>)[`${field}Url`] as string) ||
       null;
+    const secondParentSigUrl = matchingReq?.secondParentSignatureUrl || null;
+    const memberSigUrl = matchingReq?.memberSignatureUrl || null;
+
+    const secondParentName =
+      (member as Record<string, unknown>).secondParentName ||
+      matchingReq?.parentData?.secondParentName ||
+      "";
+    const secondParentPhone =
+      (member as Record<string, unknown>).secondParentPhone ||
+      matchingReq?.parentData?.secondParentPhone ||
+      "";
 
     const memberBirthStr = member.dateOfBirth
       ? new Date(member.dateOfBirth).toLocaleDateString("bg-BG")
@@ -864,12 +875,19 @@ export const MemberDocumentsTab = ({
           ${member.egn ? `<div><b>ЕГН:</b> ${member.egn}</div>` : ""}
           ${
             member.parentName
-              ? `<div><b>Родител / Настойник:</b> ${member.parentName} ${
+              ? `<div><b>Родител / Настойник 1:</b> ${member.parentName} ${
                   member.parentPhone ? `(тел: ${member.parentPhone})` : ""
                 }</div>`
               : member.phone
                 ? `<div><b>Тел. за връзка:</b> ${member.phone}</div>`
                 : ""
+          }
+          ${
+            secondParentName
+              ? `<div><b>Втори родител:</b> ${secondParentName} ${
+                  secondParentPhone ? `(тел: ${secondParentPhone})` : ""
+                }</div>`
+              : ""
           }
           ${member.address ? `<div><b>Адрес:</b> ${member.address}</div>` : ""}
         </div>
@@ -891,7 +909,27 @@ export const MemberDocumentsTab = ({
                 ? `<img src="${signatureUrl}" class="sig-img" alt="Подпис" />`
                 : `<div style="border-bottom: 1px solid #0f172a; width: 180px; margin-bottom: 4px; display: inline-block;"></div>`
             }
-            <div>(Подпис)</div>
+            <div>(Подпис на родител / настойник 1)</div>
+            ${
+              secondParentSigUrl
+                ? `
+              <div style="margin-top: 10px;">
+                <img src="${secondParentSigUrl}" class="sig-img" alt="Подпис втори родител" />
+                <div>(Подпис на втори родител)</div>
+              </div>
+            `
+                : ""
+            }
+            ${
+              memberSigUrl
+                ? `
+              <div style="margin-top: 10px;">
+                <img src="${memberSigUrl}" class="sig-img" alt="Подпис състезател" />
+                <div>(Подпис на състезател)</div>
+              </div>
+            `
+                : ""
+            }
             ${
               tpl.signatures?.requirePresident
                 ? `

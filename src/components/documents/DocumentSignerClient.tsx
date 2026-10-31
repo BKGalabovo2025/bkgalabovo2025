@@ -827,16 +827,21 @@ export function DocumentSignerClient({
               parentPhone={parentPhone}
               parentEmail={parentEmail}
               parentAddress={parentAddress}
+              secondParentName={secondParentName}
+              secondParentPhone={secondParentPhone}
               fatherName={parentName}
               fatherPhone={parentPhone}
               fatherCity={parentAddress}
               motherName={secondParentName}
               motherPhone={secondParentPhone}
+              motherCity={parentAddress}
               parentSignatureDataUrl={liveParentSig || data.signatureUrl}
               secondParentSignatureDataUrl={
                 liveSecondParentSig || data.secondParentSignatureUrl
               }
               memberSignatureDataUrl={liveAthleteSig || data.memberSignatureUrl}
+              presidentSignatureDataUrl={data.presidentSignatureUrl}
+              presidentSignedAt={data.presidentSignedAt}
               isPrintMode={false}
             />
           </div>

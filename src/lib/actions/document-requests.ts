@@ -688,6 +688,15 @@ export async function submitSignedDocumentAction(input: {
         memberUpdates.licenseApplicationSignatureUrl = signatureBase64;
       }
 
+      if (input.secondParentSignatureBase64) {
+        memberUpdates[`${docType}SecondParentSignatureUrl`] =
+          input.secondParentSignatureBase64;
+      }
+      if (input.memberSignatureBase64) {
+        memberUpdates[`${docType}MemberSignatureUrl`] =
+          input.memberSignatureBase64;
+      }
+
       await memberRef.update(memberUpdates);
     }
 

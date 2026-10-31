@@ -37,6 +37,9 @@ export interface OfficialDocumentRendererProps {
   parentEmail?: string | null;
   parentAddress?: string | null;
 
+  secondParentName?: string | null;
+  secondParentPhone?: string | null;
+
   fatherName?: string | null;
   fatherCity?: string | null;
   fatherPhone?: string | null;
@@ -94,6 +97,9 @@ export function OfficialDocumentRenderer({
   parentEmail,
   parentAddress,
 
+  secondParentName,
+  secondParentPhone,
+
   fatherName,
   fatherCity,
   fatherPhone,
@@ -121,6 +127,13 @@ export function OfficialDocumentRenderer({
 
   isPrintMode = false,
 }: OfficialDocumentRendererProps) {
+  const effectiveSecondParentName = secondParentName || motherName;
+  const effectiveMotherName = motherName || secondParentName;
+  const effectiveSecondParentPhone = secondParentPhone || motherPhone;
+  const effectiveMotherPhone = motherPhone || secondParentPhone;
+  const effectiveMotherCity = motherCity || parentAddress;
+  const effectiveFatherCity = fatherCity || parentAddress;
+
   const formattedDate =
     documentDate ||
     new Date().toLocaleDateString("bg-BG").replace(/\s*г\.?$/, "");
@@ -378,10 +391,10 @@ export function OfficialDocumentRenderer({
         <div className="space-y-3 text-xs leading-normal">
           <p className="font-bold">Долуподписаните:</p>
 
-          {/* 1. Баща */}
+          {/* 1. Баща / Родител 1 */}
           <div className="space-y-1">
             <p>
-              1. Баща:{" "}
+              1. Баща / Родител 1:{" "}
               <span className="font-semibold underline">
                 {fatherName ||
                   parentName ||
@@ -395,8 +408,7 @@ export function OfficialDocumentRenderer({
               <p>
                 Жител на гр./с.:{" "}
                 <span className="font-semibold underline">
-                  {fatherCity ||
-                    parentAddress ||
+                  {effectiveFatherCity ||
                     ".................................................................................."}
                 </span>
               </p>
@@ -411,12 +423,12 @@ export function OfficialDocumentRenderer({
             </div>
           </div>
 
-          {/* 2. Майка */}
+          {/* 2. Майка / Втори родител */}
           <div className="space-y-1 pt-1">
             <p>
-              2. Майка:{" "}
+              2. Майка / Втори родител:{" "}
               <span className="font-semibold underline">
-                {motherName ||
+                {effectiveMotherName ||
                   "...................................................................................................................................................."}
               </span>
             </p>
@@ -427,14 +439,14 @@ export function OfficialDocumentRenderer({
               <p>
                 Жител на гр./с.:{" "}
                 <span className="font-semibold underline">
-                  {motherCity ||
+                  {effectiveMotherCity ||
                     ".................................................................................."}
                 </span>
               </p>
               <p>
                 Тел.:{" "}
                 <span className="font-semibold underline">
-                  {motherPhone ||
+                  {effectiveMotherPhone ||
                     "....................................................."}
                 </span>
               </p>
@@ -527,7 +539,9 @@ export function OfficialDocumentRenderer({
                     </span>
                   )}
                 </div>
-                <span className="text-xs italic">/подпис на бащата/</span>
+                <span className="text-xs italic">
+                  /подпис на родител 1 (баща)/
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -551,7 +565,9 @@ export function OfficialDocumentRenderer({
                     </span>
                   )}
                 </div>
-                <span className="text-xs italic">/подпис на майката/</span>
+                <span className="text-xs italic">
+                  /подпис на родител 2 (майка)/
+                </span>
               </div>
             </div>
           </div>
@@ -612,7 +628,7 @@ export function OfficialDocumentRenderer({
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span>Родител:</span>
+                <span>Родител / Настойник:</span>
                 <span className="font-semibold underline">
                   {parentName ||
                     "................................................................................................................................"}
@@ -633,6 +649,33 @@ export function OfficialDocumentRenderer({
               /име , фамилия , подпис/
             </p>
           </div>
+
+          {(effectiveSecondParentName || secondParentSignatureDataUrl) && (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span>Втори родител:</span>
+                  <span className="font-semibold underline">
+                    {effectiveSecondParentName ||
+                      "................................................................................................................................"}
+                  </span>
+                  {secondParentSignatureDataUrl && (
+                    <span className="inline-block ml-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={secondParentSignatureDataUrl}
+                        alt="Подпис на втори родител"
+                        className="h-7 max-w-25 object-contain inline"
+                      />
+                    </span>
+                  )}
+                </div>
+              </div>
+              <p className="text-[7.5pt] text-slate-500 pl-16">
+                /име , фамилия , подпис/
+              </p>
+            </div>
+          )}
 
           <div className="space-y-1">
             <div className="flex items-center justify-between">
@@ -916,7 +959,7 @@ export function OfficialDocumentRenderer({
 
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span>Родител/настойник:</span>
+                <span>Родител/настойник 1:</span>
                 <div className="w-[70%] border-b border-slate-900 pb-0.5 text-right font-semibold">
                   {parentSignatureDataUrl ? (
                     <div className="flex justify-end items-center gap-2">
@@ -938,6 +981,32 @@ export function OfficialDocumentRenderer({
                   )}
                 </div>
               </div>
+
+              {(effectiveSecondParentName || secondParentSignatureDataUrl) && (
+                <div className="flex items-center justify-between">
+                  <span>Втори родител:</span>
+                  <div className="w-[70%] border-b border-slate-900 pb-0.5 text-right font-semibold">
+                    {secondParentSignatureDataUrl ? (
+                      <div className="flex justify-end items-center gap-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={secondParentSignatureDataUrl}
+                          alt="Подпис"
+                          className="h-7 max-w-25 object-contain inline"
+                        />
+                        <span className="text-[7.5pt] font-sans font-bold text-slate-700">
+                          ({effectiveSecondParentName || "Подписан"})
+                        </span>
+                      </div>
+                    ) : (
+                      <span>
+                        {effectiveSecondParentName ||
+                          "...................................................................................."}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <span>Състезател:</span>
@@ -1039,6 +1108,18 @@ export function OfficialDocumentRenderer({
                   {parentAddress ? `, ${parentAddress}` : ""}
                   {parentPhone ? `, тел.: ${parentPhone}` : ""}
                   {parentEmail ? `, e-mail: ${parentEmail}` : ""}
+                  {effectiveSecondParentName ? (
+                    <>
+                      {" "}
+                      и втори родител:{" "}
+                      <strong className="font-bold">
+                        {effectiveSecondParentName}
+                      </strong>
+                      {effectiveSecondParentPhone
+                        ? ` (тел. ${effectiveSecondParentPhone})`
+                        : ""}
+                    </>
+                  ) : null}
                 </>
               ) : (
                 <span className="text-slate-500 italic">
@@ -1146,26 +1227,56 @@ export function OfficialDocumentRenderer({
             </p>
           </div>
 
-          <div className="text-right">
-            <p className="font-bold">Родител / Настойник:</p>
-            {parentSignatureDataUrl ? (
-              <div className="flex justify-end items-center gap-2 py-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={parentSignatureDataUrl}
-                  alt="Подпис"
-                  className="h-9 max-w-30 object-contain inline"
-                />
-                <span className="text-[7.5pt] font-sans font-bold text-slate-700">
-                  (Електронно подписан)
-                </span>
-              </div>
-            ) : (
-              <p className="border-b border-slate-900 w-48 inline-block mt-2">
-                &nbsp;
+          <div className="text-right space-y-2">
+            <div>
+              <p className="font-bold">
+                Родител / Настойник 1: {parentName || ""}
               </p>
+              {parentSignatureDataUrl ? (
+                <div className="flex justify-end items-center gap-2 py-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={parentSignatureDataUrl}
+                    alt="Подпис"
+                    className="h-9 max-w-30 object-contain inline"
+                  />
+                  <span className="text-[7.5pt] font-sans font-bold text-slate-700">
+                    (Електронно подписан)
+                  </span>
+                </div>
+              ) : (
+                <p className="border-b border-slate-900 w-48 inline-block mt-2">
+                  &nbsp;
+                </p>
+              )}
+              <p className="text-[7.5pt] text-slate-600 italic">/подпис/</p>
+            </div>
+
+            {(effectiveSecondParentName || secondParentSignatureDataUrl) && (
+              <div>
+                <p className="font-bold">
+                  Втори родител: {effectiveSecondParentName || ""}
+                </p>
+                {secondParentSignatureDataUrl ? (
+                  <div className="flex justify-end items-center gap-2 py-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={secondParentSignatureDataUrl}
+                      alt="Подпис"
+                      className="h-9 max-w-30 object-contain inline"
+                    />
+                    <span className="text-[7.5pt] font-sans font-bold text-slate-700">
+                      (Електронно подписан)
+                    </span>
+                  </div>
+                ) : (
+                  <p className="border-b border-slate-900 w-48 inline-block mt-2">
+                    &nbsp;
+                  </p>
+                )}
+                <p className="text-[7.5pt] text-slate-600 italic">/подпис/</p>
+              </div>
             )}
-            <p className="text-[7.5pt] text-slate-600 italic">/подпис/</p>
           </div>
         </div>
       </div>
@@ -1194,7 +1305,22 @@ export function OfficialDocumentRenderer({
 
         <div className="space-y-3 text-xs leading-relaxed text-justify">
           <p>
-            В качеството си на: Родител / Настойник на:{" "}
+            {parentName ? (
+              <>
+                Долуподписаният/ата:{" "}
+                <strong className="underline underline-offset-2">
+                  {parentName}
+                </strong>
+                {parentPhone ? ` (тел. ${parentPhone})` : ""}
+                {parentAddress ? `, адрес: ${parentAddress}` : ""}
+                {effectiveSecondParentName
+                  ? ` и втори родител: ${effectiveSecondParentName}${effectiveSecondParentPhone ? ` (тел. ${effectiveSecondParentPhone})` : ""}`
+                  : ""}
+                , в качеството си на: Родител / Настойник на:{" "}
+              </>
+            ) : (
+              "В качеството си на: Родител / Настойник на: "
+            )}
             <strong className="underline underline-offset-2">
               {memberName ||
                 "...................................................................................."}
@@ -1246,26 +1372,57 @@ export function OfficialDocumentRenderer({
               </p>
             </div>
 
-            <div className="text-right">
-              <p className="font-bold">Декларатор (Родител):</p>
-              {parentSignatureDataUrl ? (
-                <div className="flex justify-end items-center gap-2 py-1">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={parentSignatureDataUrl}
-                    alt="Подпис"
-                    className="h-9 max-w-30 object-contain inline"
-                  />
-                  <span className="text-[7.5pt] font-sans font-bold text-slate-700">
-                    (Електронно подписан)
-                  </span>
-                </div>
-              ) : (
-                <p className="border-b border-slate-900 w-48 inline-block mt-2">
-                  &nbsp;
+            <div className="text-right space-y-2">
+              <div>
+                <p className="font-bold">
+                  Декларатор (Родител / Настойник 1): {parentName || ""}
                 </p>
+                {parentSignatureDataUrl ? (
+                  <div className="flex justify-end items-center gap-2 py-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={parentSignatureDataUrl}
+                      alt="Подпис"
+                      className="h-9 max-w-30 object-contain inline"
+                    />
+                    <span className="text-[7.5pt] font-sans font-bold text-slate-700">
+                      (Електронно подписан)
+                    </span>
+                  </div>
+                ) : (
+                  <p className="border-b border-slate-900 w-48 inline-block mt-2">
+                    &nbsp;
+                  </p>
+                )}
+                <p className="text-[7.5pt] text-slate-600 italic">/подпис/</p>
+              </div>
+
+              {(effectiveSecondParentName || secondParentSignatureDataUrl) && (
+                <div>
+                  <p className="font-bold">
+                    Декларатор (Втори родител):{" "}
+                    {effectiveSecondParentName || ""}
+                  </p>
+                  {secondParentSignatureDataUrl ? (
+                    <div className="flex justify-end items-center gap-2 py-1">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={secondParentSignatureDataUrl}
+                        alt="Подпис"
+                        className="h-9 max-w-30 object-contain inline"
+                      />
+                      <span className="text-[7.5pt] font-sans font-bold text-slate-700">
+                        (Електронно подписан)
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="border-b border-slate-900 w-48 inline-block mt-2">
+                      &nbsp;
+                    </p>
+                  )}
+                  <p className="text-[7.5pt] text-slate-600 italic">/подпис/</p>
+                </div>
               )}
-              <p className="text-[7.5pt] text-slate-600 italic">/подпис/</p>
             </div>
           </div>
         </div>
@@ -1491,7 +1648,7 @@ export function OfficialDocumentRenderer({
 
               <div className="space-y-1.5 pl-2">
                 <p>
-                  1. Баща:{" "}
+                  1. Баща / Родител 1:{" "}
                   <span className="font-semibold underline">
                     {fatherName ||
                       parentName ||
@@ -1499,9 +1656,9 @@ export function OfficialDocumentRenderer({
                   </span>
                 </p>
                 <p>
-                  2. Майка:{" "}
+                  2. Майка / Втори родител:{" "}
                   <span className="font-semibold underline">
-                    {motherName ||
+                    {effectiveMotherName ||
                       "...................................................................................................................................................."}
                   </span>
                 </p>
@@ -1790,9 +1947,38 @@ export function OfficialDocumentRenderer({
                     )}
                   </div>
                   <p className="text-[7.5pt] text-slate-600 italic">
-                    / име на родителя, подпис /
+                    / име на родител / настойник 1, подпис /
                   </p>
                 </div>
+
+                {(effectiveSecondParentName ||
+                  secondParentSignatureDataUrl) && (
+                  <div>
+                    <div className="border-b border-slate-900 pb-0.5 font-semibold">
+                      {secondParentSignatureDataUrl ? (
+                        <div className="flex justify-end items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={secondParentSignatureDataUrl}
+                            alt="Подпис"
+                            className="h-7 max-w-25 object-contain inline"
+                          />
+                          <span className="text-[7.5pt] font-sans font-bold text-slate-700">
+                            ({effectiveSecondParentName})
+                          </span>
+                        </div>
+                      ) : (
+                        <span>
+                          {effectiveSecondParentName ||
+                            "...................................................."}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[7.5pt] text-slate-600 italic">
+                      / име на втори родител, подпис /
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1949,8 +2135,8 @@ export function OfficialDocumentRenderer({
             <div className="flex items-baseline gap-2">
               <span className="font-bold">2.</span>
               <span className="flex-1 border-b border-dotted border-slate-800 pb-0.5 font-semibold">
-                {motherName
-                  ? `${motherName}${motherEGN ? `, ЕГН: ${motherEGN}` : ""}${motherCity ? `, ${motherCity}` : ""}`
+                {effectiveMotherName
+                  ? `${effectiveMotherName}${motherEGN ? `, ЕГН: ${motherEGN}` : ""}${effectiveMotherCity ? `, ${effectiveMotherCity}` : ""}`
                   : "................................................................................................................................................"}
               </span>
             </div>
@@ -2014,7 +2200,7 @@ export function OfficialDocumentRenderer({
                     className="h-7 max-w-25 object-contain inline"
                   />
                   <span className="text-[7.5pt] font-sans font-bold text-slate-700 ml-1">
-                    ({motherName || "Майка"})
+                    ({effectiveMotherName || "Майка / Втори родител"})
                   </span>
                 </div>
               ) : (
@@ -2119,6 +2305,10 @@ export function OfficialDocumentRenderer({
               {parentName ||
                 "...................................................................................."}
               {parentPhone ? ` (тел: ${parentPhone})` : ""}
+              {parentAddress ? `, адрес: ${parentAddress}` : ""}
+              {effectiveSecondParentName
+                ? ` и втори родител: ${effectiveSecondParentName}${effectiveSecondParentPhone ? ` (тел: ${effectiveSecondParentPhone})` : ""}`
+                : ""}
             </span>
 
             <span className="font-bold text-slate-900">ЗА:</span>
@@ -2165,28 +2355,56 @@ export function OfficialDocumentRenderer({
             </p>
           </div>
 
-          <div className="text-right">
-            <p className="font-bold">С уважение (Подпис):</p>
-            {parentSignatureDataUrl ? (
-              <div className="flex justify-end items-center gap-2 py-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={parentSignatureDataUrl}
-                  alt="Подпис"
-                  className="h-10 max-w-36 object-contain inline"
-                />
-                <span className="text-[7.5pt] font-sans font-bold text-emerald-700">
-                  (Подписан онлайн)
-                </span>
-              </div>
-            ) : (
-              <p className="border-b border-slate-900 w-44 inline-block mt-2">
-                &nbsp;
+          <div className="text-right space-y-2">
+            <div>
+              <p className="font-bold">С уважение (Подпис):</p>
+              {parentSignatureDataUrl ? (
+                <div className="flex justify-end items-center gap-2 py-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={parentSignatureDataUrl}
+                    alt="Подпис"
+                    className="h-10 max-w-36 object-contain inline"
+                  />
+                  <span className="text-[7.5pt] font-sans font-bold text-emerald-700">
+                    (Подписан онлайн)
+                  </span>
+                </div>
+              ) : (
+                <p className="border-b border-slate-900 w-44 inline-block mt-2">
+                  &nbsp;
+                </p>
+              )}
+              <p className="text-[8pt] text-slate-600 mt-0.5">
+                {parentName || memberName}
               </p>
+            </div>
+
+            {(effectiveSecondParentName || secondParentSignatureDataUrl) && (
+              <div>
+                <p className="font-bold">Втори родител:</p>
+                {secondParentSignatureDataUrl ? (
+                  <div className="flex justify-end items-center gap-2 py-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={secondParentSignatureDataUrl}
+                      alt="Подпис втори родител"
+                      className="h-10 max-w-36 object-contain inline"
+                    />
+                    <span className="text-[7.5pt] font-sans font-bold text-emerald-700">
+                      (Подписан онлайн)
+                    </span>
+                  </div>
+                ) : (
+                  <p className="border-b border-slate-900 w-44 inline-block mt-2">
+                    &nbsp;
+                  </p>
+                )}
+                <p className="text-[8pt] text-slate-600 mt-0.5">
+                  {effectiveSecondParentName}
+                </p>
+              </div>
             )}
-            <p className="text-[8pt] text-slate-600 mt-0.5">
-              {parentName || memberName}
-            </p>
           </div>
         </div>
       </div>

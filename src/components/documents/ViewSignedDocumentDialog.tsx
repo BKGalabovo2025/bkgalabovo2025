@@ -234,10 +234,14 @@ export function ViewSignedDocumentDialog({
               parentPhone={currentReq.parentData?.parentPhone}
               parentEmail={currentReq.parentData?.parentEmail}
               parentAddress={currentReq.parentData?.parentAddress}
+              secondParentName={currentReq.parentData?.secondParentName}
+              secondParentPhone={currentReq.parentData?.secondParentPhone}
               fatherName={currentReq.parentData?.parentName}
               fatherPhone={currentReq.parentData?.parentPhone}
+              fatherCity={currentReq.parentData?.parentAddress}
               motherName={currentReq.parentData?.secondParentName}
               motherPhone={currentReq.parentData?.secondParentPhone}
+              motherCity={currentReq.parentData?.parentAddress}
               documentDate={
                 currentReq.signedAt
                   ? new Date(currentReq.signedAt).toLocaleDateString("bg-BG")
