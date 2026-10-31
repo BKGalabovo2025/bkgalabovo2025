@@ -218,6 +218,16 @@ export function GenerateDocumentLinkDialog({
             </div>
           ) : generatedUrl ? (
             <div className="space-y-4">
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 p-2.5 text-xs text-emerald-900">
+                <span className="font-semibold text-emerald-700">
+                  ✓ Подпис на Председателя:
+                </span>
+                <span>
+                  Документът е предварително заверен с официален ел. подпис на
+                  клуба.
+                </span>
+              </div>
+
               {/* URL Input and Copy */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">

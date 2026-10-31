@@ -1220,11 +1220,32 @@ export function OfficialDocumentRenderer({
 
         {/* Подпис */}
         <div className="mt-6 pt-4 border-t border-slate-200 flex justify-between items-end text-xs">
-          <div>
+          <div className="space-y-1">
             <p>Спортна зала „Енергетик“, град Гълъбово</p>
             <p className="mt-1">
               Дата: <span className="font-semibold">{formattedDate} г.</span>
             </p>
+            {presidentSignatureDataUrl ? (
+              <div className="pt-2 border-t border-slate-100 mt-2">
+                <p className="font-bold text-[7.5pt] uppercase text-emerald-800">
+                  Утвърдил / Приел в клуба:
+                </p>
+                <div className="flex items-center gap-2 py-0.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={presidentSignatureDataUrl}
+                    alt="Подпис Председател"
+                    className="h-8 max-w-[110px] object-contain"
+                  />
+                  <span className="text-[7.5pt] font-sans font-bold text-slate-700">
+                    (Мира Георгиева)
+                  </span>
+                </div>
+                <p className="text-[7pt] text-slate-500 italic">
+                  Председател на СНЦ „Бадминтон клуб Гълъбово“
+                </p>
+              </div>
+            ) : null}
           </div>
 
           <div className="text-right space-y-2">
@@ -2348,11 +2369,32 @@ export function OfficialDocumentRenderer({
         </div>
 
         <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-end text-xs">
-          <div>
+          <div className="space-y-1">
             <p>Спортна зала „Енергетик“, град Гълъбово</p>
             <p className="mt-1">
               Дата: <span className="font-semibold">{formattedDate} г.</span>
             </p>
+            {presidentSignatureDataUrl ? (
+              <div className="pt-2 border-t border-slate-100 mt-2">
+                <p className="font-bold text-[7.5pt] uppercase text-emerald-800">
+                  Утвърдил / Приел в клуба:
+                </p>
+                <div className="flex items-center gap-2 py-0.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={presidentSignatureDataUrl}
+                    alt="Подпис Председател"
+                    className="h-8 max-w-[110px] object-contain"
+                  />
+                  <span className="text-[7.5pt] font-sans font-bold text-slate-700">
+                    (Мира Георгиева)
+                  </span>
+                </div>
+                <p className="text-[7pt] text-slate-500 italic">
+                  Председател на СНЦ „Бадминтон клуб Гълъбово“
+                </p>
+              </div>
+            ) : null}
           </div>
 
           <div className="text-right space-y-2">

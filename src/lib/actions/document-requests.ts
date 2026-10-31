@@ -30,6 +30,8 @@ export async function createDocumentRequestAction(input: {
   memberId: string;
   documentType: DocumentType;
   idToken: string;
+  signAsPresident?: boolean;
+  presidentSignatureUrl?: string | null;
 }): Promise<ActionResult<{ token: string; requestId: string }>> {
   try {
     const user = await ensureAdmin(input.idToken);
@@ -167,6 +169,31 @@ export async function createDocumentRequestAction(input: {
       // If template doc is not yet seeded, fall back smoothly to defaultTpl
     }
 
+    // Pre-resolve club chairperson signature if requested or available by default
+    let finalPresidentSignatureUrl: string | null =
+      input.presidentSignatureUrl || null;
+    let finalPresidentSignedAt: string | null = null;
+
+    if (input.signAsPresident !== false) {
+      if (!finalPresidentSignatureUrl) {
+        try {
+          const chairSnap = await adminDb
+            .collection("club_settings")
+            .doc("chairperson")
+            .get();
+          if (chairSnap.exists) {
+            finalPresidentSignatureUrl =
+              (chairSnap.data()?.signatureUrl as string) || null;
+          }
+        } catch {
+          // non-blocking fallback
+        }
+      }
+      if (finalPresidentSignatureUrl) {
+        finalPresidentSignedAt = new Date().toISOString();
+      }
+    }
+
     // Check if an active pending request already exists for this member and doc type
     const existingSnap = await adminDb
       .collection("document_requests")
@@ -207,6 +234,11 @@ export async function createDocumentRequestAction(input: {
         if (!existingData.sentToParentUserId && linkedParentUserId) {
           pendingUpdates.sentToParentUserId = linkedParentUserId;
         }
+        if (!existingData.presidentSignatureUrl && finalPresidentSignatureUrl) {
+          pendingUpdates.presidentSignatureUrl = finalPresidentSignatureUrl;
+          pendingUpdates.presidentSignedAt =
+            finalPresidentSignedAt || new Date().toISOString();
+        }
 
         if (Object.keys(pendingUpdates).length > 0) {
           await existingDoc.ref.update(pendingUpdates);
@@ -246,6 +278,8 @@ export async function createDocumentRequestAction(input: {
       signedAt: null,
       signatureUrl: null,
       sentToParentUserId: linkedParentUserId || null,
+      presidentSignatureUrl: finalPresidentSignatureUrl,
+      presidentSignedAt: finalPresidentSignedAt,
       parentData:
         defaultParentData.parentName || defaultParentData.parentPhone
           ? defaultParentData
@@ -458,6 +492,26 @@ export async function getPublicDocumentRequestAction(
       }
     }
 
+    // Dynamically resolve president signature if missing
+    let presidentSigUrl = rawData.presidentSignatureUrl || null;
+    let presidentSignedAt = rawData.presidentSignedAt || null;
+    if (!presidentSigUrl) {
+      try {
+        const chairSnap = await adminDb
+          .collection("club_settings")
+          .doc("chairperson")
+          .get();
+        if (chairSnap.exists) {
+          presidentSigUrl = (chairSnap.data()?.signatureUrl as string) || null;
+          if (presidentSigUrl && !presidentSignedAt) {
+            presidentSignedAt = rawData.createdAt || new Date().toISOString();
+          }
+        }
+      } catch {
+        // non-blocking fallback
+      }
+    }
+
     // Safe DTO - only return required public fields
     const safeDto: PublicDocumentRequestDTO = {
       id: docSnap.id,
@@ -478,8 +532,8 @@ export async function getPublicDocumentRequestAction(
       signatureUrl: rawData.signatureUrl || null,
       secondParentSignatureUrl: rawData.secondParentSignatureUrl || null,
       memberSignatureUrl: rawData.memberSignatureUrl || null,
-      presidentSignatureUrl: rawData.presidentSignatureUrl || null,
-      presidentSignedAt: rawData.presidentSignedAt || null,
+      presidentSignatureUrl: presidentSigUrl,
+      presidentSignedAt: presidentSignedAt,
       templateId: rawData.templateId || null,
       templateVersion: rawData.templateVersion || 1,
       documentLegalTextSnapshot: rawData.documentLegalTextSnapshot || null,
