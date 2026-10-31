@@ -81,15 +81,54 @@ export function DocumentSignerClient({
   const secondParentSigCanvasRef = useRef<SignatureCanvas>(null);
   const athleteSigCanvasRef = useRef<SignatureCanvas>(null);
 
+  // Live signatures for instant preview on the official document
+  const [liveParentSig, setLiveParentSig] = useState<string | null>(null);
+  const [liveSecondParentSig, setLiveSecondParentSig] = useState<string | null>(
+    null
+  );
+  const [liveAthleteSig, setLiveAthleteSig] = useState<string | null>(null);
+
   // Clear signature canvases
   const handleClearSignature = () => {
     sigCanvasRef.current?.clear();
+    setLiveParentSig(null);
   };
   const handleClearSecondParentSignature = () => {
     secondParentSigCanvasRef.current?.clear();
+    setLiveSecondParentSig(null);
   };
   const handleClearAthleteSignature = () => {
     athleteSigCanvasRef.current?.clear();
+    setLiveAthleteSig(null);
+  };
+
+  const handleParentSigEnd = () => {
+    if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
+      setLiveParentSig(
+        sigCanvasRef.current.getTrimmedCanvas().toDataURL("image/png")
+      );
+    }
+  };
+
+  const handleSecondParentSigEnd = () => {
+    if (
+      secondParentSigCanvasRef.current &&
+      !secondParentSigCanvasRef.current.isEmpty()
+    ) {
+      setLiveSecondParentSig(
+        secondParentSigCanvasRef.current
+          .getTrimmedCanvas()
+          .toDataURL("image/png")
+      );
+    }
+  };
+
+  const handleAthleteSigEnd = () => {
+    if (athleteSigCanvasRef.current && !athleteSigCanvasRef.current.isEmpty()) {
+      setLiveAthleteSig(
+        athleteSigCanvasRef.current.getTrimmedCanvas().toDataURL("image/png")
+      );
+    }
   };
 
   // Submit handler
@@ -393,43 +432,17 @@ export function DocumentSignerClient({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Section 1: Official Document Content */}
-          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600">
-                1. Съдържание на официалния документ
-              </h2>
-              <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-bold text-zinc-600">
-                Официален образец{" "}
-                {data.templateVersion ? `v${data.templateVersion}` : ""}
-              </span>
-            </div>
-
-            <OfficialDocumentRenderer
-              slug={data.documentType}
-              title={data.documentTitle}
-              bodyText={data.documentLegalTextSnapshot || undefined}
-              memberName={data.memberName}
-              memberBirthDate={data.memberBirthDate}
-              participationType={participationType}
-              parentName={parentName}
-              parentPhone={parentPhone}
-              parentEmail={parentEmail}
-              parentAddress={parentAddress}
-              fatherName={parentName}
-              fatherPhone={parentPhone}
-              fatherCity={parentAddress}
-              motherName={secondParentName}
-              motherPhone={secondParentPhone}
-              isPrintMode={false}
-            />
-          </div>
-
-          {/* Section 2: Parent / Signer Information */}
+          {/* Section 1: Parent / Signer Information */}
           <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600">
-              2. Данни за родител / настойник
-            </h2>
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                1. Данни за родител / настойник
+              </h2>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Попълнете данните си за контакт (отразяват се автоматично в
+                официалния документ)
+              </p>
+            </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
@@ -592,7 +605,7 @@ export function DocumentSignerClient({
                 <div className="mt-3 flex items-center gap-2 text-xs text-emerald-800 font-semibold bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl">
                   <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
                   <span>
-                    Отразена избрана форма в т. 1 на официалния документ:{" "}
+                    Отразена избрана форма в официалния документ:{" "}
                     <strong className="underline decoration-emerald-400 underline-offset-2">
                       {participationType}
                     </strong>
@@ -602,10 +615,10 @@ export function DocumentSignerClient({
             )}
           </div>
 
-          {/* Section 3: Declarations and Consents */}
+          {/* Section 2: Declarations and Consents */}
           <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600">
-              3. Задължителни съгласия
+            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+              2. Задължителни съгласия
             </h2>
 
             <div className="space-y-3 text-xs leading-relaxed">
@@ -617,7 +630,7 @@ export function DocumentSignerClient({
                 />
                 <span className="text-zinc-800">
                   <strong>Запознат/а съм и приемам:</strong> Потвърждавам, че
-                  прочетох съдържанието на документа по-горе, приемам изложените
+                  прочетох съдържанието на документа по-долу, приемам изложените
                   условия и потвърждавам верността на въведените данни. *
                 </span>
               </label>
@@ -638,14 +651,14 @@ export function DocumentSignerClient({
             </div>
           </div>
 
-          {/* Section 4: Signature Canvas - Parent 1 */}
+          {/* Section 3: Signature Canvas - Parent 1 */}
           <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600">
-                  4. Електронен подпис на родител / настойник 1 *
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                  3. Електронен подпис на родител / настойник 1 *
                 </h2>
-                <p className="text-xs text-zinc-600 mt-0.5">
+                <p className="text-xs text-zinc-500 mt-0.5">
                   Разпишете се с пръст на екрана на телефона или с мишката
                 </p>
               </div>
@@ -667,6 +680,7 @@ export function DocumentSignerClient({
                   ref={sigCanvasRef}
                   penColor="#09090b"
                   velocityFilterWeight={0.7}
+                  onEnd={handleParentSigEnd}
                   canvasProps={{
                     className: "w-full h-40 touch-none cursor-crosshair",
                   }}
@@ -676,20 +690,20 @@ export function DocumentSignerClient({
                   Зареждане на полето за подпис...
                 </div>
               )}
-              <div className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-zinc-600 italic">
+              <div className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-zinc-500 italic">
                 Подпис на родител 1
               </div>
             </div>
           </div>
 
-          {/* Section 5: Signature Canvas - Athlete / Member */}
+          {/* Section 4: Signature Canvas - Athlete / Member */}
           <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600">
-                  5. Електронен подпис на състезател / член
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                  4. Електронен подпис на състезател / член
                 </h2>
-                <p className="text-xs text-zinc-600 mt-0.5">
+                <p className="text-xs text-zinc-500 mt-0.5">
                   За лица над 14 г. или присъстващ състезател (по избор)
                 </p>
               </div>
@@ -711,6 +725,7 @@ export function DocumentSignerClient({
                   ref={athleteSigCanvasRef}
                   penColor="#09090b"
                   velocityFilterWeight={0.7}
+                  onEnd={handleAthleteSigEnd}
                   canvasProps={{
                     className: "w-full h-36 touch-none cursor-crosshair",
                   }}
@@ -720,21 +735,21 @@ export function DocumentSignerClient({
                   Зареждане на полето за подпис...
                 </div>
               )}
-              <div className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-zinc-600 italic">
+              <div className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-zinc-500 italic">
                 Подпис на състезател
               </div>
             </div>
           </div>
 
-          {/* Section 6: Signature Canvas - Second Parent (Optional) */}
+          {/* Section 5: Signature Canvas - Second Parent (Optional) */}
           {secondParentName.trim() && (
             <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600">
-                    6. Електронен подпис на втори родител ({secondParentName})
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                    5. Електронен подпис на втори родител ({secondParentName})
                   </h2>
-                  <p className="text-xs text-zinc-600 mt-0.5">
+                  <p className="text-xs text-zinc-500 mt-0.5">
                     Полага се от втория родител при съгласие на двамата родители
                   </p>
                 </div>
@@ -756,6 +771,7 @@ export function DocumentSignerClient({
                     ref={secondParentSigCanvasRef}
                     penColor="#09090b"
                     velocityFilterWeight={0.7}
+                    onEnd={handleSecondParentSigEnd}
                     canvasProps={{
                       className: "w-full h-36 touch-none cursor-crosshair",
                     }}
@@ -765,12 +781,56 @@ export function DocumentSignerClient({
                     Зареждане на полето за подпис...
                   </div>
                 )}
-                <div className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-zinc-600 italic">
+                <div className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-zinc-500 italic">
                   Подпис на втори родител
                 </div>
               </div>
             </div>
           )}
+
+          {/* Section 6: Official Document Final Preview */}
+          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm">
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                  {secondParentName.trim() ? "6." : "5."} Финален преглед на
+                  официалния документ
+                </h2>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Вижте готовия документ с нанесените от Вас данни, избрана
+                  форма на участие и положени подписи
+                </p>
+              </div>
+              <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-800 shrink-0 self-start sm:self-auto">
+                ✓ Официален образец{" "}
+                {data.templateVersion ? `v${data.templateVersion}` : ""}
+              </span>
+            </div>
+
+            <OfficialDocumentRenderer
+              slug={data.documentType}
+              title={data.documentTitle}
+              bodyText={data.documentLegalTextSnapshot || undefined}
+              memberName={data.memberName}
+              memberBirthDate={data.memberBirthDate}
+              participationType={participationType}
+              parentName={parentName}
+              parentPhone={parentPhone}
+              parentEmail={parentEmail}
+              parentAddress={parentAddress}
+              fatherName={parentName}
+              fatherPhone={parentPhone}
+              fatherCity={parentAddress}
+              motherName={secondParentName}
+              motherPhone={secondParentPhone}
+              parentSignatureDataUrl={liveParentSig || data.signatureUrl}
+              secondParentSignatureDataUrl={
+                liveSecondParentSig || data.secondParentSignatureUrl
+              }
+              memberSignatureDataUrl={liveAthleteSig || data.memberSignatureUrl}
+              isPrintMode={false}
+            />
+          </div>
 
           {/* Submit Button */}
           <div className="space-y-3">
