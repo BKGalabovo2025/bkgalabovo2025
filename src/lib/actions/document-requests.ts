@@ -69,19 +69,48 @@ export async function createDocumentRequestAction(input: {
             : null;
     }
 
+    // Check if there is an active parent account for this member in parent_users
+    let linkedParentUserId: string | null = null;
+    let linkedParentName = "";
+    let linkedParentPhone = "";
+    let linkedParentEmail = "";
+
+    try {
+      const parentUserSnap = await adminDb
+        .collection("parent_users")
+        .where("linkedMemberIds", "array-contains", input.memberId)
+        .where("status", "==", "active")
+        .limit(1)
+        .get();
+
+      if (!parentUserSnap.empty) {
+        const pDoc = parentUserSnap.docs[0];
+        const pData = pDoc.data();
+        linkedParentUserId = pDoc.id;
+        linkedParentName = (pData.name as string) || "";
+        linkedParentPhone = (pData.phone as string) || "";
+        linkedParentEmail = (pData.email as string) || "";
+      }
+    } catch {
+      // Non-blocking fallback
+    }
+
     const defaultParentData: ParentData = {
       parentName:
+        linkedParentName ||
         (memberData.parentName as string) ||
         (memberData.fatherName as string) ||
         (memberData.motherName as string) ||
         "",
       parentPhone:
+        linkedParentPhone ||
         (memberData.parentPhone as string) ||
         (memberData.fatherPhone as string) ||
         (memberData.motherPhone as string) ||
         (memberData.phone as string) ||
         "",
       parentEmail:
+        linkedParentEmail ||
         (memberData.parentEmail as string) ||
         (memberData.email as string) ||
         "",
@@ -92,16 +121,18 @@ export async function createDocumentRequestAction(input: {
       secondParentName:
         (memberData.secondParentName as string) ||
         (memberData.motherName &&
-        memberData.parentName !== memberData.motherName
+        (memberData.parentName || linkedParentName) !== memberData.motherName
           ? (memberData.motherName as string)
           : ""),
       secondParentPhone:
         (memberData.secondParentPhone as string) ||
         (memberData.motherPhone &&
-        memberData.parentPhone !== memberData.motherPhone
+        (memberData.parentPhone || linkedParentPhone) !== memberData.motherPhone
           ? (memberData.motherPhone as string)
           : ""),
-      participationType: (memberData.participationType as string) || "",
+      participationType:
+        (memberData.participationType as string) ||
+        "Месечен абонамент - 1 дете (20 EUR)",
       notes: null,
     };
 
@@ -173,6 +204,9 @@ export async function createDocumentRequestAction(input: {
         if (!existingData.memberBirthDate && memberBirthDate) {
           pendingUpdates.memberBirthDate = memberBirthDate;
         }
+        if (!existingData.sentToParentUserId && linkedParentUserId) {
+          pendingUpdates.sentToParentUserId = linkedParentUserId;
+        }
 
         if (Object.keys(pendingUpdates).length > 0) {
           await existingDoc.ref.update(pendingUpdates);
@@ -211,6 +245,7 @@ export async function createDocumentRequestAction(input: {
       expiresAt: expiresAt.toISOString(),
       signedAt: null,
       signatureUrl: null,
+      sentToParentUserId: linkedParentUserId || null,
       parentData:
         defaultParentData.parentName || defaultParentData.parentPhone
           ? defaultParentData
@@ -307,6 +342,122 @@ export async function getPublicDocumentRequestAction(
       }
     }
 
+    // Auto-resolve and prefill parent data from parent profile and member record
+    let resolvedParentData: ParentData | null = rawData.parentData || null;
+    if (
+      !resolvedParentData ||
+      !resolvedParentData.parentName ||
+      !resolvedParentData.parentPhone ||
+      !resolvedParentData.parentEmail ||
+      !resolvedParentData.parentAddress ||
+      !resolvedParentData.participationType
+    ) {
+      try {
+        let pName = resolvedParentData?.parentName || "";
+        let pPhone = resolvedParentData?.parentPhone || "";
+        let pEmail = resolvedParentData?.parentEmail || "";
+        let pAddress = resolvedParentData?.parentAddress || "";
+        let secondPName = resolvedParentData?.secondParentName || "";
+        let secondPPhone = resolvedParentData?.secondParentPhone || "";
+        let partType = resolvedParentData?.participationType || "";
+
+        // 1. Check parent_users collection
+        if (rawData.sentToParentUserId) {
+          const pUserDoc = await adminDb
+            .collection("parent_users")
+            .doc(rawData.sentToParentUserId)
+            .get();
+          if (pUserDoc.exists) {
+            const pData = pUserDoc.data() || {};
+            if (!pName && pData.name) pName = pData.name as string;
+            if (!pPhone && pData.phone) pPhone = pData.phone as string;
+            if (!pEmail && pData.email) pEmail = pData.email as string;
+          }
+        } else if (rawData.memberId) {
+          const pUsersSnap = await adminDb
+            .collection("parent_users")
+            .where("linkedMemberIds", "array-contains", rawData.memberId)
+            .where("status", "==", "active")
+            .limit(1)
+            .get();
+          if (!pUsersSnap.empty) {
+            const pData = pUsersSnap.docs[0].data() || {};
+            if (!pName && pData.name) pName = pData.name as string;
+            if (!pPhone && pData.phone) pPhone = pData.phone as string;
+            if (!pEmail && pData.email) pEmail = pData.email as string;
+          }
+        }
+
+        // 2. Check members collection
+        if (rawData.memberId) {
+          const mDoc = await adminDb
+            .collection("members")
+            .doc(rawData.memberId)
+            .get();
+          if (mDoc.exists) {
+            const mData = mDoc.data() || {};
+            if (!pName) {
+              pName =
+                (mData.parentName as string) ||
+                (mData.fatherName as string) ||
+                (mData.motherName as string) ||
+                "";
+            }
+            if (!pPhone) {
+              pPhone =
+                (mData.parentPhone as string) ||
+                (mData.fatherPhone as string) ||
+                (mData.motherPhone as string) ||
+                (mData.phone as string) ||
+                "";
+            }
+            if (!pEmail) {
+              pEmail =
+                (mData.parentEmail as string) || (mData.email as string) || "";
+            }
+            if (!pAddress) {
+              pAddress =
+                (mData.parentAddress as string) ||
+                (mData.address as string) ||
+                "";
+            }
+            if (!secondPName) {
+              secondPName =
+                (mData.secondParentName as string) ||
+                (mData.motherName && pName !== mData.motherName
+                  ? (mData.motherName as string)
+                  : "");
+            }
+            if (!secondPPhone) {
+              secondPPhone =
+                (mData.secondParentPhone as string) ||
+                (mData.motherPhone && pPhone !== mData.motherPhone
+                  ? (mData.motherPhone as string)
+                  : "");
+            }
+            if (!partType) {
+              partType =
+                (mData.participationType as string) ||
+                "Месечен абонамент - 1 дете (20 EUR)";
+            }
+          }
+        }
+
+        resolvedParentData = {
+          parentName: pName,
+          parentPhone: pPhone,
+          parentEmail: pEmail,
+          parentAddress: pAddress,
+          secondParentName: secondPName,
+          secondParentPhone: secondPPhone,
+          participationType: partType || "Месечен абонамент - 1 дете (20 EUR)",
+          notes: resolvedParentData?.notes || null,
+        };
+      } catch (err) {
+        console.warn("Could not dynamically resolve parent data:", err);
+      }
+    }
+
     // Safe DTO - only return required public fields
     const safeDto: PublicDocumentRequestDTO = {
       id: docSnap.id,
@@ -323,7 +474,7 @@ export async function getPublicDocumentRequestAction(
       viewedByParentAt,
       sentToParentUserId: rawData.sentToParentUserId || null,
       signedAt: rawData.signedAt || null,
-      parentData: rawData.parentData || null,
+      parentData: resolvedParentData,
       signatureUrl: rawData.signatureUrl || null,
       secondParentSignatureUrl: rawData.secondParentSignatureUrl || null,
       memberSignatureUrl: rawData.memberSignatureUrl || null,
@@ -472,25 +623,25 @@ export async function submitSignedDocumentAction(input: {
         memberUpdates.participationType = parentData.participationType;
       }
 
-      // Always update parent contact info if provided and member's parent contact is empty
-      const existingMember = memberDoc.data() || {};
-      if (parentData.parentName && !existingMember.parentName) {
+      // Update member profile with verified details from the signed document
+      if (parentData.parentName) {
         memberUpdates.parentName = parentData.parentName;
       }
-      if (parentData.parentPhone && !existingMember.parentPhone) {
+      if (parentData.parentPhone) {
         memberUpdates.parentPhone = parentData.parentPhone;
       }
-      if (parentData.parentEmail && !existingMember.parentEmail) {
+      if (parentData.parentEmail) {
         memberUpdates.parentEmail = parentData.parentEmail;
       }
-      if (parentData.parentAddress && !existingMember.address) {
+      if (parentData.parentAddress) {
         memberUpdates.address = parentData.parentAddress;
+        memberUpdates.parentAddress = parentData.parentAddress;
       }
-      if (parentData.secondParentName && !existingMember.secondParentName) {
-        memberUpdates.secondParentName = parentData.secondParentName;
+      if (parentData.secondParentName !== undefined) {
+        memberUpdates.secondParentName = parentData.secondParentName || null;
       }
-      if (parentData.secondParentPhone && !existingMember.secondParentPhone) {
-        memberUpdates.secondParentPhone = parentData.secondParentPhone;
+      if (parentData.secondParentPhone !== undefined) {
+        memberUpdates.secondParentPhone = parentData.secondParentPhone || null;
       }
 
       // Specific document updates
@@ -552,11 +703,17 @@ export async function submitSignedDocumentAction(input: {
           parentSnap.docs.find((d) => d.id === docData.sentToParentUserId) ||
           parentSnap.docs[0];
         const actionTitle = `✍️ Подписан документ: ${docData.documentTitle}`;
-        await targetParentDoc.ref.update({
+        const pUpdates: Record<string, unknown> = {
           lastActiveAt: signedAt,
           lastAction: actionTitle,
           lastActionAt: signedAt,
-        });
+          updatedAt: signedAt,
+        };
+        if (parentData.parentName) pUpdates.name = parentData.parentName;
+        if (parentData.parentPhone) pUpdates.phone = parentData.parentPhone;
+        if (parentData.parentEmail) pUpdates.email = parentData.parentEmail;
+
+        await targetParentDoc.ref.update(pUpdates);
       }
     } catch {
       // non-blocking

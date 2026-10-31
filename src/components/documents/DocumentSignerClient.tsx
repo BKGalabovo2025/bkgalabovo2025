@@ -435,12 +435,21 @@ export function DocumentSignerClient({
           {/* Section 1: Parent / Signer Information */}
           <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
             <div>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
-                1. Данни за родител / настойник
-              </h2>
-              <p className="text-xs text-zinc-500 mt-0.5">
-                Попълнете данните си за контакт (отразяват се автоматично в
-                официалния документ)
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                  1. Данни за родител / настойник
+                </h2>
+                {(parentName || parentPhone) && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Заредени от вашия профил (с опция за редакция)
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-500 mt-1">
+                Данните са извлечени автоматично от родителския профил.
+                Прегледайте ги и направете корекции при необходимост преди
+                подписване.
               </p>
             </div>
 
