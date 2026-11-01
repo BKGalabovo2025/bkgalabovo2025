@@ -24,6 +24,8 @@ export async function generateMetadata({
   if (!result.success || !result.data) {
     return {
       title: "Досие на член - Бадминтон клуб Гълъбово",
+      description:
+        "Пълен профил, лични данни, документи, такси и тренировъчна статистика за член на Бадминтон клуб Гълъбово.",
     };
   }
 
