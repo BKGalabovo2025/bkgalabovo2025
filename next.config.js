@@ -64,6 +64,9 @@ const nextConfig = {
   productionBrowserSourceMaps: true,
   serverExternalPackages: ["firebase-admin"],
   outputFileTracingRoot: __dirname,
+  // Блокиращи метаданни за всички user-agent-и (вкл. Lighthouse), за да е
+  // <meta name="description"> винаги в <head> и на динамичните страници.
+  htmlLimitedBots: /.*/,
   turbopack: {
     root: __dirname,
   },
