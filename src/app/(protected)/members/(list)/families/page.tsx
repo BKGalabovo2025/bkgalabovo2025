@@ -1,0 +1,50 @@
+export const dynamic = "force-dynamic";
+
+import { Suspense } from "react";
+
+import { MembersFamiliesView } from "@/components/members/list/MembersFamiliesView";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getAllMembersServer } from "@/services/member-service.server";
+import { Member } from "@/types";
+
+export default async function FamiliesPage() {
+  let members: Member[] = [];
+  let error = null;
+
+  try {
+    members = await getAllMembersServer();
+  } catch (err) {
+    console.error("Error fetching families data:", err);
+    error =
+      "Неуспешно зареждане на семейните профили. Моля, опитайте по-късно.";
+  }
+
+  return (
+    <div className="space-y-4 pb-8 duration-500 animate-in fade-in">
+      {error ? (
+        <div className="rounded-3xl border border-rose-100 bg-rose-50 p-6 text-center dark:border-rose-900/50 dark:bg-rose-950/20">
+          <p className="font-medium text-rose-600 dark:text-rose-400">
+            {error}
+          </p>
+        </div>
+      ) : (
+        <Suspense fallback={<FamiliesLoading />}>
+          <MembersFamiliesView initialMembers={members} />
+        </Suspense>
+      )}
+    </div>
+  );
+}
+
+function FamiliesLoading() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-24 rounded-2xl" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Skeleton className="h-48 rounded-2xl" />
+        <Skeleton className="h-48 rounded-2xl" />
+        <Skeleton className="h-48 rounded-2xl" />
+      </div>
+    </div>
+  );
+}
