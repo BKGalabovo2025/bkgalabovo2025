@@ -374,7 +374,10 @@ async function run() {
       }),
       "utf8"
     );
-    extraHeaders = `--extra-headers="${headersFilePath}"`;
+    const relHeadersPath = path
+      .relative(process.cwd(), headersFilePath)
+      .replace(/\\/g, "/");
+    extraHeaders = `--extra-headers="./${relHeadersPath}"`;
   }
 
   const sampleParams = await getSampleRouteParams(adminApp);
