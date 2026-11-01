@@ -13,7 +13,7 @@ import { calculateAgeGroup } from "@/mappers/member.mapper";
 import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 import { Member } from "@/types/member.types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Отбор и Треньори | СНЦ Бадминтон Клуб Гълъбово",
