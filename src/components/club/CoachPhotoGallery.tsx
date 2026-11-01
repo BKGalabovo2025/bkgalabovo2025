@@ -170,7 +170,10 @@ export function CoachPhotoGallery({
                 alt={coach.name}
                 fill
                 sizes="128px"
-                unoptimized={primaryUrl.startsWith("data:")}
+                unoptimized={
+                  primaryUrl.startsWith("data:") ||
+                  primaryUrl.includes("/api/upload")
+                }
                 priority={priority}
                 loading={priority ? "eager" : "lazy"}
                 className="object-cover transition-transform duration-500 group-hover/avatar:scale-105"
@@ -226,7 +229,10 @@ export function CoachPhotoGallery({
                       alt={`${coach.name} миниатюра ${idx + 1}`}
                       fill
                       sizes="64px"
-                      unoptimized={photo.url.startsWith("data:")}
+                      unoptimized={
+                        photo.url.startsWith("data:") ||
+                        photo.url.includes("/api/upload")
+                      }
                       className="object-cover transition-transform duration-500 group-hover/thumb:scale-110"
                     />
 

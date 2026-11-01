@@ -125,7 +125,10 @@ function TeamAthletesContent({
                           src={validAvatar}
                           alt={athleteName}
                           fill
-                          unoptimized={validAvatar.startsWith("data:")}
+                          unoptimized={
+                            validAvatar.startsWith("data:") ||
+                            validAvatar.includes("/api/upload")
+                          }
                           priority={isAboveTheFold}
                           loading={isAboveTheFold ? "eager" : "lazy"}
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

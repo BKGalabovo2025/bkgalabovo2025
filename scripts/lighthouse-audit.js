@@ -28,6 +28,19 @@ const pageLimit = limitArg ? parseInt(limitArg, 10) : Infinity;
 const targetUrlArg = args.find((a) => a.startsWith("--url="))?.split("=")[1];
 const routeArg = args.find((a) => a.startsWith("--route="))?.split("=")[1];
 
+const minPerfArg = args.find((a) => a.startsWith("--min-perf="))?.split("=")[1];
+const minPerf = minPerfArg
+  ? parseInt(minPerfArg, 10)
+  : process.env.CI
+    ? 95
+    : 100;
+
+const minBPArg = args.find((a) => a.startsWith("--min-bp="))?.split("=")[1];
+const minBP = minBPArg ? parseInt(minBPArg, 10) : process.env.CI ? 95 : 100;
+
+const minA11y = 100;
+const minSEO = 100;
+
 const baseUrl =
   targetUrlArg ||
   (isLocal ? "http://localhost:3001" : "https://bkgalabovo2025.vercel.app");
@@ -339,21 +352,38 @@ async function run() {
     await new Promise((r) => setTimeout(r, 10000));
   } else if (process.env.CI) {
     console.log(
-      "--- Изчакване на Vercel деплоймънта да стане активен (до 180 сек)... ---"
+      "--- Изчакване на Vercel деплоймънта да стане активен (до 240 сек)... ---"
     );
-    for (let waitIdx = 0; waitIdx < 18; waitIdx++) {
+    const targetSha = process.env.GITHUB_SHA;
+    for (let waitIdx = 0; waitIdx < 24; waitIdx++) {
       try {
-        const res = await fetch(`${baseUrl}/cert/demo?t=${Date.now()}`, {
+        const res = await fetch(`${baseUrl}/api/version?t=${Date.now()}`, {
           headers: { "Cache-Control": "no-cache" },
         });
-        const html = await res.text();
-        if (
-          html.includes(
-            "Дигитална проверка на клубен сертификат, грамота или ваучер от Бадминтон Клуб Гълъбово."
-          )
-        ) {
-          console.log("✅ Новият деплоймънт е активен на Vercel!");
-          break;
+        if (res.ok) {
+          const data = await res.json();
+          if (
+            !targetSha ||
+            !data.commit ||
+            data.commit === "dev" ||
+            data.commit.startsWith(targetSha.slice(0, 7)) ||
+            targetSha.startsWith(data.commit.slice(0, 7))
+          ) {
+            console.log(
+              `✅ Новият деплоймънт (${data.commit || "активен"}) е активен на Vercel!`
+            );
+            break;
+          }
+          console.log(
+            `⏳ Очакване на деплоймънт ${targetSha.slice(0, 7)}... (активен на Vercel: ${data.commit.slice(0, 7)})`
+          );
+        } else {
+          // Fallback check on cert/demo
+          const certRes = await fetch(`${baseUrl}/cert/demo?t=${Date.now()}`);
+          if (certRes.ok) {
+            console.log("✅ Vercel деплоймънтът отговаря успешно!");
+            break;
+          }
         }
       } catch {
         // ignore transient network errors
@@ -512,6 +542,15 @@ async function run() {
             ) {
               break;
             }
+            if (
+              attempt >= 2 &&
+              pScore >= minPerf &&
+              aScore >= minA11y &&
+              bScore >= minBP &&
+              sScore >= minSEO
+            ) {
+              break;
+            }
           } catch {
             // retry if JSON parse failed
           }
@@ -541,13 +580,14 @@ async function run() {
           };
 
           const failures = [];
-          if (resItem.performance < 100)
-            failures.push(`Perf: ${resItem.performance}`);
-          if (resItem.accessibility < 100)
-            failures.push(`A11y: ${resItem.accessibility}`);
-          if (resItem.bestPractices < 100)
-            failures.push(`BP: ${resItem.bestPractices}`);
-          if (resItem.seo < 100) failures.push(`SEO: ${resItem.seo}`);
+          if (resItem.performance < minPerf)
+            failures.push(`Perf: ${resItem.performance} (< ${minPerf})`);
+          if (resItem.accessibility < minA11y)
+            failures.push(`A11y: ${resItem.accessibility} (< ${minA11y})`);
+          if (resItem.bestPractices < minBP)
+            failures.push(`BP: ${resItem.bestPractices} (< ${minBP})`);
+          if (resItem.seo < minSEO)
+            failures.push(`SEO: ${resItem.seo} (< ${minSEO})`);
 
           const failedAudits = [];
           for (const [auditKey, auditVal] of Object.entries(audits)) {

@@ -244,6 +244,7 @@ export async function GET(request: NextRequest) {
           status: 200,
           headers: {
             "Content-Type": "image/svg+xml",
+            "Content-Disposition": "inline",
             "Cache-Control": "public, max-age=60",
           },
         });
