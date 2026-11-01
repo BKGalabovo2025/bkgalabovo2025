@@ -9,6 +9,7 @@ import {
   ParentAbsence,
   ParentAccessRequest,
   ParentActivityLog,
+  ParentCommunicationLog,
   ParentUser,
 } from "@/types/parent-portal.types";
 
@@ -59,6 +60,7 @@ const EMPTY_ABSENCES: ParentAbsence[] = [];
 const EMPTY_CORRECTIONS: DataCorrectionRequest[] = [];
 const EMPTY_DOC_REQUESTS: DocumentRequest[] = [];
 const EMPTY_LOGS: ParentActivityLog[] = [];
+const EMPTY_COMMUNICATIONS: ParentCommunicationLog[] = [];
 const EMPTY_MEMBERS: AdminMemberSummary[] = [];
 
 const DEFAULT_STATS: AdminParentPortalStats = {
@@ -96,6 +98,8 @@ export function useParentPortalAdmin() {
   const documentRequests: DocumentRequest[] =
     data?.documentRequests || EMPTY_DOC_REQUESTS;
   const activityLogs: ParentActivityLog[] = data?.activityLogs || EMPTY_LOGS;
+  const communications: ParentCommunicationLog[] =
+    data?.communications || EMPTY_COMMUNICATIONS;
   const members: AdminMemberSummary[] = (data?.members ||
     EMPTY_MEMBERS) as AdminMemberSummary[];
 
@@ -118,6 +122,7 @@ export function useParentPortalAdmin() {
     corrections,
     documentRequests,
     activityLogs,
+    communications,
     onlineParents,
     onlineParentsCount,
     isParentOnline,

@@ -214,34 +214,31 @@ export default function MarketingClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteId]);
 
-  // Unified list of all recipients (badminton members + recovery clients)
+  // Unified list of all recipients (badminton members + recovery clients, excluding parents who are strictly handled in /parents)
   const allRecipients: MarketingRecipient[] = useMemo(() => {
-    const memberRecipients: MarketingRecipient[] = members.map((m) => {
-      const isParentPhone = m.phoneType === "parent";
-      const athleteFullName =
-        m.name || `${m.firstName || ""} ${m.lastName || ""}`.trim();
-      const parentName =
-        m.emergencyContactName || (isParentPhone ? "Родител" : undefined);
-      const isRecovery =
-        m.isRecoveryMember ||
-        m.memberType === "recovery" ||
-        m.siteId === "recoveryzone";
+    const memberRecipients: MarketingRecipient[] = members
+      .filter((m) => m.phoneType !== "parent") // Parents are managed individually in /parents
+      .map((m) => {
+        const athleteFullName =
+          m.name || `${m.firstName || ""} ${m.lastName || ""}`.trim();
+        const isRecovery =
+          m.isRecoveryMember ||
+          m.memberType === "recovery" ||
+          m.siteId === "recoveryzone";
 
-      return {
-        id: m.id,
-        name: athleteFullName,
-        childName: isParentPhone ? athleteFullName : undefined,
-        parentName: parentName,
-        role: getMemberRole(m),
-        phone: m.phone || m.emergencyContactPhone || undefined,
-        email: m.email || undefined,
-        status:
-          m.status === "active" ? ("active" as const) : ("inactive" as const),
-        communicationStatus: "pending" as const,
-        group: getMemberGroupName(isRecovery, m.ageGroup, isParentPhone),
-        siteId: isRecovery ? "recoveryzone" : "bkgalabovo",
-      };
-    });
+        return {
+          id: m.id,
+          name: athleteFullName,
+          role: getMemberRole(m),
+          phone: m.phone || undefined,
+          email: m.email || undefined,
+          status:
+            m.status === "active" ? ("active" as const) : ("inactive" as const),
+          communicationStatus: "pending" as const,
+          group: getMemberGroupName(isRecovery, m.ageGroup, false),
+          siteId: isRecovery ? "recoveryzone" : "bkgalabovo",
+        };
+      });
 
     // Merge members with recovery clients
     const combined = [...memberRecipients, ...clientsList];
@@ -283,13 +280,6 @@ export default function MarketingClient() {
       }
 
       // 3. Segment filter
-      if (
-        contactSegmentFilter === "parents" &&
-        contact.role !== "parent" &&
-        !contact.childName
-      ) {
-        return false;
-      }
       if (contactSegmentFilter === "athletes" && contact.role !== "athlete") {
         return false;
       }
@@ -804,7 +794,6 @@ export default function MarketingClient() {
                 </span>
                 {[
                   { id: "all", label: "🌟 Всички" },
-                  { id: "parents", label: "👨‍👩‍👧 Родители" },
                   { id: "athletes", label: "🏸 Състезатели" },
                   { id: "recovery", label: "🌿 Recovery" },
                   { id: "members", label: "👥 Членове" },

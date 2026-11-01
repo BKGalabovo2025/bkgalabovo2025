@@ -333,3 +333,25 @@ export interface ParentShadowAndQuizzesData {
     coachFeedback?: string | null;
   }>;
 }
+
+export const ParentCommunicationLogSchema = z.object({
+  id: z.string(),
+  siteId: z.literal("bkgalabovo").default("bkgalabovo"),
+  parentId: z.string(),
+  parentName: z.string(),
+  parentEmail: z.string().optional(),
+  parentPhone: z.string().optional(),
+  memberId: z.string().nullable().optional(),
+  memberName: z.string().nullable().optional(),
+  channel: z.enum(["phone", "email"]),
+  subject: z.string().optional(),
+  messageText: z.string(),
+  outcome: z.string().optional(),
+  templateTitle: z.string().optional(),
+  status: z.enum(["completed", "sent", "failed"]).default("completed"),
+  createdAt: z.string(),
+  createdBy: z.string().optional(),
+});
+export type ParentCommunicationLog = z.infer<
+  typeof ParentCommunicationLogSchema
+>;

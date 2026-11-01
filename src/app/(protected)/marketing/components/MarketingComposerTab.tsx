@@ -130,7 +130,6 @@ export function MarketingComposerTab({
     return recipients.filter((r) => {
       // Segment filter
       if (activeSegment === "athletes" && r.role !== "athlete") return false;
-      if (activeSegment === "parents" && r.role !== "parent") return false;
       if (activeSegment === "recovery" && r.siteId !== "recoveryzone")
         return false;
       if (activeSegment === "active" && r.status !== "active") return false;
@@ -288,7 +287,6 @@ export function MarketingComposerTab({
           <div className="flex flex-wrap items-center gap-1">
             {[
               { id: "all", label: "🌟 Всички" },
-              { id: "parents", label: "👨‍👩‍👧 Родители" },
               { id: "athletes", label: "🏸 Състезатели" },
               { id: "recovery", label: "🌿 Recovery" },
               { id: "active", label: "🟢 Активни" },

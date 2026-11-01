@@ -64,16 +64,6 @@ export const DEFAULT_MARKETING_TEMPLATES: TemplateCreateInput[] = [
     isDefault: true,
   },
   {
-    title: "💳 Напомняне за месечна такса / абонамент",
-    category: "payment",
-    channel: "email",
-    subject: "Напомняне за подновяване на месечен абонамент",
-    messageText:
-      "Здравейте, {ИМЕ}!\n\nНапомняме Ви за подновяване на месечния абонамент за тренировки на {ДЕТЕ} за текущия месец. Можете да заплатите на рецепция в залата или по банков път.\n\nБлагодарим за доверието!\nБК Гълъбово",
-    variables: ["{ИМЕ}", "{ДЕТЕ}"],
-    isDefault: true,
-  },
-  {
     title: "⏰ Промяна в график или зала",
     category: "schedule",
     channel: "email",
@@ -376,17 +366,6 @@ export const marketingService = {
         channel: "email",
         isActive: true,
       },
-      {
-        id: `${siteId}_rule_3`,
-        siteId,
-        title: "Напомняне 3 дни преди изтичане на месечна такса",
-        description:
-          "Автоматично напомняне за подновяване на членството към родителите.",
-        triggerEvent: "membership_expiring",
-        delayHours: 72,
-        channel: "email",
-        isActive: false,
-      },
     ];
   },
 
@@ -639,17 +618,6 @@ export const marketingService = {
         delayHours: 48,
         channel: "email",
         isActive: true,
-      },
-      {
-        id: `${siteId}_rule_3`,
-        siteId,
-        title: "Напомняне 3 дни преди изтичане на месечна такса",
-        description:
-          "Автоматично напомняне за подновяване на членството към родителите.",
-        triggerEvent: "membership_expiring",
-        delayHours: 72,
-        channel: "email",
-        isActive: false,
       },
     ];
 

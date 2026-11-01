@@ -502,3 +502,59 @@ export async function notifyAdminParentSessionReport(
     html,
   });
 }
+
+function escapeHtml(str: unknown): string {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
+ * Sends a direct personalized email to a specific parent regarding their child.
+ */
+export async function sendDirectParentMessageEmail({
+  to,
+  parentName,
+  childName,
+  subject,
+  messageText,
+}: {
+  to: string;
+  parentName: string;
+  childName?: string;
+  subject: string;
+  messageText: string;
+}): Promise<boolean> {
+  const formattedLines = messageText
+    .split("\n")
+    .map((line) => `<p style="margin: 0 0 12px 0;">${escapeHtml(line)}</p>`)
+    .join("");
+
+  const childSection = childName
+    ? `<div style="background: #f1f5f9; border-left: 4px solid #2563eb; padding: 8px 12px; margin-bottom: 20px; border-radius: 4px; font-size: 13px; color: #334155;">
+        Относно състезател: <strong>${escapeHtml(childName)}</strong>
+       </div>`
+    : "";
+
+  const html = await wrapEmailTemplate(`
+    <div style="margin-bottom: 20px;">
+      <h2 style="color: #1e3a8a; margin-top: 0; font-size: 19px; font-weight: 800;">${escapeHtml(subject)}</h2>
+      <p style="color: #64748b; font-size: 14px; margin: 4px 0 16px 0;">Уважаеми/а г-н/г-жа <strong>${escapeHtml(parentName)}</strong>,</p>
+      ${childSection}
+    </div>
+    <div style="font-size: 15px; line-height: 1.6; color: #1e293b;">
+      ${formattedLines}
+    </div>
+  `);
+
+  return sendParentPortalEmail({
+    to,
+    subject: subject.trim(),
+    html,
+    text: messageText,
+  });
+}

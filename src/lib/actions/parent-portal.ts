@@ -34,6 +34,7 @@ import {
   notifyParentPasswordReset,
   notifyParentRejected,
   ParentSessionReportData,
+  sendDirectParentMessageEmail,
 } from "@/lib/parent-email-templates";
 import { arePhoneNumbersEqual, normalizePhoneNumber } from "@/lib/phone-utils";
 import { formatDobString, serializeFirestoreData } from "@/lib/serialize-utils";
@@ -53,6 +54,7 @@ import {
   ParentActivityLog,
   ParentAnnouncement,
   ParentAttendanceRecord,
+  ParentCommunicationLog,
   ParentDocumentChecklistItem,
   ParentDocumentsData,
   ParentFeeMonthItem,
@@ -1772,6 +1774,20 @@ export async function getAdminParentPortalDataAction() {
       .map((d) => ({ ...d.data(), id: d.id }) as DocumentRequest)
       .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 
+    let communications: ParentCommunicationLog[] = [];
+    try {
+      const commsSnap = await adminDb
+        .collection("parent_communications")
+        .where("siteId", "==", "bkgalabovo")
+        .limit(60)
+        .get();
+      communications = commsSnap.docs
+        .map((d) => ({ ...d.data(), id: d.id }) as ParentCommunicationLog)
+        .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+    } catch (commErr) {
+      console.warn("Failed to load parent communications:", commErr);
+    }
+
     const activityLogs: ParentActivityLog[] = [];
 
     const pendingRequestsCount = requests.filter(
@@ -1811,6 +1827,7 @@ export async function getAdminParentPortalDataAction() {
         documentRequests,
         members,
         activityLogs,
+        communications,
         onlineParentsCount,
         stats: {
           pendingRequestsCount,
@@ -3685,6 +3702,171 @@ export async function uploadParentMedicalCertificateAction(input: {
         error instanceof Error
           ? error.message
           : "Грешка при изпращане на медицинското свидетелство.",
+    };
+  }
+}
+
+/**
+ * 31. Log a phone call with a specific parent.
+ */
+export async function logParentCallAction(input: {
+  parentId: string;
+  parentName: string;
+  parentPhone: string;
+  memberId?: string | null;
+  memberName?: string | null;
+  outcome: string;
+  notes: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const adminDb = getAdminDb();
+    const nowIso = new Date().toISOString();
+    const docRef = adminDb.collection("parent_communications").doc();
+
+    const data: Omit<ParentCommunicationLog, "id"> = {
+      siteId: "bkgalabovo",
+      parentId: input.parentId,
+      parentName: input.parentName,
+      parentPhone: input.parentPhone,
+      memberId: input.memberId || null,
+      memberName: input.memberName || null,
+      channel: "phone",
+      outcome: input.outcome,
+      messageText: input.notes.trim() || input.outcome,
+      status: "completed",
+      createdAt: nowIso,
+      createdBy: "Треньор / Администратор",
+    };
+
+    await docRef.set(data);
+    revalidatePath("/parents");
+
+    return { success: true };
+  } catch (error) {
+    console.error("logParentCallAction error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Грешка при записване на проведения разговор.",
+    };
+  }
+}
+
+/**
+ * 32. Send an individual email to a specific parent regarding their child.
+ */
+export async function sendIndividualParentEmailAction(input: {
+  parentId: string;
+  parentName: string;
+  parentEmail: string;
+  memberId?: string | null;
+  memberName?: string | null;
+  subject: string;
+  messageText: string;
+  templateTitle?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const parentEmail = input.parentEmail.trim().toLowerCase();
+    if (!parentEmail || !parentEmail.includes("@")) {
+      return { success: false, error: "Родителят няма валиден имейл адрес." };
+    }
+    if (!input.subject.trim()) {
+      return { success: false, error: "Моля, въведете тема на имейла." };
+    }
+    if (!input.messageText.trim()) {
+      return { success: false, error: "Моля, въведете текст на съобщението." };
+    }
+
+    const sent = await sendDirectParentMessageEmail({
+      to: parentEmail,
+      parentName: input.parentName,
+      childName: input.memberName || undefined,
+      subject: input.subject.trim(),
+      messageText: input.messageText.trim(),
+    });
+
+    if (!sent) {
+      return {
+        success: false,
+        error:
+          "Неуспешно изпращане. Моля, проверете настройките на пощенския сървър (EMAIL_USER / EMAIL_PASS).",
+      };
+    }
+
+    const adminDb = getAdminDb();
+    const nowIso = new Date().toISOString();
+    const docRef = adminDb.collection("parent_communications").doc();
+
+    const data: Omit<ParentCommunicationLog, "id"> = {
+      siteId: "bkgalabovo",
+      parentId: input.parentId,
+      parentName: input.parentName,
+      parentEmail,
+      memberId: input.memberId || null,
+      memberName: input.memberName || null,
+      channel: "email",
+      subject: input.subject.trim(),
+      messageText: input.messageText.trim(),
+      templateTitle: input.templateTitle || "Индивидуален имейл",
+      status: "sent",
+      createdAt: nowIso,
+      createdBy: "Треньор / Администратор",
+    };
+
+    await docRef.set(data);
+    revalidatePath("/parents");
+
+    return { success: true };
+  } catch (error) {
+    console.error("sendIndividualParentEmailAction error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Възникна грешка при изпращането на индивидуалния имейл.",
+    };
+  }
+}
+
+/**
+ * 33. Retrieve parent communication logs (calls & individual emails).
+ */
+export async function getParentCommunicationsAction(input?: {
+  parentId?: string;
+  limitCount?: number;
+}): Promise<{
+  success: boolean;
+  data?: ParentCommunicationLog[];
+  error?: string;
+}> {
+  try {
+    const adminDb = getAdminDb();
+    let q = adminDb
+      .collection("parent_communications")
+      .where("siteId", "==", "bkgalabovo");
+
+    if (input?.parentId) {
+      q = q.where("parentId", "==", input.parentId);
+    }
+
+    const snap = await q.limit(input?.limitCount || 60).get();
+    const list: ParentCommunicationLog[] = snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as Omit<ParentCommunicationLog, "id">),
+    }));
+
+    list.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+
+    return { success: true, data: serializeFirestoreData(list) };
+  } catch (error) {
+    console.error("getParentCommunicationsAction error:", error);
+    return {
+      success: false,
+      error: "Грешка при зареждане на комуникационния лог.",
+      data: [],
     };
   }
 }
