@@ -7,7 +7,7 @@ import { useMemberProfileContext } from "../MemberProfileContext";
 
 const MemberTheoryTab = dynamic(
   () =>
-    import("@/components/members/tabs/MemberTheoryTab").then(
+    import("@/components/members/sections/MemberTheoryTab").then(
       (mod) => mod.MemberTheoryTab
     ),
   {

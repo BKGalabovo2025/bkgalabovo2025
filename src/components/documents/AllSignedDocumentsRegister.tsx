@@ -395,7 +395,7 @@ export function AllSignedDocumentsRegister() {
                       {/* Member */}
                       <td className="py-2 pl-2 font-bold text-zinc-900">
                         <Link
-                          href={`/members/${req.memberId}?tab=documents`}
+                          href={`/members/${req.memberId}/documents`}
                           className="hover:underline flex items-center gap-2"
                         >
                           <span

@@ -401,7 +401,7 @@ export default function AssessmentsClient() {
                               className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:px-6"
                             >
                               <Link
-                                href={`/members/${r.memberId}?tab=assessments`}
+                                href={`/members/${r.memberId}/assessments`}
                                 className="flex flex-1 items-center justify-between pr-4"
                               >
                                 <div>

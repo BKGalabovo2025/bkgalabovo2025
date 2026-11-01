@@ -590,7 +590,7 @@ export function MissingDocumentsChecklistDialog({
                         </Button>
                       ) : (
                         <a
-                          href={`/members/${item.member.id}?tab=documents`}
+                          href={`/members/${item.member.id}/documents`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[11px] text-zinc-500 hover:text-zinc-900 font-semibold inline-flex items-center gap-1"

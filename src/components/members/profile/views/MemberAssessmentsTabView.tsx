@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { MemberAssessmentsTab } from "@/components/members/tabs/MemberAssessmentsTab";
+import { MemberAssessmentsTab } from "@/components/members/sections/MemberAssessmentsTab";
 
 import { useMemberProfileContext } from "../MemberProfileContext";
 

@@ -80,7 +80,7 @@ export const GenericDeclarationPage = ({
     if (hasHistory) {
       router.back();
     } else {
-      router.push(`/members/${memberId}?tab=documents`);
+      router.push(`/members/${memberId}/documents`);
     }
   };
 

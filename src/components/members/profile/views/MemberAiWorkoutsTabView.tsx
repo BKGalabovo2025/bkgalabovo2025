@@ -7,7 +7,7 @@ import { useMemberProfileContext } from "../MemberProfileContext";
 
 const MemberAiWorkoutsTab = dynamic(
   () =>
-    import("@/components/members/tabs/MemberAiWorkoutsTab").then(
+    import("@/components/members/sections/MemberAiWorkoutsTab").then(
       (mod) => mod.MemberAiWorkoutsTab
     ),
   {

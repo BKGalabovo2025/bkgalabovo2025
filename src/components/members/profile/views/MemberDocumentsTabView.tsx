@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { MemberDocumentsTab } from "@/components/members/tabs/MemberDocumentsTab";
+import { MemberDocumentsTab } from "@/components/members/sections/MemberDocumentsTab";
 
 import { useMemberProfileContext } from "../MemberProfileContext";
 

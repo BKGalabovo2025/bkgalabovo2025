@@ -7,7 +7,7 @@ import { useMemberProfileContext } from "../MemberProfileContext";
 
 const MemberTrainingVolumeTab = dynamic(
   () =>
-    import("@/components/members/tabs/MemberTrainingVolumeTab").then(
+    import("@/components/members/sections/MemberTrainingVolumeTab").then(
       (mod) => mod.MemberTrainingVolumeTab
     ),
   {
