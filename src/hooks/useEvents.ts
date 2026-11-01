@@ -8,7 +8,7 @@ import {
   Timestamp,
   writeBatch,
 } from "firebase/firestore";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { toISOStringOrUndefined } from "@/lib/date-utils";
@@ -87,27 +87,50 @@ export const useEvents = () => {
     };
   }, [activeBranch]);
 
+  const membersRef = useRef<Member[]>(members);
+  useEffect(() => {
+    membersRef.current = members;
+  }, [members]);
+
   /**
    * Helper: converts a Firestore snapshot doc to a ScheduleEvent,
    * enriching attendee names from the loaded members list.
+   * Uses membersRef to keep callback reference stable and prevent query re-subscribing.
    */
   const docToEnrichedEvent = useCallback(
     (doc: Parameters<typeof docToScheduleEvent>[0]): ScheduleEvent | null => {
       const event = docToScheduleEvent(doc);
       if (!event) return null;
+      const currentMembers = membersRef.current;
       return {
         ...event,
         attendees: (event.attendees || []).map((attendee) => ({
           ...attendee,
           name:
-            members.find((m) => m.id === attendee.memberId)?.name ||
+            currentMembers.find((m) => m.id === attendee.memberId)?.name ||
             attendee.name ||
             "Unknown",
         })),
       } as ScheduleEvent;
     },
-    [members]
+    []
   );
+
+  // In-place attendee enrichment when members finish loading — 0 extra Firestore reads!
+  useEffect(() => {
+    if (members.length === 0) return;
+    const enrich = (ev: ScheduleEvent): ScheduleEvent => ({
+      ...ev,
+      attendees: (ev.attendees || []).map((a) => ({
+        ...a,
+        name:
+          members.find((m) => m.id === a.memberId)?.name || a.name || "Unknown",
+      })),
+    });
+    setTodayEvents((prev) => prev.map(enrich));
+    setUpcomingEvents((prev) => prev.map(enrich));
+    setPastEvents((prev) => prev.map(enrich));
+  }, [members]);
 
   // --- Phase 1: Today events — immediate load, unblocks UI ---
   useEffect(() => {
@@ -156,7 +179,7 @@ export const useEvents = () => {
     );
 
     return () => unsubscribe();
-  }, [members, activeBranch, docToEnrichedEvent]);
+  }, [activeBranch, docToEnrichedEvent]);
 
   // --- Phase 2: Upcoming events — background load ---
   useEffect(() => {
@@ -199,7 +222,7 @@ export const useEvents = () => {
     );
 
     return () => unsubscribe();
-  }, [members, activeBranch, docToEnrichedEvent]);
+  }, [activeBranch, docToEnrichedEvent]);
 
   // --- Phase 3: Past events — delayed background load (300ms) ---
   useEffect(() => {
@@ -252,7 +275,7 @@ export const useEvents = () => {
         unsubscribe();
       }
     };
-  }, [members, activeBranch, docToEnrichedEvent]);
+  }, [activeBranch, docToEnrichedEvent]);
 
   // Merged events for consumers
   const events = [...todayEvents, ...upcomingEvents, ...pastEvents];

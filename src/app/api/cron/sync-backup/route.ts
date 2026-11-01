@@ -93,7 +93,8 @@ function getDocTime(data: FirebaseFirestore.DocumentData | undefined): number {
 async function syncCollection(
   primaryDb: FirebaseFirestore.Firestore,
   backupDb: FirebaseFirestore.Firestore,
-  collectionName: string
+  collectionName: string,
+  isFullSync: boolean = false
 ): Promise<{
   syncedToBackup: number;
   syncedToPrimary: number;
@@ -102,6 +103,30 @@ async function syncCollection(
   error?: string;
 }> {
   try {
+    // Quota Optimization: Count-check (costs 1 read per DB instead of reading hundreds/thousands of docs)
+    // Since firestore-resilient-proxy dual-writes in real time, if counts match, skip full collection read!
+    if (!isFullSync) {
+      try {
+        const [pCountSnap, bCountSnap] = await Promise.all([
+          primaryDb.collection(collectionName).count().get(),
+          backupDb.collection(collectionName).count().get(),
+        ]);
+        const pCount = pCountSnap.data().count;
+        const bCount = bCountSnap.data().count;
+
+        if (pCount === bCount) {
+          return {
+            syncedToBackup: 0,
+            syncedToPrimary: 0,
+            synced: 0,
+            skipped: true,
+          };
+        }
+      } catch {
+        // Fall through to standard read if count fails
+      }
+    }
+
     const [primarySnap, backupSnap] = await Promise.all([
       primaryDb.collection(collectionName).get(),
       backupDb.collection(collectionName).get(),
@@ -258,8 +283,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const isFullSync =
+    searchParams.get("full") === "true" || new Date().getDay() === 0; // Full sync on Sundays or via ?full=true
+
   console.log(
-    "[sync-backup] 🚀 Стартиране на синхронизация към резервната база..."
+    `[sync-backup] 🚀 Стартиране на синхронизация (${isFullSync ? "ПЪЛНА / FULL" : "ЕКО ИНКРЕМЕНТАЛНА / SMART"}) към резервната база...`
   );
 
   const results: Record<
@@ -276,7 +305,7 @@ export async function GET(request: Request) {
   let quotaHit = false;
 
   for (const col of COLLECTIONS_TO_SYNC) {
-    const result = await syncCollection(primaryDb, backupDb, col);
+    const result = await syncCollection(primaryDb, backupDb, col, isFullSync);
     results[col] = result;
 
     if (result.skipped && result.error === "RESOURCE_EXHAUSTED") {

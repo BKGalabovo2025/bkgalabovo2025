@@ -151,7 +151,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
     // Cache key: per branch + per day (stats are stable within a day)
     const todayKey = startOfDay.toISOString().slice(0, 10);
     const cacheKey = `dashboard:${activeBranch}:${todayKey}`;
-    const TTL_MS = 5 * 60 * 1000; // 5 minutes — reduces repeat reads and saves Firebase Quota
+    const TTL_MS = 15 * 60 * 1000; // 15 minutes — reduces repeat reads and saves Firebase Quota
 
     // Празни данни по подразбиране — връщат се при quota exhaustion
     const EMPTY_DASHBOARD = {
@@ -272,14 +272,14 @@ export async function getDashboardDataServerAction(activeBranch: string) {
             // Last 5 sales for the "Recent Sales" widget
             col("sales").orderBy("saleDate", "desc").limit(5).get(),
 
-            // Up to 6 months of completed+paid sales for revenue stats & chart
-            col("sales").where("status", "==", "completed").limit(500).get(),
+            // Up to 6 months of completed+paid sales for revenue stats & chart (bounded to save reads)
+            col("sales").where("status", "==", "completed").limit(150).get(),
 
             // Active members (needed for overdue reminder generation)
-            col("members").where("status", "==", "active").limit(300).get(),
+            col("members").where("status", "==", "active").limit(150).get(),
 
             // Unpaid sales (needed for overdue check)
-            col("sales").where("isPaid", "==", false).limit(300).get(),
+            col("sales").where("isPaid", "==", false).limit(100).get(),
 
             // Today's events for display
             col("events")

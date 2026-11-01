@@ -20,11 +20,12 @@ export function useParentPortal(initialChildId?: string) {
 
   const fetcher = async ([, childId]: [string, string]) => {
     const res = await getParentDashboardDataAction(childId || undefined);
-    if (!res.success || !res.data) {
-      if (res.error === "UNAUTHORIZED") {
+    const result = res as { success: boolean; data?: unknown; error?: string };
+    if (!result.success || !result.data) {
+      if (result.error === "UNAUTHORIZED") {
         throw new Error("UNAUTHORIZED");
       }
-      throw new Error(res.error || "Грешка при зареждане на данните.");
+      throw new Error(result.error || "Грешка при зареждане на данните.");
     }
     return res.data;
   };
@@ -33,8 +34,9 @@ export function useParentPortal(initialChildId?: string) {
     ["parent-portal-dashboard", selectedChildId],
     fetcher,
     {
-      refreshInterval: 20000,
+      refreshInterval: 0, // Disabled aggressive 20s polling to preserve Firestore quota; updates on tab focus, user action, or manual refetch
       revalidateOnFocus: true,
+      dedupingInterval: 60000,
     }
   );
 

@@ -5,29 +5,47 @@ import { getAdminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
+type FirestoreDateValue = { toDate?: () => Date } | string | Date | null;
+
 // This endpoint can be triggered by Vercel Cron or manually via UI
 export const getLastActivityDate = async (
   adminDb: FirebaseFirestore.Firestore,
   memberId: string,
-  data: { registrationDate?: { toDate?: () => Date } | string | Date | null }
+  data: {
+    registrationDate?: FirestoreDateValue;
+    lastActivityDate?: FirestoreDateValue;
+    lastPaymentDate?: FirestoreDateValue;
+    [key: string]: unknown;
+  },
+  thirtyDaysAgoThreshold?: Date
 ) => {
   let lastActivityDate = new Date(0);
 
-  if (data.registrationDate) {
-    if (
-      typeof (data.registrationDate as { toDate?: () => Date })?.toDate ===
-      "function"
-    ) {
-      lastActivityDate = (
-        data.registrationDate as { toDate: () => Date }
-      ).toDate();
-    } else {
-      lastActivityDate = new Date(
-        data.registrationDate as string | number | Date
-      );
+  const parseDate = (val: unknown): Date => {
+    if (!val) return new Date(0);
+    if (typeof (val as { toDate?: () => Date })?.toDate === "function") {
+      return (val as { toDate: () => Date }).toDate();
     }
+    const d = new Date(val as string | number | Date);
+    return isNaN(d.getTime()) ? new Date(0) : d;
+  };
+
+  // 1. Check member doc cached dates first (registrationDate, lastActivityDate, lastPaymentDate)
+  const regDate = parseDate(data.registrationDate);
+  const actDate = parseDate(data.lastActivityDate);
+  const payDate = parseDate(data.lastPaymentDate);
+
+  if (regDate > lastActivityDate) lastActivityDate = regDate;
+  if (actDate > lastActivityDate) lastActivityDate = actDate;
+  if (payDate > lastActivityDate) lastActivityDate = payDate;
+
+  // 2. Short-circuit: If member already has verified activity within the 30-day window,
+  // they are GUARANTEED active. Skip querying sales & events to save hundreds of reads!
+  if (thirtyDaysAgoThreshold && lastActivityDate >= thirtyDaysAgoThreshold) {
+    return lastActivityDate;
   }
 
+  // 3. Only query sales & events for members whose recorded activity is > 30 days ago
   const [salesSnap, eventsSnap] = await Promise.all([
     adminDb
       .collection("sales")
@@ -111,7 +129,8 @@ const evaluateMemberChunk = async (
       const lastActivityDate = await getLastActivityDate(
         adminDb,
         memberId,
-        data
+        data,
+        thirtyDaysAgo
       );
       const { newStatus, note } = processMemberStatus(
         currentStatus,
@@ -119,7 +138,7 @@ const evaluateMemberChunk = async (
         thirtyDaysAgo,
         formatDateTimeFn
       );
-      return { doc, data, currentStatus, newStatus, note };
+      return { doc, data, currentStatus, newStatus, note, lastActivityDate };
     })
   );
 };
@@ -131,6 +150,7 @@ const applyResultToBatch = (
     currentStatus: string;
     newStatus: string;
     note: string;
+    lastActivityDate?: Date;
   },
   batch: FirebaseFirestore.WriteBatch
 ) => {
@@ -145,6 +165,9 @@ const applyResultToBatch = (
     batch.update(res.doc.ref, {
       status: res.newStatus,
       notes: (existingNotes + res.note).trim(),
+      ...(res.lastActivityDate && res.lastActivityDate.getTime() > 0
+        ? { lastActivityDate: res.lastActivityDate.toISOString() }
+        : {}),
       updatedAt: FieldValue.serverTimestamp(),
     });
   }
