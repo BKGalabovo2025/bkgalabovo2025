@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import React from "react";
 
 import { TournamentDetailsLayoutClient } from "@/components/tournaments/details/TournamentDetailsLayoutClient";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatDateShort } from "@/lib/date-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
@@ -15,21 +14,7 @@ export const dynamic = "force-dynamic";
 async function getInitialData(id: string) {
   try {
     const db = getAdminDb();
-
-    const [tournDoc, entriesSnap, matchesSnap, membersData] = await Promise.all(
-      [
-        db.collection("tournaments").doc(id).get(),
-        db
-          .collection("tournament_entries")
-          .where("tournamentId", "==", id)
-          .get(),
-        db
-          .collection("tournament_matches")
-          .where("tournamentId", "==", id)
-          .get(),
-        getAllMembersServer(),
-      ]
-    );
+    const tournDoc = await db.collection("tournaments").doc(id).get();
 
     if (!tournDoc.exists) return null;
 
@@ -38,32 +23,50 @@ async function getInitialData(id: string) {
       ...tournDoc.data(),
     }) as Tournament;
 
-    const entries = entriesSnap.docs.map((doc) =>
-      serializeFirestoreData({ id: doc.id, ...doc.data() })
-    ) as TournamentEntry[];
-
-    const matches = matchesSnap.docs.map((doc) =>
-      serializeFirestoreData({ id: doc.id, ...doc.data() })
-    ) as Match[];
-
+    let entries: TournamentEntry[] = [];
+    let matches: Match[] = [];
     const membersDict: Record<string, Member> = {};
-    membersData.forEach((m) => {
-      if (m.id) membersDict[m.id] = m;
-    });
 
-    // Sort entries by registration date
-    entries.sort((a, b) => {
-      if (!a.registrationDate) return 1;
-      if (!b.registrationDate) return -1;
-      return (
-        new Date(a.registrationDate).getTime() -
-        new Date(b.registrationDate).getTime()
-      );
-    });
+    try {
+      const [entriesSnap, matchesSnap, membersData] = await Promise.all([
+        db
+          .collection("tournament_entries")
+          .where("tournamentId", "==", id)
+          .get(),
+        db
+          .collection("tournament_matches")
+          .where("tournamentId", "==", id)
+          .get(),
+        getAllMembersServer().catch(() => []),
+      ]);
+
+      entries = entriesSnap.docs.map((doc) =>
+        serializeFirestoreData({ id: doc.id, ...doc.data() })
+      ) as TournamentEntry[];
+
+      matches = matchesSnap.docs.map((doc) =>
+        serializeFirestoreData({ id: doc.id, ...doc.data() })
+      ) as Match[];
+
+      membersData.forEach((m) => {
+        if (m.id) membersDict[m.id] = m;
+      });
+
+      entries.sort((a, b) => {
+        if (!a.registrationDate) return 1;
+        if (!b.registrationDate) return -1;
+        return (
+          new Date(a.registrationDate).getTime() -
+          new Date(b.registrationDate).getTime()
+        );
+      });
+    } catch (subErr) {
+      console.warn("Secondary tournament data fetch failed on server:", subErr);
+    }
 
     return { tournament, entries, matches, membersDict };
   } catch (err) {
-    console.error("Error fetching tournament initial data:", err);
+    console.warn("Error fetching tournament initial data on server:", err);
     return null;
   }
 }
@@ -101,26 +104,18 @@ export default async function TournamentDetailsTabsLayout({
   const { id } = await params;
   const initialData = await getInitialData(id);
 
-  if (!initialData) {
-    return (
-      <div className="p-8">
-        <Alert
-          variant="destructive"
-          className="rounded-2xl border-none shadow-lg"
-        >
-          <AlertTitle className="font-bold tracking-tight uppercase">
-            Турнирът не бе намерен
-          </AlertTitle>
-          <AlertDescription className="font-medium">
-            Няма намерен турнир с посочения идентификатор или е бил изтрит.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
   return (
-    <TournamentDetailsLayoutClient tournamentId={id} initialData={initialData}>
+    <TournamentDetailsLayoutClient
+      tournamentId={id}
+      initialData={
+        initialData || {
+          tournament: null,
+          entries: [],
+          matches: [],
+          membersDict: {},
+        }
+      }
+    >
       {children}
     </TournamentDetailsLayoutClient>
   );

@@ -20,7 +20,7 @@ import { Member } from "@/types/member.types";
 import { Match, Tournament, TournamentEntry } from "@/types/tournament.types";
 
 export interface InitialTournamentData {
-  tournament: Tournament;
+  tournament: Tournament | null;
   entries: TournamentEntry[];
   matches: Match[];
   membersDict: Record<string, Member>;
@@ -44,6 +44,8 @@ interface TournamentDetailsContextType {
   matches: Match[];
   membersDict: Record<string, Member>;
   mounted: boolean;
+  isLoading: boolean;
+  isNotFound: boolean;
   isGenerating: boolean;
   isEntryDialogOpen: boolean;
   setIsEntryDialogOpen: (open: boolean) => void;
@@ -99,14 +101,12 @@ export function TournamentDetailsProvider({
   );
 
   const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(!initialData.tournament);
+  const [isNotFound, setIsNotFound] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEntryDialogOpen, setIsEntryDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const loadData = useCallback(async () => {
     if (!tournamentId) return;
@@ -121,11 +121,11 @@ export function TournamentDetailsProvider({
         ]);
 
       if (!tournData) {
-        toast.error("Турнирът не е намерен!");
-        router.push("/tournaments");
+        setIsNotFound(true);
         return;
       }
 
+      setIsNotFound(false);
       const dict: Record<string, Member> = {};
       membersData.forEach((m) => {
         if (m.id) dict[m.id] = m;
@@ -147,9 +147,15 @@ export function TournamentDetailsProvider({
       setMembersDict(dict);
     } catch (error) {
       console.error(error);
-      toast.error("Грешка при зареждане на данните");
+    } finally {
+      setIsLoading(false);
     }
-  }, [tournamentId, router]);
+  }, [tournamentId]);
+
+  useEffect(() => {
+    setMounted(true);
+    loadData();
+  }, [loadData]);
 
   const getPlayerName = useCallback(
     (memberId?: string, externalName?: string) => {
@@ -437,6 +443,8 @@ export function TournamentDetailsProvider({
         matches,
         membersDict,
         mounted,
+        isLoading,
+        isNotFound,
         isGenerating,
         isEntryDialogOpen,
         setIsEntryDialogOpen,

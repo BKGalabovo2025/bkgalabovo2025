@@ -7,8 +7,10 @@ import { PageHeader } from "@/components/layout/page-header";
 import { EntryForm } from "@/components/tournaments/entry-form";
 import { ScoreDialog } from "@/components/tournaments/score-dialog";
 import { TournamentForm } from "@/components/tournaments/tournament-form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateShort } from "@/lib/date-utils";
 
 import {
@@ -24,6 +26,8 @@ function TournamentDetailsInner({ children }: { children: React.ReactNode }) {
     entries,
     matches,
     mounted,
+    isLoading,
+    isNotFound,
     isGenerating,
     isEntryDialogOpen,
     setIsEntryDialogOpen,
@@ -38,8 +42,46 @@ function TournamentDetailsInner({ children }: { children: React.ReactNode }) {
     getEntryNameById,
   } = useTournamentDetailsContext();
 
-  if (!mounted) return <div className="p-12 text-center">Зареждане...</div>;
-  if (!tournament) return null;
+  if (!mounted || (isLoading && !tournament)) {
+    return (
+      <div className="space-y-8 pb-12" aria-busy="true" aria-live="polite">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-32 rounded-xl" />
+            <Skeleton className="h-9 w-28 rounded-xl" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton key={i} className="h-9 w-full rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-96 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (isNotFound || !tournament) {
+    return (
+      <div className="p-8">
+        <Alert
+          variant="destructive"
+          className="rounded-2xl border-none shadow-lg"
+        >
+          <AlertTitle className="font-bold tracking-tight uppercase">
+            Турнирът не бе намерен
+          </AlertTitle>
+          <AlertDescription className="font-medium">
+            Няма намерен турнир с посочения идентификатор или е бил изтрит.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 pb-12 duration-500 animate-in fade-in">
