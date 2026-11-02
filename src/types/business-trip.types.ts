@@ -145,7 +145,21 @@ export const BusinessTripSchema = z.object({
     .object({
       coach: z.string().optional(), // Base64 PNG image
       chairman: z.string().optional(), // Base64 PNG image
+      athletes: z.record(z.string(), z.string()).optional(), // memberId -> Base64 PNG image
     })
+    .passthrough()
+    .optional(),
+  signingTokens: z
+    .record(
+      z.string(),
+      z.object({
+        token: z.string(),
+        memberId: z.string(),
+        memberName: z.string(),
+        role: z.string().optional(),
+        createdAt: z.string().optional(),
+      })
+    )
     .optional(),
   protocolDownloadedAt: z.string().datetime().optional(),
   decisionDownloadedAt: z.string().datetime().optional(),
@@ -213,3 +227,21 @@ export type TripExpense = z.infer<typeof TripExpenseSchema>;
 export type TripProtocolAttachment = z.infer<
   typeof TripProtocolAttachmentSchema
 >;
+
+export interface PublicTripSignDataDTO {
+  token: string;
+  tripId: string;
+  memberId: string;
+  memberName: string;
+  role?: string;
+  tripTitle: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  organizer?: string;
+  hostClub?: string;
+  coachName?: string;
+  siteId: string;
+  existingSignature?: string | null;
+  signedAt?: string | null;
+}

@@ -16,6 +16,7 @@ export interface SignaturePadDialogProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   onSave: (base64Image: string) => void;
+  penColor?: string;
 }
 
 export function SignaturePadDialog({
@@ -23,6 +24,7 @@ export function SignaturePadDialog({
   onOpenChange,
   title,
   onSave,
+  penColor = "#1d4ed8",
 }: SignaturePadDialogProps) {
   const sigCanvas = useRef<SignatureCanvas>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +66,7 @@ export function SignaturePadDialog({
             <SignatureCanvas
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               ref={sigCanvas as any}
-              penColor="black"
+              penColor={penColor}
               canvasProps={{
                 className: "w-full h-44 cursor-crosshair",
               }}

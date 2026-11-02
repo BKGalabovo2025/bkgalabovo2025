@@ -15,6 +15,7 @@ import {
   ShieldAlert,
   Trash2,
   UserPlus,
+  Users,
   XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -24,6 +25,7 @@ import { toast } from "sonner";
 import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
 import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
 import { SignaturePadDialog } from "@/components/business-trips/SignaturePadDialog";
+import { TripAthletesSignaturesDialog } from "@/components/business-trips/TripAthletesSignaturesDialog";
 import { TripExpenseDialog } from "@/components/business-trips/TripExpenseDialog";
 import { TripProtocolDialog } from "@/components/business-trips/TripProtocolDialog";
 import { TripReportDialog } from "@/components/business-trips/TripReportDialog";
@@ -32,6 +34,7 @@ import {
   type DocumentAttachmentType,
   DocumentViewerDialog,
 } from "@/components/schedule/DocumentViewerDialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/context/auth-context";
@@ -240,10 +243,15 @@ export function BusinessTripManagerDialog({
 
   // Digital Signatures
   const [signaturePadOpen, setSignaturePadOpen] = useState(false);
-  const [signatureRole, setSignatureRole] = useState<
-    "coach" | "chairman" | null
+  const [signatureRole, setSignatureRole] = useState<string | null>(null);
+  const [signatureAthleteName, setSignatureAthleteName] = useState<
+    string | null
   >(null);
   const [signatureTripId, setSignatureTripId] = useState<string | null>(null);
+  const [
+    selectedTripForAthletesSignatures,
+    setSelectedTripForAthletesSignatures,
+  ] = useState<BusinessTrip | null>(null);
 
   const loadData = async () => {
     try {
@@ -645,12 +653,24 @@ export function BusinessTripManagerDialog({
       const trip = businessTrips.find((t) => t.id === signatureTripId);
       if (!trip) return;
 
-      const newSignatures = { ...trip.signatures, [signatureRole]: base64 };
+      let newSignatures = { ...trip.signatures };
+      if (signatureRole === "coach" || signatureRole === "chairman") {
+        newSignatures = { ...newSignatures, [signatureRole]: base64 };
+      } else {
+        const existingAthletes = { ...(trip.signatures?.athletes || {}) };
+        existingAthletes[signatureRole] = base64;
+        newSignatures = {
+          ...newSignatures,
+          athletes: existingAthletes,
+        };
+      }
+
       await businessTripService.updateTrip(signatureTripId, {
         signatures: newSignatures,
       });
 
       toast.success("Подписът е запазен успешно!");
+      setSignatureAthleteName(null);
       loadData();
     } catch (e) {
       console.error(e);
@@ -660,14 +680,23 @@ export function BusinessTripManagerDialog({
 
   const handleClearSignature = async (
     tripId: string,
-    role: "coach" | "chairman"
+    roleOrMemberId: string
   ) => {
     try {
       const trip = businessTrips.find((t) => t.id === tripId);
       if (!trip) return;
 
-      const newSignatures = { ...trip.signatures };
-      delete newSignatures[role];
+      let newSignatures = { ...trip.signatures };
+      if (roleOrMemberId === "coach" || roleOrMemberId === "chairman") {
+        delete (newSignatures as Record<string, unknown>)[roleOrMemberId];
+      } else {
+        const existingAthletes = { ...(trip.signatures?.athletes || {}) };
+        delete existingAthletes[roleOrMemberId];
+        newSignatures = {
+          ...newSignatures,
+          athletes: existingAthletes,
+        };
+      }
 
       await businessTripService.updateTrip(tripId, {
         signatures: newSignatures,
@@ -1516,6 +1545,41 @@ export function BusinessTripManagerDialog({
                             (Председател)
                           </Button>
                         )}
+
+                        {/* Подписи на състезатели */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900/60 dark:text-indigo-300 dark:hover:bg-indigo-950/40"
+                          onClick={() => {
+                            setSelectedTripForAthletesSignatures(trip);
+                          }}
+                        >
+                          <Users className="mr-2 size-4" /> Подписи на
+                          състезатели
+                          {(() => {
+                            const athletesList = (
+                              trip.participantsIds || []
+                            ).filter((id) => !membersDict[id]?.isCoach);
+                            const athleteCount = athletesList.length;
+                            const signedCount = athletesList.filter((id) =>
+                              Boolean(trip.signatures?.athletes?.[id])
+                            ).length;
+                            return athleteCount > 0 ? (
+                              <Badge
+                                variant="secondary"
+                                className={`ml-2 px-1.5 py-0 text-[10px] font-semibold ${
+                                  signedCount === athleteCount
+                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
+                                    : "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300"
+                                }`}
+                              >
+                                {signedCount}/{athleteCount}
+                              </Badge>
+                            ) : null;
+                          })()}
+                        </Button>
+
                         {/* Редакция */}
                         <Button
                           variant="outline"
@@ -1855,9 +1919,39 @@ export function BusinessTripManagerDialog({
       {signaturePadOpen && (
         <SignaturePadDialog
           open={signaturePadOpen}
-          onOpenChange={setSignaturePadOpen}
-          title={`Подпис: ${signatureRole === "coach" ? "Командирован" : "Председател"}`}
+          onOpenChange={(op) => {
+            setSignaturePadOpen(op);
+            if (!op) setSignatureAthleteName(null);
+          }}
+          penColor="#1d4ed8"
+          title={
+            signatureAthleteName
+              ? `Подпис: ${signatureAthleteName}`
+              : `Подпис: ${signatureRole === "coach" ? "Командирован" : "Председател"}`
+          }
           onSave={handleSaveSignature}
+        />
+      )}
+
+      {Boolean(selectedTripForAthletesSignatures) && (
+        <TripAthletesSignaturesDialog
+          open={Boolean(selectedTripForAthletesSignatures)}
+          onOpenChange={(op) => {
+            if (!op) setSelectedTripForAthletesSignatures(null);
+          }}
+          trip={
+            businessTrips.find(
+              (t) => t.id === selectedTripForAthletesSignatures?.id
+            ) || selectedTripForAthletesSignatures
+          }
+          membersDict={membersDict}
+          onRefresh={loadData}
+          onOpenDirectSign={(tripId, memberId, memberName) => {
+            setSignatureTripId(tripId);
+            setSignatureRole(memberId);
+            setSignatureAthleteName(memberName);
+            setSignaturePadOpen(true);
+          }}
         />
       )}
 

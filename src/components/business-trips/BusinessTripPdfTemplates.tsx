@@ -1875,6 +1875,14 @@ export function BusinessTripPdfTemplates({
             }
           }
 
+          const personSig =
+            p.ovKey === "coach"
+              ? trip.signatures?.coach
+              : trip.signatures?.athletes?.[p.ovKey] ||
+                (trip.signatures as Record<string, string> | undefined)?.[
+                  p.ovKey
+                ];
+
           return (
             <tr key={`${p.name}_${globalIndex}`}>
               <td style={{ ...TD, textAlign: "center" }}>{globalIndex + 1}.</td>
@@ -1925,7 +1933,30 @@ export function BusinessTripPdfTemplates({
               <td style={{ ...TD, textAlign: "center" }}>
                 {renderDualAmount(personTotalEUR, personTotalBGN, true)}
               </td>
-              <td style={TD}>&nbsp;</td>
+              <td
+                style={{
+                  ...TD,
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  padding: "1px 2px",
+                }}
+              >
+                {personSig ? (
+                  <img
+                    src={personSig}
+                    alt="Подпис"
+                    style={{
+                      maxHeight: "20pt",
+                      maxWidth: "46pt",
+                      objectFit: "contain",
+                      margin: "0 auto",
+                      display: "block",
+                    }}
+                  />
+                ) : (
+                  <span>&nbsp;</span>
+                )}
+              </td>
             </tr>
           );
         };
