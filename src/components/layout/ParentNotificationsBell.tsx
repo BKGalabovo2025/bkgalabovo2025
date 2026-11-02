@@ -65,9 +65,16 @@ function playChime() {
 }
 
 export function ParentNotificationsBell() {
-  const { counts, documentRequests } = useParentPortalAdmin();
+  const { counts, documentRequests, refetch } = useParentPortalAdmin();
   const [isOpen, setIsOpen] = useState(false);
   const prevTotalRef = useRef<number | null>(null);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open) {
+      refetch();
+    }
+  };
 
   const recentSignedOrViewedDocs = documentRequests
     .filter((d) => d.status === "completed" || Boolean(d.viewedByParentAt))
@@ -86,7 +93,7 @@ export function ParentNotificationsBell() {
   const hasPending = counts.totalPending > 0;
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"

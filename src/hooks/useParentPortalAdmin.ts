@@ -84,9 +84,10 @@ export function useParentPortalAdmin() {
     "admin-parent-portal-data",
     fetcher,
     {
-      refreshInterval: 0, // Disabled aggressive polling to preserve Firestore quota; updates on focus or manual refetch
-      revalidateOnFocus: true,
-      dedupingInterval: 10000,
+      refreshInterval: 180000, // 3 minutes background poll: preserves quota while keeping notifications fresh
+      revalidateOnFocus: false, // Prevents quota-draining refetches on every browser tab / window switch
+      revalidateOnReconnect: false, // Prevents burst queries on momentary connection drops
+      dedupingInterval: 60000, // 1 minute deduplication interval across layout components
     }
   );
 

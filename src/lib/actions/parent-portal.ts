@@ -96,6 +96,17 @@ let cachedMembersData: {
   expiresAt: number;
 } | null = null;
 
+let cachedAdminParentPortalData: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
+  expiresAt: number;
+} | null = null;
+
+export function invalidateAdminParentPortalCache(): void {
+  cachedAdminParentPortalData = null;
+  cachedMembersData = null;
+}
+
 /**
  * 1. Submit parent access request from public registration form.
  */
@@ -273,6 +284,7 @@ export async function submitParentAccessRequestAction(data: {
       console.warn("Failed to notify admin of new request:", err);
     }
 
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("submitParentAccessRequestAction error:", error);
@@ -451,6 +463,7 @@ export async function changeParentPasswordAction(
       lastActionAt: new Date().toISOString(),
     });
 
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("changeParentPasswordAction error:", error);
@@ -681,7 +694,9 @@ export async function approveParentAccessRequestAction(
 
     revalidatePath("/members");
     revalidatePath(`/members/${targetMemberId}`);
+    invalidateAdminParentPortalCache();
 
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("approveParentAccessRequestAction error:", error);
@@ -730,6 +745,7 @@ export async function rejectParentAccessRequestAction(
       console.warn("Failed to notify parent of rejection:", err);
     }
 
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("rejectParentAccessRequestAction error:", error);
@@ -979,6 +995,7 @@ export async function toggleParentUserStatusAction(
       status: newStatus,
       updatedAt: new Date().toISOString(),
     });
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("toggleParentUserStatusAction error:", error);
@@ -1017,6 +1034,7 @@ export async function updateParentMemberPermissionsAction(
     });
 
     revalidatePath(`/members/${memberId}`);
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("updateParentMemberPermissionsAction error:", error);
@@ -1248,6 +1266,7 @@ export async function resetParentPasswordWithTokenAction(
       updatedAt: new Date().toISOString(),
     });
 
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("resetParentPasswordWithTokenAction error:", error);
@@ -1380,6 +1399,7 @@ export async function cancelParentAbsenceAction(absenceId: string) {
 
     serverCache.invalidatePattern(`parent-dashboard:${parent.id}`);
 
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("cancelParentAbsenceAction error:", error);
@@ -1404,6 +1424,7 @@ export async function markAbsenceSeenByAdminAction(
         coachReply: coachReply?.trim() || "",
         reviewedAt: new Date().toISOString(),
       });
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("markAbsenceSeenByAdminAction error:", error);
@@ -1636,6 +1657,7 @@ export async function approveDataCorrectionAction(correctionId: string) {
     }
 
     revalidatePath(`/members/${corr.memberId}`);
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("approveDataCorrectionAction error:", error);
@@ -1660,6 +1682,7 @@ export async function rejectDataCorrectionAction(
         adminComment: adminComment?.trim() || "",
         resolvedAt: new Date().toISOString(),
       });
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("rejectDataCorrectionAction error:", error);
@@ -1678,6 +1701,7 @@ export async function deleteParentUserAction(parentUserId: string) {
       .doc(parentUserId)
       .delete();
     revalidatePath("/parents");
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("deleteParentUserAction error:", error);
@@ -1693,8 +1717,18 @@ export async function deleteParentUserAction(parentUserId: string) {
  */
 export async function getAdminParentPortalDataAction() {
   try {
-    const adminDb = getAdminDb();
     const now = Date.now();
+    if (
+      cachedAdminParentPortalData &&
+      cachedAdminParentPortalData.expiresAt > now
+    ) {
+      return {
+        success: true,
+        data: cachedAdminParentPortalData.data,
+      };
+    }
+
+    const adminDb = getAdminDb();
     let members: CachedMemberSummary[];
 
     if (cachedMembersData && cachedMembersData.expiresAt > now) {
@@ -1817,31 +1851,36 @@ export async function getAdminParentPortalDataAction() {
         now - new Date(p.lastActiveAt).getTime() < 4 * 60 * 1000
     ).length;
 
+    const responseData = serializeFirestoreData({
+      requests,
+      parents,
+      absences,
+      corrections,
+      documentRequests,
+      members,
+      activityLogs,
+      communications,
+      onlineParentsCount,
+      stats: {
+        pendingRequestsCount,
+        pendingAbsencesCount,
+        pendingCorrectionsCount,
+        recentlySignedDocsCount,
+        pendingSentDocsCount,
+        onlineParentsCount,
+        totalPending:
+          pendingRequestsCount + pendingAbsencesCount + pendingCorrectionsCount,
+      },
+    });
+
+    cachedAdminParentPortalData = {
+      data: responseData,
+      expiresAt: now + 60 * 1000, // 60 seconds server cache TTL
+    };
+
     return {
       success: true,
-      data: serializeFirestoreData({
-        requests,
-        parents,
-        absences,
-        corrections,
-        documentRequests,
-        members,
-        activityLogs,
-        communications,
-        onlineParentsCount,
-        stats: {
-          pendingRequestsCount,
-          pendingAbsencesCount,
-          pendingCorrectionsCount,
-          recentlySignedDocsCount,
-          pendingSentDocsCount,
-          onlineParentsCount,
-          totalPending:
-            pendingRequestsCount +
-            pendingAbsencesCount +
-            pendingCorrectionsCount,
-        },
-      }),
+      data: responseData,
     };
   } catch (error) {
     console.error("getAdminParentPortalDataAction error:", error);
@@ -3741,6 +3780,7 @@ export async function logParentCallAction(input: {
     await docRef.set(data);
     revalidatePath("/parents");
 
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("logParentCallAction error:", error);
@@ -3818,6 +3858,7 @@ export async function sendIndividualParentEmailAction(input: {
     await docRef.set(data);
     revalidatePath("/parents");
 
+    invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
     console.error("sendIndividualParentEmailAction error:", error);
