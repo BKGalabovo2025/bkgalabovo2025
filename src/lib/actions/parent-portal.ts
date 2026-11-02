@@ -102,7 +102,7 @@ let cachedAdminParentPortalData: {
   expiresAt: number;
 } | null = null;
 
-export function invalidateAdminParentPortalCache(): void {
+function invalidateAdminParentPortalCache(): void {
   cachedAdminParentPortalData = null;
   cachedMembersData = null;
 }
