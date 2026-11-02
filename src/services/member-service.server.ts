@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 import { serverCache } from "@/lib/server-cache";
@@ -7,7 +9,14 @@ import { Member } from "@/types/member.types";
 
 const MEMBERS_COLLECTION = "members";
 
-export async function getAllMembersServer(siteId?: string): Promise<Member[]> {
+/**
+ * Fetches all members on the server with:
+ * 1. React cache() for request-level deduplication (layout + page share 1 call per request)
+ * 2. serverCache for cross-request caching (3 minutes TTL)
+ */
+export const getAllMembersServer = cache(async function getAllMembersServer(
+  siteId?: string
+): Promise<Member[]> {
   const cacheKey = `members:all:${siteId || "all"}`;
   const TTL_MS = 3 * 60 * 1000; // 3 minutes cache to eliminate redundant full-table reads
 
@@ -52,4 +61,4 @@ export async function getAllMembersServer(siteId?: string): Promise<Member[]> {
     },
     TTL_MS
   );
-}
+});
