@@ -102,147 +102,160 @@ const FALLBACK_BKG_MEMBERS: Member[] = [
   },
 ];
 
+// Module-level cache and subscriber registry to eliminate duplicate queries & multiple listeners
+const memoryCache: Record<string, Member[]> = {};
+const subscribers: Record<string, Set<(data: Member[]) => void>> = {};
+const activeUnsubs: Record<string, (() => void) | null> = {};
+const cleanupTimers: Record<string, ReturnType<typeof setTimeout> | null> = {};
+
+function notifySubscribers(branch: string, members: Member[]) {
+  memoryCache[branch] = members;
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(
+        `bkg_cached_members_${branch}`,
+        JSON.stringify(members)
+      );
+    } catch {
+      // ignore storage full
+    }
+  }
+  subscribers[branch]?.forEach((cb) => cb(members));
+}
+
+function getInitialCachedMembers(branch: string): Member[] {
+  if (memoryCache[branch]?.length) {
+    return memoryCache[branch];
+  }
+  if (typeof window !== "undefined") {
+    try {
+      const cached = localStorage.getItem(`bkg_cached_members_${branch}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          memoryCache[branch] = parsed;
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore parse error
+    }
+  }
+  return [];
+}
+
 export function useMembers() {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { activeBranch } = useAppStore();
   const { user, loading: authLoading } = useAuth();
 
+  const [members, setMembers] = useState<Member[]>(() =>
+    getInitialCachedMembers(activeBranch)
+  );
+  const [loading, setLoading] = useState<boolean>(() => members.length === 0);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    let isSubscribed = true;
-
-    // 0. Immediate local cache retrieval: renders instantly with 0 Firestore reads
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem(
-          `bkg_cached_members_${activeBranch}`
-        );
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setMembers(parsed);
-            setLoading(false);
-          }
-        }
-      } catch {
-        // ignore localStorage parsing errors
-      }
-    }
-
-    // 1. Immediate server-side fetch via Server Action:
-    // Uses Firebase Admin SDK, bypassing any client-side auth handshake or permission race conditions.
-    getMembersAction(activeBranch).then((res) => {
-      if (!isSubscribed) return;
-      if (res.success && res.data.length > 0) {
-        setMembers(res.data);
-        setLoading(false);
-        setError(null);
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem(
-              `bkg_cached_members_${activeBranch}`,
-              JSON.stringify(res.data)
-            );
-          } catch {
-            // ignore storage full
-          }
-        }
-      } else {
-        // If quota exceeded or network failed and cache was empty, use graceful fallback
-        setMembers((prev) => {
-          if (prev.length === 0 && activeBranch === "bkgalabovo") {
-            if (typeof window !== "undefined") {
-              try {
-                localStorage.setItem(
-                  `bkg_cached_members_${activeBranch}`,
-                  JSON.stringify(FALLBACK_BKG_MEMBERS)
-                );
-              } catch {
-                // ignore
-              }
-            }
-            return FALLBACK_BKG_MEMBERS;
-          }
-          return prev;
-        });
-        setLoading(false);
-      }
-    });
-
-    // 2. Real-time snapshot listener: only attach if client Firebase Auth is active
-    if (authLoading || !user) {
-      if (!authLoading && !user) {
-        setLoading(false);
-      }
-      return () => {
-        isSubscribed = false;
-      };
-    }
-
-    let unsubscribe = () => {};
-    try {
-      const membersQuery = getMembersQuery();
-      unsubscribe = onSnapshot(
-        membersQuery,
-        (snapshot) => {
-          if (!isSubscribed) return;
-          const membersData = snapshot.docs.map((d) => ({
-            ...d.data(),
-            id: d.id,
-          })) as Member[];
-          if (membersData.length > 0) {
-            setMembers(membersData);
-            if (typeof window !== "undefined") {
-              try {
-                localStorage.setItem(
-                  `bkg_cached_members_${activeBranch}`,
-                  JSON.stringify(membersData)
-                );
-              } catch {
-                // ignore
-              }
-            }
-          }
-          setLoading(false);
-          setError(null);
-        },
-        () => {
-          // If client Firestore rules or quota fail, keep the cached data
-          setLoading(false);
-        }
-      );
-    } catch {
-      // Ignore initial setup exceptions, cached data is already loaded
+    // 1. Initial cached render
+    const cached = getInitialCachedMembers(activeBranch);
+    if (cached.length > 0) {
+      setMembers(cached);
       setLoading(false);
     }
 
+    // 2. Register subscriber
+    if (!subscribers[activeBranch]) {
+      subscribers[activeBranch] = new Set();
+    }
+    subscribers[activeBranch].add(setMembers);
+
+    // Cancel any pending unmount cleanup for this branch
+    if (cleanupTimers[activeBranch]) {
+      clearTimeout(cleanupTimers[activeBranch]!);
+      cleanupTimers[activeBranch] = null;
+    }
+
+    // 3. Single shared listener / fetcher per branch
+    if (!activeUnsubs[activeBranch]) {
+      if (user && !authLoading) {
+        // Active authenticated user: single onSnapshot listener (realtime updates without parallel server action)
+        try {
+          const membersQuery = getMembersQuery();
+          const unsub = onSnapshot(
+            membersQuery,
+            (snapshot) => {
+              const membersData = snapshot.docs.map((d) => ({
+                ...d.data(),
+                id: d.id,
+              })) as Member[];
+              if (membersData.length > 0) {
+                notifySubscribers(activeBranch, membersData);
+              }
+              setLoading(false);
+              setError(null);
+            },
+            () => {
+              // On quota error or permission drop, retain cache
+              setLoading(false);
+            }
+          );
+          activeUnsubs[activeBranch] = unsub;
+        } catch {
+          setLoading(false);
+        }
+      } else if (!authLoading && !user && cached.length === 0) {
+        // Fallback for unauthenticated / SSR-like client state if cache is empty
+        getMembersAction(activeBranch).then((res) => {
+          if (res.success && res.data.length > 0) {
+            notifySubscribers(activeBranch, res.data);
+          } else if (activeBranch === "bkgalabovo") {
+            notifySubscribers(activeBranch, FALLBACK_BKG_MEMBERS);
+          }
+          setLoading(false);
+        });
+      }
+    }
+
     return () => {
-      isSubscribed = false;
-      unsubscribe();
+      subscribers[activeBranch]?.delete(setMembers);
+      // If no components are listening to this branch, schedule graceful cleanup
+      if (subscribers[activeBranch]?.size === 0) {
+        cleanupTimers[activeBranch] = setTimeout(() => {
+          if (
+            subscribers[activeBranch]?.size === 0 &&
+            activeUnsubs[activeBranch]
+          ) {
+            activeUnsubs[activeBranch]!();
+            activeUnsubs[activeBranch] = null;
+          }
+        }, 30000); // 30s grace period prevents listener churn on rapid tab switching
+      }
     };
   }, [activeBranch, user, authLoading]);
 
   const addMember = async (member: Omit<Member, "id">) => {
     const membersCollection = getMembersCollection();
     const docRef = await addDoc(membersCollection, member);
-    setMembers((prev) => [...prev, { id: docRef.id, ...member }]);
+    const newMember = { id: docRef.id, ...member };
+    const updated = [...(memoryCache[activeBranch] || members), newMember];
+    notifySubscribers(activeBranch, updated);
   };
 
   const updateMember = async (id: string, updatedMember: Partial<Member>) => {
     const memberDoc = doc(db, "members", id);
     await updateDoc(memberDoc, updatedMember);
-    setMembers((prev) =>
-      prev.map((member) =>
-        member.id === id ? { ...member, ...updatedMember } : member
-      )
+    const updated = (memoryCache[activeBranch] || members).map((m) =>
+      m.id === id ? { ...m, ...updatedMember } : m
     );
+    notifySubscribers(activeBranch, updated);
   };
 
   const deleteMember = async (id: string) => {
     const memberDoc = doc(db, "members", id);
     await deleteDoc(memberDoc);
-    setMembers((prev) => prev.filter((member) => member.id !== id));
+    const updated = (memoryCache[activeBranch] || members).filter(
+      (m) => m.id !== id
+    );
+    notifySubscribers(activeBranch, updated);
   };
 
   return { members, loading, error, addMember, updateMember, deleteMember };
