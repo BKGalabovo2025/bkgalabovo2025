@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { type DocxBlock, loadDocxFromBuffer } from "@/lib/docx-parser";
 
 export type DocumentAttachmentType =
   "pdf" | "word" | "excel" | "image" | "other";
@@ -395,8 +396,230 @@ const RtfViewer: React.FC<{
   );
 };
 
+const DocxContentRenderer: React.FC<{ blocks: DocxBlock[] }> = ({ blocks }) => {
+  return (
+    <div className="space-y-3 font-sans text-xs sm:text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+      {blocks.map((block, bIdx) => {
+        if (block.type === "paragraph") {
+          const hasText = block.runs.some((r) => r.text.trim().length > 0);
+          if (!hasText && block.runs.length <= 1) {
+            return <div key={bIdx} className="h-2" />;
+          }
+
+          let alignClass = "text-left";
+          if (block.align === "center") alignClass = "text-center";
+          else if (block.align === "right") alignClass = "text-right";
+          else if (block.align === "justify") alignClass = "text-justify";
+
+          const headingClass = block.isHeading
+            ? block.headingLevel === 1
+              ? "text-base sm:text-lg font-bold text-zinc-950 dark:text-white pt-2 pb-1"
+              : "text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100 pt-1.5 pb-0.5"
+            : "";
+
+          return (
+            <p key={bIdx} className={`${alignClass} ${headingClass}`.trim()}>
+              {block.runs.map((run, rIdx) => {
+                if (run.isBreak) {
+                  return <br key={rIdx} />;
+                }
+                const classes = [
+                  run.bold ? "font-bold" : "",
+                  run.italic ? "italic" : "",
+                  run.underline ? "underline underline-offset-2" : "",
+                  run.strike ? "line-through" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+
+                return (
+                  <span key={rIdx} className={classes || undefined}>
+                    {run.text}
+                  </span>
+                );
+              })}
+            </p>
+          );
+        }
+
+        if (block.type === "table") {
+          return (
+            <div
+              key={bIdx}
+              className="my-4 overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800"
+            >
+              <table className="w-full border-collapse text-left text-xs sm:text-sm">
+                <tbody>
+                  {block.rows.map((row, rowIdx) => (
+                    <tr
+                      key={rowIdx}
+                      className={
+                        rowIdx === 0
+                          ? "bg-zinc-50 font-semibold dark:bg-zinc-800"
+                          : "border-t border-zinc-200 dark:border-zinc-800"
+                      }
+                    >
+                      {row.cells.map((cell, cellIdx) => (
+                        <td
+                          key={cellIdx}
+                          className="border-r last:border-r-0 border-zinc-200 p-2 sm:p-2.5 dark:border-zinc-800 align-top"
+                        >
+                          <DocxContentRenderer blocks={cell.paragraphs} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        return null;
+      })}
+    </div>
+  );
+};
+
+const DocxViewer: React.FC<{
+  url: string;
+  name?: string | null;
+  onDownload?: () => void | Promise<void>;
+  onSwitchToExternalViewer?: () => void;
+}> = ({ url, name, onDownload, onSwitchToExternalViewer }) => {
+  const [blocks, setBlocks] = React.useState<DocxBlock[] | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .then((buf) => loadDocxFromBuffer(buf))
+      .then((parsed) => {
+        if (cancelled) return;
+        if (parsed && parsed.length > 0) {
+          setBlocks(parsed);
+        } else {
+          setError(true);
+        }
+      })
+      .catch((e) => {
+        console.warn("Could not preview docx locally:", e);
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  if (loading) {
+    return (
+      <div className="flex size-full flex-col items-center justify-center p-8 text-center">
+        <Loader2 className="size-8 animate-spin text-blue-500" />
+        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+          Зареждане и визуализиране на Word документа...
+        </p>
+      </div>
+    );
+  }
+
+  if (error || !blocks) {
+    return (
+      <div className="flex size-full flex-col items-center justify-center p-8 text-center">
+        <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-zinc-800">
+          <FileCode className="size-10 text-blue-500" />
+        </div>
+        <h3 className="text-base font-semibold text-zinc-800 dark:text-zinc-200">
+          {name || "Word Документ"}
+        </h3>
+        <p className="mt-1 max-w-md text-xs text-zinc-500 dark:text-zinc-400">
+          Документът не можа да се визуализира локално. Можете да го отворите
+          през онлайн четец или да го свалите директно.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          {onSwitchToExternalViewer && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSwitchToExternalViewer}
+              className="gap-2 rounded-xl text-xs"
+            >
+              <ExternalLink className="size-3.5" />
+              Отвори през онлайн четец
+            </Button>
+          )}
+          <Button asChild size="sm" className="gap-2 rounded-xl text-xs">
+            <a
+              href={url}
+              download={name || "document.docx"}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => onDownload?.()}
+            >
+              <Download className="size-3.5" />
+              Изтегли файла
+            </a>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex size-full flex-col overflow-hidden bg-zinc-100 dark:bg-zinc-950">
+      <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 bg-white/95 px-4 py-2.5 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/95">
+        <div className="flex items-center gap-2">
+          <FileCode className="size-4 text-blue-600" />
+          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+            {name || "Word Документ (.docx)"}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          {onSwitchToExternalViewer && (
+            <button
+              type="button"
+              onClick={onSwitchToExternalViewer}
+              className="flex items-center gap-1.5 text-xs font-medium text-zinc-600 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 cursor-pointer"
+            >
+              <ExternalLink className="size-3.5" />
+              Външен четец (Google / Office)
+            </button>
+          )}
+          <a
+            href={url}
+            download={name || "document.docx"}
+            onClick={() => onDownload?.()}
+            className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400"
+          >
+            <Download className="size-3.5" />
+            Свали оригинала (.docx)
+          </a>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-4xl min-h-125 rounded-xl border border-zinc-200 bg-white p-6 sm:p-10 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <DocxContentRenderer blocks={blocks} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface ViewerBodyProps {
   isPdf: boolean;
+  isDocx: boolean;
   isOffice: boolean;
   isRtf: boolean;
   isImage: boolean;
@@ -413,6 +636,7 @@ interface ViewerBodyProps {
 
 const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   isPdf,
+  isDocx,
   isOffice,
   isRtf,
   isImage,
@@ -423,13 +647,26 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   documentType,
   officeViewerUrl,
   googleViewerUrl,
-  isLegacyBinary = false,
+  isLegacyBinary: _isLegacyBinary = false,
   onDownload,
 }) => {
   const [activeViewer, setActiveViewer] = useState<"office" | "google">(
-    isLegacyBinary ? "google" : "office"
+    "google"
   );
+  const [showDocxExternal, setShowDocxExternal] = useState(false);
+
   if (!documentUrl) return null;
+
+  if (isDocx && !showDocxExternal) {
+    return (
+      <DocxViewer
+        url={documentUrl}
+        name={documentName}
+        onDownload={onDownload}
+        onSwitchToExternalViewer={() => setShowDocxExternal(true)}
+      />
+    );
+  }
 
   if (isRtf) {
     return (
@@ -477,7 +714,7 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
     );
   }
 
-  if (isOffice) {
+  if (isOffice || (isDocx && showDocxExternal)) {
     const currentIframeSrc =
       activeViewer === "google" ? googleViewerUrl : officeViewerUrl;
     const currentViewerName =
@@ -493,6 +730,18 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
             документът не се зарежда:
           </span>
           <div className="flex items-center gap-3">
+            {isDocx && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowDocxExternal(false)}
+                  className="font-semibold underline underline-offset-2 hover:text-amber-950 dark:hover:text-amber-100 cursor-pointer"
+                >
+                  📄 Върни се към вградения преглед
+                </button>
+                <span>•</span>
+              </>
+            )}
             <button
               type="button"
               onClick={() =>
@@ -555,6 +804,17 @@ function parseDocumentViewerData(
   documentName?: string | null,
   documentType?: DocumentAttachmentType | null
 ) {
+  const getAbsoluteUrl = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}${url.startsWith("/") ? "" : "/"}${url}`;
+    }
+    return `https://bkgalabovo2025.vercel.app${url.startsWith("/") ? "" : "/"}${url}`;
+  };
+
+  const absoluteDocUrl = getAbsoluteUrl(documentUrl);
+
   const driveMatch = documentUrl.match(
     /drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/
   );
@@ -567,6 +827,12 @@ function parseDocumentViewerData(
     !isGoogleDrive &&
     (/\.rtf(\?.*)?$/i.test(documentUrl) || /\.rtf$/i.test(documentName || ""));
 
+  const isDocx =
+    !isGoogleDrive &&
+    !isRtf &&
+    (/\.docx(\?.*)?$/i.test(documentUrl) ||
+      /\.docx$/i.test(documentName || ""));
+
   const isPdf =
     !isGoogleDrive &&
     (documentType === "pdf" ||
@@ -577,6 +843,7 @@ function parseDocumentViewerData(
     !isGoogleDrive &&
     !isRtf &&
     !isPdf &&
+    !isDocx &&
     (documentType === "word" ||
       documentType === "excel" ||
       /\.(docx?|xlsx?|pptx?)$/i.test(documentName || "") ||
@@ -586,6 +853,7 @@ function parseDocumentViewerData(
     !isGoogleDrive &&
     !isRtf &&
     !isPdf &&
+    !isDocx &&
     !isOffice &&
     !/\.(rtf|docx?|xlsx?|pptx?|pdf|txt|csv|zip|rar)$/i.test(
       documentName || ""
@@ -605,7 +873,7 @@ function parseDocumentViewerData(
     effectiveType = "image";
   } else if (isPdf) {
     effectiveType = "pdf";
-  } else if (isOffice || isRtf) {
+  } else if (isDocx || isOffice || isRtf) {
     effectiveType = "word";
   }
 
@@ -615,11 +883,11 @@ function parseDocumentViewerData(
       /\.(xls|doc|ppt)$/i.test(documentName || ""));
 
   const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-    documentUrl
+    absoluteDocUrl
   )}`;
 
   const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(
-    documentUrl
+    absoluteDocUrl
   )}&embedded=true`;
 
   return {
@@ -627,6 +895,7 @@ function parseDocumentViewerData(
     googleDrivePreviewUrl,
     isImage,
     isPdf,
+    isDocx,
     isOffice,
     isRtf,
     isLegacyBinary,
@@ -652,6 +921,7 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
     googleDrivePreviewUrl,
     isImage,
     isPdf,
+    isDocx,
     isOffice,
     isRtf,
     isLegacyBinary,
@@ -747,6 +1017,7 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
         <div className="relative flex-1 overflow-hidden bg-zinc-100 dark:bg-zinc-900">
           <DocumentViewerBody
             isPdf={isPdf}
+            isDocx={isDocx}
             isOffice={isOffice}
             isRtf={isRtf}
             isImage={isImage}

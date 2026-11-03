@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
       .doc(fileId)
       .get();
 
-    // Fallback 1: Try default siteId
+    // Fallback 1: Try default or bkgalabovo siteId
     if (!docSnap.exists && siteId !== "default") {
       try {
         const fallbackSnap = await adminDb
@@ -209,6 +209,22 @@ export async function GET(request: NextRequest) {
           .get();
         if (fallbackSnap.exists) {
           docSnap = fallbackSnap;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!docSnap.exists && siteId !== "bkgalabovo") {
+      try {
+        const galabovoSnap = await adminDb
+          .collection("sites")
+          .doc("bkgalabovo")
+          .collection("uploaded_files")
+          .doc(fileId)
+          .get();
+        if (galabovoSnap.exists) {
+          docSnap = galabovoSnap;
         }
       } catch {
         // ignore
@@ -229,6 +245,16 @@ export async function GET(request: NextRequest) {
             .get();
           if (bSnap.exists) {
             docSnap = bSnap;
+          } else if (siteId !== "bkgalabovo") {
+            const bGalabovoSnap = await backupDb
+              .collection("sites")
+              .doc("bkgalabovo")
+              .collection("uploaded_files")
+              .doc(fileId)
+              .get();
+            if (bGalabovoSnap.exists) {
+              docSnap = bGalabovoSnap;
+            }
           }
         }
       } catch {
@@ -253,14 +279,26 @@ export async function GET(request: NextRequest) {
     }
 
     const fileDoc = docSnap.data();
+    const filePath = (fileDoc?.path || "").toLowerCase();
+    const fileNameLower = (fileDoc?.name || fileName || "").toLowerCase();
     const isPublicMedia =
       fileDoc?.contentType?.startsWith("image/") ||
-      fileDoc?.path?.includes("avatars") ||
-      fileDoc?.path?.includes("sponsors") ||
-      fileDoc?.path?.includes("media") ||
-      fileDoc?.path?.includes("certificates") ||
-      fileDoc?.path?.includes("vouchers") ||
-      fileDoc?.path?.includes("events");
+      filePath.includes("avatars") ||
+      filePath.includes("sponsors") ||
+      filePath.includes("media") ||
+      filePath.includes("certificates") ||
+      filePath.includes("vouchers") ||
+      filePath.includes("events") ||
+      filePath.includes("schedule") ||
+      filePath.includes("tournaments") ||
+      filePath.includes("attachments") ||
+      filePath.includes("protocols") ||
+      filePath.includes("business-trips") ||
+      fileNameLower.includes("наредба") ||
+      fileNameLower.includes("naredba") ||
+      fileNameLower.includes("протокол") ||
+      fileNameLower.includes("pravilnik") ||
+      fileNameLower.includes("правилник");
 
     if (!user && !isPublicMedia) {
       return NextResponse.json(
