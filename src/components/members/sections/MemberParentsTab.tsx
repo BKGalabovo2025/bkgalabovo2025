@@ -20,6 +20,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -159,8 +160,32 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
     {}
   );
 
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   // Manual Add Modal
-  const [addModalOpen, setAddModalOpen] = useState(false);
+  const isAddAction = searchParams?.get("action") === "add-parent";
+  const [internalAddModalOpen, setInternalAddModalOpen] = useState(false);
+  const addModalOpen = isAddAction || internalAddModalOpen;
+
+  const handleOpenAddModal = () => {
+    setInternalAddModalOpen(true);
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("action", "add-parent");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseAddModal = (open: boolean) => {
+    setInternalAddModalOpen(open);
+    if (!open) {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      params.delete("action");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    }
+  };
+
   const [parentName, setParentName] = useState(
     member.parentName || member.motherName || member.fatherName || ""
   );
@@ -193,6 +218,32 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
     title: "",
     emailSent: undefined,
   });
+
+  const handleOpenCredentialsModal = (data: {
+    parentName: string;
+    parentPhone: string;
+    parentEmail: string;
+    tempPassword: string;
+    childName: string;
+    title: string;
+    emailSent?: boolean;
+  }) => {
+    setCredentialsModal({
+      ...data,
+      open: true,
+    });
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("credentials", "true");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseCredentialsModal = () => {
+    setCredentialsModal((prev) => ({ ...prev, open: false }));
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.delete("credentials");
+    const q = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`${pathname}${q}`, { scroll: false });
+  };
 
   const handleTogglePermission = (
     parentId: string,
@@ -268,8 +319,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
     if (!res.success) {
       toast.error(res.error || "Грешка при генериране на нова парола.");
     } else {
-      setCredentialsModal({
-        open: true,
+      handleOpenCredentialsModal({
         parentName: parent.name,
         parentPhone: parent.phone,
         parentEmail: parent.email,
@@ -328,9 +378,8 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
       if (!res.success) {
         toast.error(res.error || "Грешка.");
       } else {
-        setAddModalOpen(false);
-        setCredentialsModal({
-          open: true,
+        handleCloseAddModal(false);
+        handleOpenCredentialsModal({
           parentName,
           parentPhone,
           parentEmail,
@@ -374,7 +423,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
 
         <Button
           size="sm"
-          onClick={() => setAddModalOpen(true)}
+          onClick={handleOpenAddModal}
           className="rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-500"
         >
           <UserPlus size={14} className="mr-1.5" />
@@ -795,7 +844,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
 
       {/* Manual Add Parent Modal */}
       {addModalOpen && (
-        <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
+        <Dialog open={addModalOpen} onOpenChange={handleCloseAddModal}>
           <DialogContent className="max-w-md rounded-3xl">
             <DialogHeader>
               <DialogTitle className="text-lg font-black uppercase text-zinc-900 dark:text-white">
@@ -894,7 +943,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setAddModalOpen(false)}
+                  onClick={() => handleCloseAddModal(false)}
                   className="rounded-xl"
                 >
                   Отказ
@@ -917,9 +966,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
       {credentialsModal.open && (
         <Dialog
           open={credentialsModal.open}
-          onOpenChange={(open) =>
-            setCredentialsModal((prev) => ({ ...prev, open }))
-          }
+          onOpenChange={(open) => !open && handleCloseCredentialsModal()}
         >
           <DialogContent className="max-w-md rounded-3xl">
             <DialogHeader>
@@ -1093,9 +1140,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
             <DialogFooter>
               <Button
                 type="button"
-                onClick={() =>
-                  setCredentialsModal((prev) => ({ ...prev, open: false }))
-                }
+                onClick={handleCloseCredentialsModal}
                 className="w-full rounded-xl bg-blue-600 text-white font-semibold text-xs hover:bg-blue-500 py-2.5"
               >
                 Готово / Затвори

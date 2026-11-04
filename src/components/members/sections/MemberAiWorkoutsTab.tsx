@@ -15,6 +15,8 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -51,7 +53,6 @@ interface SavedWorkoutRecord extends WorkoutProgram {
 interface MemberAiWorkoutsTabProps {
   memberId: string;
   memberName?: string;
-  onOpenGenerator?: () => void;
 }
 
 function getGoalLabel(goal?: string): string {
@@ -440,8 +441,11 @@ function DayDetailCard({
 export function MemberAiWorkoutsTab({
   memberId,
   memberName,
-  onOpenGenerator,
 }: MemberAiWorkoutsTabProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const { idToken } = useAuth();
   const [programs, setPrograms] = useState<SavedWorkoutRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -457,6 +461,32 @@ export function MemberAiWorkoutsTab({
       techniqueTip?: string;
     };
   } | null>(null);
+
+  const programParam = searchParams?.get("program");
+
+  useEffect(() => {
+    if (programParam && programs.length > 0) {
+      const found = programs.find((p) => p.id === programParam);
+      if (found && (!viewingProgram || viewingProgram.id !== found.id)) {
+        setViewingProgram(found);
+      }
+    }
+  }, [programParam, programs, viewingProgram]);
+
+  const handleOpenProgram = (prog: SavedWorkoutRecord) => {
+    setViewingProgram(prog);
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("program", prog.id);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseProgram = () => {
+    setViewingProgram(null);
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.delete("program");
+    const q = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`${pathname}${q}`, { scroll: false });
+  };
 
   const handleSelectExercise = async (ex: WorkoutDay["exercises"][number]) => {
     const details = await findExerciseDetails(ex.name, ex.techniqueTip);
@@ -572,14 +602,14 @@ export function MemberAiWorkoutsTab({
             статус на състезателя
           </p>
         </div>
-        {onOpenGenerator && (
-          <Button
-            onClick={onOpenGenerator}
-            className="h-9 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white shadow-none hover:bg-blue-700"
-          >
+        <Button
+          asChild
+          className="h-9 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white shadow-none hover:bg-blue-700"
+        >
+          <Link href={`/members/${memberId}/ai-workouts/new`}>
             <Plus className="mr-1.5 size-4" /> Нова AI Програма
-          </Button>
-        )}
+          </Link>
+        </Button>
       </div>
 
       {programs.length === 0 ? (
@@ -594,15 +624,15 @@ export function MemberAiWorkoutsTab({
             Създайте първия персонализиран микроцикъл за състезателя чрез бутона
             „AI Тренировка“.
           </p>
-          {onOpenGenerator && (
-            <Button
-              onClick={onOpenGenerator}
-              variant="outline"
-              className="mt-4 rounded-xl border-blue-200 bg-blue-50 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950/50 dark:text-blue-300"
-            >
+          <Button
+            asChild
+            variant="outline"
+            className="mt-4 rounded-xl border-blue-200 bg-blue-50 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950/50 dark:text-blue-300"
+          >
+            <Link href={`/members/${memberId}/ai-workouts/new`}>
               <Sparkles className="mr-2 size-3.5" /> Генерирай с Gemini Flash
-            </Button>
-          )}
+            </Link>
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -700,7 +730,7 @@ export function MemberAiWorkoutsTab({
 
                 <div className="mt-4 flex items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
                   <Button
-                    onClick={() => setViewingProgram(prog)}
+                    onClick={() => handleOpenProgram(prog)}
                     variant="outline"
                     className="h-8.5 flex-1 rounded-xl text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
                   >
@@ -734,7 +764,7 @@ export function MemberAiWorkoutsTab({
       {viewingProgram && (
         <Dialog
           open={!!viewingProgram}
-          onOpenChange={(open) => !open && setViewingProgram(null)}
+          onOpenChange={(open) => !open && handleCloseProgram()}
         >
           <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
             {/* Fixed Sticky Header */}

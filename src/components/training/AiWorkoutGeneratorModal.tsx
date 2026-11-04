@@ -2,6 +2,7 @@
 
 import {
   AlertTriangle,
+  ArrowLeft,
   CheckCircle2,
   Clock,
   Download,
@@ -11,11 +12,14 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ExerciseDetailModal } from "@/components/training/ExerciseDetailModal";
 import { Badge } from "@/components/ui/badge";
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -48,9 +52,10 @@ import { Member } from "@/types/member.types";
 import { Exercise } from "@/types/planner.types";
 
 interface AiWorkoutGeneratorModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   member: Member;
+  standalone?: boolean;
 }
 
 const TARGET_GOALS: Array<{
@@ -345,10 +350,12 @@ function LoadingState({ step }: { step: number }) {
 }
 
 export function AiWorkoutGeneratorModal({
-  open,
+  open = false,
   onOpenChange,
   member,
+  standalone = false,
 }: AiWorkoutGeneratorModalProps) {
+  const router = useRouter();
   const { idToken } = useAuth();
 
   const [targetGoal, setTargetGoal] = useState<WorkoutTargetGoal>(
@@ -469,6 +476,10 @@ export function AiWorkoutGeneratorModal({
       );
       if (res.success) {
         toast.success(res.message);
+        if (standalone) {
+          router.push(`/members/${member.id}/ai-workouts`);
+          router.refresh();
+        }
       } else {
         toast.error(res.message);
       }
@@ -732,6 +743,52 @@ export function AiWorkoutGeneratorModal({
       return renderProgramViewer(program);
     }
     return renderParametersForm();
+  }
+
+  if (standalone) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="rounded-xl border-zinc-200 dark:border-zinc-800"
+            >
+              <Link href={`/members/${member.id}/ai-workouts`}>
+                <ArrowLeft className="mr-1.5 size-4" />
+                <span>Назад към AI Програми</span>
+              </Link>
+            </Button>
+            <div>
+              <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 sm:text-2xl dark:text-white">
+                AI Генератор на Тренировки • Gemini Flash
+              </h2>
+              <p className="text-xs text-zinc-500 sm:text-sm dark:text-zinc-400">
+                Персонализиран микроцикъл за{" "}
+                {member.name || `${member.firstName} ${member.lastName}`}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <BentoCard className="rounded-3xl border border-zinc-200/80 bg-white p-4 sm:p-8 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+          {renderModalBody()}
+        </BentoCard>
+
+        {selectedExerciseData && (
+          <ExerciseDetailModal
+            open={!!selectedExerciseData}
+            onOpenChange={(isOpen: boolean) => {
+              if (!isOpen) setSelectedExerciseData(null);
+            }}
+            exercise={selectedExerciseData.exercise}
+            workoutContext={selectedExerciseData.workoutContext}
+          />
+        )}
+      </div>
+    );
   }
 
   return (

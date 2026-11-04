@@ -47,7 +47,6 @@ export function MemberProfileHeader() {
     lastPayment,
     avatarUrl,
     initials,
-    setIsAiWorkoutModalOpen,
   } = useMemberProfileContext();
 
   return (
@@ -75,12 +74,14 @@ export function MemberProfileHeader() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  onClick={() => setIsAiWorkoutModalOpen(true)}
+                  asChild
                   variant="outline"
                   className="h-10 w-full rounded-xl border-blue-200 bg-blue-50/70 px-4 text-[11px] font-semibold tracking-wider text-blue-700 uppercase shadow-2xs transition-all hover:bg-blue-100/80 sm:h-11 sm:w-auto dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60"
                 >
-                  <Sparkles className="mr-2 size-4 text-blue-600 dark:text-blue-400" />
-                  AI Тренировка
+                  <Link href={`/members/${member.id}/ai-workouts/new`}>
+                    <Sparkles className="mr-2 size-4 text-blue-600 dark:text-blue-400" />
+                    AI Тренировка
+                  </Link>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

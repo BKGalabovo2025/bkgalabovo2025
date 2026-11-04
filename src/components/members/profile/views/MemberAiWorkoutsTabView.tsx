@@ -20,14 +20,7 @@ const MemberAiWorkoutsTab = dynamic(
 );
 
 export function MemberAiWorkoutsTabView() {
-  const { memberId, member, setIsAiWorkoutModalOpen } =
-    useMemberProfileContext();
+  const { memberId, member } = useMemberProfileContext();
 
-  return (
-    <MemberAiWorkoutsTab
-      memberId={memberId}
-      memberName={member.name}
-      onOpenGenerator={() => setIsAiWorkoutModalOpen(true)}
-    />
-  );
+  return <MemberAiWorkoutsTab memberId={memberId} memberName={member.name} />;
 }
