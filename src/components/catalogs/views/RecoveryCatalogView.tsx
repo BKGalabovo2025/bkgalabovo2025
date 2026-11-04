@@ -2,8 +2,9 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { LayoutGrid, List, PlusCircle, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { RecoveryMenu } from "@/components/finances/RecoveryMenu";
 import { DataTable } from "@/components/shared/data-table";
@@ -23,12 +24,36 @@ export function RecoveryCatalogView({
   initialServices,
 }: RecoveryCatalogViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const saleId = searchParams.get("sale");
+
   const [services] = useState<ClubService[]>(initialServices);
   const [view, setView] = useState<"grid" | "table">("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSaleService, setSelectedSaleService] =
     useState<ClubService | null>(null);
+
+  useEffect(() => {
+    if (saleId && services.length > 0) {
+      const found = services.find((s) => s.id === saleId);
+      if (found) {
+        setSelectedSaleService(found);
+      }
+    } else {
+      setSelectedSaleService(null);
+    }
+  }, [saleId, services]);
+
+  const openSale = (service: ClubService) => {
+    setSelectedSaleService(service);
+    router.push(`/catalogs/recovery?sale=${service.id}`, { scroll: false });
+  };
+
+  const closeSale = () => {
+    setSelectedSaleService(null);
+    router.push("/catalogs/recovery", { scroll: false });
+  };
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -103,7 +128,7 @@ export function RecoveryCatalogView({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setSelectedSaleService(row.original)}
+            onClick={() => openSale(row.original)}
             className="h-7 text-xs text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400"
           >
             Продажба
@@ -111,10 +136,12 @@ export function RecoveryCatalogView({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/finances/recovery/${row.original.id}`)}
+            asChild
             className="h-7 text-xs text-blue-600 hover:underline dark:text-blue-400"
           >
-            Редактиране
+            <Link href={`/catalogs/recovery/${row.original.id}/edit`}>
+              Редактиране
+            </Link>
           </Button>
         </div>
       ),
@@ -149,6 +176,7 @@ export function RecoveryCatalogView({
               <TabsTrigger
                 value="grid"
                 title="Решетка"
+                aria-label="Изглед Решетка"
                 className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
               >
                 <LayoutGrid className="size-3.5" />
@@ -156,6 +184,7 @@ export function RecoveryCatalogView({
               <TabsTrigger
                 value="table"
                 title="Таблица"
+                aria-label="Изглед Таблица"
                 className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
               >
                 <List className="size-3.5" />
@@ -165,11 +194,13 @@ export function RecoveryCatalogView({
 
           <Button
             size="sm"
-            onClick={() => router.push("/finances/recovery/new")}
+            asChild
             className="h-9 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white shadow-xs hover:bg-blue-500 shrink-0"
           >
-            <PlusCircle className="mr-1.5 size-4" />
-            <span>Добави процедура</span>
+            <Link href="/catalogs/recovery/new">
+              <PlusCircle className="mr-1.5 size-4" />
+              <span>Добави процедура</span>
+            </Link>
           </Button>
         </div>
       </div>
@@ -198,7 +229,7 @@ export function RecoveryCatalogView({
       {view === "grid" ? (
         <RecoveryMenu
           services={filteredServices}
-          onSale={(service) => setSelectedSaleService(service)}
+          onSale={(service) => openSale(service)}
         />
       ) : (
         <BentoCard className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
@@ -213,15 +244,15 @@ export function RecoveryCatalogView({
         </BentoCard>
       )}
 
-      {/* Sale Wizard */}
+      {/* Sale Wizard (Deep-linked with ?sale=<id>) */}
       {selectedSaleService && (
         <UnifiedSaleWizardDialog
           item={selectedSaleService}
           mode="recovery"
           isOpen={!!selectedSaleService}
-          onClose={() => setSelectedSaleService(null)}
+          onClose={closeSale}
           onSaleSuccess={() => {
-            setSelectedSaleService(null);
+            closeSale();
             router.refresh();
           }}
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
 
@@ -78,9 +78,30 @@ export function MemberProfileProvider({
   initialData,
   children,
 }: MemberProfileProviderProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { idToken } = useAuth();
-  const [isAiWorkoutModalOpen, setIsAiWorkoutModalOpen] = useState(false);
+  const [internalAiWorkoutModalOpen, setInternalAiWorkoutModalOpen] =
+    useState(false);
+
+  const isAiWorkoutModalOpen =
+    searchParams?.get("action") === "ai-workout" || internalAiWorkoutModalOpen;
+
+  const setIsAiWorkoutModalOpen = React.useCallback(
+    (open: boolean) => {
+      setInternalAiWorkoutModalOpen(open);
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      if (open) {
+        params.set("action", "ai-workout");
+      } else {
+        params.delete("action");
+      }
+      const query = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${query}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   const {
     member,

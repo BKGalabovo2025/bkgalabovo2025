@@ -105,6 +105,8 @@ export function TournamentParticipantsSectionView() {
                           size="icon"
                           className="text-destructive hover:bg-destructive/10"
                           onClick={() => handleDeleteEntry(entry.id!)}
+                          title="Премахни участник от турнира"
+                          aria-label="Премахни участник от турнира"
                         >
                           <Trash2 className="size-4" />
                         </Button>
@@ -133,6 +135,8 @@ export function TournamentParticipantsSectionView() {
                       size="icon"
                       className="size-8 shrink-0 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                       onClick={() => handleDeleteEntry(entry.id!)}
+                      title="Премахни участник от турнира"
+                      aria-label="Премахни участник от турнира"
                     >
                       <Trash2 className="size-4" />
                     </Button>

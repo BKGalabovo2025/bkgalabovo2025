@@ -3,7 +3,9 @@
 import { Edit2, ImageIcon, Search, Trash2, Wrench } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import {
   AlertDialog,
@@ -47,11 +49,40 @@ const ReservationDialog = dynamic(
 );
 
 export function GeneralServiceList() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const saleId = searchParams.get("sale");
+
   const { services, isLoading, refetch } = useGeneralServices();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedService, setSelectedService] = useState<GeneralService | null>(
     null
   );
+
+  // Synchronize sale wizard with URL query parameter ?sale=<id>
+  useEffect(() => {
+    if (saleId && services.length > 0) {
+      const found = services.find((s) => s.id === saleId);
+      if (found) {
+        setSelectedService(found);
+        setIsSaleOpen(true);
+      }
+    }
+  }, [saleId, services]);
+
+  const openSale = (service: GeneralService) => {
+    setSelectedService(service);
+    setIsSaleOpen(true);
+    router.push(`/catalogs/club-services?sale=${service.id}`, {
+      scroll: false,
+    });
+  };
+
+  const closeSale = () => {
+    setIsSaleOpen(false);
+    setSelectedService(null);
+    router.push("/catalogs/club-services", { scroll: false });
+  };
 
   // Dialog states
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -146,26 +177,29 @@ export function GeneralServiceList() {
                   </div>
                 )}
 
-                <div className="absolute top-3 right-3 flex translate-y-1 gap-1.5 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="absolute top-3 right-3 flex translate-y-0 sm:translate-y-1 gap-1.5 opacity-100 sm:opacity-0 transition-all duration-300 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
                   <Button
                     variant="secondary"
                     size="icon"
+                    asChild
                     className="size-8 rounded-lg border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-zinc-800"
-                    onClick={() => {
-                      setSelectedService(service);
-                      setIsEditOpen(true);
-                    }}
+                    title={`Редактирай ${service.name}`}
+                    aria-label={`Редактирай ${service.name}`}
                   >
-                    <Edit2
-                      className="size-3.5 text-zinc-600 dark:text-zinc-400"
-                      strokeWidth={1.5}
-                    />
+                    <Link href={`/catalogs/club-services/${service.id}/edit`}>
+                      <Edit2
+                        className="size-3.5 text-zinc-600 dark:text-zinc-400"
+                        strokeWidth={1.5}
+                      />
+                    </Link>
                   </Button>
                   <Button
                     variant="secondary"
                     size="icon"
                     className="size-8 rounded-lg border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-rose-50 hover:text-rose-600 dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-rose-900/20"
                     onClick={() => setServiceToDelete(service)}
+                    title={`Изтрий ${service.name}`}
+                    aria-label={`Изтрий ${service.name}`}
                   >
                     <Trash2
                       className="size-3.5 text-rose-500"
@@ -227,10 +261,7 @@ export function GeneralServiceList() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          setSelectedService(service);
-                          setIsSaleOpen(true);
-                        }}
+                        onClick={() => openSale(service)}
                         className="h-9 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
                       >
                         Продажба
@@ -239,13 +270,12 @@ export function GeneralServiceList() {
                     <Button
                       variant="default"
                       size="sm"
-                      onClick={() => {
-                        setSelectedService(service);
-                        setIsEditOpen(true);
-                      }}
+                      asChild
                       className="h-9 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
                     >
-                      Детайли
+                      <Link href={`/catalogs/club-services/${service.id}/edit`}>
+                        Детайли
+                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -326,15 +356,11 @@ export function GeneralServiceList() {
       {isSaleOpen && selectedService && (
         <UnifiedSaleWizardDialog
           isOpen={isSaleOpen}
-          onClose={() => {
-            setIsSaleOpen(false);
-            setSelectedService(null);
-          }}
+          onClose={closeSale}
           item={selectedService}
           mode="general"
           onSaleSuccess={() => {
-            setIsSaleOpen(false);
-            setSelectedService(null);
+            closeSale();
             refetch();
           }}
         />

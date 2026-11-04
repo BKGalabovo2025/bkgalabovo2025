@@ -1,6 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import { useParentPortalAdmin } from "@/hooks/useParentPortalAdmin";
@@ -228,9 +236,16 @@ export function ParentAdminProvider({
     refetch,
   } = useParentPortalAdmin();
 
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   // Individual communication states
-  const [callingParent, setCallingParent] = useState<ParentUser | null>(null);
-  const [emailingParent, setEmailingParent] = useState<ParentUser | null>(null);
+  const [callingParent, setCallingParentInternal] = useState<ParentUser | null>(
+    null
+  );
+  const [emailingParent, setEmailingParentInternal] =
+    useState<ParentUser | null>(null);
   const [selectedCommParentId, setSelectedCommParentId] =
     useState<string>("all");
   const [commChannelFilter, setCommChannelFilter] = useState<
@@ -344,20 +359,20 @@ export function ParentAdminProvider({
     }
   };
 
-  // Dialog States
-  const [approveDialogReq, setApproveDialogReq] =
+  // Dialog States (with URL deep-linking)
+  const [approveDialogReq, setApproveDialogReqInternal] =
     useState<ParentAccessRequest | null>(null);
   const [selectedChildId, setSelectedChildId] = useState<string>("");
   const [permissionsState, setPermissionsState] =
     useState<ParentMemberPermissions>(DefaultParentMemberPermissions);
   const [isSubmittingApprove, setIsSubmittingApprove] = useState(false);
 
-  const [rejectDialogReq, setRejectDialogReq] =
+  const [rejectDialogReq, setRejectDialogReqInternal] =
     useState<ParentAccessRequest | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [isSubmittingReject, setIsSubmittingReject] = useState(false);
 
-  const [manualAddOpen, setManualAddOpen] = useState(false);
+  const [manualAddOpen, setManualAddOpenInternal] = useState(false);
   const [manualName, setManualName] = useState("");
   const [manualPhone, setManualPhone] = useState("");
   const [manualEmail, setManualEmail] = useState("");
@@ -372,9 +387,154 @@ export function ParentAdminProvider({
   );
   const [isSubmittingPerms, setIsSubmittingPerms] = useState(false);
 
-  const [absenceReplyId, setAbsenceReplyId] = useState<string | null>(null);
+  const [absenceReplyId, setAbsenceReplyIdInternal] = useState<string | null>(
+    null
+  );
   const [absenceReplyText, setAbsenceReplyText] = useState("");
   const [isReplyingAbsence, setIsReplyingAbsence] = useState(false);
+
+  // Sync incoming URL search parameters to dialog states
+  const actionParam = searchParams.get("action");
+  const approveParam = searchParams.get("approve");
+  const rejectParam = searchParams.get("reject");
+  const callParam = searchParams.get("call");
+  const messageParam = searchParams.get("message");
+  const absenceParam = searchParams.get("replyAbsence");
+
+  useEffect(() => {
+    if (actionParam === "add-parent") {
+      setManualAddOpenInternal(true);
+    } else {
+      setManualAddOpenInternal(false);
+    }
+  }, [actionParam]);
+
+  useEffect(() => {
+    if (approveParam && requests.length > 0) {
+      const req = requests.find((r) => r.id === approveParam);
+      if (req) {
+        setApproveDialogReqInternal(req);
+        setSelectedChildId(req.matchedMemberId || "");
+      }
+    } else if (!approveParam) {
+      setApproveDialogReqInternal(null);
+    }
+  }, [approveParam, requests]);
+
+  useEffect(() => {
+    if (rejectParam && requests.length > 0) {
+      const req = requests.find((r) => r.id === rejectParam);
+      if (req) {
+        setRejectDialogReqInternal(req);
+        setRejectReason("Няма открито дете с посочените данни.");
+      }
+    } else if (!rejectParam) {
+      setRejectDialogReqInternal(null);
+    }
+  }, [rejectParam, requests]);
+
+  useEffect(() => {
+    if (callParam && parents.length > 0) {
+      const p = parents.find((parent) => parent.id === callParam);
+      if (p) {
+        setCallingParentInternal(p);
+      }
+    } else if (!callParam) {
+      setCallingParentInternal(null);
+    }
+  }, [callParam, parents]);
+
+  useEffect(() => {
+    if (messageParam && parents.length > 0) {
+      const p = parents.find((parent) => parent.id === messageParam);
+      if (p) {
+        setEmailingParentInternal(p);
+      }
+    } else if (!messageParam) {
+      setEmailingParentInternal(null);
+    }
+  }, [messageParam, parents]);
+
+  useEffect(() => {
+    if (absenceParam) {
+      setAbsenceReplyIdInternal(absenceParam);
+    } else {
+      setAbsenceReplyIdInternal(null);
+    }
+  }, [absenceParam]);
+
+  // URL-synchronized setters
+  const setManualAddOpen = useCallback(
+    (open: boolean) => {
+      setManualAddOpenInternal(open);
+      const params = new URLSearchParams(searchParams.toString());
+      if (open) params.set("action", "add-parent");
+      else params.delete("action");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
+
+  const setApproveDialogReq = useCallback(
+    (req: ParentAccessRequest | null) => {
+      setApproveDialogReqInternal(req);
+      const params = new URLSearchParams(searchParams.toString());
+      if (req?.id) params.set("approve", req.id);
+      else params.delete("approve");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
+
+  const setRejectDialogReq = useCallback(
+    (req: ParentAccessRequest | null) => {
+      setRejectDialogReqInternal(req);
+      const params = new URLSearchParams(searchParams.toString());
+      if (req?.id) params.set("reject", req.id);
+      else params.delete("reject");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
+
+  const setCallingParent = useCallback(
+    (p: ParentUser | null) => {
+      setCallingParentInternal(p);
+      const params = new URLSearchParams(searchParams.toString());
+      if (p?.id) params.set("call", p.id);
+      else params.delete("call");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
+
+  const setEmailingParent = useCallback(
+    (p: ParentUser | null) => {
+      setEmailingParentInternal(p);
+      const params = new URLSearchParams(searchParams.toString());
+      if (p?.id) params.set("message", p.id);
+      else params.delete("message");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
+
+  const setAbsenceReplyId = useCallback(
+    (id: string | null) => {
+      setAbsenceReplyIdInternal(id);
+      const params = new URLSearchParams(searchParams.toString());
+      if (id) params.set("replyAbsence", id);
+      else params.delete("replyAbsence");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
 
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<ParentUser | null>(
     null

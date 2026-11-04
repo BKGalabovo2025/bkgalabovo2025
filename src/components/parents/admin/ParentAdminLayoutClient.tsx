@@ -88,6 +88,7 @@ export function ParentAdminLayoutClient({
             onClick={() => refetch()}
             className="rounded-xl"
             title="Презареди данни"
+            aria-label="Презареди данни"
           >
             <RefreshCw
               size={16}

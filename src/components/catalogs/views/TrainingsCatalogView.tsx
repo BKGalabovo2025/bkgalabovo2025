@@ -1,13 +1,13 @@
 "use client";
 
 import { LayoutGrid, List, PlusCircle, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { columns } from "@/app/(protected)/finances/services/columns";
 import { Service } from "@/app/(protected)/finances/services/service.types";
 import { ServiceMenu } from "@/components/finances/ServiceMenu";
-import { UnifiedTrainingDialog } from "@/components/finances/UnifiedTrainingDialog";
 import { DataTable } from "@/components/shared/data-table";
 import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSaleWizardDialog";
 import { BentoCard } from "@/components/ui/bento-card";
@@ -23,12 +23,35 @@ export function TrainingsCatalogView({
   initialServices,
 }: TrainingsCatalogViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const saleId = searchParams.get("sale");
+
   const [services] = useState<Service[]>(initialServices);
   const [view, setView] = useState<"grid" | "table">("grid");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
   const [saleService, setSaleService] = useState<Service | null>(null);
+
+  // Synchronize sale modal with URL search param
+  useEffect(() => {
+    if (saleId) {
+      const found = services.find((s) => s.id === saleId);
+      if (found) {
+        setSaleService(found);
+      }
+    } else {
+      setSaleService(null);
+    }
+  }, [saleId, services]);
+
+  const openSale = (service: Service) => {
+    setSaleService(service);
+    router.push(`/catalogs/trainings?sale=${service.id}`, { scroll: false });
+  };
+
+  const closeSale = () => {
+    setSaleService(null);
+    router.push(`/catalogs/trainings`, { scroll: false });
+  };
 
   const filteredServices = useMemo(() => {
     if (!searchTerm.trim()) return services;
@@ -73,6 +96,7 @@ export function TrainingsCatalogView({
               <TabsTrigger
                 value="grid"
                 title="Изглед Решетка"
+                aria-label="Изглед Решетка"
                 className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
               >
                 <LayoutGrid className="size-3.5" />
@@ -80,6 +104,7 @@ export function TrainingsCatalogView({
               <TabsTrigger
                 value="table"
                 title="Изглед Таблица"
+                aria-label="Изглед Таблица"
                 className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
               >
                 <List className="size-3.5" />
@@ -89,11 +114,13 @@ export function TrainingsCatalogView({
 
           <Button
             size="sm"
-            onClick={() => setIsAddOpen(true)}
+            asChild
             className="h-9 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white shadow-xs hover:bg-blue-500"
           >
-            <PlusCircle className="mr-1.5 size-4" />
-            <span>Добави тренировка</span>
+            <Link href="/catalogs/trainings/new">
+              <PlusCircle className="mr-1.5 size-4" />
+              <span>Добави тренировка</span>
+            </Link>
           </Button>
         </div>
       </div>
@@ -102,8 +129,10 @@ export function TrainingsCatalogView({
       {view === "grid" ? (
         <ServiceMenu
           services={filteredServices}
-          onEdit={(service) => setEditingService(service)}
-          onSale={(service) => setSaleService(service)}
+          onEdit={(service) =>
+            router.push(`/catalogs/trainings/${service.id}/edit`)
+          }
+          onSale={(service) => openSale(service)}
           onDeleteSuccess={handleSuccess}
         />
       ) : (
@@ -119,31 +148,15 @@ export function TrainingsCatalogView({
         </BentoCard>
       )}
 
-      {/* Add / Edit Dialogs */}
-      <UnifiedTrainingDialog
-        mode="add"
-        isOpen={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
-        onSuccess={handleSuccess}
-      />
-
-      <UnifiedTrainingDialog
-        mode="edit"
-        service={editingService}
-        isOpen={!!editingService}
-        onClose={() => setEditingService(null)}
-        onSuccess={handleSuccess}
-      />
-
-      {/* Instant Point of Sale Wizard */}
+      {/* Instant Point of Sale Wizard (Deep-linked with ?sale=<id>) */}
       {saleService && (
         <UnifiedSaleWizardDialog
           item={saleService}
           mode="training"
           isOpen={!!saleService}
-          onClose={() => setSaleService(null)}
+          onClose={closeSale}
           onSaleSuccess={() => {
-            setSaleService(null);
+            closeSale();
             handleSuccess();
           }}
         />

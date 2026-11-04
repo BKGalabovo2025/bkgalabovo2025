@@ -2,7 +2,6 @@
 
 import {
   Edit2,
-  Loader2,
   Package,
   PackagePlus,
   Search,
@@ -10,29 +9,19 @@ import {
   Trash2,
 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
 import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSaleWizardDialog";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  createProductAction,
   deleteProductAction,
   getProductsServerAction,
-  updateProductAction,
 } from "@/lib/actions/products-server";
 import { formatPrice } from "@/lib/currency";
 import { sanitizeImageUrl } from "@/lib/utils";
@@ -76,6 +65,9 @@ export function ShopCatalogView({
   activeBranch = "bkgalabovo",
 }: ShopCatalogViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const saleId = searchParams.get("sale");
+
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -83,19 +75,27 @@ export function ShopCatalogView({
   // Sale wizard state
   const [saleProduct, setSaleProduct] = useState<Product | null>(null);
 
-  // Modal states
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  // Synchronize sale wizard with URL query parameter
+  useEffect(() => {
+    if (saleId) {
+      const found = products.find((p) => p.id === saleId);
+      if (found) {
+        setSaleProduct(found);
+      }
+    } else {
+      setSaleProduct(null);
+    }
+  }, [saleId, products]);
 
-  // Form states
-  const [formName, setFormName] = useState("");
-  const [formCategory, setFormCategory] = useState("Аксесоари");
-  const [formPrice, setFormPrice] = useState("0");
-  const [formStock, setFormStock] = useState("0");
-  const [formRestockThreshold, setFormRestockThreshold] = useState("5");
-  const [formDescription, setFormDescription] = useState("");
-  const [formImageUrl, setFormImageUrl] = useState("");
+  const openSale = (product: Product) => {
+    setSaleProduct(product);
+    router.push(`/catalogs/shop?sale=${product.id}`, { scroll: false });
+  };
+
+  const closeSale = () => {
+    setSaleProduct(null);
+    router.push("/catalogs/shop", { scroll: false });
+  };
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -116,123 +116,6 @@ export function ShopCatalogView({
       return matchesSearch && matchesCategory;
     });
   }, [products, searchTerm, selectedCategory]);
-
-  const openCreateDialog = () => {
-    setEditingProduct(null);
-    setFormName("");
-    setFormCategory("Аксесоари");
-    setFormPrice("10");
-    setFormStock("10");
-    setFormRestockThreshold("3");
-    setFormDescription("");
-    setFormImageUrl("");
-    setIsDialogOpen(true);
-  };
-
-  const openEditDialog = (product: Product) => {
-    setEditingProduct(product);
-    setFormName(product.name);
-    setFormCategory(product.category || "Аксесоари");
-    setFormPrice(String(product.price ?? 0));
-    setFormStock(String(product.stock ?? 0));
-    setFormRestockThreshold(
-      product.restockThreshold !== undefined &&
-        product.restockThreshold !== null
-        ? String(product.restockThreshold)
-        : ""
-    );
-    setFormDescription(product.description || "");
-    setFormImageUrl(product.imageUrl || "");
-    setIsDialogOpen(true);
-  };
-
-  const submitEdit = async () => {
-    if (!editingProduct) return;
-    const price = parseFloat(formPrice);
-    const stock = parseInt(formStock, 10);
-    const threshold = formRestockThreshold
-      ? parseInt(formRestockThreshold, 10)
-      : null;
-
-    if (!formName.trim() || isNaN(price) || isNaN(stock)) {
-      toast.error("Моля, попълнете коректно име, цена и наличност.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await updateProductAction(editingProduct.id, {
-        name: formName.trim(),
-        category: formCategory.trim(),
-        price,
-        stock,
-        restockThreshold: threshold,
-        description: formDescription.trim(),
-        imageUrl: formImageUrl.trim() || undefined,
-      });
-
-      if (!res.success) {
-        toast.error(res.error || "Грешка при обновяване на артикула.");
-        return;
-      }
-
-      toast.success("Артикулът е обновен успешно.");
-      setIsDialogOpen(false);
-      const refreshRes = await getProductsServerAction(activeBranch);
-      if (refreshRes.success && refreshRes.data) {
-        setProducts(refreshRes.data);
-      }
-      router.refresh();
-    } catch {
-      toast.error("Възникна непредвидена грешка.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const submitCreate = async () => {
-    const price = parseFloat(formPrice);
-    const stock = parseInt(formStock, 10);
-    const threshold = formRestockThreshold
-      ? parseInt(formRestockThreshold, 10)
-      : null;
-
-    if (!formName.trim() || isNaN(price) || isNaN(stock)) {
-      toast.error("Моля, попълнете коректно име, цена и наличност.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await createProductAction({
-        name: formName.trim(),
-        category: formCategory.trim(),
-        price,
-        stock,
-        restockThreshold: threshold,
-        description: formDescription.trim(),
-        imageUrl: formImageUrl.trim() || undefined,
-        siteId: activeBranch,
-      });
-
-      if (!res.success) {
-        toast.error(res.error || "Грешка при създаване на артикула.");
-        return;
-      }
-
-      toast.success("Новият артикул е добавен към магазина.");
-      setIsDialogOpen(false);
-      const refreshRes = await getProductsServerAction(activeBranch);
-      if (refreshRes.success && refreshRes.data) {
-        setProducts(refreshRes.data);
-      }
-      router.refresh();
-    } catch {
-      toast.error("Възникна непредвидена грешка.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleDelete = async (product: Product) => {
     if (!confirm(`Сигурни ли сте, че искате да изтриете "${product.name}"?`)) {
@@ -273,11 +156,13 @@ export function ShopCatalogView({
 
         <Button
           size="sm"
-          onClick={openCreateDialog}
+          asChild
           className="h-9 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white shadow-xs hover:bg-blue-500 shrink-0"
         >
-          <PackagePlus className="mr-1.5 size-4" />
-          <span>Добави артикул</span>
+          <Link href="/catalogs/shop/new">
+            <PackagePlus className="mr-1.5 size-4" />
+            <span>Добави артикул</span>
+          </Link>
         </Button>
       </div>
 
@@ -375,7 +260,7 @@ export function ShopCatalogView({
                   <div className="flex items-center gap-1.5">
                     <Button
                       size="sm"
-                      onClick={() => setSaleProduct(product)}
+                      onClick={() => openSale(product)}
                       disabled={product.stock <= 0}
                       className="h-8 rounded-lg bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-40"
                       title="Продай на състезател или гост"
@@ -386,11 +271,14 @@ export function ShopCatalogView({
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => openEditDialog(product)}
+                      asChild
                       className="size-8 p-0 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
                       title="Редактирай артикул"
+                      aria-label={`Редактирай ${product.name}`}
                     >
-                      <Edit2 size={13} />
+                      <Link href={`/catalogs/shop/${product.id}/edit`}>
+                        <Edit2 size={13} />
+                      </Link>
                     </Button>
                     <Button
                       size="sm"
@@ -398,6 +286,7 @@ export function ShopCatalogView({
                       onClick={() => handleDelete(product)}
                       className="size-8 p-0 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/20"
                       title="Изтрий артикул"
+                      aria-label={`Изтрий ${product.name}`}
                     >
                       <Trash2 size={13} />
                     </Button>
@@ -408,133 +297,6 @@ export function ShopCatalogView({
           })}
         </div>
       )}
-
-      {/* Create / Edit Modal Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg rounded-3xl p-6">
-          <DialogTitle className="text-lg font-bold">
-            {editingProduct
-              ? "Редактиране на артикул"
-              : "Нов артикул в магазина"}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-zinc-500">
-            Въведете детайли за продукта, категорията, продажната цена и
-            наличността.
-          </DialogDescription>
-
-          <div className="mt-4 space-y-3.5">
-            <div>
-              <Label className="text-xs font-semibold">Наименование</Label>
-              <Input
-                placeholder="напр. Yonex Nanoflare 700"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                className="mt-1 rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs font-semibold">Категория</Label>
-                <Input
-                  placeholder="Ракети, Пера, Грипове..."
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                  className="mt-1 rounded-xl text-xs"
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs font-semibold">
-                  Цена (EUR / лв.)
-                </Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={formPrice}
-                  onChange={(e) => setFormPrice(e.target.value)}
-                  className="mt-1 rounded-xl text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs font-semibold">Наличност (бр.)</Label>
-                <Input
-                  type="number"
-                  step="1"
-                  value={formStock}
-                  onChange={(e) => setFormStock(e.target.value)}
-                  className="mt-1 rounded-xl text-xs"
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs font-semibold">Минимален праг</Label>
-                <Input
-                  type="number"
-                  step="1"
-                  placeholder="напр. 3"
-                  value={formRestockThreshold}
-                  onChange={(e) => setFormRestockThreshold(e.target.value)}
-                  className="mt-1 rounded-xl text-xs"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-xs font-semibold">
-                Описание (по избор)
-              </Label>
-              <Textarea
-                rows={2}
-                placeholder="Кратко описание, размер, цвят или характеристики..."
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                className="mt-1 rounded-xl text-xs"
-              />
-            </div>
-
-            <div>
-              <Label className="text-xs font-semibold">
-                Снимка на артикула
-              </Label>
-              <div className="mt-1.5">
-                <UniversalMediaUpload
-                  value={formImageUrl}
-                  onChange={(url) => setFormImageUrl(url)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsDialogOpen(false)}
-              className="rounded-xl text-xs"
-            >
-              Отказ
-            </Button>
-            <Button
-              size="sm"
-              disabled={isSubmitting}
-              onClick={editingProduct ? submitEdit : submitCreate}
-              className="rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white hover:bg-blue-500"
-            >
-              {isSubmitting ? (
-                <Loader2 size={13} className="animate-spin" />
-              ) : editingProduct ? (
-                "Запази промените"
-              ) : (
-                "Създай артикул"
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Sale Wizard */}
       {saleProduct && (
@@ -548,9 +310,9 @@ export function ShopCatalogView({
           }}
           mode="product"
           isOpen={!!saleProduct}
-          onClose={() => setSaleProduct(null)}
+          onClose={closeSale}
           onSaleSuccess={async () => {
-            setSaleProduct(null);
+            closeSale();
             const refreshRes = await getProductsServerAction(activeBranch);
             if (refreshRes.success && refreshRes.data) {
               setProducts(refreshRes.data);

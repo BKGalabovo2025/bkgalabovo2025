@@ -19,6 +19,7 @@ import {
   Upload,
   UserMinus,
 } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -476,6 +477,14 @@ export const MemberDocumentsTab = ({
   updateDocumentStatus,
 }: MemberDocumentsTabProps) => {
   const { idToken, getFreshToken } = useAuth();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const urlAction = searchParams?.get("action");
+  const urlDocType = searchParams?.get("generateLink") as DocumentType | null;
+  const urlPreviewId = searchParams?.get("previewDoc");
+
   const { feeOptions } = useClubFeeServices();
   const [declarations, setDeclarations] = useState<SignedDeclaration[]>([]);
   const [templates, setTemplates] = useState<DocumentTemplate[]>([]);
@@ -483,14 +492,20 @@ export const MemberDocumentsTab = ({
   const [previewRequest, setPreviewRequest] = useState<DocumentRequest | null>(
     null
   );
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [internalLinkDialogOpen, setInternalLinkDialogOpen] = useState(false);
+  const isLinkDialogOpen = Boolean(urlDocType) || internalLinkDialogOpen;
+
   const [selectedDocType, setSelectedDocType] = useState<DocumentType>(
-    "membershipApplication"
+    urlDocType || "membershipApplication"
   );
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   // Medical Certificate Upload Modal State
-  const [medicalModalOpen, setMedicalModalOpen] = useState(false);
+  const [internalMedicalModalOpen, setInternalMedicalModalOpen] =
+    useState(false);
+  const isMedicalModalOpen =
+    urlAction === "upload-medical" || internalMedicalModalOpen;
+
   const [medicalCertDate, setMedicalCertDate] = useState(
     member.medicalCertificateDate || new Date().toISOString().split("T")[0]
   );
@@ -502,7 +517,54 @@ export const MemberDocumentsTab = ({
 
   const handleOpenLinkDialog = (docType: DocumentType) => {
     setSelectedDocType(docType);
-    setLinkDialogOpen(true);
+    setInternalLinkDialogOpen(true);
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("generateLink", docType);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleLinkDialogChange = (open: boolean) => {
+    setInternalLinkDialogOpen(open);
+    if (!open) {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      params.delete("generateLink");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    }
+  };
+
+  const handleOpenMedicalModal = () => {
+    setInternalMedicalModalOpen(true);
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("action", "upload-medical");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleMedicalModalChange = (open: boolean) => {
+    setInternalMedicalModalOpen(open);
+    if (!open) {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      params.delete("action");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    }
+  };
+
+  const handleOpenPreview = (req: DocumentRequest) => {
+    setPreviewRequest(req);
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("previewDoc", req.id);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handlePreviewChange = (open: boolean) => {
+    if (!open) {
+      setPreviewRequest(null);
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      params.delete("previewDoc");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    }
   };
 
   const fetchRequests = useCallback(async () => {
@@ -524,6 +586,21 @@ export const MemberDocumentsTab = ({
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests, historyRefreshKey]);
+
+  useEffect(() => {
+    if (urlPreviewId && requests.length > 0 && !previewRequest) {
+      const found = requests.find((r) => r.id === urlPreviewId);
+      if (found) {
+        setPreviewRequest(found);
+      }
+    }
+  }, [urlPreviewId, requests, previewRequest]);
+
+  useEffect(() => {
+    if (urlDocType && urlDocType !== selectedDocType) {
+      setSelectedDocType(urlDocType);
+    }
+  }, [urlDocType, selectedDocType]);
 
   useEffect(() => {
     async function loadTemplates() {
@@ -586,7 +663,7 @@ export const MemberDocumentsTab = ({
       });
       if (res.success) {
         toast.success("Медицинското свидетелство е качено успешно!");
-        setMedicalModalOpen(false);
+        handleMedicalModalChange(false);
         setMedicalFileBase64(null);
         setMedicalFileName("");
         window.location.reload();
@@ -1003,7 +1080,7 @@ export const MemberDocumentsTab = ({
         statusText={membershipStatus}
         submitLabel="Отбележи предадена"
         onViewSignature={
-          membershipReq ? () => setPreviewRequest(membershipReq) : undefined
+          membershipReq ? () => handleOpenPreview(membershipReq) : undefined
         }
         onGenerateLink={() => handleOpenLinkDialog("membershipApplication")}
         onPrint={() =>
@@ -1029,7 +1106,7 @@ export const MemberDocumentsTab = ({
         statusText={terminationStatus}
         submitLabel="Отбележи предадена"
         onViewSignature={
-          terminationReq ? () => setPreviewRequest(terminationReq) : undefined
+          terminationReq ? () => handleOpenPreview(terminationReq) : undefined
         }
         onGenerateLink={() => handleOpenLinkDialog("terminationRequest")}
         onPrint={() =>
@@ -1056,7 +1133,7 @@ export const MemberDocumentsTab = ({
         submitLabel="Отбележи приет"
         onViewSignature={
           internalRulesReq
-            ? () => setPreviewRequest(internalRulesReq)
+            ? () => handleOpenPreview(internalRulesReq)
             : undefined
         }
         onGenerateLink={() => handleOpenLinkDialog("internalRules")}
@@ -1082,7 +1159,7 @@ export const MemberDocumentsTab = ({
         statusText={declarationStatus}
         submitLabel="Отбележи предадена"
         onViewSignature={
-          declarationReq ? () => setPreviewRequest(declarationReq) : undefined
+          declarationReq ? () => handleOpenPreview(declarationReq) : undefined
         }
         onGenerateLink={() => handleOpenLinkDialog("signedDeclaration")}
         onPrint={() =>
@@ -1108,7 +1185,7 @@ export const MemberDocumentsTab = ({
         statusText={travelStatus}
         submitLabel="Отбележи предадено"
         onViewSignature={
-          travelReq ? () => setPreviewRequest(travelReq) : undefined
+          travelReq ? () => handleOpenPreview(travelReq) : undefined
         }
         onGenerateLink={() => handleOpenLinkDialog("travelDeclaration")}
         onPrint={() =>
@@ -1134,7 +1211,7 @@ export const MemberDocumentsTab = ({
         statusText={safetyStatus}
         submitLabel="Отбележи предаден"
         onViewSignature={
-          safetyReq ? () => setPreviewRequest(safetyReq) : undefined
+          safetyReq ? () => handleOpenPreview(safetyReq) : undefined
         }
         onGenerateLink={() => handleOpenLinkDialog("safetyInstruction")}
         onPrint={() =>
@@ -1161,7 +1238,7 @@ export const MemberDocumentsTab = ({
         submitLabel="Отбележи подписан"
         onViewSignature={
           amateurContractReq
-            ? () => setPreviewRequest(amateurContractReq)
+            ? () => handleOpenPreview(amateurContractReq)
             : undefined
         }
         onGenerateLink={() => handleOpenLinkDialog("amateurContract")}
@@ -1183,7 +1260,7 @@ export const MemberDocumentsTab = ({
         submitLabel="Отбележи подадена"
         onViewSignature={
           licenseApplicationReq
-            ? () => setPreviewRequest(licenseApplicationReq)
+            ? () => handleOpenPreview(licenseApplicationReq)
             : undefined
         }
         onGenerateLink={() => handleOpenLinkDialog("licenseApplication")}
@@ -1222,7 +1299,7 @@ export const MemberDocumentsTab = ({
             ? () => window.open(member.medicalCertificateUrl!, "_blank")
             : undefined
         }
-        onUploadFile={() => setMedicalModalOpen(true)}
+        onUploadFile={handleOpenMedicalModal}
         onPrint={() =>
           openPrint(
             `/members/${member.id}/medical-certificate`,
@@ -1354,8 +1431,8 @@ export const MemberDocumentsTab = ({
       <GenerateDocumentLinkDialog
         member={member}
         documentType={selectedDocType}
-        open={linkDialogOpen}
-        onOpenChange={setLinkDialogOpen}
+        open={isLinkDialogOpen}
+        onOpenChange={handleLinkDialogChange}
         onGenerated={() => setHistoryRefreshKey((k) => k + 1)}
       />
 
@@ -1363,12 +1440,12 @@ export const MemberDocumentsTab = ({
       <ViewSignedDocumentDialog
         request={previewRequest}
         open={!!previewRequest}
-        onOpenChange={(open) => !open && setPreviewRequest(null)}
+        onOpenChange={handlePreviewChange}
         onUpdated={fetchRequests}
       />
 
       {/* Admin Medical Certificate Upload Modal */}
-      <Dialog open={medicalModalOpen} onOpenChange={setMedicalModalOpen}>
+      <Dialog open={isMedicalModalOpen} onOpenChange={handleMedicalModalChange}>
         <DialogContent className="max-w-md rounded-3xl p-5 sm:p-6 bg-white shadow-xl">
           <DialogHeader className="space-y-1">
             <div className="flex items-center gap-2">
@@ -1422,7 +1499,7 @@ export const MemberDocumentsTab = ({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setMedicalModalOpen(false)}
+                onClick={() => handleMedicalModalChange(false)}
                 className="h-10 rounded-xl text-xs"
               >
                 Отказ

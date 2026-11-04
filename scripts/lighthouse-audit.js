@@ -446,6 +446,25 @@ async function run() {
     );
   }
 
+  const shardArg = args.find((a) => a.startsWith("--shard="))?.split("=")[1];
+  if (shardArg) {
+    const [currStr, totalStr] = shardArg.split("/");
+    const curr = parseInt(currStr, 10);
+    const total = parseInt(totalStr, 10);
+    if (
+      !isNaN(curr) &&
+      !isNaN(total) &&
+      total > 0 &&
+      curr >= 1 &&
+      curr <= total
+    ) {
+      targetPages = targetPages.filter((_, idx) => idx % total === curr - 1);
+      console.log(
+        `⚡ Шардинг (Matrix): Изпълнение на Shard ${curr}/${total} (${targetPages.length} страници).`
+      );
+    }
+  }
+
   const modesDisplay = modes.map((m) => m.toUpperCase()).join(" + ");
   console.log(`\n🎯 Базов URL: ${baseUrl}`);
   console.log(`📱 Режим: ${modesDisplay} (за всяка отделна страница)`);

@@ -548,6 +548,8 @@ export function ParentAccountsSectionView() {
                     variant="ghost"
                     onClick={() => setDeleteConfirmUser(parent)}
                     className="ml-auto rounded-xl text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/20"
+                    title={`Изтрий профила на ${parent.name}`}
+                    aria-label={`Изтрий профила на ${parent.name}`}
                   >
                     <Trash2 size={14} />
                   </Button>

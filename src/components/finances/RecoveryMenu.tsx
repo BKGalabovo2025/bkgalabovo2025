@@ -75,7 +75,9 @@ export function RecoveryMenu({ services, onSale }: RecoveryMenuProps) {
               <RecoveryCard
                 key={service.id}
                 service={service}
-                onEdit={() => router.push(`/finances/recovery/${service.id}`)}
+                onEdit={() =>
+                  router.push(`/catalogs/recovery/${service.id}/edit`)
+                }
                 onSale={() => onSale?.(service)}
                 onDelete={() => handleDelete(service.id, service.name)}
               />
@@ -148,7 +150,8 @@ const RecoveryCard = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="dark:border-zinc-850 size-7.5 rounded-full border border-zinc-100/50 bg-white/90 backdrop-blur-md hover:bg-white dark:bg-zinc-900/90"
+                aria-label="Опции за процедурата"
+                className="size-7.5 rounded-full border border-zinc-100/50 bg-white/90 backdrop-blur-md hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/90"
               >
                 <MoreHorizontal className="size-4 text-zinc-500" />
               </Button>
@@ -165,7 +168,7 @@ const RecoveryCard = ({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onDelete}
-                className="text-red-650 gap-2 rounded-lg py-2 focus:bg-red-50"
+                className="text-red-600 gap-2 rounded-lg py-2 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30"
               >
                 <Trash2 className="size-4" /> Изтриване
               </DropdownMenuItem>

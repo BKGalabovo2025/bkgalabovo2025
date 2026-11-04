@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, {
   createContext,
   useCallback,
@@ -88,6 +88,8 @@ export function TournamentDetailsProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [tournament, setTournament] = useState<Tournament | null>(
     initialData.tournament
@@ -104,9 +106,83 @@ export function TournamentDetailsProvider({
   const [isLoading, setIsLoading] = useState(!initialData.tournament);
   const [isNotFound, setIsNotFound] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isEntryDialogOpen, setIsEntryDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [isEntryDialogOpen, setEntryDialogOpenInternal] = useState(false);
+  const [isEditDialogOpen, setEditDialogOpenInternal] = useState(false);
+  const [selectedMatch, setSelectedMatchInternal] = useState<Match | null>(
+    null
+  );
+
+  // Sync incoming URL search parameters to dialog states
+  const matchParam = searchParams.get("match");
+  const actionParam = searchParams.get("action");
+
+  useEffect(() => {
+    if (matchParam && matches.length > 0) {
+      const foundMatch = matches.find((m) => m.id === matchParam);
+      if (foundMatch) {
+        setSelectedMatchInternal(foundMatch);
+      }
+    } else if (!matchParam) {
+      setSelectedMatchInternal(null);
+    }
+  }, [matchParam, matches]);
+
+  useEffect(() => {
+    if (actionParam === "register") {
+      setEntryDialogOpenInternal(true);
+    } else if (actionParam === "edit") {
+      setEditDialogOpenInternal(true);
+    } else {
+      setEntryDialogOpenInternal(false);
+      setEditDialogOpenInternal(false);
+    }
+  }, [actionParam]);
+
+  // Wrapped setters that reflect state in the URL in real time
+  const setIsEntryDialogOpen = useCallback(
+    (open: boolean) => {
+      setEntryDialogOpenInternal(open);
+      const params = new URLSearchParams(searchParams.toString());
+      if (open) {
+        params.set("action", "register");
+      } else {
+        params.delete("action");
+      }
+      const query = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${query}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
+
+  const setIsEditDialogOpen = useCallback(
+    (open: boolean) => {
+      setEditDialogOpenInternal(open);
+      const params = new URLSearchParams(searchParams.toString());
+      if (open) {
+        params.set("action", "edit");
+      } else {
+        params.delete("action");
+      }
+      const query = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${query}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
+
+  const setSelectedMatch = useCallback(
+    (match: Match | null) => {
+      setSelectedMatchInternal(match);
+      const params = new URLSearchParams(searchParams.toString());
+      if (match?.id) {
+        params.set("match", match.id);
+      } else {
+        params.delete("match");
+      }
+      const query = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${query}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
 
   const loadData = useCallback(async () => {
     if (!tournamentId) return;
