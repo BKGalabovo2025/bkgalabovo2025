@@ -228,7 +228,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         <span>Родители на живо</span>
                       </span>
                       <Link
-                        href="/parents?tab=activity"
+                        href="/parents/activity"
                         className="text-[10px] text-blue-600 hover:underline dark:text-blue-400 font-semibold"
                       >
                         История ↗

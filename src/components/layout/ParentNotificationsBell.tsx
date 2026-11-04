@@ -152,7 +152,7 @@ export function ParentNotificationsBell() {
             {counts.pendingRequests > 0 && (
               <DropdownMenuItem asChild>
                 <Link
-                  href="/parents?tab=requests"
+                  href="/parents/requests"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center justify-between rounded-xl px-3 py-2.5 text-xs text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
                 >
@@ -177,7 +177,7 @@ export function ParentNotificationsBell() {
             {counts.pendingAbsences > 0 && (
               <DropdownMenuItem asChild>
                 <Link
-                  href="/parents?tab=absences"
+                  href="/parents/absences"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center justify-between rounded-xl px-3 py-2.5 text-xs text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
                 >
@@ -202,7 +202,7 @@ export function ParentNotificationsBell() {
             {counts.pendingCorrections > 0 && (
               <DropdownMenuItem asChild>
                 <Link
-                  href="/parents?tab=corrections"
+                  href="/parents/corrections"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center justify-between rounded-xl px-3 py-2.5 text-xs text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
                 >

@@ -1,14 +1,13 @@
 import { Metadata } from "next";
 
-import ParentAdminClient from "./ParentAdminClient";
+import { ParentRequestsSectionView } from "@/components/parents/admin/views/ParentRequestsSectionView";
 
 export const metadata: Metadata = {
-  title: "Родителски достъп | БК Гълъбово",
+  title: "Заявки за достъп | Родителски достъп - БК Гълъбово",
   description:
-    "Управление на родителски профили, заявки за достъп, отсъствия и корекции на данни.",
+    "Преглед и одобрение на чакащи заявки за регистрация от родители на състезатели.",
 };
 
-export default function ParentsAdminPage() {
-  // Turbopack route reload
-  return <ParentAdminClient />;
+export default function ParentsIndexPage() {
+  return <ParentRequestsSectionView />;
 }
