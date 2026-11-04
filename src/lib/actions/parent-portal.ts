@@ -8,6 +8,7 @@ import { bg } from "date-fns/locale";
 import { revalidatePath } from "next/cache";
 
 import { getAdminDb, getAdminStorage } from "@/lib/firebase-admin";
+import { getBackupDb } from "@/lib/firebase-admin-backup";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
 import { serverCache } from "@/lib/server-cache";
 
@@ -1942,11 +1943,40 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
       async () => {
         const adminDb = getAdminDb();
 
-        // Fetch all linked children member records
+        // Fetch all linked children member records with resilient fallback
         const memberSnaps = await Promise.all(
-          linkedIds.map((id) =>
-            adminDb.collection(MEMBERS_COLLECTION).doc(id).get()
-          )
+          linkedIds.map(async (id) => {
+            const cleanId = decodeURIComponent(id || "").trim();
+            let snap = await adminDb
+              .collection(MEMBERS_COLLECTION)
+              .doc(cleanId)
+              .get()
+              .catch(() => null);
+
+            if (!snap || !snap.exists) {
+              const backupDb = getBackupDb();
+              if (backupDb) {
+                const bSnap = await backupDb
+                  .collection(MEMBERS_COLLECTION)
+                  .doc(cleanId)
+                  .get()
+                  .catch(() => null);
+                if (bSnap?.exists) snap = bSnap;
+              }
+            }
+
+            if (!snap || !snap.exists) {
+              const qSnap = await adminDb
+                .collection(MEMBERS_COLLECTION)
+                .where("id", "==", cleanId)
+                .limit(1)
+                .get()
+                .catch(() => null);
+              if (qSnap && !qSnap.empty) snap = qSnap.docs[0];
+            }
+
+            return { id: cleanId, snap };
+          })
         );
 
         const children: Array<{
@@ -1964,12 +1994,12 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
 
         const memberDocsMap = new Map<string, FirebaseFirestore.DocumentData>();
 
-        for (const snap of memberSnaps) {
-          if (snap.exists) {
-            const d = snap.data() || {};
-            memberDocsMap.set(snap.id, d);
+        for (const item of memberSnaps) {
+          if (item.snap && item.snap.exists) {
+            const d = item.snap.data() || {};
+            memberDocsMap.set(item.id, d);
             children.push({
-              id: snap.id,
+              id: item.id,
               fullName:
                 `${d.firstName || ""} ${d.lastName || ""}`.trim() || "Член",
               firstName: d.firstName || "",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 
 import { getParentDashboardDataAction } from "@/lib/actions/parent-portal";
@@ -17,6 +17,12 @@ export function useParentPortal(initialChildId?: string) {
   const [selectedChildId, setSelectedChildId] = useState<string>(
     initialChildId || ""
   );
+
+  useEffect(() => {
+    if (initialChildId && initialChildId !== selectedChildId) {
+      setSelectedChildId(initialChildId);
+    }
+  }, [initialChildId, selectedChildId]);
 
   const fetcher = async ([, childId]: [string, string]) => {
     const res = await getParentDashboardDataAction(childId || undefined);
