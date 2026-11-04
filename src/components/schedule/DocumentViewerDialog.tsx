@@ -42,15 +42,15 @@ export const getDocumentIcon = (
 ) => {
   switch (type) {
     case "pdf":
-      return <FileText className={`${className} text-rose-500`} />;
+      return <FileText className={`${className} text-rose-400`} />;
     case "word":
-      return <FileCode className={`${className} text-blue-500`} />;
+      return <FileCode className={`${className} text-blue-400`} />;
     case "excel":
-      return <FileSpreadsheet className={`${className} text-emerald-500`} />;
+      return <FileSpreadsheet className={`${className} text-emerald-400`} />;
     case "image":
-      return <ImageIcon className={`${className} text-purple-500`} />;
+      return <ImageIcon className={`${className} text-purple-400`} />;
     default:
-      return <Paperclip className={`${className} text-zinc-500`} />;
+      return <Paperclip className={`${className} text-zinc-300`} />;
   }
 };
 

@@ -18,17 +18,28 @@ import {
   MapPin,
   Trophy,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import React, { useState } from "react";
 
 import {
   DocumentAttachmentType,
-  DocumentViewerDialog,
   getDocumentIcon,
 } from "@/components/schedule/DocumentViewerDialog";
 import { formatEventDateRange } from "@/lib/date-utils";
 
-import { EventInquiryDialog } from "./EventInquiryDialog";
+const DocumentViewerDialog = dynamic(
+  () =>
+    import("@/components/schedule/DocumentViewerDialog").then(
+      (m) => m.DocumentViewerDialog
+    ),
+  { ssr: false }
+);
+
+const EventInquiryDialog = dynamic(
+  () => import("./EventInquiryDialog").then((m) => m.EventInquiryDialog),
+  { ssr: false }
+);
 
 interface PublicEventSlot {
   id: string;
@@ -132,7 +143,7 @@ const renderPublicTextWithLinks = (text: string) => {
           className="inline-flex items-center gap-1 font-medium text-blue-400 underline underline-offset-2 hover:text-blue-300"
         >
           <span>{part}</span>
-          <ExternalLink className="inline size-3 shrink-0 opacity-70" />
+          <ExternalLink className="inline size-3 shrink-0 text-blue-300" />
         </a>
       );
     }
@@ -145,7 +156,7 @@ const renderPublicTextWithLinks = (text: string) => {
           className="inline-flex items-center gap-1 font-medium text-amber-400 underline underline-offset-2 hover:text-amber-300"
         >
           <span>{part}</span>
-          <ExternalLink className="inline size-3 shrink-0 opacity-70" />
+          <ExternalLink className="inline size-3 shrink-0 text-amber-300" />
         </a>
       );
     }
@@ -181,7 +192,7 @@ export function PublicEventCard({
     <div
       className={`group overflow-hidden rounded-2xl border transition-all duration-300 ${
         event.isCancelled
-          ? "border-rose-900/30 bg-black/40 opacity-80"
+          ? "border-rose-900/40 bg-rose-950/20"
           : `border-zinc-800 bg-black/70 ${typeConfig.cardBorderHover} hover:bg-black ${typeConfig.cardShadowHover}`
       }`}
     >
@@ -199,7 +210,7 @@ export function PublicEventCard({
             <div className="flex flex-wrap items-center gap-2.5">
               <p
                 className={`text-base font-bold tracking-tight text-white ${
-                  event.isCancelled ? "text-zinc-400 line-through" : ""
+                  event.isCancelled ? "text-zinc-300 line-through" : ""
                 }`}
               >
                 {event.title}
@@ -216,7 +227,7 @@ export function PublicEventCard({
               )}
 
               {event.isCancelled && (
-                <span className="rounded-md border border-rose-500/30 bg-rose-500/20 px-2.5 py-1 text-[10px] font-bold tracking-widest text-rose-400 uppercase">
+                <span className="rounded-md border border-rose-500/30 bg-rose-500/20 px-2.5 py-1 text-[10px] font-bold tracking-widest text-rose-300 uppercase">
                   Отменена
                 </span>
               )}
@@ -226,7 +237,7 @@ export function PublicEventCard({
                 <Clock size={14} className="text-blue-400" />
                 {displayTime}
               </span>
-              <span className="flex items-center gap-1.5 text-[13px] text-zinc-400">
+              <span className="flex items-center gap-1.5 text-[13px] text-zinc-300">
                 <MapPin size={14} className="text-blue-400" />
                 {event.location || 'Спортна зала „Енергетик"'}
               </span>
@@ -250,7 +261,7 @@ export function PublicEventCard({
                 >
                   <Trophy size={13} className="text-amber-400" />
                   <span>Страница на състезанието / Схема</span>
-                  <ExternalLink size={12} className="opacity-70" />
+                  <ExternalLink size={12} className="text-amber-300" />
                 </a>
               </div>
             )}
@@ -266,14 +277,14 @@ export function PublicEventCard({
                   <span className="max-w-50 truncate sm:max-w-75">
                     {event.attachmentName || "Наредба за състезанието"}
                   </span>
-                  <Eye size={12} className="opacity-70" />
+                  <Eye size={12} className="text-blue-300" />
                 </button>
                 <a
                   href={event.attachmentUrl}
                   download={event.attachmentName || "document"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800/80 p-1 text-zinc-400 transition-colors hover:text-white"
+                  className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 p-1 text-zinc-200 transition-colors hover:bg-zinc-700 hover:text-white"
                   title="Изтегли файла"
                 >
                   <Download size={13} />
@@ -289,7 +300,7 @@ export function PublicEventCard({
           {showAdminLinks && (
             <Link
               href={`/marketing?template=reservationConfirmation&date=${new Date(event.startTime).toISOString()}&end=${new Date(event.endTime).toISOString()}&loc=${encodeURIComponent(event.location || "")}`}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-400 transition-colors hover:text-emerald-400"
+              className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-300 transition-colors hover:text-emerald-400"
               title="Изпрати потвърждение (Админ)"
             >
               <Mail size={16} />
@@ -301,7 +312,7 @@ export function PublicEventCard({
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-blue-400/80 transition-colors hover:text-blue-300"
+              className="flex items-center gap-1.5 text-[13px] font-medium text-blue-300 transition-colors hover:text-blue-200"
             >
               <Info size={16} />
               <span>{expanded ? "Свий описанието" : "Виж бележките"}</span>

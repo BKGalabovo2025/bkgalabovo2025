@@ -141,7 +141,7 @@ export function GoogleTranslateWidget() {
           type="button"
           onClick={() => switchLanguage("bg")}
           aria-label="BG - Превключи на български език"
-          className={`rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 ${currentLang === "bg" ? "bg-zinc-200 text-black shadow-md" : "text-zinc-400 hover:text-white"}`}
+          className={`rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 ${currentLang === "bg" ? "bg-zinc-200 text-black shadow-md" : "text-zinc-300 hover:text-white"}`}
         >
           BG
         </button>
@@ -149,7 +149,7 @@ export function GoogleTranslateWidget() {
           type="button"
           onClick={() => switchLanguage("en")}
           aria-label="EN - Switch to English language"
-          className={`rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 ${currentLang === "en" ? "bg-zinc-200 text-black shadow-md" : "text-zinc-400 hover:text-white"}`}
+          className={`rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 ${currentLang === "en" ? "bg-zinc-200 text-black shadow-md" : "text-zinc-300 hover:text-white"}`}
         >
           EN
         </button>

@@ -201,14 +201,14 @@ export default function ScheduleClient({ schedule }: Props) {
                   <h1 className="text-2xl font-black tracking-tight sm:text-3xl md:text-4xl">
                     Календар и Събития
                   </h1>
-                  <p className="mt-0.5 text-xs text-zinc-400 sm:mt-1 sm:text-sm">
+                  <p className="mt-0.5 text-xs text-zinc-300 sm:mt-1 sm:text-sm">
                     Вижте всички тренировки, лагери и турнири на клуба.
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleShare}
-                className="flex shrink-0 items-center gap-2 rounded-xl border border-blue-800/30 bg-blue-600/10 px-4 py-2 text-xs font-semibold text-blue-400 transition-all hover:border-blue-500/50 hover:bg-blue-600/20 sm:px-5 sm:py-2.5 sm:text-sm"
+                className="flex shrink-0 items-center gap-2 rounded-xl border border-blue-700/50 bg-blue-600/15 px-4 py-2 text-xs font-semibold text-blue-300 transition-all hover:border-blue-500/70 hover:bg-blue-600/25 sm:px-5 sm:py-2.5 sm:text-sm"
               >
                 <Share2 size={15} />
                 <span>Сподели Графика</span>
@@ -223,15 +223,15 @@ export default function ScheduleClient({ schedule }: Props) {
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all ${
                   filter === "all"
                     ? "bg-zinc-100 text-zinc-950 shadow-md"
-                    : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
+                    : "border border-zinc-800 bg-zinc-900/80 text-zinc-300 hover:text-white"
                 }`}
               >
                 <span>Всички</span>
                 <span
-                  className={`py-0.2 rounded-full px-1.5 text-[10px] ${
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] font-bold ${
                     filter === "all"
-                      ? "bg-zinc-300 text-zinc-900"
-                      : "bg-zinc-800 text-zinc-300"
+                      ? "bg-zinc-200 text-black"
+                      : "bg-zinc-800 text-zinc-200"
                   }`}
                 >
                   {schedule.length}
@@ -244,15 +244,15 @@ export default function ScheduleClient({ schedule }: Props) {
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all ${
                   filter === "trainings"
                     ? "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]"
-                    : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
+                    : "border border-zinc-800 bg-zinc-900/80 text-zinc-300 hover:text-white"
                 }`}
               >
                 <span>🏸 Тренировки</span>
                 <span
-                  className={`py-0.2 rounded-full px-1.5 text-[10px] ${
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] font-bold ${
                     filter === "trainings"
-                      ? "bg-white/20 text-white"
-                      : "bg-zinc-800 text-zinc-300"
+                      ? "bg-blue-950 text-blue-100"
+                      : "bg-zinc-800 text-zinc-200"
                   }`}
                 >
                   {trainingsCount}
@@ -265,15 +265,15 @@ export default function ScheduleClient({ schedule }: Props) {
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all ${
                   filter === "tournaments"
                     ? "bg-amber-500 font-black text-zinc-950 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
-                    : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
+                    : "border border-zinc-800 bg-zinc-900/80 text-zinc-300 hover:text-white"
                 }`}
               >
                 <span>🏆 Състезания</span>
                 <span
-                  className={`py-0.2 rounded-full px-1.5 text-[10px] ${
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] font-black ${
                     filter === "tournaments"
-                      ? "bg-zinc-950/20 font-black text-zinc-950"
-                      : "bg-zinc-800 text-zinc-300"
+                      ? "bg-amber-950 text-amber-100"
+                      : "bg-zinc-800 text-zinc-200"
                   }`}
                 >
                   {tournamentsCount}
@@ -286,15 +286,15 @@ export default function ScheduleClient({ schedule }: Props) {
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold tracking-wider uppercase transition-all ${
                   filter === "events"
                     ? "bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]"
-                    : "border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
+                    : "border border-zinc-800 bg-zinc-900/80 text-zinc-300 hover:text-white"
                 }`}
               >
                 <span>⛺ Лагери и събития</span>
                 <span
-                  className={`py-0.2 rounded-full px-1.5 text-[10px] ${
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] font-bold ${
                     filter === "events"
-                      ? "bg-white/20 text-white"
-                      : "bg-zinc-800 text-zinc-300"
+                      ? "bg-purple-950 text-purple-100"
+                      : "bg-zinc-800 text-zinc-200"
                   }`}
                 >
                   {eventsCount}
@@ -310,7 +310,7 @@ export default function ScheduleClient({ schedule }: Props) {
               <p className="mb-2 text-2xl font-light text-white">
                 {getEmptyTitle(filter)}
               </p>
-              <p className="text-zinc-400">{getEmptySubtitle(filter)}</p>
+              <p className="text-zinc-300">{getEmptySubtitle(filter)}</p>
             </div>
           ) : (
             <div className="space-y-10">
@@ -322,7 +322,7 @@ export default function ScheduleClient({ schedule }: Props) {
                       className={`rounded-full px-3 py-1 text-xs font-bold tracking-[0.35em] uppercase ${
                         isSpecialLabel(dateLabel)
                           ? "border border-blue-600/40 bg-blue-600/20 text-blue-300"
-                          : "text-zinc-400"
+                          : "text-zinc-300"
                       }`}
                     >
                       {dateLabel}
@@ -350,12 +350,12 @@ export default function ScheduleClient({ schedule }: Props) {
 
           {/* Footer CTA */}
           <div className="mt-16 text-center">
-            <p className="mb-4 text-sm text-zinc-400">
+            <p className="mb-4 text-sm text-zinc-300">
               Имате въпроси за графика?
             </p>
             <Link
               href="/club#contacts"
-              className="inline-flex items-center gap-2 rounded-2xl border border-blue-700/40 bg-blue-600/10 px-8 py-4 text-sm font-bold tracking-widest text-blue-300 uppercase transition-all hover:border-blue-500/60 hover:bg-blue-600/20 hover:text-blue-200"
+              className="inline-flex items-center gap-2 rounded-2xl border border-blue-700/50 bg-blue-600/15 px-8 py-4 text-sm font-bold tracking-widest text-blue-300 uppercase transition-all hover:border-blue-500/70 hover:bg-blue-600/25 hover:text-white"
             >
               Свържете се с нас <ChevronRight size={16} />
             </Link>
