@@ -101,7 +101,7 @@ export function ParentsNav() {
   return (
     <nav
       aria-label="Секции на родителския портал"
-      className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-zinc-200 bg-zinc-100 p-1.5 dark:border-zinc-800 dark:bg-zinc-900 scrollbar-none"
+      className="no-scrollbar flex w-full items-center gap-1 sm:gap-1.5 overflow-x-auto rounded-2xl border border-zinc-200 bg-zinc-100 p-1.5 dark:border-zinc-800 dark:bg-zinc-900"
     >
       {PARENT_ADMIN_SECTIONS.map((section) => {
         const Icon = SECTION_ICONS[section.id];
@@ -116,17 +116,17 @@ export function ParentsNav() {
             href={targetHref}
             aria-current={isActive ? "page" : undefined}
             title={section.tooltip}
-            className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all ${
+            className={`flex shrink-0 items-center gap-1.5 sm:gap-2 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold uppercase tracking-wide transition-all ${
               isActive
                 ? "bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white"
                 : "text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
             }`}
           >
             <Icon className="size-4 shrink-0" />
-            <span>{section.label}</span>
+            <span className="whitespace-nowrap">{section.label}</span>
             {badgeValue !== null && (
               <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeClasses}`}
+                className={`rounded-full px-1.5 sm:px-2 py-0.5 text-[10px] font-bold ${badgeClasses}`}
               >
                 {badgeValue}
               </span>

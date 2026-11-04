@@ -152,7 +152,7 @@ export function ParentAccountsSectionView() {
             return (
               <div
                 key={parent.id}
-                className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80"
+                className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 overflow-hidden min-w-0"
               >
                 <div>
                   {/* Top Bar */}
@@ -269,16 +269,17 @@ export function ParentAccountsSectionView() {
                   </div>
 
                   {/* Linked Children & Document Sending */}
-                  <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50/80 p-3 dark:border-zinc-800/60 dark:bg-zinc-950/40 space-y-3">
-                    <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                      <span>Свързани деца &amp; Изпращане на документи:</span>
+                  <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50/80 p-3 dark:border-zinc-800/60 dark:bg-zinc-950/40 space-y-3 min-w-0">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                      <span>Свързани деца &amp; Документи:</span>
                       <button
                         type="button"
                         onClick={() => setLinkingParentId(parent.id)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                        title="Свържи още едно дете към този профил"
                       >
                         <UserPlus size={12} />
-                        <span>+ Свържи още едно дете</span>
+                        <span>+ Свържи дете</span>
                       </button>
                     </div>
 
@@ -294,28 +295,28 @@ export function ParentAccountsSectionView() {
                         return (
                           <div
                             key={mId}
-                            className="rounded-xl border border-blue-200/70 bg-white p-2.5 text-xs shadow-2xs dark:border-blue-900/40 dark:bg-zinc-900 space-y-2"
+                            className="rounded-xl border border-blue-200/70 bg-white p-2.5 text-xs shadow-2xs dark:border-blue-900/40 dark:bg-zinc-900 space-y-2 min-w-0 overflow-hidden"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <Link
                                 href={`/members/${mId}`}
-                                className="font-bold text-zinc-900 dark:text-white hover:underline flex items-center gap-1"
+                                className="font-bold text-zinc-900 dark:text-white hover:underline flex items-center gap-1 min-w-0 truncate"
                                 target="_blank"
                               >
-                                <span>{childName}</span>
+                                <span className="truncate">{childName}</span>
                                 <ArrowRight
                                   size={11}
-                                  className="text-zinc-400"
+                                  className="text-zinc-400 shrink-0"
                                 />
                               </Link>
 
-                              <div className="flex items-center gap-2.5">
+                              <div className="flex items-center gap-2.5 shrink-0">
                                 <button
                                   type="button"
                                   onClick={() =>
                                     handleOpenEditPerms(parent, mId)
                                   }
-                                  className="text-[11px] text-blue-600 hover:text-blue-700 underline font-semibold dark:text-blue-400"
+                                  className="text-[11px] text-blue-600 hover:text-blue-700 underline font-semibold dark:text-blue-400 cursor-pointer"
                                   title="Настройка на права за видимост"
                                 >
                                   ⚙️ Права за видимост
@@ -348,7 +349,7 @@ export function ParentAccountsSectionView() {
                             </div>
 
                             {/* Send official document to parent portal */}
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 min-w-0">
                               <select
                                 aria-label={`Избор на документ за ${childName}`}
                                 value={
@@ -361,10 +362,14 @@ export function ParentAccountsSectionView() {
                                     [sendKey]: e.target.value as DocumentType,
                                   }))
                                 }
-                                className="flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-[11px] font-medium text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+                                className="w-full min-w-0 flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-[11px] font-medium text-zinc-800 truncate dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
                               >
                                 {OFFICIAL_DOC_OPTIONS.map((opt) => (
-                                  <option key={opt.value} value={opt.value}>
+                                  <option
+                                    key={opt.value}
+                                    value={opt.value}
+                                    title={opt.label}
+                                  >
                                     📄 {opt.label}
                                   </option>
                                 ))}
@@ -375,7 +380,7 @@ export function ParentAccountsSectionView() {
                                 onClick={() =>
                                   handleSendDocFromAdmin(parent.id, mId)
                                 }
-                                className="h-7 rounded-lg bg-indigo-600 px-2.5 text-[11px] font-semibold text-white hover:bg-indigo-500 shrink-0"
+                                className="h-7 rounded-lg bg-indigo-600 px-2.5 text-[11px] font-semibold text-white hover:bg-indigo-500 shrink-0 whitespace-nowrap cursor-pointer shadow-xs"
                               >
                                 {isSendingDocPerChild[sendKey] ? (
                                   <Loader2 size={12} className="animate-spin" />
@@ -449,65 +454,45 @@ export function ParentAccountsSectionView() {
                   </div>
                 </div>
 
-                {/* Bottom Actions */}
-                <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setCallingParent(parent)}
-                    className="rounded-xl text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 cursor-pointer"
-                    title="Запис на проведен телефонен разговор"
-                  >
-                    <Phone size={13} className="mr-1 text-emerald-600" />
-                    <span>Обаждане</span>
-                  </Button>
+                {/* Bottom Actions - Account Administration */}
+                <div className="mt-5 flex items-center justify-between gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleToggleStatus(parent)}
+                      className="rounded-xl text-xs font-semibold cursor-pointer"
+                    >
+                      {parent.status === "active" ? (
+                        <>
+                          <Pause size={13} className="mr-1 text-amber-500" />
+                          <span>Спри достъп</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play size={13} className="mr-1 text-emerald-500" />
+                          <span>Активирай</span>
+                        </>
+                      )}
+                    </Button>
 
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setEmailingParent(parent)}
-                    className="rounded-xl text-xs font-semibold text-blue-700 hover:bg-blue-50 dark:text-blue-400 cursor-pointer"
-                    title="Изпращане на лично съобщение / имейл (без спам)"
-                  >
-                    <Mail size={13} className="mr-1 text-blue-600" />
-                    <span>Лично съобщение</span>
-                  </Button>
-
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleToggleStatus(parent)}
-                    className="rounded-xl text-xs font-semibold"
-                  >
-                    {parent.status === "active" ? (
-                      <>
-                        <Pause size={13} className="mr-1 text-amber-500" />
-                        <span>Спри достъп</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play size={13} className="mr-1 text-emerald-500" />
-                        <span>Активирай</span>
-                      </>
-                    )}
-                  </Button>
-
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleResetPassword(parent)}
-                    className="rounded-xl text-xs font-semibold"
-                    title="Генерирай нова временна парола"
-                  >
-                    <KeyRound size={13} className="mr-1 text-blue-500" />
-                    <span>Нова парола</span>
-                  </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleResetPassword(parent)}
+                      className="rounded-xl text-xs font-semibold cursor-pointer"
+                      title="Генерирай нова временна парола"
+                    >
+                      <KeyRound size={13} className="mr-1 text-blue-500" />
+                      <span>Нова парола</span>
+                    </Button>
+                  </div>
 
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setDeleteConfirmUser(parent)}
-                    className="ml-auto rounded-xl text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/20"
+                    className="rounded-xl text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/20 shrink-0 cursor-pointer"
                     title={`Изтрий профила на ${parent.name}`}
                     aria-label={`Изтрий профила на ${parent.name}`}
                   >
