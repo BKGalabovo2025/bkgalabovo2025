@@ -16,6 +16,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,10 @@ const OFFICIAL_DOC_OPTIONS: { value: DocumentType; label: string }[] = [
 ];
 
 export function ParentAccountsSectionView() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const {
     searchQuery,
     setSearchQuery,
@@ -53,13 +58,8 @@ export function ParentAccountsSectionView() {
     isParentOnline,
     setCallingParent,
     setEmailingParent,
-    linkingParentId,
     setLinkingParentId,
-    selectedChildToLink,
-    setSelectedChildToLink,
     members,
-    isLinkingChild,
-    handleLinkChild,
     handleOpenEditPerms,
     isUnlinkingChild,
     handleUnlinkChild,
@@ -73,6 +73,24 @@ export function ParentAccountsSectionView() {
     setDeleteConfirmUser,
   } = useParentAdminContext();
 
+  const handleFilterChange = (status: "all" | "active" | "suspended") => {
+    setParentFilter(status);
+    const params = new URLSearchParams(searchParams.toString());
+    if (status !== "all") params.set("status", status);
+    else params.delete("status");
+    const q = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`${pathname}${q}`, { scroll: false });
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    const params = new URLSearchParams(searchParams.toString());
+    if (val.trim()) params.set("q", val);
+    else params.delete("q");
+    const q = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`${pathname}${q}`, { scroll: false });
+  };
+
   return (
     <div className="space-y-4">
       {/* Search and Filters */}
@@ -85,7 +103,7 @@ export function ParentAccountsSectionView() {
           <Input
             placeholder="Търсене по родител, дете, телефон или имейл..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="rounded-xl pl-9"
           />
         </div>
@@ -102,7 +120,7 @@ export function ParentAccountsSectionView() {
               key={f.id}
               variant={parentFilter === f.id ? "default" : "outline"}
               size="sm"
-              onClick={() => setParentFilter(f.id)}
+              onClick={() => handleFilterChange(f.id)}
               className="rounded-xl text-xs font-semibold"
             >
               {f.label}
@@ -256,71 +274,13 @@ export function ParentAccountsSectionView() {
                       <span>Свързани деца &amp; Изпращане на документи:</span>
                       <button
                         type="button"
-                        onClick={() => {
-                          setLinkingParentId(
-                            linkingParentId === parent.id ? null : parent.id
-                          );
-                          setSelectedChildToLink("");
-                        }}
+                        onClick={() => setLinkingParentId(parent.id)}
                         className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
                       >
                         <UserPlus size={12} />
                         <span>+ Свържи още едно дете</span>
                       </button>
                     </div>
-
-                    {/* Inline selector for linking child */}
-                    {linkingParentId === parent.id && (
-                      <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-2.5 dark:border-blue-900/50 dark:bg-zinc-900 space-y-2">
-                        <div className="text-[11px] font-semibold text-blue-900 dark:text-blue-200">
-                          Свързване на състезател към {parent.name}:
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                          <select
-                            aria-label="Изберете състезател за свързване"
-                            value={selectedChildToLink}
-                            onChange={(e) =>
-                              setSelectedChildToLink(e.target.value)
-                            }
-                            className="flex-1 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
-                          >
-                            <option value="">-- Изберете състезател --</option>
-                            {members
-                              .filter(
-                                (m) =>
-                                  !(parent.linkedMemberIds || []).includes(m.id)
-                              )
-                              .map((m) => (
-                                <option key={m.id} value={m.id}>
-                                  {m.fullName || `${m.firstName} ${m.lastName}`}
-                                </option>
-                              ))}
-                          </select>
-                          <div className="flex items-center gap-1.5 justify-end">
-                            <Button
-                              size="sm"
-                              disabled={!selectedChildToLink || isLinkingChild}
-                              onClick={() => handleLinkChild(parent.id)}
-                              className="h-8 rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white hover:bg-blue-500"
-                            >
-                              {isLinkingChild ? (
-                                <Loader2 size={12} className="animate-spin" />
-                              ) : (
-                                "Свържи"
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setLinkingParentId(null)}
-                              className="h-8 px-2.5 text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400"
-                            >
-                              Отказ
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     <div className="space-y-2.5">
                       {(parent.linkedMemberIds || []).map((mId) => {

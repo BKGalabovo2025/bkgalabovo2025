@@ -33,6 +33,7 @@ export function ParentAdminDialogs() {
     getChildrenForParent,
     refetch,
     members,
+    parents,
 
     // Approve Dialog
     approveDialogReq,
@@ -90,6 +91,19 @@ export function ParentAdminDialogs() {
     isDeletingUser,
     handleConfirmDelete,
 
+    // Data corrections dialogs
+    approveCorrectionReq,
+    setApproveCorrectionReq,
+    isSubmittingApproveCorrection,
+    handleConfirmApproveCorrection,
+
+    rejectCorrectionReq,
+    setRejectCorrectionReq,
+    rejectCorrectionComment,
+    setRejectCorrectionComment,
+    isSubmittingRejectCorrection,
+    handleConfirmRejectCorrection,
+
     // Credentials Modal
     credentialsModal,
     setCredentialsModal,
@@ -124,59 +138,73 @@ export function ParentAdminDialogs() {
       />
 
       {/* DIALOG: LINK CHILD */}
-      {linkingParentId && (
-        <Dialog
-          open={Boolean(linkingParentId)}
-          onOpenChange={(open) => !open && setLinkingParentId(null)}
-        >
-          <DialogContent className="max-w-md rounded-3xl">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-black uppercase text-zinc-900 dark:text-white">
-                Свързване на дете към родител
-              </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
-                Изберете състезател от картотеката, за да го свържете към този
-                профил.
-              </DialogDescription>
-            </DialogHeader>
+      {linkingParentId &&
+        (() => {
+          const linkingParent = parents.find((p) => p.id === linkingParentId);
+          const availableMembers = members.filter(
+            (m) => !(linkingParent?.linkedMemberIds || []).includes(m.id)
+          );
+          return (
+            <Dialog
+              open={Boolean(linkingParentId)}
+              onOpenChange={(open) => !open && setLinkingParentId(null)}
+            >
+              <DialogContent className="max-w-md rounded-3xl">
+                <DialogHeader>
+                  <DialogTitle className="text-lg font-black uppercase text-zinc-900 dark:text-white">
+                    Свързване на дете към родител
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-zinc-500">
+                    Изберете състезател от картотеката, за да го свържете към{" "}
+                    {linkingParent ? (
+                      <strong>{linkingParent.name}</strong>
+                    ) : (
+                      "този профил"
+                    )}
+                    .
+                  </DialogDescription>
+                </DialogHeader>
 
-            <div className="py-2">
-              <Label className="text-xs font-semibold">Изберете дете:</Label>
-              <select
-                value={selectedChildToLink}
-                onChange={(e) => setSelectedChildToLink(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-zinc-300 bg-white p-2.5 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-              >
-                <option value="">-- Изберете състезател --</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.fullName} {m.dateOfBirth ? `(${m.dateOfBirth})` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <div className="py-2">
+                  <Label className="text-xs font-semibold">
+                    Изберете дете:
+                  </Label>
+                  <select
+                    value={selectedChildToLink}
+                    onChange={(e) => setSelectedChildToLink(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-zinc-300 bg-white p-2.5 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                  >
+                    <option value="">-- Изберете състезател --</option>
+                    {availableMembers.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.fullName} {m.dateOfBirth ? `(${m.dateOfBirth})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <DialogFooter className="gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLinkingParentId(null)}
-                className="rounded-xl"
-              >
-                Отказ
-              </Button>
-              <Button
-                size="sm"
-                disabled={isLinkingChild}
-                onClick={() => handleLinkChild(linkingParentId)}
-                className="rounded-xl bg-blue-600 text-white hover:bg-blue-500"
-              >
-                {isLinkingChild ? "Свързване..." : "Свържи детето"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+                <DialogFooter className="gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLinkingParentId(null)}
+                    className="rounded-xl"
+                  >
+                    Отказ
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={isLinkingChild || !selectedChildToLink}
+                    onClick={() => handleLinkChild(linkingParentId)}
+                    className="rounded-xl bg-blue-600 text-white hover:bg-blue-500"
+                  >
+                    {isLinkingChild ? "Свързване..." : "Свържи детето"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          );
+        })()}
 
       {/* DIALOG 1: APPROVE REQUEST */}
       {approveDialogReq && (
@@ -869,6 +897,107 @@ export function ParentAdminDialogs() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* DIALOG: APPROVE DATA CORRECTION */}
+      {approveCorrectionReq && (
+        <Dialog
+          open={Boolean(approveCorrectionReq)}
+          onOpenChange={(open) => !open && setApproveCorrectionReq(null)}
+        >
+          <DialogContent className="max-w-md rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold uppercase text-zinc-900 dark:text-white">
+                Потвърждение на корекция
+              </DialogTitle>
+              <DialogDescription className="text-xs text-zinc-500">
+                Потвърждавате ли автоматичното обновяване на полето &quot;
+                {approveCorrectionReq.fieldLabel}&quot; за{" "}
+                <strong>{approveCorrectionReq.memberName}</strong> на нова
+                стойност: &quot;
+                <strong>{approveCorrectionReq.proposedValue}</strong>&quot;?
+                Картонът на състезателя ще се обнови веднага и ще бъде изпратен
+                потвърдителен имейл.
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setApproveCorrectionReq(null)}
+                className="rounded-xl"
+              >
+                Отказ
+              </Button>
+              <Button
+                size="sm"
+                disabled={isSubmittingApproveCorrection}
+                onClick={handleConfirmApproveCorrection}
+                className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 font-semibold"
+              >
+                {isSubmittingApproveCorrection
+                  ? "Обновяване..."
+                  : "Да, приеми корекцията"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* DIALOG: REJECT DATA CORRECTION */}
+      {rejectCorrectionReq && (
+        <Dialog
+          open={Boolean(rejectCorrectionReq)}
+          onOpenChange={(open) => !open && setRejectCorrectionReq(null)}
+        >
+          <DialogContent className="max-w-md rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold uppercase text-red-600">
+                Отказ на корекция
+              </DialogTitle>
+              <DialogDescription className="text-xs text-zinc-500">
+                Отказване на предложената корекция на &quot;
+                {rejectCorrectionReq.fieldLabel}&quot; за{" "}
+                <strong>{rejectCorrectionReq.memberName}</strong> от{" "}
+                {rejectCorrectionReq.parentName}.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-2">
+              <Label className="text-xs font-semibold">
+                Кратък коментар към родителя (по избор):
+              </Label>
+              <Input
+                value={rejectCorrectionComment}
+                onChange={(e) => setRejectCorrectionComment(e.target.value)}
+                placeholder="напр. Данните в акта за раждане не съвпадат"
+                className="mt-1 rounded-xl text-xs"
+              />
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRejectCorrectionReq(null)}
+                className="rounded-xl"
+              >
+                Назад
+              </Button>
+              <Button
+                size="sm"
+                disabled={isSubmittingRejectCorrection}
+                onClick={handleConfirmRejectCorrection}
+                className="rounded-xl bg-red-600 text-white hover:bg-red-500 font-semibold"
+              >
+                {isSubmittingRejectCorrection
+                  ? "Отказване..."
+                  : "Потвърди отказ"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

@@ -104,4 +104,38 @@ describe("parents admin sections (hierarchical sub-pages)", () => {
       ).toBe(true);
     }
   });
+
+  it("ParentAdminContext поддържа всички златни хибридни URL параметри", () => {
+    const contextFilePath = path.resolve(
+      process.cwd(),
+      "src/components/parents/admin/ParentAdminContext.tsx"
+    );
+    const content = fs.readFileSync(contextFilePath, "utf-8");
+
+    const expectedQueryParams = [
+      "action",
+      "approve",
+      "reject",
+      "call",
+      "message",
+      "replyAbsence",
+      "linkChild",
+      "permissions",
+      "child",
+      "deleteParent",
+      "approveCorrection",
+      "rejectCorrection",
+      "credentials",
+      "status",
+      "parent",
+      "channel",
+    ];
+
+    for (const param of expectedQueryParams) {
+      expect(
+        content.includes(`searchParams.get("${param}")`),
+        `ParentAdminContext трябва да следи URL параметър "${param}"`
+      ).toBe(true);
+    }
+  });
 });

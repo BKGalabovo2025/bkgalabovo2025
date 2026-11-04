@@ -203,8 +203,23 @@ interface ParentAdminContextType {
   handleResetPassword: (parent: ParentUser) => Promise<void>;
 
   // Data corrections
-  handleApproveCorrection: (corr: DataCorrectionRequest) => Promise<void>;
-  handleRejectCorrection: (corr: DataCorrectionRequest) => Promise<void>;
+  handleApproveCorrection: (
+    corr: DataCorrectionRequest
+  ) => Promise<void> | void;
+  handleRejectCorrection: (corr: DataCorrectionRequest) => Promise<void> | void;
+
+  // Data corrections dialogs (URL-synced)
+  approveCorrectionReq: DataCorrectionRequest | null;
+  setApproveCorrectionReq: (corr: DataCorrectionRequest | null) => void;
+  isSubmittingApproveCorrection: boolean;
+  handleConfirmApproveCorrection: () => Promise<void>;
+
+  rejectCorrectionReq: DataCorrectionRequest | null;
+  setRejectCorrectionReq: (corr: DataCorrectionRequest | null) => void;
+  rejectCorrectionComment: string;
+  setRejectCorrectionComment: (comment: string) => void;
+  isSubmittingRejectCorrection: boolean;
+  handleConfirmRejectCorrection: () => Promise<void>;
 
   // Persistent Credentials modal
   credentialsModal: CredentialsModalState;
@@ -246,12 +261,55 @@ export function ParentAdminProvider({
   );
   const [emailingParent, setEmailingParentInternal] =
     useState<ParentUser | null>(null);
-  const [selectedCommParentId, setSelectedCommParentId] =
+  const [selectedCommParentId, setSelectedCommParentIdInternal] =
     useState<string>("all");
-  const [commChannelFilter, setCommChannelFilter] = useState<
+  const [commChannelFilter, setCommChannelFilterInternal] = useState<
     "all" | "phone" | "email"
   >("all");
   const [commSearchQuery, setCommSearchQuery] = useState("");
+
+  const parentFilterParam = searchParams.get("parent");
+  const channelParam = searchParams.get("channel");
+
+  useEffect(() => {
+    if (parentFilterParam) {
+      setSelectedCommParentIdInternal(parentFilterParam);
+    } else {
+      setSelectedCommParentIdInternal("all");
+    }
+  }, [parentFilterParam]);
+
+  useEffect(() => {
+    if (channelParam && ["all", "phone", "email"].includes(channelParam)) {
+      setCommChannelFilterInternal(channelParam as CommChannelFilterType);
+    } else {
+      setCommChannelFilterInternal("all");
+    }
+  }, [channelParam]);
+
+  const setSelectedCommParentId = useCallback(
+    (id: string) => {
+      setSelectedCommParentIdInternal(id);
+      const params = new URLSearchParams(searchParams.toString());
+      if (id !== "all") params.set("parent", id);
+      else params.delete("parent");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
+
+  const setCommChannelFilter = useCallback(
+    (c: CommChannelFilterType) => {
+      setCommChannelFilterInternal(c);
+      const params = new URLSearchParams(searchParams.toString());
+      if (c !== "all") params.set("channel", c);
+      else params.delete("channel");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
 
   const getChildrenForParent = (parent: ParentUser | null) => {
     if (!parent) return [];
@@ -302,7 +360,9 @@ export function ParentAdminProvider({
   >("all");
 
   // Child Link / Unlink States
-  const [linkingParentId, setLinkingParentId] = useState<string | null>(null);
+  const [linkingParentId, setLinkingParentIdInternal] = useState<string | null>(
+    null
+  );
   const [selectedChildToLink, setSelectedChildToLink] = useState<string>("");
   const [isLinkingChild, setIsLinkingChild] = useState(false);
   const [isUnlinkingChild, setIsUnlinkingChild] = useState<string | null>(null);
@@ -380,7 +440,8 @@ export function ParentAdminProvider({
   const [manualMemberId, setManualMemberId] = useState("");
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
 
-  const [editPermParent, setEditPermParent] = useState<ParentUser | null>(null);
+  const [editPermParent, setEditPermParentInternal] =
+    useState<ParentUser | null>(null);
   const [editPermMemberId, setEditPermMemberId] = useState<string>("");
   const [editPermValues, setEditPermValues] = useState<ParentMemberPermissions>(
     DefaultParentMemberPermissions
@@ -393,6 +454,22 @@ export function ParentAdminProvider({
   const [absenceReplyText, setAbsenceReplyText] = useState("");
   const [isReplyingAbsence, setIsReplyingAbsence] = useState(false);
 
+  const [deleteConfirmUser, setDeleteConfirmUserInternal] =
+    useState<ParentUser | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+
+  // Data corrections dialog states
+  const [approveCorrectionReq, setApproveCorrectionReqInternal] =
+    useState<DataCorrectionRequest | null>(null);
+  const [isSubmittingApproveCorrection, setIsSubmittingApproveCorrection] =
+    useState(false);
+
+  const [rejectCorrectionReq, setRejectCorrectionReqInternal] =
+    useState<DataCorrectionRequest | null>(null);
+  const [rejectCorrectionComment, setRejectCorrectionComment] = useState("");
+  const [isSubmittingRejectCorrection, setIsSubmittingRejectCorrection] =
+    useState(false);
+
   // Sync incoming URL search parameters to dialog states
   const actionParam = searchParams.get("action");
   const approveParam = searchParams.get("approve");
@@ -400,6 +477,26 @@ export function ParentAdminProvider({
   const callParam = searchParams.get("call");
   const messageParam = searchParams.get("message");
   const absenceParam = searchParams.get("replyAbsence");
+  const linkChildParam = searchParams.get("linkChild");
+  const permissionsParam = searchParams.get("permissions");
+  const childParam = searchParams.get("child");
+  const deleteParentParam = searchParams.get("deleteParent");
+  const approveCorrParam = searchParams.get("approveCorrection");
+  const rejectCorrParam = searchParams.get("rejectCorrection");
+  const statusParam = searchParams.get("status") as ParentFilterStatus | null;
+  const qParam = searchParams.get("q");
+
+  useEffect(() => {
+    if (statusParam && ["all", "active", "suspended"].includes(statusParam)) {
+      setParentFilter(statusParam);
+    }
+  }, [statusParam]);
+
+  useEffect(() => {
+    if (qParam !== null && qParam !== undefined) {
+      setSearchQuery(qParam);
+    }
+  }, [qParam]);
 
   useEffect(() => {
     if (actionParam === "add-parent") {
@@ -462,6 +559,64 @@ export function ParentAdminProvider({
       setAbsenceReplyIdInternal(null);
     }
   }, [absenceParam]);
+
+  useEffect(() => {
+    if (linkChildParam) {
+      setLinkingParentIdInternal(linkChildParam);
+    } else {
+      setLinkingParentIdInternal(null);
+    }
+  }, [linkChildParam]);
+
+  useEffect(() => {
+    if (permissionsParam && parents.length > 0) {
+      const p = parents.find((parent) => parent.id === permissionsParam);
+      if (p) {
+        setEditPermParentInternal(p);
+        const memberId = childParam || p.linkedMemberIds?.[0] || "";
+        setEditPermMemberId(memberId);
+        const existing =
+          p.permissionsPerMember?.[memberId] || DefaultParentMemberPermissions;
+        setEditPermValues({ ...existing });
+      }
+    } else if (!permissionsParam) {
+      setEditPermParentInternal(null);
+      setEditPermMemberId("");
+    }
+  }, [permissionsParam, childParam, parents]);
+
+  useEffect(() => {
+    if (deleteParentParam && parents.length > 0) {
+      const p = parents.find((parent) => parent.id === deleteParentParam);
+      if (p) {
+        setDeleteConfirmUserInternal(p);
+      }
+    } else if (!deleteParentParam) {
+      setDeleteConfirmUserInternal(null);
+    }
+  }, [deleteParentParam, parents]);
+
+  useEffect(() => {
+    if (approveCorrParam && corrections.length > 0) {
+      const corr = corrections.find((c) => c.id === approveCorrParam);
+      if (corr) {
+        setApproveCorrectionReqInternal(corr);
+      }
+    } else if (!approveCorrParam) {
+      setApproveCorrectionReqInternal(null);
+    }
+  }, [approveCorrParam, corrections]);
+
+  useEffect(() => {
+    if (rejectCorrParam && corrections.length > 0) {
+      const corr = corrections.find((c) => c.id === rejectCorrParam);
+      if (corr) {
+        setRejectCorrectionReqInternal(corr);
+      }
+    } else if (!rejectCorrParam) {
+      setRejectCorrectionReqInternal(null);
+    }
+  }, [rejectCorrParam, corrections]);
 
   // URL-synchronized setters
   const setManualAddOpen = useCallback(
@@ -536,13 +691,73 @@ export function ParentAdminProvider({
     [pathname, searchParams, router]
   );
 
-  const [deleteConfirmUser, setDeleteConfirmUser] = useState<ParentUser | null>(
-    null
+  const setLinkingParentId = useCallback(
+    (id: string | null) => {
+      setLinkingParentIdInternal(id);
+      const params = new URLSearchParams(searchParams.toString());
+      if (id) params.set("linkChild", id);
+      else params.delete("linkChild");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
   );
-  const [isDeletingUser, setIsDeletingUser] = useState(false);
 
-  // Persistent Credentials Modal State
-  const [credentialsModal, setCredentialsModal] =
+  const setEditPermParent = (p: ParentUser | null) => {
+    setEditPermParentInternal(p);
+    const params = new URLSearchParams(searchParams.toString());
+    if (p?.id) {
+      params.set("permissions", p.id);
+    } else {
+      params.delete("permissions");
+      params.delete("child");
+    }
+    const q = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`${pathname}${q}`, { scroll: false });
+  };
+
+  const handleOpenEditPerms = (parent: ParentUser, memberId: string) => {
+    setEditPermParentInternal(parent);
+    setEditPermMemberId(memberId);
+    const existing =
+      parent.permissionsPerMember?.[memberId] || DefaultParentMemberPermissions;
+    setEditPermValues({ ...existing });
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("permissions", parent.id);
+    params.set("child", memberId);
+    const q = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`${pathname}${q}`, { scroll: false });
+  };
+
+  const setDeleteConfirmUser = (u: ParentUser | null) => {
+    setDeleteConfirmUserInternal(u);
+    const params = new URLSearchParams(searchParams.toString());
+    if (u?.id) params.set("deleteParent", u.id);
+    else params.delete("deleteParent");
+    const q = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`${pathname}${q}`, { scroll: false });
+  };
+
+  const setApproveCorrectionReq = (corr: DataCorrectionRequest | null) => {
+    setApproveCorrectionReqInternal(corr);
+    const params = new URLSearchParams(searchParams.toString());
+    if (corr?.id) params.set("approveCorrection", corr.id);
+    else params.delete("approveCorrection");
+    const q = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`${pathname}${q}`, { scroll: false });
+  };
+
+  const setRejectCorrectionReq = (corr: DataCorrectionRequest | null) => {
+    setRejectCorrectionReqInternal(corr);
+    const params = new URLSearchParams(searchParams.toString());
+    if (corr?.id) params.set("rejectCorrection", corr.id);
+    else params.delete("rejectCorrection");
+    const q = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`${pathname}${q}`, { scroll: false });
+  };
+
+  // Persistent Credentials Modal State (URL synchronized)
+  const [credentialsModal, setCredentialsModalInternal] =
     useState<CredentialsModalState>({
       open: false,
       parentName: "",
@@ -551,6 +766,30 @@ export function ParentAdminProvider({
       tempPassword: "",
       title: "",
     });
+
+  const credentialsParam = searchParams.get("credentials");
+
+  useEffect(() => {
+    if (!credentialsParam && credentialsModal.open) {
+      setCredentialsModalInternal((prev) => ({ ...prev, open: false }));
+    }
+  }, [credentialsParam, credentialsModal.open]);
+
+  const setCredentialsModal = (
+    value:
+      | CredentialsModalState
+      | ((prev: CredentialsModalState) => CredentialsModalState)
+  ) => {
+    setCredentialsModalInternal((prev) => {
+      const next = typeof value === "function" ? value(prev) : value;
+      const params = new URLSearchParams(searchParams.toString());
+      if (next.open) params.set("credentials", "true");
+      else params.delete("credentials");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+      return next;
+    });
+  };
 
   // Filtered Parents
   const filteredParents = useMemo(() => {
@@ -827,15 +1066,6 @@ export function ParentAdminProvider({
     }
   };
 
-  // Edit permissions
-  const handleOpenEditPerms = (parent: ParentUser, memberId: string) => {
-    setEditPermParent(parent);
-    setEditPermMemberId(memberId);
-    const existing =
-      parent.permissionsPerMember?.[memberId] || DefaultParentMemberPermissions;
-    setEditPermValues({ ...existing });
-  };
-
   const handleSavePerms = async () => {
     if (!editPermParent || !editPermMemberId) return;
     setIsSubmittingPerms(true);
@@ -882,38 +1112,57 @@ export function ParentAdminProvider({
     }
   };
 
-  // Approve correction (1 click)
-  const handleApproveCorrection = async (corr: DataCorrectionRequest) => {
-    if (
-      !confirm(
-        `Потвърждавате ли автоматичното обновяване на полето "${corr.fieldLabel}" за ${corr.memberName} на нова стойност: "${corr.proposedValue}"?`
-      )
-    ) {
-      return;
-    }
+  // Approve correction (URL synchronized modal)
+  const handleApproveCorrection = (corr: DataCorrectionRequest) => {
+    setApproveCorrectionReq(corr);
+  };
 
-    const res = await approveDataCorrectionAction(corr.id);
-    if (!res.success) {
-      toast.error(res.error || "Грешка при одобряване на корекцията.");
-    } else {
-      toast.success(
-        `Корекцията е приета! Картонът на ${corr.memberName} беше автоматично обновен в базата данни и е изпратен потвърдителен имейл.`
-      );
-      refetch();
+  const handleConfirmApproveCorrection = async () => {
+    if (!approveCorrectionReq) return;
+    setIsSubmittingApproveCorrection(true);
+    try {
+      const res = await approveDataCorrectionAction(approveCorrectionReq.id);
+      if (!res.success) {
+        toast.error(res.error || "Грешка при одобряване на корекцията.");
+      } else {
+        toast.success(
+          `Корекцията е приета! Картонът на ${approveCorrectionReq.memberName} беше автоматично обновен в базата данни и е изпратен потвърдителен имейл.`
+        );
+        setApproveCorrectionReq(null);
+        refetch();
+      }
+    } catch {
+      toast.error("Възникна системна грешка.");
+    } finally {
+      setIsSubmittingApproveCorrection(false);
     }
   };
 
-  // Reject correction
-  const handleRejectCorrection = async (corr: DataCorrectionRequest) => {
-    const comment = prompt("Въведете кратък коментар към родителя (по избор):");
-    if (comment === null) return;
+  // Reject correction (URL synchronized modal with comment)
+  const handleRejectCorrection = (corr: DataCorrectionRequest) => {
+    setRejectCorrectionReq(corr);
+  };
 
-    const res = await rejectDataCorrectionAction(corr.id, comment || "");
-    if (!res.success) {
-      toast.error(res.error || "Грешка при отказ.");
-    } else {
-      toast.success("Заявката за корекция беше отказана.");
-      refetch();
+  const handleConfirmRejectCorrection = async () => {
+    if (!rejectCorrectionReq) return;
+    setIsSubmittingRejectCorrection(true);
+    try {
+      const res = await rejectDataCorrectionAction(
+        rejectCorrectionReq.id,
+        rejectCorrectionComment || ""
+      );
+      if (!res.success) {
+        toast.error(res.error || "Грешка при отказ.");
+      } else {
+        toast.success("Заявката за корекция беше отказана.");
+        setRejectCorrectionReq(null);
+        setRejectCorrectionComment("");
+        refetch();
+      }
+    } catch {
+      toast.error("Възникна системна грешка.");
+    } finally {
+      setIsSubmittingRejectCorrection(false);
     }
   };
 
@@ -1028,6 +1277,18 @@ export function ParentAdminProvider({
 
         handleApproveCorrection,
         handleRejectCorrection,
+
+        approveCorrectionReq,
+        setApproveCorrectionReq,
+        isSubmittingApproveCorrection,
+        handleConfirmApproveCorrection,
+
+        rejectCorrectionReq,
+        setRejectCorrectionReq,
+        rejectCorrectionComment,
+        setRejectCorrectionComment,
+        isSubmittingRejectCorrection,
+        handleConfirmRejectCorrection,
 
         credentialsModal,
         setCredentialsModal,
