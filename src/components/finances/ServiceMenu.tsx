@@ -2,9 +2,11 @@
 
 import {
   Calendar,
+  Check,
   Clock,
   CreditCard,
   Edit,
+  Link2,
   MoreHorizontal,
   Shirt,
   Trash2,
@@ -28,12 +30,16 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { deleteClubService } from "@/lib/actions/services";
 import { formatPrice } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 interface ServiceMenuProps {
   services: Service[];
   onEdit: (service: Service) => void;
   onSale: (service: Service) => void;
   onDeleteSuccess?: () => void;
+  selectedItemId?: string | null;
+  copiedItemId?: string | null;
+  onCopyLink?: (service: Service) => void;
 }
 
 export function ServiceMenu({
@@ -41,6 +47,9 @@ export function ServiceMenu({
   onEdit,
   onSale,
   onDeleteSuccess,
+  selectedItemId,
+  copiedItemId,
+  onCopyLink,
 }: ServiceMenuProps) {
   const { idToken } = useAuth();
 
@@ -92,9 +101,12 @@ export function ServiceMenu({
               <ServiceCard
                 key={service.id}
                 service={service}
+                isSelected={selectedItemId === service.id}
+                isCopied={copiedItemId === service.id}
                 onEdit={() => onEdit(service)}
                 onSale={() => onSale(service)}
                 onDelete={() => handleDelete(service.id, service.name)}
+                onCopyLink={() => onCopyLink?.(service)}
               />
             ))}
           </div>
@@ -117,9 +129,12 @@ export function ServiceMenu({
               <ServiceCard
                 key={service.id}
                 service={service}
+                isSelected={selectedItemId === service.id}
+                isCopied={copiedItemId === service.id}
                 onEdit={() => onEdit(service)}
                 onSale={() => onSale(service)}
                 onDelete={() => handleDelete(service.id, service.name)}
+                onCopyLink={() => onCopyLink?.(service)}
               />
             ))}
           </div>
@@ -142,9 +157,12 @@ export function ServiceMenu({
               <ServiceCard
                 key={service.id}
                 service={service}
+                isSelected={selectedItemId === service.id}
+                isCopied={copiedItemId === service.id}
                 onEdit={() => onEdit(service)}
                 onSale={() => onSale(service)}
                 onDelete={() => handleDelete(service.id, service.name)}
+                onCopyLink={() => onCopyLink?.(service)}
               />
             ))}
           </div>
@@ -167,9 +185,12 @@ export function ServiceMenu({
               <ServiceCard
                 key={service.id}
                 service={service}
+                isSelected={selectedItemId === service.id}
+                isCopied={copiedItemId === service.id}
                 onEdit={() => onEdit(service)}
                 onSale={() => onSale(service)}
                 onDelete={() => handleDelete(service.id, service.name)}
+                onCopyLink={() => onCopyLink?.(service)}
               />
             ))}
           </div>
@@ -192,9 +213,12 @@ export function ServiceMenu({
               <ServiceCard
                 key={service.id}
                 service={service}
+                isSelected={selectedItemId === service.id}
+                isCopied={copiedItemId === service.id}
                 onEdit={() => onEdit(service)}
                 onSale={() => onSale(service)}
                 onDelete={() => handleDelete(service.id, service.name)}
+                onCopyLink={() => onCopyLink?.(service)}
               />
             ))}
           </div>
@@ -219,11 +243,17 @@ function ServiceCard({
   onEdit,
   onSale,
   onDelete,
+  isSelected,
+  isCopied,
+  onCopyLink,
 }: {
   service: Service;
   onEdit: () => void;
   onSale: () => void;
   onDelete: () => void;
+  isSelected?: boolean;
+  isCopied?: boolean;
+  onCopyLink?: () => void;
 }) {
   const isSubscription = [
     "Абонамент",
@@ -255,7 +285,15 @@ function ServiceCard({
   };
 
   return (
-    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950">
+    <BentoCard
+      id={`item-${service.id}`}
+      className={cn(
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-none transition-all duration-300 dark:bg-zinc-950",
+        isSelected
+          ? "border-blue-500 ring-2 ring-blue-500/80 shadow-lg dark:border-blue-400 dark:ring-blue-400/80 bg-blue-50/15 dark:bg-blue-950/20"
+          : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800"
+      )}
+    >
       {/* Cover Image or Icon Header */}
       <div className="relative flex h-44 items-center justify-center overflow-hidden border-b border-zinc-100 bg-zinc-50 sm:h-48 dark:border-zinc-800 dark:bg-zinc-900">
         {images.length > 0 ? (
@@ -323,14 +361,20 @@ function ServiceCard({
               className="min-w-40 rounded-2xl border-zinc-100 p-2"
             >
               <DropdownMenuItem
+                onClick={onCopyLink}
+                className="gap-2 rounded-xl py-2.5 focus:bg-zinc-50 cursor-pointer"
+              >
+                <Link2 className="size-4 text-zinc-400" /> Копирай линк
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={onEdit}
-                className="gap-2 rounded-xl py-3 focus:bg-zinc-50"
+                className="gap-2 rounded-xl py-2.5 focus:bg-zinc-50 cursor-pointer"
               >
                 <Edit className="size-4 text-zinc-400" /> Редактиране
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onDelete}
-                className="text-red-600 gap-2 rounded-xl py-3 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30"
+                className="text-red-600 gap-2 rounded-xl py-2.5 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30 cursor-pointer"
               >
                 <Trash2 className="size-4" /> Изтриване
               </DropdownMenuItem>
@@ -349,9 +393,37 @@ function ServiceCard({
       {/* Content Area */}
       <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
         <div className="space-y-3">
-          <h4 className="line-clamp-1 text-lg font-medium tracking-tight text-zinc-900 transition-colors group-hover:text-primary sm:text-xl dark:text-white">
-            {service.name}
-          </h4>
+          <div className="flex items-start justify-between gap-2">
+            <h4 className="line-clamp-1 text-lg font-medium tracking-tight text-zinc-900 transition-colors group-hover:text-primary sm:text-xl dark:text-white">
+              {service.name}
+            </h4>
+            {onCopyLink && (
+              <button
+                type="button"
+                onClick={onCopyLink}
+                className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-blue-700 dark:hover:text-blue-300 transition-all cursor-pointer shrink-0 shadow-2xs"
+                title={`Копирай директен линк към ${service.name}`}
+                aria-label={`Копирай директен линк към ${service.name}`}
+              >
+                {isCopied ? (
+                  <>
+                    <Check
+                      size={11}
+                      className="text-emerald-600 dark:text-emerald-400"
+                    />
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                      Копирано!
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Link2 size={11} />
+                    <span>Линк</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
           <p className="line-clamp-2 min-h-10 text-xs leading-relaxed font-light text-zinc-400 sm:line-clamp-3 sm:min-h-12 sm:text-sm">
             {service.description}
           </p>

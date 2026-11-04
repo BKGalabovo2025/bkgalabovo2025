@@ -3,8 +3,10 @@
 import {
   Activity,
   Calendar,
+  Check,
   Clock,
   Edit,
+  Link2,
   MoreHorizontal,
   Trash2,
   Users,
@@ -25,14 +27,24 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { deleteRecoverySession } from "@/lib/actions/services";
 import { formatPrice } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 import { ClubService } from "@/types";
 
 interface RecoveryMenuProps {
   services: ClubService[];
   onSale?: (service: ClubService) => void;
+  selectedItemId?: string | null;
+  copiedItemId?: string | null;
+  onCopyLink?: (service: ClubService) => void;
 }
 
-export function RecoveryMenu({ services, onSale }: RecoveryMenuProps) {
+export function RecoveryMenu({
+  services,
+  onSale,
+  selectedItemId,
+  copiedItemId,
+  onCopyLink,
+}: RecoveryMenuProps) {
   const router = useRouter();
   const { idToken } = useAuth();
 
@@ -75,11 +87,14 @@ export function RecoveryMenu({ services, onSale }: RecoveryMenuProps) {
               <RecoveryCard
                 key={service.id}
                 service={service}
+                isSelected={selectedItemId === service.id}
+                isCopied={copiedItemId === service.id}
                 onEdit={() =>
                   router.push(`/catalogs/recovery/${service.id}/edit`)
                 }
                 onSale={() => onSale?.(service)}
                 onDelete={() => handleDelete(service.id, service.name)}
+                onCopyLink={() => onCopyLink?.(service)}
               />
             ))}
           </div>
@@ -102,11 +117,17 @@ const RecoveryCard = ({
   onEdit,
   onSale,
   onDelete,
+  isSelected,
+  isCopied,
+  onCopyLink,
 }: {
   service: ClubService;
   onEdit: () => void;
   onSale: () => void;
   onDelete: () => void;
+  isSelected?: boolean;
+  isCopied?: boolean;
+  onCopyLink?: () => void;
 }) => {
   const images = (service as any).imageUrl
     ? (service as any).imageUrl
@@ -138,7 +159,15 @@ const RecoveryCard = ({
   };
 
   return (
-    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950">
+    <BentoCard
+      id={`item-${service.id}`}
+      className={cn(
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-none transition-all duration-300 dark:bg-zinc-950",
+        isSelected
+          ? "border-blue-500 ring-2 ring-blue-500/80 shadow-lg dark:border-blue-400 dark:ring-blue-400/80 bg-blue-50/15 dark:bg-blue-950/20"
+          : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800"
+      )}
+    >
       {/* Cover Image Header with Horizontal Scroll */}
       <div className="relative h-44 overflow-hidden border-b border-zinc-100 bg-zinc-50 sm:h-48 dark:border-zinc-800 dark:bg-zinc-900">
         {renderImages()}
@@ -161,14 +190,20 @@ const RecoveryCard = ({
               className="min-w-40 rounded-xl border-zinc-100 p-1.5"
             >
               <DropdownMenuItem
+                onClick={onCopyLink}
+                className="gap-2 rounded-lg py-2 focus:bg-zinc-50 cursor-pointer"
+              >
+                <Link2 className="size-4 text-zinc-400" /> Копирай линк
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={onEdit}
-                className="gap-2 rounded-lg py-2 focus:bg-zinc-50"
+                className="gap-2 rounded-lg py-2 focus:bg-zinc-50 cursor-pointer"
               >
                 <Edit className="size-4 text-zinc-400" /> Редактиране
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onDelete}
-                className="text-red-600 gap-2 rounded-lg py-2 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30"
+                className="text-red-600 gap-2 rounded-lg py-2 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30 cursor-pointer"
               >
                 <Trash2 className="size-4" /> Изтриване
               </DropdownMenuItem>
@@ -224,9 +259,37 @@ const RecoveryCard = ({
               </span>
             )}
           </div>
-          <h4 className="text-lg font-medium tracking-tight text-zinc-900 transition-colors group-hover:text-cyan-600 sm:text-xl dark:text-white">
-            {service.name}
-          </h4>
+          <div className="flex items-start justify-between gap-2">
+            <h4 className="text-lg font-medium tracking-tight text-zinc-900 transition-colors group-hover:text-cyan-600 sm:text-xl dark:text-white">
+              {service.name}
+            </h4>
+            {onCopyLink && (
+              <button
+                type="button"
+                onClick={onCopyLink}
+                className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-cyan-700 dark:hover:text-cyan-300 transition-all cursor-pointer shrink-0 shadow-2xs"
+                title={`Копирай директен линк към ${service.name}`}
+                aria-label={`Копирай директен линк към ${service.name}`}
+              >
+                {isCopied ? (
+                  <>
+                    <Check
+                      size={11}
+                      className="text-emerald-600 dark:text-emerald-400"
+                    />
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                      Копирано!
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Link2 size={11} />
+                    <span>Линк</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
           <p className="line-clamp-2 min-h-10 text-xs leading-relaxed font-light text-zinc-400 sm:line-clamp-3 sm:min-h-12 sm:text-sm">
             {service.description}
           </p>

@@ -1,11 +1,20 @@
 "use client";
 
-import { Edit2, ImageIcon, Search, Trash2, Wrench } from "lucide-react";
+import {
+  Check,
+  Edit2,
+  ImageIcon,
+  Link2,
+  Search,
+  Trash2,
+  Wrench,
+} from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import {
   AlertDialog,
@@ -21,7 +30,9 @@ import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGeneralServices } from "@/hooks/useGeneralServices";
+import { deleteGeneralServiceAction } from "@/lib/actions/general-services-server";
 import { formatPrice } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 import { GeneralService } from "@/types";
 const EditGeneralServiceDialog = dynamic(
   () =>
@@ -37,9 +48,6 @@ const UnifiedSaleWizardDialog = dynamic(
     ),
   { ssr: false }
 );
-import { toast } from "sonner";
-
-import { deleteGeneralServiceAction } from "@/lib/actions/general-services-server";
 const ReservationDialog = dynamic(
   () =>
     import("@/components/reservations/reservation-dialog").then(
@@ -50,14 +58,31 @@ const ReservationDialog = dynamic(
 
 export function GeneralServiceList() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const saleId = searchParams.get("sale");
+  const qParam = searchParams.get("q") || "";
+  const itemParam = searchParams.get("item");
 
   const { services, isLoading, refetch } = useGeneralServices();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(qParam);
+  const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<GeneralService | null>(
     null
   );
+
+  useEffect(() => {
+    setSearchTerm(qParam);
+  }, [qParam]);
+
+  useEffect(() => {
+    if (itemParam) {
+      const el = document.getElementById(`item-${itemParam}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [itemParam, services]);
 
   // Synchronize sale wizard with URL query parameter ?sale=<id>
   useEffect(() => {
@@ -70,18 +95,56 @@ export function GeneralServiceList() {
     }
   }, [saleId, services]);
 
+  const updateUrlParams = (updater: (params: URLSearchParams) => void) => {
+    const params = new URLSearchParams(searchParams.toString());
+    updater(params);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
+    updateUrlParams((params) => {
+      if (val.trim()) params.set("q", val);
+      else params.delete("q");
+    });
+  };
+
+  const handleCopyLink = (service: GeneralService) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/catalogs/club-services?item=${service.id}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          setCopiedItemId(service.id);
+          toast.success(`Директният линк за "${service.name}" е копиран!`);
+          setTimeout(() => setCopiedItemId(null), 2500);
+        })
+        .catch(() => {
+          toast.error("Неуспешно копиране на линк.");
+        });
+    } else {
+      setCopiedItemId(service.id);
+      toast.success(`Линк: ${url}`);
+      setTimeout(() => setCopiedItemId(null), 2500);
+    }
+  };
+
   const openSale = (service: GeneralService) => {
     setSelectedService(service);
     setIsSaleOpen(true);
-    router.push(`/catalogs/club-services?sale=${service.id}`, {
-      scroll: false,
+    updateUrlParams((params) => {
+      params.set("sale", service.id);
     });
   };
 
   const closeSale = () => {
     setIsSaleOpen(false);
     setSelectedService(null);
-    router.push("/catalogs/club-services", { scroll: false });
+    updateUrlParams((params) => {
+      params.delete("sale");
+    });
   };
 
   // Dialog states
@@ -139,149 +202,200 @@ export function GeneralServiceList() {
         <Input
           placeholder="Търсене на клубна услуга..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="h-12 rounded-2xl border border-zinc-100 bg-white pl-11 text-sm font-light shadow-none transition-all focus-visible:ring-1 focus-visible:ring-primary/30 dark:border-zinc-800 dark:bg-zinc-900"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filteredServices.length > 0 ? (
-          filteredServices.map((service) => (
-            <BentoCard
-              key={service.id}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 dark:hover:shadow-none"
-            >
-              <div className="relative flex h-44 items-center justify-center overflow-hidden border-b border-zinc-100 bg-zinc-50 sm:h-48 dark:border-zinc-800 dark:bg-zinc-900">
-                {service.imageUrl ? (
-                  <Image
-                    src={service.imageUrl}
-                    alt={service.name}
-                    fill
-                    unoptimized={
-                      service.imageUrl.startsWith("/api/") ||
-                      service.imageUrl.includes("/api/upload") ||
-                      service.imageUrl.startsWith("data:")
-                    }
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-contain p-3 transition-transform duration-700 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex size-full flex-col items-center justify-center bg-zinc-50 text-zinc-200 dark:bg-zinc-900 dark:text-zinc-800">
-                    <ImageIcon
-                      className="mb-1.5 size-12 opacity-20"
-                      strokeWidth={1}
-                    />
-                    <span className="text-[9px] font-medium tracking-[0.2em] uppercase opacity-40">
-                      No Image
-                    </span>
-                  </div>
-                )}
+          filteredServices.map((service) => {
+            const isSelected = itemParam === service.id;
+            const isCopied = copiedItemId === service.id;
 
-                <div className="absolute top-3 right-3 flex translate-y-0 sm:translate-y-1 gap-1.5 opacity-100 sm:opacity-0 transition-all duration-300 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    asChild
-                    className="size-8 rounded-lg border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-zinc-800"
-                    title={`Редактирай ${service.name}`}
-                    aria-label={`Редактирай ${service.name}`}
-                  >
-                    <Link href={`/catalogs/club-services/${service.id}/edit`}>
-                      <Edit2
-                        className="size-3.5 text-zinc-600 dark:text-zinc-400"
+            return (
+              <BentoCard
+                id={`item-${service.id}`}
+                key={service.id}
+                className={cn(
+                  "group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-none transition-all duration-300 dark:bg-zinc-950",
+                  isSelected
+                    ? "border-blue-500 ring-2 ring-blue-500/80 shadow-lg dark:border-blue-400 dark:ring-blue-400/80 bg-blue-50/15 dark:bg-blue-950/20"
+                    : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800"
+                )}
+              >
+                <div className="relative flex h-44 items-center justify-center overflow-hidden border-b border-zinc-100 bg-zinc-50 sm:h-48 dark:border-zinc-800 dark:bg-zinc-900">
+                  {service.imageUrl ? (
+                    <Image
+                      src={service.imageUrl}
+                      alt={service.name}
+                      fill
+                      unoptimized={
+                        service.imageUrl.startsWith("/api/") ||
+                        service.imageUrl.includes("/api/upload") ||
+                        service.imageUrl.startsWith("data:")
+                      }
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-contain p-3 transition-transform duration-700 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex size-full flex-col items-center justify-center bg-zinc-50 text-zinc-200 dark:bg-zinc-900 dark:text-zinc-800">
+                      <ImageIcon
+                        className="mb-1.5 size-12 opacity-20"
+                        strokeWidth={1}
+                      />
+                      <span className="text-[9px] font-medium tracking-[0.2em] uppercase opacity-40">
+                        No Image
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="absolute top-3 right-3 flex translate-y-0 sm:translate-y-1 gap-1.5 opacity-100 sm:opacity-0 transition-all duration-300 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      onClick={() => handleCopyLink(service)}
+                      className="size-8 rounded-lg border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-zinc-800 cursor-pointer"
+                      title={`Копирай директен линк към ${service.name}`}
+                      aria-label={`Копирай директен линк към ${service.name}`}
+                    >
+                      {isCopied ? (
+                        <Check className="size-3.5 text-emerald-600" />
+                      ) : (
+                        <Link2 className="size-3.5 text-zinc-600 dark:text-zinc-400" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      asChild
+                      className="size-8 rounded-lg border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-zinc-800"
+                      title={`Редактирай ${service.name}`}
+                      aria-label={`Редактирай ${service.name}`}
+                    >
+                      <Link href={`/catalogs/club-services/${service.id}/edit`}>
+                        <Edit2
+                          className="size-3.5 text-zinc-600 dark:text-zinc-400"
+                          strokeWidth={1.5}
+                        />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="size-8 rounded-lg border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-rose-50 hover:text-rose-600 dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-rose-900/20"
+                      onClick={() => setServiceToDelete(service)}
+                      title={`Изтрий ${service.name}`}
+                      aria-label={`Изтрий ${service.name}`}
+                    >
+                      <Trash2
+                        className="size-3.5 text-rose-500"
                         strokeWidth={1.5}
                       />
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="size-8 rounded-lg border border-zinc-100 bg-white/90 shadow-none backdrop-blur-md transition-all hover:bg-rose-50 hover:text-rose-600 dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:bg-rose-900/20"
-                    onClick={() => setServiceToDelete(service)}
-                    title={`Изтрий ${service.name}`}
-                    aria-label={`Изтрий ${service.name}`}
-                  >
-                    <Trash2
-                      className="size-3.5 text-rose-500"
-                      strokeWidth={1.5}
-                    />
-                  </Button>
-                </div>
+                    </Button>
+                  </div>
 
-                <div className="absolute bottom-3 left-3">
-                  <div className="rounded-md border border-zinc-200/80 bg-white/85 px-2.5 py-1 text-[9px] font-medium tracking-widest text-zinc-900 uppercase backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/85 dark:text-white">
-                    {{
-                      fixed: "Фиксирана",
-                      per_hour: "На час",
-                      per_session: "На сесия",
-                    }[service.pricingUnit] || service.pricingUnit}
+                  <div className="absolute bottom-3 left-3">
+                    <div className="rounded-md border border-zinc-200/80 bg-white/85 px-2.5 py-1 text-[9px] font-medium tracking-widest text-zinc-900 uppercase backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/85 dark:text-white">
+                      {{
+                        fixed: "Фиксирана",
+                        per_hour: "На час",
+                        per_session: "На сесия",
+                      }[service.pricingUnit] || service.pricingUnit}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
-                <div>
-                  <div className="mb-1.5 flex items-start justify-between gap-3">
-                    <h3 className="line-clamp-2 flex min-h-10 items-center text-base leading-snug font-medium text-zinc-900 transition-colors group-hover:text-primary sm:text-lg dark:text-zinc-50">
-                      {service.name}
-                    </h3>
-                  </div>
-                  <p className="mb-3 line-clamp-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
-                    Изпълнител: {service.performerName}
-                  </p>
-                </div>
-
-                <div className="space-y-3.5 border-t border-zinc-100 pt-3.5 dark:border-zinc-800">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-[10px] leading-none font-medium tracking-widest text-zinc-400 uppercase">
-                      Цена
-                    </span>
-                    <span className="text-xl leading-none font-light tracking-tight text-zinc-900 sm:text-2xl dark:text-white">
-                      {formatPrice(service.price)}
-                    </span>
-                  </div>
-                  <div className="grid w-full grid-cols-2 gap-2.5">
-                    {service.name.toLowerCase().includes("наем на корт") ||
-                    service.id.startsWith("court_rental") ? (
-                      <ReservationDialog
-                        onSave={refetch}
-                        initialData={{
-                          courtId: 1,
-                        }}
+                <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+                  <div>
+                    <div className="mb-1.5 flex items-start justify-between gap-2">
+                      <h3 className="line-clamp-2 flex min-h-10 items-center text-base leading-snug font-medium text-zinc-900 transition-colors group-hover:text-primary sm:text-lg dark:text-zinc-50">
+                        {service.name}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyLink(service)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-blue-700 dark:hover:text-blue-300 transition-all cursor-pointer shrink-0 shadow-2xs mt-1"
+                        title={`Копирай директен линк към ${service.name}`}
+                        aria-label={`Копирай директен линк към ${service.name}`}
                       >
+                        {isCopied ? (
+                          <>
+                            <Check
+                              size={11}
+                              className="text-emerald-600 dark:text-emerald-400"
+                            />
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                              Копирано!
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Link2 size={11} />
+                            <span>Линк</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <p className="mb-3 line-clamp-1 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                      Изпълнител: {service.performerName}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3.5 border-t border-zinc-100 pt-3.5 dark:border-zinc-800">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-[10px] leading-none font-medium tracking-widest text-zinc-400 uppercase">
+                        Цена
+                      </span>
+                      <span className="text-xl leading-none font-light tracking-tight text-zinc-900 sm:text-2xl dark:text-white">
+                        {formatPrice(service.price)}
+                      </span>
+                    </div>
+                    <div className="grid w-full grid-cols-2 gap-2.5">
+                      {service.name.toLowerCase().includes("наем на корт") ||
+                      service.id.startsWith("court_rental") ? (
+                        <ReservationDialog
+                          onSave={refetch}
+                          initialData={{
+                            courtId: 1,
+                          }}
+                        >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-9 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                          >
+                            Продажба
+                          </Button>
+                        </ReservationDialog>
+                      ) : (
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => openSale(service)}
                           className="h-9 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
                         >
                           Продажба
                         </Button>
-                      </ReservationDialog>
-                    ) : (
+                      )}
                       <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
-                        onClick={() => openSale(service)}
-                        className="h-9 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                        asChild
+                        className="h-9 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
                       >
-                        Продажба
+                        <Link
+                          href={`/catalogs/club-services/${service.id}/edit`}
+                        >
+                          Детайли
+                        </Link>
                       </Button>
-                    )}
-                    <Button
-                      variant="default"
-                      size="sm"
-                      asChild
-                      className="h-9 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                    >
-                      <Link href={`/catalogs/club-services/${service.id}/edit`}>
-                        Детайли
-                      </Link>
-                    </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </BentoCard>
-          ))
+              </BentoCard>
+            );
+          })
         ) : (
           <div className="col-span-full rounded-2xl border-2 border-dashed border-zinc-200/80 bg-zinc-50/30 py-10 sm:py-14 text-center dark:border-zinc-800 dark:bg-zinc-900/10">
             <Wrench

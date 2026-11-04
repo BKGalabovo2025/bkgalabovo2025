@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  Check,
   Edit2,
+  Link2,
   Package,
   PackagePlus,
   Search,
@@ -10,7 +12,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -24,7 +26,7 @@ import {
   getProductsServerAction,
 } from "@/lib/actions/products-server";
 import { formatPrice } from "@/lib/currency";
-import { sanitizeImageUrl } from "@/lib/utils";
+import { cn, sanitizeImageUrl } from "@/lib/utils";
 import { Product } from "@/types";
 
 interface ShopCatalogViewProps {
@@ -62,18 +64,43 @@ function ProductStockBadge({
 
 export function ShopCatalogView({
   initialProducts,
-  activeBranch = "bkgalabovo",
+  activeBranch = "bkgalabovo2025",
 }: ShopCatalogViewProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
   const saleId = searchParams.get("sale");
+  const qParam = searchParams.get("q") || "";
+  const categoryParam = searchParams.get("category") || "all";
+  const itemParam = searchParams.get("item");
 
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState(qParam);
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam);
+  const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
 
   // Sale wizard state
   const [saleProduct, setSaleProduct] = useState<Product | null>(null);
+
+  // Sync state with URL params
+  useEffect(() => {
+    setSearchTerm(qParam);
+  }, [qParam]);
+
+  useEffect(() => {
+    setSelectedCategory(categoryParam);
+  }, [categoryParam]);
+
+  // Auto-scroll when itemParam is provided
+  useEffect(() => {
+    if (itemParam) {
+      const el = document.getElementById(`item-${itemParam}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [itemParam, products]);
 
   // Synchronize sale wizard with URL query parameter
   useEffect(() => {
@@ -87,14 +114,62 @@ export function ShopCatalogView({
     }
   }, [saleId, products]);
 
+  const updateUrlParams = (updater: (params: URLSearchParams) => void) => {
+    const params = new URLSearchParams(searchParams.toString());
+    updater(params);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
+    updateUrlParams((params) => {
+      if (val.trim()) params.set("q", val);
+      else params.delete("q");
+    });
+  };
+
+  const handleCategoryChange = (cat: string) => {
+    setSelectedCategory(cat);
+    updateUrlParams((params) => {
+      if (cat !== "all") params.set("category", cat);
+      else params.delete("category");
+    });
+  };
+
+  const handleCopyLink = (product: Product) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/catalogs/shop?item=${product.id}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          setCopiedItemId(product.id);
+          toast.success(`Директният линк за "${product.name}" е копиран!`);
+          setTimeout(() => setCopiedItemId(null), 2500);
+        })
+        .catch(() => {
+          toast.error("Неуспешно копиране на линк.");
+        });
+    } else {
+      setCopiedItemId(product.id);
+      toast.success(`Линк: ${url}`);
+      setTimeout(() => setCopiedItemId(null), 2500);
+    }
+  };
+
   const openSale = (product: Product) => {
     setSaleProduct(product);
-    router.push(`/catalogs/shop?sale=${product.id}`, { scroll: false });
+    updateUrlParams((params) => {
+      params.set("sale", product.id);
+    });
   };
 
   const closeSale = () => {
     setSaleProduct(null);
-    router.push("/catalogs/shop", { scroll: false });
+    updateUrlParams((params) => {
+      params.delete("sale");
+    });
   };
 
   const categories = useMemo(() => {
@@ -107,10 +182,11 @@ export function ShopCatalogView({
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
+      const q = searchTerm.toLowerCase();
       const matchesSearch =
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.category &&
-          p.category.toLowerCase().includes(searchTerm.toLowerCase()));
+        !searchTerm.trim() ||
+        p.name.toLowerCase().includes(q) ||
+        (p.category && p.category.toLowerCase().includes(q));
       const matchesCategory =
         selectedCategory === "all" || p.category === selectedCategory;
       return matchesSearch && matchesCategory;
@@ -149,7 +225,7 @@ export function ShopCatalogView({
           <Input
             placeholder="Търсене на ракета, пера, грип или аксесоар..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="rounded-xl pl-9 text-xs"
           />
         </div>
@@ -161,19 +237,19 @@ export function ShopCatalogView({
         >
           <Link href="/catalogs/shop/new">
             <PackagePlus className="mr-1.5 size-4" />
-            <span>Добави артикул</span>
+            <span>Нов артикул</span>
           </Link>
         </Button>
       </div>
 
-      {/* Category Filter Pills */}
+      {/* Category Pills */}
       {categories.length > 2 && (
         <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-1">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => handleCategoryChange(cat)}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === cat
                   ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs"
@@ -202,11 +278,19 @@ export function ShopCatalogView({
           {filteredProducts.map((product) => {
             const hasImage = Boolean(product.imageUrl);
             const safeImg = sanitizeImageUrl(product.imageUrl);
+            const isSelected = itemParam === product.id;
+            const isCopied = copiedItemId === product.id;
 
             return (
               <BentoCard
+                id={`item-${product.id}`}
                 key={product.id}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
+                className={cn(
+                  "group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-white p-4 shadow-xs transition-all duration-300 dark:bg-zinc-900",
+                  isSelected
+                    ? "border-blue-500 ring-2 ring-blue-500/80 shadow-lg dark:border-blue-400 dark:ring-blue-400/80 bg-blue-50/15 dark:bg-blue-950/20"
+                    : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800"
+                )}
               >
                 <div>
                   {/* Thumbnail */}
@@ -235,9 +319,35 @@ export function ShopCatalogView({
                     <span className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
                       {product.category || "Общи"}
                     </span>
-                    <h4 className="font-bold text-zinc-900 dark:text-white text-sm line-clamp-1">
-                      {product.name}
-                    </h4>
+                    <div className="flex items-start justify-between gap-1.5">
+                      <h4 className="font-bold text-zinc-900 dark:text-white text-sm line-clamp-1">
+                        {product.name}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyLink(product)}
+                        className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-blue-700 dark:hover:text-blue-300 transition-all cursor-pointer shrink-0 shadow-2xs"
+                        title={`Копирай директен линк към ${product.name}`}
+                        aria-label={`Копирай директен линк към ${product.name}`}
+                      >
+                        {isCopied ? (
+                          <>
+                            <Check
+                              size={10}
+                              className="text-emerald-600 dark:text-emerald-400"
+                            />
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                              Копирано!
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Link2 size={10} />
+                            <span>Линк</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                     {product.description && (
                       <p className="text-xs text-zinc-500 line-clamp-2">
                         {product.description}
@@ -298,26 +408,21 @@ export function ShopCatalogView({
         </div>
       )}
 
-      {/* Sale Wizard */}
+      {/* Instant Sale Wizard */}
       {saleProduct && (
         <UnifiedSaleWizardDialog
-          item={{
-            id: saleProduct.id,
-            name: saleProduct.name,
-            price: saleProduct.price,
-            category: saleProduct.category,
-            stock: saleProduct.stock,
-          }}
+          item={saleProduct}
           mode="product"
           isOpen={!!saleProduct}
           onClose={closeSale}
-          onSaleSuccess={async () => {
+          onSaleSuccess={() => {
             closeSale();
-            const refreshRes = await getProductsServerAction(activeBranch);
-            if (refreshRes.success && refreshRes.data) {
-              setProducts(refreshRes.data);
-            }
-            router.refresh();
+            (async () => {
+              const res = await getProductsServerAction(activeBranch);
+              if (res.success && res.data) {
+                setProducts(res.data);
+              }
+            })();
           }}
         />
       )}

@@ -3,8 +3,9 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { LayoutGrid, List, PlusCircle, Search } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { RecoveryMenu } from "@/components/finances/RecoveryMenu";
 import { DataTable } from "@/components/shared/data-table";
@@ -24,15 +25,50 @@ export function RecoveryCatalogView({
   initialServices,
 }: RecoveryCatalogViewProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
   const saleId = searchParams.get("sale");
+  const qParam = searchParams.get("q") || "";
+  const categoryParam = searchParams.get("category") || "all";
+  const viewParam = searchParams.get("view") as "grid" | "table" | null;
+  const itemParam = searchParams.get("item");
 
   const [services] = useState<ClubService[]>(initialServices);
-  const [view, setView] = useState<"grid" | "table">("grid");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [view, setView] = useState<"grid" | "table">(
+    viewParam === "table" ? "table" : "grid"
+  );
+  const [searchTerm, setSearchTerm] = useState(qParam);
+  const [selectedCategory, setSelectedCategory] =
+    useState<string>(categoryParam);
+  const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
   const [selectedSaleService, setSelectedSaleService] =
     useState<ClubService | null>(null);
+
+  // Sync state if URL changes
+  useEffect(() => {
+    setSearchTerm(qParam);
+  }, [qParam]);
+
+  useEffect(() => {
+    setSelectedCategory(categoryParam);
+  }, [categoryParam]);
+
+  useEffect(() => {
+    if (viewParam && (viewParam === "grid" || viewParam === "table")) {
+      setView(viewParam);
+    }
+  }, [viewParam]);
+
+  // Auto-scroll when itemParam is provided
+  useEffect(() => {
+    if (itemParam) {
+      const el = document.getElementById(`item-${itemParam}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [itemParam, services]);
 
   useEffect(() => {
     if (saleId && services.length > 0) {
@@ -45,14 +81,70 @@ export function RecoveryCatalogView({
     }
   }, [saleId, services]);
 
+  const updateUrlParams = (updater: (params: URLSearchParams) => void) => {
+    const params = new URLSearchParams(searchParams.toString());
+    updater(params);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
+    updateUrlParams((params) => {
+      if (val.trim()) params.set("q", val);
+      else params.delete("q");
+    });
+  };
+
+  const handleCategoryChange = (cat: string) => {
+    setSelectedCategory(cat);
+    updateUrlParams((params) => {
+      if (cat !== "all") params.set("category", cat);
+      else params.delete("category");
+    });
+  };
+
+  const handleViewChange = (v: "grid" | "table") => {
+    setView(v);
+    updateUrlParams((params) => {
+      if (v === "table") params.set("view", "table");
+      else params.delete("view");
+    });
+  };
+
+  const handleCopyLink = (service: ClubService) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/catalogs/recovery?item=${service.id}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          setCopiedItemId(service.id);
+          toast.success(`Директният линк за "${service.name}" е копиран!`);
+          setTimeout(() => setCopiedItemId(null), 2500);
+        })
+        .catch(() => {
+          toast.error("Неуспешно копиране на линк.");
+        });
+    } else {
+      setCopiedItemId(service.id);
+      toast.success(`Линк: ${url}`);
+      setTimeout(() => setCopiedItemId(null), 2500);
+    }
+  };
+
   const openSale = (service: ClubService) => {
     setSelectedSaleService(service);
-    router.push(`/catalogs/recovery?sale=${service.id}`, { scroll: false });
+    updateUrlParams((params) => {
+      params.set("sale", service.id);
+    });
   };
 
   const closeSale = () => {
     setSelectedSaleService(null);
-    router.push("/catalogs/recovery", { scroll: false });
+    updateUrlParams((params) => {
+      params.delete("sale");
+    });
   };
 
   const categories = useMemo(() => {
@@ -106,41 +198,34 @@ export function RecoveryCatalogView({
       ),
     },
     {
-      accessorKey: "zones",
-      header: "Зони",
-      cell: ({ row }) => (
-        <div className="flex flex-wrap gap-1">
-          {row.original.zones?.map((zone) => (
-            <span
-              key={zone}
-              className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium dark:bg-zinc-800"
-            >
-              {zone}
-            </span>
-          ))}
-        </div>
-      ),
-    },
-    {
       id: "actions",
+      header: "Действия",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1.5">
+        <div className="flex items-center gap-2">
           <Button
-            variant="outline"
             size="sm"
+            variant="ghost"
+            onClick={() => handleCopyLink(row.original)}
+            className="h-8 text-xs font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer"
+            title="Копирай директен линк"
+          >
+            Линк
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => openSale(row.original)}
-            className="h-7 text-xs text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400"
+            className="h-8 text-xs font-semibold"
           >
             Продажба
           </Button>
           <Button
-            variant="ghost"
             size="sm"
             asChild
-            className="h-7 text-xs text-blue-600 hover:underline dark:text-blue-400"
+            className="h-8 bg-zinc-900 text-xs font-semibold text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900"
           >
             <Link href={`/catalogs/recovery/${row.original.id}/edit`}>
-              Редактиране
+              Редакция
             </Link>
           </Button>
         </div>
@@ -150,7 +235,7 @@ export function RecoveryCatalogView({
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Search Controls */}
+      {/* Top Controls Bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-md">
           <Search
@@ -158,18 +243,18 @@ export function RecoveryCatalogView({
             className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-400"
           />
           <Input
-            placeholder="Търсене на процедура, сауна, масаж или пакет..."
+            placeholder="Търсене на възстановителна процедура..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="rounded-xl pl-9 text-xs"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          {/* View Switch */}
+          {/* View Mode Switch */}
           <Tabs
             value={view}
-            onValueChange={(v) => setView(v as "grid" | "table")}
+            onValueChange={(v) => handleViewChange(v as "grid" | "table")}
             className="hidden rounded-xl border border-zinc-200/80 bg-zinc-100/80 p-0.5 md:flex dark:border-zinc-800 dark:bg-zinc-900"
           >
             <TabsList className="h-8 border-none bg-transparent p-0">
@@ -177,7 +262,7 @@ export function RecoveryCatalogView({
                 value="grid"
                 title="Решетка"
                 aria-label="Изглед Решетка"
-                className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
+                className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 cursor-pointer"
               >
                 <LayoutGrid className="size-3.5" />
               </TabsTrigger>
@@ -185,7 +270,7 @@ export function RecoveryCatalogView({
                 value="table"
                 title="Таблица"
                 aria-label="Изглед Таблица"
-                className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
+                className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 cursor-pointer"
               >
                 <List className="size-3.5" />
               </TabsTrigger>
@@ -212,7 +297,7 @@ export function RecoveryCatalogView({
             <button
               key={cat}
               type="button"
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => handleCategoryChange(cat)}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === cat
                   ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs"
@@ -229,6 +314,9 @@ export function RecoveryCatalogView({
       {view === "grid" ? (
         <RecoveryMenu
           services={filteredServices}
+          selectedItemId={itemParam}
+          copiedItemId={copiedItemId}
+          onCopyLink={handleCopyLink}
           onSale={(service) => openSale(service)}
         />
       ) : (

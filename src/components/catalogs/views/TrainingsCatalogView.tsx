@@ -2,8 +2,9 @@
 
 import { LayoutGrid, List, PlusCircle, Search } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { columns } from "@/app/(protected)/finances/services/columns";
 import { Service } from "@/app/(protected)/finances/services/service.types";
@@ -23,13 +24,43 @@ export function TrainingsCatalogView({
   initialServices,
 }: TrainingsCatalogViewProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
   const saleId = searchParams.get("sale");
+  const qParam = searchParams.get("q") || "";
+  const viewParam = searchParams.get("view") as "grid" | "table" | null;
+  const itemParam = searchParams.get("item");
 
   const [services] = useState<Service[]>(initialServices);
-  const [view, setView] = useState<"grid" | "table">("grid");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [view, setView] = useState<"grid" | "table">(
+    viewParam === "table" ? "table" : "grid"
+  );
+  const [searchTerm, setSearchTerm] = useState(qParam);
+  const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
   const [saleService, setSaleService] = useState<Service | null>(null);
+
+  // Keep search term state in sync if URL changes
+  useEffect(() => {
+    setSearchTerm(qParam);
+  }, [qParam]);
+
+  // Keep view in sync if URL changes
+  useEffect(() => {
+    if (viewParam && (viewParam === "grid" || viewParam === "table")) {
+      setView(viewParam);
+    }
+  }, [viewParam]);
+
+  // Auto-scroll into view when item deep-link param is provided
+  useEffect(() => {
+    if (itemParam) {
+      const el = document.getElementById(`item-${itemParam}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [itemParam, services]);
 
   // Synchronize sale modal with URL search param
   useEffect(() => {
@@ -43,14 +74,62 @@ export function TrainingsCatalogView({
     }
   }, [saleId, services]);
 
+  const updateUrlParams = (updater: (params: URLSearchParams) => void) => {
+    const params = new URLSearchParams(searchParams.toString());
+    updater(params);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
+    updateUrlParams((params) => {
+      if (val.trim()) params.set("q", val);
+      else params.delete("q");
+    });
+  };
+
+  const handleViewChange = (v: "grid" | "table") => {
+    setView(v);
+    updateUrlParams((params) => {
+      if (v === "table") params.set("view", "table");
+      else params.delete("view");
+    });
+  };
+
+  const handleCopyLink = (service: Service) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/catalogs/trainings?item=${service.id}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          setCopiedItemId(service.id);
+          toast.success(`Директният линк за "${service.name}" е копиран!`);
+          setTimeout(() => setCopiedItemId(null), 2500);
+        })
+        .catch(() => {
+          toast.error("Неуспешно копиране на линк.");
+        });
+    } else {
+      setCopiedItemId(service.id);
+      toast.success(`Линк: ${url}`);
+      setTimeout(() => setCopiedItemId(null), 2500);
+    }
+  };
+
   const openSale = (service: Service) => {
     setSaleService(service);
-    router.push(`/catalogs/trainings?sale=${service.id}`, { scroll: false });
+    updateUrlParams((params) => {
+      params.set("sale", service.id);
+    });
   };
 
   const closeSale = () => {
     setSaleService(null);
-    router.push(`/catalogs/trainings`, { scroll: false });
+    updateUrlParams((params) => {
+      params.delete("sale");
+    });
   };
 
   const filteredServices = useMemo(() => {
@@ -80,7 +159,7 @@ export function TrainingsCatalogView({
           <Input
             placeholder="Търсене на тренировъчна програма или абонамент..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="rounded-xl pl-9 text-xs"
           />
         </div>
@@ -89,7 +168,7 @@ export function TrainingsCatalogView({
           {/* View Mode Switch */}
           <Tabs
             value={view}
-            onValueChange={(v) => setView(v as "grid" | "table")}
+            onValueChange={(v) => handleViewChange(v as "grid" | "table")}
             className="hidden rounded-xl border border-zinc-200/80 bg-zinc-100/80 p-0.5 md:flex dark:border-zinc-800 dark:bg-zinc-900"
           >
             <TabsList className="h-8 border-none bg-transparent p-0">
@@ -97,7 +176,7 @@ export function TrainingsCatalogView({
                 value="grid"
                 title="Изглед Решетка"
                 aria-label="Изглед Решетка"
-                className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
+                className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 cursor-pointer"
               >
                 <LayoutGrid className="size-3.5" />
               </TabsTrigger>
@@ -105,7 +184,7 @@ export function TrainingsCatalogView({
                 value="table"
                 title="Изглед Таблица"
                 aria-label="Изглед Таблица"
-                className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800"
+                className="h-7 rounded-lg px-2.5 data-[state=active]:bg-white data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 cursor-pointer"
               >
                 <List className="size-3.5" />
               </TabsTrigger>
@@ -129,6 +208,9 @@ export function TrainingsCatalogView({
       {view === "grid" ? (
         <ServiceMenu
           services={filteredServices}
+          selectedItemId={itemParam}
+          copiedItemId={copiedItemId}
+          onCopyLink={handleCopyLink}
           onEdit={(service) =>
             router.push(`/catalogs/trainings/${service.id}/edit`)
           }
