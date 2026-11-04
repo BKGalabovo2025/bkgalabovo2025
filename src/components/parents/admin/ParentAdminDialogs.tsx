@@ -166,10 +166,15 @@ export function ParentAdminDialogs() {
                 </DialogHeader>
 
                 <div className="py-2">
-                  <Label className="text-xs font-semibold">
+                  <Label
+                    htmlFor="admin-link-child-select"
+                    className="text-xs font-semibold"
+                  >
                     Изберете дете:
                   </Label>
                   <select
+                    id="admin-link-child-select"
+                    name="linkChildSelect"
                     value={selectedChildToLink}
                     onChange={(e) => setSelectedChildToLink(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-zinc-300 bg-white p-2.5 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
@@ -308,6 +313,8 @@ export function ParentAdminDialogs() {
                     >
                       <input
                         type="checkbox"
+                        id={`perm-${field.key}`}
+                        name={`perm_${field.key}`}
                         checked={Boolean(
                           permissionsState[
                             field.key as keyof ParentMemberPermissions
@@ -602,6 +609,8 @@ export function ParentAdminDialogs() {
                   >
                     <input
                       type="checkbox"
+                      id={`edit-perm-${field.key}`}
+                      name={`edit_perm_${field.key}`}
                       checked={Boolean(
                         editPermValues[
                           field.key as keyof ParentMemberPermissions
@@ -661,10 +670,15 @@ export function ParentAdminDialogs() {
             </DialogHeader>
 
             <div className="py-2">
-              <Label className="text-xs font-semibold">
+              <Label
+                htmlFor="absence-reply-text"
+                className="text-xs font-semibold"
+              >
                 Отговор от треньора (по избор):
               </Label>
               <Input
+                id="absence-reply-text"
+                name="absenceReplyText"
                 value={absenceReplyText}
                 onChange={(e) => setAbsenceReplyText(e.target.value)}
                 placeholder="напр. Бързо оздравяване! Ще те чакаме в залата."
@@ -964,10 +978,15 @@ export function ParentAdminDialogs() {
             </DialogHeader>
 
             <div className="py-2">
-              <Label className="text-xs font-semibold">
+              <Label
+                htmlFor="reject-correction-comment"
+                className="text-xs font-semibold"
+              >
                 Кратък коментар към родителя (по избор):
               </Label>
               <Input
+                id="reject-correction-comment"
+                name="rejectCorrectionComment"
                 value={rejectCorrectionComment}
                 onChange={(e) => setRejectCorrectionComment(e.target.value)}
                 placeholder="напр. Данните в акта за раждане не съвпадат"

@@ -91,6 +91,8 @@ export function ParentMessagesSectionView() {
           {/* Quick Select Parent to start communication */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <select
+              id="parent-comm-select"
+              name="parentCommSelect"
               aria-label="Изберете родител за контакт"
               value={selectedCommParentId}
               onChange={(e) => setSelectedCommParentId(e.target.value)}
@@ -151,6 +153,8 @@ export function ParentMessagesSectionView() {
           <div className="relative min-w-50">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
             <Input
+              id="comm-search-query"
+              name="commSearchQuery"
               placeholder="Търси по име на родител, дете или бележка..."
               value={commSearchQuery}
               onChange={(e) => setCommSearchQuery(e.target.value)}
@@ -159,6 +163,8 @@ export function ParentMessagesSectionView() {
           </div>
 
           <select
+            id="comm-channel-filter"
+            name="commChannelFilter"
             aria-label="Филтър по канал"
             value={commChannelFilter}
             onChange={(e) =>

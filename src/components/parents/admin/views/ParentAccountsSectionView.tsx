@@ -140,6 +140,8 @@ export function ParentAccountsSectionView() {
             className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-400"
           />
           <Input
+            id="parent-accounts-search"
+            name="parentAccountsSearch"
             placeholder="Търсене по родител, дете, телефон или имейл..."
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
@@ -427,6 +429,8 @@ export function ParentAccountsSectionView() {
                             {/* Send official document to parent portal */}
                             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 min-w-0">
                               <select
+                                id={`doc-type-select-${sendKey}`}
+                                name={`docType_${sendKey}`}
                                 aria-label={`Избор на документ за ${childName}`}
                                 value={
                                   selectedDocTypePerChild[sendKey] ||

@@ -13,6 +13,7 @@ import {
   getAuthUserFromSessionCookie,
 } from "@/lib/auth-utils";
 import { getAdminDb, getAdminStorage } from "@/lib/firebase-admin";
+import { getBackupDb } from "@/lib/firebase-admin-backup";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 import { serverCache } from "@/lib/server-cache";
 import { Member, Sale, ScheduleEvent } from "@/types";
@@ -448,27 +449,131 @@ export async function getMemberProfileDataServerAction(
     const user = await getAuthUserFromSessionCookie();
     if (!user) throw new Error("Unauthorized");
 
+    const cleanMemberId = decodeURIComponent(memberId || "").trim();
+    if (!cleanMemberId) {
+      return {
+        success: false,
+        message: "Невалиден идентификатор на член.",
+      };
+    }
+
     const adminDb = getAdminDb();
 
-    // Fetch member, family search, and events concurrently
-    const memberDocRef = adminDb.collection("members").doc(memberId);
-    const familiesColRef = adminDb.collection("families");
-    const eventsColRef = adminDb.collection("events");
+    // 1. Resilient Member Lookup:
+    // A: Direct doc get on primary / resilient adminDb
+    let memberSnap:
+      | admin.firestore.DocumentSnapshot
+      | admin.firestore.QueryDocumentSnapshot
+      | null = null;
 
-    const [memberSnap, familyQuerySnap, eventsQuerySnap] = await Promise.all([
-      memberDocRef.get(),
-      familiesColRef.where("memberIds", "array-contains", memberId).get(),
-      eventsColRef.where("attendeeMemberIds", "array-contains", memberId).get(),
-    ]);
+    try {
+      const snap = await adminDb.collection("members").doc(cleanMemberId).get();
+      if (snap.exists) {
+        memberSnap = snap;
+      }
+    } catch (err) {
+      console.warn("[getMemberProfileData] Primary doc get failed:", err);
+    }
 
-    if (!memberSnap.exists) {
+    // B: Direct doc get on backup DB if not found
+    if (!memberSnap || !memberSnap.exists) {
+      const backupDb = getBackupDb();
+      if (backupDb) {
+        try {
+          const bSnap = await backupDb
+            .collection("members")
+            .doc(cleanMemberId)
+            .get();
+          if (bSnap.exists) {
+            memberSnap = bSnap;
+          }
+        } catch (err) {
+          console.warn("[getMemberProfileData] Backup doc get failed:", err);
+        }
+      }
+    }
+
+    // C: Query by internal `id` field in case doc.id differs
+    if (!memberSnap || !memberSnap.exists) {
+      try {
+        const querySnap = await adminDb
+          .collection("members")
+          .where("id", "==", cleanMemberId)
+          .limit(1)
+          .get();
+        if (!querySnap.empty) {
+          memberSnap = querySnap.docs[0];
+        } else {
+          const backupDb = getBackupDb();
+          if (backupDb) {
+            const bQuerySnap = await backupDb
+              .collection("members")
+              .where("id", "==", cleanMemberId)
+              .limit(1)
+              .get();
+            if (!bQuerySnap.empty) {
+              memberSnap = bQuerySnap.docs[0];
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[getMemberProfileData] Query by id field failed:", err);
+      }
+    }
+
+    let memberData: Member | null = null;
+    if (memberSnap && memberSnap.exists) {
+      memberData = snapToData<Member>(memberSnap);
+    } else {
+      // D: Check cached all members list
+      try {
+        const { getAllMembersServer } =
+          await import("@/services/member-service.server");
+        const all = await getAllMembersServer();
+        const found = all.find(
+          (m) =>
+            m.id === cleanMemberId ||
+            (m as Record<string, unknown>)._id === cleanMemberId
+        );
+        if (found) {
+          memberData = found;
+        }
+      } catch (err) {
+        console.warn(
+          "[getMemberProfileData] getAllMembersServer fallback failed:",
+          err
+        );
+      }
+    }
+
+    if (!memberData) {
       return {
         success: false,
         message: "Членът не бе намерен.",
       };
     }
 
-    const memberData = snapToData<Member>(memberSnap);
+    const effectiveMemberId = memberData.id || cleanMemberId;
+    const familiesColRef = adminDb.collection("families");
+    const eventsColRef = adminDb.collection("events");
+
+    // Fetch family search and events concurrently with safe catches
+    const [familyQuerySnap, eventsQuerySnap] = await Promise.all([
+      familiesColRef
+        .where("memberIds", "array-contains", effectiveMemberId)
+        .get()
+        .catch(() => ({
+          empty: true,
+          docs: [] as admin.firestore.QueryDocumentSnapshot[],
+        })),
+      eventsColRef
+        .where("attendeeMemberIds", "array-contains", effectiveMemberId)
+        .get()
+        .catch(() => ({
+          empty: true,
+          docs: [] as admin.firestore.QueryDocumentSnapshot[],
+        })),
+    ]);
 
     // Sort attendances by startDate desc
     const attendances = eventsQuerySnap.docs
@@ -480,7 +585,7 @@ export async function getMemberProfileDataServerAction(
 
     let family: Family | null = null;
     let familyMembers: Member[] = [];
-    const targetMemberIds = [memberId];
+    const targetMemberIds = [effectiveMemberId];
 
     if (!familyQuerySnap.empty) {
       const familyDoc = familyQuerySnap.docs[0];
@@ -489,18 +594,26 @@ export async function getMemberProfileDataServerAction(
         id: familyDoc.id,
       }) as Family;
 
-      const otherMemberIds = family.memberIds.filter((id) => id !== memberId);
+      const otherMemberIds = (family.memberIds || []).filter(
+        (id) => id !== effectiveMemberId
+      );
       if (otherMemberIds.length > 0) {
         targetMemberIds.push(...otherMemberIds);
 
         // Fetch other family members concurrently
         const otherMembersSnaps = await Promise.all(
           otherMemberIds.map((id) =>
-            adminDb.collection("members").doc(id).get()
+            adminDb
+              .collection("members")
+              .doc(id)
+              .get()
+              .catch(() => null)
           )
         );
         familyMembers = otherMembersSnaps
-          .filter((snap) => snap.exists)
+          .filter((snap): snap is admin.firestore.DocumentSnapshot =>
+            Boolean(snap?.exists)
+          )
           .map((snap) => snapToData<Member>(snap));
       }
     }
@@ -508,7 +621,13 @@ export async function getMemberProfileDataServerAction(
     // Fetch sales for all family members (or single member if no family) concurrently
     const salesSnaps = await Promise.all(
       targetMemberIds.map((id) =>
-        adminDb.collection("sales").where("memberId", "==", id).get()
+        adminDb
+          .collection("sales")
+          .where("memberId", "==", id)
+          .get()
+          .catch(() => ({
+            docs: [] as admin.firestore.QueryDocumentSnapshot[],
+          }))
       )
     );
 
@@ -519,6 +638,9 @@ export async function getMemberProfileDataServerAction(
           .collection("sales")
           .where("memberIdsForAttendance", "array-contains", id)
           .get()
+          .catch(() => ({
+            docs: [] as admin.firestore.QueryDocumentSnapshot[],
+          }))
       )
     );
 

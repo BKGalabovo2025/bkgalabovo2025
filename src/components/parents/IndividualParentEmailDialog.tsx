@@ -271,10 +271,15 @@ export function IndividualParentEmailDialog({
 
             {/* Subject input */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              <Label
+                htmlFor="parent-email-subject"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+              >
                 Тема на имейла:
               </Label>
               <Input
+                id="parent-email-subject"
+                name="parentEmailSubject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="напр. Напомняне за месечен абонамент"
@@ -285,7 +290,10 @@ export function IndividualParentEmailDialog({
             {/* Message Body */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <Label
+                  htmlFor="parent-email-body"
+                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                >
                   Съдържание на съобщението:
                 </Label>
                 <span className="text-[10px] text-zinc-400">
@@ -293,6 +301,8 @@ export function IndividualParentEmailDialog({
                 </span>
               </div>
               <Textarea
+                id="parent-email-body"
+                name="parentEmailBody"
                 rows={6}
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
