@@ -485,12 +485,22 @@ export function ParentAdminProvider({
   const rejectCorrParam = searchParams.get("rejectCorrection");
   const statusParam = searchParams.get("status") as ParentFilterStatus | null;
   const qParam = searchParams.get("q");
+  const parentParam = searchParams.get("parent");
 
   useEffect(() => {
     if (statusParam && ["all", "active", "suspended"].includes(statusParam)) {
       setParentFilter(statusParam);
     }
   }, [statusParam]);
+
+  useEffect(() => {
+    if (parentParam && parents.length > 0) {
+      const p = parents.find((parent) => parent.id === parentParam);
+      if (p && p.status === "suspended" && parentFilter === "active") {
+        setParentFilter("all");
+      }
+    }
+  }, [parentParam, parents, parentFilter]);
 
   useEffect(() => {
     if (qParam !== null && qParam !== undefined) {

@@ -2,8 +2,10 @@
 
 import {
   ArrowRight,
+  Check,
   FileSignature,
   KeyRound,
+  Link2,
   Loader2,
   Mail,
   Pause,
@@ -17,12 +19,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPhoneDisplay } from "@/lib/phone-utils";
+import { cn } from "@/lib/utils";
 import {
   DOCUMENT_TITLES,
   type DocumentType,
@@ -72,6 +76,41 @@ export function ParentAccountsSectionView() {
     handleResetPassword,
     setDeleteConfirmUser,
   } = useParentAdminContext();
+
+  const parentParam = searchParams.get("parent");
+  const [copiedParentId, setCopiedParentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (parentParam) {
+      const el = document.getElementById(`parent-${parentParam}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [parentParam]);
+
+  const handleCopyParentLink = (parentId: string, parentName: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/parents/accounts?parent=${parentId}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          setCopiedParentId(parentId);
+          toast.success(
+            `Директният линк за ${parentName} е копиран в клипборда!`
+          );
+          setTimeout(() => setCopiedParentId(null), 2500);
+        })
+        .catch(() => {
+          toast.error("Неуспешно копиране на линк.");
+        });
+    } else {
+      setCopiedParentId(parentId);
+      toast.success(`Линк: ${url}`);
+      setTimeout(() => setCopiedParentId(null), 2500);
+    }
+  };
 
   const handleFilterChange = (status: "all" | "active" | "suspended") => {
     setParentFilter(status);
@@ -148,11 +187,18 @@ export function ParentAccountsSectionView() {
                 : parent.parentRole === "father"
                   ? "Баща"
                   : "Настойник";
+            const isSelectedParent = parentParam === parent.id;
 
             return (
               <div
+                id={`parent-${parent.id}`}
                 key={parent.id}
-                className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 overflow-hidden min-w-0"
+                className={cn(
+                  "flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all duration-300 dark:bg-zinc-900/80 overflow-hidden min-w-0",
+                  isSelectedParent
+                    ? "border-blue-500 ring-2 ring-blue-500/80 shadow-lg dark:border-blue-400 dark:ring-blue-400/80 bg-blue-50/15 dark:bg-blue-950/20"
+                    : "border-zinc-200 hover:shadow-md dark:border-zinc-800"
+                )}
               >
                 <div>
                   {/* Top Bar */}
@@ -220,9 +266,39 @@ export function ParentAccountsSectionView() {
                   {/* Parent Name & Contacts */}
                   <div className="mt-3 flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <h4 className="text-base font-black text-zinc-900 dark:text-white">
-                        {parent.name}
-                      </h4>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="text-base font-black text-zinc-900 dark:text-white">
+                          {parent.name}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleCopyParentLink(parent.id, parent.name)
+                          }
+                          className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-semibold text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-400 dark:hover:border-blue-700 dark:hover:text-blue-300 transition-all cursor-pointer shadow-2xs"
+                          title={`Копирай директен линк към профила на ${parent.name}`}
+                          aria-label={`Копирай директен линк към профила на ${parent.name}`}
+                        >
+                          {copiedParentId === parent.id ? (
+                            <>
+                              <Check
+                                size={12}
+                                className="text-emerald-600 dark:text-emerald-400"
+                              />
+                              <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                                Копирано!
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <Link2 size={12} />
+                              <span className="text-[10px] text-zinc-500 font-medium">
+                                Копирай линк
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                       <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300">
                         <a
                           href={`tel:${parent.phone}`}
