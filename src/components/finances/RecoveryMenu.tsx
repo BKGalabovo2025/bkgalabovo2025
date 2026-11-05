@@ -1,18 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+
 import {
   Activity,
   Calendar,
   Check,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Edit,
   Link2,
   MoreHorizontal,
+  ShoppingCart,
   Trash2,
   Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 
 import { ImageGallery } from "@/components/shared/images/ImageGallery";
@@ -71,18 +75,18 @@ export function RecoveryMenu({
   };
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-8 sm:space-y-10">
       {Object.entries(grouped).map(([category, catServices]) => (
-        <section key={category} className="space-y-8">
-          <div className="flex items-center gap-4">
-            <div className="h-px flex-1 bg-zinc-100" />
-            <h3 className="text-xs font-medium tracking-[0.3em] text-zinc-400 uppercase">
-              {category}
+        <section key={category} className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-zinc-200/80 dark:bg-zinc-800" />
+            <h3 className="text-xs font-semibold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+              {category} ({catServices.length})
             </h3>
-            <div className="h-px flex-1 bg-zinc-100" />
+            <div className="h-px flex-1 bg-zinc-200/80 dark:bg-zinc-800" />
           </div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {catServices.map((service) => (
               <RecoveryCard
                 key={service.id}
@@ -129,6 +133,9 @@ const RecoveryCard = ({
   isCopied?: boolean;
   onCopyLink?: () => void;
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasLongDesc = (service.description?.length || 0) > 130;
+
   const images = (service as any).imageUrl
     ? (service as any).imageUrl
         .split(",")
@@ -141,6 +148,19 @@ const RecoveryCard = ({
     : [];
 
   const displayMode = (service as any).imageDisplayMode || "collage";
+
+  const res = service.requiredResources;
+  const zones = (service.zones || []).map((z) => z.toUpperCase());
+
+  const hasCompressor = (res?.compressors || 0) > 0;
+  const hasMatchingAttachment =
+    res &&
+    ((zones.includes("КРАКА") && (res.attachments?.legs || 0) > 0) ||
+      (zones.includes("РЪЦЕ") && (res.attachments?.arms || 0) > 0) ||
+      (zones.includes("ТАЗ") && (res.attachments?.hips || 0) > 0));
+
+  const isReady = hasCompressor && hasMatchingAttachment;
+
   const renderImages = () => {
     return (
       <ImageGallery
@@ -149,8 +169,8 @@ const RecoveryCard = ({
         altName={service.name}
         fallbackIcon={
           <Activity
-            className="size-12 text-cyan-500 opacity-30"
-            strokeWidth={1}
+            className="size-10 text-cyan-500 opacity-30"
+            strokeWidth={1.5}
           />
         }
         fallbackText="ПРОЦЕДУРА"
@@ -162,258 +182,370 @@ const RecoveryCard = ({
     <BentoCard
       id={`item-${service.id}`}
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-none transition-all duration-300 dark:bg-zinc-950",
+        "group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-white p-0 shadow-xs transition-all duration-300 hover:shadow-md dark:bg-zinc-950",
         isSelected
-          ? "border-blue-500 ring-2 ring-blue-500/80 shadow-lg dark:border-blue-400 dark:ring-blue-400/80 bg-blue-50/15 dark:bg-blue-950/20"
-          : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800"
+          ? "border-blue-500 ring-2 ring-blue-500/60 shadow-lg bg-blue-50/15 dark:border-blue-400 dark:ring-blue-400/60 dark:bg-blue-950/20"
+          : "border-zinc-200/80 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
       )}
     >
-      {/* Cover Image Header with Horizontal Scroll */}
-      <div className="relative h-44 overflow-hidden border-b border-zinc-100 bg-zinc-50 sm:h-48 dark:border-zinc-800 dark:bg-zinc-900">
-        {renderImages()}
+      {/* Top Header / Media */}
+      {images.length > 0 ? (
+        <div className="relative h-28 sm:h-32 w-full overflow-hidden border-b border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+          {renderImages()}
 
-        {/* Dropdown Menu on Image Hover */}
-        <div className="absolute top-3 right-3 z-10 flex gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Опции за процедурата"
-                className="size-7.5 rounded-full border border-zinc-100/50 bg-white/90 backdrop-blur-md hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/90"
-              >
-                <MoreHorizontal className="size-4 text-zinc-500" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="min-w-40 rounded-xl border-zinc-100 p-1.5"
-            >
-              <DropdownMenuItem
-                onClick={onCopyLink}
-                className="gap-2 rounded-lg py-2 focus:bg-zinc-50 cursor-pointer"
-              >
-                <Link2 className="size-4 text-zinc-400" /> Копирай линк
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onEdit}
-                className="gap-2 rounded-lg py-2 focus:bg-zinc-50 cursor-pointer"
-              >
-                <Edit className="size-4 text-zinc-400" /> Редактиране
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="text-red-600 gap-2 rounded-lg py-2 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30 cursor-pointer"
-              >
-                <Trash2 className="size-4" /> Изтриване
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Status badge in bottom corner */}
-        <div className="absolute bottom-3 left-3 z-10">
-          {(() => {
-            const res = service.requiredResources;
-            const zones = (service.zones || []).map((z) => z.toUpperCase());
-
-            const hasCompressor = (res?.compressors || 0) > 0;
-            const hasMatchingAttachment =
-              res &&
-              ((zones.includes("КРАКА") && (res.attachments?.legs || 0) > 0) ||
-                (zones.includes("РЪЦЕ") && (res.attachments?.arms || 0) > 0) ||
-                (zones.includes("ТАЗ") && (res.attachments?.hips || 0) > 0));
-
-            const isUpdated = hasCompressor && hasMatchingAttachment;
-
-            if (!isUpdated) {
-              return (
-                <div className="flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50/90 px-2.5 py-1 text-[9px] font-bold tracking-widest text-amber-700 uppercase backdrop-blur-md">
-                  <span className="size-1.5 animate-pulse rounded-full bg-amber-400" />
-                  Поддръжка
-                </div>
-              );
-            }
-            return (
-              <div className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50/90 px-2.5 py-1 text-[9px] font-bold tracking-widest text-emerald-700 uppercase backdrop-blur-md">
-                <span className="size-1.5 rounded-full bg-emerald-400" />
+          {/* Status badge & Selected badge on image */}
+          <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1.5">
+            {isReady ? (
+              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50/90 px-2 py-0.5 text-[9px] font-bold tracking-wider text-emerald-700 uppercase backdrop-blur-md dark:border-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
                 Готова
-              </div>
-            );
-          })()}
-        </div>
-      </div>
-
-      {/* Content Area */}
-      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
-        <div className="space-y-3">
-          <div className="mb-1 flex flex-wrap gap-1.5">
-            {service.category && (
-              <span className="rounded-md bg-zinc-50 px-2 py-0.5 text-[9px] font-black tracking-widest text-zinc-400 uppercase">
-                {service.category}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50/90 px-2 py-0.5 text-[9px] font-bold tracking-wider text-amber-700 uppercase backdrop-blur-md dark:border-amber-800 dark:bg-amber-950/70 dark:text-amber-300">
+                <span className="size-1.5 animate-pulse rounded-full bg-amber-500" />
+                Поддръжка
               </span>
             )}
-            {service.sessionType && (
-              <span className="rounded-md bg-cyan-50 px-2 py-0.5 text-[9px] font-black tracking-widest text-cyan-500 uppercase">
-                {service.sessionType}
+
+            {isSelected && (
+              <span className="inline-flex items-center rounded-md border border-blue-300 bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
+                Избрана
               </span>
             )}
           </div>
-          <div className="flex items-start justify-between gap-2">
-            <h4 className="text-lg font-medium tracking-tight text-zinc-900 transition-colors group-hover:text-cyan-600 sm:text-xl dark:text-white">
-              {service.name}
-            </h4>
+
+          {/* Quick Actions (Link & Menu) */}
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
             {onCopyLink && (
               <button
                 type="button"
                 onClick={onCopyLink}
-                className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-cyan-700 dark:hover:text-cyan-300 transition-all cursor-pointer shrink-0 shadow-2xs"
+                className="inline-flex size-7 items-center justify-center rounded-lg border border-zinc-200/80 bg-white/90 text-zinc-600 shadow-2xs backdrop-blur-md transition-all hover:bg-white hover:text-cyan-600 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-300 cursor-pointer"
                 title={`Копирай директен линк към ${service.name}`}
                 aria-label={`Копирай директен линк към ${service.name}`}
               >
                 {isCopied ? (
-                  <>
-                    <Check
-                      size={11}
-                      className="text-emerald-600 dark:text-emerald-400"
-                    />
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                      Копирано!
-                    </span>
-                  </>
+                  <Check
+                    size={13}
+                    className="text-emerald-600 dark:text-emerald-400"
+                  />
                 ) : (
-                  <>
-                    <Link2 size={11} />
-                    <span>Линк</span>
-                  </>
+                  <Link2 size={13} />
                 )}
               </button>
             )}
-          </div>
-          <p className="line-clamp-2 min-h-10 text-xs leading-relaxed font-light text-zinc-400 sm:line-clamp-3 sm:min-h-12 sm:text-sm">
-            {service.description}
-          </p>
 
-          {/* Zones */}
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {(() => {
-              const uniqueZones = Array.from(
-                new Set(Array.isArray(service.zones) ? service.zones : [])
-              );
-              if (uniqueZones.length === 3) {
-                return (
-                  <span className="rounded-full border border-cyan-100 bg-cyan-50 px-2.5 py-0.5 text-[9px] font-medium tracking-wider text-cyan-600 uppercase">
-                    Зона по избор ({uniqueZones.join(", ")})
-                  </span>
-                );
-              }
-              return uniqueZones.map((zone) => (
-                <span
-                  key={zone}
-                  className="rounded-full border border-cyan-100 bg-cyan-50 px-2.5 py-0.5 text-[9px] font-medium tracking-wider text-cyan-600 uppercase"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Опции за процедурата"
+                  className="size-7 rounded-lg border border-zinc-200/80 bg-white/90 text-zinc-600 shadow-2xs backdrop-blur-md hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-300 cursor-pointer"
                 >
-                  {zone}
-                </span>
-              ));
-            })()}
-          </div>
-
-          {/* Features */}
-          <div className="space-y-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-            <div className="flex items-center gap-2.5 text-xs text-zinc-500">
-              <Clock className="size-3.5 text-zinc-400" strokeWidth={1.5} />
-              <span>
-                {service.durationMinutes === 45 &&
-                service.category === "VIP СЕСИИ" ? (
-                  <span className="font-medium text-cyan-600">
-                    15 минути + 30 минути
-                  </span>
-                ) : (
-                  `${service.durationMinutes} минути`
+                  <MoreHorizontal className="size-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="min-w-40 rounded-xl p-1.5"
+              >
+                {onCopyLink && (
+                  <DropdownMenuItem
+                    onClick={onCopyLink}
+                    className="gap-2 rounded-lg py-1.5 text-xs cursor-pointer"
+                  >
+                    <Link2 className="size-3.5 text-zinc-400" /> Копирай линк
+                  </DropdownMenuItem>
                 )}
-              </span>
-            </div>
-            <div className="flex items-center gap-2.5 text-xs text-zinc-500">
-              <Users className="size-3.5 text-zinc-400" strokeWidth={1.5} />
-              <span>{service.athleteCount} спортисти</span>
-            </div>
-            {(service.numberOfDays || 1) >= 1 && (
-              <div className="flex items-center gap-2.5 text-xs text-zinc-500">
-                <Calendar
-                  className="size-3.5 text-zinc-400"
-                  strokeWidth={1.5}
-                />
-                <span>
-                  {service.numberOfDays || 1} дни /{" "}
-                  {service.proceduresPerDay || 1} процедури на ден
-                </span>
-              </div>
-            )}
-
-            {service.requiredResources && (
-              <div className="mt-1.5 space-y-1 pt-1.5">
-                <p className="mb-0.5 text-[9px] font-medium tracking-widest text-zinc-400 uppercase">
-                  Ресурси
-                </p>
-                <div className="flex flex-wrap gap-x-2.5 gap-y-1">
-                  {(service.requiredResources.compressors ?? 0) > 0 && (
-                    <div className="flex items-center gap-1 text-[10px] text-zinc-500">
-                      <span className="size-1 rounded-full bg-emerald-400" />
-                      {service.requiredResources.compressors} компресора
-                    </div>
-                  )}
-                  {(service.requiredResources.attachments?.arms ?? 0) > 0 && (
-                    <div className="flex items-center gap-1 text-[10px] text-zinc-500">
-                      <span className="size-1 rounded-full bg-blue-400" />
-                      {service.requiredResources.attachments?.arms} РЪЦЕ
-                    </div>
-                  )}
-                  {(service.requiredResources.attachments?.legs ?? 0) > 0 && (
-                    <div className="flex items-center gap-1 text-[10px] text-zinc-500">
-                      <span className="size-1 rounded-full bg-cyan-400" />
-                      {service.requiredResources.attachments?.legs} КРАКА
-                    </div>
-                  )}
-                  {(service.requiredResources.attachments?.hips ?? 0) > 0 && (
-                    <div className="flex items-center gap-1 text-[10px] text-zinc-500">
-                      <span className="size-1 rounded-full bg-purple-400" />
-                      {service.requiredResources.attachments?.hips} ТАЗ
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+                <DropdownMenuItem
+                  onClick={onEdit}
+                  className="gap-2 rounded-lg py-1.5 text-xs cursor-pointer"
+                >
+                  <Edit className="size-3.5 text-zinc-400" /> Редактиране
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onDelete}
+                  className="gap-2 rounded-lg py-1.5 text-xs text-red-600 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30 cursor-pointer"
+                >
+                  <Trash2 className="size-3.5" /> Изтриване
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
+      ) : (
+        /* Compact Header when NO Image (High density, 38px) */
+        <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-3.5 py-2.5 dark:border-zinc-800/80 dark:bg-zinc-900/50">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-cyan-200/80 bg-cyan-50 px-2 py-0.5 text-[10px] font-semibold text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-300">
+              <Activity className="size-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
+              <span>{service.sessionType || "Процедура"}</span>
+            </span>
 
-        <div>
-          {/* Price */}
-          <div className="my-3.5 flex items-baseline gap-1 border-t border-zinc-100 pt-3.5 dark:border-zinc-800">
-            <span className="text-2xl font-light tracking-tight text-zinc-950 sm:text-3xl dark:text-white">
-              {formatPrice(service.price).replace(" EUR", "")}
-            </span>
-            <span className="ml-1 text-xs font-medium tracking-widest text-zinc-400 uppercase">
-              EUR
-            </span>
+            {isReady ? (
+              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                Готова
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                <span className="size-1.5 animate-pulse rounded-full bg-amber-500" />
+                Поддръжка
+              </span>
+            )}
+
+            {isSelected && (
+              <span className="inline-flex items-center rounded-md border border-blue-200 bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                Избрана
+              </span>
+            )}
           </div>
 
-          {/* Actions */}
-          <div className="grid w-full grid-cols-2 gap-2.5">
+          <div className="flex items-center gap-1">
+            {onCopyLink && (
+              <button
+                type="button"
+                onClick={onCopyLink}
+                className="inline-flex size-7 items-center justify-center rounded-lg border border-zinc-200/80 bg-white text-zinc-600 shadow-2xs transition-all hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-cyan-700 dark:hover:text-cyan-300 cursor-pointer"
+                title={`Копирай директен линк към ${service.name}`}
+                aria-label={`Копирай директен линк към ${service.name}`}
+              >
+                {isCopied ? (
+                  <Check
+                    size={13}
+                    className="text-emerald-600 dark:text-emerald-400"
+                  />
+                ) : (
+                  <Link2 size={13} />
+                )}
+              </button>
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Опции за процедурата"
+                  className="size-7 rounded-lg border border-zinc-200/80 bg-white text-zinc-600 shadow-2xs hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  <MoreHorizontal className="size-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="min-w-40 rounded-xl p-1.5"
+              >
+                {onCopyLink && (
+                  <DropdownMenuItem
+                    onClick={onCopyLink}
+                    className="gap-2 rounded-lg py-1.5 text-xs cursor-pointer"
+                  >
+                    <Link2 className="size-3.5 text-zinc-400" /> Копирай линк
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  onClick={onEdit}
+                  className="gap-2 rounded-lg py-1.5 text-xs cursor-pointer"
+                >
+                  <Edit className="size-3.5 text-zinc-400" /> Редактиране
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onDelete}
+                  className="gap-2 rounded-lg py-1.5 text-xs text-red-600 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30 cursor-pointer"
+                >
+                  <Trash2 className="size-3.5" /> Изтриване
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      )}
+
+      {/* Content Area */}
+      <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4">
+        <div className="space-y-2.5">
+          {/* Category & Session Type tags */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {service.category && (
+              <span className="rounded-md border border-zinc-200/80 bg-zinc-100/80 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-zinc-600 uppercase dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+                {service.category}
+              </span>
+            )}
+            {service.sessionType &&
+              service.sessionType !== "Възстановяване" && (
+                <span className="rounded-md border border-cyan-200/80 bg-cyan-50 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-cyan-700 uppercase dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-300">
+                  {service.sessionType}
+                </span>
+              )}
+          </div>
+
+          {/* Title - Fully readable, no clipping */}
+          <div>
+            <h4 className="text-sm font-bold text-zinc-900 transition-colors group-hover:text-cyan-600 sm:text-base leading-snug dark:text-zinc-100 dark:group-hover:text-cyan-400">
+              {service.name}
+            </h4>
+          </div>
+
+          {/* Description - readable without truncation */}
+          {service.description && (
+            <div className="space-y-1">
+              <p
+                className={cn(
+                  "text-xs leading-relaxed text-zinc-600 dark:text-zinc-300",
+                  !isExpanded && hasLongDesc && "line-clamp-3"
+                )}
+              >
+                {service.description}
+              </p>
+              {hasLongDesc && (
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 cursor-pointer"
+                >
+                  <span>
+                    {isExpanded ? "Свий описанието" : "Виж цялото описание"}
+                  </span>
+                  {isExpanded ? (
+                    <ChevronUp size={12} />
+                  ) : (
+                    <ChevronDown size={12} />
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Zones */}
+          {service.zones && service.zones.length > 0 && (
+            <div className="flex flex-wrap gap-1 pt-0.5">
+              {(() => {
+                const uniqueZones = Array.from(
+                  new Set(Array.isArray(service.zones) ? service.zones : [])
+                );
+                if (uniqueZones.length === 3) {
+                  return (
+                    <span className="rounded-md border border-cyan-150 bg-cyan-50/80 px-1.5 py-0.5 text-[9px] font-medium text-cyan-700 dark:border-cyan-900/40 dark:bg-cyan-950/40 dark:text-cyan-300">
+                      Зона по избор ({uniqueZones.join(", ")})
+                    </span>
+                  );
+                }
+                return uniqueZones.map((zone) => (
+                  <span
+                    key={zone}
+                    className="rounded-md border border-cyan-150 bg-cyan-50/80 px-1.5 py-0.5 text-[9px] font-medium text-cyan-700 dark:border-cyan-900/40 dark:bg-cyan-950/40 dark:text-cyan-300"
+                  >
+                    {zone}
+                  </span>
+                ));
+              })()}
+            </div>
+          )}
+
+          {/* Key Parameters Grid */}
+          <div className="grid grid-cols-2 gap-1.5 border-t border-zinc-100 pt-2.5 dark:border-zinc-800/80">
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-600 dark:text-zinc-400">
+              <Clock
+                className="size-3 shrink-0 text-zinc-400"
+                strokeWidth={1.5}
+              />
+              <span className="truncate">
+                {service.durationMinutes === 45 &&
+                service.category === "VIP СЕСИИ"
+                  ? "15 + 30 мин."
+                  : `${service.durationMinutes} мин.`}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-600 dark:text-zinc-400">
+              <Users
+                className="size-3 shrink-0 text-zinc-400"
+                strokeWidth={1.5}
+              />
+              <span className="truncate">{service.athleteCount} спортисти</span>
+            </div>
+
+            {(service.numberOfDays || 1) > 1 && (
+              <div className="col-span-2 flex items-center gap-1.5 text-[11px] text-zinc-600 dark:text-zinc-400">
+                <Calendar
+                  className="size-3 shrink-0 text-zinc-400"
+                  strokeWidth={1.5}
+                />
+                <span className="truncate">
+                  {service.numberOfDays} дни / {service.proceduresPerDay || 1}{" "}
+                  проц./ден
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Required Resources pills */}
+          {service.requiredResources && (
+            <div className="flex flex-wrap gap-1 pt-1 text-[10px] text-zinc-500">
+              {(service.requiredResources.compressors ?? 0) > 0 && (
+                <span className="inline-flex items-center gap-1 rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                  <span className="size-1 rounded-full bg-emerald-500" />
+                  {service.requiredResources.compressors} компресора
+                </span>
+              )}
+              {(service.requiredResources.attachments?.legs ?? 0) > 0 && (
+                <span className="inline-flex items-center gap-1 rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                  <span className="size-1 rounded-full bg-cyan-500" />
+                  {service.requiredResources.attachments?.legs} КРАКА
+                </span>
+              )}
+              {(service.requiredResources.attachments?.arms ?? 0) > 0 && (
+                <span className="inline-flex items-center gap-1 rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                  <span className="size-1 rounded-full bg-blue-500" />
+                  {service.requiredResources.attachments?.arms} РЪЦЕ
+                </span>
+              )}
+              {(service.requiredResources.attachments?.hips ?? 0) > 0 && (
+                <span className="inline-flex items-center gap-1 rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                  <span className="size-1 rounded-full bg-purple-500" />
+                  {service.requiredResources.attachments?.hips} ТАЗ
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Area: Price and Actions */}
+        <div className="mt-3.5 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+          <div className="mb-3 flex items-baseline justify-between">
+            <div>
+              <span className="text-xl font-bold tracking-tight text-zinc-950 sm:text-2xl dark:text-white">
+                {formatPrice(service.price)}
+              </span>
+              <span className="ml-1 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                / процедура
+              </span>
+            </div>
+          </div>
+
+          {/* Action Buttons: 1-click Direct Sale + Edit */}
+          <div className="grid grid-cols-2 gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={onSale}
-              className="h-9 w-full rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase shadow-none transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
-            >
-              Продажба
-            </Button>
-            <Button
+              type="button"
               variant="default"
               size="sm"
-              onClick={onEdit}
-              className="h-9 w-full rounded-xl border-none bg-zinc-950 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              onClick={onSale}
+              className="h-8.5 rounded-xl bg-cyan-600 text-[11px] font-semibold tracking-wide text-white shadow-xs transition-colors hover:bg-cyan-700 flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              Редактиране
+              <ShoppingCart size={13} />
+              <span>Продажба</span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+              className="h-8.5 rounded-xl border-zinc-200 text-[11px] font-medium tracking-wide text-zinc-700 shadow-none transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Edit size={13} />
+              <span>Редакция</span>
             </Button>
           </div>
         </div>
