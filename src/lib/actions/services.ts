@@ -795,8 +795,12 @@ export async function executeTrainingSaleAction(
     await updateMembersLastPaymentDate(adminDb, saleData, targetMemberIds);
 
     serverCache.invalidatePattern("sales:");
+    serverCache.invalidatePattern("member:");
+    serverCache.invalidatePattern("parent-portal:");
     revalidatePath("/catalogs");
     revalidatePath("/reports");
+    revalidatePath("/club/parents");
+    revalidatePath("/members");
     for (const tId of targetMemberIds) {
       revalidatePath(`/members/${tId}`);
     }

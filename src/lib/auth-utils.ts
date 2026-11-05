@@ -18,17 +18,23 @@ export async function getAuthUser(idToken: string) {
   }
 }
 
-export async function ensureAdmin(idToken: string) {
-  const user = await getAuthUser(idToken);
-  // Проверка за администраторски права чрез Custom Claims или конкретен имейл
-  if (
-    !user.admin &&
-    user.email !== "bkgalabovo2014@gmail.com" &&
-    user.email !== "recoveryzonebyzm@gmail.com"
-  ) {
-    throw new Error("Нямате администраторски права.");
+export async function ensureAdmin(idToken?: string) {
+  if (idToken) {
+    try {
+      const user = await getAuthUser(idToken);
+      // Проверка за администраторски права чрез Custom Claims или конкретен имейл
+      if (
+        user.admin ||
+        user.email === "bkgalabovo2014@gmail.com" ||
+        user.email === "recoveryzonebyzm@gmail.com"
+      ) {
+        return user;
+      }
+    } catch {
+      // При изтекъл или невалиден клиентски токен преминаваме към проверка на сигурна сесийна бисквитка
+    }
   }
-  return user;
+  return await ensureAdminFromSession();
 }
 
 export async function getAuthUserFromSessionCookie() {
@@ -58,7 +64,7 @@ export async function getAuthUserFromSessionCookie() {
 }
 
 export async function ensureAdminWithSite(
-  idToken: string,
+  idToken?: string,
   requiredSiteId?: string
 ) {
   const user = await ensureAdmin(idToken);

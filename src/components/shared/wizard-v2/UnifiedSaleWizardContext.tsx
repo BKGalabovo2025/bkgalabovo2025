@@ -197,7 +197,7 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [completedSaleId, setCompletedSaleId] = useState<string | null>(null);
 
-  const { idToken } = useAuth();
+  const { idToken, getFreshToken } = useAuth();
   const { activeBranch } = useAppStore();
 
   // When a sale item is set, determine initial mode
@@ -545,9 +545,17 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
   };
 
   const handleExecuteSale = async () => {
-    if (!idToken) return;
     setIsProcessing(true);
     setStep(5);
+
+    let token = idToken;
+    if (!token && typeof getFreshToken === "function") {
+      try {
+        token = await getFreshToken();
+      } catch {
+        token = "";
+      }
+    }
 
     const customPrice = parseFloat(price);
     const qty = getSaleQuantity();
@@ -616,7 +624,7 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
     let result: any;
     try {
       if (mode === "product") {
-        result = await createSaleAction(idToken, {
+        result = await createSaleAction(token || "", {
           siteId: activeBranch || "bkgalabovo",
           memberId: selectedMember ? selectedMember.id : "GUEST_EXTERNAL",
           clientName: clientName,
@@ -651,7 +659,7 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
         );
       } else if (mode === "recovery") {
         result = await executeTrainingSaleAction(
-          idToken,
+          token || "",
           {
             ...saleData,
             type: "recovery_service",
@@ -661,7 +669,7 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
         );
       } else {
         result = await executeTrainingSaleAction(
-          idToken,
+          token || "",
           {
             ...saleData,
             type: "training_service",
