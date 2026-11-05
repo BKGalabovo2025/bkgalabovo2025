@@ -31,7 +31,13 @@ interface CatalogInquiryDialogProps {
     description?: string;
     category?: string;
   } | null;
-  tab: "trainings" | "general" | "products" | "recovery";
+  tab:
+    | "trainings"
+    | "general"
+    | "products"
+    | "recovery"
+    | "club-services"
+    | "shop";
   lang?: string;
 }
 
@@ -55,7 +61,7 @@ export function CatalogInquiryDialog({
 
   const showPrice = typeof item.price === "number" && item.price > 0;
   const isTraining = tab === "trainings";
-  const isProduct = tab === "products";
+  const isProduct = tab === "products" || tab === "shop";
 
   const defaultNotePlaceholder = isProduct
     ? lang === "en"

@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
@@ -91,7 +92,13 @@ export default async function CatalogPage() {
     (item) => !item.siteId || item.siteId === "bkgalabovo"
   );
 
-  const recoveryServices = await getCachedCollection("sessions");
+  const recoveryRaw = await getCachedCollection("sessions");
+  const recoveryServices = recoveryRaw.map((item) => ({
+    ...item,
+    price:
+      typeof item.price === "number" ? item.price : Number(item.price) || 0,
+    durationMinutes: item.durationMinutes ?? item.duration ?? 0,
+  }));
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -123,7 +130,8 @@ export default async function CatalogPage() {
             </span>
           </h1>
           <p className="m-auto max-w-2xl text-xs text-zinc-400 sm:text-sm">
-            Тук ще намерите всички наши тренировки, клубни услуги и продукти.
+            Каталог на тренировъчни програми, клубни услуги, възстановяване и
+            магазин.
           </p>
         </div>
       </div>
@@ -132,12 +140,20 @@ export default async function CatalogPage() {
       <main className="relative z-10 px-3 pb-8 sm:px-6 sm:pb-12">
         <div className="m-auto max-w-6xl">
           <div className="glassmorphism rounded-2xl border border-blue-400/20 bg-black/80 p-3 sm:rounded-3xl sm:p-5">
-            <PublicCatalogTabs
-              trainings={services}
-              generalServices={generalServices}
-              products={products}
-              recoveryServices={recoveryServices}
-            />
+            <Suspense
+              fallback={
+                <div className="h-64 animate-pulse rounded-2xl bg-zinc-900/50" />
+              }
+            >
+              <PublicCatalogTabs
+                trainings={services}
+                clubServices={generalServices}
+                generalServices={generalServices}
+                products={products}
+                shop={products}
+                recoveryServices={recoveryServices}
+              />
+            </Suspense>
           </div>
         </div>
       </main>

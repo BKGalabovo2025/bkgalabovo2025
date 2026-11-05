@@ -3,24 +3,40 @@
 "use client";
 
 import {
-  Activity,
   Calendar,
   CalendarCheck,
+  Check,
+  ChevronDown,
+  ChevronUp,
   Clock,
+  CreditCard,
+  Dumbbell,
+  Eye,
+  Link2,
+  MessageSquare,
   Package,
-  ShoppingBag,
-  Trophy,
+  Search,
+  Sparkles,
+  UserCheck,
   Users,
+  Wrench,
+  X,
   Zap,
 } from "lucide-react";
-import { Eye } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import Image from "next/image";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
+import {
+  CATALOG_SECTIONS,
+  CatalogSectionId,
+} from "@/components/catalogs/catalog-sections";
+import { ProductStockBadge } from "@/components/catalogs/views/ShopCatalogView";
 import { CatalogInquiryDialog } from "@/components/club/CatalogInquiryDialog";
-import { ImageGallery } from "@/components/shared/images/ImageGallery";
-import { Translate } from "@/components/shared/Translate";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -28,16 +44,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { sanitizeImageUrl } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { formatPrice } from "@/lib/currency";
+import { cn, sanitizeImageUrl } from "@/lib/utils";
 
-type CatalogTab = "trainings" | "general" | "products" | "recovery";
+export type PublicCatalogTab =
+  "trainings" | "club-services" | "recovery" | "shop" | "general" | "products";
 
-interface PublicCatalogTabsProps {
-  trainings: any[];
-  generalServices: any[];
-  products: any[];
+export interface PublicCatalogTabsProps {
+  trainings?: any[];
+  clubServices?: any[];
+  generalServices?: any[];
   recoveryServices?: any[];
-  allowedTabs?: CatalogTab[];
+  recovery?: any[];
+  products?: any[];
+  shop?: any[];
+  allowedTabs?: (CatalogSectionId | "general" | "products")[];
   onRecoveryInquiry?: (item: any) => void;
 }
 
@@ -48,43 +70,135 @@ const cleanUrl = (src: string) => {
 };
 
 export default function PublicCatalogTabs({
-  trainings,
-  generalServices,
-  products,
+  trainings = [],
+  clubServices = [],
+  generalServices = [],
   recoveryServices = [],
-  allowedTabs = ["trainings", "general", "products", "recovery"],
+  recovery = [],
+  products = [],
+  shop = [],
+  allowedTabs,
   onRecoveryInquiry,
 }: PublicCatalogTabsProps) {
-  const [activeTab, setActiveTab] = useState<CatalogTab>(
-    allowedTabs[0] || "trainings"
-  );
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Consolidate prop aliases
+  const actualTrainings = trainings;
+  const actualClubServices =
+    clubServices.length > 0 ? clubServices : generalServices;
+  const actualRecovery =
+    recoveryServices.length > 0 ? recoveryServices : recovery;
+  const actualShop = shop.length > 0 ? shop : products;
+
+  // Normalize initial tab from URL params if present
+  const tabParam = (searchParams.get("tab") ||
+    searchParams.get("section") ||
+    "") as PublicCatalogTab;
+  const initialTab: CatalogSectionId = useMemo(() => {
+    if (tabParam === "club-services" || tabParam === "general")
+      return "club-services";
+    if (tabParam === "recovery") return "recovery";
+    if (tabParam === "shop" || tabParam === "products") return "shop";
+    if (tabParam === "trainings") return "trainings";
+    return "trainings";
+  }, [tabParam]);
+
+  const [activeTab, setActiveTab] = useState<CatalogSectionId>(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const lang = "bg";
+  const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
+
+  // Sync tab with URL if external navigation occurs
+  useEffect(() => {
+    if (tabParam) {
+      if (
+        (tabParam === "club-services" || tabParam === "general") &&
+        activeTab !== "club-services"
+      ) {
+        setActiveTab("club-services");
+      } else if (tabParam === "recovery" && activeTab !== "recovery") {
+        setActiveTab("recovery");
+      } else if (
+        (tabParam === "shop" || tabParam === "products") &&
+        activeTab !== "shop"
+      ) {
+        setActiveTab("shop");
+      } else if (tabParam === "trainings" && activeTab !== "trainings") {
+        setActiveTab("trainings");
+      }
+    }
+  }, [tabParam, activeTab]);
+
+  // Deep-link scroll into view when item param is present
+  const itemParam = searchParams.get("item");
+  useEffect(() => {
+    if (itemParam) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`item-${itemParam}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [itemParam, activeTab]);
+
+  // Update URL helper without full page reloads
+  const updateTabInUrl = (newTab: CatalogSectionId) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", newTab);
+    params.delete("item"); // reset targeted item when switching tabs
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  const handleTabChange = (tabId: CatalogSectionId) => {
+    setActiveTab(tabId);
+    setSearchQuery("");
+    setSelectedCategory("all");
+    updateTabInUrl(tabId);
+  };
 
   // Determine active dataset
   const activeDataset = useMemo(() => {
     switch (activeTab) {
       case "trainings":
-        return trainings;
-      case "general":
-        return generalServices;
-      case "products":
-        return products;
+        return actualTrainings;
+      case "club-services":
+        return actualClubServices;
       case "recovery":
-        return recoveryServices;
+        return actualRecovery;
+      case "shop":
+        return actualShop;
     }
-  }, [activeTab, trainings, generalServices, products, recoveryServices]);
+  }, [
+    activeTab,
+    actualTrainings,
+    actualClubServices,
+    actualRecovery,
+    actualShop,
+  ]);
 
-  // Extract unique categories for filtering
+  // Extract counts for each section
+  const sectionCounts = useMemo(() => {
+    return {
+      trainings: actualTrainings.length,
+      "club-services": actualClubServices.length,
+      recovery: actualRecovery.length,
+      shop: actualShop.length,
+    };
+  }, [actualTrainings, actualClubServices, actualRecovery, actualShop]);
+
+  // Extract unique categories for active tab filtering
   const categories = useMemo(() => {
     if (!activeDataset) return ["all"];
     const cats = new Set<string>();
     activeDataset.forEach((item) => {
-      if (item.category) {
-        cats.add(item.category);
-      } else if (item.type) {
-        cats.add(item.type);
+      const cat = item.category || item.type || item.sessionType;
+      if (cat && typeof cat === "string" && cat.trim()) {
+        cats.add(cat.trim());
       }
     });
     return ["all", ...Array.from(cats)];
@@ -93,13 +207,22 @@ export default function PublicCatalogTabs({
   // Filter items by search query and category
   const filteredItems = useMemo(() => {
     if (!activeDataset) return [];
-    const filtered = activeDataset.filter((item) => {
-      const matchesSearch =
-        item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.description &&
-          item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const q = searchQuery.toLowerCase().trim();
 
-      const itemCat = item.category || item.type || "";
+    const filtered = activeDataset.filter((item) => {
+      const name = (item.name || "").toLowerCase();
+      const desc = (item.description || "").toLowerCase();
+      const cat = (
+        item.category ||
+        item.type ||
+        item.sessionType ||
+        ""
+      ).toLowerCase();
+
+      const matchesSearch =
+        !q || name.includes(q) || desc.includes(q) || cat.includes(q);
+
+      const itemCat = item.category || item.type || item.sessionType || "";
       const matchesCategory =
         selectedCategory === "all" || itemCat === selectedCategory;
 
@@ -109,128 +232,171 @@ export default function PublicCatalogTabs({
     return filtered.sort((a, b) => {
       const catA = (a.category || a.type || "").toLowerCase();
       const catB = (b.category || b.type || "").toLowerCase();
-
       if (catA < catB) return -1;
       if (catA > catB) return 1;
 
-      const priceA = a.price || 0;
-      const priceB = b.price || 0;
+      const priceA = typeof a.price === "number" ? a.price : 0;
+      const priceB = typeof b.price === "number" ? b.price : 0;
       return priceA - priceB;
     });
   }, [activeDataset, searchQuery, selectedCategory]);
 
-  // Reset filters when tab changes
-  const handleTabChange = (tab: CatalogTab) => {
-    setActiveTab(tab);
-    setSearchQuery("");
-    setSelectedCategory("all");
+  const handleCopyLink = (item: any) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/club/catalog?tab=${activeTab}&item=${item.id}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          setCopiedItemId(item.id);
+          toast.success(`Директният линк за "${item.name}" е копиран!`);
+          setTimeout(() => setCopiedItemId(null), 2500);
+        })
+        .catch(() => {
+          toast.error("Неуспешно копиране на линк.");
+        });
+    } else {
+      setCopiedItemId(item.id);
+      toast.success(`Линк: ${url}`);
+      setTimeout(() => setCopiedItemId(null), 2500);
+    }
   };
 
-  return (
-    <div className="space-y-3.5 sm:space-y-4">
-      {/* Search and Navigation Bar */}
-      <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-1.5 backdrop-blur-md md:flex-row">
-        {/* Tabs switcher */}
-        <div className="grid w-full grid-cols-2 gap-1 rounded-xl border border-zinc-800/50 bg-zinc-950/80 p-1 lg:flex lg:w-auto lg:items-center">
-          {allowedTabs.includes("trainings") && (
-            <button
-              onClick={() => handleTabChange("trainings")}
-              className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
-                activeTab === "trainings"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
-                  : "text-zinc-300 hover:bg-zinc-900/50 hover:text-white"
-              }`}
-            >
-              <Trophy size={14} className="sm:size-3.5" />{" "}
-              {t("Тренировки", "Trainings", lang)}{" "}
-            </button>
-          )}
-          {allowedTabs.includes("general") && (
-            <button
-              onClick={() => handleTabChange("general")}
-              className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
-                activeTab === "general"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
-                  : "text-zinc-300 hover:bg-zinc-900/50 hover:text-white"
-              }`}
-            >
-              <Activity size={14} className="sm:size-3.5" />{" "}
-              {t("Клубни Услуги", "Club Services", lang)}{" "}
-            </button>
-          )}
-          {allowedTabs.includes("products") && (
-            <button
-              onClick={() => handleTabChange("products")}
-              className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
-                activeTab === "products"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
-                  : "text-zinc-300 hover:bg-zinc-900/50 hover:text-white"
-              }`}
-            >
-              <Package size={14} className="sm:size-3.5" />{" "}
-              {t("Магазин", "Shop", lang)}{" "}
-            </button>
-          )}
-          {allowedTabs.includes("recovery") && (
-            <button
-              onClick={() => handleTabChange("recovery")}
-              className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-semibold tracking-wider uppercase transition-all duration-300 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 sm:text-xs ${
-                activeTab === "recovery"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
-                  : "text-zinc-300 hover:bg-zinc-900/50 hover:text-white"
-              }`}
-            >
-              <Zap size={14} className="sm:size-3.5" />{" "}
-              {t("Възстановяване", "Recovery", lang)}{" "}
-            </button>
-          )}
-        </div>
-      </div>
+  const visibleSections = useMemo(() => {
+    if (!allowedTabs) return CATALOG_SECTIONS;
+    const normalizedAllowed = allowedTabs.map((t) => {
+      if (t === "general") return "club-services";
+      if (t === "products") return "shop";
+      return t;
+    });
+    return CATALOG_SECTIONS.filter((s) => normalizedAllowed.includes(s.id));
+  }, [allowedTabs]);
 
-      {/* Category Pills */}
-      {categories.length > 2 && (
-        <div className="flex flex-wrap items-center gap-1.5 px-1">
-          <span className="mr-1 text-[10px] font-semibold tracking-widest text-zinc-300 uppercase">
-            {" "}
-            {t("Категория:", "Category:", lang)}{" "}
-          </span>
-          {categories.map((cat) => (
+  return (
+    <div className="space-y-5">
+      {/* Golden Hybrid 4-Section Navigation Bar */}
+      <nav
+        aria-label="Навигация в клубни каталози"
+        className="no-scrollbar flex w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-zinc-800/80 bg-zinc-900/70 p-1.5 backdrop-blur-md"
+      >
+        {visibleSections.map((section) => {
+          const Icon = section.icon;
+          const isActive = activeTab === section.id;
+          const count = sectionCounts[section.id];
+
+          return (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`rounded-full border px-3 py-1 text-[10px] font-semibold tracking-wider uppercase transition-all ${
-                selectedCategory === cat
-                  ? "border-white bg-white text-zinc-950"
-                  : "border-zinc-800/80 bg-zinc-900/40 text-zinc-300 hover:border-zinc-700 hover:text-white"
-              }`}
+              key={section.id}
+              type="button"
+              onClick={() => handleTabChange(section.id)}
+              aria-current={isActive ? "page" : undefined}
+              title={section.tooltip}
+              className={cn(
+                "group inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 sm:shrink",
+                isActive
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                  : "text-zinc-400 hover:bg-zinc-800/70 hover:text-zinc-200"
+              )}
             >
-              {cat === "all" ? t("Всички", "All", lang) : cat}
+              <Icon
+                className={cn(
+                  "size-4 shrink-0 transition-transform duration-200 group-hover:scale-110",
+                  isActive
+                    ? "text-white"
+                    : "text-zinc-400 group-hover:text-blue-400"
+                )}
+              />
+              <span>{section.label}</span>
+              {typeof count === "number" && (
+                <span
+                  className={cn(
+                    "ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-semibold",
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-300"
+                  )}
+                >
+                  {count}
+                </span>
+              )}
             </button>
-          ))}
+          );
+        })}
+      </nav>
+
+      {/* Search and Category Filter Toolbar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search
+            size={16}
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-400"
+          />
+          <Input
+            placeholder="Търсене по име, описание или категория..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 rounded-xl border-zinc-800 bg-zinc-900/60 pl-9 pr-8 text-xs text-white placeholder:text-zinc-500 focus-visible:ring-blue-500"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute top-1/2 right-2.5 -translate-y-1/2 text-zinc-400 hover:text-white"
+              title="Изчисти търсенето"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
-      )}
+
+        {/* Categories Pills */}
+        {categories.length > 2 && (
+          <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto py-0.5">
+            <span className="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase shrink-0">
+              Категория:
+            </span>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[11px] font-medium whitespace-nowrap transition-all cursor-pointer",
+                  selectedCategory === cat
+                    ? "border-blue-500 bg-blue-500/20 text-blue-300 shadow-xs"
+                    : "border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                )}
+              >
+                {cat === "all" ? "Всички" : cat}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Catalog Grid View */}
       {filteredItems.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredItems.map((item) => (
-            <CatalogCard
+            <PublicCatalogCard
               key={item.id}
               item={item}
               tab={activeTab}
-              lang={lang}
+              isSelected={itemParam === item.id}
+              isCopied={copiedItemId === item.id}
+              onCopyLink={() => handleCopyLink(item)}
               onRecoveryInquiry={onRecoveryInquiry}
             />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/10 py-20 text-zinc-400">
-          <ShoppingBag
-            className="mb-3 size-10 text-zinc-700"
-            strokeWidth={1.5}
-          />
-          <p className="text-sm font-light">
-            {t("Няма намерени артикули.", "No items found.", lang)}
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 py-16 text-center text-zinc-400">
+          <Package className="mb-2.5 size-9 text-zinc-600" strokeWidth={1.5} />
+          <p className="text-sm font-medium text-zinc-300">
+            Няма намерени артикули в този каталог.
+          </p>
+          <p className="mt-1 text-xs text-zinc-500">
+            Опитайте с друго търсене или изчистете избраната категория.
           </p>
         </div>
       )}
@@ -238,563 +404,592 @@ export default function PublicCatalogTabs({
   );
 }
 
-function t(bg: string, en: string, _lang?: string) {
-  return <Translate bg={bg} en={en} />;
-}
-
-function renderTranslatedText(text: string | null | undefined, _lang?: string) {
-  if (!text) return null;
-  const parts = text.split(/(ТАЗ|РЪЦЕ|КРАКА|Таз|Ръце|Крака|таз|ръце|крака)/g);
-  return parts.map((part, index) => {
-    const lower = part.toLowerCase();
-
-    if (["таз", "ръце", "крака"].includes(lower)) {
-      let enWord = "";
-      if (lower === "таз") enWord = "PELVIS";
-      if (lower === "ръце") enWord = "ARMS";
-      if (lower === "крака") enWord = "LEGS";
-
-      const prevPart = index > 0 ? parts[index - 1] : "";
-      const nextPart = index < parts.length - 1 ? parts[index + 1] : "";
-
-      let prefix = "";
-      let suffix = "";
-
-      if (prevPart.match(/[\s\xA0]$/)) prefix = " ";
-      if (nextPart.match(/^[\s\xA0]/)) suffix = " ";
-
-      return (
-        <React.Fragment key={index}>
-          {prefix}
-          <Translate bg={part} en={enWord} />
-          {suffix}
-        </React.Fragment>
-      );
-    }
-
-    return <span key={index}>{part}</span>;
-  });
-}
-
-const shouldShowPrice = (item: any, currentTab: string) => {
-  if (currentTab === "products") return false;
-  if (currentTab === "general") {
-    const nameLower = (item.name || "").toLowerCase();
-    return (
-      nameLower.includes("наем на корт") || nameLower.includes("court rental")
-    );
-  }
-  return true;
-};
-
-function CatalogCard({
+// ---------------------------------------------------------------------------
+// Golden Hybrid Public Catalog Card
+// ---------------------------------------------------------------------------
+function PublicCatalogCard({
   item,
   tab,
-  lang,
+  isSelected,
+  isCopied,
+  onCopyLink,
   onRecoveryInquiry,
 }: {
   item: any;
-  tab: CatalogTab;
-  lang: string;
+  tab: CatalogSectionId;
+  isSelected?: boolean;
+  isCopied?: boolean;
+  onCopyLink: () => void;
   onRecoveryInquiry?: (item: any) => void;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInquiryOpen, setIsInquiryOpen] = useState(false);
+
+  // Extract images and zone fallbacks
   const images = useMemo(() => {
-    if (!item.imageUrl) {
-      // Default fallback images for specific zones
+    if (item.imageUrl) {
+      return item.imageUrl
+        .split(",")
+        .map((u: string) => cleanUrl(u))
+        .filter(Boolean);
+    }
+    if (tab === "recovery") {
+      const nameLower = (item.name || "").toLowerCase();
       const hasPelvis =
-        item.name?.toLowerCase().includes("таз") ||
-        item.zones?.includes("ТАЗ") ||
-        item.zones === "ТАЗ";
+        nameLower.includes("таз") || item.zones?.includes("ТАЗ");
       const hasArms =
-        item.name?.toLowerCase().includes("ръце") ||
-        item.name?.toLowerCase().includes("ръка") ||
-        item.zones?.includes("РЪЦЕ") ||
-        item.zones === "РЪЦЕ";
+        nameLower.includes("ръце") ||
+        nameLower.includes("ръка") ||
+        item.zones?.includes("РЪЦЕ");
       const hasLegs =
-        item.name?.toLowerCase().includes("крака") ||
-        item.name?.toLowerCase().includes("крак") ||
-        item.zones?.includes("КРАКА") ||
-        item.zones === "КРАКА";
+        nameLower.includes("крака") ||
+        nameLower.includes("крак") ||
+        item.zones?.includes("КРАКА");
 
       if (hasPelvis) return ["/zones/pelvis.webp"];
       if (hasArms) return ["/zones/arm.png"];
       if (hasLegs) return ["/zones/legs.webp"];
-
-      return [];
     }
-    return item.imageUrl
-      .split(",")
-      .map((u: string) => cleanUrl(u))
-      .filter(Boolean);
-  }, [item.imageUrl, item.name, item.zones]);
+    return [];
+  }, [item.imageUrl, item.name, item.zones, tab]);
 
-  const displayMode = item.imageDisplayMode || "collage";
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isInquiryOpen, setIsInquiryOpen] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  const getZonesDisplayText = () => {
-    const zonesStr = lang === "en" ? "Zones" : "Зони";
-    const choiceStr = lang === "en" ? "Zone of choice" : "Зона по избор";
-    if (!item.zones) return null;
-    if (Array.isArray(item.zones)) {
-      if (item.zones.length === 3)
-        return `${choiceStr} (${item.zones.join(", ")})`;
-      return `${zonesStr}: ${item.zones.join(", ")}`;
-    }
-    return `${zonesStr}: ${item.zones}`;
-  };
+  // Carousel cycle if multiple images
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % images.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [images.length]);
 
-  // Badges logic depending on the item type
-  const renderBadges = () => {
-    if (tab === "products") {
-      const isOutOfStock = item.stock <= 0;
-      const isLowStock =
-        item.stock > 0 && item.stock <= (item.restockThreshold || 5);
+  const hasLongDesc = (item.description?.length || 0) > 110;
+  const isSubscription = [
+    "Абонамент",
+    "Годишен абонамент",
+    "Членски внос",
+  ].includes(item.type);
 
-      if (isOutOfStock) {
-        return (
-          <Badge className="border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-rose-400 uppercase shadow-none">
-            {" "}
-            {t("Изчерпан", "Out of stock", lang)}{" "}
-          </Badge>
-        );
-      }
-      if (isLowStock) {
-        return (
-          <Badge className="border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-amber-400 uppercase shadow-none">
-            {" "}
-            {t("Ограничен", "Low stock", lang)} ({item.stock}{" "}
-            {t("бр.", "pcs.", lang)}){" "}
-          </Badge>
-        );
-      }
-      return (
-        <Badge className="border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-emerald-400 uppercase shadow-none">
-          {" "}
-          {t("В наличност", "In stock", lang)}{" "}
-        </Badge>
-      );
+  // Type styling badge
+  const getTypeBadge = () => {
+    if (tab === "shop") {
+      return {
+        label: item.category || "Стока",
+        bg: "border-purple-500/30 bg-purple-500/10 text-purple-300",
+        icon: <Package className="size-3 text-purple-400 shrink-0" />,
+      };
     }
 
-    // For training / services
-    const category = item.category || item.type || "";
-    if (category) {
-      return (
-        <Badge className="border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[9px] font-semibold tracking-wider text-blue-400 uppercase shadow-none">
-          {category}
-        </Badge>
-      );
+    if (tab === "club-services") {
+      const pricingUnit = item.pricingUnit;
+      const unitLabel =
+        pricingUnit === "per_hour"
+          ? "На час"
+          : pricingUnit === "per_session"
+            ? "На сесия"
+            : item.category || "Услуга";
+      return {
+        label: unitLabel,
+        bg: "border-blue-500/30 bg-blue-500/10 text-blue-300",
+        icon: <Wrench className="size-3 text-blue-400 shrink-0" />,
+      };
     }
 
-    return null;
+    if (tab === "recovery") {
+      return {
+        label: item.sessionType || item.category || "Възстановяване",
+        bg: "border-cyan-500/30 bg-cyan-500/10 text-cyan-300",
+        icon: <Zap className="size-3 text-cyan-400 shrink-0" />,
+      };
+    }
+
+    // Default: trainings
+    switch (item.type) {
+      case "Членски внос":
+        return {
+          label: item.type,
+          bg: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
+          icon: <UserCheck className="size-3 text-emerald-400 shrink-0" />,
+        };
+      case "Годишен абонамент":
+        return {
+          label: item.type,
+          bg: "border-purple-500/30 bg-purple-500/10 text-purple-300",
+          icon: <Sparkles className="size-3 text-purple-400 shrink-0" />,
+        };
+      case "Абонамент":
+        return {
+          label: item.type,
+          bg: "border-blue-500/30 bg-blue-500/10 text-blue-300",
+          icon: <Calendar className="size-3 text-blue-400 shrink-0" />,
+        };
+      case "Еднократно плащане":
+        return {
+          label: item.type,
+          bg: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+          icon: <Zap className="size-3 text-amber-400 shrink-0" />,
+        };
+      default:
+        return {
+          label: item.type || item.category || "Тренировка",
+          bg: "border-zinc-700 bg-zinc-800 text-zinc-300",
+          icon: <Dumbbell className="size-3 text-zinc-400 shrink-0" />,
+        };
+    }
   };
 
-  const getTabIcon = (currentTab: string) => {
-    if (currentTab === "trainings")
-      return <Trophy className="size-12 opacity-35" strokeWidth={1} />;
-    if (currentTab === "general")
-      return <Activity className="size-12 opacity-35" strokeWidth={1} />;
-    if (currentTab === "recovery")
-      return <Zap className="size-12 opacity-35" strokeWidth={1} />;
-    return <ShoppingBag className="size-12 opacity-35" strokeWidth={1} />;
+  const typeBadge = getTypeBadge();
+
+  // Price formatting suffix
+  const getPriceSuffix = () => {
+    if (tab === "shop") return "";
+    if (isSubscription) {
+      return `/ ${item.billingPeriod?.toLowerCase().replace("ен", "ца") || "месец"}`;
+    }
+    if (tab === "club-services") {
+      if (item.pricingUnit === "per_hour") return "/ час";
+      if (item.pricingUnit === "per_session") return "/ сесия";
+      return "/ наем";
+    }
+    if (tab === "recovery") {
+      const days = item.numberOfDays || 1;
+      return days > 1 ? `/ ${days} дни` : "/ процедура";
+    }
+    return "/ посещение";
   };
 
-  const getTabLabel = (currentTab: string) => {
-    if (currentTab === "trainings") return t("Тренировка", "Training", lang);
-    if (currentTab === "general") return t("Услуга", "Service", lang);
-    if (currentTab === "recovery") return t("Възстановяване", "Recovery", lang);
-    return t("Магазин", "Shop", lang);
-  };
-
-  const renderImages = () => {
-    return (
-      <ImageGallery
-        images={images}
-        displayMode={displayMode}
-        altName={item.name}
-        fallbackIcon={getTabIcon(tab)}
-        fallbackText="Няма снимка"
-        cleanUrlFn={cleanUrl}
-      />
-    );
+  // Primary action button label
+  const getPrimaryActionLabel = () => {
+    if (tab === "recovery") return "Заяви час";
+    if (tab === "shop") return "Запитване";
+    return "Запиши се";
   };
 
   return (
-    <BentoCard className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900 shadow-none transition-all duration-300 hover:border-zinc-700">
-      {/* Product Image section with navigation */}
-      <div className="relative flex h-40 w-full shrink-0 items-center justify-center overflow-hidden border-b border-zinc-800/60 bg-zinc-950 sm:h-44 md:h-48">
-        {renderImages()}
-
-        {/* Top Floating Badge */}
-        <div className="absolute top-3 left-3 z-10">{renderBadges()}</div>
-      </div>
-
-      {/* Product Content Details */}
-      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
-        <div>
-          {(item.category || item.sessionType) && (
-            <div className="mb-1.5 flex flex-wrap gap-1">
-              {item.category && (
-                <span className="rounded-md bg-zinc-800/50 px-2 py-0.5 text-[9px] font-black tracking-widest text-zinc-400 uppercase">
-                  {item.category}
-                </span>
+    <BentoCard
+      id={`item-${item.id}`}
+      className={cn(
+        "group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-zinc-900/90 p-0 shadow-xs transition-all duration-300 hover:border-zinc-700 hover:shadow-md",
+        isSelected
+          ? "border-blue-500 ring-2 ring-blue-500/60 shadow-lg bg-blue-950/20"
+          : "border-zinc-800/80"
+      )}
+    >
+      {/* Top Media Banner or Sleek Compact Header */}
+      {images.length > 0 ? (
+        <div className="relative h-36 sm:h-40 w-full overflow-hidden border-b border-zinc-800/60 bg-zinc-950">
+          {images.map((imgUrl: string, idx: number) => (
+            <Image
+              key={imgUrl}
+              src={imgUrl}
+              alt={`${item.name} - ${idx + 1}`}
+              priority={idx === 0}
+              fill
+              unoptimized={
+                imgUrl.startsWith("/api/") ||
+                imgUrl.includes("/api/upload") ||
+                imgUrl.startsWith("data:")
+              }
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className={cn(
+                "absolute inset-0 object-contain p-2 transition-all duration-700 group-hover:scale-105",
+                idx === activeImageIndex
+                  ? "z-0 scale-100 opacity-100"
+                  : "-z-10 scale-95 opacity-0"
               )}
-              {item.sessionType && (
-                <span className="rounded-md bg-cyan-900/30 px-2 py-0.5 text-[9px] font-black tracking-widest text-cyan-500 uppercase">
-                  {item.sessionType}
-                </span>
+            />
+          ))}
+
+          {/* Type Badge & Stock on Image */}
+          <div className="absolute bottom-2 left-2 z-10 flex flex-wrap items-center gap-1.5">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold backdrop-blur-md shadow-2xs",
+                typeBadge.bg
               )}
-            </div>
-          )}
-          <h2 className="flex min-h-8 items-center text-sm leading-snug font-semibold text-white transition-colors duration-300 group-hover:text-blue-400 sm:text-base">
-            <span>{renderTranslatedText(item.name, lang)}</span>
-          </h2>
-          <p className="mt-1.5 line-clamp-2 min-h-9 text-xs leading-relaxed font-light text-zinc-400">
-            <span>
-              {renderTranslatedText(item.description, lang) ||
-                t(
-                  "Няма предоставено описание за този артикул.",
-                  "No description provided for this item.",
-                  lang
-                )}
-            </span>
-          </p>
-
-          {/* Zones */}
-          {item.zones && (
-            <div className="flex flex-wrap gap-2 pt-3">
-              {(() => {
-                const zText = getZonesDisplayText();
-                if (!zText) return null;
-                return (
-                  <span className="rounded-full border border-cyan-900/50 bg-cyan-950/40 px-3 py-1 text-[10px] font-medium tracking-wider text-cyan-400 uppercase">
-                    {renderTranslatedText(zText, lang)}
-                  </span>
-                );
-              })()}
-            </div>
-          )}
-
-          {/* Features */}
-          <div className="mt-4 space-y-3 border-t border-zinc-800/50 pt-4">
-            <div className="flex flex-wrap gap-4 pt-1">
-              {(() => {
-                const dur = Number(item.duration || item.durationMinutes);
-                if (!dur) return null;
-                const nameLower = (item.name || "").toLowerCase();
-                const isExclusive =
-                  nameLower.includes("exclusive") ||
-                  nameLower.includes("ексклузивн");
-                const displayDur = isExclusive && dur === 45 ? "15 + 30" : dur;
-
-                let colorClass = "text-zinc-300";
-                let iconClass = "text-zinc-500";
-                if (dur === 15) {
-                  colorClass = "text-teal-400";
-                  iconClass = "text-teal-500";
-                } else if (dur === 30) {
-                  colorClass = "text-blue-400";
-                  iconClass = "text-blue-500";
-                } else if (dur >= 45) {
-                  colorClass = "text-fuchsia-400";
-                  iconClass = "text-fuchsia-500";
-                }
-
-                return (
-                  <div
-                    className={`flex items-center gap-1.5 text-xs ${colorClass}`}
-                  >
-                    <Clock
-                      className={`size-3.5 ${iconClass}`}
-                      strokeWidth={1.5}
-                    />
-                    <span>
-                      {displayDur} {t("минути", "minutes", lang)}
-                    </span>
-                  </div>
-                );
-              })()}
-              {item.athleteCount && (
-                <div
-                  className={`flex items-center gap-1.5 text-xs ${item.athleteCount >= 2 ? "text-amber-400" : "text-zinc-300"}`}
-                >
-                  <Users
-                    className={`size-3.5 ${item.athleteCount >= 2 ? "text-amber-500" : "text-zinc-500"}`}
-                    strokeWidth={1.5}
-                  />
-                  <span>
-                    {item.athleteCount} {t("спортисти", "athletes", lang)}
-                  </span>
-                </div>
-              )}
-              {tab === "recovery" && (
-                <div
-                  className={`flex items-center gap-1.5 text-xs ${
-                    (item.numberOfDays || 1) >= 3
-                      ? "text-emerald-400"
-                      : (item.numberOfDays || 1) === 2
-                        ? "text-sky-400"
-                        : "text-zinc-300"
-                  }`}
-                >
-                  <Calendar
-                    className={`size-3.5 ${
-                      (item.numberOfDays || 1) >= 3
-                        ? "text-emerald-500"
-                        : (item.numberOfDays || 1) === 2
-                          ? "text-sky-500"
-                          : "text-zinc-500"
-                    }`}
-                    strokeWidth={1.5}
-                  />
-                  <span>
-                    {item.numberOfDays || 1} {t("дни", "days", lang)} /{" "}
-                    {item.proceduresPerDay || 1} процедури на ден
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Pricing & Details bar */}
-        <div className="mt-6 flex items-end justify-between border-t border-zinc-800/80 pt-5">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[9px] font-semibold tracking-widest text-zinc-400 uppercase">
-              {" "}
-              {t("Цена", "Price", lang)}{" "}
-            </span>
-            <span className="text-xl font-medium tracking-tight text-white">
-              {shouldShowPrice(item, tab) && item.price > 0
-                ? `${item.price.toFixed(2)} EUR`
-                : lang === "en"
-                  ? "Ask for price"
-                  : "Попитайте за цена"}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex size-7 items-center justify-center rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-400 transition-colors hover:bg-blue-500/20 hover:text-blue-300"
-              title="Детайли"
             >
-              <Eye size={14} />
+              {typeBadge.icon}
+              <span>{typeBadge.label}</span>
+            </span>
+
+            {tab === "shop" && typeof item.stock === "number" && (
+              <ProductStockBadge
+                stock={item.stock}
+                threshold={item.restockThreshold}
+              />
+            )}
+          </div>
+
+          {/* Quick Copy Link Button */}
+          <div className="absolute top-2 right-2 z-10">
+            <button
+              type="button"
+              onClick={onCopyLink}
+              className="inline-flex size-7 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/90 text-zinc-300 shadow-2xs backdrop-blur-md transition-all hover:bg-zinc-800 hover:text-white cursor-pointer"
+              title={`Копирай директен линк към ${item.name}`}
+              aria-label={`Копирай директен линк към ${item.name}`}
+            >
+              {isCopied ? (
+                <Check size={13} className="text-emerald-400" />
+              ) : (
+                <Link2 size={13} />
+              )}
             </button>
-            <Badge className="flex items-center gap-1 border border-zinc-800/60 bg-zinc-950 px-2.5 py-1 text-[8px] font-medium tracking-wider text-zinc-400 uppercase shadow-none">
-              {getTabLabel(tab)}
-            </Badge>
+          </div>
+        </div>
+      ) : (
+        /* Compact 38px Header when NO Image */
+        <div className="flex items-center justify-between border-b border-zinc-800/80 bg-zinc-950/70 px-3.5 py-2.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[10px] font-semibold",
+                typeBadge.bg
+              )}
+            >
+              {typeBadge.icon}
+              <span>{typeBadge.label}</span>
+            </span>
+
+            {tab === "shop" && typeof item.stock === "number" && (
+              <ProductStockBadge
+                stock={item.stock}
+                threshold={item.restockThreshold}
+              />
+            )}
+          </div>
+
+          {/* Quick Copy Link Button */}
+          <button
+            type="button"
+            onClick={onCopyLink}
+            className="inline-flex size-7 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 shadow-2xs transition-all hover:border-zinc-700 hover:text-white cursor-pointer"
+            title={`Копирай директен линк към ${item.name}`}
+            aria-label={`Копирай директен линк към ${item.name}`}
+          >
+            {isCopied ? (
+              <Check size={13} className="text-emerald-400" />
+            ) : (
+              <Link2 size={13} />
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Content Area */}
+      <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4">
+        <div className="space-y-2.5">
+          {/* Title - Fully readable without clipping */}
+          <div>
+            <h3 className="text-sm font-bold text-white transition-colors group-hover:text-blue-400 sm:text-base leading-snug">
+              {item.name}
+            </h3>
+
+            {/* Target Groups / Category tags */}
+            {item.targetGroups && item.targetGroups.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {item.targetGroups.map((group: string) => (
+                  <span
+                    key={group}
+                    className="rounded-md border border-zinc-800 bg-zinc-800/60 px-1.5 py-0.5 text-[9px] font-medium tracking-wide text-zinc-400 uppercase"
+                  >
+                    {group}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Description - readable without truncation, expandable if very long */}
+          {item.description && (
+            <div className="space-y-1">
+              <p
+                className={cn(
+                  "text-xs leading-relaxed text-zinc-300",
+                  !isExpanded && hasLongDesc && "line-clamp-3"
+                )}
+              >
+                {item.description}
+              </p>
+              {hasLongDesc && (
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-blue-400 hover:text-blue-300 cursor-pointer"
+                >
+                  <span>
+                    {isExpanded ? "Свий описанието" : "Виж цялото описание"}
+                  </span>
+                  {isExpanded ? (
+                    <ChevronUp size={12} />
+                  ) : (
+                    <ChevronDown size={12} />
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Recovery Zones if present */}
+          {item.zones && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {(Array.isArray(item.zones) ? item.zones : [item.zones]).map(
+                (zone: string) => (
+                  <span
+                    key={zone}
+                    className="rounded-full border border-cyan-800/50 bg-cyan-950/40 px-2.5 py-0.5 text-[9px] font-semibold tracking-wider text-cyan-300 uppercase"
+                  >
+                    {zone}
+                  </span>
+                )
+              )}
+            </div>
+          )}
+
+          {/* Parameters Grid */}
+          <div className="grid grid-cols-2 gap-1.5 border-t border-zinc-800/80 pt-2.5 text-[11px] text-zinc-400">
+            {/* Duration */}
+            {item.durationMinutes || item.duration ? (
+              <div className="flex items-center gap-1.5">
+                <Clock
+                  className="size-3 shrink-0 text-zinc-500"
+                  strokeWidth={1.5}
+                />
+                <span>{item.durationMinutes || item.duration} мин.</span>
+              </div>
+            ) : null}
+
+            {/* Athlete capacity */}
+            {item.athleteCount ? (
+              <div className="flex items-center gap-1.5">
+                <Users
+                  className="size-3 shrink-0 text-zinc-500"
+                  strokeWidth={1.5}
+                />
+                <span>
+                  {item.athleteCount}{" "}
+                  {item.athleteCount > 1 ? "спортисти" : "спортист"}
+                </span>
+              </div>
+            ) : null}
+
+            {/* Subscription Period */}
+            {isSubscription && (
+              <div className="flex items-center gap-1.5">
+                <CreditCard
+                  className="size-3 shrink-0 text-zinc-500"
+                  strokeWidth={1.5}
+                />
+                <span className="truncate">
+                  {item.billingPeriod || "Месечен"} период
+                </span>
+              </div>
+            )}
+
+            {/* Recovery Days */}
+            {tab === "recovery" && (
+              <div className="flex items-center gap-1.5">
+                <Calendar
+                  className="size-3 shrink-0 text-zinc-500"
+                  strokeWidth={1.5}
+                />
+                <span>
+                  {item.numberOfDays || 1} дни / {item.proceduresPerDay || 1}{" "}
+                  проц./ден
+                </span>
+              </div>
+            )}
+
+            {/* Court / Club Service unit */}
+            {tab === "club-services" && item.pricingUnit && (
+              <div className="flex items-center gap-1.5">
+                <Wrench
+                  className="size-3 shrink-0 text-zinc-500"
+                  strokeWidth={1.5}
+                />
+                <span>
+                  {item.pricingUnit === "per_hour" ? "На час" : "Фиксирана"}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom Area: Price and Actions */}
+        <div className="mt-3.5 border-t border-zinc-800/80 pt-3">
+          <div className="mb-3 flex items-baseline justify-between">
+            <div>
+              <span className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+                {typeof item.price === "number" && item.price > 0
+                  ? formatPrice(item.price)
+                  : "0,00 €"}
+              </span>
+              <span className="ml-1 text-[11px] font-medium text-zinc-400">
+                {getPriceSuffix()}
+              </span>
+            </div>
+          </div>
+
+          {/* Action Buttons: 1-click Inquiry + Details Modal */}
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => {
+                if (tab === "recovery" && onRecoveryInquiry) {
+                  onRecoveryInquiry(item);
+                } else {
+                  setIsInquiryOpen(true);
+                }
+              }}
+              className="h-8.5 rounded-xl bg-blue-600 text-[11px] font-semibold tracking-wide text-white shadow-xs transition-colors hover:bg-blue-500 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              {tab === "recovery" ? (
+                <CalendarCheck size={13} />
+              ) : (
+                <MessageSquare size={13} />
+              )}
+              <span>{getPrimaryActionLabel()}</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(true)}
+              className="h-8.5 rounded-xl border-zinc-700 bg-zinc-800/80 text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-700 hover:text-white flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Eye size={13} />
+              <span>Детайли</span>
+            </Button>
           </div>
         </div>
       </div>
 
+      {/* Detailed Modal Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white [&>button:last-child]:z-10">
           <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain min-h-0">
-            <div className="relative h-48 sm:h-56 w-full bg-black">
-              <ImageGallery
-                images={images}
-                displayMode="carousel"
-                altName={item.name}
-                fallbackIcon={<Package className="size-8 opacity-40" />}
-                fallbackText={lang === "en" ? "No image" : "Няма снимка"}
-              />
-              <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
-              <div className="pointer-events-none absolute top-3 left-3">
-                {renderBadges()}
+            {images.length > 0 ? (
+              <div className="relative h-48 sm:h-56 w-full bg-black">
+                {images.map((imgUrl: string, idx: number) => (
+                  <Image
+                    key={imgUrl}
+                    src={imgUrl}
+                    alt={item.name}
+                    fill
+                    unoptimized={
+                      imgUrl.startsWith("/api/") ||
+                      imgUrl.includes("/api/upload") ||
+                      imgUrl.startsWith("data:")
+                    }
+                    className={cn(
+                      "object-contain p-2 transition-opacity duration-500",
+                      idx === activeImageIndex ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                ))}
+                <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
               </div>
-            </div>
+            ) : null}
 
-            <div className="relative -mt-12 p-3.5 sm:p-4.5">
-              <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
+            <div
+              className={cn(
+                "p-4 sm:p-5",
+                images.length > 0 && "-mt-10 relative"
+              )}
+            >
+              <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/90 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
                 <DialogHeader>
                   <DialogTitle className="mb-2 text-xl sm:text-2xl leading-tight font-bold text-white">
-                    <span>{renderTranslatedText(item.name, lang)}</span>
+                    {item.name}
                   </DialogTitle>
                   <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    {shouldShowPrice(item, tab) && item.price > 0 && (
-                      <div className="text-xl font-medium tracking-tight text-blue-400">
-                        <span>{item.price.toFixed(2)} EUR</span>
-                      </div>
-                    )}
-                    {(() => {
-                      const showPrice =
-                        shouldShowPrice(item, tab) && item.price > 0;
-                      const btnText = showPrice
-                        ? t("Запиши се / Заяви", "Book / Request", lang)
-                        : t("Попитайте за цена", "Ask for price", lang);
+                    <div className="text-xl font-bold tracking-tight text-blue-400">
+                      <span>
+                        {typeof item.price === "number" && item.price > 0
+                          ? formatPrice(item.price)
+                          : "0,00 €"}
+                      </span>
+                      <span className="text-xs font-normal text-zinc-400 ml-1">
+                        {getPriceSuffix()}
+                      </span>
+                    </div>
 
-                      if (tab === "recovery" && onRecoveryInquiry) {
-                        return (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsModalOpen(false);
-                              onRecoveryInquiry(item);
-                            }}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-emerald-500/20 transition-colors hover:bg-emerald-600"
-                          >
-                            <CalendarCheck size={16} />
-                            <span>Изпрати запитване за час</span>
-                          </button>
-                        );
-                      }
-
-                      return (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsModalOpen(false);
-                            setIsInquiryOpen(true);
-                          }}
-                          className={`inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-500 ${!showPrice ? "w-full sm:w-auto" : ""}`}
-                        >
-                          <span>{btnText}</span>
-                        </button>
-                      );
-                    })()}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        if (tab === "recovery" && onRecoveryInquiry) {
+                          onRecoveryInquiry(item);
+                        } else {
+                          setIsInquiryOpen(true);
+                        }
+                      }}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-500 cursor-pointer"
+                    >
+                      <MessageSquare size={16} />
+                      <span>{getPrimaryActionLabel()}</span>
+                    </button>
                   </div>
                 </DialogHeader>
               </div>
 
-              <div className="space-y-6">
-                {/* Additional Metadata */}
+              <div className="space-y-5">
+                {/* Parameters & Badges */}
                 <div className="flex flex-wrap gap-2">
-                  {(() => {
-                    const dur = Number(item.duration || item.durationMinutes);
-                    if (!dur) return null;
-                    const nameLower = (item.name || "").toLowerCase();
-                    const isExclusive =
-                      nameLower.includes("exclusive") ||
-                      nameLower.includes("ексклузивн");
-                    const displayDur =
-                      isExclusive && dur === 45 ? "15 + 30" : dur;
+                  <Badge
+                    variant="outline"
+                    className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                  >
+                    Категория: {typeBadge.label}
+                  </Badge>
 
-                    let badgeClass =
-                      "border-zinc-700 bg-zinc-900 text-zinc-300";
-                    if (dur === 15)
-                      badgeClass =
-                        "border-teal-900/50 bg-teal-950/40 text-teal-400";
-                    else if (dur === 30)
-                      badgeClass =
-                        "border-blue-900/50 bg-blue-950/40 text-blue-400";
-                    else if (dur >= 45)
-                      badgeClass =
-                        "border-fuchsia-900/50 bg-fuchsia-950/40 text-fuchsia-400";
+                  {(item.durationMinutes || item.duration) && (
+                    <Badge
+                      variant="outline"
+                      className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                    >
+                      Продължителност: {item.durationMinutes || item.duration}{" "}
+                      мин.
+                    </Badge>
+                  )}
 
-                    return (
-                      <Badge
-                        variant="outline"
-                        className={`rounded-md px-3 py-1 text-xs ${badgeClass}`}
-                      >
-                        <span>
-                          {t("Продължителност: ", "Duration: ", lang)}
-                          {displayDur} {t("мин", "min", lang)}
-                        </span>
-                      </Badge>
-                    );
-                  })()}
                   {item.athleteCount && (
                     <Badge
                       variant="outline"
-                      className={`rounded-md px-3 py-1 text-xs ${
-                        item.athleteCount >= 2
-                          ? "border-amber-900/50 bg-amber-950/40 text-amber-400"
-                          : "border-zinc-700 bg-zinc-900 text-zinc-300"
-                      }`}
+                      className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
                     >
-                      <span>
-                        {t("Капацитет: ", "Capacity: ", lang)}
-                        {item.athleteCount} {t("спортисти", "athletes", lang)}
-                      </span>
+                      Капацитет: {item.athleteCount} спортисти
                     </Badge>
                   )}
-                  {tab === "recovery" && (
-                    <Badge
-                      variant="outline"
-                      className={`rounded-md px-3 py-1 text-xs ${
-                        (item.numberOfDays || 1) >= 3
-                          ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
-                          : (item.numberOfDays || 1) === 2
-                            ? "border-sky-900/50 bg-sky-950/40 text-sky-400"
-                            : "border-zinc-700 bg-zinc-900 text-zinc-300"
-                      }`}
-                    >
-                      <span>
-                        {item.numberOfDays || 1} {t("дни", "days", lang)} /{" "}
-                        {item.proceduresPerDay || 1}{" "}
-                        {t("процедури на ден", "procedures per day", lang)}
-                      </span>
-                    </Badge>
-                  )}
+
                   {item.zones && (
                     <Badge
                       variant="outline"
-                      className="rounded-md border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                      className="border-cyan-800 bg-cyan-950/60 px-3 py-1 text-xs text-cyan-300"
                     >
-                      <span>
-                        {renderTranslatedText(getZonesDisplayText(), lang)}
-                      </span>
+                      Зони:{" "}
+                      {Array.isArray(item.zones)
+                        ? item.zones.join(", ")
+                        : item.zones}
                     </Badge>
+                  )}
+
+                  {tab === "shop" && typeof item.stock === "number" && (
+                    <ProductStockBadge
+                      stock={item.stock}
+                      threshold={item.restockThreshold}
+                    />
                   )}
                 </div>
 
-                {/* Resources */}
-                {item.requiredResources && (
-                  <div className="mt-4 rounded-xl border border-zinc-800/50 bg-zinc-900/50 p-4">
-                    <h4 className="mb-3 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
-                      {t("Ресурси", "Resources", lang)}
-                    </h4>
-                    <div className="flex flex-wrap gap-4">
-                      {(item.requiredResources.compressors ?? 0) > 0 && (
-                        <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                          <span className="size-1.5 rounded-full bg-emerald-400" />
-                          <span>
-                            {item.requiredResources.compressors}{" "}
-                            {t("компресора", "compressors", lang)}
-                          </span>
-                        </div>
-                      )}
-                      {(item.requiredResources.attachments?.arms ?? 0) > 0 && (
-                        <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                          <span className="size-1.5 rounded-full bg-blue-400" />
-                          <span>
-                            {item.requiredResources.attachments?.arms}{" "}
-                            {renderTranslatedText("РЪЦЕ", lang)}
-                          </span>
-                        </div>
-                      )}
-                      {(item.requiredResources.attachments?.legs ?? 0) > 0 && (
-                        <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                          <span className="size-1.5 rounded-full bg-cyan-400" />
-                          <span>
-                            {item.requiredResources.attachments?.legs}{" "}
-                            {renderTranslatedText("КРАКА", lang)}
-                          </span>
-                        </div>
-                      )}
-                      {(item.requiredResources.attachments?.hips ?? 0) > 0 && (
-                        <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                          <span className="size-1.5 rounded-full bg-purple-400" />
-                          <span>
-                            {item.requiredResources.attachments?.hips}{" "}
-                            {renderTranslatedText("ТАЗ", lang)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
                 <DialogDescription className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
-                  <span>
-                    {renderTranslatedText(item.description, lang) ||
-                      t(
-                        "Няма предоставено описание за този артикул.",
-                        "No description provided for this item.",
-                        lang
-                      )}
-                  </span>
+                  {item.description ||
+                    "Няма допълнително описание за този артикул."}
                 </DialogDescription>
               </div>
             </div>
@@ -802,12 +997,13 @@ function CatalogCard({
         </DialogContent>
       </Dialog>
 
+      {/* Public Inquiry Dialog */}
       <CatalogInquiryDialog
         isOpen={isInquiryOpen}
         onClose={() => setIsInquiryOpen(false)}
         item={item}
         tab={tab}
-        lang={lang}
+        lang="bg"
       />
     </BentoCard>
   );
