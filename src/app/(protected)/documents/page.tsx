@@ -1,6 +1,9 @@
 import { Metadata } from "next";
+import React from "react";
 
-import DocumentsClient from "./documents-client";
+import DocumentTemplatesPage from "./templates/page";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Документи & Бланки | Бадминтон клуб Гълъбово",
@@ -8,6 +11,6 @@ export const metadata: Metadata = {
     "Управление на клубни образци на документи, онлайн попълване и електронен регистър на подписани документи.",
 };
 
-export default function DocumentsPage() {
-  return <DocumentsClient />;
+export default function DocumentsIndexPage() {
+  return <DocumentTemplatesPage />;
 }

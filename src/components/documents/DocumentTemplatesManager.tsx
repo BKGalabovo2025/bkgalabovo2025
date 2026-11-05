@@ -2,13 +2,18 @@
 
 import {
   AlertCircle,
+  Check,
+  ChevronDown,
+  ChevronUp,
   Edit3,
   Eye,
   FileDown,
   FilePlus2,
   FileText,
   Layers,
+  Link2,
   Loader2,
+  MoreHorizontal,
   Paperclip,
   Plus,
   Printer,
@@ -17,8 +22,11 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,6 +36,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,12 +91,283 @@ const initialFormData: CreateDocumentTemplateInput = {
   isActive: true,
 };
 
+interface DocumentTemplateCardProps {
+  template: DocumentTemplate;
+  isDefault: boolean;
+  isSelected: boolean;
+  isCopied: boolean;
+  onPreview: () => void;
+  onPrint: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onCopyLink: () => void;
+}
+
+function DocumentTemplateCard({
+  template,
+  isDefault,
+  isSelected,
+  isCopied,
+  onPreview,
+  onPrint,
+  onEdit,
+  onDelete,
+  onCopyLink,
+}: DocumentTemplateCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showFullSnippet, setShowFullSnippet] = useState(false);
+  const hasLongDesc = (template.description?.length || 0) > 110;
+  const hasLongSnippet = (template.content?.length || 0) > 140;
+
+  return (
+    <BentoCard
+      id={`item-${template.id}`}
+      className={cn(
+        "group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-white p-0 shadow-xs transition-all duration-300 hover:shadow-md dark:bg-zinc-950",
+        isSelected
+          ? "border-blue-500 ring-2 ring-blue-500/60 shadow-lg bg-blue-50/15 dark:border-blue-400 dark:ring-blue-400/60 dark:bg-blue-950/20"
+          : "border-zinc-200/80 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700",
+        !template.isActive && "opacity-60 bg-zinc-50/50 dark:bg-zinc-900/30"
+      )}
+    >
+      {/* Top Header Bar */}
+      <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-3.5 py-2.5 dark:border-zinc-800/80 dark:bg-zinc-900/40">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <Layers className="size-3.5 text-zinc-500 shrink-0" />
+          <span className="truncate text-[10px] font-bold tracking-wider uppercase text-zinc-600 dark:text-zinc-400">
+            {DOCUMENT_CATEGORY_LABELS[template.category] || template.category}
+          </span>
+          {isSelected && (
+            <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 shrink-0">
+              Избран
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+            v{template.version}
+          </span>
+          {template.isRequiredForMember && (
+            <span
+              className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[9px] font-bold text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800"
+              title="Този документ автоматично се появява в таб Документи на всички състезатели"
+            >
+              В досиетата
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content Body */}
+      <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4 space-y-3">
+        <div className="space-y-2">
+          {/* Title */}
+          <h3 className="text-sm font-bold text-zinc-950 dark:text-white leading-snug">
+            {template.title}
+          </h3>
+
+          {/* Description */}
+          {template.description && (
+            <div>
+              <p
+                className={cn(
+                  "text-xs font-light text-zinc-600 dark:text-zinc-400 leading-relaxed",
+                  !isExpanded && hasLongDesc && "line-clamp-2"
+                )}
+              >
+                {template.description}
+              </p>
+              {hasLongDesc && (
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
+                >
+                  <span>{isExpanded ? "Скрий описание" : "Виж още"}</span>
+                  {isExpanded ? (
+                    <ChevronUp size={12} />
+                  ) : (
+                    <ChevronDown size={12} />
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Attached File Preview if present */}
+          {template.fileName && (
+            <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-2 border border-zinc-200/60 text-xs dark:bg-zinc-900/60 dark:border-zinc-800">
+              <div className="flex items-center gap-2 truncate">
+                <Paperclip className="size-3.5 text-zinc-500 shrink-0" />
+                <span className="truncate font-medium text-zinc-800 dark:text-zinc-200 text-[11px]">
+                  {template.fileName}
+                </span>
+              </div>
+              {template.fileUrl && (
+                <a
+                  href={template.fileUrl}
+                  download={template.fileName}
+                  className="shrink-0 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 p-1"
+                  title="Свали файла"
+                >
+                  <FileDown className="size-3.5" />
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Content snippet */}
+          {template.content && (
+            <div className="space-y-1">
+              <div
+                className={cn(
+                  "rounded-xl bg-zinc-50/80 p-2.5 text-[10px] font-mono text-zinc-600 dark:bg-zinc-900/70 dark:text-zinc-400 leading-relaxed border border-zinc-200/60 dark:border-zinc-800",
+                  !showFullSnippet && hasLongSnippet && "line-clamp-3"
+                )}
+              >
+                {template.content}
+              </div>
+              {hasLongSnippet && (
+                <button
+                  type="button"
+                  onClick={() => setShowFullSnippet(!showFullSnippet)}
+                  className="inline-flex items-center gap-0.5 text-[10px] font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 cursor-pointer"
+                >
+                  <span>
+                    {showFullSnippet ? "Скрий текста" : "Виж пълния текст"}
+                  </span>
+                  {showFullSnippet ? (
+                    <ChevronUp size={11} />
+                  ) : (
+                    <ChevronDown size={11} />
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer Actions */}
+        <div className="mt-3.5 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onPreview}
+              className="h-8 rounded-lg px-2 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              title="Преглед на официалния документ"
+            >
+              <Eye className="size-3.5 mr-1" />
+              <span>Преглед</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onPrint}
+              className="h-8 rounded-lg px-2 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              title="Принтирай празен образец"
+            >
+              <Printer className="size-3.5 mr-1" />
+              <span>Печат</span>
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onCopyLink}
+              className="h-8 px-2 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              title={`Копирай директен линк към ${template.title}`}
+              aria-label={`Копирай директен линк към ${template.title}`}
+            >
+              {isCopied ? (
+                <Check
+                  size={13}
+                  className="text-emerald-600 dark:text-emerald-400"
+                />
+              ) : (
+                <Link2 size={13} />
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+              className="h-8 rounded-lg border-zinc-200 px-2.5 text-xs font-semibold hover:bg-zinc-950 hover:text-white dark:border-zinc-800 dark:hover:bg-zinc-800"
+              title="Редактирай образеца"
+            >
+              <Edit3 className="size-3.5 mr-1" />
+              <span>Редакция</span>
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="size-8 p-0 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                  title="Още действия"
+                  aria-label="Още действия"
+                >
+                  <MoreHorizontal size={14} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  onClick={onPreview}
+                  className="cursor-pointer"
+                >
+                  <Eye className="mr-2 size-3.5" />
+                  <span>Преглед на бланката</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onPrint} className="cursor-pointer">
+                  <Printer className="mr-2 size-3.5" />
+                  <span>Принтирай празен образец</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onCopyLink}
+                  className="cursor-pointer"
+                >
+                  <Link2 className="mr-2 size-3.5" />
+                  <span>Копирай директен линк</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onEdit} className="cursor-pointer">
+                  <Edit3 className="mr-2 size-3.5" />
+                  <span>Редакция на параметри</span>
+                </DropdownMenuItem>
+                {!isDefault && (
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="text-rose-600 focus:text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/40 cursor-pointer"
+                  >
+                    <Trash2 className="mr-2 size-3.5" />
+                    <span>Изтрий образеца</span>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+    </BentoCard>
+  );
+}
+
 export function DocumentTemplatesManager() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const itemParam = searchParams.get("item") || searchParams.get("template");
+
   const [templates, setTemplates] = useState<DocumentTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [copiedTemplateId, setCopiedTemplateId] = useState<string | null>(null);
 
   // Modal states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -99,6 +384,24 @@ export function DocumentTemplatesManager() {
     useState<CreateDocumentTemplateInput>(initialFormData);
   const [newCheckboxLabel, setNewCheckboxLabel] = useState("");
   const [dialogTab, setDialogTab] = useState<"form" | "preview">("form");
+
+  const handleCopyLink = (template: DocumentTemplate) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const url = `${origin}/documents/templates?item=${template.id}`;
+    navigator.clipboard.writeText(url);
+    setCopiedTemplateId(template.id);
+    toast.success(`Линкът към образеца "${template.title}" е копиран!`);
+    setTimeout(() => setCopiedTemplateId(null), 2500);
+  };
+
+  useEffect(() => {
+    if (itemParam && !isLoading && templates.length > 0) {
+      const el = document.getElementById(`item-${itemParam}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [itemParam, isLoading, templates]);
 
   const loadTemplates = async () => {
     setIsLoading(true);
@@ -1127,129 +1430,18 @@ export function DocumentTemplatesManager() {
             ].includes(template.id);
 
             return (
-              <div
+              <DocumentTemplateCard
                 key={template.id}
-                className={cn(
-                  "flex flex-col justify-between rounded-2xl border bg-white p-4 sm:p-5 shadow-2xs transition-all hover:shadow-xs",
-                  template.isActive
-                    ? "border-zinc-200/80"
-                    : "border-zinc-200/50 opacity-60 bg-zinc-50/50"
-                )}
-              >
-                <div className="space-y-3">
-                  {/* Top Badges */}
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-semibold text-zinc-700">
-                      <Layers className="size-3 text-zinc-500" />
-                      {DOCUMENT_CATEGORY_LABELS[template.category] ||
-                        template.category}
-                    </span>
-
-                    <div className="flex items-center gap-1.5">
-                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">
-                        v{template.version}
-                      </span>
-                      {template.isRequiredForMember && (
-                        <span
-                          className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[9px] font-bold text-indigo-700 border border-indigo-200"
-                          title="Този документ автоматично се появява в таб Документи на всички състезатели"
-                        >
-                          В досиетата
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Title & Description */}
-                  <div>
-                    <h3 className="text-sm font-bold text-zinc-950 leading-snug">
-                      {template.title}
-                    </h3>
-                    <p className="mt-0.5 line-clamp-2 text-xs font-light text-zinc-500">
-                      {template.description || "Официална бланка на клуба"}
-                    </p>
-                  </div>
-
-                  {/* Attached File Preview if present */}
-                  {template.fileName && (
-                    <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-2 border border-zinc-200/60 text-xs">
-                      <div className="flex items-center gap-2 truncate">
-                        <Paperclip className="size-3.5 text-zinc-500 shrink-0" />
-                        <span className="truncate font-medium text-zinc-800 text-[11px]">
-                          {template.fileName}
-                        </span>
-                      </div>
-                      {template.fileUrl && (
-                        <a
-                          href={template.fileUrl}
-                          download={template.fileName}
-                          className="shrink-0 text-emerald-600 hover:text-emerald-700 p-1"
-                          title="Свали файла"
-                        >
-                          <FileDown className="size-3.5" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Content snippet */}
-                  <div className="rounded-xl bg-zinc-50/70 p-2.5 text-[10px] font-mono text-zinc-600 line-clamp-3 leading-relaxed border border-zinc-100">
-                    {template.content}
-                  </div>
-                </div>
-
-                {/* Footer Actions */}
-                <div className="mt-3.5 pt-3 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-1.5">
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleOpenPreview(template)}
-                      className="h-8 rounded-lg px-2 text-xs text-zinc-700 hover:bg-zinc-100"
-                      title="Преглед на официалния документ"
-                    >
-                      <Eye className="size-3.5 mr-1" />
-                      Преглед
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handlePrintBlank(template)}
-                      className="h-8 rounded-lg px-2 text-xs text-zinc-700 hover:bg-zinc-100"
-                      title="Принтирай празен образец"
-                    >
-                      <Printer className="size-3.5 mr-1" />
-                      Печат
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenEdit(template)}
-                      className="h-8 rounded-lg border-zinc-200 px-2.5 text-xs font-semibold hover:bg-zinc-950 hover:text-white"
-                      title="Редактирай образеца"
-                    >
-                      <Edit3 className="size-3.5 mr-1" />
-                      Редакция
-                    </Button>
-
-                    {!isDefault && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(template)}
-                        className="h-8 rounded-lg px-1.5 text-xs text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                        title="Изтрий образеца"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
+                template={template}
+                isDefault={isDefault}
+                isSelected={itemParam === template.id}
+                isCopied={copiedTemplateId === template.id}
+                onPreview={() => handleOpenPreview(template)}
+                onPrint={() => handlePrintBlank(template)}
+                onEdit={() => handleOpenEdit(template)}
+                onDelete={() => handleDelete(template)}
+                onCopyLink={() => handleCopyLink(template)}
+              />
             );
           })}
         </div>
