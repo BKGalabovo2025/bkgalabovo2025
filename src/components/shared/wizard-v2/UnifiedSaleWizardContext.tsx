@@ -106,6 +106,7 @@ interface UnifiedSaleWizardContextType {
   setPrice: React.Dispatch<React.SetStateAction<string>>;
   quantity: string;
   setQuantity: React.Dispatch<React.SetStateAction<string>>;
+  parsedQuantity: number;
   paymentMethod: string;
   setPaymentMethod: React.Dispatch<React.SetStateAction<string>>;
   isPaid: boolean;
@@ -490,19 +491,35 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
     unpaidMonths.length > 0 &&
     unpaidMonths.every((m) => selectedMonthKeys.includes(m.monthKey));
 
+  const parsedQuantity = useMemo(() => {
+    const q = parseInt(quantity, 10);
+    return !isNaN(q) && q > 0 ? q : 1;
+  }, [quantity]);
+
   const totalAmount = useMemo(() => {
-    const base = parseFloat(price) || 0;
-    if (isGuestSale) return base;
+    const unitPrice = parseFloat(price) || 0;
+    if (mode === "product" || mode === "general") {
+      return unitPrice * parsedQuantity;
+    }
+    if (isGuestSale) return unitPrice;
     if (paymentMode === "subscription") {
       const months = selectedMonthKeys.length || 1;
-      return base * months;
+      return unitPrice * months;
     }
     if (paymentMode === "individual") {
       const eventsCount = selectedEventIds.length || 1;
-      return base * eventsCount;
+      return unitPrice * eventsCount;
     }
-    return base;
-  }, [price, isGuestSale, paymentMode, selectedMonthKeys, selectedEventIds]);
+    return unitPrice;
+  }, [
+    mode,
+    price,
+    parsedQuantity,
+    isGuestSale,
+    paymentMode,
+    selectedMonthKeys,
+    selectedEventIds,
+  ]);
 
   const getPaidEventIds = () => {
     if (isGuestSale || paymentMode !== "subscription") return [];
@@ -523,6 +540,7 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
   };
 
   const getSaleQuantity = () => {
+    if (mode === "product" || mode === "general") return parsedQuantity;
     if (isGuestSale) return 1;
     if (paymentMode === "subscription") return selectedMonthKeys.length || 1;
     return selectedEventIds.length || 1;
@@ -782,6 +800,7 @@ export const UnifiedSaleWizardProvider: React.FC<ProviderProps> = ({
     setPrice,
     quantity,
     setQuantity,
+    parsedQuantity,
     paymentMethod,
     setPaymentMethod,
     isPaid,

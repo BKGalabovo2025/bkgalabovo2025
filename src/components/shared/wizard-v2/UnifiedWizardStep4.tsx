@@ -27,15 +27,20 @@ export const UnifiedWizardStep4 = () => {
     paymentMethod,
     isPaid,
     note,
+    price,
+    parsedQuantity,
     totalAmount,
     completedSaleId,
     memberEvents,
   } = useUnifiedSaleWizard();
 
+  let itemCategoryLabel = "Услуга";
   let itemNamePlural = "услуги/тренировки";
   if (mode === "recovery") {
+    itemCategoryLabel = "Процедура";
     itemNamePlural = "процедури";
   } else if (mode === "product") {
+    itemCategoryLabel = "Продукт";
     itemNamePlural = "продукти";
   }
   // If in processing step
@@ -143,6 +148,12 @@ export const UnifiedWizardStep4 = () => {
                   <tr className="border-b border-zinc-200 font-medium dark:border-zinc-800">
                     <td className="border-r border-zinc-200 p-1.5 text-left font-bold text-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                       {item?.name}
+                      {(mode === "product" || mode === "general") && (
+                        <span className="ml-1 font-normal text-zinc-500">
+                          ({parsedQuantity} бр. ×{" "}
+                          {formatPrice(parseFloat(price) || 0)})
+                        </span>
+                      )}
                       {!isGuestSale &&
                         paymentMode === "subscription" &&
                         selectedMonthKeys.length > 0 &&
@@ -255,11 +266,24 @@ export const UnifiedWizardStep4 = () => {
           </span>
         </div>
         <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
-          <span className="text-zinc-500">Услуга</span>
+          <span className="text-zinc-500">{itemCategoryLabel}</span>
           <span className="font-bold text-zinc-900 dark:text-white">
             {item?.name}
           </span>
         </div>
+        {(mode === "product" || mode === "general") && (
+          <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">
+            <span className="text-zinc-500">Количество</span>
+            <span className="font-bold text-zinc-900 dark:text-white">
+              {parsedQuantity} бр.{" "}
+              {parseFloat(price) > 0 && (
+                <span className="font-normal text-zinc-500">
+                  (по {formatPrice(parseFloat(price) || 0)} / бр.)
+                </span>
+              )}
+            </span>
+          </div>
+        )}
         {!isGuestSale && (
           <>
             <div className="flex items-center justify-between border-b border-zinc-200/50 pb-3 text-xs dark:border-zinc-800/50">

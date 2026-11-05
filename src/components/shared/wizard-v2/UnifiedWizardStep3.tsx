@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 import { useUnifiedSaleWizard } from "./UnifiedSaleWizardContext";
@@ -23,6 +24,8 @@ export const UnifiedWizardStep3 = () => {
     setPrice,
     quantity,
     setQuantity,
+    parsedQuantity,
+    totalAmount,
     paymentMethod,
     setPaymentMethod,
     isPaid,
@@ -51,7 +54,7 @@ export const UnifiedWizardStep3 = () => {
               htmlFor="sale-price"
               className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300"
             >
-              Сума (EUR) *
+              {showQuantity ? "Единична цена (EUR) *" : "Сума (EUR) *"}
             </Label>
             <Input
               id="sale-price"
@@ -86,6 +89,22 @@ export const UnifiedWizardStep3 = () => {
             </div>
           )}
         </div>
+
+        {showQuantity && (
+          <div className="flex items-center justify-between rounded-xl bg-emerald-50/80 px-3.5 py-2.5 border border-emerald-200/60 dark:bg-emerald-950/30 dark:border-emerald-800/40">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                Калкулирана обща сума
+              </span>
+              <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                {parsedQuantity} бр. × {formatPrice(parseFloat(price) || 0)}
+              </span>
+            </div>
+            <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
+              {formatPrice(totalAmount)}
+            </span>
+          </div>
+        )}
 
         <div className="grid gap-1.5">
           <Label className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300">
