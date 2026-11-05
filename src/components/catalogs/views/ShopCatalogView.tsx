@@ -2,8 +2,11 @@
 
 import {
   Check,
+  ChevronDown,
+  ChevronUp,
   Edit2,
   Link2,
+  MoreHorizontal,
   Package,
   PackagePlus,
   Search,
@@ -20,6 +23,12 @@ import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSa
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   deleteProductAction,
@@ -34,7 +43,7 @@ interface ShopCatalogViewProps {
   activeBranch?: string;
 }
 
-function ProductStockBadge({
+export function ProductStockBadge({
   stock,
   threshold,
 }: {
@@ -59,6 +68,247 @@ function ProductStockBadge({
     <Badge className="border-emerald-500/20 bg-emerald-500/10 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
       В наличност ({stock} бр.)
     </Badge>
+  );
+}
+
+export interface ShopProductCardProps {
+  product: Product;
+  isSelected?: boolean;
+  isCopied?: boolean;
+  onSale: () => void;
+  onDelete: () => void;
+  onCopyLink: () => void;
+}
+
+export function ShopProductCard({
+  product,
+  isSelected,
+  isCopied,
+  onSale,
+  onDelete,
+  onCopyLink,
+}: ShopProductCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const images = useMemo(() => {
+    if (!product.imageUrl) return [];
+    return product.imageUrl
+      .split(",")
+      .map((url) => sanitizeImageUrl(url.trim()))
+      .filter((url): url is string => Boolean(url));
+  }, [product.imageUrl]);
+
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % images.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  const hasLongDesc = (product.description?.length || 0) > 110;
+
+  return (
+    <BentoCard
+      id={`item-${product.id}`}
+      className={cn(
+        "group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-white p-0 shadow-xs transition-all duration-300 hover:shadow-md dark:bg-zinc-950",
+        isSelected
+          ? "border-blue-500 ring-2 ring-blue-500/60 shadow-lg bg-blue-50/15 dark:border-blue-400 dark:ring-blue-400/60 dark:bg-blue-950/20"
+          : "border-zinc-200/80 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
+      )}
+    >
+      {/* Top Media or Sleek Compact Header */}
+      {images.length > 0 ? (
+        <div className="relative h-28 sm:h-32 w-full overflow-hidden border-b border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+          {images.map((imgUrl, idx) => (
+            <Image
+              key={imgUrl}
+              src={imgUrl}
+              alt={product.name}
+              fill
+              unoptimized
+              className={cn(
+                "object-cover transition-all duration-500 group-hover:scale-105",
+                idx === activeImageIndex
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-95 pointer-events-none"
+              )}
+            />
+          ))}
+          {images.length > 1 && (
+            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-1 z-10 bg-black/40 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+              {images.map((_, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "size-1 rounded-full transition-all",
+                    idx === activeImageIndex ? "bg-white w-2" : "bg-white/50"
+                  )}
+                />
+              ))}
+            </div>
+          )}
+          <div className="absolute top-2 right-2 flex items-center gap-1.5">
+            <ProductStockBadge
+              stock={product.stock}
+              threshold={product.restockThreshold}
+            />
+          </div>
+          {isSelected && (
+            <div className="absolute top-2 left-2 rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+              Избран
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-3.5 py-2 dark:border-zinc-800/80 dark:bg-zinc-900/40">
+          <div className="flex items-center gap-1.5">
+            <Package className="size-3.5 text-zinc-400 dark:text-zinc-500" />
+            <span className="text-[10px] font-bold tracking-wider uppercase text-zinc-500 dark:text-zinc-400">
+              {product.category || "Артикул"}
+            </span>
+            {isSelected && (
+              <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold text-blue-700 dark:bg-blue-900/60 dark:text-blue-300">
+                Избран
+              </span>
+            )}
+          </div>
+          <ProductStockBadge
+            stock={product.stock}
+            threshold={product.restockThreshold}
+          />
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4">
+        <div className="space-y-1.5">
+          {images.length > 0 && (
+            <span className="text-[10px] font-bold tracking-wider uppercase text-zinc-400 dark:text-zinc-500">
+              {product.category || "Общи"}
+            </span>
+          )}
+          <h4 className="text-sm font-bold text-zinc-900 dark:text-white leading-snug">
+            {product.name}
+          </h4>
+          {product.description && (
+            <div>
+              <p
+                className={cn(
+                  "text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed",
+                  !isExpanded && hasLongDesc && "line-clamp-2"
+                )}
+              >
+                {product.description}
+              </p>
+              {hasLongDesc && (
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
+                >
+                  <span>{isExpanded ? "Скрий" : "Виж още"}</span>
+                  {isExpanded ? (
+                    <ChevronUp size={12} />
+                  ) : (
+                    <ChevronDown size={12} />
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer Price & Actions */}
+        <div className="mt-3.5 flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+              Цена
+            </span>
+            <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
+              {formatPrice(product.price)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <Button
+              size="sm"
+              onClick={onSale}
+              disabled={product.stock <= 0}
+              className="h-8 rounded-lg bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-40"
+              title={
+                product.stock <= 0
+                  ? "Изчерпана наличност"
+                  : "Бърза продажба на клиент или състезател"
+              }
+            >
+              <ShoppingCart size={13} className="mr-1" />
+              <span>Продай</span>
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onCopyLink}
+              className="h-8 px-2 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              title={`Копирай директен линк към ${product.name}`}
+              aria-label={`Копирай директен линк към ${product.name}`}
+            >
+              {isCopied ? (
+                <Check
+                  size={13}
+                  className="text-emerald-600 dark:text-emerald-400"
+                />
+              ) : (
+                <Link2 size={13} />
+              )}
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="size-8 p-0 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                  title="Още действия"
+                  aria-label="Още действия"
+                >
+                  <MoreHorizontal size={14} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/catalogs/shop/${product.id}/edit`}
+                    className="cursor-pointer"
+                  >
+                    <Edit2 className="mr-2 size-3.5" />
+                    <span>Редакция</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onCopyLink}
+                  className="cursor-pointer"
+                >
+                  <Link2 className="mr-2 size-3.5" />
+                  <span>Копирай линк</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onDelete}
+                  className="text-rose-600 focus:text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-950/40 cursor-pointer"
+                >
+                  <Trash2 className="mr-2 size-3.5" />
+                  <span>Изтрий</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+    </BentoCard>
   );
 }
 
@@ -275,136 +525,17 @@ export function ShopCatalogView({
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredProducts.map((product) => {
-            const hasImage = Boolean(product.imageUrl);
-            const safeImg = sanitizeImageUrl(product.imageUrl);
-            const isSelected = itemParam === product.id;
-            const isCopied = copiedItemId === product.id;
-
-            return (
-              <BentoCard
-                id={`item-${product.id}`}
-                key={product.id}
-                className={cn(
-                  "group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-white p-4 shadow-xs transition-all duration-300 dark:bg-zinc-900",
-                  isSelected
-                    ? "border-blue-500 ring-2 ring-blue-500/80 shadow-lg dark:border-blue-400 dark:ring-blue-400/80 bg-blue-50/15 dark:bg-blue-950/20"
-                    : "border-zinc-200/80 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800"
-                )}
-              >
-                <div>
-                  {/* Thumbnail */}
-                  <div className="relative mb-3 flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800/60">
-                    {hasImage && safeImg ? (
-                      <Image
-                        src={safeImg}
-                        alt={product.name}
-                        fill
-                        unoptimized
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <Package size={36} className="text-zinc-400" />
-                    )}
-                    <div className="absolute top-2 right-2">
-                      <ProductStockBadge
-                        stock={product.stock}
-                        threshold={product.restockThreshold}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Header info */}
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
-                      {product.category || "Общи"}
-                    </span>
-                    <div className="flex items-start justify-between gap-1.5">
-                      <h4 className="font-bold text-zinc-900 dark:text-white text-sm line-clamp-1">
-                        {product.name}
-                      </h4>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyLink(product)}
-                        className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-blue-700 dark:hover:text-blue-300 transition-all cursor-pointer shrink-0 shadow-2xs"
-                        title={`Копирай директен линк към ${product.name}`}
-                        aria-label={`Копирай директен линк към ${product.name}`}
-                      >
-                        {isCopied ? (
-                          <>
-                            <Check
-                              size={10}
-                              className="text-emerald-600 dark:text-emerald-400"
-                            />
-                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                              Копирано!
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Link2 size={10} />
-                            <span>Линк</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    {product.description && (
-                      <p className="text-xs text-zinc-500 line-clamp-2">
-                        {product.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Footer price & actions */}
-                <div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-zinc-400 uppercase">
-                      Цена
-                    </span>
-                    <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
-                      {formatPrice(product.price)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      size="sm"
-                      onClick={() => openSale(product)}
-                      disabled={product.stock <= 0}
-                      className="h-8 rounded-lg bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-40"
-                      title="Продай на състезател или гост"
-                    >
-                      <ShoppingCart size={13} className="mr-1" />
-                      <span>Продай</span>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      asChild
-                      className="size-8 p-0 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                      title="Редактирай артикул"
-                      aria-label={`Редактирай ${product.name}`}
-                    >
-                      <Link href={`/catalogs/shop/${product.id}/edit`}>
-                        <Edit2 size={13} />
-                      </Link>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(product)}
-                      className="size-8 p-0 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/20"
-                      title="Изтрий артикул"
-                      aria-label={`Изтрий ${product.name}`}
-                    >
-                      <Trash2 size={13} />
-                    </Button>
-                  </div>
-                </div>
-              </BentoCard>
-            );
-          })}
+          {filteredProducts.map((product) => (
+            <ShopProductCard
+              key={product.id}
+              product={product}
+              isSelected={itemParam === product.id}
+              isCopied={copiedItemId === product.id}
+              onSale={() => openSale(product)}
+              onDelete={() => handleDelete(product)}
+              onCopyLink={() => handleCopyLink(product)}
+            />
+          ))}
         </div>
       )}
 
