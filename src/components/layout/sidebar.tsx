@@ -104,7 +104,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900">
-              <Link href="/" className="relative size-10">
+              <Link prefetch={false} href="/" className="relative size-10">
                 <Image
                   src={brandLogo}
                   alt="Logo"
@@ -145,6 +145,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary active:bg-primary/10 dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/dashboard"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -166,6 +167,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/members"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -184,6 +186,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                 >
                   <Link
+                    prefetch={false}
                     href="/parents"
                     className="flex w-full items-center justify-between"
                     onClick={() => isMobile && setOpen(false)}
@@ -229,6 +232,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         <span>Родители на живо</span>
                       </span>
                       <Link
+                        prefetch={false}
                         href="/parents/activity"
                         className="text-[10px] text-blue-600 hover:underline dark:text-blue-400 font-semibold"
                       >
@@ -284,6 +288,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/documents"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -301,6 +306,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/marketing"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -318,6 +324,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/certificates"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -335,6 +342,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/partners"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -352,6 +360,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/feedback"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -369,6 +378,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/inquiries"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -389,6 +399,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href={
                     !isRecoveryZone ? "/schedule" : "/schedule?tab=reservations"
                   }
@@ -422,6 +433,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                 >
                   <Link
+                    prefetch={false}
                     href="/declarations"
                     className="flex w-full items-center gap-3"
                     onClick={() => isMobile && setOpen(false)}
@@ -440,6 +452,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/catalogs"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -457,6 +470,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/sales"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -474,6 +488,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/reports"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -491,6 +506,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/accounting"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -508,6 +524,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
+                  prefetch={false}
                   href="/settings"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
@@ -531,6 +548,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/inventory"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -548,6 +566,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/training/planner"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -567,6 +586,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/training/camps"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -584,6 +604,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/training/annual-plans"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -601,6 +622,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/training/exercises"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -618,6 +640,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/training/shadow"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -635,6 +658,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/training/beep-test"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -652,6 +676,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/training/assessments"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -669,6 +694,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/training/theory"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -686,6 +712,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/tournaments"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}
@@ -703,6 +730,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
+                      prefetch={false}
                       href="/rankings"
                       className="flex w-full items-center gap-3"
                       onClick={() => isMobile && setOpen(false)}

@@ -15,7 +15,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-400/30 bg-black/80 px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 backdrop-blur-xl">
       <div className="flex items-center justify-between">
-        <Link href="/club" className="flex items-center gap-2">
+        <Link prefetch={false} href="/club" className="flex items-center gap-2">
           <div className="relative size-8 overflow-hidden rounded-xl shadow-[0_0_10px_rgba(30,58,138,0.5)]">
             <Image
               src="/icons/badge-option-3-light-squircle.png"
@@ -32,42 +32,49 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
         {/* Desktop Links */}
         <div className="hidden items-center gap-8 text-[11px] font-bold tracking-widest text-zinc-400 uppercase md:flex">
           <Link
+            prefetch={false}
             href="/club#about"
             className="transition-colors hover:text-blue-400"
           >
             За Клуба
           </Link>
           <Link
+            prefetch={false}
             href="/club#activities"
             className="transition-colors hover:text-blue-400"
           >
             Дейности
           </Link>
           <Link
+            prefetch={false}
             href="/club/catalog"
             className="transition-colors hover:text-blue-400"
           >
             Услуги
           </Link>
           <Link
+            prefetch={false}
             href="/club#schedule"
             className="transition-colors hover:text-blue-400"
           >
             График и Турнири
           </Link>
           <Link
+            prefetch={false}
             href="/club/team"
             className="text-blue-400 transition-colors hover:text-blue-400"
           >
             Отбор
           </Link>
           <Link
+            prefetch={false}
             href="/club#contacts"
             className="transition-colors hover:text-blue-400"
           >
             Контакти
           </Link>
           <Link
+            prefetch={false}
             href="/club/reviews"
             className="flex items-center gap-1 text-amber-400 transition-colors hover:text-amber-300"
           >
@@ -78,6 +85,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
 
         <div className="hidden items-center gap-3 md:flex">
           <Link
+            prefetch={false}
             href="/club/parents/login"
             className="flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-linear-to-r from-blue-600/90 to-indigo-600/90 px-3.5 py-1.5 text-[11px] font-bold text-white shadow-[0_0_15px_rgba(37,99,235,0.35)] transition-all hover:scale-105 hover:border-blue-400 hover:shadow-[0_0_20px_rgba(37,99,235,0.55)]"
           >
@@ -85,6 +93,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
             <span>Родителски вход</span>
           </Link>
           <Link
+            prefetch={false}
             href="/"
             className="text-xs font-medium tracking-widest text-zinc-400 uppercase transition-colors hover:text-white"
           >
@@ -118,6 +127,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
           >
             <div className="flex flex-col gap-4 py-4 text-xs font-bold tracking-widest text-zinc-300 uppercase sm:gap-6 sm:py-6 sm:text-sm">
               <Link
+                prefetch={false}
                 href="/club#about"
                 onClick={() => setMobileMenuOpen(false)}
                 className="hover:text-blue-400"
@@ -125,6 +135,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 За Клуба
               </Link>
               <Link
+                prefetch={false}
                 href="/club#activities"
                 onClick={() => setMobileMenuOpen(false)}
                 className="hover:text-blue-400"
@@ -132,6 +143,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 Дейности
               </Link>
               <Link
+                prefetch={false}
                 href="/club/catalog"
                 onClick={() => setMobileMenuOpen(false)}
                 className="hover:text-blue-400"
@@ -139,6 +151,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 Услуги
               </Link>
               <Link
+                prefetch={false}
                 href="/club#schedule"
                 onClick={() => setMobileMenuOpen(false)}
                 className="hover:text-blue-400"
@@ -146,6 +159,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 График и Турнири
               </Link>
               <Link
+                prefetch={false}
                 href="/club/team"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-blue-400 hover:text-blue-400"
@@ -153,6 +167,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 Отбор
               </Link>
               <Link
+                prefetch={false}
                 href="/club#contacts"
                 onClick={() => setMobileMenuOpen(false)}
                 className="hover:text-blue-400"
@@ -160,6 +175,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 Контакти
               </Link>
               <Link
+                prefetch={false}
                 href="/club/reviews"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300"
@@ -168,6 +184,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 <span>Отзиви</span>
               </Link>
               <Link
+                prefetch={false}
                 href="/club/parents/login"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-950/40 px-3.5 py-2.5 font-bold text-blue-300 hover:bg-blue-900/60 hover:text-white"
@@ -176,6 +193,7 @@ export function PublicNav({ clubSite: _clubSite }: { clubSite?: Site | null }) {
                 <span>Родителски портал</span>
               </Link>
               <Link
+                prefetch={false}
                 href="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className="border-t border-blue-900/30 pt-4 text-zinc-500 hover:text-white"
