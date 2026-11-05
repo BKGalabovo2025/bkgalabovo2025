@@ -22,6 +22,7 @@ import {
   MessageSquareHeart,
   PanelLeft,
   Settings,
+  ShoppingCart,
   Target,
   Tent,
   Trophy,
@@ -445,6 +446,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <ListTree size={18} strokeWidth={1.5} />
                   <span className="text-[14px]">Каталози</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/sales")}
+                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+              >
+                <Link
+                  href="/sales"
+                  className="flex w-full items-center gap-3"
+                  onClick={() => isMobile && setOpen(false)}
+                >
+                  <ShoppingCart size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Дневник продажби</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
