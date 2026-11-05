@@ -61,7 +61,7 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
   serverExternalPackages: ["firebase-admin"],
   outputFileTracingRoot: __dirname,
   // Блокиращи метаданни за всички user-agent-и (вкл. Lighthouse), за да е
@@ -72,6 +72,7 @@ const nextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2678400, // 31 дни кеширане в Vercel Edge CDN (по подразбиране е само 60 сек)
     dangerouslyAllowSVG: true,
     localPatterns: [
       {
@@ -84,6 +85,39 @@ const nextConfig = {
         hostname: "**",
       },
     ],
+  },
+  async headers() {
+    return [
+      {
+        // Агресивно кеширане на всички статични медийни файлове и шрифтове в браузъра и CDN
+        source:
+          "/:all*(svg|jpg|jpeg|png|webp|avif|ico|woff|woff2|ttf|mp3|wav|ogg)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/manifest.json",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
+    ];
   },
   experimental: {
     serverActions: {

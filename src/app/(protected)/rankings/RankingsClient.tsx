@@ -100,9 +100,16 @@ export default function RankingsClient({
     }
   }, [period]);
 
-  // 60-second auto-refresh
+  // Auto-refresh only when tab is visible and at a calm 10-minute interval
   useEffect(() => {
-    intervalRef.current = setInterval(refresh, 60_000);
+    intervalRef.current = setInterval(() => {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "visible"
+      ) {
+        refresh();
+      }
+    }, 600_000); // 10 minutes
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };

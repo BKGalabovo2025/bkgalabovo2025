@@ -142,8 +142,13 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
     if (!quotaExhausted) handleRefresh(true);
 
     const interval = setInterval(() => {
-      handleRefresh(true);
-    }, 300000); // 5 minutes
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "visible"
+      ) {
+        handleRefresh(true);
+      }
+    }, 300000); // 5 minutes, only when tab is visible
 
     return () => clearInterval(interval);
   }, [handleRefresh, quotaExhausted]);

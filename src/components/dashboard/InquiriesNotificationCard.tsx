@@ -30,8 +30,29 @@ export function InquiriesNotificationCard() {
 
   useEffect(() => {
     fetchInquiries();
-    const interval = setInterval(fetchInquiries, 45000);
-    return () => clearInterval(interval);
+
+    // Auto-refresh only when the tab is actively visible to preserve CDN request quota
+    const interval = setInterval(() => {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "visible"
+      ) {
+        fetchInquiries();
+      }
+    }, 180000); // 3 minutes
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchInquiries();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [fetchInquiries]);
 
   const stats = useMemo(() => {

@@ -365,13 +365,18 @@ export function ParentPortalProvider({
     sessionActionsRef.current.push({ time, text: actionText });
   }, []);
 
-  // Heartbeat & auto-report
+  // Heartbeat & auto-report (throttled to 10m and only when active to save CDN/Server Action calls)
   useEffect(() => {
     if (!parent) return;
     recordParentHeartbeatAction().catch(() => {});
     const interval = setInterval(() => {
-      recordParentHeartbeatAction().catch(() => {});
-    }, 60000);
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "visible"
+      ) {
+        recordParentHeartbeatAction().catch(() => {});
+      }
+    }, 600000); // 10 minutes
     return () => clearInterval(interval);
   }, [parent]);
 
