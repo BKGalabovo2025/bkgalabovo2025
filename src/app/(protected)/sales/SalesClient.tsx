@@ -3,10 +3,15 @@
 import {
   AlertTriangle,
   Calendar,
+  CheckCheck,
   Loader2,
   MoreVertical,
+  Package,
+  Pencil,
   PlusCircle,
   Receipt,
+  RotateCcw,
+  Search,
   ShoppingCart,
   Trash2,
   User,
@@ -31,8 +36,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -42,7 +49,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/context/auth-context";
-import { deleteSaleAction } from "@/lib/actions/sales";
+import { deleteSaleAction, updateSaleAction } from "@/lib/actions/sales";
 import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { Member, Sale } from "@/types";
@@ -57,64 +64,144 @@ interface SaleMobileCardProps {
   sale: Sale & { memberName: string };
   onRowClick: (id: string) => void;
   onDelete: (id: string) => void;
+  onMarkAsPaid: (id: string) => void;
+  onMarkAsUnpaid: (id: string) => void;
+  isUpdating: boolean;
 }
 
-function SaleMobileCard({ sale, onRowClick, onDelete }: SaleMobileCardProps) {
+function SaleMobileCard({
+  sale,
+  onRowClick,
+  onDelete,
+  onMarkAsPaid,
+  onMarkAsUnpaid,
+  isUpdating,
+}: SaleMobileCardProps) {
+  const router = useRouter();
+  const itemsSummary = (sale.items || [])
+    .map((i) => `${i.name}${i.quantity > 1 ? ` (${i.quantity} бр.)` : ""}`)
+    .join(", ");
+
   return (
     <div
       onClick={() => onRowClick(sale.id)}
       className="cursor-pointer rounded-2xl border border-zinc-100 bg-white p-4 shadow-2xs transition-colors active:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:active:bg-zinc-900"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
+        <div className="space-y-1 min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <User className="size-3.5 text-zinc-400" strokeWidth={1.5} />
-            <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+            <User
+              className="size-3.5 text-zinc-400 shrink-0"
+              strokeWidth={1.5}
+            />
+            <span className="text-sm font-semibold text-zinc-900 truncate dark:text-white">
               {sale.memberName}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-            <Calendar className="size-3 text-zinc-400" strokeWidth={1.5} />
+          {itemsSummary && (
+            <p className="text-xs text-zinc-500 truncate dark:text-zinc-400">
+              {itemsSummary}
+            </p>
+          )}
+          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+            <Calendar
+              className="size-3 text-zinc-400 shrink-0"
+              strokeWidth={1.5}
+            />
             <span>{new Date(sale.saleDate).toLocaleString("bg-BG")}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge
-            className={cn(
-              "rounded-full border-none px-2.5 py-0.5 text-[9px] font-medium tracking-widest uppercase",
-              sale.isPaid
-                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
-                : "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
-            )}
-          >
-            {sale.isPaid ? "Платено" : "Висящо"}
-          </Badge>
-          <div onClick={(e) => e.stopPropagation()}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 rounded-lg text-zinc-400 hover:text-zinc-600"
-                >
-                  <MoreVertical className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="rounded-2xl border-zinc-100 p-1.5 shadow-xl"
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <Badge
+              className={cn(
+                "rounded-full border-none px-2.5 py-0.5 text-[9px] font-bold tracking-widest uppercase",
+                sale.isPaid
+                  ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                  : "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
+              )}
+            >
+              {sale.isPaid ? "Платено" : "Висящо"}
+            </Badge>
+
+            {!sale.isPaid && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={isUpdating}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMarkAsPaid(sale.id);
+                }}
+                className="h-7 rounded-lg border-emerald-300 bg-emerald-50 px-2 text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 shadow-2xs cursor-pointer"
+                title="Маркирай тази продажба като платена"
               >
-                <DropdownMenuItem
-                  className="cursor-pointer text-rose-500 focus:bg-rose-50 focus:text-rose-600"
-                  onSelect={() => onDelete(sale.id)}
+                {isUpdating ? (
+                  <Loader2 className="mr-1 size-3 animate-spin" />
+                ) : (
+                  <CheckCheck className="mr-1 size-3 text-emerald-600" />
+                )}
+                Плати
+              </Button>
+            )}
+
+            <div onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 rounded-lg text-zinc-400 hover:text-zinc-600"
+                  >
+                    <MoreVertical className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-52 rounded-2xl border-zinc-100 p-1.5 shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
                 >
-                  <Trash2 className="mr-2 size-3.5" />
-                  <span className="text-xs tracking-wider uppercase">
-                    Изтрий
-                  </span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {!sale.isPaid ? (
+                    <DropdownMenuItem
+                      className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:text-emerald-400"
+                      onSelect={() => onMarkAsPaid(sale.id)}
+                    >
+                      <CheckCheck className="mr-2 size-3.5 text-emerald-600" />
+                      <span>Маркирай като платено</span>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/40 dark:text-amber-400"
+                      onSelect={() => onMarkAsUnpaid(sale.id)}
+                    >
+                      <RotateCcw className="mr-2 size-3.5 text-amber-600" />
+                      <span>Отмени плащането</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                    onSelect={() => router.push(`/sales/${sale.id}/receipt`)}
+                  >
+                    <Receipt className="mr-2 size-3.5 text-zinc-500" />
+                    <span>Касова бележка</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                    onSelect={() => router.push(`/sales/${sale.id}/edit`)}
+                  >
+                    <Pencil className="mr-2 size-3.5 text-zinc-500" />
+                    <span>Редактирай</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="my-1 bg-zinc-100 dark:bg-zinc-800" />
+                  <DropdownMenuItem
+                    className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
+                    onSelect={() => onDelete(sale.id)}
+                  >
+                    <Trash2 className="mr-2 size-3.5 text-rose-500" />
+                    <span>Изтрий</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>
@@ -141,6 +228,11 @@ export default function SalesClient({
   const [sales, setSales] = useState<Sale[]>(initialSales || []);
   const [saleToDelete, setSaleToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [updatingSaleId, setUpdatingSaleId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "paid">(
+    "all"
+  );
 
   useEffect(() => {
     setSales(initialSales || []);
@@ -158,11 +250,12 @@ export default function SalesClient({
 
   const salesWithMemberNames = useMemo(() => {
     return sales.map((sale) => {
-      let memberName = "Външен клиент";
+      let memberName = sale.clientName || "Външен клиент";
       if (sale.memberId === "GUEST_EXTERNAL") {
-        memberName = "Външен гост";
+        memberName = sale.clientName || "Външен гост";
       } else if (sale.memberId && sale.memberId !== "Walk-in Customer") {
-        memberName = memberMap.get(sale.memberId) || "Неизвестен член";
+        memberName =
+          sale.clientName || memberMap.get(sale.memberId) || "Неизвестен член";
       }
       return {
         ...sale,
@@ -173,18 +266,115 @@ export default function SalesClient({
 
   const sortedSales = useMemo(() => {
     return [...salesWithMemberNames].sort((a, b) => {
-      if (a.status === "pending" && b.status !== "pending") return -1;
-      if (a.status !== "pending" && b.status === "pending") return 1;
+      if (!a.isPaid && b.isPaid) return -1;
+      if (a.isPaid && !b.isPaid) return 1;
       return new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime();
     });
   }, [salesWithMemberNames]);
+
+  const unpaidCount = useMemo(
+    () => sales.filter((s) => !s.isPaid).length,
+    [sales]
+  );
+  const paidCount = useMemo(
+    () => sales.filter((s) => s.isPaid).length,
+    [sales]
+  );
+
+  const filteredSales = useMemo(() => {
+    return sortedSales.filter((sale) => {
+      // 1. Status filter
+      if (statusFilter === "pending" && sale.isPaid) return false;
+      if (statusFilter === "paid" && !sale.isPaid) return false;
+
+      // 2. Search query (client name, note, item names, amount)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchesName = sale.memberName.toLowerCase().includes(q);
+        const matchesClient = (sale.clientName || "").toLowerCase().includes(q);
+        const matchesNote = (sale.note || "").toLowerCase().includes(q);
+        const matchesItems = (sale.items || []).some((item) =>
+          (item.name || "").toLowerCase().includes(q)
+        );
+        const matchesAmount = sale.totalAmount.toString().includes(q);
+        return (
+          matchesName ||
+          matchesClient ||
+          matchesNote ||
+          matchesItems ||
+          matchesAmount
+        );
+      }
+      return true;
+    });
+  }, [sortedSales, statusFilter, searchQuery]);
 
   const handleRowClick = (saleId: string) => {
     router.push(`/sales/${saleId}/receipt`);
   };
 
+  const handleMarkAsPaid = async (saleId: string) => {
+    setUpdatingSaleId(saleId);
+    const originalSales = [...sales];
+    setSales((prev) =>
+      prev.map((s) =>
+        s.id === saleId ? { ...s, isPaid: true, status: "completed" } : s
+      )
+    );
+
+    try {
+      const result = await updateSaleAction(saleId, idToken || "", {
+        isPaid: true,
+        status: "completed",
+      });
+      if (result.success) {
+        toast.success("Продажбата беше маркирана като платена.");
+        router.refresh();
+      } else {
+        setSales(originalSales);
+        toast.error(result.message || "Грешка при актуализиране на плащането.");
+      }
+    } catch (err) {
+      setSales(originalSales);
+      console.error("Error marking sale as paid:", err);
+      toast.error("Възникна грешка при маркиране като платено.");
+    } finally {
+      setUpdatingSaleId(null);
+    }
+  };
+
+  const handleMarkAsUnpaid = async (saleId: string) => {
+    setUpdatingSaleId(saleId);
+    const originalSales = [...sales];
+    setSales((prev) =>
+      prev.map((s) =>
+        s.id === saleId ? { ...s, isPaid: false, status: "pending" } : s
+      )
+    );
+
+    try {
+      const result = await updateSaleAction(saleId, idToken || "", {
+        isPaid: false,
+        status: "pending",
+      });
+      if (result.success) {
+        toast.success("Плащането беше отменено (записано като висящо).");
+        router.refresh();
+      } else {
+        setSales(originalSales);
+        toast.error(result.message || "Грешка при актуализиране на статуса.");
+      }
+    } catch (err) {
+      setSales(originalSales);
+      console.error("Error marking sale as unpaid:", err);
+      toast.error("Възникна грешка при отмяна на плащането.");
+    } finally {
+      setUpdatingSaleId(null);
+    }
+  };
+
   const handleDelete = async () => {
-    if (!saleToDelete || !idToken) return;
+    if (!saleToDelete) return;
     setIsDeleting(true);
 
     const originalSales = [...sales];
@@ -193,7 +383,7 @@ export default function SalesClient({
     setSales(updatedSales);
 
     try {
-      const result = await deleteSaleAction(saleToDelete, idToken);
+      const result = await deleteSaleAction(saleToDelete, idToken || "");
       if (result.success) {
         toast.success(result.message || "Продажбата беше изтрита успешно");
         router.refresh();
@@ -211,46 +401,21 @@ export default function SalesClient({
     }
   };
 
-  const loading = false;
-  const error = null;
-
   const renderTableContent = () => {
-    if (loading) {
-      return (
-        <div className="flex flex-col items-center justify-center space-y-6 py-32">
-          <Loader2
-            className="size-10 animate-spin text-zinc-200"
-            strokeWidth={1}
-          />
-          <p className="text-[10px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
-            Зареждане на продажби...
-          </p>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="flex flex-col items-center py-32 text-center text-rose-500">
-          <AlertTriangle className="mb-6 size-10 opacity-30" strokeWidth={1} />
-          <p className="text-sm font-light tracking-widest uppercase">
-            {error || "An error occurred while loading the sales."}
-          </p>
-        </div>
-      );
-    }
-
     return (
       <>
         {/* Mobile Card View (< md) */}
         <div className="space-y-3 p-3 md:hidden">
-          {sortedSales.length > 0 ? (
-            sortedSales.map((sale) => (
+          {filteredSales.length > 0 ? (
+            filteredSales.map((sale) => (
               <SaleMobileCard
                 key={sale.id}
                 sale={sale}
                 onRowClick={handleRowClick}
                 onDelete={setSaleToDelete}
+                onMarkAsPaid={handleMarkAsPaid}
+                onMarkAsUnpaid={handleMarkAsUnpaid}
+                isUpdating={updatingSaleId === sale.id}
               />
             ))
           ) : (
@@ -260,7 +425,9 @@ export default function SalesClient({
                 strokeWidth={1}
               />
               <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
-                Все още няма продажби
+                {searchQuery || statusFilter !== "all"
+                  ? "Няма намерени продажби по зададените критерии"
+                  : "Все още няма продажби"}
               </p>
             </div>
           )}
@@ -270,108 +437,195 @@ export default function SalesClient({
         <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader className="bg-zinc-50/50">
-              <TableRow className="h-16 border-none hover:bg-transparent">
-                <TableHead className="px-8 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+              <TableRow className="h-14 border-none hover:bg-transparent">
+                <TableHead className="px-6 text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
                   Дата и Час
                 </TableHead>
-                <TableHead className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                <TableHead className="text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
                   Клиент
                 </TableHead>
-                <TableHead className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                <TableHead className="text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
+                  Артикули
+                </TableHead>
+                <TableHead className="text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
                   Статус
                 </TableHead>
-                <TableHead className="pr-8 text-right text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                <TableHead className="pr-6 text-right text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
                   Сума
                 </TableHead>
-                <TableHead className="w-20"></TableHead>
+                <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedSales.length > 0 ? (
-                sortedSales.map((sale) => (
-                  <TableRow
-                    key={sale.id}
-                    onClick={() => handleRowClick(sale.id)}
-                    className="group h-20 cursor-pointer border-zinc-50 transition-colors hover:bg-zinc-50/50"
-                  >
-                    <TableCell className="px-8">
-                      <div className="flex items-center gap-3">
-                        <Calendar
-                          className="size-3.5 text-zinc-300"
-                          strokeWidth={1.5}
-                        />
-                        <span className="text-sm font-light text-zinc-600">
-                          {new Date(sale.saleDate).toLocaleString("bg-BG")}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <User
-                          className="size-3.5 text-zinc-300"
-                          strokeWidth={1.5}
-                        />
-                        <span className="text-sm font-medium text-zinc-900">
-                          {sale.memberName}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={cn(
-                          "rounded-full border-none px-3 py-1 text-[9px] font-medium tracking-widest uppercase",
-                          sale.isPaid
-                            ? "bg-emerald-50 text-emerald-600"
-                            : "bg-amber-50 text-amber-600"
-                        )}
-                      >
-                        {sale.isPaid ? "Платено" : "Висящо"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="pr-8 text-right text-sm font-medium text-zinc-950 tabular-nums">
-                      {formatPrice(sale.totalAmount)}
-                    </TableCell>
-                    <TableCell
-                      className="px-6 text-right"
-                      onClick={(e) => e.stopPropagation()}
+              {filteredSales.length > 0 ? (
+                filteredSales.map((sale) => {
+                  const itemsSummary = (sale.items || [])
+                    .map(
+                      (i) =>
+                        `${i.name}${i.quantity > 1 ? ` (${i.quantity} бр.)` : ""}`
+                    )
+                    .join(", ");
+
+                  return (
+                    <TableRow
+                      key={sale.id}
+                      onClick={() => handleRowClick(sale.id)}
+                      className="group h-18 cursor-pointer border-zinc-100 transition-colors hover:bg-zinc-50/70 dark:border-zinc-800 dark:hover:bg-zinc-900/50"
                     >
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-10 rounded-xl transition-all group-hover:bg-white group-hover:shadow-sm"
+                      <TableCell className="px-6">
+                        <div className="flex items-center gap-2.5">
+                          <Calendar
+                            className="size-3.5 text-zinc-400 shrink-0"
+                            strokeWidth={1.5}
+                          />
+                          <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                            {new Date(sale.saleDate).toLocaleString("bg-BG", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2.5">
+                          <User
+                            className="size-3.5 text-zinc-400 shrink-0"
+                            strokeWidth={1.5}
+                          />
+                          <span className="text-xs font-semibold text-zinc-900 dark:text-white">
+                            {sale.memberName}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 max-w-xs">
+                          <Package
+                            className="size-3.5 text-zinc-400 shrink-0"
+                            strokeWidth={1.5}
+                          />
+                          <span
+                            className="text-xs text-zinc-600 truncate dark:text-zinc-300 font-medium"
+                            title={itemsSummary}
                           >
-                            <MoreVertical className="size-4 text-zinc-300" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="min-w-40 rounded-3xl border-zinc-100 p-2 shadow-2xl"
-                        >
-                          <DropdownMenuItem
-                            className="cursor-pointer rounded-xl p-3 font-medium text-rose-500 focus:bg-rose-50 focus:text-rose-600"
-                            onSelect={() => setSaleToDelete(sale.id)}
+                            {itemsSummary || "—"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            className={cn(
+                              "rounded-full border-none px-2.5 py-0.5 text-[9px] font-bold tracking-widest uppercase",
+                              sale.isPaid
+                                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                                : "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
+                            )}
                           >
-                            <Trash2 className="mr-3 size-4" strokeWidth={1.5} />
-                            <span className="text-[11px] tracking-widest uppercase">
-                              Изтрий
-                            </span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
+                            {sale.isPaid ? "Платено" : "Висящо"}
+                          </Badge>
+                          {!sale.isPaid && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={updatingSaleId === sale.id}
+                              onClick={() => handleMarkAsPaid(sale.id)}
+                              className="h-7 rounded-lg border-emerald-300 bg-emerald-50 px-2.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 cursor-pointer shadow-2xs transition-all"
+                              title="Маркирай тази продажба като платена"
+                            >
+                              {updatingSaleId === sale.id ? (
+                                <Loader2 className="mr-1.5 size-3 animate-spin" />
+                              ) : (
+                                <CheckCheck className="mr-1.5 size-3.5 text-emerald-600" />
+                              )}
+                              Маркирай платено
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="pr-6 text-right text-xs font-bold text-zinc-950 tabular-nums dark:text-white">
+                        {formatPrice(sale.totalAmount)}
+                      </TableCell>
+                      <TableCell
+                        className="px-4 text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                            >
+                              <MoreVertical className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-52 rounded-2xl border-zinc-100 p-1.5 shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
+                          >
+                            {!sale.isPaid ? (
+                              <DropdownMenuItem
+                                className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:text-emerald-400"
+                                onSelect={() => handleMarkAsPaid(sale.id)}
+                              >
+                                <CheckCheck className="mr-2 size-3.5 text-emerald-600" />
+                                <span>Маркирай като платено</span>
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/40 dark:text-amber-400"
+                                onSelect={() => handleMarkAsUnpaid(sale.id)}
+                              >
+                                <RotateCcw className="mr-2 size-3.5 text-amber-600" />
+                                <span>Отмени плащането</span>
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                              onSelect={() =>
+                                router.push(`/sales/${sale.id}/receipt`)
+                              }
+                            >
+                              <Receipt className="mr-2 size-3.5 text-zinc-500" />
+                              <span>Касова бележка</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                              onSelect={() =>
+                                router.push(`/sales/${sale.id}/edit`)
+                              }
+                            >
+                              <Pencil className="mr-2 size-3.5 text-zinc-500" />
+                              <span>Редактирай</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="my-1 bg-zinc-100 dark:bg-zinc-800" />
+                            <DropdownMenuItem
+                              className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
+                              onSelect={() => setSaleToDelete(sale.id)}
+                            >
+                              <Trash2 className="mr-2 size-3.5 text-rose-500" />
+                              <span>Изтрий</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-32 text-center">
+                  <TableCell colSpan={6} className="py-24 text-center">
                     <ShoppingCart
-                      className="mx-auto mb-6 size-12 text-zinc-100"
+                      className="mx-auto mb-4 size-10 text-zinc-200 dark:text-zinc-800"
                       strokeWidth={1}
                     />
-                    <p className="text-[10px] font-medium tracking-[0.3em] text-zinc-400 uppercase">
-                      Все още няма продажби
+                    <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
+                      {searchQuery || statusFilter !== "all"
+                        ? "Няма намерени продажби по зададените критерии"
+                        : "Все още няма продажби"}
                     </p>
                   </TableCell>
                 </TableRow>
@@ -384,7 +638,7 @@ export default function SalesClient({
   };
 
   return (
-    <div className="space-y-8 duration-500 animate-in fade-in">
+    <div className="space-y-6 duration-500 animate-in fade-in">
       {showPageHeader ? (
         <>
           <PageHeader
@@ -397,7 +651,7 @@ export default function SalesClient({
           >
             <Button
               onClick={() => router.push("/sales/new")}
-              className="h-11 sm:h-12 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+              className="h-11 sm:h-12 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 cursor-pointer"
             >
               <PlusCircle className="mr-3 size-4" strokeWidth={1.5} /> Нова
               продажба
@@ -405,52 +659,76 @@ export default function SalesClient({
           </PageHeader>
 
           <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 lg:grid-cols-4">
-            <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+            <BentoCard
+              onClick={() => setStatusFilter("all")}
+              className={cn(
+                "rounded-2xl border p-3.5 sm:p-4 shadow-none transition-all cursor-pointer",
+                statusFilter === "all"
+                  ? "border-blue-500 bg-blue-50/20 dark:border-blue-600 dark:bg-blue-950/20 ring-2 ring-blue-500/20"
+                  : "border-zinc-200/80 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
+              )}
+            >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="mb-0.5 text-xl sm:text-2xl font-light tracking-tight">
-                    {sortedSales.length}
+                  <p className="mb-0.5 text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
+                    {sales.length}
                   </p>
-                  <p className="text-[10px] tracking-[0.15em] text-zinc-400 uppercase">
+                  <p className="text-[10px] tracking-[0.15em] text-zinc-400 uppercase font-semibold">
                     Общо транзакции
                   </p>
                 </div>
                 <ShoppingCart
-                  className="size-4 sm:size-5 text-zinc-300"
+                  className="size-4 sm:size-5 text-zinc-400"
                   strokeWidth={1.5}
                 />
               </div>
             </BentoCard>
-            <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+
+            <BentoCard
+              onClick={() =>
+                setStatusFilter((prev) =>
+                  prev === "pending" ? "all" : "pending"
+                )
+              }
+              className={cn(
+                "rounded-2xl border p-3.5 sm:p-4 shadow-none transition-all cursor-pointer",
+                statusFilter === "pending"
+                  ? "border-amber-500 bg-amber-50/40 dark:border-amber-600 dark:bg-amber-950/30 ring-2 ring-amber-500/20"
+                  : "border-zinc-200/80 bg-white hover:border-amber-300 dark:border-zinc-800 dark:bg-zinc-950"
+              )}
+            >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="mb-0.5 text-xl sm:text-2xl font-light tracking-tight text-amber-600">
-                    {sortedSales.filter((s) => !s.isPaid).length}
+                  <p className="mb-0.5 text-xl sm:text-2xl font-bold tracking-tight text-amber-600">
+                    {unpaidCount}
                   </p>
-                  <p className="text-[10px] tracking-[0.15em] text-zinc-400 uppercase">
-                    Висящи плащания
+                  <p className="text-[10px] tracking-[0.15em] text-zinc-400 uppercase font-semibold">
+                    {statusFilter === "pending"
+                      ? "Филтър: Висящи (активен)"
+                      : "Висящи плащания"}
                   </p>
                 </div>
                 <AlertTriangle
-                  className="size-4 sm:size-5 text-amber-400"
+                  className="size-4 sm:size-5 text-amber-500"
                   strokeWidth={1.5}
                 />
               </div>
             </BentoCard>
-            <BentoCard className="col-span-2 flex items-center rounded-2xl border-none bg-zinc-950 p-3.5 sm:p-4 text-white shadow-none lg:col-span-2">
+
+            <BentoCard className="col-span-2 flex items-center rounded-2xl border-none bg-zinc-950 p-3.5 sm:p-4 text-white shadow-none lg:col-span-2 dark:bg-zinc-900">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="rounded-xl border border-white/5 bg-white/5 p-2.5 sm:p-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-3">
                   <Receipt
-                    className="size-4 sm:size-5 text-primary"
+                    className="size-4 sm:size-5 text-emerald-400"
                     strokeWidth={1.5}
                   />
                 </div>
                 <div>
-                  <p className="mb-0.5 text-[9px] tracking-[0.25em] text-zinc-400 uppercase">
-                    Дневен оборот
+                  <p className="mb-0.5 text-[9px] tracking-[0.25em] text-zinc-400 uppercase font-semibold">
+                    Платени продажби
                   </p>
-                  <p className="text-sm sm:text-base font-light tracking-tight text-zinc-100">
-                    Преглед на приходите за деня
+                  <p className="text-sm sm:text-base font-semibold text-zinc-100">
+                    {paidCount} от {sales.length} приключени плащания
                   </p>
                 </div>
               </div>
@@ -460,7 +738,7 @@ export default function SalesClient({
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-4 px-2">
           <div>
-            <h3 className="text-sm font-semibold tracking-wider text-zinc-900 uppercase">
+            <h3 className="text-sm font-semibold tracking-wider text-zinc-900 uppercase dark:text-white">
               Хроника на плащанията
             </h3>
             <p className="text-[11px] text-zinc-400">
@@ -469,13 +747,72 @@ export default function SalesClient({
           </div>
           <Button
             onClick={() => router.push("/sales/new")}
-            className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+            className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 cursor-pointer"
           >
             <PlusCircle className="mr-2 size-3.5" strokeWidth={1.5} /> Нова
             продажба
           </Button>
         </div>
       )}
+
+      {/* Search & Status Filters */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search
+            size={15}
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-400"
+          />
+          <Input
+            id="sales-search-input"
+            name="salesSearch"
+            placeholder="Търсене по клиент, артикул, бележка..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="rounded-xl pl-9 text-xs sm:text-sm"
+          />
+        </div>
+
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          {[
+            { id: "all" as const, label: "Всички", count: sales.length },
+            {
+              id: "pending" as const,
+              label: "Висящи",
+              count: unpaidCount,
+              badgeClass:
+                "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+            },
+            {
+              id: "paid" as const,
+              label: "Платени",
+              count: paidCount,
+              badgeClass:
+                "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
+            },
+          ].map((tab) => (
+            <Button
+              key={tab.id}
+              variant={statusFilter === tab.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter(tab.id)}
+              className="h-8 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer whitespace-nowrap"
+            >
+              <span>{tab.label}</span>
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.2 text-[10px] font-bold",
+                  statusFilter === tab.id
+                    ? "bg-white/20 text-white"
+                    : tab.badgeClass ||
+                        "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                )}
+              >
+                {tab.count}
+              </span>
+            </Button>
+          ))}
+        </div>
+      </div>
 
       <BentoCard className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
         {renderTableContent()}
