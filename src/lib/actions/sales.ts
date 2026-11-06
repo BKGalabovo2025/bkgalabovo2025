@@ -64,23 +64,21 @@ export async function createSaleAction(
           const productRef = db.collection("products").doc(item.productId);
           const productDoc = await transaction.get(productRef);
 
-          if (!productDoc.exists) {
-            throw new Error(`Продуктът с ID ${item.productId} не бе намерен.`);
+          if (productDoc.exists) {
+            const productData = productDoc.data()!;
+            const currentStock = productData.stock || 0;
+            const newStock = currentStock - item.quantity;
+
+            if (newStock < 0) {
+              throw new Error(`Недостатъчна наличност за ${item.name}.`);
+            }
+
+            productUpdates.push({
+              ref: productRef,
+              stock: newStock,
+              item,
+            });
           }
-
-          const productData = productDoc.data()!;
-          const currentStock = productData.stock || 0;
-          const newStock = currentStock - item.quantity;
-
-          if (newStock < 0) {
-            throw new Error(`Недостатъчна наличност за ${item.name}.`);
-          }
-
-          productUpdates.push({
-            ref: productRef,
-            stock: newStock,
-            item,
-          });
         }
 
         // 2. Perform all writes next

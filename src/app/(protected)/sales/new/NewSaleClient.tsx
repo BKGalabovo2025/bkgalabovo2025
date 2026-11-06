@@ -83,7 +83,7 @@ export default function NewSaleClient() {
   return (
     <SaleFormManager
       title="Нова продажба"
-      description="Създайте нова продажба на артикули от склада."
+      description="Създайте нова продажба на артикули от склада или клубни услуги."
       breadcrumbs={[
         { label: "Начало", href: "/dashboard" },
         { label: "Продажби", href: "/sales" },
