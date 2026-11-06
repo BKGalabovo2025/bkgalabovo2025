@@ -42,10 +42,16 @@ describe("tournamentService", () => {
         data: () => ({
           title: "Test",
           format: "knockout",
-          status: "draft",
-          startDate: Timestamp.fromDate(new Date("2026-08-01")),
-          endDate: Timestamp.fromDate(new Date("2026-08-02")),
-          createdAt: Timestamp.fromDate(new Date("2026-07-01")),
+          status: "upcoming",
+          location: "Спортна зала Гълъбово",
+          categories: ["singles"],
+          matchFormatId: "official_21",
+          countsForRanking: true,
+          pointsMultiplier: 1,
+          entryFee: 20,
+          startDate: Timestamp.fromDate(new Date("2026-08-01T10:00:00.000Z")),
+          endDate: Timestamp.fromDate(new Date("2026-08-02T18:00:00.000Z")),
+          createdAt: Timestamp.fromDate(new Date("2026-07-01T10:00:00.000Z")),
         }),
       },
     ];
@@ -91,6 +97,8 @@ describe("tournamentService", () => {
   });
 
   it("createTournament should throw on invalid schema", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
     const invalidTournament = {
       title: "", // Invalid, too short
       format: "knockout",
@@ -102,6 +110,8 @@ describe("tournamentService", () => {
     await expect(
       tournamentService.createTournament(invalidTournament)
     ).rejects.toThrow();
+
+    consoleSpy.mockRestore();
   });
 
   it("updateMatchScore should update match and change status to completed", async () => {

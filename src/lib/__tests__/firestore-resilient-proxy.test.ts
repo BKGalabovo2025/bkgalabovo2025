@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createResilientFirestoreProxy,
@@ -13,8 +13,15 @@ import {
 
 describe("firestore-resilient-proxy", () => {
   beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
     resetPrimaryQuotaStatus();
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe("isQuotaError", () => {
