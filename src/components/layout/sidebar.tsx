@@ -20,9 +20,11 @@ import {
   LogOut,
   Medal,
   MessageSquareHeart,
+  Moon,
   PanelLeft,
   Settings,
   ShoppingCart,
+  Sun,
   Target,
   Tent,
   Trophy,
@@ -32,6 +34,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import * as React from "react";
 
 import {
@@ -56,6 +59,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { activeBranch, setActiveBranch } = useAppStore();
   const { stats, parents, onlineParentsCount, isParentOnline } =
     useParentPortalAdmin();
+  const { setTheme, resolvedTheme } = useTheme();
 
   // Handle Hydration
   const [mounted, setMounted] = React.useState(false);
@@ -750,6 +754,26 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter className="border-none p-6">
         <SidebarMenu className="gap-2">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              type="button"
+              onClick={() =>
+                setTheme(resolvedTheme === "dark" ? "light" : "dark")
+              }
+              className="h-11 cursor-pointer rounded-xl border-none px-3 text-zinc-600 transition-all hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            >
+              {mounted && resolvedTheme === "dark" ? (
+                <Sun size={18} strokeWidth={1.5} className="text-amber-400" />
+              ) : (
+                <Moon size={18} strokeWidth={1.5} />
+              )}
+              <span className="text-[14px]">
+                {mounted && resolvedTheme === "dark"
+                  ? "Светла тема"
+                  : "Тъмна тема"}
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               type="button"

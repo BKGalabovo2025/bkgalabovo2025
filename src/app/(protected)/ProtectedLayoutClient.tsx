@@ -9,6 +9,7 @@ import LoginPage from "@/app/login/page";
 import { ParentNotificationsBell } from "@/components/layout/ParentNotificationsBell";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { UserNav } from "@/components/layout/user-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getSafeRedirectForBranch } from "@/config/sites";
@@ -111,6 +112,7 @@ function GlobalHeader() {
 
       <div className="flex items-center gap-3">
         {activeBranch === "bkgalabovo" && <ParentNotificationsBell />}
+        <ThemeToggle />
         <UserNav />
       </div>
     </header>

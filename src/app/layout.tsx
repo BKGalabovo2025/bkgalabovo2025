@@ -1,7 +1,7 @@
 import "./globals.css";
 
 import { Analytics } from "@vercel/analytics/next";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
 import { Inter } from "next/font/google";
 
@@ -76,8 +76,11 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = {
-  themeColor: "#0ea5e9", // Sky-500 matching the brand
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 5, // Allow zooming for accessibility

@@ -219,17 +219,17 @@ export function SendDocumentRequestDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg rounded-3xl p-5 sm:p-6 bg-white shadow-xl">
+        <DialogContent className="max-w-lg rounded-3xl p-5 sm:p-6 bg-white dark:bg-zinc-950 dark:border-zinc-800 shadow-xl">
           <DialogHeader className="space-y-1">
             <div className="flex items-center gap-2.5">
-              <span className="flex size-9 items-center justify-center rounded-2xl bg-zinc-950 text-white">
+              <span className="flex size-9 items-center justify-center rounded-2xl bg-zinc-950 text-white dark:bg-zinc-800">
                 <FileSignature className="size-4 text-emerald-400" />
               </span>
               <div>
-                <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950">
+                <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white">
                   Изпрати документ за онлайн подписване
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
+                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                   Изберете състезател и вид бланка за незабавно генериране на
                   защитен линк.
                 </DialogDescription>
@@ -404,7 +404,7 @@ export function SendDocumentRequestDialog({
 
               {/* 2. Document Template Selector */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-800">
+                <label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
                   2. Изберете документ / бланка:
                 </label>
                 <select
@@ -412,7 +412,7 @@ export function SendDocumentRequestDialog({
                   onChange={(e) =>
                     setSelectedDocType(e.target.value as DocumentType)
                   }
-                  className="w-full h-10 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-950"
+                  className="w-full h-10 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 >
                   <optgroup label="Официални клубни бланки">
                     <option value="membershipApplication">

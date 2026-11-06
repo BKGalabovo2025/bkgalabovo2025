@@ -1,7 +1,8 @@
 "use client";
 
-import { LogOut, Settings, Shield, User } from "lucide-react";
+import { LogOut, Moon, Settings, Shield, Sun, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { useAuth } from "@/context/auth-context";
 export function UserNav() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { setTheme, resolvedTheme } = useTheme();
 
   if (!user) return null;
 
@@ -83,6 +85,22 @@ export function UserNav() {
             <DropdownMenuShortcut className="text-[10px] opacity-30">
               ⌘S
             </DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() =>
+              setTheme(resolvedTheme === "dark" ? "light" : "dark")
+            }
+            className="cursor-pointer rounded-xl px-3 py-2.5 text-xs font-medium tracking-wider text-zinc-600 uppercase transition-colors hover:text-zinc-950 focus:bg-zinc-50 dark:text-zinc-400 dark:hover:text-white dark:focus:bg-zinc-900"
+          >
+            {resolvedTheme === "dark" ? (
+              <Sun className="mr-3 size-4 text-amber-400" strokeWidth={1.5} />
+            ) : (
+              <Moon
+                className="mr-3 size-4 text-zinc-600 dark:text-zinc-400"
+                strokeWidth={1.5}
+              />
+            )}
+            {resolvedTheme === "dark" ? "Светла тема" : "Тъмна тема"}
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator className="mx-2 bg-zinc-50 dark:bg-zinc-800" />

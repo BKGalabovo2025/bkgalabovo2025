@@ -274,7 +274,7 @@ export const SidebarTrigger = React.forwardRef<
       ref={ref}
       aria-label={open ? "Затвори меню" : "Отвори меню"}
       className={cn(
-        "relative z-70 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-white shadow-sm transition-all hover:bg-zinc-50 active:scale-95",
+        "relative z-70 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-white shadow-sm transition-all hover:bg-zinc-50 active:scale-95 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900",
         className
       )}
       onClick={(e) => {
@@ -284,9 +284,17 @@ export const SidebarTrigger = React.forwardRef<
       {...props}
     >
       {open ? (
-        <X size={20} strokeWidth={1.5} className="text-zinc-900" />
+        <X
+          size={20}
+          strokeWidth={1.5}
+          className="text-zinc-900 dark:text-zinc-100"
+        />
       ) : (
-        <Menu size={20} strokeWidth={1.5} className="text-zinc-900" />
+        <Menu
+          size={20}
+          strokeWidth={1.5}
+          className="text-zinc-900 dark:text-zinc-100"
+        />
       )}
     </button>
   );

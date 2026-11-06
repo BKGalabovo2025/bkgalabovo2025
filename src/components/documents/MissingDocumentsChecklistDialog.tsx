@@ -334,17 +334,17 @@ export function MissingDocumentsChecklistDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-3xl p-5 sm:p-6 bg-white shadow-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-3xl p-5 sm:p-6 bg-white dark:bg-zinc-950 dark:border-zinc-800 shadow-2xl">
         <DialogHeader className="space-y-1">
           <div className="flex items-center gap-2.5">
             <span className="flex size-9 items-center justify-center rounded-2xl bg-amber-500 text-white">
               <ShieldAlert className="size-5" />
             </span>
             <div>
-              <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950">
+              <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white">
                 Справка за клубни документи & Чеклист за състезания
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Проверка за валидност на медицински прегледи и подписани
                 декларации за сезон {currentYear} г.
               </DialogDescription>
@@ -354,7 +354,7 @@ export function MissingDocumentsChecklistDialog({
 
         {/* Top Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-          <div className="rounded-2xl border border-zinc-100 bg-zinc-50/80 p-3">
+          <div className="rounded-2xl border border-zinc-100 bg-zinc-50/80 p-3 dark:border-zinc-800 dark:bg-zinc-900/60">
             <span className="text-[11px] font-medium text-zinc-500">
               Общо състезатели
             </span>
@@ -415,7 +415,7 @@ export function MissingDocumentsChecklistDialog({
                     | "all_members"
                 )
               }
-              className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-800 focus:outline-none"
+              className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-800 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
             >
               <option value="all_issues">
                 Само с липсващи документи ({stats.total - stats.fullyReady})
@@ -436,7 +436,7 @@ export function MissingDocumentsChecklistDialog({
               variant="outline"
               size="sm"
               onClick={handleCopySummary}
-              className="h-9 rounded-xl text-xs font-semibold gap-1.5 shrink-0"
+              className="h-9 rounded-xl text-xs font-semibold gap-1.5 shrink-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
               title="Копирай текстова справка"
             >
               <Copy className="size-3.5" />
@@ -448,17 +448,17 @@ export function MissingDocumentsChecklistDialog({
               variant="outline"
               size="sm"
               onClick={handlePrintTournamentChecklist}
-              className="h-9 rounded-xl text-xs font-bold text-zinc-950 border-zinc-300 hover:bg-zinc-100 gap-1.5 shrink-0"
+              className="h-9 rounded-xl text-xs font-bold text-zinc-950 border-zinc-300 hover:bg-zinc-100 gap-1.5 shrink-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
               title="Разпечатай присъствен списък за турнира"
             >
-              <Printer className="size-3.5 text-emerald-600" />
+              <Printer className="size-3.5 text-emerald-600 dark:text-emerald-400" />
               🖨️ Печат за турнир
             </Button>
           </div>
         </div>
 
         {/* Compliance Table */}
-        <div className="flex-1 overflow-y-auto mt-2 rounded-2xl border border-zinc-100 bg-white shadow-2xs">
+        <div className="flex-1 overflow-y-auto mt-2 rounded-2xl border border-zinc-100 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center p-12">
               <Loader2 className="size-7 animate-spin text-zinc-400 mb-2" />
