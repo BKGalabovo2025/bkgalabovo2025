@@ -77,7 +77,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   // Track previous pathname to detect real navigation
   const prevPathname = React.useRef(pathname);
 
-  // Close sidebar on mobile when navigating
+  // Close sidebar on mobile on initial load and when navigating
+  React.useEffect(() => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  }, [isMobile, setOpen]);
+
   React.useEffect(() => {
     if (isMobile && pathname !== prevPathname.current) {
       setOpen(false);

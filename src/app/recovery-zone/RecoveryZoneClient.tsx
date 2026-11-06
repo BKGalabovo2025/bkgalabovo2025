@@ -33,6 +33,7 @@ import { AttachmentCard } from "@/components/recovery/AttachmentCard";
 import type { RecoveryProcedureInfo } from "@/components/recovery/RecoveryInquiryDialog";
 import { TeamSection } from "@/components/recovery/TeamSection";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { FeedbackSubmission } from "@/types/feedback.types";
 import { DEFAULT_RECOVERY_ATTACHMENTS, Site } from "@/types/site.types";
 
@@ -211,17 +212,22 @@ export default function RecoveryZoneClient({
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle className="border-white/20 bg-white/10 text-white shadow-none hover:bg-white/20 active:scale-95 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20" />
             <GoogleTranslateWidget />
             {/* Mobile Menu Toggle */}
             <button
               type="button"
-              className="p-2 text-white md:hidden"
+              className="flex size-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95 md:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Затвори менюто" : "Отвори менюто"}
               aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileMenuOpen ? (
+                <X size={20} strokeWidth={2} />
+              ) : (
+                <Menu size={20} strokeWidth={2} />
+              )}
             </button>
           </div>
         </div>

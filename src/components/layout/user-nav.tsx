@@ -39,9 +39,9 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative size-10 overflow-hidden rounded-full border border-zinc-200 p-0 shadow-sm transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
+          className="relative size-10 overflow-hidden rounded-full border border-zinc-300 p-0 shadow-xs transition-all hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
         >
-          <Avatar className="size-9 border-2 border-white dark:border-zinc-950">
+          <Avatar className="size-9 border-2 border-white dark:border-zinc-900">
             <AvatarImage src={user.photoURL || ""} alt={user.email || "User"} />
             <AvatarFallback className="bg-zinc-950 text-[10px] font-bold text-white">
               {initials}

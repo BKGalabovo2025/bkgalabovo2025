@@ -34,7 +34,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         variant="ghost"
         size="icon"
         aria-label="Превключване на тема"
-        className={`size-10 rounded-xl border border-zinc-200 bg-white shadow-xs transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900 ${className || ""}`}
+        className={`size-10 rounded-xl border border-zinc-300 bg-white shadow-xs transition-all hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 ${className || ""}`}
       >
         <span className="size-4 opacity-0" />
       </Button>
@@ -52,12 +52,12 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       aria-label={
         isDark ? "Превключи на светла тема" : "Превключи на тъмна тема"
       }
-      className={`size-10 rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-xs transition-all hover:bg-zinc-100 active:scale-95 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 ${className || ""}`}
+      className={`size-10 rounded-xl border border-zinc-300 bg-white text-zinc-900 shadow-xs transition-all hover:bg-zinc-100 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800 ${className || ""}`}
     >
       {isDark ? (
         <Sun className="size-4.5 text-amber-400 transition-transform hover:rotate-45" />
       ) : (
-        <Moon className="size-4.5 text-zinc-700 transition-transform hover:-rotate-12" />
+        <Moon className="size-4.5 text-zinc-700 dark:text-zinc-200 transition-transform hover:-rotate-12" />
       )}
     </Button>
   );

@@ -109,7 +109,7 @@ export const Sidebar = React.forwardRef<
         <>
           {open && (
             <div
-              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm duration-300 animate-in fade-in"
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs duration-300 animate-in fade-in"
               onClick={() => setOpen(false)}
             />
           )}
@@ -118,10 +118,10 @@ export const Sidebar = React.forwardRef<
             role="dialog"
             aria-modal="true"
             className={cn(
-              "pointer-events-auto fixed inset-y-0 left-0 z-999 flex w-70 flex-col overflow-y-auto no-scrollbar border-r border-zinc-100 bg-white shadow-2xl transition-all duration-300 ease-in-out dark:border-zinc-900 dark:bg-zinc-950",
+              "pointer-events-auto fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col overflow-y-auto no-scrollbar border-r border-zinc-200 bg-white shadow-2xl transition-all duration-300 ease-in-out dark:border-zinc-800 dark:bg-zinc-950",
               open
                 ? "visible translate-x-0 opacity-100"
-                : "invisible -translate-x-full opacity-0",
+                : "invisible -translate-x-full opacity-0 pointer-events-none",
               className
             )}
             {...props}
@@ -274,7 +274,7 @@ export const SidebarTrigger = React.forwardRef<
       ref={ref}
       aria-label={open ? "Затвори меню" : "Отвори меню"}
       className={cn(
-        "relative z-70 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-white shadow-sm transition-all hover:bg-zinc-50 active:scale-95 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900",
+        "relative z-30 flex size-10 items-center justify-center rounded-xl border border-zinc-300 bg-white text-zinc-900 shadow-xs transition-all hover:bg-zinc-100 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-primary",
         className
       )}
       onClick={(e) => {
@@ -286,14 +286,14 @@ export const SidebarTrigger = React.forwardRef<
       {open ? (
         <X
           size={20}
-          strokeWidth={1.5}
-          className="text-zinc-900 dark:text-zinc-100"
+          strokeWidth={2}
+          className="text-zinc-900 dark:text-white"
         />
       ) : (
         <Menu
           size={20}
-          strokeWidth={1.5}
-          className="text-zinc-900 dark:text-zinc-100"
+          strokeWidth={2}
+          className="text-zinc-900 dark:text-white"
         />
       )}
     </button>

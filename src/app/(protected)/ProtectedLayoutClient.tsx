@@ -51,11 +51,11 @@ function GlobalHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 flex h-14 w-full items-center justify-between border-b border-zinc-100 bg-white/80 px-4 backdrop-blur-md transition-all dark:border-zinc-800 dark:bg-zinc-950/80">
-      <div className="flex items-center gap-6">
-        <SidebarTrigger className="size-10 shrink-0 rounded-xl border border-zinc-200 bg-white shadow-sm transition-all hover:bg-zinc-100 active:scale-95 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900" />
+    <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-zinc-200 bg-white/90 px-3 sm:px-4 backdrop-blur-md transition-all dark:border-zinc-800 dark:bg-zinc-950/90">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+        <SidebarTrigger className="size-10 shrink-0 rounded-xl border border-zinc-300 bg-white text-zinc-900 shadow-xs transition-all hover:bg-zinc-100 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800" />
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {sites.map((site) => {
             const isActive = activeBranch === site.id;
             return (
@@ -64,32 +64,32 @@ function GlobalHeader() {
                 onClick={() => handleBranchSwitch(site.id)}
                 aria-label={`${site.title} ${site.subtitle}${isActive ? " — активен" : " — избери"}`}
                 aria-pressed={isActive}
-                className={`group flex items-center gap-2 rounded-xl p-1.5 transition-all duration-300 ${
+                className={`group flex items-center gap-1.5 sm:gap-2 rounded-xl p-1 sm:p-1.5 transition-all duration-300 ${
                   isActive
-                    ? "bg-white opacity-100 shadow-md ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800"
+                    ? "bg-white opacity-100 shadow-xs sm:shadow-md ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800"
                     : "grayscale-0.5 opacity-60 hover:opacity-100 hover:grayscale-0"
                 }`}
               >
                 <div
-                  className={`flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border transition-all duration-300 ${
+                  className={`flex size-8 sm:size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border transition-all duration-300 ${
                     isActive
                       ? site.activeClasses
                       : "border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900"
                   }`}
                 >
-                  <div className="relative size-6">
+                  <div className="relative size-5 sm:size-6">
                     <Image
                       src={site.logo}
                       alt={site.title}
                       fill
-                      sizes="(max-width: 768px) 100vw, 20vw"
+                      sizes="32px"
                       className={`object-contain transition-transform duration-500 ${isActive ? "scale-110" : "scale-90 group-hover:scale-100"}`}
                     />
                   </div>
                 </div>
 
                 {isActive && (
-                  <div className="flex flex-col overflow-hidden pr-2 duration-300 animate-in fade-in slide-in-from-left-2">
+                  <div className="hidden sm:flex flex-col overflow-hidden pr-2 duration-300 animate-in fade-in slide-in-from-left-2">
                     <span className="truncate text-[10px] leading-tight font-bold tracking-wide text-zinc-900 uppercase dark:text-white">
                       {site.title}
                     </span>
@@ -110,7 +110,7 @@ function GlobalHeader() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {activeBranch === "bkgalabovo" && <ParentNotificationsBell />}
         <ThemeToggle />
         <UserNav />
@@ -170,8 +170,10 @@ export default function ProtectedLayoutClient({
 
           <GlobalHeader key={`header-${activeBranch}`} />
 
-          <main
+          <div
             id="main-content"
+            role="region"
+            aria-label="Основно съдържание"
             className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 max-w-full"
           >
             <div
@@ -180,7 +182,7 @@ export default function ProtectedLayoutClient({
             >
               {children}
             </div>
-          </main>
+          </div>
         </SidebarInset>
       </div>
     </SidebarProvider>

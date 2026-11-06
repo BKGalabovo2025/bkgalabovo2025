@@ -28,6 +28,7 @@ const inter = Inter({
   ],
   adjustFontFallback: true,
 });
+import { ThemeColorMeta } from "@/components/shared/ThemeColorMeta";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/auth-context";
 import { LanguageProvider } from "@/context/language-context";
@@ -71,7 +72,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "BK Galabovo",
   },
 };
@@ -99,8 +100,10 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
+          enableColorScheme
           disableTransitionOnChange
         >
+          <ThemeColorMeta />
           <LanguageProvider>
             <AuthProvider>
               {children}
