@@ -28,25 +28,39 @@ export default function NewSaleClient() {
     memberId,
     status,
     totalAmount,
+    paymentMethod,
+    note,
+    saleDate,
+    clientName,
+    clientPhone,
   }: {
     cart: SaleItem[];
     memberId: string;
     status: Sale["status"];
     totalAmount: number;
+    paymentMethod?: string;
+    note?: string;
+    saleDate?: string;
+    clientName?: string;
+    clientPhone?: string;
   }) => {
     setIsSubmitting(true);
     try {
       if (!idToken) throw new Error("Missing authentication token.");
 
       const result = await createSaleAction(idToken, {
-        saleDate: new Date().toISOString(),
+        saleDate: saleDate || new Date().toISOString(),
         items: cart,
-        memberId: memberId && memberId !== "none" ? memberId : "unknown",
+        memberId: memberId && memberId !== "none" ? memberId : "GUEST_EXTERNAL",
         status,
         isPaid: status === "completed",
         totalAmount,
         currency: "EUR",
         siteId: activeBranch || "bkgalabovo",
+        paymentMethod: paymentMethod || "В брой",
+        note,
+        clientName,
+        clientPhone,
       });
 
       if (result.success) {

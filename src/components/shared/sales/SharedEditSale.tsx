@@ -65,11 +65,21 @@ export function SharedEditSale({
     memberId,
     status,
     totalAmount,
+    paymentMethod,
+    note,
+    saleDate,
+    clientName,
+    clientPhone,
   }: {
     cart: SaleItem[];
     memberId: string;
     status: Sale["status"];
     totalAmount: number;
+    paymentMethod?: string;
+    note?: string;
+    saleDate?: string;
+    clientName?: string;
+    clientPhone?: string;
   }) => {
     setIsSubmitting(true);
     try {
@@ -82,7 +92,13 @@ export function SharedEditSale({
         items: cart,
         memberId: memberId === "none" ? undefined : memberId,
         status: status,
+        isPaid: status === "completed",
         totalAmount: totalAmount,
+        paymentMethod,
+        note,
+        saleDate,
+        clientName,
+        clientPhone,
       });
 
       if (result.success) {
