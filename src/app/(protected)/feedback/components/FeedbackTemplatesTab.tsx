@@ -165,7 +165,7 @@ export function FeedbackTemplatesTab({
       {/* Action Header */}
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-lg font-black tracking-tight text-zinc-900">
+          <h2 className="text-lg font-black tracking-tight text-zinc-900 dark:text-zinc-100">
             Шаблони на анкетите
           </h2>
           <p className="text-xs font-medium text-zinc-500">
@@ -180,7 +180,7 @@ export function FeedbackTemplatesTab({
             variant="outline"
             size="sm"
             onClick={handleResetDefaults}
-            className="rounded-xl text-xs font-semibold text-zinc-600 hover:bg-zinc-100"
+            className="rounded-xl text-xs font-semibold text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             <RotateCcw className="mr-1.5 size-3.5" />
             Презареди стандартни
@@ -198,17 +198,17 @@ export function FeedbackTemplatesTab({
       </div>
 
       {/* Information Banner */}
-      <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-linear-to-r from-indigo-50/80 via-white to-blue-50/50 p-4 shadow-2xs">
+      <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-linear-to-r from-indigo-50/80 via-white to-blue-50/50 p-4 shadow-2xs dark:border-indigo-900/40 dark:from-indigo-950/30 dark:via-zinc-900 dark:to-blue-950/20">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
           <Globe className="size-5" />
         </div>
         <div className="text-xs">
-          <h4 className="font-bold text-indigo-950">
+          <h4 className="font-bold text-indigo-950 dark:text-indigo-200">
             {siteId === "recoveryzone"
               ? "Публикуване на анкети в сайта на Recovery Zone"
               : "Публикуване на анкети на клубния сайт"}
           </h4>
-          <p className="mt-0.5 text-zinc-600">
+          <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">
             Можете да пуснете <strong>всеки един от шаблоните</strong> по-долу
             да е постоянно достъпен на сайта (в секция{" "}
             <a
@@ -219,7 +219,7 @@ export function FeedbackTemplatesTab({
               }
               target="_blank"
               rel="noreferrer"
-              className="font-bold text-indigo-600 underline hover:text-indigo-800"
+              className="font-bold text-indigo-600 underline hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
             >
               ⭐ Отзиви
             </a>
@@ -257,8 +257,8 @@ export function FeedbackTemplatesTab({
               key={tmpl.id}
               className={`overflow-hidden transition-all ${
                 isLiveOnSite
-                  ? "border-emerald-300 bg-linear-to-b from-emerald-50/20 via-white to-white shadow-xs ring-1 ring-emerald-400/30"
-                  : "border-zinc-200 shadow-2xs hover:border-indigo-200 hover:shadow-xs"
+                  ? "border-emerald-300 bg-linear-to-b from-emerald-50/20 via-white to-white shadow-xs ring-1 ring-emerald-400/30 dark:border-emerald-800/60 dark:from-emerald-950/20 dark:via-zinc-900 dark:to-zinc-900"
+                  : "border-zinc-200 shadow-2xs hover:border-indigo-200 hover:shadow-xs dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-900/60"
               }`}
             >
               <CardContent className="flex h-full flex-col justify-between space-y-4 p-5">
@@ -268,7 +268,7 @@ export function FeedbackTemplatesTab({
                     <div className="flex flex-wrap items-center gap-1.5">
                       <Badge
                         variant="outline"
-                        className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase"
+                        className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300"
                       >
                         {getEventTypeLabel(tmpl.eventType)}
                       </Badge>
@@ -276,7 +276,7 @@ export function FeedbackTemplatesTab({
                       {tmpl.isDefault && (
                         <Badge
                           variant="secondary"
-                          className="bg-zinc-100 text-[10px] text-zinc-600"
+                          className="bg-zinc-100 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                         >
                           Стандартен
                         </Badge>
@@ -287,34 +287,34 @@ export function FeedbackTemplatesTab({
                     {renderSiteStatusBadge(standingCampaign, isLiveOnSite)}
                   </div>
 
-                  <h3 className="text-base font-black tracking-tight text-zinc-900">
+                  <h3 className="text-base font-black tracking-tight text-zinc-900 dark:text-zinc-100">
                     {tmpl.name}
                   </h3>
 
                   {tmpl.description && (
-                    <p className="mt-1 text-xs leading-relaxed text-zinc-600">
+                    <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                       {tmpl.description}
                     </p>
                   )}
 
                   {/* Questions Preview */}
-                  <div className="mt-4 space-y-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3">
+                  <div className="mt-4 space-y-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-950/50">
                     <div className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                       Въпроси в анкетата ({tmpl.questions?.length || 0}):
                     </div>
 
-                    <ul className="space-y-1 text-xs text-zinc-700">
+                    <ul className="space-y-1 text-xs text-zinc-700 dark:text-zinc-300">
                       {tmpl.questions?.slice(0, 4).map((q, qIdx) => (
                         <li
                           key={q.id || qIdx}
                           className="flex items-center gap-1.5 truncate"
                         >
-                          <span className="text-[10px] font-bold text-indigo-600">
+                          <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
                             •
                           </span>
                           <span className="truncate">{q.label}</span>
                           {q.type === "rating" && (
-                            <span className="shrink-0 text-[10px] font-semibold text-amber-600">
+                            <span className="shrink-0 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
                               (⭐ 1-5)
                             </span>
                           )}
@@ -330,7 +330,7 @@ export function FeedbackTemplatesTab({
                 </div>
 
                 {/* Card Action Footer */}
-                <div className="space-y-2 border-t border-zinc-100 pt-3">
+                <div className="space-y-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     {/* Primary Standing Control Button */}
                     {standingCampaign ? (
@@ -340,7 +340,7 @@ export function FeedbackTemplatesTab({
                         className={`rounded-xl text-xs font-bold transition-all ${
                           isLiveOnSite
                             ? "bg-emerald-600 text-white shadow-xs hover:bg-amber-600"
-                            : "border border-zinc-300 bg-zinc-100 text-zinc-800 hover:bg-emerald-600 hover:text-white"
+                            : "border border-zinc-300 bg-zinc-100 text-zinc-800 hover:bg-emerald-600 hover:text-white dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
                         }`}
                       >
                         <Power className="mr-1.5 size-3.5" />
@@ -364,9 +364,9 @@ export function FeedbackTemplatesTab({
                         onClick={() => handleEdit(tmpl)}
                         size="sm"
                         variant="outline"
-                        className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50"
+                        className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
                       >
-                        <Pencil className="mr-1.5 size-3.5 text-indigo-600" />
+                        <Pencil className="mr-1.5 size-3.5 text-indigo-600 dark:text-indigo-400" />
                         Редактирай
                       </Button>
 
@@ -374,7 +374,7 @@ export function FeedbackTemplatesTab({
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDelete(tmpl.id)}
-                        className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600"
+                        className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
                         title="Изтрий шаблон"
                       >
                         <Trash2 className="size-4" />

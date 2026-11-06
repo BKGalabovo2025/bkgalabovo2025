@@ -410,24 +410,24 @@ export default function TheoryClient() {
     <div className="mx-auto max-w-7xl p-4 sm:p-8">
       {/* ── Header ── */}
       <div className="mb-8">
-        <h1 className="flex items-center gap-3 text-2xl font-black tracking-tight text-zinc-900 uppercase">
+        <h1 className="flex items-center gap-3 text-2xl font-black tracking-tight text-zinc-900 uppercase dark:text-white">
           <Sparkles className="size-6 text-indigo-500" />
           Теория и Викторини
         </h1>
-        <p className="mt-1 text-zinc-500">
+        <p className="mt-1 text-zinc-500 dark:text-zinc-400">
           Детска бадминтон академия — конструктор на тестове и система за
           рецензия
         </p>
       </div>
 
       {/* ── Tabs ── */}
-      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl bg-zinc-100 p-1 sm:grid-cols-5">
+      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl bg-zinc-100 p-1 sm:grid-cols-5 dark:bg-zinc-900">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setActiveTab(t.id)}
-            className={`relative flex items-center justify-center gap-2 rounded-xl px-2 py-2.5 text-[11px] font-semibold transition-all sm:px-4 sm:text-sm ${activeTab === t.id ? "bg-white text-indigo-700 shadow-sm" : "text-zinc-500 hover:text-zinc-700"}`}
+            className={`relative flex items-center justify-center gap-2 rounded-xl px-2 py-2.5 text-[11px] font-semibold transition-all sm:px-4 sm:text-sm ${activeTab === t.id ? "bg-white text-indigo-700 shadow-sm dark:bg-zinc-800 dark:text-indigo-300" : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"}`}
           >
             {t.icon} <span className="hidden sm:inline">{t.label}</span>
             <span className="sm:hidden">{t.label.split(" ")[0]}</span>
@@ -446,7 +446,7 @@ export default function TheoryClient() {
           {quizzes.map((quiz) => (
             <Card
               key={quiz.id}
-              className="overflow-hidden rounded-2xl border-zinc-200 shadow-sm transition-all hover:shadow-md"
+              className="overflow-hidden rounded-2xl border-zinc-200 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
             >
               <CardHeader className="bg-linear-to-br from-indigo-500 to-purple-600 p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -503,24 +503,28 @@ export default function TheoryClient() {
       {/* ══════════════════════════════════ BUILDER ══════════════════════════ */}
       {activeTab === "builder" && (
         <div className="mx-auto max-w-2xl space-y-6">
-          <Card className="rounded-2xl border-zinc-200">
+          <Card className="rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900">
             <CardContent className="space-y-4 p-6">
               <div>
-                <Label className="mb-1 font-bold">Заглавие на теста</Label>
+                <Label className="mb-1 font-bold dark:text-zinc-100">
+                  Заглавие на теста
+                </Label>
                 <Input
                   placeholder="напр. Шампион по правилата 🏆"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="rounded-xl"
+                  className="rounded-xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                 />
               </div>
               <div>
-                <Label className="mb-1 font-bold">Описание (за децата)</Label>
+                <Label className="mb-1 font-bold dark:text-zinc-100">
+                  Описание (за децата)
+                </Label>
                 <Textarea
                   placeholder="Кратко описание на теста..."
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  className="rounded-xl"
+                  className="rounded-xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                   rows={2}
                 />
               </div>
@@ -528,7 +532,10 @@ export default function TheoryClient() {
           </Card>
 
           {newQuestions.map((q, idx) => (
-            <Card key={q.id} className="rounded-2xl border-zinc-200">
+            <Card
+              key={q.id}
+              className="rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900"
+            >
               <CardContent className="space-y-3 p-5">
                 <div className="flex items-center justify-between">
                   <Badge
@@ -663,15 +670,19 @@ export default function TheoryClient() {
               {sentResults.map((r) => (
                 <div
                   key={r.id}
-                  className="flex flex-col gap-3 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/40 dark:bg-amber-950/20"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
                       <Send className="size-4" />
                     </div>
                     <div>
-                      <p className="font-bold text-zinc-900">{r.playerName}</p>
-                      <p className="text-sm text-zinc-500">{r.quizTitle}</p>
+                      <p className="font-bold text-zinc-900 dark:text-zinc-100">
+                        {r.playerName}
+                      </p>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        {r.quizTitle}
+                      </p>
                       <p className="mt-0.5 text-[10px] text-zinc-400">
                         Изпратен:{" "}
                         {new Date(r.submittedAt).toLocaleString("bg-BG")}
@@ -681,14 +692,14 @@ export default function TheoryClient() {
                   <div className="flex items-center gap-2">
                     <Badge
                       variant="outline"
-                      className="border-amber-200 bg-white text-[10px] text-amber-700"
+                      className="border-amber-200 bg-white text-[10px] text-amber-700 dark:border-amber-800 dark:bg-zinc-900 dark:text-amber-300"
                     >
                       ⏳ Чака отговор
                     </Badge>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 rounded-xl text-zinc-400 hover:text-zinc-700"
+                      className="h-8 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                       onClick={() => {
                         const url = `${window.location.origin}/quiz/${r.shareToken}`;
                         void navigator.clipboard.writeText(url);
@@ -709,9 +720,11 @@ export default function TheoryClient() {
       {activeTab === "review" && (
         <div className="space-y-4">
           {pendingResults.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center">
+            <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center dark:border-zinc-800">
               <Check className="mx-auto mb-4 size-10 text-green-400" />
-              <h3 className="font-bold text-zinc-700">Всичко е проверено!</h3>
+              <h3 className="font-bold text-zinc-700 dark:text-zinc-200">
+                Всичко е проверено!
+              </h3>
               <p className="text-sm text-zinc-400">
                 Нямате непроверени тестове в момента.
               </p>
@@ -720,7 +733,7 @@ export default function TheoryClient() {
             pendingResults.map((r) => (
               <Card
                 key={r.id}
-                className="overflow-hidden rounded-2xl border-zinc-200"
+                className="overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <button
                   type="button"
@@ -733,19 +746,19 @@ export default function TheoryClient() {
                       openReview(r);
                     }
                   }}
-                  className="flex w-full items-center justify-between p-5 text-left transition-all hover:bg-zinc-50"
+                  className="flex w-full items-center justify-between p-5 text-left transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                 >
                   <div>
                     <div className="flex items-center gap-2">
                       <Users className="size-4 text-indigo-500" />
-                      <span className="font-bold text-zinc-900">
+                      <span className="font-bold text-zinc-900 dark:text-zinc-100">
                         {r.playerName}
                       </span>
-                      <Badge className="bg-amber-100 text-[10px] text-amber-700">
+                      <Badge className="bg-amber-100 text-[10px] text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
                         PENDING
                       </Badge>
                     </div>
-                    <p className="mt-1 text-sm text-zinc-500">
+                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                       {r.quizTitle} •{" "}
                       {new Date(r.submittedAt).toLocaleString("bg-BG", {
                         day: "2-digit",
@@ -917,9 +930,11 @@ export default function TheoryClient() {
       {activeTab === "history" && (
         <div className="space-y-4">
           {reviewedResults.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center">
-              <History className="mx-auto mb-4 size-10 text-zinc-300" />
-              <h3 className="font-bold text-zinc-700">Няма история</h3>
+            <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center dark:border-zinc-800">
+              <History className="mx-auto mb-4 size-10 text-zinc-300 dark:text-zinc-700" />
+              <h3 className="font-bold text-zinc-700 dark:text-zinc-200">
+                Няма история
+              </h3>
               <p className="text-sm text-zinc-400">
                 Все още нямате проверени тестове.
               </p>
@@ -928,7 +943,7 @@ export default function TheoryClient() {
             reviewedResults.map((r) => (
               <Card
                 key={r.id}
-                className="overflow-hidden rounded-2xl border-zinc-200"
+                className="overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <div
                   role="button"
@@ -943,19 +958,19 @@ export default function TheoryClient() {
                       else setExpandedReview(r.id);
                     }
                   }}
-                  className="flex w-full cursor-pointer items-center justify-between p-5 text-left transition-all hover:bg-zinc-50"
+                  className="flex w-full cursor-pointer items-center justify-between p-5 text-left transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                 >
                   <div>
                     <div className="flex items-center gap-2">
                       <Users className="size-4 text-emerald-500" />
-                      <span className="font-bold text-zinc-900">
+                      <span className="font-bold text-zinc-900 dark:text-zinc-100">
                         {r.playerName}
                       </span>
-                      <Badge className="bg-emerald-100 text-[10px] text-emerald-700">
+                      <Badge className="bg-emerald-100 text-[10px] text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
                         REVIEWED
                       </Badge>
                     </div>
-                    <p className="mt-1 text-sm text-zinc-500">
+                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                       {r.quizTitle} •{" "}
                       {r.reviewedAt
                         ? new Date(r.reviewedAt).toLocaleString("bg-BG", {
@@ -1419,8 +1434,8 @@ export default function TheoryClient() {
                     }}
                     className={`cursor-pointer rounded-xl border p-3.5 transition-all ${
                       isSelected
-                        ? "border-indigo-500 bg-indigo-50/70 shadow-xs"
-                        : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50"
+                        ? "border-indigo-500 bg-indigo-50/70 shadow-xs dark:border-indigo-500 dark:bg-indigo-950/40"
+                        : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800/60"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -1434,15 +1449,15 @@ export default function TheoryClient() {
                         <div className="mb-1 flex flex-wrap items-center gap-2">
                           <Badge
                             variant="outline"
-                            className="bg-zinc-50 text-[10px] text-zinc-600"
+                            className="bg-zinc-50 text-[10px] text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                           >
                             {item.category}
                           </Badge>
                           <Badge
                             className={`text-[10px] ${
                               item.type === "OPEN_TEXT"
-                                ? "bg-purple-100 text-purple-700"
-                                : "bg-blue-100 text-blue-700"
+                                ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
+                                : "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
                             }`}
                           >
                             {item.type === "OPEN_TEXT"
@@ -1450,7 +1465,7 @@ export default function TheoryClient() {
                               : `❓ Избор (${item.points} т.)`}
                           </Badge>
                         </div>
-                        <p className="text-sm leading-snug font-semibold text-zinc-900">
+                        <p className="text-sm leading-snug font-semibold text-zinc-900 dark:text-zinc-100">
                           {item.text}
                         </p>
                         {item.options && (

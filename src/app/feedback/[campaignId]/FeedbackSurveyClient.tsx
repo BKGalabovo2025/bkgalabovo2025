@@ -227,22 +227,26 @@ export default function FeedbackSurveyClient({
     url: isRecovery ? "/recovery-zone" : "/club",
     reviewsUrl: isRecovery ? "/recovery-zone/reviews" : "/club/reviews",
     themeText: isRecovery
-      ? "text-emerald-700 group-hover:text-emerald-600"
-      : "text-indigo-700 group-hover:text-blue-600",
+      ? "text-emerald-700 group-hover:text-emerald-600 dark:text-emerald-400"
+      : "text-indigo-700 group-hover:text-blue-600 dark:text-indigo-400",
     themeBorder: isRecovery
       ? "border-emerald-500/40 shadow-emerald-100 group-hover:border-emerald-500 group-hover:shadow-emerald-200"
       : "border-blue-400/40 shadow-indigo-100 group-hover:border-blue-500 group-hover:shadow-indigo-200",
     accentBg: isRecovery
-      ? "from-emerald-50/40 via-zinc-50/60 to-white"
-      : "from-indigo-50/40 via-zinc-50/60 to-white",
+      ? "from-emerald-50/40 via-zinc-50/60 to-white dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900"
+      : "from-indigo-50/40 via-zinc-50/60 to-white dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900",
     cardGradient: isRecovery
-      ? "from-emerald-50/50 via-white to-amber-50/30 border-emerald-100"
-      : "from-indigo-50/50 via-white to-amber-50/30 border-indigo-100",
-    sectionHeaderColor: isRecovery ? "text-emerald-950" : "text-indigo-900",
-    sectionIconColor: isRecovery ? "text-emerald-600" : "text-indigo-600",
+      ? "from-emerald-50/50 via-white to-amber-50/30 border-emerald-100 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-950 dark:border-zinc-800"
+      : "from-indigo-50/50 via-white to-amber-50/30 border-indigo-100 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-950 dark:border-zinc-800",
+    sectionHeaderColor: isRecovery
+      ? "text-emerald-950 dark:text-emerald-300"
+      : "text-indigo-900 dark:text-indigo-300",
+    sectionIconColor: isRecovery
+      ? "text-emerald-600 dark:text-emerald-400"
+      : "text-indigo-600 dark:text-indigo-400",
     buttonColor: isRecovery
-      ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
-      : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200",
+      ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200 dark:shadow-none"
+      : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200 dark:shadow-none",
   };
 
   const availableRoles: Array<{ id: RespondentRole; label: string }> =
@@ -262,7 +266,7 @@ export default function FeedbackSurveyClient({
     return (
       <main
         id="main-content"
-        className="flex min-h-screen items-center justify-center bg-zinc-50 p-4"
+        className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-950"
       >
         <Loader2
           className={`size-8 animate-spin ${
@@ -277,17 +281,20 @@ export default function FeedbackSurveyClient({
     return (
       <main
         id="main-content"
-        className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4 text-center"
+        className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4 text-center dark:bg-zinc-950"
       >
-        <div className="max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <MessageSquareHeart className="mx-auto mb-3 size-12 text-zinc-300" />
-          <h1 className="text-xl font-bold text-zinc-900">
+        <div className="max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <MessageSquareHeart className="mx-auto mb-3 size-12 text-zinc-300 dark:text-zinc-600" />
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
             Анкетата не е намерена
           </h1>
-          <p className="mt-2 text-xs text-zinc-600">
+          <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
             Възможно е линкът да е невалиден или анкетата да е била премахната.
           </p>
-          <Button asChild className="mt-6 rounded-xl bg-zinc-900 text-xs">
+          <Button
+            asChild
+            className="mt-6 rounded-xl bg-zinc-900 text-xs dark:bg-white dark:text-zinc-950"
+          >
             <Link href={brand.url}>Към сайта</Link>
           </Button>
         </div>
@@ -299,16 +306,16 @@ export default function FeedbackSurveyClient({
     return (
       <main
         id="main-content"
-        className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4 text-center"
+        className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4 text-center dark:bg-zinc-950"
       >
-        <div className="max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+        <div className="max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400">
             <CheckCircle2 className="size-6" />
           </div>
-          <h1 className="text-xl font-bold text-zinc-900">
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
             Тази анкета вече е приключила
           </h1>
-          <p className="mt-2 text-xs text-zinc-600">
+          <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
             {isRecovery
               ? "Благодарим на всички клиенти, които споделиха своето мнение!"
               : "Благодарим на всички родители и състезатели, които споделиха своето мнение!"}
@@ -328,28 +335,28 @@ export default function FeedbackSurveyClient({
     return (
       <main
         id="main-content"
-        className={`flex min-h-screen flex-col items-center justify-center bg-linear-to-b ${brand.accentBg} p-4 text-center`}
+        className={`flex min-h-screen flex-col items-center justify-center bg-linear-to-b ${brand.accentBg} p-4 text-center dark:bg-zinc-950`}
       >
         <div
           className={`max-w-lg rounded-3xl border ${
             isRecovery
-              ? "border-emerald-100 shadow-emerald-100/30"
-              : "border-indigo-100 shadow-indigo-100/30"
-          } bg-white p-8 shadow-xl sm:p-10`}
+              ? "border-emerald-100 shadow-emerald-100/30 dark:border-zinc-800"
+              : "border-indigo-100 shadow-indigo-100/30 dark:border-zinc-800"
+          } bg-white p-8 shadow-xl sm:p-10 dark:bg-zinc-900`}
         >
-          <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-600 shadow-inner">
+          <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-600 shadow-inner dark:bg-emerald-950/50 dark:text-emerald-400">
             <Check className="size-8 stroke-3" />
           </div>
 
-          <Badge className="mb-3 border-emerald-200 bg-emerald-100 font-bold text-emerald-800">
+          <Badge className="mb-3 border-emerald-200 bg-emerald-100 font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
             Успешно изпратен отзив
           </Badge>
 
-          <h2 className="text-2xl font-black tracking-tight text-zinc-950">
+          <h2 className="text-2xl font-black tracking-tight text-zinc-950 dark:text-zinc-100">
             Благодарим Ви за обратната връзка!
           </h2>
 
-          <p className="mt-3 text-sm leading-relaxed text-zinc-600">
+          <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
             {isRecovery ? (
               <>
                 Вашето мнение и обратна връзка са изключително ценни за екипа на{" "}
@@ -378,7 +385,7 @@ export default function FeedbackSurveyClient({
             <Button
               asChild
               variant="outline"
-              className="rounded-2xl border-zinc-200 text-xs sm:text-sm"
+              className="rounded-2xl border-zinc-200 text-xs sm:text-sm dark:border-zinc-800 dark:text-zinc-100"
             >
               <Link href={brand.reviewsUrl}>
                 {isRecovery
@@ -397,7 +404,7 @@ export default function FeedbackSurveyClient({
   return (
     <main
       id="main-content"
-      className={`min-h-screen bg-linear-to-b ${brand.accentBg} px-4 py-10 sm:px-6`}
+      className={`min-h-screen bg-linear-to-b ${brand.accentBg} px-4 py-10 sm:px-6 dark:bg-zinc-950`}
     >
       <div className="mx-auto max-w-2xl">
         {/* Brand Header */}
@@ -411,7 +418,7 @@ export default function FeedbackSurveyClient({
               className={`mx-auto flex size-14 items-center justify-center rounded-2xl border p-2 shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg ${
                 isRecovery
                   ? "border-emerald-500/40 bg-zinc-950 shadow-emerald-950/20"
-                  : "border-blue-400/30 bg-white shadow-indigo-100"
+                  : "border-blue-400/30 bg-white shadow-indigo-100 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none"
               }`}
             >
               <Image
@@ -431,24 +438,24 @@ export default function FeedbackSurveyClient({
             </span>
           </Link>
 
-          <h1 className="mt-4 text-2xl font-black tracking-tight text-zinc-950 sm:text-3xl">
+          <h1 className="mt-4 text-2xl font-black tracking-tight text-zinc-950 sm:text-3xl dark:text-zinc-100">
             {campaign.title}
           </h1>
 
           {campaign.description && (
-            <p className="mx-auto mt-2 max-w-lg text-xs leading-relaxed text-zinc-600 sm:text-sm">
+            <p className="mx-auto mt-2 max-w-lg text-xs leading-relaxed text-zinc-600 sm:text-sm dark:text-zinc-400">
               {campaign.description}
             </p>
           )}
         </div>
 
         {/* Survey Form Card */}
-        <Card className="rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-xl shadow-zinc-200/40 sm:p-8">
+        <Card className="rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-xl shadow-zinc-200/40 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none">
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Section 1: Respondent Info */}
             <div className="space-y-4">
               <h2
-                className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase`}
+                className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase dark:border-zinc-800`}
               >
                 <Users className={`size-4 ${brand.sectionIconColor}`} />
                 1. Информация за Вас
@@ -456,15 +463,15 @@ export default function FeedbackSurveyClient({
 
               {/* Role selection */}
               <div className="space-y-1.5">
-                <p className="text-xs font-bold text-zinc-700">
+                <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                   Вие попълвате анкетата като:
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {availableRoles.map((r) => {
                     const isActive = role === r.id;
                     const activeCls = isRecovery
-                      ? "border-emerald-600 bg-emerald-50 text-emerald-800 shadow-xs"
-                      : "border-indigo-600 bg-indigo-50 text-indigo-800 shadow-xs";
+                      ? "border-emerald-600 bg-emerald-50 text-emerald-800 shadow-xs dark:bg-emerald-950/50 dark:text-emerald-300"
+                      : "border-indigo-600 bg-indigo-50 text-indigo-800 shadow-xs dark:bg-indigo-950/50 dark:text-indigo-300";
                     return (
                       <button
                         key={r.id}
@@ -473,7 +480,7 @@ export default function FeedbackSurveyClient({
                         className={`rounded-xl border p-2.5 text-xs font-bold transition-all ${
                           isActive
                             ? activeCls
-                            : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
+                            : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800"
                         }`}
                       >
                         {r.label}
@@ -488,7 +495,7 @@ export default function FeedbackSurveyClient({
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="respondentName"
-                    className="text-xs font-bold text-zinc-700"
+                    className="text-xs font-bold text-zinc-700 dark:text-zinc-200"
                   >
                     {role === "parent"
                       ? "Вашето име (Родител) *"
@@ -504,7 +511,7 @@ export default function FeedbackSurveyClient({
                     value={respondentName}
                     onChange={(e) => setRespondentName(e.target.value)}
                     placeholder="Име и фамилия..."
-                    className="rounded-xl border-zinc-200 text-xs sm:text-sm"
+                    className="rounded-xl border-zinc-200 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                   />
                 </div>
 
@@ -512,7 +519,7 @@ export default function FeedbackSurveyClient({
                   <div className="space-y-1.5">
                     <Label
                       htmlFor="childName"
-                      className="text-xs font-bold text-zinc-700"
+                      className="text-xs font-bold text-zinc-700 dark:text-zinc-200"
                     >
                       Име на детето (Състезател) *
                     </Label>
@@ -523,7 +530,7 @@ export default function FeedbackSurveyClient({
                       value={childName}
                       onChange={(e) => setChildName(e.target.value)}
                       placeholder="Име на детето..."
-                      className="rounded-xl border-zinc-200 text-xs sm:text-sm"
+                      className="rounded-xl border-zinc-200 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                     />
                   </div>
                 )}
@@ -534,7 +541,7 @@ export default function FeedbackSurveyClient({
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="surveyPhone"
-                    className="text-xs font-semibold text-zinc-600"
+                    className="text-xs font-semibold text-zinc-600 dark:text-zinc-400"
                   >
                     Телефон за връзка (по избор)
                   </Label>
@@ -546,14 +553,14 @@ export default function FeedbackSurveyClient({
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="088..."
-                    className="rounded-xl border-zinc-200 text-xs"
+                    className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="surveyEmail"
-                    className="text-xs font-semibold text-zinc-600"
+                    className="text-xs font-semibold text-zinc-600 dark:text-zinc-400"
                   >
                     Имейл (по избор)
                   </Label>
@@ -565,7 +572,7 @@ export default function FeedbackSurveyClient({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="rounded-xl border-zinc-200 text-xs"
+                    className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                   />
                 </div>
               </div>
@@ -574,7 +581,7 @@ export default function FeedbackSurveyClient({
             {/* Section 2: Overall Rating */}
             <div className="space-y-4">
               <h2
-                className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase`}
+                className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase dark:border-zinc-800`}
               >
                 <Sparkles className={`size-4 ${brand.sectionIconColor}`} />
                 {isRecovery
@@ -585,13 +592,13 @@ export default function FeedbackSurveyClient({
               <div
                 className={`space-y-4 rounded-2xl border bg-linear-to-br p-6 text-center shadow-xs ${brand.cardGradient}`}
               >
-                <span className="text-xs font-bold text-zinc-700">
+                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                   Как оценявате цялостното си впечатление и преживяване? *
                 </span>
 
                 {/* Stars Interactive with mini labels */}
                 <div className="flex flex-col items-center gap-3">
-                  <div className="flex items-center justify-center gap-2 sm:gap-4">
+                  <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <div
                         key={star}
@@ -610,11 +617,11 @@ export default function FeedbackSurveyClient({
                             className={`size-8 transition-colors sm:size-10 ${
                               star <= activeRatingDisplay
                                 ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]"
-                                : "text-zinc-200"
+                                : "text-zinc-200 dark:text-zinc-700"
                             }`}
                           />
                         </button>
-                        <span className="text-[10px] font-extrabold text-zinc-600">
+                        <span className="text-[10px] font-extrabold text-zinc-600 dark:text-zinc-400">
                           {star}★
                         </span>
                       </div>
@@ -638,7 +645,7 @@ export default function FeedbackSurveyClient({
             {campaign.questions && campaign.questions.length > 0 && (
               <div className="space-y-5">
                 <h2
-                  className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase`}
+                  className={`flex items-center gap-2 border-b border-zinc-100 pb-2 text-xs font-black tracking-wider ${brand.sectionHeaderColor} uppercase dark:border-zinc-800`}
                 >
                   <Star className={`size-4 ${brand.sectionIconColor}`} />
                   {getSection3Title(campaign.eventType, isRecovery)}
@@ -651,19 +658,19 @@ export default function FeedbackSurveyClient({
                     return (
                       <div
                         key={q.id}
-                        className="space-y-2 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 transition-all hover:border-zinc-200 hover:bg-zinc-50"
+                        className="space-y-2 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 transition-all hover:border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:border-zinc-700 dark:hover:bg-zinc-950"
                       >
                         <div className="flex items-start justify-between gap-2">
                           {q.type === "text" ? (
                             <Label
                               htmlFor={`question_${q.id}`}
-                              className="text-xs leading-relaxed font-bold text-zinc-900 sm:text-sm"
+                              className="text-xs leading-relaxed font-bold text-zinc-900 sm:text-sm dark:text-zinc-100"
                             >
                               <span
                                 className={`mr-1.5 font-black ${
                                   isRecovery
-                                    ? "text-emerald-700"
-                                    : "text-indigo-600"
+                                    ? "text-emerald-700 dark:text-emerald-400"
+                                    : "text-indigo-600 dark:text-indigo-400"
                                 }`}
                               >
                                 {idx + 1}.
@@ -674,12 +681,12 @@ export default function FeedbackSurveyClient({
                               )}
                             </Label>
                           ) : (
-                            <p className="text-xs leading-relaxed font-bold text-zinc-900 sm:text-sm">
+                            <p className="text-xs leading-relaxed font-bold text-zinc-900 sm:text-sm dark:text-zinc-100">
                               <span
                                 className={`mr-1.5 font-black ${
                                   isRecovery
-                                    ? "text-emerald-700"
-                                    : "text-indigo-600"
+                                    ? "text-emerald-700 dark:text-emerald-400"
+                                    : "text-indigo-600 dark:text-indigo-400"
                                 }`}
                               >
                                 {idx + 1}.
@@ -693,7 +700,7 @@ export default function FeedbackSurveyClient({
                         </div>
 
                         {q.description && (
-                          <p className="text-[11px] text-zinc-600">
+                          <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
                             {q.description}
                           </p>
                         )}
@@ -702,7 +709,7 @@ export default function FeedbackSurveyClient({
                         {q.type === "rating" && (
                           <div className="space-y-2 pt-1">
                             <div className="flex flex-wrap items-center gap-3">
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex flex-wrap items-center gap-1.5">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                   <button
                                     key={star}
@@ -718,7 +725,7 @@ export default function FeedbackSurveyClient({
                                       className={`size-6 transition-colors ${
                                         star <= Number(currentVal || 0)
                                           ? "fill-amber-400 text-amber-400"
-                                          : "text-zinc-200"
+                                          : "text-zinc-200 dark:text-zinc-700"
                                       }`}
                                     />
                                   </button>
@@ -740,7 +747,7 @@ export default function FeedbackSurveyClient({
                               )}
                             </div>
 
-                            <div className="flex items-center gap-2 text-[10px] text-zinc-600">
+                            <div className="flex items-center gap-2 text-[10px] text-zinc-600 dark:text-zinc-400">
                               <span>1★ = Слабо</span>
                               <span>•</span>
                               <span>3★ = Добро</span>
@@ -752,14 +759,14 @@ export default function FeedbackSurveyClient({
 
                         {/* Boolean Type */}
                         {q.type === "boolean" && (
-                          <div className="flex items-center gap-2 pt-1">
+                          <div className="flex flex-wrap items-center gap-2 pt-1">
                             <button
                               type="button"
                               onClick={() => handleAnswerChange(q.id, true)}
                               className={`rounded-xl border px-4 py-2 text-xs font-bold transition-all ${
                                 currentVal === true
-                                  ? "border-emerald-300 bg-emerald-100 text-emerald-800 shadow-2xs"
-                                  : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                                  ? "border-emerald-300 bg-emerald-100 text-emerald-800 shadow-2xs dark:border-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                  : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                               }`}
                             >
                               ✓ Да
@@ -769,8 +776,8 @@ export default function FeedbackSurveyClient({
                               onClick={() => handleAnswerChange(q.id, false)}
                               className={`rounded-xl border px-4 py-2 text-xs font-bold transition-all ${
                                 currentVal === false
-                                  ? "border-rose-300 bg-rose-100 text-rose-800 shadow-2xs"
-                                  : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                                  ? "border-rose-300 bg-rose-100 text-rose-800 shadow-2xs dark:border-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
+                                  : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                               }`}
                             >
                               ✕ Не
@@ -789,9 +796,9 @@ export default function FeedbackSurveyClient({
                                 className={`flex w-full items-center justify-between rounded-xl border p-2.5 text-left text-xs font-medium transition-all ${
                                   currentVal === opt
                                     ? isRecovery
-                                      ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-900 shadow-2xs"
-                                      : "border-indigo-500 bg-indigo-50 font-bold text-indigo-900 shadow-2xs"
-                                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+                                      ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-900 shadow-2xs dark:bg-emerald-950/50 dark:text-emerald-200"
+                                      : "border-indigo-500 bg-indigo-50 font-bold text-indigo-900 shadow-2xs dark:bg-indigo-950/50 dark:text-indigo-200"
+                                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                                 }`}
                               >
                                 <span>{opt}</span>
@@ -820,7 +827,7 @@ export default function FeedbackSurveyClient({
                             }
                             placeholder="Вашият отговор тук..."
                             rows={2}
-                            className="rounded-xl border-zinc-200 bg-white text-xs"
+                            className="rounded-xl border-zinc-200 bg-white text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                           />
                         )}
                       </div>
@@ -834,7 +841,7 @@ export default function FeedbackSurveyClient({
             <div className="space-y-2">
               <Label
                 htmlFor="reviewText"
-                className="flex items-center gap-1.5 text-xs font-bold text-zinc-900"
+                className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-zinc-100"
               >
                 <Heart className="size-4 text-rose-500" />
                 Вашият коментар, впечатления или препоръки:
@@ -850,12 +857,12 @@ export default function FeedbackSurveyClient({
                     : "Споделете свободен коментар или лични впечатления, които бихте искали да споделите с клуба..."
                 }
                 rows={4}
-                className="rounded-2xl border-zinc-200 p-3 text-xs leading-relaxed sm:text-sm"
+                className="rounded-2xl border-zinc-200 p-3 text-xs leading-relaxed sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
               />
             </div>
 
             {/* Submit Button */}
-            <div className="border-t border-zinc-100 pt-4">
+            <div className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
               <Button
                 type="submit"
                 disabled={isSubmitting}
@@ -873,7 +880,7 @@ export default function FeedbackSurveyClient({
                   </>
                 )}
               </Button>
-              <p className="mt-2 text-center text-[11px] text-zinc-600">
+              <p className="mt-2 text-center text-[11px] text-zinc-600 dark:text-zinc-400">
                 {isRecovery
                   ? "Благодарим Ви, че се грижите за Вашето възстановяване с нас! ⚡"
                   : "Благодарим Ви, че ни помагате да бъдем все по-добри! 🏸"}

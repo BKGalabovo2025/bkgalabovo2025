@@ -181,7 +181,7 @@ export default function ConductTestDialog({
         </div>
 
         <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3.5 min-h-0">
-          <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 text-sm">
+          <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-200">
             <p>
               <strong>Цел/Правила:</strong> {test.description}
             </p>
@@ -191,18 +191,18 @@ export default function ConductTestDialog({
           </div>
 
           <div>
-            <Label>Дата на провеждане</Label>
+            <Label className="dark:text-zinc-200">Дата на провеждане</Label>
             <Input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="mt-1 w-full sm:w-48"
+              className="mt-1 w-full sm:w-48 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
             />
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-bold">
+              <Label className="text-base font-bold dark:text-zinc-100">
                 Участници и Резултати
               </Label>
               <Button
@@ -210,6 +210,7 @@ export default function ConductTestDialog({
                 variant="outline"
                 size="sm"
                 onClick={handleAddParticipant}
+                className="dark:border-zinc-800 dark:text-zinc-200"
               >
                 <Plus className="mr-1 size-4" />
                 Добави дете
@@ -225,7 +226,7 @@ export default function ConductTestDialog({
                 {participants.map((p, index) => (
                   <div
                     key={index}
-                    className="flex flex-col items-start gap-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center"
+                    className="flex flex-col items-start gap-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900"
                   >
                     <div className="w-full flex-1">
                       <Select
@@ -234,7 +235,7 @@ export default function ConductTestDialog({
                           updateParticipant(index, "memberId", val)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                           <SelectValue placeholder="Избери състезател..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -258,6 +259,7 @@ export default function ConductTestDialog({
                             e.target.value
                           )
                         }
+                        className="dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                       />
                     </div>
 
@@ -268,6 +270,7 @@ export default function ConductTestDialog({
                         onChange={(e) =>
                           updateParticipant(index, "notes", e.target.value)
                         }
+                        className="dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                       />
                     </div>
 
@@ -275,7 +278,7 @@ export default function ConductTestDialog({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40"
                       onClick={() => handleRemoveParticipant(index)}
                     >
                       <Trash2 className="size-4" />
@@ -284,7 +287,7 @@ export default function ConductTestDialog({
                 ))}
 
                 {participants.length === 0 && (
-                  <p className="py-4 text-center text-sm text-zinc-500">
+                  <p className="py-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
                     Няма добавени участници. Натиснете &quot;Добави дете&quot;.
                   </p>
                 )}

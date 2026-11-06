@@ -108,6 +108,14 @@ function invalidateAdminParentPortalCache(): void {
   cachedMembersData = null;
 }
 
+function invalidateParentDashboardCache(parentUserId?: string): void {
+  if (parentUserId) {
+    serverCache.invalidatePattern(`parent-dashboard:${parentUserId}`);
+  } else {
+    serverCache.invalidatePattern("parent-dashboard:");
+  }
+}
+
 /**
  * 1. Submit parent access request from public registration form.
  */
@@ -964,6 +972,8 @@ export async function createParentUserManuallyAction(data: {
     revalidatePath("/members");
     revalidatePath(`/members/${data.memberId}`);
     revalidatePath("/parents");
+    invalidateAdminParentPortalCache();
+    invalidateParentDashboardCache(targetParentRef.id);
 
     return {
       success: true,
@@ -1036,6 +1046,7 @@ export async function updateParentMemberPermissionsAction(
 
     revalidatePath(`/members/${memberId}`);
     invalidateAdminParentPortalCache();
+    invalidateParentDashboardCache(parentUserId);
     return { success: true };
   } catch (error) {
     console.error("updateParentMemberPermissionsAction error:", error);
@@ -1126,6 +1137,7 @@ export async function resetParentPasswordByAdminAction(parentUserId: string) {
       data.linkedMemberIds.forEach((mId) => revalidatePath(`/members/${mId}`));
     }
     revalidatePath("/parents");
+    invalidateAdminParentPortalCache();
 
     return {
       success: true,
@@ -1364,7 +1376,8 @@ export async function submitParentAbsenceAction(data: {
     }
 
     // Invalidate cached parent dashboard for fresh response
-    serverCache.invalidatePattern(`parent-dashboard:${parent.id}`);
+    invalidateParentDashboardCache(parent.id);
+    invalidateAdminParentPortalCache();
 
     return { success: true, absence: absenceObj };
   } catch (error) {
@@ -1417,14 +1430,17 @@ export async function markAbsenceSeenByAdminAction(
 ) {
   try {
     const adminDb = getAdminDb();
-    await adminDb
+    const absRef = adminDb
       .collection(PARENT_ABSENCES_COLLECTION)
-      .doc(absenceId)
-      .update({
-        status: "seen",
-        coachReply: coachReply?.trim() || "",
-        reviewedAt: new Date().toISOString(),
-      });
+      .doc(absenceId);
+    const absSnap = await absRef.get();
+    await absRef.update({
+      status: "seen",
+      coachReply: coachReply?.trim() || "",
+      reviewedAt: new Date().toISOString(),
+    });
+    const absData = absSnap.exists ? (absSnap.data() as ParentAbsence) : null;
+    invalidateParentDashboardCache(absData?.parentUserId);
     invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
@@ -1515,7 +1531,8 @@ export async function submitDataCorrectionAction(data: {
     }
 
     // Invalidate cached parent dashboard
-    serverCache.invalidatePattern(`parent-dashboard:${parent.id}`);
+    invalidateParentDashboardCache(parent.id);
+    invalidateAdminParentPortalCache();
 
     return { success: true, correction: correctionObj };
   } catch (error) {
@@ -1658,6 +1675,7 @@ export async function approveDataCorrectionAction(correctionId: string) {
     }
 
     revalidatePath(`/members/${corr.memberId}`);
+    invalidateParentDashboardCache(corr.parentUserId);
     invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
@@ -1675,14 +1693,19 @@ export async function rejectDataCorrectionAction(
 ) {
   try {
     const adminDb = getAdminDb();
-    await adminDb
+    const corrRef = adminDb
       .collection(PARENT_CORRECTIONS_COLLECTION)
-      .doc(correctionId)
-      .update({
-        status: "rejected",
-        adminComment: adminComment?.trim() || "",
-        resolvedAt: new Date().toISOString(),
-      });
+      .doc(correctionId);
+    const corrSnap = await corrRef.get();
+    await corrRef.update({
+      status: "rejected",
+      adminComment: adminComment?.trim() || "",
+      resolvedAt: new Date().toISOString(),
+    });
+    const corrData = corrSnap.exists
+      ? (corrSnap.data() as DataCorrectionRequest)
+      : null;
+    invalidateParentDashboardCache(corrData?.parentUserId);
     invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
@@ -3471,6 +3494,10 @@ export async function sendDocumentToParentPortalAction(input: {
             [`permissionsPerMember.${input.memberId}.showDocumentsStatus`]: true,
           });
         }
+        invalidateParentDashboardCache(pDoc.id);
+      }
+      if (input.parentUserId) {
+        invalidateParentDashboardCache(input.parentUserId);
       }
     } catch {
       // non-blocking
@@ -3479,6 +3506,7 @@ export async function sendDocumentToParentPortalAction(input: {
     revalidatePath("/parents");
     revalidatePath(`/members/${input.memberId}`);
     revalidatePath("/club/parents");
+    invalidateAdminParentPortalCache();
 
     return {
       success: true,
@@ -3527,6 +3555,9 @@ export async function markDocumentViewedByParentAction(requestId: string) {
       lastAction: actionTitle,
       lastActionAt: nowIso,
     });
+
+    invalidateAdminParentPortalCache();
+    invalidateParentDashboardCache(parent.id);
 
     return {
       success: true,
@@ -3635,6 +3666,8 @@ export async function linkChildToParentAction(
 
     revalidatePath("/parents");
     revalidatePath(`/members/${memberId}`);
+    invalidateAdminParentPortalCache();
+    invalidateParentDashboardCache(parentId);
 
     return { success: true };
   } catch (err) {
@@ -3674,6 +3707,8 @@ export async function unlinkChildFromParentAction(
 
     revalidatePath("/parents");
     revalidatePath(`/members/${memberId}`);
+    invalidateAdminParentPortalCache();
+    invalidateParentDashboardCache(parentId);
 
     return { success: true };
   } catch (err) {
@@ -3699,7 +3734,7 @@ export async function uploadParentMedicalCertificateAction(input: {
 
     const adminDb = getAdminDb();
     const parentDoc = await adminDb
-      .collection("parents")
+      .collection(PARENT_USERS_COLLECTION)
       .doc(session.parentId)
       .get();
     if (!parentDoc.exists) {

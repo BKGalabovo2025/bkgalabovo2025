@@ -149,13 +149,13 @@ export function SubmissionDetailsDialog({
                   }`}
                 />
               ))}
-              <span className="ml-1 text-xs font-black text-zinc-900">
+              <span className="ml-1 text-xs font-black text-zinc-900 dark:text-zinc-100">
                 {submission.overallRating}/5
               </span>
             </div>
           </div>
 
-          <DialogTitle className="mt-2 text-base sm:text-lg font-black tracking-tight text-zinc-900">
+          <DialogTitle className="mt-2 text-base sm:text-lg font-black tracking-tight text-zinc-900 dark:text-zinc-100">
             {submission.respondentName}
             {submission.childName && (
               <span className="text-sm font-semibold text-zinc-500">
@@ -183,12 +183,12 @@ export function SubmissionDetailsDialog({
           <div className="space-y-4 p-3.5 sm:p-4.5">
             {/* Main Review text */}
             {submission.reviewText && (
-              <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
-                <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-bold tracking-wider text-indigo-900 uppercase">
-                  <MessageSquare className="size-3.5 text-indigo-600" />
+              <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4 dark:border-indigo-900/50 dark:bg-indigo-950/30">
+                <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-bold tracking-wider text-indigo-900 uppercase dark:text-indigo-300">
+                  <MessageSquare className="size-3.5 text-indigo-600 dark:text-indigo-400" />
                   Главен отзив и коментар
                 </h4>
-                <p className="text-sm leading-relaxed text-zinc-800 italic">
+                <p className="text-sm leading-relaxed text-zinc-800 italic dark:text-zinc-200">
                   &ldquo;{submission.reviewText}&rdquo;
                 </p>
               </div>
@@ -207,13 +207,13 @@ export function SubmissionDetailsDialog({
                       return (
                         <div
                           key={q.id}
-                          className="rounded-xl border border-zinc-100 bg-zinc-50/60 p-3 text-xs"
+                          className="rounded-xl border border-zinc-100 bg-zinc-50/60 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-900/60"
                         >
-                          <div className="font-semibold text-zinc-800">
+                          <div className="font-semibold text-zinc-800 dark:text-zinc-200">
                             {q.label}
                           </div>
 
-                          <div className="mt-1.5 font-bold text-indigo-700">
+                          <div className="mt-1.5 font-bold text-indigo-700 dark:text-indigo-400">
                             {q.type === "rating" ? (
                               <div className="flex items-center gap-1">
                                 {Array.from({ length: 5 }).map((_, i) => (
@@ -222,22 +222,26 @@ export function SubmissionDetailsDialog({
                                     className={`size-3.5 ${
                                       i < Number(ans || 0)
                                         ? "fill-amber-400 text-amber-400"
-                                        : "text-zinc-200"
+                                        : "text-zinc-200 dark:text-zinc-700"
                                     }`}
                                   />
                                 ))}
-                                <span className="ml-1 text-zinc-900">
+                                <span className="ml-1 text-zinc-900 dark:text-zinc-100">
                                   {ans ? `${ans}/5` : "Не е оценено"}
                                 </span>
                               </div>
                             ) : q.type === "boolean" ? (
                               ans ? (
-                                <span className="text-emerald-700">✓ Да</span>
+                                <span className="text-emerald-700 dark:text-emerald-400">
+                                  ✓ Да
+                                </span>
                               ) : (
-                                <span className="text-rose-600">✕ Не</span>
+                                <span className="text-rose-600 dark:text-rose-400">
+                                  ✕ Не
+                                </span>
                               )
                             ) : (
-                              <span className="leading-relaxed font-normal text-zinc-900">
+                              <span className="leading-relaxed font-normal text-zinc-900 dark:text-zinc-100">
                                 {String(ans || "Няма посочен отговор")}
                               </span>
                             )}
@@ -249,10 +253,12 @@ export function SubmissionDetailsDialog({
                     Object.entries(submission.answers).map(([key, val]) => (
                       <div
                         key={key}
-                        className="rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs"
+                        className="rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-900/60"
                       >
-                        <div className="font-semibold text-zinc-700">{key}</div>
-                        <div className="mt-1 font-bold text-indigo-700">
+                        <div className="font-semibold text-zinc-700 dark:text-zinc-200">
+                          {key}
+                        </div>
+                        <div className="mt-1 font-bold text-indigo-700 dark:text-indigo-400">
                           {String(val)}
                         </div>
                       </div>
@@ -261,10 +267,10 @@ export function SubmissionDetailsDialog({
             </div>
 
             {/* Highlight Quote customization */}
-            <div className="space-y-1.5 border-t border-zinc-100 pt-4">
+            <div className="space-y-1.5 border-t border-zinc-100 pt-4 dark:border-zinc-800">
               <Label
                 htmlFor="highlightQuote"
-                className="flex items-center gap-1.5 text-xs font-bold text-zinc-700"
+                className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-200"
               >
                 <Sparkles className="size-3.5 text-amber-500" />
                 Акцентен цитат за публичния сайт (по избор)
@@ -275,7 +281,7 @@ export function SubmissionDetailsDialog({
                 onChange={(e) => setHighlightQuote(e.target.value)}
                 placeholder="Въведете кратък силен цитат за витрината на сайта или оставете празно..."
                 rows={2}
-                className="rounded-xl border-zinc-200 text-xs"
+                className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </div>
 
@@ -283,7 +289,7 @@ export function SubmissionDetailsDialog({
             <div className="space-y-1.5">
               <Label
                 htmlFor="adminNotes"
-                className="text-xs font-bold text-zinc-700"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-200"
               >
                 Вътрешни бележки на администратора (невидими за родителите)
               </Label>
@@ -293,7 +299,7 @@ export function SubmissionDetailsDialog({
                 onChange={(e) => setAdminNotes(e.target.value)}
                 placeholder="Вътрешна информация, последващи действия или бележки..."
                 rows={2}
-                className="rounded-xl border-zinc-200 text-xs"
+                className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>

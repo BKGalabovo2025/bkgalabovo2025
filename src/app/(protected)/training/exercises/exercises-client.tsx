@@ -158,11 +158,11 @@ export default function ExercisesClient() {
     <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase">
-            <Dumbbell className="size-6 text-indigo-600" />
+          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase dark:text-white">
+            <Dumbbell className="size-6 text-indigo-600 dark:text-indigo-400" />
             База с Упражнения
           </h1>
-          <p className="mt-1 font-medium text-zinc-500">
+          <p className="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
             Официални упражнения и твои собствени методики (
             {filteredExercises.length}
             {filteredExercises.length !== exercises.length
@@ -177,7 +177,7 @@ export default function ExercisesClient() {
               onClick={handleInject}
               disabled={isInjecting}
               variant="outline"
-              className="w-full sm:w-auto rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+              className="w-full sm:w-auto rounded-xl border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-950/50 dark:text-indigo-300"
             >
               {isInjecting ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -192,7 +192,7 @@ export default function ExercisesClient() {
               onClick={handleInject}
               disabled={isInjecting}
               variant="outline"
-              className="w-full sm:w-auto rounded-xl border-amber-200 bg-amber-50 font-bold text-amber-700 hover:bg-amber-100"
+              className="w-full sm:w-auto rounded-xl border-amber-200 bg-amber-50 font-bold text-amber-700 hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300"
             >
               {isInjecting ? (
                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -204,7 +204,7 @@ export default function ExercisesClient() {
           )}
           <Button
             onClick={handleAdd}
-            className="w-full sm:w-auto rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
+            className="w-full sm:w-auto rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
           >
             <Plus className="mr-2 size-4" />
             Добави упражнение
@@ -218,10 +218,10 @@ export default function ExercisesClient() {
             placeholder="Търсене по име или етикет..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
+            className="w-full dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
               <SelectValue placeholder="Всички категории" />
             </SelectTrigger>
             <SelectContent>
@@ -258,7 +258,7 @@ export default function ExercisesClient() {
             </SelectContent>
           </Select>
           <Select value={ageGroupFilter} onValueChange={setAgeGroupFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
               <SelectValue placeholder="Всички възрасти" />
             </SelectTrigger>
             <SelectContent>
@@ -290,12 +290,12 @@ export default function ExercisesClient() {
       )}
 
       {exercises.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center">
-          <Dumbbell className="mx-auto mb-4 size-12 text-zinc-300" />
-          <h3 className="mb-2 text-lg font-bold text-zinc-900">
+        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
+          <Dumbbell className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-700" />
+          <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
             Базата е празна
           </h3>
-          <p className="mx-auto mb-6 max-w-md text-zinc-500">
+          <p className="mx-auto mb-6 max-w-md text-zinc-500 dark:text-zinc-400">
             Можеш да започнеш от нулата или да инжектираш стартовия пакет с
             официални упражнения на Световната федерация по бадминтон.
           </p>
@@ -313,7 +313,7 @@ export default function ExercisesClient() {
           {filteredExercises.map((ex) => (
             <Card
               key={ex.id}
-              className="cursor-pointer transition-shadow hover:shadow-md"
+              className="cursor-pointer transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
               onClick={() => handleEdit(ex)}
             >
               <CardContent className="p-5">
@@ -341,23 +341,23 @@ export default function ExercisesClient() {
                       }
                     })()}
                   </Badge>
-                  <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                  <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-400 dark:bg-zinc-800 dark:text-zinc-400">
                     {ex.durationMinutes} мин
                   </span>
                 </div>
-                <h3 className="mb-2 text-lg leading-tight font-bold text-zinc-900">
+                <h3 className="mb-2 text-lg leading-tight font-bold text-zinc-900 dark:text-zinc-100">
                   {ex.name}
                 </h3>
-                <p className="mb-4 line-clamp-2 text-sm text-zinc-600">
+                <p className="mb-4 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
                   {ex.description}
                 </p>
                 {ex.coachingPoints && ex.coachingPoints.length > 0 && (
-                  <div className="mb-4 line-clamp-2 rounded-lg border border-amber-100 bg-amber-50 p-2 text-xs text-amber-900">
+                  <div className="mb-4 line-clamp-2 rounded-lg border border-amber-100 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
                     <span className="font-bold">Насоки:</span>{" "}
                     {ex.coachingPoints[0]}
                   </div>
                 )}
-                <div className="flex items-center gap-4 text-xs font-medium text-zinc-500">
+                <div className="flex items-center gap-4 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                   <div className="flex items-center gap-1">
                     <MapPin className="size-3" />
                     {(() => {
@@ -368,7 +368,7 @@ export default function ExercisesClient() {
                   </div>
                   {ex.isHomeFriendly && (
                     <div
-                      className="flex items-center gap-1 text-emerald-600"
+                      className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"
                       title="Подходящо за дома"
                     >
                       <Home className="size-3" />
@@ -381,7 +381,7 @@ export default function ExercisesClient() {
                     {ex.targetKineticChain.map((chain) => (
                       <span
                         key={chain}
-                        className="rounded-sm bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-indigo-600 uppercase"
+                        className="rounded-sm bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-indigo-600 uppercase dark:bg-indigo-950/50 dark:text-indigo-300"
                       >
                         {chain}
                       </span>

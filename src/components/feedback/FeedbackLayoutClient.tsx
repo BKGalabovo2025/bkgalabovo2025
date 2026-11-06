@@ -67,7 +67,11 @@ export function FeedbackLayoutClient({ children }: FeedbackLayoutClientProps) {
             className="rounded-xl border-zinc-200 bg-white text-xs font-semibold text-zinc-700 shadow-2xs hover:border-indigo-300 hover:text-indigo-600 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200 dark:hover:text-indigo-400"
           >
             <Link
-              href={siteId === "recoveryzone" ? "/reviews" : "/#reviews"}
+              href={
+                siteId === "recoveryzone"
+                  ? "/recovery-zone/reviews"
+                  : "/club/reviews"
+              }
               target="_blank"
               className="flex items-center gap-1.5"
             >

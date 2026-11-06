@@ -121,6 +121,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
         return;
       }
       setSession(targetSession);
+      setCoachNotes(targetSession.coachNotes || "");
 
       const allMembers = await getAllMembers();
 
@@ -610,14 +611,16 @@ export default function ActiveSessionClient({ sessionId }: Props) {
         <Button
           variant="ghost"
           onClick={() => router.push("/training/planner")}
-          className="text-zinc-500"
+          className="text-zinc-500 dark:text-zinc-400"
         >
           <ArrowLeft className="mr-2 size-4" />
           Назад
         </Button>
         <div className="text-right">
-          <h1 className="text-xl font-bold text-zinc-900">{session.title}</h1>
-          <div className="text-sm text-zinc-500">
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-white">
+            {session.title}
+          </h1>
+          <div className="text-sm text-zinc-500 dark:text-zinc-400">
             {session.targetGroups?.join(", ") || session.ageGroup} |{" "}
             {session.location === "court"
               ? "В зала"
@@ -629,7 +632,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       </div>
 
       {/* Interval Timer Panel */}
-      <Card className="mb-8 overflow-hidden border-indigo-100 bg-zinc-950 text-white shadow-sm">
+      <Card className="mb-8 overflow-hidden border-indigo-100 bg-zinc-950 text-white shadow-sm dark:border-zinc-800">
         <CardContent className="p-0">
           {activeItem || activeLegacyExercise ? (
             renderActiveTimerView()
@@ -760,16 +763,16 @@ export default function ActiveSessionClient({ sessionId }: Props) {
 
       {/* Members List */}
       <div className="mb-8">
-        <div className="mb-4 flex items-end justify-between">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-zinc-900">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
             Присъствия и Натоварване
           </h2>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button
               variant="outline"
               size="sm"
               onClick={markAllAsAttended}
-              className="text-xs text-emerald-600 hover:text-emerald-700"
+              className="text-xs text-emerald-600 hover:text-emerald-700 dark:border-zinc-800 dark:text-emerald-400"
             >
               <CheckSquare className="mr-1.5 size-4" />
               Всички
@@ -778,7 +781,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
               variant="outline"
               size="sm"
               onClick={unmarkAllAsAttended}
-              className="text-xs text-zinc-500 hover:text-zinc-700"
+              className="text-xs text-zinc-500 hover:text-zinc-700 dark:border-zinc-800 dark:text-zinc-400"
             >
               <Square className="mr-1.5 size-4" />
               Изчисти
@@ -797,7 +800,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
             return (
               <div
                 key={member.id}
-                className={`rounded-xl border p-4 transition-all ${isPresent ? "border-indigo-200 bg-white shadow-sm" : "border-zinc-200 bg-zinc-50/50"}`}
+                className={`rounded-xl border p-4 transition-all ${isPresent ? "border-indigo-200 bg-white shadow-sm dark:border-indigo-800 dark:bg-zinc-900" : "border-zinc-200 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50"}`}
               >
                 <div className="flex items-center gap-4">
                   <Checkbox
@@ -806,7 +809,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                     className="size-6 rounded-md"
                   />
                   <div className="flex-1">
-                    <div className="text-lg font-bold text-zinc-900">
+                    <div className="text-lg font-bold text-zinc-900 dark:text-white">
                       {member.firstName} {member.lastName}
                     </div>
                   </div>
@@ -883,13 +886,13 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                 </div>
 
                 {isPresent && (
-                  <div className="mt-6 grid grid-cols-1 gap-8 border-t border-zinc-100 pt-4 duration-300 animate-in fade-in sm:grid-cols-2">
+                  <div className="mt-6 grid grid-cols-1 gap-8 border-t border-zinc-100 pt-4 duration-300 animate-in fade-in sm:grid-cols-2 dark:border-zinc-800">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <Label className="flex items-center gap-2 text-zinc-600">
+                        <Label className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
                           <Activity className="size-4" /> RPE (Умора: 1-10)
                         </Label>
-                        <span className="text-lg font-black text-indigo-600">
+                        <span className="text-lg font-black text-indigo-600 dark:text-indigo-400">
                           {att.rpe}
                         </span>
                       </div>
@@ -916,10 +919,10 @@ export default function ActiveSessionClient({ sessionId }: Props) {
 
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <Label className="flex items-center gap-2 text-zinc-600">
+                        <Label className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
                           <Target className="size-4" /> Старание (1-5)
                         </Label>
-                        <span className="text-lg font-black text-emerald-600">
+                        <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
                           {att.effort}
                         </span>
                       </div>
@@ -969,22 +972,24 @@ export default function ActiveSessionClient({ sessionId }: Props) {
 
       {/* Coach Notes */}
       <div className="mb-8 space-y-2">
-        <Label>Треньорски Дневник (Бележки за сесията)</Label>
+        <Label className="dark:text-zinc-200">
+          Треньорски Дневник (Бележки за сесията)
+        </Label>
         <Textarea
           placeholder="Напр. Групата беше много разсеяна днес. Утре да наблегнем на дисциплината..."
-          className="h-32 border-amber-200 bg-amber-50/50 focus-visible:ring-amber-500"
+          className="h-32 border-amber-200 bg-amber-50/50 focus-visible:ring-amber-500 dark:border-amber-800/60 dark:bg-amber-950/20 dark:text-zinc-100"
           value={coachNotes}
           onChange={(e) => setCoachNotes(e.target.value)}
         />
       </div>
 
       {/* Floating Save Bar */}
-      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center border-t bg-white/80 p-4 shadow-lg backdrop-blur-md">
+      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center border-t bg-white/80 p-4 shadow-lg backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80">
         <Button
           size="lg"
           onClick={handleFinish}
           disabled={isSaving}
-          className="min-h-14 w-full max-w-md rounded-xl bg-zinc-950 text-lg text-white shadow-xl hover:bg-zinc-800"
+          className="min-h-14 w-full max-w-md rounded-xl bg-zinc-950 text-lg text-white shadow-xl hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
         >
           {isSaving ? (
             <Loader2 className="mr-2 size-5 animate-spin" />

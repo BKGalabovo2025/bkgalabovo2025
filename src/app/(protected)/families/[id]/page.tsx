@@ -187,7 +187,7 @@ const FamilyDetailsPage = () => {
                   <Input
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="h-9 rounded-xl border-zinc-100 bg-zinc-50/50 text-center font-bold transition-all focus:bg-white"
+                    className="h-9 rounded-xl border-zinc-100 bg-zinc-50/50 text-center font-bold transition-all focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-950"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleUpdateName();
@@ -197,7 +197,7 @@ const FamilyDetailsPage = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="size-8 rounded-full text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600"
+                    className="size-8 rounded-full text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/30"
                     onClick={handleUpdateName}
                     disabled={isSavingName}
                   >
@@ -210,13 +210,13 @@ const FamilyDetailsPage = () => {
                 </div>
               ) : (
                 <div className="group/title flex items-center justify-center gap-2">
-                  <h2 className="text-2xl font-bold tracking-tight">
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
                     {family.name}
                   </h2>
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="size-8 rounded-full text-zinc-400 opacity-0 transition-opacity group-hover/title:opacity-100 hover:bg-zinc-100 hover:text-zinc-600"
+                    className="size-8 rounded-full text-zinc-400 opacity-0 transition-opacity group-hover/title:opacity-100 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                     onClick={() => setIsEditingName(true)}
                   >
                     <Pencil className="size-3.5" />
@@ -225,7 +225,7 @@ const FamilyDetailsPage = () => {
               )}
               <Badge
                 variant="outline"
-                className="mt-2 rounded-lg px-3 py-1 text-[10px] font-medium tracking-widest uppercase"
+                className="mt-2 rounded-lg px-3 py-1 text-[10px] font-medium tracking-widest uppercase dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
               >
                 {members.length} ЧЛЕНА
               </Badge>
@@ -255,7 +255,7 @@ const FamilyDetailsPage = () => {
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
-                className="flex h-9 gap-2 rounded-full border-zinc-200 text-[10px] font-bold tracking-widest uppercase"
+                className="flex h-9 gap-2 rounded-full border-zinc-200 text-[10px] font-bold tracking-widest uppercase dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 onClick={() =>
                   router.push(`/members/new?familyId=${family.id}`)
                 }

@@ -166,17 +166,19 @@ export const plannerService = {
     >[]
   ): Promise<void> {
     const batch = writeBatch(db);
-
-    // In a real scenario, we might want to delete existing attendance for this session first, or merge.
-    // For simplicity, we just add them.
+    const nowIso = new Date().toISOString();
     attendanceData.forEach((att) => {
-      const docRef = doc(collection(db, ATTENDANCE_COLLECTION));
+      const docRef = doc(
+        db,
+        ATTENDANCE_COLLECTION,
+        `${sessionId}_${att.memberId}`
+      );
       batch.set(docRef, {
         ...att,
         sessionId,
         siteId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: nowIso,
+        updatedAt: nowIso,
       });
     });
     await batch.commit();

@@ -112,7 +112,7 @@ export default function AnnualPlansClient() {
     <div className="container max-w-6xl space-y-6 py-8">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight dark:text-white">
             Едногодишни Планове
           </h1>
           <p className="mt-1 text-muted-foreground">
@@ -126,7 +126,7 @@ export default function AnnualPlansClient() {
         onValueChange={setSelectedPlanId}
         className="w-full"
       >
-        <TabsList className="mb-2.5 flex h-auto flex-wrap gap-1.5 rounded-xl bg-zinc-100 p-1">
+        <TabsList className="mb-2.5 flex h-auto flex-wrap gap-1.5 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
           {plans.map((plan) => (
             <TabsTrigger
               key={plan.id}
@@ -140,16 +140,18 @@ export default function AnnualPlansClient() {
 
         {plans.map((plan) => (
           <TabsContent key={plan.id} value={plan.id}>
-            <Card className="border-primary/20 shadow-sm">
-              <CardHeader className="bg-primary/5 pb-6">
-                <div className="flex items-start justify-between">
+            <Card className="border-primary/20 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+              <CardHeader className="bg-primary/5 pb-6 dark:bg-zinc-900/50">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                   <div>
-                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                    <CardTitle className="text-2xl dark:text-white">
+                      {plan.name}
+                    </CardTitle>
                     <CardDescription className="mt-2 text-base">
                       {plan.description}
                     </CardDescription>
                   </div>
-                  <div className="flex flex-col items-end gap-2 rounded-lg border bg-background p-3 shadow-sm">
+                  <div className="flex flex-col sm:items-end gap-2 rounded-lg border bg-background p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
                     <Label className="text-xs text-muted-foreground">
                       Начало на Сезона (Динамично)
                     </Label>
@@ -157,7 +159,7 @@ export default function AnnualPlansClient() {
                       type="date"
                       value={plan.seasonStartDate || ""}
                       onChange={(e) => handleStartDateChange(e.target.value)}
-                      className="h-8 w-40 text-sm"
+                      className="h-8 w-40 text-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                     />
                   </div>
                 </div>

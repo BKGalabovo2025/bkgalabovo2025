@@ -688,6 +688,14 @@ export async function deleteIssuedCertificateAction(
   idOrSerial: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const user = await getAuthUserFromSessionCookie();
+    if (!user) {
+      return {
+        success: false,
+        error: "Неоторизиран достъп. Моля, влезте отново.",
+      };
+    }
+
     const adminDb = getAdminDb();
     const backupDb = getBackupDb();
     const clean = (idOrSerial || "").trim();

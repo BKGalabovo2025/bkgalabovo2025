@@ -119,9 +119,9 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
 
   if (assessments.length === 0 && beepResults.length === 0) {
     return (
-      <div className="rounded-3xl border border-zinc-100 bg-zinc-50 py-12 text-center">
-        <TrendingUp className="mx-auto mb-4 size-12 text-zinc-300" />
-        <h3 className="text-lg font-bold text-zinc-700">
+      <div className="rounded-3xl border border-zinc-100 bg-zinc-50 py-12 text-center dark:border-zinc-800 dark:bg-zinc-900">
+        <TrendingUp className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-600" />
+        <h3 className="text-lg font-bold text-zinc-700 dark:text-zinc-100">
           Няма данни от тестове
         </h3>
         <p className="mt-2 text-sm text-zinc-500">
@@ -146,11 +146,11 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
     <div className="space-y-8 duration-500 animate-in fade-in">
       {/* BEEP TEST RESULTS CARD */}
       {beepResults.length > 0 && (
-        <div className="rounded-3xl border border-indigo-100 bg-white p-5 shadow-sm shadow-indigo-100/50 sm:p-6">
+        <div className="rounded-3xl border border-indigo-100 bg-white p-5 shadow-sm shadow-indigo-100/50 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none">
           <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row">
             <div>
-              <h3 className="flex items-center gap-2 text-xl font-black text-indigo-950">
-                <Activity className="size-5 text-indigo-600" />
+              <h3 className="flex items-center gap-2 text-xl font-black text-indigo-950 dark:text-zinc-100">
+                <Activity className="size-5 text-indigo-600 dark:text-indigo-400" />
                 Бийп Тест (VO2 Max)
               </h3>
               <p className="text-sm text-zinc-500">
@@ -207,7 +207,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
             </ResponsiveContainer>
           </div>
 
-          <div className="mt-6 space-y-4 border-t border-zinc-100 pt-4">
+          <div className="mt-6 space-y-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
             {[...beepResults].reverse().map((entry) => {
               const metrics = calculateBeepTestMetrics(
                 entry.level,
@@ -216,12 +216,12 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
               return (
                 <div
                   key={entry.id}
-                  className="flex flex-col overflow-hidden rounded-xl border border-indigo-100/50 bg-indigo-50/30"
+                  className="flex flex-col overflow-hidden rounded-xl border border-indigo-100/50 bg-indigo-50/30 dark:border-zinc-800 dark:bg-zinc-950/60"
                 >
                   <div className="flex flex-col items-start justify-between gap-2 px-5 py-4 text-sm sm:flex-row sm:items-center">
                     <div>
                       <div className="mb-1 flex items-center gap-3">
-                        <span className="text-lg font-black text-zinc-900">
+                        <span className="text-lg font-black text-zinc-900 dark:text-zinc-100">
                           Ниво {entry.level}:{entry.shuttle}
                         </span>
                         <span
@@ -230,42 +230,42 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                           {entry.score}
                         </span>
                       </div>
-                      <div className="text-sm font-medium text-zinc-600">
+                      <div className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                         VO2 Max:{" "}
-                        <span className="font-black text-indigo-600">
+                        <span className="font-black text-indigo-600 dark:text-indigo-400">
                           {entry.vo2max} ml/kg/min
                         </span>{" "}
                         <span className="mx-1 text-zinc-400">•</span>{" "}
                         {entry.period}
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                        <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm">
+                        <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                           <span className="font-medium text-zinc-500">
                             Разстояние:
                           </span>
-                          <span className="font-bold text-zinc-900">
+                          <span className="font-bold text-zinc-900 dark:text-zinc-100">
                             {metrics.distance} м
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm">
+                        <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                           <span className="font-medium text-zinc-500">
                             Общо време:
                           </span>
-                          <span className="font-bold text-zinc-900">
+                          <span className="font-bold text-zinc-900 dark:text-zinc-100">
                             {metrics.timeDisplay} мин
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm">
+                        <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                           <span className="font-medium text-zinc-500">
                             Макс. скорост:
                           </span>
-                          <span className="font-bold text-zinc-900">
+                          <span className="font-bold text-zinc-900 dark:text-zinc-100">
                             {metrics.maxSpeed.toFixed(1)} км/ч
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg bg-white/60 px-3 py-1.5 text-xs font-bold text-zinc-500 shadow-sm sm:text-right">
+                    <div className="rounded-lg bg-white/60 px-3 py-1.5 text-xs font-bold text-zinc-500 shadow-sm sm:text-right dark:bg-zinc-900 dark:text-zinc-400">
                       {format(new Date(entry.date), "dd MMMM yyyy", {
                         locale: bg,
                       })}
@@ -273,15 +273,15 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                   </div>
 
                   {/* AI / Coach Report Section */}
-                  <div className="flex items-start gap-3 border-t border-indigo-100/50 bg-white/60 px-5 py-3">
+                  <div className="flex items-start gap-3 border-t border-indigo-100/50 bg-white/60 px-5 py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
                     <div className="mt-0.5 text-indigo-400">
                       <Activity className="size-4" />
                     </div>
                     <div>
-                      <span className="mb-1 block text-xs font-bold tracking-wide text-indigo-800 uppercase">
+                      <span className="mb-1 block text-xs font-bold tracking-wide text-indigo-800 uppercase dark:text-indigo-300">
                         Треньорски Анализ
                       </span>
-                      <p className="text-sm leading-relaxed text-zinc-600">
+                      <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
                         {getBeepTestReport(entry)}
                       </p>
                     </div>
@@ -303,14 +303,16 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
         return (
           <div
             key={testName}
-            className="rounded-3xl border border-zinc-100 bg-white p-5 sm:p-6"
+            className="rounded-3xl border border-zinc-100 bg-white p-5 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900"
           >
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row">
               <div>
-                <h3 className="text-xl font-bold">{testName}</h3>
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {testName}
+                </h3>
                 <p className="text-sm text-zinc-500">Прогрес във времето</p>
               </div>
-              <span className="rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 uppercase">
+              <span className="rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 uppercase dark:bg-indigo-950/50 dark:text-indigo-300">
                 {data[0].ageGroupAtTest}
               </span>
             </div>
@@ -366,8 +368,8 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
             </div>
 
             {/* HISTORY LIST */}
-            <div className="mt-6 space-y-3 border-t border-zinc-100 pt-4">
-              {data.reverse().map(
+            <div className="mt-6 space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+              {[...data].reverse().map(
                 (
                   entry // Reverse just for the list to show newest first
                 ) => {
@@ -392,11 +394,11 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                   return (
                     <div
                       key={entry.id}
-                      className="flex flex-col overflow-hidden rounded-xl bg-zinc-50"
+                      className="flex flex-col overflow-hidden rounded-xl bg-zinc-50 dark:border dark:border-zinc-800 dark:bg-zinc-950/60"
                     >
                       <div className="flex items-center justify-between px-4 py-3 text-sm">
                         <div>
-                          <span className="font-bold text-zinc-900">
+                          <span className="font-bold text-zinc-900 dark:text-zinc-100">
                             {entry.scoreDisplay}
                           </span>
                           {entry.notes && (
@@ -415,23 +417,23 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                       </div>
                       {/* Coach Analysis & Recommendations */}
                       {(analysis || recommendation) && (
-                        <div className="space-y-2 border-t border-indigo-100/50 bg-indigo-50/50 px-4 py-3">
+                        <div className="space-y-2 border-t border-indigo-100/50 bg-indigo-50/50 px-4 py-3 dark:border-zinc-800 dark:bg-indigo-950/20">
                           {analysis && (
                             <div>
-                              <span className="mb-1 block text-xs font-bold tracking-wide text-indigo-800 uppercase">
+                              <span className="mb-1 block text-xs font-bold tracking-wide text-indigo-800 uppercase dark:text-indigo-300">
                                 Треньорски Анализ
                               </span>
-                              <p className="text-sm text-zinc-700">
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300">
                                 {analysis}
                               </p>
                             </div>
                           )}
                           {recommendation && (
                             <div>
-                              <span className="mt-2 mb-1 block text-xs font-bold tracking-wide text-emerald-800 uppercase">
+                              <span className="mt-2 mb-1 block text-xs font-bold tracking-wide text-emerald-800 uppercase dark:text-emerald-300">
                                 Препоръка
                               </span>
-                              <p className="text-sm text-zinc-700">
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300">
                                 {recommendation}
                               </p>
                             </div>

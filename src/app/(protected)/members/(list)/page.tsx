@@ -1,11 +1,18 @@
 export const dynamic = "force-dynamic";
 
+import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { MembersAllView } from "@/components/members/list/MembersAllView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAllMembersServer } from "@/services/member-service.server";
 import { Member } from "@/types";
+
+export const metadata: Metadata = {
+  title: "Всички членове | БК Гълъбово",
+  description:
+    "Пълен списък на всички регистрирани членове, състезатели и клиенти на клуба.",
+};
 
 export default async function MembersPage() {
   let members: Member[] = [];

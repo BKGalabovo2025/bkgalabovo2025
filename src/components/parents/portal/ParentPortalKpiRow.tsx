@@ -41,7 +41,8 @@ export function ParentPortalKpiRow() {
     handleOpenSignDocument,
   } = useParentPortalContext();
 
-  const { selectedChild, nextTraining, feeStatus, documentsData } = portal;
+  const { selectedChild, nextTraining, feeStatus, documentsData, permissions } =
+    portal;
 
   const pendingDocs = (documentsData?.sentDocuments || []).filter(
     (d) => d.status === "pending"
@@ -104,112 +105,116 @@ export function ParentPortalKpiRow() {
       {/* ── 4 Clean Bento KPI Cards ────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Card 1: Следваща тренировка */}
-        <div
-          onClick={() => setActiveTab("attendance")}
-          className={cn(
-            "group relative flex flex-col justify-between rounded-3xl border p-4.5 shadow-2xs transition-all cursor-pointer hover:shadow-md",
-            nextTraining?.isToday
-              ? "border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50/80 dark:border-emerald-800/50 dark:bg-emerald-950/20"
-              : "border-zinc-200/80 bg-white hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
-          )}
-        >
-          <div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
-                Следваща тренировка
-              </span>
-              <div
-                className={cn(
-                  "flex size-7 items-center justify-center rounded-xl text-white shadow-2xs",
-                  nextTraining?.isToday ? "bg-emerald-600" : "bg-blue-600"
-                )}
-              >
-                <Dumbbell size={13} />
-              </div>
-            </div>
-
-            <div className="mt-2.5">
-              {nextTraining ? (
-                <>
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-bold text-zinc-900 dark:text-white leading-tight truncate">
-                      {nextTraining.title}
-                    </p>
-                    {nextTraining.isToday && (
-                      <span className="rounded-md bg-emerald-600 px-1.5 py-0.2 text-[9px] font-bold text-white uppercase animate-pulse">
-                        Днес
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    {nextTraining.dateText}, {nextTraining.timeText}
-                  </p>
-                  <div className="mt-1 flex items-center gap-1 text-[11px] text-zinc-500 truncate">
-                    <MapPin size={11} className="text-zinc-400 shrink-0" />
-                    <span className="truncate">{nextTraining.location}</span>
-                  </div>
-                </>
-              ) : (
-                <p className="text-xs text-zinc-500 font-medium">
-                  Няма насрочена предстояща тренировка за периода.
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[10px] font-semibold text-blue-600 group-hover:underline dark:text-blue-400">
-            Виж тренировъчния график →
-          </div>
-        </div>
-
-        {/* Card 2: Присъствия този месец */}
-        <div
-          onClick={() => setActiveTab("attendance")}
-          className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-4.5 shadow-2xs transition-all cursor-pointer hover:border-blue-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
-        >
-          <div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
-                Присъствия
-              </span>
-              <div className="flex size-7 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-2xs">
-                <CalendarDays size={13} />
-              </div>
-            </div>
-
-            <div className="mt-2.5">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
-                  {attendanceStats.attended}
+        {permissions?.showNextTrainingCard !== false && (
+          <div
+            onClick={() => setActiveTab("attendance")}
+            className={cn(
+              "group relative flex flex-col justify-between rounded-3xl border p-4.5 shadow-2xs transition-all cursor-pointer hover:shadow-md",
+              nextTraining?.isToday
+                ? "border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50/80 dark:border-emerald-800/50 dark:bg-emerald-950/20"
+                : "border-zinc-200/80 bg-white hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+            )}
+          >
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
+                  Следваща тренировка
                 </span>
-                <span className="text-xs text-zinc-500 font-semibold">
-                  / {attendanceStats.total} тренировки
-                </span>
-              </div>
-
-              {/* Progress bar */}
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                 <div
                   className={cn(
-                    "h-full rounded-full bg-emerald-500 transition-all duration-500",
-                    getProgressBarWidthClass(attendanceStats.rate)
+                    "flex size-7 items-center justify-center rounded-xl text-white shadow-2xs",
+                    nextTraining?.isToday ? "bg-emerald-600" : "bg-blue-600"
                   )}
-                />
+                >
+                  <Dumbbell size={13} />
+                </div>
               </div>
 
-              <div className="mt-1.5 flex items-center justify-between text-[11px] text-zinc-500 font-medium">
-                <span>Посещаемост:</span>
-                <strong className="text-emerald-600 dark:text-emerald-400 font-bold">
-                  {attendanceStats.rate}%
-                </strong>
+              <div className="mt-2.5">
+                {nextTraining ? (
+                  <>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-bold text-zinc-900 dark:text-white leading-tight truncate">
+                        {nextTraining.title}
+                      </p>
+                      {nextTraining.isToday && (
+                        <span className="rounded-md bg-emerald-600 px-1.5 py-0.2 text-[9px] font-bold text-white uppercase animate-pulse">
+                          Днес
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                      {nextTraining.dateText}, {nextTraining.timeText}
+                    </p>
+                    <div className="mt-1 flex items-center gap-1 text-[11px] text-zinc-500 truncate">
+                      <MapPin size={11} className="text-zinc-400 shrink-0" />
+                      <span className="truncate">{nextTraining.location}</span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-zinc-500 font-medium">
+                    Няма насрочена предстояща тренировка за периода.
+                  </p>
+                )}
               </div>
             </div>
-          </div>
 
-          <div className="mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[10px] font-semibold text-blue-600 group-hover:underline dark:text-blue-400">
-            Пълен месечен календар →
+            <div className="mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[10px] font-semibold text-blue-600 group-hover:underline dark:text-blue-400">
+              Виж тренировъчния график →
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Card 2: Присъствия този месец */}
+        {permissions?.showAttendance !== false && (
+          <div
+            onClick={() => setActiveTab("attendance")}
+            className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-4.5 shadow-2xs transition-all cursor-pointer hover:border-blue-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+          >
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
+                  Присъствия
+                </span>
+                <div className="flex size-7 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-2xs">
+                  <CalendarDays size={13} />
+                </div>
+              </div>
+
+              <div className="mt-2.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
+                    {attendanceStats.attended}
+                  </span>
+                  <span className="text-xs text-zinc-500 font-semibold">
+                    / {attendanceStats.total} тренировки
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                  <div
+                    className={cn(
+                      "h-full rounded-full bg-emerald-500 transition-all duration-500",
+                      getProgressBarWidthClass(attendanceStats.rate)
+                    )}
+                  />
+                </div>
+
+                <div className="mt-1.5 flex items-center justify-between text-[11px] text-zinc-500 font-medium">
+                  <span>Посещаемост:</span>
+                  <strong className="text-emerald-600 dark:text-emerald-400 font-bold">
+                    {attendanceStats.rate}%
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[10px] font-semibold text-blue-600 group-hover:underline dark:text-blue-400">
+              Пълен месечен календар →
+            </div>
+          </div>
+        )}
 
         {/* Card 3: Членски внос / Такси */}
         <div

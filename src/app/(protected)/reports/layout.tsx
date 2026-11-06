@@ -131,16 +131,43 @@ export default async function ReportsLayout({
     "all"
   );
 
-  const salesForMonth = sales.filter((sale) => {
-    const saleDate = new Date(sale.saleDate);
-    return (
-      saleDate.getFullYear() === currentYear &&
-      saleDate.getMonth() === currentMonth - 1 &&
-      sale.isPaid
-    );
-  });
-  const paidMemberIds = new Set(salesForMonth.map((s) => s.memberId));
-  const unpaidMembers = members.filter(
+  const monthStr = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
+  const paidMemberIds = new Set<string>();
+
+  for (const s of sales) {
+    if (s.isPaid === false) continue;
+
+    const targetMonths = (s as { targetMonths?: string[] }).targetMonths;
+    let coversMonth = false;
+    if (Array.isArray(targetMonths) && targetMonths.length > 0) {
+      coversMonth = targetMonths.includes(monthStr);
+    } else if (s.type !== "inventory") {
+      const saleDate = new Date(s.saleDate);
+      coversMonth =
+        saleDate.getFullYear() === currentYear &&
+        saleDate.getMonth() === currentMonth - 1;
+    }
+
+    if (coversMonth) {
+      if (s.memberId) paidMemberIds.add(s.memberId);
+      const memberIdsForAtt = (s as { memberIdsForAttendance?: string[] })
+        .memberIdsForAttendance;
+      if (Array.isArray(memberIdsForAtt)) {
+        memberIdsForAtt.forEach((mId) => paidMemberIds.add(mId));
+      }
+    }
+  }
+
+  const eligibleMembers = members.filter(
+    (m) =>
+      m.isGuest !== true &&
+      (m as { role?: string }).role !== "coach" &&
+      m.isCoach !== true &&
+      m.status !== "inactive" &&
+      m.memberType !== "recovery"
+  );
+
+  const unpaidMembers = eligibleMembers.filter(
     (member) => !paidMemberIds.has(member.id)
   );
 

@@ -157,17 +157,17 @@ export default function AssessmentsClient() {
         >
           <div className="no-print mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase">
-                <Target className="size-6 text-indigo-600" />
+              <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase dark:text-white">
+                <Target className="size-6 text-indigo-600 dark:text-indigo-400" />
                 Бадминтон Оценяване (BWF)
               </h1>
-              <p className="mt-1 font-medium text-zinc-500">
+              <p className="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
                 Официална методика за тестване на физически и технически
                 качества
               </p>
             </div>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-              <TabsList className="h-9 rounded-xl bg-zinc-100 p-0.5">
+              <TabsList className="h-9 rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
                 <TabsTrigger
                   value="bwf"
                   className="rounded-lg px-3 py-1 text-xs font-semibold"
@@ -186,7 +186,7 @@ export default function AssessmentsClient() {
                 <Button
                   onClick={() => handlePrint("all")}
                   variant="outline"
-                  className="h-9 w-full sm:w-auto rounded-xl border-zinc-200 text-xs font-semibold text-zinc-700"
+                  className="h-9 w-full sm:w-auto rounded-xl border-zinc-200 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
                 >
                   <Printer className="mr-1.5 size-3.5" />
                   Принтирай ВСИЧКИ
@@ -196,7 +196,7 @@ export default function AssessmentsClient() {
           </div>
 
           <TabsContent value="bwf" className="duration-300 animate-in fade-in">
-            <div className="printable-area space-y-12 bg-white p-2">
+            <div className="printable-area space-y-12 bg-white p-2 dark:bg-transparent">
               <div className="mb-8 hidden text-center print:block">
                 <h1 className="text-2xl font-bold uppercase">
                   Бланка за Оценяване - BWF Тестове
@@ -223,7 +223,7 @@ export default function AssessmentsClient() {
                       <span className="rounded-lg bg-indigo-600 px-3 py-1 text-lg font-black tracking-widest text-white uppercase">
                         {group}
                       </span>
-                      <div className="h-px flex-1 bg-zinc-200"></div>
+                      <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800"></div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -231,7 +231,7 @@ export default function AssessmentsClient() {
                         <div
                           key={test.id}
                           className={cn(
-                            "flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm",
+                            "flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
                             printFilter !== "all" &&
                               printFilter !== test.id &&
                               "print:hidden"
@@ -239,57 +239,57 @@ export default function AssessmentsClient() {
                         >
                           <div>
                             <div className="mb-2 flex items-start justify-between">
-                              <h3 className="text-lg leading-tight font-bold">
+                              <h3 className="text-lg leading-tight font-bold dark:text-zinc-100">
                                 {test.name}
                               </h3>
-                              <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
+                              <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-widest text-zinc-400 uppercase dark:bg-zinc-800">
                                 {test.source}
                               </span>
                             </div>
-                            <p className="mb-4 text-sm text-zinc-600">
+                            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
                               {test.description}
                             </p>
 
-                            <div className="space-y-2 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm">
+                            <div className="space-y-2 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
                               <p>
-                                <strong className="text-zinc-800">
+                                <strong className="text-zinc-800 dark:text-zinc-200">
                                   Оборудване:
                                 </strong>{" "}
-                                <span className="text-zinc-600">
+                                <span className="text-zinc-600 dark:text-zinc-400">
                                   {test.equipment}
                                 </span>
                               </p>
                               <p>
-                                <strong className="text-zinc-800">
+                                <strong className="text-zinc-800 dark:text-zinc-200">
                                   Оценяване:
                                 </strong>{" "}
-                                <span className="text-zinc-600">
+                                <span className="text-zinc-600 dark:text-zinc-400">
                                   {test.scoring}
                                 </span>
                               </p>
                               <p>
-                                <strong className="text-zinc-800">
+                                <strong className="text-zinc-800 dark:text-zinc-200">
                                   Фокус:
                                 </strong>{" "}
-                                <span className="text-zinc-600">
+                                <span className="text-zinc-600 dark:text-zinc-400">
                                   {test.focus}
                                 </span>
                               </p>
                             </div>
                           </div>
 
-                          <div className="no-print mt-4 flex justify-end gap-2 border-t border-zinc-100 pt-4">
+                          <div className="no-print mt-4 flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
                             <Button
                               onClick={() => handlePrint(test.id)}
                               variant="ghost"
-                              className="w-full text-zinc-500 hover:text-zinc-800 sm:w-auto"
+                              className="w-full text-zinc-500 hover:text-zinc-800 sm:w-auto dark:text-zinc-400 dark:hover:text-zinc-100"
                             >
                               <Printer className="mr-2 size-4" />
                               Принтирай
                             </Button>
                             <Button
                               onClick={() => handleConductTest(test)}
-                              className="w-full bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100 sm:w-auto"
+                              className="w-full bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100 sm:w-auto dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
                             >
                               <ClipboardList className="mr-2 size-4" />
                               Проведи тест
@@ -343,8 +343,8 @@ export default function AssessmentsClient() {
             )}
 
             {!isHistoryLoading && Object.keys(groupedHistory).length === 0 && (
-              <div className="rounded-2xl border border-zinc-200 bg-white py-12 text-center shadow-sm">
-                <p className="font-medium text-zinc-500">
+              <div className="rounded-2xl border border-zinc-200 bg-white py-12 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <p className="font-medium text-zinc-500 dark:text-zinc-400">
                   Няма проведени тестове до момента.
                 </p>
               </div>
@@ -357,18 +357,18 @@ export default function AssessmentsClient() {
                 return (
                   <Card
                     key={dateStr}
-                    className="overflow-hidden border-zinc-200 shadow-sm"
+                    className="overflow-hidden border-zinc-200 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
                   >
-                    <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-6 py-4">
-                      <h3 className="text-lg font-bold text-zinc-900">
+                    <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+                      <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                         {format(dateObj, "dd MMMM yyyy", { locale: bg })}
                       </h3>
-                      <div className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-bold text-indigo-800">
+                      <div className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-bold text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">
                         {results.length} теста
                       </div>
                     </div>
                     <CardContent className="p-0">
-                      <div className="divide-y divide-zinc-100">
+                      <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                         {results.map((r) => {
                           const member = members.find(
                             (m) => m.id === r.memberId
@@ -398,21 +398,23 @@ export default function AssessmentsClient() {
                           return (
                             <div
                               key={r.id}
-                              className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:px-6"
+                              className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:px-6 dark:hover:bg-zinc-800/50"
                             >
                               <Link
                                 href={`/members/${r.memberId}/assessments`}
                                 className="flex flex-1 items-center justify-between pr-4"
                               >
                                 <div>
-                                  <div className="font-bold text-zinc-900 transition-colors group-hover:text-indigo-600">
+                                  <div className="font-bold text-zinc-900 transition-colors group-hover:text-indigo-600 dark:text-zinc-100 dark:group-hover:text-indigo-400">
                                     {memberName}
                                   </div>
-                                  <div className="mt-0.5 flex items-center gap-2 text-xs font-medium text-zinc-500">
+                                  <div className="mt-0.5 flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                                     <span>{r.testName}</span>
                                     {r.notes && (
                                       <>
-                                        <span className="text-zinc-300">•</span>
+                                        <span className="text-zinc-300 dark:text-zinc-700">
+                                          •
+                                        </span>
                                         <span className="text-zinc-400 italic">
                                           {r.notes}
                                         </span>
@@ -420,18 +422,18 @@ export default function AssessmentsClient() {
                                     )}
                                   </div>
                                   {(analysis || recommendation) && (
-                                    <div className="mt-2 w-full max-w-xl space-y-1 rounded-lg border border-indigo-100/50 bg-indigo-50/30 p-2 text-xs">
+                                    <div className="mt-2 w-full max-w-xl space-y-1 rounded-lg border border-indigo-100/50 bg-indigo-50/30 p-2 text-xs dark:border-indigo-900/40 dark:bg-indigo-950/30">
                                       {analysis && (
-                                        <div className="line-clamp-2 font-medium text-indigo-700">
-                                          <strong className="mb-0.5 block text-[10px] tracking-wide text-indigo-800 uppercase">
+                                        <div className="line-clamp-2 font-medium text-indigo-700 dark:text-indigo-300">
+                                          <strong className="mb-0.5 block text-[10px] tracking-wide text-indigo-800 uppercase dark:text-indigo-200">
                                             Анализ
                                           </strong>
                                           {analysis}
                                         </div>
                                       )}
                                       {recommendation && (
-                                        <div className="line-clamp-2 font-medium text-emerald-700">
-                                          <strong className="mb-0.5 block text-[10px] tracking-wide text-emerald-800 uppercase">
+                                        <div className="line-clamp-2 font-medium text-emerald-700 dark:text-emerald-300">
+                                          <strong className="mb-0.5 block text-[10px] tracking-wide text-emerald-800 uppercase dark:text-emerald-200">
                                             Препоръка
                                           </strong>
                                           {recommendation}
@@ -441,7 +443,7 @@ export default function AssessmentsClient() {
                                   )}
                                 </div>
                                 <div className="flex shrink-0 flex-col items-end gap-1">
-                                  <span className="rounded border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-sm font-black text-indigo-600">
+                                  <span className="rounded border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-sm font-black text-indigo-600 dark:border-indigo-900/50 dark:bg-indigo-950/50 dark:text-indigo-300">
                                     {r.scoreDisplay}
                                   </span>
                                   <span className="text-[10px] font-medium text-zinc-400 transition-colors group-hover:text-indigo-500">
@@ -450,7 +452,7 @@ export default function AssessmentsClient() {
                                 </div>
                               </Link>
 
-                              <div className="border-l border-zinc-100 pl-2">
+                              <div className="border-l border-zinc-100 pl-2 dark:border-zinc-800">
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -458,7 +460,7 @@ export default function AssessmentsClient() {
                                     e.preventDefault();
                                     handleDeleteResult(r.id);
                                   }}
-                                  className="text-zinc-400 hover:bg-red-50 hover:text-red-500"
+                                  className="text-zinc-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40"
                                   title="Изтрий резултата"
                                 >
                                   <Trash2 className="size-4" />

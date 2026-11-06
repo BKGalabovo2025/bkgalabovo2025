@@ -62,6 +62,12 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
       paymentMethod: data.paymentMethod || "В брой",
       note: data.note || "",
       type: data.type || "inventory",
+      targetMonths: Array.isArray(data.targetMonths)
+        ? data.targetMonths
+        : undefined,
+      memberIdsForAttendance: Array.isArray(data.memberIdsForAttendance)
+        ? data.memberIdsForAttendance
+        : undefined,
       createdAt: createdAt.toISOString(),
     };
   } catch (error) {
@@ -152,7 +158,23 @@ export const hasMemberPaidForMonth = async (
   month: number
 ): Promise<boolean> => {
   const sales = await getSalesByMemberId(memberId);
+  const monthStr = `${year}-${String(month).padStart(2, "0")}`;
   return sales.some((sale) => {
+    if (sale.isPaid === false) return false;
+    const targetMonths = (sale as { targetMonths?: string[] }).targetMonths;
+    if (Array.isArray(targetMonths) && targetMonths.length > 0) {
+      return targetMonths.includes(monthStr);
+    }
+    const isPureInventorySale =
+      sale.type === "inventory" &&
+      Array.isArray(sale.items) &&
+      sale.items.length > 0 &&
+      sale.items.every(
+        (item) =>
+          Boolean((item as { productId?: string }).productId) &&
+          !(item as { serviceId?: string }).serviceId
+      );
+    if (isPureInventorySale) return false;
     const saleDate = new Date(sale.saleDate);
     return (
       saleDate.getFullYear() === year && saleDate.getMonth() === month - 1 // Месеците в JS са 0-индексирани

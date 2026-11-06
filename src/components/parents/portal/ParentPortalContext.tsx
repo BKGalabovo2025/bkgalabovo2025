@@ -481,6 +481,11 @@ export function ParentPortalProvider({
 
   const filteredTransactions = useMemo(() => {
     if (financeFilter === "all") return transactionsList;
+    if (financeFilter === "service") {
+      return transactionsList.filter(
+        (tx) => tx.type === "service" || tx.type === "general_service"
+      );
+    }
     return transactionsList.filter((tx) => tx.type === financeFilter);
   }, [transactionsList, financeFilter]);
 
@@ -493,7 +498,10 @@ export function ParentPortalProvider({
     [transactionsList]
   );
   const serviceTransactionsCount = useMemo(
-    () => transactionsList.filter((t) => t.type === "service").length,
+    () =>
+      transactionsList.filter(
+        (t) => t.type === "service" || t.type === "general_service"
+      ).length,
     [transactionsList]
   );
 
@@ -686,12 +694,20 @@ export function ParentPortalProvider({
 
   const handleOpenSignDocument = useCallback(
     (doc: ParentSentDocumentItem) => {
-      setSelectedSentDoc(doc);
-      setIsSigningDoc(true);
       logSessionAction(`Отваряне за онлайн подписване: „${doc.documentTitle}“`);
       markDocumentViewedByParentAction(doc.id).catch(() => {});
+      if (
+        doc.token &&
+        (doc.status as string) !== "signed" &&
+        doc.status !== "completed"
+      ) {
+        router.push(`/sign/${doc.token}`);
+        return;
+      }
+      setSelectedSentDoc(doc);
+      setIsSigningDoc(true);
     },
-    [logSessionAction]
+    [logSessionAction, router]
   );
 
   const handleSignDocSuccess = useCallback(() => {

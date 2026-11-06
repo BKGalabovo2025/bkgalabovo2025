@@ -94,6 +94,7 @@ export function ShadowHistoryClient({
   const [inspectSession, setInspectSession] = useState<TrainingSession | null>(
     null
   );
+  const [referenceTimestamp] = useState(() => Date.now());
 
   // Filtered Sessions
   const filteredSessions = useMemo(() => {
@@ -107,8 +108,7 @@ export function ShadowHistoryClient({
       // 2. Period filter
       if (selectedPeriod !== "all") {
         const d = new Date(s.date).getTime();
-        const now = 1774439000000; // Reference 2026 timestamp
-        const daysAgo = (now - d) / (1000 * 60 * 60 * 24);
+        const daysAgo = (referenceTimestamp - d) / (1000 * 60 * 60 * 24);
         if (selectedPeriod === "7d" && daysAgo > 7) return false;
         if (selectedPeriod === "30d" && daysAgo > 30) return false;
       }
@@ -131,7 +131,14 @@ export function ShadowHistoryClient({
 
       return true;
     });
-  }, [sessions, selectedMode, selectedPeriod, searchQuery, memberNameMap]);
+  }, [
+    sessions,
+    selectedMode,
+    selectedPeriod,
+    searchQuery,
+    memberNameMap,
+    referenceTimestamp,
+  ]);
 
   // Overall Statistics
   const totalStats = useMemo(() => {

@@ -10,17 +10,15 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { toast } from "sonner";
 
 import { resetParentPasswordWithTokenAction } from "@/lib/actions/parent-portal";
 
 function ResetPasswordContent() {
-  const [token] = useState(() =>
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("token") || ""
-      : ""
-  );
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") || "";
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -200,7 +198,15 @@ export default function ResetPasswordPage() {
             </p>
           </div>
 
-          <ResetPasswordContent />
+          <Suspense
+            fallback={
+              <div className="flex justify-center py-8">
+                <Loader2 size={24} className="animate-spin text-blue-400" />
+              </div>
+            }
+          >
+            <ResetPasswordContent />
+          </Suspense>
         </div>
 
         <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-zinc-400">

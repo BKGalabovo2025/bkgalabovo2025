@@ -91,19 +91,29 @@ export function PortalAbsencesTabView() {
                           Прегледано от треньор
                         </Badge>
                       )}
+                      {abs.status === "cancelled_by_parent" && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 text-[9px] font-bold"
+                        >
+                          Отменено от родител
+                        </Badge>
+                      )}
                     </div>
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCancelAbsence(abs.id)}
-                      className="h-7 px-2 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-950/30 self-end sm:self-auto"
-                      title="Отмени това уведомление"
-                    >
-                      <Trash2 size={11} className="mr-1" />
-                      <span>Отмени</span>
-                    </Button>
+                    {abs.status !== "cancelled_by_parent" && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCancelAbsence(abs.id)}
+                        className="h-7 px-2 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-950/30 self-end sm:self-auto"
+                        title="Отмени това уведомление"
+                      >
+                        <Trash2 size={11} className="mr-1" />
+                        <span>Отмени</span>
+                      </Button>
+                    )}
                   </div>
 
                   {abs.note && (

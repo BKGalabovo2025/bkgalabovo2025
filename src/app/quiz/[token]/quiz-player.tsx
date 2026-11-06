@@ -46,19 +46,19 @@ function QuizPlayerResult({
   return (
     <main
       id="main-content"
-      className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4"
+      className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900"
     >
       <div className="mx-auto max-w-lg space-y-6 py-8">
         <div className="text-center">
           <div className="mb-2 text-5xl">{isReviewed ? emoji : "⏳"}</div>
-          <h1 className="text-2xl font-black text-indigo-800">
+          <h1 className="text-2xl font-black text-indigo-800 dark:text-indigo-300">
             {result.quizTitle}
           </h1>
-          <p className="mt-1 text-zinc-500">
+          <p className="mt-1 text-zinc-500 dark:text-zinc-400">
             {isReviewed ? "Твоят краен резултат" : "Резултатът се обработва"}
           </p>
         </div>
-        <div className="overflow-hidden rounded-3xl bg-white shadow-xl">
+        <div className="overflow-hidden rounded-3xl bg-white shadow-xl dark:border dark:border-zinc-800 dark:bg-zinc-900">
           <div
             className={`flex items-center justify-center p-8 ${
               isReviewed
@@ -88,28 +88,30 @@ function QuizPlayerResult({
             {isReviewed ? (
               <>
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Автоматични въпроси</span>
-                  <span className="font-bold text-zinc-800">
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Автоматични въпроси
+                  </span>
+                  <span className="font-bold text-zinc-800 dark:text-zinc-100">
                     {result.autoScore} т.
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">
+                  <span className="text-zinc-500 dark:text-zinc-400">
                     Тактическа мисия (от треньора)
                   </span>
-                  <span className="font-bold text-zinc-800">
+                  <span className="font-bold text-zinc-800 dark:text-zinc-100">
                     {result.manualScore} т.
                   </span>
                 </div>
                 {result.coachFeedback && (
-                  <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
+                  <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-950/40">
                     <div className="mb-2 flex items-center gap-2">
-                      <MessageSquare className="size-4 text-indigo-600" />
-                      <span className="text-sm font-bold text-indigo-700">
+                      <MessageSquare className="size-4 text-indigo-600 dark:text-indigo-400" />
+                      <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">
                         Бележка от Треньора
                       </span>
                     </div>
-                    <p className="text-sm text-indigo-800 italic">
+                    <p className="text-sm text-indigo-800 italic dark:text-indigo-200">
                       &quot;{result.coachFeedback}&quot;
                     </p>
                   </div>
@@ -117,12 +119,12 @@ function QuizPlayerResult({
                 <div className="mt-4 mb-2 text-center text-2xl">{message}</div>
               </>
             ) : (
-              <div className="rounded-2xl bg-amber-50 p-4 text-center">
-                <p className="text-sm font-medium text-amber-700">
+              <div className="rounded-2xl bg-amber-50 p-4 text-center dark:border dark:border-amber-800 dark:bg-amber-950/40">
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
                   Получи <strong>{result.autoScore} т.</strong> от автоматичните
                   въпроси!
                 </p>
-                <p className="mt-1 text-xs text-amber-600">
+                <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
                   Треньорът ще провери отговора ти на отворения въпрос скоро.
                   Тогава ще видиш крайния си резултат.
                 </p>
@@ -130,8 +132,8 @@ function QuizPlayerResult({
             )}
 
             {quiz && result.answers && (
-              <div className="mt-6 space-y-4 border-t border-zinc-100 pt-6">
-                <h2 className="mb-4 text-lg font-black text-indigo-900">
+              <div className="mt-6 space-y-4 border-t border-zinc-100 pt-6 dark:border-zinc-800">
+                <h2 className="mb-4 text-lg font-black text-indigo-900 dark:text-indigo-300">
                   Твоите отговори
                 </h2>
                 {quiz.questions.map((q: QuizQuestion, i: number) => {
@@ -140,9 +142,9 @@ function QuizPlayerResult({
                   return (
                     <div
                       key={q.id}
-                      className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4"
+                      className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/60"
                     >
-                      <p className="mb-3 text-sm font-bold text-zinc-800">
+                      <p className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">
                         {i + 1}. {q.text}
                       </p>
                       {isSingleChoice ? (
@@ -153,15 +155,17 @@ function QuizPlayerResult({
                               q.correctAnswer === optIdx;
 
                             let bgClass =
-                              "bg-white border-zinc-200 text-zinc-600";
-                            let bgClassCircle = "bg-zinc-200 text-zinc-500";
+                              "bg-white border-zinc-200 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300";
+                            let bgClassCircle =
+                              "bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400";
 
                             if (isActuallyCorrect) {
                               bgClass =
-                                "bg-emerald-50 border-emerald-300 text-emerald-800 font-bold";
+                                "bg-emerald-50 border-emerald-300 text-emerald-800 font-bold dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200";
                               bgClassCircle = "bg-emerald-500 text-white";
                             } else if (isSelected) {
-                              bgClass = "bg-red-50 border-red-300 text-red-800";
+                              bgClass =
+                                "bg-red-50 border-red-300 text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-200";
                               bgClassCircle = "bg-red-500 text-white";
                             }
 
@@ -188,8 +192,8 @@ function QuizPlayerResult({
                           {isReviewed &&
                             typeof userAnswer === "number" &&
                             userAnswer !== q.correctAnswer && (
-                              <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900">
-                                <span className="mb-1 block font-bold text-amber-800">
+                              <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                                <span className="mb-1 block font-bold text-amber-800 dark:text-amber-300">
                                   🤖 Обяснение според официалните правила:
                                 </span>
                                 {result.aiExplanations?.[q.id] ||
@@ -200,7 +204,7 @@ function QuizPlayerResult({
                         </div>
                       ) : (
                         <div className="space-y-2">
-                          <div className="rounded-xl border border-purple-200 bg-purple-50 p-3 text-sm text-purple-800">
+                          <div className="rounded-xl border border-purple-200 bg-purple-50 p-3 text-sm text-purple-800 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-200">
                             <span className="mb-1 block text-xs font-bold uppercase opacity-70">
                               Твоят отговор:
                             </span>
@@ -211,13 +215,13 @@ function QuizPlayerResult({
                             )}
                           </div>
                           {isReviewed && (
-                            <div className="text-right text-xs font-bold text-purple-600">
+                            <div className="text-right text-xs font-bold text-purple-600 dark:text-purple-400">
                               Оценено: {result.manualScore} / {q.points} т.
                             </div>
                           )}
                           {isReviewed && result.aiFeedback && (
-                            <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 text-xs text-indigo-900">
-                              <span className="mb-1 block font-bold text-indigo-700">
+                            <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 text-xs text-indigo-900 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200">
+                              <span className="mb-1 block font-bold text-indigo-700 dark:text-indigo-300">
                                 🤖 AI Тактически анализ:
                               </span>
                               {result.aiFeedback}
@@ -229,8 +233,8 @@ function QuizPlayerResult({
                       {isReviewed &&
                         q.explanation &&
                         userAnswer === q.correctAnswer && (
-                          <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-xs text-emerald-900">
-                            <span className="mb-1 block font-bold text-emerald-800">
+                          <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-xs text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+                            <span className="mb-1 block font-bold text-emerald-800 dark:text-emerald-300">
                               💡 Обяснение от треньора:
                             </span>
                             {q.explanation}
@@ -238,7 +242,7 @@ function QuizPlayerResult({
                         )}
 
                       {q.mediaUrl && (
-                        <div className="mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
+                        <div className="mt-2 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
                           {q.mediaUrl.endsWith(".mp4") ||
                           q.mediaUrl.includes("video") ? (
                             <video
@@ -401,10 +405,10 @@ export default function QuizPlayer({
     return (
       <main
         id="main-content"
-        className="flex min-h-screen flex-col items-center justify-center gap-4 bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50"
+        className="flex min-h-screen flex-col items-center justify-center gap-4 bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900"
       >
         <Loader2 className="size-12 animate-spin text-indigo-500" />
-        <p className="text-lg font-semibold text-indigo-700">
+        <p className="text-lg font-semibold text-indigo-700 dark:text-indigo-300">
           {step === "submitting"
             ? "Анализират се отговорите ти...  "
             : "Зареждане на теста..."}
@@ -417,13 +421,13 @@ export default function QuizPlayer({
     return (
       <main
         id="main-content"
-        className="flex min-h-screen flex-col items-center justify-center gap-6 bg-linear-to-br from-red-50 to-orange-50 p-6"
+        className="flex min-h-screen flex-col items-center justify-center gap-6 bg-linear-to-br from-red-50 to-orange-50 p-6 dark:from-zinc-950 dark:to-zinc-900"
       >
         <div className="text-6xl">😕</div>
-        <h1 className="text-2xl font-black text-red-600">
+        <h1 className="text-2xl font-black text-red-600 dark:text-red-400">
           Тестът не е намерен
         </h1>
-        <p className="max-w-sm text-center text-zinc-600">
+        <p className="max-w-sm text-center text-zinc-600 dark:text-zinc-400">
           Линкът може да е изтекъл. Попитай треньора си за нов линк!
         </p>
       </main>
@@ -443,26 +447,27 @@ export default function QuizPlayer({
   return (
     <main
       id="main-content"
-      className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4"
+      className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-4 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900"
     >
       <div className="mx-auto max-w-lg space-y-6 py-8">
         <div>
           <div className="mb-1 flex items-center gap-2">
             <BookOpen className="size-5 text-indigo-500" />
-            <span className="text-sm font-bold tracking-wide text-indigo-700 uppercase">
+            <span className="text-sm font-bold tracking-wide text-indigo-700 uppercase dark:text-indigo-300">
               {quiz.title}
             </span>
           </div>
-          <div className="h-3 overflow-hidden rounded-full bg-indigo-100">
-            <div
-              className={`h-full rounded-full bg-linear-to-r from-indigo-500 to-purple-500 transition-all duration-500 w-[${progress}%]`}
-            />
-          </div>
-          <p className="mt-1 text-right text-xs text-zinc-500">
+          <progress
+            value={progress}
+            max={100}
+            aria-label="Прогрес на викторината"
+            className="h-3 w-full overflow-hidden rounded-full bg-indigo-100 accent-indigo-600 dark:bg-zinc-800 [&::-moz-progress-bar]:rounded-full [&::-moz-progress-bar]:bg-indigo-600 [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-indigo-100 dark:[&::-webkit-progress-bar]:bg-zinc-800 [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-indigo-600 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
+          />
+          <p className="mt-1 text-right text-xs text-zinc-500 dark:text-zinc-400">
             Въпрос {currentQ + 1} от {questions.length}
           </p>
         </div>
-        <div className="overflow-hidden rounded-3xl bg-white shadow-xl">
+        <div className="overflow-hidden rounded-3xl bg-white shadow-xl dark:border dark:border-zinc-800 dark:bg-zinc-900">
           <div className="bg-linear-to-r from-indigo-500 to-purple-600 p-6">
             <div className="mb-3 inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white">
               {q.type === "OPEN_TEXT"
@@ -482,10 +487,10 @@ export default function QuizPlayer({
                     key={i}
                     type="button"
                     onClick={() => handleSelectAnswer(q.id, i)}
-                    className={`w-full rounded-2xl border-2 p-4 text-left text-sm font-medium transition-all ${selected ? "border-indigo-500 bg-indigo-50 text-indigo-800 shadow-md" : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-indigo-300 hover:bg-indigo-50"}`}
+                    className={`w-full rounded-2xl border-2 p-4 text-left text-sm font-medium transition-all ${selected ? "border-indigo-500 bg-indigo-50 text-indigo-800 shadow-md dark:bg-indigo-950/50 dark:text-indigo-200" : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-indigo-300 hover:bg-indigo-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-indigo-700 dark:hover:bg-zinc-800"}`}
                   >
                     <span
-                      className={`mr-3 inline-flex size-7 items-center justify-center rounded-full text-sm font-black ${selected ? "bg-indigo-500 text-white" : "bg-zinc-200 text-zinc-600"}`}
+                      className={`mr-3 inline-flex size-7 items-center justify-center rounded-full text-sm font-black ${selected ? "bg-indigo-500 text-white" : "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"}`}
                     >
                       {["А", "Б", "В"][i]}
                     </span>
@@ -499,7 +504,7 @@ export default function QuizPlayer({
                 onChange={(e) => handleSelectAnswer(q.id, e.target.value)}
                 placeholder="Напиши своя отговор тук... 📝"
                 rows={4}
-                className="w-full resize-none rounded-2xl border-2 border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                className="w-full resize-none rounded-2xl border-2 border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
               />
             )}
           </div>
@@ -509,7 +514,7 @@ export default function QuizPlayer({
             <button
               type="button"
               onClick={() => setCurrentQ((p) => p - 1)}
-              className="flex-1 rounded-2xl border-2 border-zinc-200 bg-white py-4 text-sm font-bold text-zinc-600 transition-all hover:bg-zinc-50"
+              className="flex-1 rounded-2xl border-2 border-zinc-200 bg-white py-4 text-sm font-bold text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
             >
               ← Назад
             </button>

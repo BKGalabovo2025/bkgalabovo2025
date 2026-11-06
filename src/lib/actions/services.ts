@@ -12,7 +12,7 @@ import { serverCache } from "@/lib/server-cache";
 
 // --- Zod Schema for Service Validation ---
 const ServiceSchema = z.object({
-  name: z.string().min(2, "�?мето трябва да е поне 2 символа."),
+  name: z.string().min(2, "Името трябва да е поне 2 символа."),
   price: z.coerce.number().min(0, "Цената трябва да е положително число."),
   currency: z.string().default("EUR"),
   description: z.string().min(5, "Описанието трябва да е поне 5 символа."),
@@ -171,7 +171,12 @@ export async function createClubService(
     );
 
     serverCache.invalidate("clubServices");
-    revalidatePath("/catalogs");
+    serverCache.invalidate("catalog:clubServices");
+    serverCache.invalidate("catalog:sessions");
+    serverCache.invalidate("recovery:sessions");
+    revalidatePath("/catalogs", "layout");
+    revalidatePath("/club/catalog");
+    revalidatePath("/recovery-zone/catalog");
     revalidatePath("/finances/services");
     revalidatePath("/documents");
     revalidatePath("/members");
@@ -240,7 +245,12 @@ export async function updateClubService(
     );
 
     serverCache.invalidate("clubServices");
-    revalidatePath("/catalogs");
+    serverCache.invalidate("catalog:clubServices");
+    serverCache.invalidate("catalog:sessions");
+    serverCache.invalidate("recovery:sessions");
+    revalidatePath("/catalogs", "layout");
+    revalidatePath("/club/catalog");
+    revalidatePath("/recovery-zone/catalog");
     revalidatePath("/finances/services");
     revalidatePath(`/finances/services/${id}`);
     revalidatePath("/documents");
@@ -283,11 +293,16 @@ export async function deleteClubService(idToken: string, id: string) {
       user.uid,
       user.displayName || user.email || "Unknown User",
       "delete",
-      `�?зтрита услуга: ${serviceData?.name}`
+      `Изтрита услуга: ${serviceData?.name}`
     );
 
     serverCache.invalidate("clubServices");
-    revalidatePath("/catalogs");
+    serverCache.invalidate("catalog:clubServices");
+    serverCache.invalidate("catalog:sessions");
+    serverCache.invalidate("recovery:sessions");
+    revalidatePath("/catalogs", "layout");
+    revalidatePath("/club/catalog");
+    revalidatePath("/recovery-zone/catalog");
     revalidatePath("/finances/services");
     revalidatePath("/documents");
     revalidatePath("/members");
@@ -307,7 +322,7 @@ export async function deleteClubService(idToken: string, id: string) {
 // --- Recovery Session Actions ---
 
 const RecoverySessionSchema = z.object({
-  name: z.string().min(2, "�?мето трябва да е поне 2 символа."),
+  name: z.string().min(2, "Името трябва да е поне 2 символа."),
   description: z.string().optional().default(""),
   price: z.coerce.number().min(0),
   durationMinutes: z.coerce.number().min(1),
@@ -402,7 +417,12 @@ export async function createRecoverySession(
     );
 
     serverCache.invalidate("recoveryServices");
-    revalidatePath("/catalogs");
+    serverCache.invalidate("catalog:clubServices");
+    serverCache.invalidate("catalog:sessions");
+    serverCache.invalidate("recovery:sessions");
+    revalidatePath("/catalogs", "layout");
+    revalidatePath("/club/catalog");
+    revalidatePath("/recovery-zone/catalog");
     revalidatePath("/finances/recovery");
     return {
       success: true,
@@ -475,7 +495,12 @@ export async function updateRecoverySession(
     );
 
     serverCache.invalidate("recoveryServices");
-    revalidatePath("/catalogs");
+    serverCache.invalidate("catalog:clubServices");
+    serverCache.invalidate("catalog:sessions");
+    serverCache.invalidate("recovery:sessions");
+    revalidatePath("/catalogs", "layout");
+    revalidatePath("/club/catalog");
+    revalidatePath("/recovery-zone/catalog");
     revalidatePath("/finances/recovery");
     revalidatePath(`/finances/recovery/${id}`);
     return {
@@ -504,10 +529,15 @@ export async function deleteRecoverySession(idToken: string, id: string) {
       user.uid,
       user.displayName || user.email || "Unknown User",
       "delete",
-      `�?зтрита процедура: ${serviceName}`
+      `Изтрита процедура: ${serviceName}`
     );
     serverCache.invalidate("recoveryServices");
-    revalidatePath("/catalogs");
+    serverCache.invalidate("catalog:clubServices");
+    serverCache.invalidate("catalog:sessions");
+    serverCache.invalidate("recovery:sessions");
+    revalidatePath("/catalogs", "layout");
+    revalidatePath("/club/catalog");
+    revalidatePath("/recovery-zone/catalog");
     revalidatePath("/finances/recovery");
     return {
       success: true,

@@ -34,7 +34,7 @@ export async function generateFinancialReportAction(
   const endDate = endDateStr ? new Date(endDateStr) : null;
   if (endDate) endDate.setHours(23, 59, 59, 999);
 
-  // FIlter on the server
+  // Filter on the server
   const filteredSales = allSales.filter((s) => {
     const saleDate = new Date(s.saleDate);
 
@@ -42,14 +42,40 @@ export async function generateFinancialReportAction(
       (!startDate || saleDate >= startDate) &&
       (!endDate || saleDate <= endDate);
 
-    const isTypeMatch = paymentType === "all" || paymentType === "inventory"; // You can expand this logic if needed
+    const isTypeMatch =
+      paymentType === "all" ||
+      s.type === paymentType ||
+      (!s.type && paymentType === "inventory");
 
     return isInDateRange && isTypeMatch && s.type !== "camp_fee";
   });
 
-  const totalRevenue = filteredSales.reduce((acc, s) => acc + s.totalAmount, 0);
+  const paidSales = filteredSales.filter((s) => s.isPaid !== false);
+  const totalRevenue = paidSales.reduce((acc, s) => acc + s.totalAmount, 0);
+
+  let shopRev = 0;
+  let trainingRev = 0;
+  let generalRev = 0;
+  let recoveryRev = 0;
+
+  for (const s of paidSales) {
+    const saleType = s.type as string | undefined;
+    if (saleType === "training_service") {
+      trainingRev += s.totalAmount;
+    } else if (saleType === "general_service") {
+      generalRev += s.totalAmount;
+    } else if (saleType === "recovery_service") {
+      recoveryRev += s.totalAmount;
+    } else {
+      shopRev += s.totalAmount;
+    }
+  }
+
   const chartData = [
-    { name: "Приходи от продажби", value: totalRevenue, color: "#2563eb" },
+    { name: "Екипировка и Магазин", value: shopRev, color: "#2563eb" },
+    { name: "Тренировки и Карти", value: trainingRev, color: "#10b981" },
+    { name: "Услуги", value: generalRev, color: "#f59e0b" },
+    { name: "Recovery Zone", value: recoveryRev, color: "#8b5cf6" },
   ].filter((d) => d.value > 0);
 
   // Sort latest first and map member names to reduce client-side mapping
@@ -61,7 +87,9 @@ export async function generateFinancialReportAction(
       const member = s.memberId ? memberMap.get(s.memberId) : null;
       return {
         ...s,
-        memberName: member ? `${member.firstName} ${member.lastName}` : "—",
+        memberName: member
+          ? `${member.firstName} ${member.lastName}`
+          : s.clientName || "Гост",
       };
     });
 

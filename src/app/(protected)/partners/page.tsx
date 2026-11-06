@@ -17,7 +17,7 @@ export default function PartnersPage() {
         title="Партньори & Спонсори"
         description="Официални институционални, спортни и търговски партньори на клуба, лога и присъствие в издаваните документи и ваучери."
         breadcrumbs={[
-          { label: "Начало", href: "/" },
+          { label: "Табло", href: "/dashboard" },
           { label: "Управление" },
           { label: "Партньори & Спонсори" },
         ]}

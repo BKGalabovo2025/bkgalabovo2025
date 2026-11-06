@@ -134,7 +134,7 @@ export function ParentAdminLayoutClient({
             <UserCheck size={16} className="text-blue-500" />
           </div>
           <div className="mt-2 text-2xl font-black text-zinc-900 dark:text-white">
-            {parents.length}
+            {parents.filter((p) => p.status === "active").length}
           </div>
         </Link>
 

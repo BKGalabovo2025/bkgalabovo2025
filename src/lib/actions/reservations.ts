@@ -234,6 +234,7 @@ async function findOrCreateGuestProfile(
     email,
     isGuest: true,
     memberType: "guest",
+    siteId: siteId || "bkgalabovo",
     branchId,
     status: "active",
     hasSignedDeclaration: false,
@@ -550,6 +551,23 @@ export async function updateReservationAction(
       };
     }
 
+    const blockedError = await checkBlockedSlots(
+      db,
+      validated,
+      startTime,
+      endTime
+    );
+    if (blockedError) return { success: false, message: blockedError };
+
+    const inventoryError = await checkRecoveryInventory(
+      db,
+      validated,
+      startTime,
+      endTime,
+      reservationId
+    );
+    if (inventoryError) return { success: false, message: inventoryError };
+
     let finalMemberId = validated.memberId;
     if (!finalMemberId || finalMemberId === "GUEST_EXTERNAL") {
       finalMemberId = await findOrCreateGuestProfile(
@@ -857,7 +875,7 @@ export async function markReservationAsPaidAction(
         updatedAt: Timestamp.now(),
         updatedBy: {
           userId: user.uid,
-          userName: user.name || user.email || "Unknown",
+          userName: user.name || user.email || "Администратор",
         },
       });
 
@@ -946,7 +964,7 @@ export async function sendDonationReceiptEmailAction(
       html: htmlContent,
     });
 
-    return { success: true, message: "�?мейлът е изпратен успешно." };
+    return { success: true, message: "Имейлът е изпратен успешно." };
   } catch (error) {
     console.error("Send Email Error:", error);
     return {
@@ -1169,7 +1187,7 @@ export async function createPackageReservationsAction(
         updatedAt: Timestamp.now(),
         createdBy: {
           userId: user.uid,
-          userName: user.name || user.email || "Unknown",
+          userName: user.name || user.email || "Администратор",
         },
       });
     }
@@ -1257,7 +1275,7 @@ export async function updatePackageReservationsAction(
         updatedAt: Timestamp.now(),
         updatedBy: {
           userId: user.uid,
-          userName: user.name || user.email || "Unknown",
+          userName: user.name || user.email || "Администратор",
         },
       };
 
@@ -1392,22 +1410,22 @@ export async function checkRecoveryInventoryAction(
     if (usedComp + reqComp > maxComp)
       return {
         success: false,
-        message: "���� ���������� ���������� (������� , �������� ).",
+        message: `Няма достатъчно компресори (търсени ${reqComp}, свободни ${Math.max(0, maxComp - usedComp)}).`,
       };
     if (usedLegs + reqLegs > maxLegs)
       return {
         success: false,
-        message: "���� ���������� ��������� ����� (�������� ).",
+        message: `Няма достатъчно приставки КРАКА (свободни ${Math.max(0, maxLegs - usedLegs)}).`,
       };
     if (usedArms + reqArms > maxArms)
       return {
         success: false,
-        message: "���� ���������� ��������� ���� (�������� ).",
+        message: `Няма достатъчно приставки РЪЦЕ (свободни ${Math.max(0, maxArms - usedArms)}).`,
       };
     if (usedHips + reqHips > maxHips)
       return {
         success: false,
-        message: "    ( ).",
+        message: `Няма достатъчно приставки ТАЗ (свободни ${Math.max(0, maxHips - usedHips)}).`,
       };
 
     return { success: true };

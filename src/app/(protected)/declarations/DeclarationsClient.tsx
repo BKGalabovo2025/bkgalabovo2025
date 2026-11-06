@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { Clock, FileText, Printer, Search, Trash2, User } from "lucide-react";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -125,7 +126,7 @@ export default function DeclarationsClient({
               return (
                 <div className="rounded-2xl border border-zinc-100 bg-white p-12 text-center dark:border-zinc-900 dark:bg-zinc-950">
                   <FileText className="mx-auto mb-4 size-12 text-zinc-300" />
-                  <h3 className="mb-2 text-lg font-bold text-zinc-900">
+                  <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
                     Няма намерени декларации
                   </h3>
                   <p className="text-zinc-500">
@@ -149,7 +150,16 @@ export default function DeclarationsClient({
                         </div>
                         <div>
                           <h4 className="text-sm font-bold text-zinc-900 sm:text-base dark:text-white">
-                            {decl.memberName}
+                            {decl.memberId ? (
+                              <Link
+                                href={`/members/${decl.memberId}/documents`}
+                                className="hover:text-primary hover:underline"
+                              >
+                                {decl.memberName}
+                              </Link>
+                            ) : (
+                              decl.memberName
+                            )}
                           </h4>
                           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 sm:gap-x-4 sm:text-sm">
                             <span className="flex items-center gap-1">
@@ -162,7 +172,7 @@ export default function DeclarationsClient({
                             </span>
                             {decl.phone && <span>{decl.phone}</span>}
                             {decl.isMinor && (
-                              <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
+                              <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
                                 Непълнолетен
                               </span>
                             )}
@@ -204,7 +214,7 @@ export default function DeclarationsClient({
         <div className="space-y-6">
           <div className="flex flex-col items-center justify-center rounded-2xl bg-zinc-100 p-8 text-center dark:bg-zinc-900">
             <FileText className="mb-4 size-12 text-zinc-300" />
-            <h3 className="mb-2 text-lg font-bold text-zinc-900">
+            <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
               Оригинален PDF шаблон
             </h3>
             <p className="mb-6 text-sm text-zinc-500">

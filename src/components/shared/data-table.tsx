@@ -87,7 +87,7 @@ export function DataTable<TData, TValue>({
                 .getColumn(filterColumnId)
                 ?.setFilterValue(event.target.value)
             }
-            className="h-12 rounded-2xl border-zinc-100 bg-zinc-50 pl-11 shadow-sm transition-all focus:bg-white focus:ring-1 focus:ring-zinc-200"
+            className="h-12 rounded-2xl border-zinc-100 bg-zinc-50 pl-11 shadow-sm transition-all focus:bg-white focus:ring-1 focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-950 dark:focus:ring-zinc-700"
           />
         </div>
       </div>
@@ -99,7 +99,7 @@ export function DataTable<TData, TValue>({
         )}
       >
         <Table>
-          <TableHeader className="border-b border-zinc-100 bg-zinc-50/50">
+          <TableHeader className="border-b border-zinc-100 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -109,7 +109,7 @@ export function DataTable<TData, TValue>({
                   return (
                     <TableHead
                       key={header.id}
-                      className="h-14 px-6 text-[11px] font-medium tracking-wider text-zinc-500 uppercase"
+                      className="h-14 px-6 text-[11px] font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400"
                     >
                       {header.isPlaceholder
                         ? null
@@ -130,9 +130,9 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-64 text-center"
                 >
-                  <div className="flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="size-8 animate-spin text-zinc-200" />
-                    <p className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
+                  <div className="flex flex-col items-center justify-center gap-3 dark:border-zinc-800 dark:bg-zinc-900/20">
+                    <Loader2 className="size-8 animate-spin text-zinc-200 dark:text-zinc-700" />
+                    <p className="text-xs font-medium tracking-widest text-zinc-400 uppercase dark:text-zinc-100">
                       Зареждане на данни...
                     </p>
                   </div>
@@ -143,7 +143,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="group border-b border-zinc-50 transition-colors last:border-none hover:bg-zinc-50/50"
+                  className="group border-b border-zinc-50 transition-colors last:border-none hover:bg-zinc-50/50 dark:border-zinc-800/60 dark:hover:bg-zinc-900/50"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-6 py-4">
@@ -167,10 +167,10 @@ export function DataTable<TData, TValue>({
                   className="h-64 text-center"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="mb-2 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50">
-                      <Search className="size-5 text-zinc-300" />
+                    <div className="mb-2 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+                      <Search className="size-5 text-zinc-300 dark:text-zinc-600" />
                     </div>
-                    <p className="text-sm font-medium text-zinc-900">
+                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                       {emptyStateMessage}
                     </p>
                     <p className="text-xs text-zinc-400">
@@ -187,9 +187,9 @@ export function DataTable<TData, TValue>({
       {renderMobileCard && (
         <div className="divide-y divide-zinc-50 md:hidden dark:divide-zinc-900">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-12">
-              <Loader2 className="size-8 animate-spin text-zinc-200" />
-              <p className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
+            <div className="flex flex-col items-center justify-center gap-3 py-12 dark:border-zinc-800 dark:bg-zinc-900">
+              <Loader2 className="size-8 animate-spin text-zinc-200 dark:text-zinc-700" />
+              <p className="text-xs font-medium tracking-widest text-zinc-400 uppercase dark:text-zinc-100">
                 Зареждане на данни...
               </p>
             </div>
@@ -201,10 +201,10 @@ export function DataTable<TData, TValue>({
               ))
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
-              <div className="mb-2 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50">
-                <Search className="size-5 text-zinc-300" />
+              <div className="mb-2 flex size-12 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+                <Search className="size-5 text-zinc-300 dark:text-zinc-600" />
               </div>
-              <p className="text-sm font-medium text-zinc-900">
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 {emptyStateMessage}
               </p>
               <p className="text-xs text-zinc-400">
@@ -215,7 +215,7 @@ export function DataTable<TData, TValue>({
         </div>
       )}
 
-      <div className="flex items-center justify-between border-t border-zinc-100 px-2 pt-4">
+      <div className="flex flex-col gap-3 sm:flex-row items-center justify-between border-t border-zinc-100 dark:border-zinc-800 p-4 sm:px-6">
         <div className="text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
           Страница {table.getState().pagination.pageIndex + 1} от{" "}
           {table.getPageCount()}
@@ -226,7 +226,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="size-10 rounded-xl border-zinc-100 p-0 text-zinc-500 transition-all hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-30"
+            className="size-10 rounded-xl border-zinc-100 p-0 text-zinc-500 transition-all hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-30 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -235,7 +235,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="size-10 rounded-xl border-zinc-100 p-0 text-zinc-500 transition-all hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-30"
+            className="size-10 rounded-xl border-zinc-100 p-0 text-zinc-500 transition-all hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-30 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
           >
             <ChevronRight className="size-4" />
           </Button>

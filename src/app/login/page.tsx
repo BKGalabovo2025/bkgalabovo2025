@@ -154,7 +154,7 @@ function LoginForm() {
               className="sm:size-[22px]"
             />
           </div>
-          <h1 className="font-bento text-xl font-bold tracking-tight text-zinc-950 uppercase sm:text-2xl">
+          <h1 className="font-bento text-xl font-bold tracking-tight text-zinc-950 uppercase sm:text-2xl dark:text-white">
             Админ Портал
           </h1>
           <p className="mt-0.5 text-[9px] sm:text-[10px] font-semibold tracking-[0.25em] text-zinc-600 uppercase dark:text-zinc-400">
@@ -177,7 +177,7 @@ function LoginForm() {
               autoComplete="username"
               placeholder="admin@bkgalabovo.com"
               required
-              className="h-10 sm:h-11 rounded-xl border-zinc-200 bg-zinc-50/60 px-3.5 text-xs sm:text-sm font-medium transition-all focus:bg-white focus:border-zinc-400 focus:ring-0"
+              className="h-10 sm:h-11 rounded-xl border-zinc-200 bg-zinc-50/60 px-3.5 text-xs sm:text-sm font-medium transition-all focus:bg-white focus:border-zinc-400 focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-100 dark:focus:border-zinc-700 dark:focus:bg-zinc-900"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -191,12 +191,17 @@ function LoginForm() {
               >
                 Парола
               </Label>
-              <Link
-                href="#"
-                className="inline-flex min-h-6 items-center py-1 text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400"
+              <button
+                type="button"
+                onClick={() =>
+                  toast.info(
+                    "За възстановяване на администраторска парола, моля свържете се със системния администратор."
+                  )
+                }
+                className="inline-flex min-h-6 items-center py-1 text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-200"
               >
                 Забравена парола?
-              </Link>
+              </button>
             </div>
             <Input
               id="password"
@@ -204,15 +209,15 @@ function LoginForm() {
               type="password"
               required
               autoComplete="current-password"
-              className="h-10 sm:h-11 rounded-xl border-zinc-200 bg-zinc-50/60 px-3.5 text-xs sm:text-sm font-medium transition-all focus:bg-white focus:border-zinc-400 focus:ring-0"
+              className="h-10 sm:h-11 rounded-xl border-zinc-200 bg-zinc-50/60 px-3.5 text-xs sm:text-sm font-medium transition-all focus:bg-white focus:border-zinc-400 focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-100 dark:focus:border-zinc-700 dark:focus:bg-zinc-900"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-100 bg-red-50/60 p-2.5">
-              <p className="text-center text-[10px] font-semibold tracking-wider text-red-600 uppercase">
+            <div className="rounded-xl border border-red-100 bg-red-50/60 p-2.5 dark:border-red-900/50 dark:bg-red-950/30">
+              <p className="text-center text-[10px] font-semibold tracking-wider text-red-600 uppercase dark:text-red-400">
                 {error}
               </p>
             </div>
@@ -220,7 +225,7 @@ function LoginForm() {
 
           <Button
             type="submit"
-            className="mt-1 h-10 sm:h-11 w-full rounded-xl border-none bg-zinc-950 text-[10px] sm:text-[11px] font-bold tracking-[0.2em] text-white uppercase shadow-sm transition-all hover:bg-zinc-800 active:scale-95 disabled:opacity-50"
+            className="mt-1 h-10 sm:h-11 w-full rounded-xl border-none bg-zinc-950 text-[10px] sm:text-[11px] font-bold tracking-[0.2em] text-white uppercase shadow-sm transition-all hover:bg-zinc-800 active:scale-95 disabled:opacity-50 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -231,7 +236,7 @@ function LoginForm() {
           </Button>
         </form>
 
-        <div className="mt-4 sm:mt-5 border-t border-zinc-100 pt-3 sm:pt-3.5 text-center">
+        <div className="mt-4 sm:mt-5 border-t border-zinc-100 pt-3 sm:pt-3.5 text-center dark:border-zinc-800">
           <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.15em] text-zinc-600 uppercase leading-snug dark:text-zinc-400">
             Система за управление на спортен клуб и възстановителен център
           </p>
@@ -249,7 +254,7 @@ export default function LoginPage() {
   return (
     <main
       id="main-content"
-      className="relative flex min-h-dvh w-full items-center justify-center overflow-x-hidden bg-zinc-50 px-4 py-8 font-sans"
+      className="relative flex min-h-dvh w-full items-center justify-center overflow-x-hidden bg-zinc-50 px-4 py-8 font-sans dark:bg-zinc-950"
     >
       {/* Background Decorative Elements bounded in overflow-hidden */}
       <div

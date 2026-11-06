@@ -298,7 +298,7 @@ export default function BeepTestClient() {
     return (
       <div className="mx-auto max-w-4xl p-4 sm:p-8">
         <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-3xl font-black tracking-tighter text-zinc-900 uppercase">
+          <h1 className="text-3xl font-black tracking-tighter text-zinc-900 uppercase dark:text-white">
             Бийп Тест Аналитика
           </h1>
         </div>
@@ -307,7 +307,7 @@ export default function BeepTestClient() {
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "new" | "history")}
         >
-          <TabsList className="mb-3 grid h-9 w-full max-w-xs grid-cols-2 rounded-xl bg-zinc-100 p-0.5">
+          <TabsList className="mb-3 grid h-9 w-full max-w-xs grid-cols-2 rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
             <TabsTrigger
               value="new"
               className="rounded-lg text-xs font-semibold"
@@ -326,10 +326,10 @@ export default function BeepTestClient() {
             value="new"
             className="mt-2 duration-300 animate-in fade-in"
           >
-            <Card className="border-zinc-200">
+            <Card className="border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900">
               <CardContent className="space-y-4 p-4 sm:p-5">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-zinc-700">
+                  <label className="text-sm font-bold text-zinc-700 dark:text-zinc-200">
                     Период на теста
                   </label>
                   <Select
@@ -338,7 +338,7 @@ export default function BeepTestClient() {
                       setSelectedPeriod(v as BeepTestPeriod)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -353,14 +353,14 @@ export default function BeepTestClient() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-zinc-700">
+                    <label className="text-sm font-bold text-zinc-700 dark:text-zinc-200">
                       Възрастова група
                     </label>
                     <Select
                       value={selectedAgeGroup}
                       onValueChange={setSelectedAgeGroup}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                         <SelectValue placeholder="Всички" />
                       </SelectTrigger>
                       <SelectContent>
@@ -377,14 +377,14 @@ export default function BeepTestClient() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-zinc-700">
+                    <label className="text-sm font-bold text-zinc-700 dark:text-zinc-200">
                       Пол
                     </label>
                     <Select
                       value={selectedGender}
                       onValueChange={setSelectedGender}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                         <SelectValue placeholder="Всички" />
                       </SelectTrigger>
                       <SelectContent>
@@ -397,9 +397,9 @@ export default function BeepTestClient() {
                 </div>
 
                 {filteredMembers.length > 0 && (
-                  <div className="space-y-3 border-t border-zinc-100 pt-4">
+                  <div className="space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-bold text-zinc-700">
+                      <label className="text-sm font-bold text-zinc-700 dark:text-zinc-200">
                         Избрани участници ({selectedParticipantIds.length})
                       </label>
                       <Button
@@ -417,7 +417,7 @@ export default function BeepTestClient() {
                             );
                           }
                         }}
-                        className="text-indigo-600"
+                        className="text-indigo-600 dark:text-indigo-400"
                       >
                         {selectedParticipantIds.length ===
                         filteredMembers.length
@@ -430,7 +430,7 @@ export default function BeepTestClient() {
                         <div
                           key={m.id}
                           onClick={() => toggleParticipant(m.id)}
-                          className={`cursor-pointer rounded-xl border p-3 text-sm transition-all ${selectedParticipantIds.includes(m.id) ? "border-indigo-600 bg-indigo-50 font-bold text-indigo-900 shadow-sm" : "border-zinc-200 bg-white text-zinc-500 hover:border-indigo-300"}`}
+                          className={`cursor-pointer rounded-xl border p-3 text-sm transition-all ${selectedParticipantIds.includes(m.id) ? "border-indigo-600 bg-indigo-50 font-bold text-indigo-900 shadow-sm dark:border-indigo-500 dark:bg-indigo-950/60 dark:text-indigo-200" : "border-zinc-200 bg-white text-zinc-500 hover:border-indigo-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"}`}
                         >
                           {m.firstName} {m.lastName}
                         </div>
@@ -461,8 +461,8 @@ export default function BeepTestClient() {
             )}
 
             {!isHistoryLoading && Object.keys(groupedHistory).length === 0 && (
-              <div className="rounded-2xl border border-zinc-200 bg-white py-12 text-center">
-                <p className="font-medium text-zinc-500">
+              <div className="rounded-2xl border border-zinc-200 bg-white py-12 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                <p className="font-medium text-zinc-500 dark:text-zinc-400">
                   Няма проведени тестове до момента.
                 </p>
               </div>
@@ -475,23 +475,23 @@ export default function BeepTestClient() {
                 return (
                   <Card
                     key={dateStr}
-                    className="overflow-hidden border-zinc-200"
+                    className="overflow-hidden border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900"
                   >
-                    <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-6 py-4">
+                    <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                       <div>
-                        <h3 className="text-lg font-bold text-zinc-900">
+                        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                           {format(dateObj, "dd MMMM yyyy", { locale: bg })}
                         </h3>
-                        <p className="text-sm text-zinc-500">
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
                           {results[0]?.period}
                         </p>
                       </div>
-                      <div className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-bold text-indigo-800">
+                      <div className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-bold text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">
                         {results.length} участници
                       </div>
                     </div>
                     <CardContent className="p-0">
-                      <div className="divide-y divide-zinc-100">
+                      <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                         {results.map((r) => {
                           const member = members.find(
                             (m) => m.id === r.memberId
@@ -502,22 +502,24 @@ export default function BeepTestClient() {
                           return (
                             <div
                               key={r.id}
-                              className="group flex items-center justify-between p-4 transition-colors hover:bg-zinc-50 sm:px-6"
+                              className="group flex items-center justify-between p-4 transition-colors hover:bg-zinc-50 sm:px-6 dark:hover:bg-zinc-800/50"
                             >
                               <Link
                                 href={`/members/${r.memberId}/assessments`}
                                 className="flex flex-1 items-center justify-between pr-4"
                               >
                                 <div>
-                                  <div className="font-bold text-zinc-900 transition-colors group-hover:text-indigo-600">
+                                  <div className="font-bold text-zinc-900 transition-colors group-hover:text-indigo-600 dark:text-zinc-100 dark:group-hover:text-indigo-400">
                                     {memberName}
                                   </div>
-                                  <div className="mt-0.5 flex items-center gap-2 text-xs font-medium text-zinc-500">
+                                  <div className="mt-0.5 flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                                     <span>
                                       Ниво {r.level}:{r.shuttle}
                                     </span>
-                                    <span className="text-zinc-300">•</span>
-                                    <span className="font-bold text-indigo-600">
+                                    <span className="text-zinc-300 dark:text-zinc-700">
+                                      •
+                                    </span>
+                                    <span className="font-bold text-indigo-600 dark:text-indigo-400">
                                       VO2: {r.vo2max}
                                     </span>
                                   </div>
@@ -535,7 +537,7 @@ export default function BeepTestClient() {
                               </Link>
 
                               {/* Delete Button */}
-                              <div className="border-l border-zinc-100 pl-2">
+                              <div className="border-l border-zinc-100 pl-2 dark:border-zinc-800">
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -543,7 +545,7 @@ export default function BeepTestClient() {
                                     e.preventDefault();
                                     handleDeleteResult(r.id);
                                   }}
-                                  className="text-zinc-400 hover:bg-red-50 hover:text-red-500"
+                                  className="text-zinc-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40"
                                   title="Изтрий резултата"
                                 >
                                   <Trash2 className="size-4" />
@@ -578,17 +580,17 @@ export default function BeepTestClient() {
   return (
     <div className="mx-auto max-w-5xl p-4 pb-32 sm:p-8">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-black text-zinc-900 uppercase">
+        <h1 className="text-2xl font-black text-zinc-900 uppercase dark:text-white">
           Live: Бийп Тест
         </h1>
-        <div className="rounded-full bg-zinc-100 px-4 py-2 text-sm font-bold text-zinc-500">
+        <div className="rounded-full bg-zinc-100 px-4 py-2 text-sm font-bold text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
           {activeCount} / {participants.length} активни
         </div>
       </div>
 
       {/* Top Bar: Timer & Audio */}
       <Card
-        className={`mb-8 border-2 transition-colors ${beepState.isPlaying ? "border-emerald-500 shadow-lg shadow-emerald-500/20" : "border-zinc-200"}`}
+        className={`mb-8 border-2 transition-colors ${beepState.isPlaying ? "border-emerald-500 shadow-lg shadow-emerald-500/20" : "border-zinc-200 dark:border-zinc-800"} dark:bg-zinc-900`}
       >
         <CardContent className="p-6">
           <div className="grid grid-cols-3 gap-4 text-center">
@@ -596,16 +598,17 @@ export default function BeepTestClient() {
               <div className="mb-1 text-xs font-bold tracking-widest text-zinc-400 uppercase">
                 Ниво : Совалка
               </div>
-              <div className="text-5xl font-black text-zinc-900 tabular-nums">
-                {beepState.level} <span className="text-zinc-300">:</span>{" "}
+              <div className="text-5xl font-black text-zinc-900 tabular-nums dark:text-white">
+                {beepState.level}{" "}
+                <span className="text-zinc-300 dark:text-zinc-700">:</span>{" "}
                 {beepState.shuttle}
               </div>
             </div>
-            <div className="border-x border-zinc-100">
+            <div className="border-x border-zinc-100 dark:border-zinc-800">
               <div className="mb-1 text-xs font-bold tracking-widest text-zinc-400 uppercase">
                 Скорост (km/h)
               </div>
-              <div className="text-5xl font-black text-indigo-600 tabular-nums">
+              <div className="text-5xl font-black text-indigo-600 tabular-nums dark:text-indigo-400">
                 {beepState.speedKmH.toFixed(1)}
               </div>
             </div>
@@ -613,7 +616,7 @@ export default function BeepTestClient() {
               <div className="mb-1 text-xs font-bold tracking-widest text-zinc-400 uppercase">
                 Общо Време
               </div>
-              <div className="text-5xl font-black text-zinc-900 tabular-nums">
+              <div className="text-5xl font-black text-zinc-900 tabular-nums dark:text-white">
                 {formatTime(beepState.totalTimeMs)}
               </div>
             </div>
@@ -639,7 +642,7 @@ export default function BeepTestClient() {
               size="lg"
               variant="outline"
               onClick={reset}
-              className="h-14 px-8"
+              className="h-14 px-8 dark:border-zinc-800"
             >
               <RotateCcw className="size-5" />
             </Button>
@@ -654,20 +657,20 @@ export default function BeepTestClient() {
           .map((p) => (
             <Card
               key={p.id}
-              className={`overflow-hidden transition-all duration-500 ${p.hasDroppedOut ? "border-zinc-200 bg-zinc-50 opacity-70" : "border-indigo-100 shadow-sm"}`}
+              className={`overflow-hidden transition-all duration-500 ${p.hasDroppedOut ? "border-zinc-200 bg-zinc-50 opacity-70 dark:border-zinc-800 dark:bg-zinc-900/50" : "border-indigo-100 shadow-sm dark:border-indigo-900/50 dark:bg-zinc-900"}`}
             >
               <CardContent className="flex h-full min-h-35 flex-col justify-between p-4">
                 <div className="mb-4 flex items-start justify-between">
                   <div>
-                    <div className="text-lg leading-tight font-bold text-zinc-900">
+                    <div className="text-lg leading-tight font-bold text-zinc-900 dark:text-white">
                       {p.firstName} {p.lastName}
                     </div>
-                    <div className="mt-1 text-xs font-medium text-zinc-500">
+                    <div className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                       <span
                         className={
                           p.gender === "male"
-                            ? "text-blue-600"
-                            : "text-pink-600"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-pink-600 dark:text-pink-400"
                         }
                       >
                         {p.gender === "male" ? "М" : "Ж"}
@@ -690,14 +693,14 @@ export default function BeepTestClient() {
                     Отпадна
                   </Button>
                 ) : (
-                  <div className="rounded-lg border border-zinc-200 bg-zinc-100 p-3 text-center">
-                    <div className="mb-1 text-xs font-bold tracking-wider text-zinc-500 uppercase">
+                  <div className="rounded-lg border border-zinc-200 bg-zinc-100 p-3 text-center dark:border-zinc-800 dark:bg-zinc-950">
+                    <div className="mb-1 text-xs font-bold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
                       Финален резултат
                     </div>
-                    <div className="text-lg font-black text-zinc-900">
+                    <div className="text-lg font-black text-zinc-900 dark:text-white">
                       Ниво {p.finalLevel} : {p.finalShuttle}
                     </div>
-                    <div className="mt-1 text-xs font-bold text-indigo-600">
+                    <div className="mt-1 text-xs font-bold text-indigo-600 dark:text-indigo-400">
                       {p.finalScore}
                     </div>
                   </div>
@@ -708,12 +711,12 @@ export default function BeepTestClient() {
       </div>
 
       {/* Floating Save */}
-      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center border-t bg-white/80 p-4 shadow-lg backdrop-blur-md">
+      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center border-t bg-white/80 p-4 shadow-lg backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80">
         <Button
           size="lg"
           onClick={handleFinishAndSave}
           disabled={isSaving}
-          className="min-h-14 w-full max-w-md rounded-xl bg-zinc-950 text-lg text-white shadow-xl hover:bg-zinc-800"
+          className="min-h-14 w-full max-w-md rounded-xl bg-zinc-950 text-lg text-white shadow-xl hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
         >
           {isSaving ? (
             <Loader2 className="mr-2 size-5 animate-spin" />

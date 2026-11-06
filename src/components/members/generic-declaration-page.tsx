@@ -107,11 +107,17 @@ export const GenericDeclarationPage = ({
       else if (prefix === "safetyDeclaration")
         booleanField = "hasSafetyDeclaration";
 
+      const nowIso = new Date().toISOString();
       const updates: Record<string, unknown> = {
         [`${prefix}SignatureUrl`]: url,
-        [`${prefix}HandedAt`]: new Date().toISOString(),
+        [`${prefix}HandedAt`]: nowIso,
       };
       if (booleanField) updates[booleanField] = true;
+      if (prefix === "safetyDeclaration") {
+        updates.hasSafetyInstruction = true;
+        updates.safetyInstructionSignatureUrl = url;
+        updates.safetyInstructionHandedAt = nowIso;
+      }
 
       const result = await updateMemberAction(memberId, idToken, updates);
 

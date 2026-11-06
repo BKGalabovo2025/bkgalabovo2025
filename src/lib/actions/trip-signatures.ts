@@ -4,6 +4,7 @@ import "server-only";
 import crypto from "crypto";
 import { FieldValue } from "firebase-admin/firestore";
 
+import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import type { PublicTripSignDataDTO } from "@/types/business-trip.types";
 
@@ -25,6 +26,7 @@ export async function getOrCreateTripSigningTokenAction(input: {
   role?: string;
 }): Promise<ActionResponse<{ token: string }>> {
   try {
+    await ensureAdmin();
     if (!input.tripId || !input.memberId) {
       return {
         success: false,
@@ -247,6 +249,7 @@ export async function clearTripAthleteSignatureAction(input: {
   memberId: string;
 }): Promise<ActionResponse<void>> {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const tripRef = adminDb.collection("business_trips").doc(input.tripId);
 

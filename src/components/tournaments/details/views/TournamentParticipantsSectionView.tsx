@@ -1,6 +1,7 @@
 "use client";
 
 import { ShieldAlert, Trash2, Trophy, UserPlus } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -86,14 +87,35 @@ export function TournamentParticipantsSectionView() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {getPlayerName(entry.memberId, entry.externalName)}
+                        {entry.memberId ? (
+                          <Link
+                            href={`/members/${entry.memberId}`}
+                            className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                          >
+                            {getPlayerName(entry.memberId, entry.externalName)}
+                          </Link>
+                        ) : (
+                          getPlayerName(entry.memberId, entry.externalName)
+                        )}
                       </TableCell>
                       <TableCell>
                         {entry.categoryId === "doubles" ||
                         entry.categoryId === "mixed" ? (
-                          getPlayerName(
-                            entry.partnerMemberId,
-                            entry.partnerExternalName
+                          entry.partnerMemberId ? (
+                            <Link
+                              href={`/members/${entry.partnerMemberId}`}
+                              className="font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                            >
+                              {getPlayerName(
+                                entry.partnerMemberId,
+                                entry.partnerExternalName
+                              )}
+                            </Link>
+                          ) : (
+                            getPlayerName(
+                              entry.partnerMemberId,
+                              entry.partnerExternalName
+                            )
                           )
                         ) : (
                           <span className="text-muted-foreground">-</span>
@@ -145,21 +167,42 @@ export function TournamentParticipantsSectionView() {
                   <div className="mt-1 space-y-1">
                     <div className="flex items-center gap-2">
                       <div className="size-1.5 shrink-0 rounded-full bg-primary/40" />
-                      <span className="text-sm font-medium text-zinc-900 dark:text-white">
-                        {getPlayerName(entry.memberId, entry.externalName)}
-                      </span>
+                      {entry.memberId ? (
+                        <Link
+                          href={`/members/${entry.memberId}`}
+                          className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+                        >
+                          {getPlayerName(entry.memberId, entry.externalName)}
+                        </Link>
+                      ) : (
+                        <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                          {getPlayerName(entry.memberId, entry.externalName)}
+                        </span>
+                      )}
                     </div>
 
                     {(entry.categoryId === "doubles" ||
                       entry.categoryId === "mixed") && (
                       <div className="flex items-center gap-2">
                         <div className="size-1.5 shrink-0 rounded-full bg-primary/40" />
-                        <span className="text-sm font-medium text-zinc-900 dark:text-white">
-                          {getPlayerName(
-                            entry.partnerMemberId,
-                            entry.partnerExternalName
-                          )}
-                        </span>
+                        {entry.partnerMemberId ? (
+                          <Link
+                            href={`/members/${entry.partnerMemberId}`}
+                            className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+                          >
+                            {getPlayerName(
+                              entry.partnerMemberId,
+                              entry.partnerExternalName
+                            )}
+                          </Link>
+                        ) : (
+                          <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                            {getPlayerName(
+                              entry.partnerMemberId,
+                              entry.partnerExternalName
+                            )}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>

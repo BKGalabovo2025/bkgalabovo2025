@@ -127,14 +127,10 @@ export function RecoveryInquiryDialog({
   // Sync procedure when dialog opens with a specific procedure
   React.useEffect(() => {
     if (procedure?.title) {
-      const match = proceduresList.find(
-        (p) =>
-          p.toLowerCase().includes(procedure.title.toLowerCase()) ||
-          procedure.title.toLowerCase().includes(p.toLowerCase()) ||
-          (procedure.preferredZone &&
-            p.toLowerCase().includes(procedure.preferredZone.toLowerCase()))
+      const exactMatch = proceduresList.find(
+        (p) => p.toLowerCase() === procedure.title.toLowerCase()
       );
-      setSelectedProcedure(match || procedure.title);
+      setSelectedProcedure(exactMatch || procedure.title);
     }
   }, [procedure]);
 
@@ -385,6 +381,15 @@ export function RecoveryInquiryDialog({
                     onChange={(e) => setSelectedProcedure(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
                   >
+                    {selectedProcedure &&
+                      !proceduresList.includes(selectedProcedure) && (
+                        <option
+                          value={selectedProcedure}
+                          className="bg-zinc-900 font-semibold text-emerald-300"
+                        >
+                          {selectedProcedure}
+                        </option>
+                      )}
                     {recoveryCatalogGroups.map((group) => (
                       <optgroup
                         key={group.group}

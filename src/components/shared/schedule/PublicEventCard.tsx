@@ -299,12 +299,22 @@ export function PublicEventCard({
           {/* Admin-only: email confirmation link */}
           {showAdminLinks && (
             <Link
-              href={`/marketing?template=reservationConfirmation&date=${new Date(event.startTime).toISOString()}&end=${new Date(event.endTime).toISOString()}&loc=${encodeURIComponent(event.location || "")}`}
+              href={`/marketing/composer?template=reservationConfirmation&date=${new Date(event.startTime).toISOString()}&end=${new Date(event.endTime).toISOString()}&loc=${encodeURIComponent(event.location || "")}`}
               className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-300 transition-colors hover:text-emerald-400"
               title="Изпрати потвърждение (Админ)"
             >
               <Mail size={16} />
               Потвърждение
+            </Link>
+          )}
+
+          {event.type === "camp" && event.id && (
+            <Link
+              href={`/club/camps/${event.id}`}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-600/15 px-3 py-1.5 text-xs font-bold text-emerald-300 transition-colors hover:bg-emerald-600/25 hover:text-white"
+            >
+              <span>Детайли за лагера</span>
+              <ChevronRight size={14} />
             </Link>
           )}
 

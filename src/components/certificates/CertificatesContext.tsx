@@ -21,7 +21,7 @@ function readLocalCache<T>(key: string): T[] | null {
     const cached = localStorage.getItem(key);
     if (!cached) return null;
     const parsed = JSON.parse(cached);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+    return Array.isArray(parsed) ? parsed : null;
   } catch {
     return null;
   }
@@ -130,7 +130,7 @@ export function CertificatesProvider({
     try {
       const data =
         await certificateIssuanceService.getIssuedCertificates(siteId);
-      if (data && data.length > 0) {
+      if (Array.isArray(data)) {
         setIssuedCertificates(data);
         writeLocalCache(`bkg_cached_certificates_${siteId}`, data);
       }
@@ -146,14 +146,8 @@ export function CertificatesProvider({
   }, [loadSponsors]);
 
   useEffect(() => {
-    const cached = readLocalCache<IssuedCertificate>(
-      `bkg_cached_certificates_${siteId}`
-    );
-    if (cached) {
-      setIssuedCertificates(cached);
-    }
-    setIsLoadingCertificates(false);
-  }, [siteId]);
+    loadIssuedCertificates();
+  }, [loadIssuedCertificates]);
 
   const value: CertificatesContextType = {
     siteId,

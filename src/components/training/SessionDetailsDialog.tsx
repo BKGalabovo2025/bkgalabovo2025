@@ -105,7 +105,7 @@ export function SessionDetailsDialog({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               {isCompleted ? (
-                <Badge className="border-emerald-200 bg-emerald-100 font-bold text-emerald-800 uppercase shadow-xs">
+                <Badge className="border-emerald-200 bg-emerald-100 font-bold text-emerald-800 uppercase shadow-xs dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
                   <CheckCircle2 className="mr-1 size-3.5" />
                   Проведена тренировка
                 </Badge>
@@ -123,7 +123,7 @@ export function SessionDetailsDialog({
                   <Badge
                     key={i}
                     variant="outline"
-                    className="border-indigo-200 bg-indigo-50 font-bold text-indigo-700 uppercase"
+                    className="border-indigo-200 bg-indigo-50 font-bold text-indigo-700 uppercase dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300"
                   >
                     {g}
                   </Badge>
@@ -131,7 +131,7 @@ export function SessionDetailsDialog({
               ) : session.ageGroup ? (
                 <Badge
                   variant="outline"
-                  className="bg-zinc-100 font-bold uppercase"
+                  className="bg-zinc-100 font-bold uppercase dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-200"
                 >
                   {session.ageGroup}
                 </Badge>
@@ -140,29 +140,29 @@ export function SessionDetailsDialog({
               {isCompleted && attendeeCount > 0 && (
                 <Badge
                   variant="secondary"
-                  className="bg-indigo-100/70 font-bold text-indigo-900"
+                  className="bg-indigo-100/70 font-bold text-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-200"
                 >
-                  <Users className="mr-1 size-3 text-indigo-600" />
+                  <Users className="mr-1 size-3 text-indigo-600 dark:text-indigo-400" />
                   {attendeeCount} присъствали
                 </Badge>
               )}
             </div>
           </div>
 
-          <DialogTitle className="mt-2 text-lg sm:text-xl font-bold tracking-tight text-zinc-900">
+          <DialogTitle className="mt-2 text-lg sm:text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
             {session.title}
           </DialogTitle>
 
           {/* Metadata chips */}
-          <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold text-zinc-600">
+          <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
             <div className="flex items-center gap-1.5">
-              <Calendar className="size-4 text-indigo-600" />
+              <Calendar className="size-4 text-indigo-600 dark:text-indigo-400" />
               <span className="capitalize">{formattedDate}</span>
             </div>
 
             {(session.startTime || session.endTime) && (
               <div className="flex items-center gap-1.5">
-                <Clock className="size-4 text-indigo-600" />
+                <Clock className="size-4 text-indigo-600 dark:text-indigo-400" />
                 <span>
                   {session.startTime || "--:--"} - {session.endTime || "--:--"}
                 </span>
@@ -170,12 +170,12 @@ export function SessionDetailsDialog({
             )}
 
             <div className="flex items-center gap-1.5">
-              <MapPin className="size-4 text-indigo-600" />
+              <MapPin className="size-4 text-indigo-600 dark:text-indigo-400" />
               <span>{formatLocationLabel(session.location)}</span>
             </div>
 
             <div className="flex items-center gap-1.5">
-              <Dumbbell className="size-4 text-indigo-600" />
+              <Dumbbell className="size-4 text-indigo-600 dark:text-indigo-400" />
               <span>{totalExercisesCount} упражнения / игри</span>
             </div>
           </div>
@@ -192,7 +192,7 @@ export function SessionDetailsDialog({
               </h4>
               <CoachNotesCard
                 notes={session.coachNotes}
-                className="border-amber-200 bg-amber-50/40 text-sm"
+                className="border-amber-200 bg-amber-50/40 text-sm dark:border-amber-800/50 dark:bg-amber-950/20"
               />
             </div>
           )}
@@ -208,10 +208,12 @@ export function SessionDetailsDialog({
                 {session.sessionGroups.map((grp) => (
                   <div
                     key={grp.id}
-                    className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50/50 p-3 text-xs"
+                    className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50/50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-900/50"
                   >
-                    <span className="font-bold text-zinc-900">{grp.name}</span>
-                    <span className="font-medium text-zinc-500">
+                    <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                      {grp.name}
+                    </span>
+                    <span className="font-medium text-zinc-500 dark:text-zinc-400">
                       {grp.memberIds?.length || 0} състезатели
                     </span>
                   </div>
@@ -231,23 +233,23 @@ export function SessionDetailsDialog({
               {session.blocks!.map((block: SessionBlock) => (
                 <div
                   key={block.id}
-                  className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs"
+                  className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900"
                 >
-                  <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/80 px-4 py-2.5">
-                    <span className="text-xs font-bold tracking-wide text-zinc-800 uppercase">
+                  <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/80 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-950/50">
+                    <span className="text-xs font-bold tracking-wide text-zinc-800 uppercase dark:text-zinc-200">
                       {getPhaseTitle(block.phase)}
                     </span>
                     {block.targetDuration > 0 && (
                       <Badge
                         variant="secondary"
-                        className="bg-white text-[11px] font-semibold text-zinc-600 shadow-2xs"
+                        className="bg-white text-[11px] font-semibold text-zinc-600 shadow-2xs dark:bg-zinc-800 dark:text-zinc-300"
                       >
                         {block.targetDuration} мин.
                       </Badge>
                     )}
                   </div>
 
-                  <div className="divide-y divide-zinc-100 p-2">
+                  <div className="divide-y divide-zinc-100 p-2 dark:divide-zinc-800">
                     {block.items.length === 0 ? (
                       <div className="p-4 text-center text-xs text-zinc-400">
                         Няма добавени упражнения в тази фаза.
@@ -259,10 +261,10 @@ export function SessionDetailsDialog({
                             <div className="space-y-2">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <Badge className="bg-amber-100 text-[10px] font-bold text-amber-800 hover:bg-amber-100">
+                                  <Badge className="bg-amber-100 text-[10px] font-bold text-amber-800 hover:bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300">
                                     🔄 Станционна Ротация
                                   </Badge>
-                                  <span className="text-xs font-bold text-zinc-900">
+                                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                                     {item.durationMinutes} мин. на станция
                                   </span>
                                 </div>
@@ -273,14 +275,14 @@ export function SessionDetailsDialog({
                                   {item.rotations.map((r, rIdx) => (
                                     <div
                                       key={rIdx}
-                                      className="rounded-xl border border-amber-200/80 bg-amber-50/30 p-2.5 text-xs"
+                                      className="rounded-xl border border-amber-200/80 bg-amber-50/30 p-2.5 text-xs dark:border-amber-800/50 dark:bg-amber-950/20"
                                     >
-                                      <div className="flex items-center gap-1.5 font-bold text-amber-900">
-                                        <Target className="size-3 text-amber-600" />
+                                      <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-300">
+                                        <Target className="size-3 text-amber-600 dark:text-amber-400" />
                                         {r.exercise?.name || "Упражнение"}
                                       </div>
                                       {r.exercise?.description && (
-                                        <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+                                        <p className="mt-1 text-[11px] leading-relaxed text-zinc-600 dark:text-zinc-400">
                                           {r.exercise.description}
                                         </p>
                                       )}
@@ -293,20 +295,20 @@ export function SessionDetailsDialog({
                             <div className="space-y-1.5">
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-bold text-zinc-900">
+                                  <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                                     {item.exercise?.name || "Упражнение"}
                                   </span>
                                   {item.exercise?.category && (
                                     <Badge
                                       variant="outline"
-                                      className="border-zinc-200 bg-zinc-50 text-[10px] text-zinc-600"
+                                      className="border-zinc-200 bg-zinc-50 text-[10px] text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                                     >
                                       {getCategoryLabel(item.exercise.category)}
                                     </Badge>
                                   )}
                                 </div>
 
-                                <span className="text-xs font-semibold text-indigo-600">
+                                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
                                   {item.durationMinutes ||
                                     item.exercise?.durationMinutes ||
                                     5}{" "}
@@ -315,15 +317,15 @@ export function SessionDetailsDialog({
                               </div>
 
                               {item.exercise?.description && (
-                                <p className="text-xs leading-relaxed text-zinc-600">
+                                <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                                   {item.exercise.description}
                                 </p>
                               )}
 
                               {item.exercise?.coachingPoints &&
                                 item.exercise.coachingPoints.length > 0 && (
-                                  <div className="mt-2 rounded-lg bg-zinc-50 p-2 text-[11px] text-zinc-600">
-                                    <span className="font-bold text-zinc-700">
+                                  <div className="mt-2 rounded-lg bg-zinc-50 p-2 text-[11px] text-zinc-600 dark:bg-zinc-950/60 dark:text-zinc-400">
+                                    <span className="font-bold text-zinc-700 dark:text-zinc-300">
                                       Акценти:{" "}
                                     </span>
                                     {item.exercise.coachingPoints.join(" • ")}
@@ -371,14 +373,14 @@ export function SessionDetailsDialog({
               {session.groupedExercises!.map((grp, gIdx) => (
                 <div
                   key={gIdx}
-                  className="overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4"
+                  className="overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
                 >
                   <div className="mb-3 flex items-center justify-between">
                     <Badge className="bg-indigo-600 font-bold text-white">
                       {grp.ageGroup}{" "}
                       {grp.skillLevel ? `(${grp.skillLevel})` : ""}
                     </Badge>
-                    <span className="text-xs font-medium text-zinc-500">
+                    <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
                       {grp.exercises.length} упражнения
                     </span>
                   </div>
@@ -387,16 +389,16 @@ export function SessionDetailsDialog({
                     {grp.exercises.map((ex, eIdx) => (
                       <div
                         key={ex.id || eIdx}
-                        className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 text-xs"
+                        className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-950/50"
                       >
-                        <div className="flex items-center justify-between font-bold text-zinc-900">
+                        <div className="flex items-center justify-between font-bold text-zinc-900 dark:text-zinc-100">
                           <span>{ex.name}</span>
-                          <span className="text-indigo-600">
+                          <span className="text-indigo-600 dark:text-indigo-400">
                             {ex.durationMinutes} мин.
                           </span>
                         </div>
                         {ex.description && (
-                          <p className="mt-1 leading-relaxed text-zinc-600">
+                          <p className="mt-1 leading-relaxed text-zinc-600 dark:text-zinc-400">
                             {ex.description}
                           </p>
                         )}
@@ -416,17 +418,17 @@ export function SessionDetailsDialog({
                 Списък с упражнения
               </h4>
 
-              <div className="divide-y divide-zinc-100 rounded-2xl border border-zinc-200 bg-white p-2">
+              <div className="divide-y divide-zinc-100 rounded-2xl border border-zinc-200 bg-white p-2 dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
                 {session.exercises!.map((ex: Exercise, idx: number) => (
                   <div key={ex.id || idx} className="p-3 text-xs">
-                    <div className="flex items-center justify-between font-bold text-zinc-900">
+                    <div className="flex items-center justify-between font-bold text-zinc-900 dark:text-zinc-100">
                       <span>{ex.name}</span>
-                      <span className="text-indigo-600">
+                      <span className="text-indigo-600 dark:text-indigo-400">
                         {ex.durationMinutes} мин.
                       </span>
                     </div>
                     {ex.description && (
-                      <p className="mt-1 leading-relaxed text-zinc-600">
+                      <p className="mt-1 leading-relaxed text-zinc-600 dark:text-zinc-400">
                         {ex.description}
                       </p>
                     )}
@@ -438,10 +440,10 @@ export function SessionDetailsDialog({
 
           {/* If no exercises attached */}
           {!hasBlocks && !hasGrouped && !hasLegacyExercises && (
-            <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center text-xs text-zinc-500">
+            <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400">
               Няма въведени структурирани упражнения за тази тренировка.
               {session.coachNotes && (
-                <p className="mt-1 font-medium text-zinc-700">
+                <p className="mt-1 font-medium text-zinc-700 dark:text-zinc-300">
                   Вижте треньорските бележки по-горе за указанията.
                 </p>
               )}

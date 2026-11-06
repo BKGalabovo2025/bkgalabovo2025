@@ -192,7 +192,7 @@ export function FeedbackCampaignsTab({
                 <ExternalLink className="size-3" />
               </a>
             </div>
-            <h2 className="mt-1 text-lg font-black tracking-tight text-zinc-900">
+            <h2 className="mt-1 text-lg font-black tracking-tight text-zinc-900 dark:text-zinc-100">
               Постоянни публични анкети на сайта
             </h2>
             <p className="text-xs font-medium text-zinc-500">
@@ -212,9 +212,9 @@ export function FeedbackCampaignsTab({
         </div>
 
         {standingCampaigns.length === 0 ? (
-          <Card className="border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-center">
+          <Card className="border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
             <Globe className="mx-auto mb-2 size-8 text-zinc-400" />
-            <h4 className="text-sm font-bold text-zinc-800">
+            <h4 className="text-sm font-bold text-zinc-800 dark:text-zinc-100">
               Няма активирани постоянни анкети на сайта
             </h4>
             <p className="mx-auto mt-1 max-w-md text-xs text-zinc-500">
@@ -233,8 +233,8 @@ export function FeedbackCampaignsTab({
                   key={sc.id}
                   className={`overflow-hidden border transition-all ${
                     isActive
-                      ? "border-indigo-200 bg-linear-to-br from-indigo-50/30 via-white to-zinc-50/50 shadow-xs"
-                      : "border-zinc-200 bg-zinc-50/40 opacity-80"
+                      ? "border-indigo-200 bg-linear-to-br from-indigo-50/30 via-white to-zinc-50/50 shadow-xs dark:border-indigo-900/50 dark:from-indigo-950/20 dark:via-zinc-900 dark:to-zinc-900/80"
+                      : "border-zinc-200 bg-zinc-50/40 opacity-80 dark:border-zinc-800 dark:bg-zinc-900/40"
                   }`}
                 >
                   <CardContent className="flex h-full flex-col justify-between p-5">
@@ -242,14 +242,14 @@ export function FeedbackCampaignsTab({
                       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           {isActive ? (
-                            <Badge className="border-emerald-300 bg-emerald-100 text-[10px] font-bold text-emerald-800">
+                            <Badge className="border-emerald-300 bg-emerald-100 text-[10px] font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
                               <span className="mr-1 inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
                               Активна на сайта
                             </Badge>
                           ) : (
                             <Badge
                               variant="secondary"
-                              className="bg-zinc-200 text-[10px] font-bold text-zinc-600"
+                              className="bg-zinc-200 text-[10px] font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                             >
                               Спряна
                             </Badge>
@@ -257,19 +257,19 @@ export function FeedbackCampaignsTab({
 
                           <Badge
                             variant="outline"
-                            className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase"
+                            className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300"
                           >
                             {getEventTypeBadgeLabel(sc.eventType)}
                           </Badge>
                         </div>
 
                         <div className="flex items-center gap-2 text-xs font-bold">
-                          <span className="flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-0.5 text-zinc-600">
-                            <MessageSquare className="size-3 text-zinc-500" />
+                          <span className="flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-0.5 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                            <MessageSquare className="size-3 text-zinc-500 dark:text-zinc-400" />
                             {sc.responseCount || 0} отзива
                           </span>
                           {sc.averageRating ? (
-                            <span className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700">
+                            <span className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
                               <Star className="size-3 fill-amber-400 text-amber-400" />
                               {sc.averageRating}/5
                             </span>
@@ -277,18 +277,18 @@ export function FeedbackCampaignsTab({
                         </div>
                       </div>
 
-                      <h3 className="text-base font-black tracking-tight text-zinc-900">
+                      <h3 className="text-base font-black tracking-tight text-zinc-900 dark:text-zinc-100">
                         {sc.title}
                       </h3>
 
                       {sc.description && (
-                        <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
+                        <p className="mt-1 line-clamp-2 text-xs text-zinc-600 dark:text-zinc-400">
                           {sc.description}
                         </p>
                       )}
                     </div>
 
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3">
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
                       <div className="flex items-center gap-2">
                         <Button
                           onClick={() => handleToggleStatus(sc)}
@@ -307,7 +307,7 @@ export function FeedbackCampaignsTab({
                           onClick={() => handleCopyLink(sc.id)}
                           size="sm"
                           variant="outline"
-                          className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50"
+                          className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
                         >
                           {isCopied ? (
                             <>
@@ -328,7 +328,7 @@ export function FeedbackCampaignsTab({
                           asChild
                           variant="outline"
                           size="icon"
-                          className="size-8 rounded-xl text-zinc-600 hover:bg-indigo-50 hover:text-indigo-600"
+                          className="size-8 rounded-xl text-zinc-600 hover:bg-indigo-50 hover:text-indigo-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
                           title="Преглед на анкетата"
                         >
                           <a
@@ -344,7 +344,7 @@ export function FeedbackCampaignsTab({
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(sc.id)}
-                          className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600"
+                          className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
                           title="Изтрий"
                         >
                           <Trash2 className="size-4" />
@@ -360,9 +360,9 @@ export function FeedbackCampaignsTab({
       </div>
 
       {/* 2. Top action header for Event Specific Campaigns */}
-      <div className="flex flex-col items-start justify-between gap-4 border-t border-zinc-200 pt-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col items-start justify-between gap-4 border-t border-zinc-200 pt-6 sm:flex-row sm:items-center dark:border-zinc-800">
         <div>
-          <h2 className="text-lg font-black tracking-tight text-zinc-900">
+          <h2 className="text-lg font-black tracking-tight text-zinc-900 dark:text-zinc-100">
             {siteId === "recoveryzone"
               ? "Анкети за конкретни събития, промоции & Линкове за споделяне"
               : "Анкети за конкретни събития & Линкове за споделяне"}
@@ -387,9 +387,9 @@ export function FeedbackCampaignsTab({
 
       {/* Event Campaigns list */}
       {eventCampaigns.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-16 text-center">
-          <LinkIcon className="mx-auto mb-3 size-10 text-zinc-300" />
-          <h3 className="mb-1 text-base font-bold text-zinc-900">
+        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
+          <LinkIcon className="mx-auto mb-3 size-10 text-zinc-300 dark:text-zinc-600" />
+          <h3 className="mb-1 text-base font-bold text-zinc-900 dark:text-zinc-100">
             {siteId === "recoveryzone"
               ? "Няма активни анкети за събития или кампании"
               : "Няма активни анкети за събития"}
@@ -415,7 +415,7 @@ export function FeedbackCampaignsTab({
             return (
               <Card
                 key={c.id}
-                className="overflow-hidden border-zinc-200 shadow-2xs transition-all hover:border-indigo-200 hover:shadow-xs"
+                className="overflow-hidden border-zinc-200 shadow-2xs transition-all hover:border-indigo-200 hover:shadow-xs dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-900/60"
               >
                 <CardContent className="flex h-full flex-col justify-between p-5">
                   <div>
@@ -423,14 +423,14 @@ export function FeedbackCampaignsTab({
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         {isActive ? (
-                          <Badge className="border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-800 uppercase">
+                          <Badge className="border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-800 uppercase dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-300">
                             <CheckCircle2 className="mr-1 size-3" />
                             Активна анкета
                           </Badge>
                         ) : (
                           <Badge
                             variant="secondary"
-                            className="bg-zinc-100 text-[10px] font-bold text-zinc-600 uppercase"
+                            className="bg-zinc-100 text-[10px] font-bold text-zinc-600 uppercase dark:bg-zinc-800 dark:text-zinc-400"
                           >
                             Затворена
                           </Badge>
@@ -438,7 +438,7 @@ export function FeedbackCampaignsTab({
 
                         <Badge
                           variant="outline"
-                          className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase"
+                          className="border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 uppercase dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300"
                         >
                           {getEventTypeBadgeLabel(c.eventType)}
                         </Badge>
@@ -446,13 +446,13 @@ export function FeedbackCampaignsTab({
 
                       {/* Response Counter & Rating */}
                       <div className="flex items-center gap-2 text-xs font-bold">
-                        <span className="flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-0.5 text-zinc-600">
-                          <MessageSquare className="size-3 text-zinc-500" />
+                        <span className="flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-0.5 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                          <MessageSquare className="size-3 text-zinc-500 dark:text-zinc-400" />
                           {c.responseCount || 0} отговора
                         </span>
 
                         {c.averageRating ? (
-                          <span className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700">
+                          <span className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
                             <Star className="size-3 fill-amber-400 text-amber-400" />
                             {c.averageRating}/5
                           </span>
@@ -461,12 +461,12 @@ export function FeedbackCampaignsTab({
                     </div>
 
                     {/* Title & Description */}
-                    <h3 className="text-base font-black tracking-tight text-zinc-900">
+                    <h3 className="text-base font-black tracking-tight text-zinc-900 dark:text-zinc-100">
                       {c.title}
                     </h3>
 
                     {c.description && (
-                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-600">
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                         {c.description}
                       </p>
                     )}
@@ -484,7 +484,7 @@ export function FeedbackCampaignsTab({
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-4">
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
                     <Button
                       onClick={() => handleCopyLink(c.id)}
                       className={
@@ -511,7 +511,7 @@ export function FeedbackCampaignsTab({
                         asChild
                         variant="outline"
                         size="icon"
-                        className="size-8 rounded-xl text-zinc-600 hover:bg-indigo-50 hover:text-indigo-600"
+                        className="size-8 rounded-xl text-zinc-600 hover:bg-indigo-50 hover:text-indigo-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
                         title="Отвори публичната форма"
                       >
                         <a
@@ -527,7 +527,7 @@ export function FeedbackCampaignsTab({
                         variant="ghost"
                         size="icon"
                         onClick={() => handleToggleStatus(c)}
-                        className="size-8 rounded-xl text-zinc-400 hover:text-zinc-700"
+                        className="size-8 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                         title={
                           isActive
                             ? "Затвори анкетата"
@@ -545,7 +545,7 @@ export function FeedbackCampaignsTab({
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDelete(c.id)}
-                        className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600"
+                        className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
                         title="Изтрий"
                       >
                         <Trash2 className="size-4" />

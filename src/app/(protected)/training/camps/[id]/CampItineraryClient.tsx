@@ -1597,7 +1597,7 @@ export function CampItineraryClient({
                     </Button>
                   </div>
 
-                  <div className="mt-2 grid gap-2 border-t pt-4">
+                  <div className="mt-2 grid gap-2 border-t pt-4 dark:border-zinc-800">
                     <div className="flex items-center justify-between">
                       <Label>Управление на групи (опционално)</Label>
                       <span className="text-[10px] text-zinc-500">
@@ -1608,9 +1608,11 @@ export function CampItineraryClient({
                       {formGroups.map((g) => (
                         <div
                           key={g.id}
-                          className="flex items-center justify-between rounded-md border bg-zinc-50 p-2"
+                          className="flex items-center justify-between rounded-md border bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900"
                         >
-                          <span className="text-sm font-medium">{g.name}</span>
+                          <span className="text-sm font-medium dark:text-zinc-100">
+                            {g.name}
+                          </span>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1641,10 +1643,10 @@ export function CampItineraryClient({
 
                     {formGroups.length > 0 && (
                       <div className="mt-4">
-                        <h4 className="mb-2 text-sm font-semibold text-zinc-800">
+                        <h4 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                           Разпределение на участници
                         </h4>
-                        <ScrollArea className="h-48 rounded-md border border-zinc-200 bg-zinc-50 p-2">
+                        <ScrollArea className="h-48 rounded-md border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900/50">
                           {(!camp.attendees || camp.attendees.length === 0) && (
                             <p className="p-2 text-xs text-zinc-500">
                               Няма записани участници в лагера.
@@ -1653,16 +1655,16 @@ export function CampItineraryClient({
                           {camp.attendees?.map((p) => (
                             <div
                               key={p.memberId}
-                              className="mb-2 flex flex-col justify-between rounded-md border border-zinc-100 bg-white p-2 shadow-sm sm:flex-row sm:items-center"
+                              className="mb-2 flex flex-col justify-between rounded-md border border-zinc-100 bg-white p-2 shadow-sm sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900"
                             >
-                              <span className="text-sm font-medium">
+                              <span className="text-sm font-medium dark:text-zinc-100">
                                 {p.name}
                               </span>
                               <div className="mt-2 flex flex-wrap gap-3 sm:mt-0">
                                 {formGroups.map((g) => (
                                   <label
                                     key={g.id}
-                                    className="flex cursor-pointer items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900"
+                                    className="flex cursor-pointer items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
                                   >
                                     <input
                                       type="checkbox"

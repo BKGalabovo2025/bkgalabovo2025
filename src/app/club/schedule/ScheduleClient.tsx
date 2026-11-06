@@ -339,7 +339,7 @@ export default function ScheduleClient({ schedule }: Props) {
                         event={event as any}
                         groupIdx={groupIdx}
                         i={i}
-                        showAdminLinks={true}
+                        showAdminLinks={false}
                       />
                     ))}
                   </div>

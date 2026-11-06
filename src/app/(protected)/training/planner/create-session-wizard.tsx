@@ -2118,7 +2118,7 @@ function SessionStep2Library({
         <Search className="absolute top-2.5 left-2 size-4 text-zinc-400" />
         <Input
           placeholder="Търси упражнение..."
-          className="h-9 bg-zinc-50 pl-8 text-xs sm:text-sm"
+          className="h-9 bg-zinc-50 pl-8 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -2827,12 +2827,12 @@ export default function CreateSessionWizard({
               />
             </div>
 
-            <div className="space-y-3 border-t pt-4">
-              <Label>Разпределение</Label>
+            <div className="space-y-3 border-t pt-4 dark:border-zinc-800">
+              <Label className="dark:text-zinc-200">Разпределение</Label>
               {stationRotations.map((r, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2 rounded-md bg-zinc-50 p-2"
+                  className="flex items-center gap-2 rounded-md bg-zinc-50 p-2 dark:bg-zinc-900"
                 >
                   <Select
                     value={r.groupId}

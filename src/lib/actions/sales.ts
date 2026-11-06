@@ -486,7 +486,7 @@ export async function deleteSaleAction(
       }
     }
 
-    // 5. If this is a general service sale, delete associated reservations and packages
+    // 5. If this is a general service sale, unlink associated reservations and packages (do not delete them)
     if (
       deletedSaleData.type === "general_service" ||
       deletedSaleData.reservationId
@@ -507,33 +507,31 @@ export async function deleteSaleAction(
       const resIds: string[] = [];
 
       reservationsSnapshot.docs.forEach((doc: any) => {
-        generalBatch.delete(doc.ref);
+        generalBatch.update(doc.ref, {
+          status: "unpaid",
+          paymentStatus: "unpaid",
+          saleId: null,
+        });
         resIds.push(doc.id);
       });
 
-      packagesSnapshot.docs.forEach((doc: any) => {
-        generalBatch.delete(doc.ref);
-      });
-
       if (reservationId && !resIds.includes(reservationId)) {
-        resIds.push(reservationId);
-      }
-
-      if (resIds.length > 0) {
-        // Find member declarations for these reservations
-        // Chunk into groups of 30 due to Firestore limits
-        for (let i = 0; i < resIds.length; i += 30) {
-          const chunk = resIds.slice(i, i + 30);
-          const declSnapshot = await adminDb
-            .collection("member_declarations")
-            .where("reservationId", "in", chunk)
-            .get();
-
-          declSnapshot.docs.forEach((doc: any) => {
-            generalBatch.delete(doc.ref);
+        const directResRef = adminDb
+          .collection("reservations")
+          .doc(reservationId);
+        const directResSnap = await directResRef.get();
+        if (directResSnap.exists) {
+          generalBatch.update(directResRef, {
+            status: "unpaid",
+            paymentStatus: "unpaid",
+            saleId: null,
           });
         }
       }
+
+      packagesSnapshot.docs.forEach((doc: any) => {
+        generalBatch.update(doc.ref, { saleId: null });
+      });
 
       await generalBatch.commit();
     }
@@ -630,7 +628,7 @@ function snapToData<T>(
 }
 
 /**
- * �?звлича всички продажби на сървъра.
+ * Извлича всички продажби на сървъра.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getInventorySalesServerAction(activeBranch: string) {
@@ -658,7 +656,7 @@ async function getInventorySalesServerAction(activeBranch: string) {
 }
 
 /**
- * �?звлича пълните детайли по разписка на сървъра.
+ * Извлича пълните детайли по разписка на сървъра.
  */
 
 export async function getReceiptDetailsServerAction(saleId: string) {
@@ -727,10 +725,10 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       }
     }
 
-    // �?звличане на свързана услуга (ако е необходимо)
+    // Извличане на свързана услуга (ако е необходимо)
     const service: ClubService | null = null;
 
-    // �?звличане на свързано лице (родител/дете)
+    // Извличане на свързано лице (родител/дете)
     let relatedMember: Member | null = null;
     if (member.relatedMemberId) {
       const relatedSnap = await adminDb
@@ -740,7 +738,7 @@ export async function getReceiptDetailsServerAction(saleId: string) {
       relatedMember = snapToData<Member>(relatedSnap);
     }
 
-    // �?звличане на семейство и други членове на семейството
+    // Извличане на семейство и други членове на семейството
     let family: Family | null = null;
     const familyMembers: Member[] = [];
 

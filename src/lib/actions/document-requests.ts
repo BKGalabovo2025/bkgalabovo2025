@@ -919,33 +919,74 @@ export async function deleteDocumentRequestAction(input: {
           const memberUpdates: Record<string, unknown> = {};
           const docType = docData.documentType;
 
-          if (docType === "membership_application") {
+          if (
+            docType === "membershipApplication" ||
+            docType === "membership_application"
+          ) {
             memberUpdates.hasMembershipApplication = false;
             memberUpdates.membershipApplicationUrl = FieldValue.delete();
             memberUpdates.membershipApplicationSignatureUrl =
               FieldValue.delete();
             memberUpdates.membershipApplicationHandedAt = FieldValue.delete();
-          } else if (docType === "internal_rules") {
+          } else if (
+            docType === "internalRules" ||
+            docType === "internal_rules"
+          ) {
             memberUpdates.hasInternalRules = false;
             memberUpdates.internalRulesUrl = FieldValue.delete();
             memberUpdates.internalRulesSignatureUrl = FieldValue.delete();
             memberUpdates.internalRulesHandedAt = FieldValue.delete();
-          } else if (docType === "safety_instruction") {
+          } else if (
+            docType === "safetyInstruction" ||
+            docType === "safety_instruction"
+          ) {
             memberUpdates.hasSafetyInstruction = false;
             memberUpdates.safetyInstructionUrl = FieldValue.delete();
             memberUpdates.safetyInstructionSignatureUrl = FieldValue.delete();
             memberUpdates.safetyInstructionHandedAt = FieldValue.delete();
+            memberUpdates.hasSafetyDeclaration = false;
             memberUpdates.safetyDeclarationSignatureUrl = FieldValue.delete();
-          } else if (docType === "travel_declaration") {
+            memberUpdates.safetyDeclarationHandedAt = FieldValue.delete();
+          } else if (
+            docType === "travelDeclaration" ||
+            docType === "travel_declaration"
+          ) {
             memberUpdates.hasTravelDeclaration = false;
             memberUpdates.travelDeclarationUrl = FieldValue.delete();
             memberUpdates.travelDeclarationSignatureUrl = FieldValue.delete();
             memberUpdates.travelDeclarationHandedAt = FieldValue.delete();
-          } else if (docType === "informed_consent") {
+          } else if (
+            docType === "signedDeclaration" ||
+            docType === "informed_consent"
+          ) {
             memberUpdates.hasSignedDeclaration = false;
             memberUpdates.signedDeclarationUrl = FieldValue.delete();
             memberUpdates.signedDeclarationSignatureUrl = FieldValue.delete();
             memberUpdates.signedDeclarationHandedAt = FieldValue.delete();
+          } else if (
+            docType === "terminationRequest" ||
+            docType === "termination_request"
+          ) {
+            memberUpdates.hasTerminationRequest = false;
+            memberUpdates.terminationRequestUrl = FieldValue.delete();
+            memberUpdates.terminationRequestSignatureUrl = FieldValue.delete();
+            memberUpdates.terminationRequestHandedAt = FieldValue.delete();
+          } else if (
+            docType === "amateurContract" ||
+            docType === "amateur_contract"
+          ) {
+            memberUpdates.hasAmateurContract = false;
+            memberUpdates.amateurContractUrl = FieldValue.delete();
+            memberUpdates.amateurContractSignatureUrl = FieldValue.delete();
+            memberUpdates.amateurContractHandedAt = FieldValue.delete();
+          } else if (
+            docType === "licenseApplication" ||
+            docType === "license_application"
+          ) {
+            memberUpdates.hasLicenseApplication = false;
+            memberUpdates.licenseApplicationUrl = FieldValue.delete();
+            memberUpdates.licenseApplicationSignatureUrl = FieldValue.delete();
+            memberUpdates.licenseApplicationHandedAt = FieldValue.delete();
           } else if (docType === "full_membership_pack") {
             memberUpdates.hasMembershipApplication = false;
             memberUpdates.membershipApplicationUrl = FieldValue.delete();

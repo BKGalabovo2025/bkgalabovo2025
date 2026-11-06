@@ -145,7 +145,7 @@ export function FeedbackSubmissionsTab({
   return (
     <div className="space-y-6">
       {/* Filter Bar */}
-      <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-2xs">
+      <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           {/* Search */}
           <div className="relative flex-1">
@@ -154,12 +154,12 @@ export function FeedbackSubmissionsTab({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Търси по име на родител, дете, текст на отзив..."
-              className="rounded-xl border-zinc-200 pl-9 text-xs sm:text-sm"
+              className="rounded-xl border-zinc-200 pl-9 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
               >
                 <X className="size-4" />
               </button>
@@ -169,7 +169,7 @@ export function FeedbackSubmissionsTab({
           {/* Status Filter */}
           <div className="w-full sm:w-44">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="rounded-xl border-zinc-200 text-xs sm:text-sm">
+              <SelectTrigger className="rounded-xl border-zinc-200 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                 <SelectValue placeholder="Всички статуси" />
               </SelectTrigger>
               <SelectContent>
@@ -184,7 +184,7 @@ export function FeedbackSubmissionsTab({
           {/* Event Type Filter */}
           <div className="w-full sm:w-44">
             <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
-              <SelectTrigger className="rounded-xl border-zinc-200 text-xs sm:text-sm">
+              <SelectTrigger className="rounded-xl border-zinc-200 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                 <SelectValue placeholder="Всички типове" />
               </SelectTrigger>
               <SelectContent>
@@ -211,7 +211,7 @@ export function FeedbackSubmissionsTab({
                 setEventTypeFilter("all");
                 setSearchQuery("");
               }}
-              className="rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50"
+              className="rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
             >
               <X className="mr-1 size-3.5" />
               Изчисти
@@ -222,9 +222,9 @@ export function FeedbackSubmissionsTab({
 
       {/* Submissions List */}
       {filteredSubmissions.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-16 text-center">
-          <Inbox className="mx-auto mb-3 size-10 text-zinc-300" />
-          <h3 className="mb-1 text-base font-bold text-zinc-900">
+        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
+          <Inbox className="mx-auto mb-3 size-10 text-zinc-300 dark:text-zinc-600" />
+          <h3 className="mb-1 text-base font-bold text-zinc-900 dark:text-zinc-100">
             Няма намерени отзиви
           </h3>
           <p className="mx-auto max-w-sm text-xs text-zinc-500">
@@ -243,7 +243,7 @@ export function FeedbackSubmissionsTab({
             return (
               <Card
                 key={sub.id}
-                className="overflow-hidden border-zinc-200 shadow-2xs transition-all hover:border-indigo-200 hover:shadow-xs"
+                className="overflow-hidden border-zinc-200 shadow-2xs transition-all hover:border-indigo-200 hover:shadow-xs dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-900/60"
               >
                 <CardContent className="p-4 sm:p-5">
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -251,20 +251,20 @@ export function FeedbackSubmissionsTab({
                     <div className="flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         {isApproved ? (
-                          <Badge className="border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-800 uppercase">
+                          <Badge className="border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-800 uppercase dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-300">
                             <CheckCircle2 className="mr-1 size-3" />
                             Одобрен за сайта
                           </Badge>
                         ) : isRejected ? (
                           <Badge
                             variant="destructive"
-                            className="border-rose-200 bg-rose-50 text-[10px] font-bold text-rose-800 uppercase"
+                            className="border-rose-200 bg-rose-50 text-[10px] font-bold text-rose-800 uppercase dark:border-rose-900/50 dark:bg-rose-950/50 dark:text-rose-300"
                           >
                             <XCircle className="mr-1 size-3" />
                             Отхвърлен
                           </Badge>
                         ) : (
-                          <Badge className="border-amber-200 bg-amber-50 text-[10px] font-bold text-amber-800 uppercase">
+                          <Badge className="border-amber-200 bg-amber-50 text-[10px] font-bold text-amber-800 uppercase dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
                             <Clock className="mr-1 size-3" />
                             Чака одобрение
                           </Badge>
@@ -272,7 +272,7 @@ export function FeedbackSubmissionsTab({
 
                         <Badge
                           variant="outline"
-                          className="border-zinc-200 bg-zinc-50 text-[10px] font-semibold text-zinc-600 uppercase"
+                          className="border-zinc-200 bg-zinc-50 text-[10px] font-semibold text-zinc-600 uppercase dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                         >
                           {sub.eventType === "camp"
                             ? "Лагер"
@@ -286,7 +286,7 @@ export function FeedbackSubmissionsTab({
                         </Badge>
 
                         {sub.eventTitle && (
-                          <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                          <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
                             {sub.eventTitle}
                           </span>
                         )}
@@ -299,11 +299,11 @@ export function FeedbackSubmissionsTab({
                               className={`size-3.5 ${
                                 i < sub.overallRating
                                   ? "fill-amber-400 text-amber-400"
-                                  : "text-zinc-200"
+                                  : "text-zinc-200 dark:text-zinc-700"
                               }`}
                             />
                           ))}
-                          <span className="ml-1 text-xs font-black text-zinc-900">
+                          <span className="ml-1 text-xs font-black text-zinc-900 dark:text-zinc-100">
                             {sub.overallRating}/5
                           </span>
                         </div>
@@ -311,9 +311,9 @@ export function FeedbackSubmissionsTab({
 
                       {/* Respondent & Excerpt */}
                       <div>
-                        <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-zinc-900">
+                        <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">
                           <span>{sub.respondentName}</span>
-                          <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600">
+                          <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                             {sub.respondentRole === "parent" && sub.childName
                               ? "👨‍👩‍👧 Родител на " + sub.childName
                               : sub.respondentRole === "parent"
@@ -327,7 +327,7 @@ export function FeedbackSubmissionsTab({
                         </div>
 
                         {sub.reviewText && (
-                          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-700 italic">
+                          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-700 italic dark:text-zinc-300">
                             &ldquo;{sub.reviewText}&rdquo;
                           </p>
                         )}
@@ -346,17 +346,17 @@ export function FeedbackSubmissionsTab({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex shrink-0 items-center gap-2 border-t border-zinc-100 pt-3 md:border-none md:pt-0">
+                    <div className="flex shrink-0 items-center gap-2 border-t border-zinc-100 pt-3 md:border-none md:pt-0 dark:border-zinc-800">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50"
+                        className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
                         onClick={() => {
                           setSelectedSubmission(sub);
                           setIsDetailsOpen(true);
                         }}
                       >
-                        <Eye className="mr-1.5 size-3.5 text-indigo-600" />
+                        <Eye className="mr-1.5 size-3.5 text-indigo-600 dark:text-indigo-400" />
                         Преглед на отговорите
                       </Button>
 
@@ -374,7 +374,7 @@ export function FeedbackSubmissionsTab({
                             variant="ghost"
                             size="icon"
                             onClick={() => handleQuickReject(sub)}
-                            className="rounded-xl text-rose-500 hover:bg-rose-50"
+                            className="rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                             title="Отхвърли"
                           >
                             <XCircle className="size-4" />
@@ -386,7 +386,7 @@ export function FeedbackSubmissionsTab({
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDelete(sub.id)}
-                        className="rounded-xl text-zinc-400 hover:bg-zinc-100 hover:text-rose-600"
+                        className="rounded-xl text-zinc-400 hover:bg-zinc-100 hover:text-rose-600 dark:hover:bg-zinc-800 dark:hover:text-rose-400"
                         title="Изтрий"
                       >
                         <Trash2 className="size-4" />

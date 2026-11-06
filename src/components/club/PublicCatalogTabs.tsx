@@ -34,6 +34,7 @@ import {
 } from "@/components/catalogs/catalog-sections";
 import { ProductStockBadge } from "@/components/catalogs/views/ShopCatalogView";
 import { CatalogInquiryDialog } from "@/components/club/CatalogInquiryDialog";
+import { RecoveryInquiryDialog } from "@/components/recovery/RecoveryInquiryDialog";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -243,7 +244,7 @@ export default function PublicCatalogTabs({
 
   const handleCopyLink = (item: any) => {
     if (typeof window === "undefined") return;
-    const url = `${window.location.origin}/club/catalog?tab=${activeTab}&item=${item.id}`;
+    const url = `${window.location.origin}${window.location.pathname}?tab=${activeTab}&item=${item.id}`;
     if (navigator.clipboard?.writeText) {
       navigator.clipboard
         .writeText(url)
@@ -998,13 +999,30 @@ function PublicCatalogCard({
       </Dialog>
 
       {/* Public Inquiry Dialog */}
-      <CatalogInquiryDialog
-        isOpen={isInquiryOpen}
-        onClose={() => setIsInquiryOpen(false)}
-        item={item}
-        tab={tab}
-        lang="bg"
-      />
+      {tab === "recovery" ? (
+        <RecoveryInquiryDialog
+          isOpen={isInquiryOpen}
+          onClose={() => setIsInquiryOpen(false)}
+          procedure={{
+            title: item.name || "Възстановителна процедура",
+            category: item.sessionType || item.category,
+            duration: String(item.durationMinutes || item.duration || ""),
+            price:
+              typeof item.price === "number" ? formatPrice(item.price) : "",
+            preferredZone: Array.isArray(item.zones)
+              ? item.zones[0]
+              : item.zones || undefined,
+          }}
+        />
+      ) : (
+        <CatalogInquiryDialog
+          isOpen={isInquiryOpen}
+          onClose={() => setIsInquiryOpen(false)}
+          item={item}
+          tab={tab}
+          lang="bg"
+        />
+      )}
     </BentoCard>
   );
 }

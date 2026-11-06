@@ -30,7 +30,7 @@ async function getRecoverySession(id: string): Promise<ClubService> {
     description: data.description || "",
     price: data.price || 0,
     currency: "EUR",
-    durationMinutes: data.duration || 0,
+    durationMinutes: data.durationMinutes ?? data.duration ?? 60,
     category: data.category || "Други",
     zones: parseZones(data.zones),
     athleteCount: data.athleteCount || 1,

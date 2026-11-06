@@ -22,18 +22,44 @@ export function calcTournamentStandings(
 ): Record<string, number> {
   const standingsMap: Record<
     string,
-    { wins: number; losses: number; points: number }
+    {
+      wins: number;
+      losses: number;
+      points: number;
+      gamesWon: number;
+      gamesLost: number;
+    }
   > = {};
 
   entries.forEach((e) => {
     if (!e.id) return;
-    standingsMap[e.id] = { wins: 0, losses: 0, points: 0 };
+    standingsMap[e.id] = {
+      wins: 0,
+      losses: 0,
+      points: 0,
+      gamesWon: 0,
+      gamesLost: 0,
+    };
   });
 
   matches
     .filter((m) => m.status === "completed" && m.winnerEntryId)
     .forEach((m) => {
+      let p1Games = 0;
+      let p2Games = 0;
+      if (m.score) {
+        m.score.split(",").forEach((s) => {
+          const parts = s.trim().split("-");
+          const s1 = parseInt(parts[0], 10) || 0;
+          const s2 = parseInt(parts[1], 10) || 0;
+          p1Games += s1;
+          p2Games += s2;
+        });
+      }
+
       if (m.player1EntryId && standingsMap[m.player1EntryId]) {
+        standingsMap[m.player1EntryId].gamesWon += p1Games;
+        standingsMap[m.player1EntryId].gamesLost += p2Games;
         if (m.winnerEntryId === m.player1EntryId) {
           standingsMap[m.player1EntryId].wins++;
           standingsMap[m.player1EntryId].points += 2;
@@ -42,6 +68,8 @@ export function calcTournamentStandings(
         }
       }
       if (m.player2EntryId && standingsMap[m.player2EntryId]) {
+        standingsMap[m.player2EntryId].gamesWon += p2Games;
+        standingsMap[m.player2EntryId].gamesLost += p1Games;
         if (m.winnerEntryId === m.player2EntryId) {
           standingsMap[m.player2EntryId].wins++;
           standingsMap[m.player2EntryId].points += 2;
@@ -51,9 +79,11 @@ export function calcTournamentStandings(
       }
     });
 
-  const sorted = Object.entries(standingsMap).sort(
-    ([, a], [, b]) => b.points - a.points
-  );
+  const sorted = Object.entries(standingsMap).sort(([, a], [, b]) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    return b.gamesWon - b.gamesLost - (a.gamesWon - a.gamesLost);
+  });
 
   const positionMap: Record<string, number> = {};
   sorted.forEach(([id], idx) => {
@@ -92,7 +122,7 @@ export async function computeRankingsCore(
       );
 
       catEntries.forEach((entry) => {
-        if (!entry.memberId) return; // Skip guests
+        if (!entry.memberId && !entry.partnerMemberId) return; // Skip pure guest entries
 
         const position = positionMap[entry.id!] ?? catEntries.length;
         const rawPoints = getPlacementPoints(position);

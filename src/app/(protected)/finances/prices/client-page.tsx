@@ -56,7 +56,7 @@ export function PricesClientPage({ initialPrices }: PricesClientPageProps) {
               </span>
               <div className="flex items-center gap-2">
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-widest uppercase ${price.isActive ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-600"}`}
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-widest uppercase ${price.isActive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" : "bg-zinc-100 text-zinc-600 dark:bg-white dark:text-zinc-900"}`}
                 >
                   {price.isActive ? "Активна" : "Неактивна"}
                 </span>
@@ -110,7 +110,7 @@ export function PricesClientPage({ initialPrices }: PricesClientPageProps) {
             </div>
             <div className="flex items-center justify-between border-t border-zinc-50 pt-3 dark:border-zinc-900">
               <span className="text-sm font-semibold text-zinc-900 dark:text-white">
-                {price.value.toFixed(2)} лв.
+                {price.value.toFixed(2)} €
               </span>
               <span className="text-[10px] font-medium text-zinc-400">
                 {new Date(price.updatedAt).toLocaleDateString("bg-BG")} (

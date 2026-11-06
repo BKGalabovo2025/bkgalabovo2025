@@ -32,7 +32,9 @@ export function DataTableRowActions({ service }: DataTableRowActionsProps) {
         <DropdownMenuLabel>Действия</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <Link href={`/finances/services/${service.id}/edit`}>Редактирай</Link>
+          <Link href={`/catalogs/trainings/${service.id}/edit`}>
+            Редактирай
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
           <Link href={`/finances/services/${service.id}/history`}>История</Link>

@@ -138,7 +138,7 @@ export default function CampsClient() {
       </div>
 
       <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="mb-3 grid h-9 w-full max-w-xs sm:max-w-sm grid-cols-2 rounded-xl bg-zinc-100 p-0.5">
+        <TabsList className="mb-3 grid h-9 w-full max-w-xs sm:max-w-sm grid-cols-2 rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
           <TabsTrigger
             value="upcoming"
             className="rounded-lg text-xs font-semibold"

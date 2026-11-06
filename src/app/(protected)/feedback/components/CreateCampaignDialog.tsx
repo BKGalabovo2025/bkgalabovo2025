@@ -242,7 +242,7 @@ export function CreateCampaignDialog({
             <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3 min-h-0">
               {/* Choose Event from calendar */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-zinc-700">
+                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                   {isRecovery
                     ? "Свържи с конкретно събитие или кампания (по избор)"
                     : "Свържи със събитие от клубния график (по избор)"}
@@ -251,7 +251,7 @@ export function CreateCampaignDialog({
                   value={selectedEventId}
                   onValueChange={handleEventSelect}
                 >
-                  <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
+                  <SelectTrigger className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                     <SelectValue
                       placeholder={
                         isRecovery
@@ -281,7 +281,7 @@ export function CreateCampaignDialog({
               {/* Event Type & Template */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-zinc-700">
+                  <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                     Тип на събитието
                   </Label>
                   <Select
@@ -290,7 +290,7 @@ export function CreateCampaignDialog({
                       handleEventTypeChange(val as FeedbackEventType)
                     }
                   >
-                    <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
+                    <SelectTrigger className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -322,14 +322,14 @@ export function CreateCampaignDialog({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-zinc-700">
+                  <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                     Шаблон с въпроси
                   </Label>
                   <Select
                     value={selectedTemplateId}
                     onValueChange={setSelectedTemplateId}
                   >
-                    <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
+                    <SelectTrigger className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                       <SelectValue placeholder="Изберете шаблон..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -345,7 +345,7 @@ export function CreateCampaignDialog({
 
               {/* Campaign Title */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-zinc-700">
+                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                   {isRecovery
                     ? "Заглавие на анкетата (видимо за клиентите) *"
                     : "Заглавие на анкетата (видимо за родителите) *"}
@@ -358,13 +358,13 @@ export function CreateCampaignDialog({
                       ? "напр. Обратна връзка: Възстановяване след Републиканско първенство"
                       : "напр. Обратна връзка: Летен лагер Приморско 2026"
                   }
-                  className="rounded-xl border-zinc-200 text-xs"
+                  className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-zinc-700">
+                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                   {isRecovery
                     ? "Кратко описание / обръщение към клиентите"
                     : "Кратко описание / обръщение към родителите"}
@@ -378,13 +378,13 @@ export function CreateCampaignDialog({
                       : "напр. Скъпи родители, благодарим ви за доверието! Моля, отделете 2 минути да споделите вашите впечатления..."
                   }
                   rows={3}
-                  className="rounded-xl border-zinc-200 text-xs"
+                  className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 />
               </div>
 
               {/* Target Audience */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-zinc-700">
+                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                   Целева аудитория
                 </Label>
                 <Select
@@ -393,7 +393,7 @@ export function CreateCampaignDialog({
                     setTargetAudience(v as "parents" | "athletes" | "all")
                   }
                 >
-                  <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
+                  <SelectTrigger className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -418,7 +418,7 @@ export function CreateCampaignDialog({
               </div>
 
               {/* Standing Survey Toggle */}
-              <div className="flex items-center space-x-2 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
+              <div className="flex items-center space-x-2 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3 dark:border-indigo-900/50 dark:bg-indigo-950/30">
                 <Checkbox
                   id="isStandingCheck"
                   checked={isStanding}
@@ -426,7 +426,7 @@ export function CreateCampaignDialog({
                 />
                 <Label
                   htmlFor="isStandingCheck"
-                  className="cursor-pointer text-xs font-bold text-indigo-950"
+                  className="cursor-pointer text-xs font-bold text-indigo-950 dark:text-indigo-200"
                 >
                   {isRecovery
                     ? "🌐 Постоянна анкета на сайта на Recovery Zone (видима без краен срок)"

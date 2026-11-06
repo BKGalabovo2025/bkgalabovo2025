@@ -1,6 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -84,7 +85,12 @@ const RestockReport = ({ initialProducts }: RestockReportProps) => {
                   {productsToRestock.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">
-                        {product.name}
+                        <Link
+                          href={`/catalogs/shop/${product.id}/edit`}
+                          className="text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                        >
+                          {product.name}
+                        </Link>
                       </TableCell>
                       <TableCell className="text-center">
                         {product.stock}
@@ -104,7 +110,12 @@ const RestockReport = ({ initialProducts }: RestockReportProps) => {
                   className="flex flex-col gap-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50"
                 >
                   <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    {product.name}
+                    <Link
+                      href={`/catalogs/shop/${product.id}/edit`}
+                      className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                    >
+                      {product.name}
+                    </Link>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-zinc-500">Наличност:</span>

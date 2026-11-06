@@ -10,6 +10,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -216,9 +217,16 @@ const AttendanceReport = ({
               </span>
             </div>
             <p className="truncate text-base sm:text-lg font-light text-zinc-900 dark:text-white">
-              {topAttendee
-                ? `${topAttendee.member.firstName} ${topAttendee.member.lastName}`
-                : "N/A"}
+              {topAttendee ? (
+                <Link
+                  href={`/members/${topAttendee.member.id}/attendance`}
+                  className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                >
+                  {`${topAttendee.member.firstName} ${topAttendee.member.lastName}`}
+                </Link>
+              ) : (
+                "N/A"
+              )}
             </p>
             <p className="mt-1 text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
               {topAttendee?.attendanceCount} посещения
@@ -256,7 +264,7 @@ const AttendanceReport = ({
           <>
             <div className="hidden overflow-x-auto md:block">
               <Table>
-                <TableHeader className="bg-zinc-50/50">
+                <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
                   <TableRow className="h-16 border-none hover:bg-transparent">
                     <TableHead className="px-8 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                       Член
@@ -273,24 +281,27 @@ const AttendanceReport = ({
                   {reportData.map((item) => (
                     <TableRow
                       key={item.member.id}
-                      className="h-24 border-zinc-50 transition-colors hover:bg-zinc-50/50"
+                      className="h-24 border-zinc-50 transition-colors hover:bg-zinc-50/50 dark:border-zinc-800/80 dark:hover:bg-zinc-900/40"
                     >
                       <TableCell className="px-8">
-                        <p className="text-sm font-medium text-zinc-900">{`${item.member.firstName} ${item.member.lastName}`}</p>
+                        <Link
+                          href={`/members/${item.member.id}/attendance`}
+                          className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                        >{`${item.member.firstName} ${item.member.lastName}`}</Link>
                         <p className="mt-1 text-[10px] font-light tracking-widest text-zinc-400 uppercase">
                           {item.member.status}
                         </p>
                       </TableCell>
                       <TableCell>
-                        <p className="text-sm font-light text-zinc-600">
+                        <p className="text-sm font-light text-zinc-600 dark:text-zinc-300">
                           {item.member.email || "—"}
                         </p>
-                        <p className="mt-1 text-xs font-light text-zinc-400">
+                        <p className="mt-1 text-xs font-light text-zinc-400 dark:text-zinc-500">
                           {item.member.phone || "—"}
                         </p>
                       </TableCell>
                       <TableCell className="pr-8 text-right">
-                        <span className="inline-flex h-10 w-16 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 text-sm font-medium text-zinc-900">
+                        <span className="inline-flex h-10 w-16 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 text-sm font-medium text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                           {item.attendanceCount}
                         </span>
                       </TableCell>
@@ -299,7 +310,7 @@ const AttendanceReport = ({
                 </TableBody>
               </Table>
             </div>
-            <div className="flex flex-col divide-y divide-zinc-50 md:hidden">
+            <div className="flex flex-col divide-y divide-zinc-50 md:hidden dark:divide-zinc-800">
               {reportData.map((item) => (
                 <div
                   key={item.member.id}
@@ -307,16 +318,19 @@ const AttendanceReport = ({
                 >
                   <div className="flex flex-col gap-3">
                     <div>
-                      <p className="text-sm font-medium text-zinc-900">{`${item.member.firstName} ${item.member.lastName}`}</p>
+                      <Link
+                        href={`/members/${item.member.id}/attendance`}
+                        className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                      >{`${item.member.firstName} ${item.member.lastName}`}</Link>
                       <p className="mt-1 text-[10px] font-light tracking-widest text-zinc-400 uppercase">
                         {item.member.status}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-light text-zinc-600">
+                      <p className="text-xs font-light text-zinc-600 dark:text-zinc-300">
                         {item.member.email || "—"}
                       </p>
-                      <p className="mt-0.5 text-xs font-light text-zinc-400">
+                      <p className="mt-0.5 text-xs font-light text-zinc-400 dark:text-zinc-500">
                         {item.member.phone || "—"}
                       </p>
                     </div>
@@ -325,7 +339,7 @@ const AttendanceReport = ({
                     <span className="text-right text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
                       Посещения
                     </span>
-                    <span className="inline-flex h-10 w-12 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 text-sm font-medium text-zinc-900">
+                    <span className="inline-flex h-10 w-12 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 text-sm font-medium text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                       {item.attendanceCount}
                     </span>
                   </div>

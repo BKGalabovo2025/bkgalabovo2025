@@ -497,8 +497,8 @@ export function TournamentForm({
                           className={cn(
                             "flex cursor-pointer flex-row items-center space-x-2.5 rounded-xl border p-2.5 transition-all",
                             isChecked
-                              ? "border-primary/20 bg-primary/5 text-primary"
-                              : "border-zinc-100 bg-zinc-50/50 text-zinc-500 hover:bg-zinc-50"
+                              ? "border-primary/20 bg-primary/5 text-primary dark:border-primary/30 dark:bg-primary/10"
+                              : "border-zinc-100 bg-zinc-50/50 text-zinc-500 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400 dark:hover:bg-zinc-900"
                           )}
                           onClick={() =>
                             handleCategoryToggle(
@@ -570,7 +570,7 @@ export function TournamentForm({
         </div>
 
         {/* Fixed Sticky Footer */}
-        <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/80">
           <Button
             type="button"
             variant="ghost"

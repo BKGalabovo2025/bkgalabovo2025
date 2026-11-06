@@ -8,6 +8,7 @@ import {
   Mail,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -236,7 +237,7 @@ const LiabilitiesReport = ({
           <>
             <div className="hidden overflow-x-auto md:block">
               <Table>
-                <TableHeader className="bg-zinc-50/50">
+                <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
                   <TableRow className="h-16 border-none hover:bg-transparent">
                     <TableHead className="px-8 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                       Член
@@ -253,35 +254,43 @@ const LiabilitiesReport = ({
                   {unpaidMembers.map((member) => (
                     <TableRow
                       key={member.id}
-                      className="h-24 border-zinc-50 transition-colors hover:bg-zinc-50/50"
+                      className="h-24 border-zinc-50 transition-colors hover:bg-zinc-50/50 dark:border-zinc-800/80 dark:hover:bg-zinc-900/40"
                     >
                       <TableCell className="px-8">
-                        <p className="text-sm font-medium text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
-                        <p className="mt-1 text-[10px] font-light tracking-widest text-rose-500 uppercase">
+                        <Link
+                          href={`/members/${member.id}/sales`}
+                          className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                        >{`${member.firstName} ${member.lastName}`}</Link>
+                        <p className="mt-1 text-[10px] font-light tracking-widest text-rose-500 uppercase dark:text-rose-400">
                           Неплатен абонамент
                         </p>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1.5">
-                          <span className="flex items-center gap-2 text-sm font-light text-zinc-600">
+                          <span className="flex items-center gap-2 text-sm font-light text-zinc-600 dark:text-zinc-300">
                             <Mail
-                              className="size-3.5 text-zinc-300"
+                              className="size-3.5 text-zinc-300 dark:text-zinc-500"
                               strokeWidth={1.5}
                             />{" "}
                             {member.email || "—"}
                           </span>
-                          <span className="text-xs font-light text-zinc-400">
+                          <span className="text-xs font-light text-zinc-400 dark:text-zinc-500">
                             {member.phone || "—"}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="pr-8 text-right">
                         <Button
+                          asChild
                           variant="ghost"
                           size="sm"
-                          className="h-10 rounded-xl px-6 text-[10px] font-medium tracking-widest text-zinc-600 uppercase transition-all hover:bg-rose-50 hover:text-rose-500"
+                          className="h-10 rounded-xl px-6 text-[10px] font-medium tracking-widest text-zinc-600 uppercase transition-all hover:bg-rose-50 hover:text-rose-500 dark:text-zinc-300 dark:hover:bg-rose-950/30 dark:hover:text-rose-400"
                         >
-                          Напомняне
+                          <Link
+                            href={`/marketing/composer?memberId=${member.id}`}
+                          >
+                            Напомняне
+                          </Link>
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -289,30 +298,36 @@ const LiabilitiesReport = ({
                 </TableBody>
               </Table>
             </div>
-            <div className="flex flex-col divide-y divide-zinc-50 md:hidden">
+            <div className="flex flex-col divide-y divide-zinc-50 md:hidden dark:divide-zinc-800">
               {unpaidMembers.map((member) => (
                 <div key={member.id} className="flex flex-col gap-4 p-6">
                   <div>
-                    <p className="text-sm font-medium text-zinc-900">{`${member.firstName} ${member.lastName}`}</p>
-                    <p className="mt-1 text-[10px] font-medium tracking-widest text-rose-500 uppercase">
+                    <Link
+                      href={`/members/${member.id}/sales`}
+                      className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                    >{`${member.firstName} ${member.lastName}`}</Link>
+                    <p className="mt-1 text-[10px] font-medium tracking-widest text-rose-500 uppercase dark:text-rose-400">
                       Неплатен абонамент
                     </p>
                   </div>
-                  <div className="flex flex-col gap-1.5 rounded-xl bg-zinc-50 p-3">
-                    <span className="flex items-center gap-2 text-xs font-medium text-zinc-600">
+                  <div className="flex flex-col gap-1.5 rounded-xl bg-zinc-50 p-3 dark:bg-zinc-900">
+                    <span className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-300">
                       <Mail className="size-3.5 text-zinc-400" />
                       {member.email || "—"}
                     </span>
-                    <span className="flex items-center gap-2 text-xs font-medium text-zinc-600">
+                    <span className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-300">
                       {member.phone || "—"}
                     </span>
                   </div>
                   <Button
+                    asChild
                     variant="outline"
                     size="sm"
-                    className="h-10 w-full border-rose-200 bg-rose-50 text-[10px] tracking-widest text-rose-500 uppercase hover:bg-rose-100"
+                    className="h-10 w-full border-rose-200 bg-rose-50 text-[10px] tracking-widest text-rose-500 uppercase hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-950/50"
                   >
-                    Напомняне
+                    <Link href={`/marketing/composer?memberId=${member.id}`}>
+                      Напомняне
+                    </Link>
                   </Button>
                 </div>
               ))}

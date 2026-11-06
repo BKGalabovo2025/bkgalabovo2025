@@ -132,7 +132,7 @@ export default function HistoryClientPage({
   // --- Render Logic ---
   if (isLoading) {
     return (
-      <div className="flex h-40 items-center justify-center">
+      <div className="flex h-40 items-center justify-center text-zinc-700 dark:text-zinc-300">
         <Loader2 className="mr-2 size-8 animate-spin" />
         <span>Зареждане на историята...</span>
       </div>
@@ -142,13 +142,13 @@ export default function HistoryClientPage({
   if (error) {
     return (
       <div className="container mx-auto p-4">
-        <div className="border-l-4 border-red-500 bg-red-50 p-4">
-          <h2 className="text-xl font-bold text-red-800">
+        <div className="border-l-4 border-red-500 bg-red-50 p-4 dark:bg-red-950/30">
+          <h2 className="text-xl font-bold text-red-800 dark:text-red-300">
             Грешка при зареждане
           </h2>
-          <p className="mt-2 text-red-700">{error}</p>
+          <p className="mt-2 text-red-700 dark:text-red-400">{error}</p>
         </div>
-        <Link href="/finances/services" className="mt-4 inline-block">
+        <Link href="/catalogs/trainings" className="mt-4 inline-block">
           <Button variant="outline">Назад към услугите</Button>
         </Link>
       </div>
@@ -156,12 +156,12 @@ export default function HistoryClientPage({
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 text-zinc-900 dark:text-zinc-100">
       <h1 className="mb-4 text-2xl font-bold">
         История на промените за &quot;{service?.name || "..."}&quot;
       </h1>
       <div className="mb-6">
-        <Link href="/finances/services">
+        <Link href="/catalogs/trainings">
           <Button variant="outline">Назад към услугите</Button>
         </Link>
       </div>
@@ -170,21 +170,25 @@ export default function HistoryClientPage({
           {history.map((entry) => (
             <li
               key={entry.id}
-              className="rounded-lg border bg-white p-4 shadow-sm"
+              className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
             >
-              <p className="text-sm text-gray-500">{entry.timestamp}</p>
+              <p className="text-sm text-gray-500 dark:text-zinc-400">
+                {entry.timestamp}
+              </p>
               <p>
                 <strong>Потребител:</strong> {entry.userName}
               </p>
               <p className="mt-2">
                 <strong>Промени:</strong>{" "}
-                <span className="text-gray-700">{entry.changes}</span>
+                <span className="text-gray-700 dark:text-zinc-300">
+                  {entry.changes}
+                </span>
               </p>
             </li>
           ))}
         </ul>
       ) : (
-        <div className="rounded-lg border-2 border-dashed p-4 text-center">
+        <div className="rounded-lg border-2 border-dashed border-zinc-200 p-4 text-center dark:border-zinc-800">
           <p>Няма намерена история на промените за тази услуга.</p>
         </div>
       )}

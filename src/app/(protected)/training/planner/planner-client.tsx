@@ -256,11 +256,11 @@ function PlannerClientContent() {
       {/* Header */}
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase">
-            <CalendarRange className="size-6 text-indigo-600" />
+          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase dark:text-white">
+            <CalendarRange className="size-6 text-indigo-600 dark:text-indigo-400" />
             Универсален Планировчик
           </h1>
-          <p className="mt-1 font-medium text-zinc-500">
+          <p className="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
             Планиране на лагери и целогодишни тренировки
           </p>
         </div>
@@ -268,7 +268,7 @@ function PlannerClientContent() {
           <Button
             asChild
             variant="outline"
-            className="w-full sm:w-auto rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+            className="w-full sm:w-auto rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-950/50"
           >
             <Link href="/training/theory">
               <GraduationCap className="mr-2 size-4" />
@@ -280,7 +280,7 @@ function PlannerClientContent() {
               setEditingSession(null);
               setIsWizardOpen(true);
             }}
-            className="w-full sm:w-auto rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
+            className="w-full sm:w-auto rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
           >
             <Plus className="mr-2 size-4" />
             Планирай тренировка
@@ -294,10 +294,10 @@ function PlannerClientContent() {
           value={activeTab}
           onValueChange={(val) => setActiveTab(val as "upcoming" | "archive")}
         >
-          <TabsList className="grid h-9 w-full max-w-md grid-cols-2 rounded-xl bg-zinc-100 p-0.5">
+          <TabsList className="grid h-9 w-full max-w-md grid-cols-2 rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
             <TabsTrigger
               value="upcoming"
-              className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs"
+              className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-indigo-300"
             >
               <CalendarRange className="size-3.5" />
               <span>Предстоящи</span>
@@ -305,8 +305,8 @@ function PlannerClientContent() {
                 variant="secondary"
                 className={`ml-1 px-1.5 py-0 text-[10px] font-bold ${
                   activeTab === "upcoming"
-                    ? "bg-indigo-100 text-indigo-800"
-                    : "bg-zinc-200 text-zinc-600"
+                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
+                    : "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                 }`}
               >
                 {upcomingSessions.length}
@@ -314,7 +314,7 @@ function PlannerClientContent() {
             </TabsTrigger>
             <TabsTrigger
               value="archive"
-              className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs"
+              className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-indigo-300"
             >
               <Archive className="size-3.5" />
               <span>Архив / Проведени</span>
@@ -322,8 +322,8 @@ function PlannerClientContent() {
                 variant="secondary"
                 className={`ml-1 px-1.5 py-0 text-[10px] font-bold ${
                   activeTab === "archive"
-                    ? "bg-indigo-100 text-indigo-800"
-                    : "bg-zinc-200 text-zinc-600"
+                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
+                    : "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                 }`}
               >
                 {archivedSessions.length}
@@ -334,7 +334,7 @@ function PlannerClientContent() {
       </div>
 
       {/* Filters Bar */}
-      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-2xs">
+      <div className="mb-6 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           {/* Search Input */}
           <div className="relative flex-1">
@@ -343,7 +343,7 @@ function PlannerClientContent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Търси по заглавие, упражнение, бележки..."
-              className="rounded-xl border-zinc-200 pl-9 text-xs sm:text-sm"
+              className="rounded-xl border-zinc-200 pl-9 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
             />
             {searchQuery && (
               <button
@@ -357,13 +357,13 @@ function PlannerClientContent() {
 
           {/* Date Picker Input */}
           <div className="relative w-full sm:w-auto">
-            <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5">
-              <Calendar className="size-4 shrink-0 text-indigo-600" />
+            <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-950">
+              <Calendar className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
               <input
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full bg-transparent text-xs font-semibold text-zinc-800 outline-hidden sm:text-sm"
+                className="w-full bg-transparent text-xs font-semibold text-zinc-800 outline-hidden sm:text-sm dark:text-zinc-100"
                 title="Избери дата"
               />
               {dateFilter && (
@@ -381,7 +381,7 @@ function PlannerClientContent() {
           {/* Location Select */}
           <div className="w-full sm:w-44">
             <Select value={locationFilter} onValueChange={setLocationFilter}>
-              <SelectTrigger className="rounded-xl border-zinc-200 text-xs font-medium sm:text-sm">
+              <SelectTrigger className="rounded-xl border-zinc-200 text-xs font-medium sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                 <SelectValue placeholder="Всички локации" />
               </SelectTrigger>
               <SelectContent>
@@ -409,10 +409,10 @@ function PlannerClientContent() {
 
         {/* Filter results info */}
         {hasActiveFilters && (
-          <div className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-2 text-xs text-zinc-500">
+          <div className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
             <span>
               Намерени са{" "}
-              <strong className="text-zinc-900">
+              <strong className="text-zinc-900 dark:text-zinc-100">
                 {filteredSessions.length}
               </strong>{" "}
               тренировки от общо {baseSessions.length}
@@ -423,32 +423,32 @@ function PlannerClientContent() {
 
       {/* Empty State */}
       {filteredSessions.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center">
+        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
           {hasActiveFilters ? (
             <>
-              <Filter className="mx-auto mb-4 size-12 text-zinc-300" />
-              <h3 className="mb-2 text-lg font-bold text-zinc-900">
+              <Filter className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-700" />
+              <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
                 Няма намерени тренировки за тези филтри
               </h3>
-              <p className="mx-auto mb-6 max-w-md text-sm text-zinc-500">
+              <p className="mx-auto mb-6 max-w-md text-sm text-zinc-500 dark:text-zinc-400">
                 Опитайте да изчистите датата или думата за търсене, за да видите
                 всички тренировки.
               </p>
               <Button
                 variant="outline"
                 onClick={clearFilters}
-                className="rounded-xl"
+                className="rounded-xl dark:border-zinc-800"
               >
                 Изчисти всички филтри
               </Button>
             </>
           ) : activeTab === "upcoming" ? (
             <>
-              <CalendarRange className="mx-auto mb-4 size-12 text-zinc-300" />
-              <h3 className="mb-2 text-lg font-bold text-zinc-900">
+              <CalendarRange className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-700" />
+              <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
                 Няма предстоящи тренировки
               </h3>
-              <p className="mx-auto mb-6 max-w-md text-zinc-500">
+              <p className="mx-auto mb-6 max-w-md text-zinc-500 dark:text-zinc-400">
                 Всички планирани тренировки са проведени или все още не сте
                 създали нови.
               </p>
@@ -464,11 +464,11 @@ function PlannerClientContent() {
             </>
           ) : (
             <>
-              <History className="mx-auto mb-4 size-12 text-zinc-300" />
-              <h3 className="mb-2 text-lg font-bold text-zinc-900">
+              <History className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-700" />
+              <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
                 Няма архивирани тренировки
               </h3>
-              <p className="mx-auto max-w-md text-zinc-500">
+              <p className="mx-auto max-w-md text-zinc-500 dark:text-zinc-400">
                 Когато стартирате и финализирате тренировка през бутона „Старт“,
                 тя автоматично ще се появи тук в архива.
               </p>
@@ -485,7 +485,7 @@ function PlannerClientContent() {
             return (
               <Card
                 key={session.id}
-                className="overflow-hidden border-zinc-200 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md"
+                className="overflow-hidden border-zinc-200 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-800"
               >
                 <CardContent className="p-0">
                   <div className="flex flex-col sm:flex-row sm:items-center">
@@ -493,21 +493,21 @@ function PlannerClientContent() {
                     <button
                       type="button"
                       onClick={() => openPreview(session)}
-                      className="flex flex-col justify-center border-zinc-200 bg-zinc-50 p-6 text-left transition-colors hover:bg-indigo-50/40 sm:w-48 sm:border-r"
+                      className="flex flex-col justify-center border-zinc-200 bg-zinc-50 p-6 text-left transition-colors hover:bg-indigo-50/40 sm:w-48 sm:border-r dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:bg-indigo-950/30"
                       title="Кликнете за пълен преглед на тренировката"
                     >
-                      <div className="mb-1 text-sm font-medium text-zinc-500 capitalize">
+                      <div className="mb-1 text-sm font-medium text-zinc-500 capitalize dark:text-zinc-400">
                         {new Date(session.date).toLocaleDateString("bg-BG", {
                           weekday: "long",
                         })}
                       </div>
-                      <div className="text-2xl font-black text-zinc-900">
+                      <div className="text-2xl font-black text-zinc-900 dark:text-white">
                         {new Date(session.date).toLocaleDateString("bg-BG", {
                           day: "2-digit",
                           month: "2-digit",
                         })}
                       </div>
-                      <div className="mt-1 text-[11px] font-semibold text-indigo-600">
+                      <div className="mt-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
                         {new Date(session.date).getFullYear()} г.
                       </div>
                     </button>
@@ -518,7 +518,7 @@ function PlannerClientContent() {
                         {/* Badges row */}
                         <div className="mb-2 flex flex-wrap items-center gap-2">
                           {isCompleted ? (
-                            <Badge className="border-emerald-200 bg-emerald-50 text-[10px] font-bold tracking-wider text-emerald-700 uppercase">
+                            <Badge className="border-emerald-200 bg-emerald-50 text-[10px] font-bold tracking-wider text-emerald-700 uppercase dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                               <CheckCircle2 className="mr-1 size-3" />
                               Проведена
                             </Badge>
@@ -543,7 +543,7 @@ function PlannerClientContent() {
                               <Badge
                                 key={i}
                                 variant="outline"
-                                className="border-indigo-200 bg-indigo-50 text-[10px] tracking-wider text-indigo-700 uppercase"
+                                className="border-indigo-200 bg-indigo-50 text-[10px] tracking-wider text-indigo-700 uppercase dark:border-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300"
                               >
                                 {g}
                               </Badge>
@@ -551,7 +551,7 @@ function PlannerClientContent() {
                           ) : session.ageGroup ? (
                             <Badge
                               variant="outline"
-                              className="bg-zinc-100 text-[10px] tracking-wider uppercase"
+                              className="bg-zinc-100 text-[10px] tracking-wider uppercase dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
                             >
                               {session.ageGroup}
                             </Badge>
@@ -560,9 +560,9 @@ function PlannerClientContent() {
                           {isCompleted && attendeeCount > 0 && (
                             <Badge
                               variant="outline"
-                              className="border-indigo-200 bg-indigo-50/50 text-[10px] font-semibold text-indigo-800"
+                              className="border-indigo-200 bg-indigo-50/50 text-[10px] font-semibold text-indigo-800 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300"
                             >
-                              <Users className="mr-1 size-3 text-indigo-600" />
+                              <Users className="mr-1 size-3 text-indigo-600 dark:text-indigo-400" />
                               {attendeeCount} присъствали
                             </Badge>
                           )}
@@ -574,13 +574,13 @@ function PlannerClientContent() {
                           onClick={() => openPreview(session)}
                           className="group mb-1 text-left"
                         >
-                          <h3 className="text-lg font-bold text-zinc-900 transition-colors group-hover:text-indigo-600">
+                          <h3 className="text-lg font-bold text-zinc-900 transition-colors group-hover:text-indigo-600 dark:text-zinc-100 dark:group-hover:text-indigo-400">
                             {session.title}
                           </h3>
                         </button>
 
                         {/* Metadata */}
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-zinc-500">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                           <div className="flex items-center gap-1">
                             <MapPin className="size-3" />
                             {formatLocationLabel(session.location)}
@@ -609,11 +609,11 @@ function PlannerClientContent() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
+                          className="rounded-xl border-zinc-200 text-xs font-bold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                           onClick={() => openPreview(session)}
                           title="Пълен преглед на упражненията и детайлите"
                         >
-                          <Eye className="mr-1.5 size-3.5 text-indigo-600" />
+                          <Eye className="mr-1.5 size-3.5 text-indigo-600 dark:text-indigo-400" />
                           <span>Преглед</span>
                         </Button>
 
@@ -621,7 +621,7 @@ function PlannerClientContent() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                            className="rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                             onClick={() => handleRevertToPlanned(session.id)}
                             title="Върни в списъка с Предстоящи"
                           >
@@ -632,7 +632,7 @@ function PlannerClientContent() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                          className="rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                           onClick={() => {
                             setEditingSession(session);
                             setIsWizardOpen(true);
@@ -645,7 +645,7 @@ function PlannerClientContent() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700"
+                          className="rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40"
                           onClick={() => handleDeleteSession(session.id)}
                           title="Изтрий тренировка"
                         >
@@ -656,7 +656,7 @@ function PlannerClientContent() {
                           <Button
                             asChild
                             variant="outline"
-                            className="rounded-xl border-emerald-200 bg-emerald-50/50 font-bold text-emerald-700 hover:bg-emerald-100"
+                            className="rounded-xl border-emerald-200 bg-emerald-50/50 font-bold text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
                           >
                             <Link
                               href={`/training/planner/${session.id}/active`}
@@ -670,7 +670,7 @@ function PlannerClientContent() {
                         ) : (
                           <Button
                             asChild
-                            className="rounded-xl bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100"
+                            className="rounded-xl bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
                           >
                             <Link
                               href={`/training/planner/${session.id}/active`}

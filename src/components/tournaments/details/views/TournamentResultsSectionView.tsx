@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, Download, FileDown, Trophy } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ export function TournamentResultsSectionView() {
     tournament,
     entries,
     matches,
+    getPlayerName,
     getEntryNameById,
     getCategoryName,
     getMedalEmoji,
@@ -33,6 +35,50 @@ export function TournamentResultsSectionView() {
   } = useTournamentDetailsContext();
 
   if (!tournament) return null;
+
+  const renderEntryParticipantLinks = (
+    entryId: string,
+    fallbackName: string
+  ) => {
+    const entry = entries.find((e) => e.id === entryId);
+    if (!entry) return fallbackName;
+
+    const p1Name = getPlayerName(entry.memberId, entry.externalName);
+    const p1Node = entry.memberId ? (
+      <Link
+        href={`/members/${entry.memberId}`}
+        className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+      >
+        {p1Name}
+      </Link>
+    ) : (
+      <span>{p1Name}</span>
+    );
+
+    if (entry.categoryId === "doubles" || entry.categoryId === "mixed") {
+      const p2Name = getPlayerName(
+        entry.partnerMemberId,
+        entry.partnerExternalName
+      );
+      const p2Node = entry.partnerMemberId ? (
+        <Link
+          href={`/members/${entry.partnerMemberId}`}
+          className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+        >
+          {p2Name}
+        </Link>
+      ) : (
+        <span>{p2Name}</span>
+      );
+      return (
+        <span>
+          {p1Node} / {p2Node}
+        </span>
+      );
+    }
+
+    return p1Node;
+  };
 
   return (
     <div className="space-y-6">
@@ -138,9 +184,8 @@ export function TournamentResultsSectionView() {
                   <Download className="size-3.5 text-red-600" /> PDF
                 </Button>
                 {tournament.status !== "completed" &&
-                  matches
-                    .filter((m) => m.categoryId === cat)
-                    .every((m) => m.status === "completed") && (
+                  matches.length > 0 &&
+                  matches.every((m) => m.status === "completed") && (
                     <Button
                       variant="default"
                       size="sm"
@@ -186,7 +231,9 @@ export function TournamentResultsSectionView() {
                         <TableCell className="text-center font-medium text-zinc-900 dark:text-zinc-100">
                           {getMedalEmoji(idx, s.wins)}
                         </TableCell>
-                        <TableCell className="font-medium">{s.name}</TableCell>
+                        <TableCell className="font-medium">
+                          {renderEntryParticipantLinks(s.entryId, s.name)}
+                        </TableCell>
                         <TableCell className="text-center">
                           {s.played}
                         </TableCell>
@@ -234,7 +281,7 @@ export function TournamentResultsSectionView() {
                           {getMedalEmoji(idx, s.wins)}
                         </div>
                         <span className="text-sm font-medium text-zinc-900 dark:text-white">
-                          {s.name}
+                          {renderEntryParticipantLinks(s.entryId, s.name)}
                         </span>
                       </div>
                       <Badge

@@ -179,31 +179,31 @@ export function TemplateEditorDialog({
             {/* Meta info */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-bold text-zinc-700">
+                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                   Име на шаблона *
                 </Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="напр. Летен Лагер - Пълна анкета"
-                  className="rounded-xl border-zinc-200 text-xs"
+                  className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 />
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-bold text-zinc-700">
+                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                   Описание на шаблона
                 </Label>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="напр. Оценка на лагера: тренировки, организация, храна..."
-                  className="rounded-xl border-zinc-200 text-xs"
+                  className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-zinc-700">
+                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
                   Тип събитие по подразбиране
                 </Label>
                 <Select
@@ -212,7 +212,7 @@ export function TemplateEditorDialog({
                     setEventType(val as FeedbackEventType)
                   }
                 >
-                  <SelectTrigger className="rounded-xl border-zinc-200 text-xs">
+                  <SelectTrigger className="rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -226,16 +226,16 @@ export function TemplateEditorDialog({
             </div>
 
             {/* Questions List Builder */}
-            <div className="space-y-3 border-t border-zinc-100 pt-4">
+            <div className="space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold tracking-wider text-zinc-800 uppercase">
+                <h4 className="text-xs font-bold tracking-wider text-zinc-800 uppercase dark:text-zinc-200">
                   Въпроси в анкетата ({questions.length})
                 </h4>
                 <Button
                   onClick={handleAddQuestion}
                   size="sm"
                   variant="outline"
-                  className="rounded-xl border-indigo-200 text-xs font-bold text-indigo-700 hover:bg-indigo-50"
+                  className="rounded-xl border-indigo-200 text-xs font-bold text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900/50 dark:text-indigo-300 dark:hover:bg-indigo-950/30"
                 >
                   <Plus className="mr-1 size-3.5" />
                   Добави въпрос
@@ -246,10 +246,10 @@ export function TemplateEditorDialog({
                 {questions.map((q, idx) => (
                   <div
                     key={q.id || idx}
-                    className="space-y-3 rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4"
+                    className="space-y-3 rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="flex size-6 items-center justify-center rounded-lg bg-indigo-50 text-xs font-black text-indigo-600">
+                      <span className="flex size-6 items-center justify-center rounded-lg bg-indigo-50 text-xs font-black text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
                         {idx + 1}
                       </span>
 
@@ -260,7 +260,7 @@ export function TemplateEditorDialog({
                             handleUpdateQuestion(idx, "label", e.target.value)
                           }
                           placeholder="Текст на въпроса..."
-                          className="rounded-xl border-zinc-200 bg-white text-xs font-medium"
+                          className="rounded-xl border-zinc-200 bg-white text-xs font-medium dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                         />
 
                         <Input
@@ -273,7 +273,7 @@ export function TemplateEditorDialog({
                             )
                           }
                           placeholder="Допълнително пояснение (по избор)..."
-                          className="rounded-xl border-zinc-200 bg-white text-[11px] text-zinc-500"
+                          className="rounded-xl border-zinc-200 bg-white text-[11px] text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
                         />
                       </div>
 
@@ -281,13 +281,13 @@ export function TemplateEditorDialog({
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemoveQuestion(idx)}
-                        className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600"
+                        className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
                       >
                         <Trash2 className="size-4" />
                       </Button>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200/60 pt-1">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200/60 pt-1 dark:border-zinc-800">
                       <div className="flex items-center gap-2">
                         <Label className="text-[11px] text-zinc-500">
                           Тип:
@@ -302,7 +302,7 @@ export function TemplateEditorDialog({
                             )
                           }
                         >
-                          <SelectTrigger className="h-8 w-40 rounded-lg border-zinc-200 bg-white text-xs">
+                          <SelectTrigger className="h-8 w-40 rounded-lg border-zinc-200 bg-white text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -332,7 +332,7 @@ export function TemplateEditorDialog({
                         />
                         <Label
                           htmlFor={`req_${idx}`}
-                          className="cursor-pointer text-xs font-semibold text-zinc-600"
+                          className="cursor-pointer text-xs font-semibold text-zinc-600 dark:text-zinc-300"
                         >
                           Задължителен
                         </Label>
@@ -355,7 +355,7 @@ export function TemplateEditorDialog({
                             )
                           }
                           placeholder="напр. Категорично да, По-скоро да, Не"
-                          className="rounded-xl border-zinc-200 bg-white text-xs"
+                          className="rounded-xl border-zinc-200 bg-white text-xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                         />
                       </div>
                     )}

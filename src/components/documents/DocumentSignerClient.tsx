@@ -247,10 +247,10 @@ export function DocumentSignerClient({
     return (
       <main
         id="main-content"
-        className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6 lg:px-8"
+        className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6 lg:px-8 dark:bg-zinc-950"
       >
         <div className="mx-auto max-w-xl">
-          <div className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-xl">
+          <div className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
             {/* Header banner */}
             <div className="bg-emerald-600 px-6 py-8 text-center text-white">
               <div className="mx-auto mb-3 flex size-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
@@ -266,31 +266,39 @@ export function DocumentSignerClient({
 
             {/* Body */}
             <div className="space-y-6 p-6 sm:p-8">
-              <div className="rounded-2xl border border-zinc-100 bg-zinc-50/70 p-4 space-y-3">
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50/70 p-4 space-y-3 dark:border-zinc-800 dark:bg-zinc-950/60">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-zinc-600">Документ:</span>
-                  <span className="font-semibold text-zinc-900">
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    Документ:
+                  </span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                     {data.documentTitle}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-zinc-600">Състезател / Член:</span>
-                  <span className="font-semibold text-zinc-900">
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    Състезател / Член:
+                  </span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                     {data.memberName}
                   </span>
                 </div>
                 {data.parentData?.parentName && (
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-zinc-600">Подписано от:</span>
-                    <span className="font-semibold text-zinc-900">
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      Подписано от:
+                    </span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                       {data.parentData.parentName}
                     </span>
                   </div>
                 )}
                 {signedDateStr && (
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-zinc-600">Дата и час:</span>
-                    <span className="font-semibold text-zinc-900">
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      Дата и час:
+                    </span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                       {signedDateStr} ч.
                     </span>
                   </div>
@@ -299,8 +307,8 @@ export function DocumentSignerClient({
 
               {/* Signature Preview */}
               {data.signatureUrl && (
-                <div className="rounded-2xl border border-zinc-200/80 p-4 text-center">
-                  <span className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider block mb-2">
+                <div className="rounded-2xl border border-zinc-200/80 p-4 text-center dark:border-zinc-800">
+                  <span className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider block mb-2 dark:text-zinc-400">
                     Положен електронен подпис
                   </span>
                   <div className="flex items-center justify-center bg-white rounded-xl p-2 min-h-24">
@@ -314,8 +322,8 @@ export function DocumentSignerClient({
                 </div>
               )}
 
-              <div className="flex items-center justify-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
-                <Lock className="size-4 shrink-0 text-emerald-600" />
+              <div className="flex items-center justify-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-xs text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <Lock className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <span>
                   Този линк е защитен и еднократен. Промени по подписания
                   документ не са възможни.
@@ -327,9 +335,9 @@ export function DocumentSignerClient({
                   type="button"
                   variant="outline"
                   onClick={() => window.print()}
-                  className="rounded-xl border-zinc-200 text-xs font-semibold hover:bg-zinc-50 shadow-2xs"
+                  className="rounded-xl border-zinc-200 text-xs font-semibold hover:bg-zinc-50 shadow-2xs dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-800"
                 >
-                  <Printer className="mr-1.5 size-3.5 text-zinc-600" />
+                  <Printer className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
                   Принтирай / Запази като PDF
                 </Button>
               </div>
@@ -345,16 +353,16 @@ export function DocumentSignerClient({
     return (
       <main
         id="main-content"
-        className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6"
+        className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6 dark:bg-zinc-950"
       >
-        <div className="mx-auto max-w-lg overflow-hidden rounded-3xl border border-amber-200 bg-white p-8 text-center shadow-xl">
-          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+        <div className="mx-auto max-w-lg overflow-hidden rounded-3xl border border-amber-200 bg-white p-8 text-center shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
             <Clock className="size-7" />
           </div>
-          <h1 className="text-lg font-bold text-zinc-900">
+          <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
             Срокът на линка е изтекъл
           </h1>
-          <p className="mt-2 text-xs text-zinc-600 leading-relaxed">
+          <p className="mt-2 text-xs text-zinc-600 leading-relaxed dark:text-zinc-400">
             Валидността на този линк за подписване на „{data.documentTitle}” е
             изтекла. Моля, свържете се с треньора или администратора на клуба за
             генериране на нов линк.
@@ -369,14 +377,16 @@ export function DocumentSignerClient({
     return (
       <main
         id="main-content"
-        className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6"
+        className="min-h-screen bg-zinc-50 px-4 py-12 sm:px-6 dark:bg-zinc-950"
       >
-        <div className="mx-auto max-w-lg overflow-hidden rounded-3xl border border-rose-200 bg-white p-8 text-center shadow-xl">
-          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+        <div className="mx-auto max-w-lg overflow-hidden rounded-3xl border border-rose-200 bg-white p-8 text-center shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
             <AlertCircle className="size-7" />
           </div>
-          <h1 className="text-lg font-bold text-zinc-900">Линкът е анулиран</h1>
-          <p className="mt-2 text-xs text-zinc-600 leading-relaxed">
+          <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            Линкът е анулиран
+          </h1>
+          <p className="mt-2 text-xs text-zinc-600 leading-relaxed dark:text-zinc-400">
             Тази заявка за подписване е била анулирана от администратора на
             клуба.
           </p>
@@ -391,39 +401,39 @@ export function DocumentSignerClient({
   return (
     <main
       id="main-content"
-      className="min-h-screen bg-zinc-100/70 pb-20 pt-6 px-3 sm:px-6 lg:px-8 font-sans"
+      className="min-h-screen bg-zinc-100/70 pb-20 pt-6 px-3 sm:px-6 lg:px-8 font-sans dark:bg-zinc-950"
     >
       <div className="mx-auto max-w-2xl space-y-6">
         {/* Top Header Card */}
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-6 shadow-sm">
+        <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <span className="text-[10px] font-semibold tracking-wider text-emerald-700 uppercase">
+              <span className="text-[10px] font-semibold tracking-wider text-emerald-700 uppercase dark:text-emerald-400">
                 СНЦ „Бадминтон клуб Гълъбово”
               </span>
-              <h1 className="text-xl sm:text-2xl font-black text-zinc-950 mt-0.5">
+              <h1 className="text-xl sm:text-2xl font-black text-zinc-950 mt-0.5 dark:text-zinc-100">
                 {data.documentTitle}
               </h1>
             </div>
-            <div className="hidden sm:flex size-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-white">
+            <div className="hidden sm:flex size-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-white dark:bg-zinc-800">
               <PenTool className="size-6" />
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-zinc-100 pt-3 text-xs text-zinc-600">
-            <div className="flex items-center gap-1.5 font-medium text-zinc-900">
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-zinc-100 pt-3 text-xs text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+            <div className="flex items-center gap-1.5 font-medium text-zinc-900 dark:text-zinc-100">
               <User className="size-3.5 text-zinc-400" />
               <span>Състезател:</span>
-              <span className="underline decoration-zinc-300 underline-offset-2">
+              <span className="underline decoration-zinc-300 underline-offset-2 dark:decoration-zinc-700">
                 {data.memberName}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-zinc-600">
+            <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
               <Clock className="size-3.5" />
               <span>Срок на линка: {formattedExpiry} г.</span>
             </div>
-            <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 font-bold text-emerald-800 border border-emerald-200">
-              <Calendar className="size-3 text-emerald-600" />
+            <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 font-bold text-emerald-800 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+              <Calendar className="size-3 text-emerald-600 dark:text-emerald-400" />
               <span>
                 Валидност на документа: до 31.12.{new Date().getFullYear()} г.
               </span>
@@ -433,20 +443,20 @@ export function DocumentSignerClient({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Section 1: Parent / Signer Information */}
-          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
+          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4 dark:border-zinc-800 dark:bg-zinc-900">
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
                   1. Данни за родител / настойник
                 </h2>
                 {(parentName || parentPhone) && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                     <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Заредени от вашия профил (с опция за редакция)
                   </span>
                 )}
               </div>
-              <p className="text-xs text-zinc-500 mt-1">
+              <p className="text-xs text-zinc-500 mt-1 dark:text-zinc-400">
                 Данните са извлечени автоматично от родителския профил.
                 Прегледайте ги и направете корекции при необходимост преди
                 подписване.
@@ -457,7 +467,7 @@ export function DocumentSignerClient({
               <div className="space-y-1.5 sm:col-span-2">
                 <Label
                   htmlFor="parentName"
-                  className="text-xs font-semibold text-zinc-900"
+                  className="text-xs font-semibold text-zinc-900 dark:text-zinc-100"
                 >
                   Трите имена на родителя / настойника *
                 </Label>
@@ -467,14 +477,14 @@ export function DocumentSignerClient({
                   onChange={(e) => setParentName(e.target.value)}
                   placeholder="напр. Иван Георгиев Иванов"
                   required
-                  className="rounded-xl border-zinc-200 bg-zinc-50/50 focus:bg-white"
+                  className="rounded-xl border-zinc-200 bg-zinc-50/50 text-zinc-900 focus:bg-white dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:bg-zinc-900"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label
                   htmlFor="parentPhone"
-                  className="text-xs font-semibold text-zinc-900"
+                  className="text-xs font-semibold text-zinc-900 dark:text-zinc-100"
                 >
                   Телефон за връзка *
                 </Label>
@@ -485,14 +495,14 @@ export function DocumentSignerClient({
                   onChange={(e) => setParentPhone(e.target.value)}
                   placeholder="напр. 0888 123 456"
                   required
-                  className="rounded-xl border-zinc-200 bg-zinc-50/50 focus:bg-white"
+                  className="rounded-xl border-zinc-200 bg-zinc-50/50 text-zinc-900 focus:bg-white dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:bg-zinc-900"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label
                   htmlFor="parentEmail"
-                  className="text-xs font-semibold text-zinc-900"
+                  className="text-xs font-semibold text-zinc-900 dark:text-zinc-100"
                 >
                   Имейл адрес (по избор)
                 </Label>
@@ -502,14 +512,14 @@ export function DocumentSignerClient({
                   value={parentEmail}
                   onChange={(e) => setParentEmail(e.target.value)}
                   placeholder="roditel@example.com"
-                  className="rounded-xl border-zinc-200 bg-zinc-50/50 focus:bg-white"
+                  className="rounded-xl border-zinc-200 bg-zinc-50/50 text-zinc-900 focus:bg-white dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:bg-zinc-900"
                 />
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
                 <Label
                   htmlFor="parentAddress"
-                  className="text-xs font-semibold text-zinc-900"
+                  className="text-xs font-semibold text-zinc-900 dark:text-zinc-100"
                 >
                   Адрес по местоживеене (по избор)
                 </Label>
@@ -518,7 +528,7 @@ export function DocumentSignerClient({
                   value={parentAddress}
                   onChange={(e) => setParentAddress(e.target.value)}
                   placeholder="гр. Гълъбово, ул. ..."
-                  className="rounded-xl border-zinc-200 bg-zinc-50/50 focus:bg-white"
+                  className="rounded-xl border-zinc-200 bg-zinc-50/50 text-zinc-900 focus:bg-white dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:bg-zinc-900"
                 />
               </div>
 
@@ -526,7 +536,7 @@ export function DocumentSignerClient({
               <div className="space-y-1.5">
                 <Label
                   htmlFor="secondParentName"
-                  className="text-xs font-semibold text-zinc-900"
+                  className="text-xs font-semibold text-zinc-900 dark:text-zinc-100"
                 >
                   Втори родител (по избор)
                 </Label>
@@ -535,14 +545,14 @@ export function DocumentSignerClient({
                   value={secondParentName}
                   onChange={(e) => setSecondParentName(e.target.value)}
                   placeholder="Име на втори родител"
-                  className="rounded-xl border-zinc-200 bg-zinc-50/50 focus:bg-white"
+                  className="rounded-xl border-zinc-200 bg-zinc-50/50 text-zinc-900 focus:bg-white dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:bg-zinc-900"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label
                   htmlFor="secondParentPhone"
-                  className="text-xs font-semibold text-zinc-900"
+                  className="text-xs font-semibold text-zinc-900 dark:text-zinc-100"
                 >
                   Телефон на втори родител
                 </Label>
@@ -552,19 +562,19 @@ export function DocumentSignerClient({
                   value={secondParentPhone}
                   onChange={(e) => setSecondParentPhone(e.target.value)}
                   placeholder="Телефон на втори родител"
-                  className="rounded-xl border-zinc-200 bg-zinc-50/50 focus:bg-white"
+                  className="rounded-xl border-zinc-200 bg-zinc-50/50 text-zinc-900 focus:bg-white dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:bg-zinc-900"
                 />
               </div>
             </div>
 
             {/* Participation selection for application */}
             {data.documentType === "membershipApplication" && (
-              <div className="pt-2 border-t border-zinc-100">
+              <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                     Избор на форма на участие / абонамент
                   </span>
-                  <span className="text-[10.5pt] font-semibold text-emerald-700">
+                  <span className="text-[10.5pt] font-semibold text-emerald-700 dark:text-emerald-400">
                     (отразява се веднага в документа в т. 1)
                   </span>
                 </div>
@@ -584,7 +594,7 @@ export function DocumentSignerClient({
                         className={`flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
                           isSelected
                             ? "border-emerald-600 bg-emerald-950 text-white shadow-sm ring-2 ring-emerald-500"
-                            : "border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-800"
+                            : "border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800"
                         }`}
                       >
                         <input
@@ -598,7 +608,7 @@ export function DocumentSignerClient({
                           className={`inline-flex items-center justify-center size-4 rounded-xs border text-[9pt] font-bold ${
                             isSelected
                               ? "border-emerald-400 bg-emerald-500 text-white"
-                              : "border-zinc-300 bg-white text-transparent"
+                              : "border-zinc-300 bg-white text-transparent dark:border-zinc-700 dark:bg-zinc-900"
                           }`}
                         >
                           ✓
@@ -611,8 +621,8 @@ export function DocumentSignerClient({
                   })}
                 </div>
 
-                <div className="mt-3 flex items-center gap-2 text-xs text-emerald-800 font-semibold bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl">
-                  <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                <div className="mt-3 flex items-center gap-2 text-xs text-emerald-800 font-semibold bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                  <CheckCircle2 className="size-4 text-emerald-600 shrink-0 dark:text-emerald-400" />
                   <span>
                     Отразена избрана форма в официалния документ:{" "}
                     <strong className="underline decoration-emerald-400 underline-offset-2">
@@ -625,32 +635,32 @@ export function DocumentSignerClient({
           </div>
 
           {/* Section 2: Declarations and Consents */}
-          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4 dark:border-zinc-800 dark:bg-zinc-900">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
               2. Задължителни съгласия
             </h2>
 
             <div className="space-y-3 text-xs leading-relaxed">
-              <label className="flex items-start gap-3 p-3 rounded-2xl border border-zinc-200 bg-zinc-50/60 cursor-pointer hover:bg-zinc-50">
+              <label className="flex items-start gap-3 p-3 rounded-2xl border border-zinc-200 bg-zinc-50/60 cursor-pointer hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:bg-zinc-950">
                 <Checkbox
                   checked={agreedToRules}
                   onCheckedChange={(c) => setAgreedToRules(!!c)}
                   className="mt-0.5"
                 />
-                <span className="text-zinc-800">
+                <span className="text-zinc-800 dark:text-zinc-200">
                   <strong>Запознат/а съм и приемам:</strong> Потвърждавам, че
                   прочетох съдържанието на документа по-долу, приемам изложените
                   условия и потвърждавам верността на въведените данни. *
                 </span>
               </label>
 
-              <label className="flex items-start gap-3 p-3 rounded-2xl border border-zinc-200 bg-zinc-50/60 cursor-pointer hover:bg-zinc-50">
+              <label className="flex items-start gap-3 p-3 rounded-2xl border border-zinc-200 bg-zinc-50/60 cursor-pointer hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:bg-zinc-950">
                 <Checkbox
                   checked={agreedToGdpr}
                   onCheckedChange={(c) => setAgreedToGdpr(!!c)}
                   className="mt-0.5"
                 />
-                <span className="text-zinc-800">
+                <span className="text-zinc-800 dark:text-zinc-200">
                   <strong>Съгласие за лични данни (GDPR):</strong> Давам своето
                   съгласие личните ми данни и тези на детето да бъдат
                   обработвани от клуба за целите на тренировъчната и
@@ -661,13 +671,13 @@ export function DocumentSignerClient({
           </div>
 
           {/* Section 3: Signature Canvas - Parent 1 */}
-          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
+          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
                   3. Електронен подпис на родител / настойник 1 *
                 </h2>
-                <p className="text-xs text-zinc-500 mt-0.5">
+                <p className="text-xs text-zinc-500 mt-0.5 dark:text-zinc-400">
                   Разпишете се с пръст на екрана на телефона или с мишката
                 </p>
               </div>
@@ -676,14 +686,14 @@ export function DocumentSignerClient({
                 variant="outline"
                 size="sm"
                 onClick={handleClearSignature}
-                className="h-8 rounded-lg text-xs border-zinc-200 hover:bg-zinc-100"
+                className="h-8 rounded-lg text-xs border-zinc-200 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <Eraser className="size-3.5 mr-1 text-zinc-500" />
                 Изчисти
               </Button>
             </div>
 
-            <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 hover:bg-white transition-colors">
+            <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 hover:bg-white transition-colors dark:border-zinc-700 dark:bg-white">
               {SigCanvasComp ? (
                 <SigCanvasComp
                   ref={sigCanvasRef}
@@ -706,13 +716,13 @@ export function DocumentSignerClient({
           </div>
 
           {/* Section 4: Signature Canvas - Athlete / Member */}
-          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
+          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
                   4. Електронен подпис на състезател / член
                 </h2>
-                <p className="text-xs text-zinc-500 mt-0.5">
+                <p className="text-xs text-zinc-500 mt-0.5 dark:text-zinc-400">
                   За лица над 14 г. или присъстващ състезател (по избор)
                 </p>
               </div>
@@ -721,14 +731,14 @@ export function DocumentSignerClient({
                 variant="outline"
                 size="sm"
                 onClick={handleClearAthleteSignature}
-                className="h-8 rounded-lg text-xs border-zinc-200 hover:bg-zinc-100"
+                className="h-8 rounded-lg text-xs border-zinc-200 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <Eraser className="size-3.5 mr-1 text-zinc-500" />
                 Изчисти
               </Button>
             </div>
 
-            <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 hover:bg-white transition-colors">
+            <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 hover:bg-white transition-colors dark:border-zinc-700 dark:bg-white">
               {SigCanvasComp ? (
                 <SigCanvasComp
                   ref={athleteSigCanvasRef}
@@ -752,13 +762,13 @@ export function DocumentSignerClient({
 
           {/* Section 5: Signature Canvas - Second Parent (Optional) */}
           {secondParentName.trim() && (
-            <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4">
+            <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm space-y-4 dark:border-zinc-800 dark:bg-zinc-900">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
                     5. Електронен подпис на втори родител ({secondParentName})
                   </h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-xs text-zinc-500 mt-0.5 dark:text-zinc-400">
                     Полага се от втория родител при съгласие на двамата родители
                   </p>
                 </div>
@@ -767,14 +777,14 @@ export function DocumentSignerClient({
                   variant="outline"
                   size="sm"
                   onClick={handleClearSecondParentSignature}
-                  className="h-8 rounded-lg text-xs border-zinc-200 hover:bg-zinc-100"
+                  className="h-8 rounded-lg text-xs border-zinc-200 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
                   <Eraser className="size-3.5 mr-1 text-zinc-500" />
                   Изчисти
                 </Button>
               </div>
 
-              <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 hover:bg-white transition-colors">
+              <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 hover:bg-white transition-colors dark:border-zinc-700 dark:bg-white">
                 {SigCanvasComp ? (
                   <SigCanvasComp
                     ref={secondParentSigCanvasRef}
@@ -798,19 +808,19 @@ export function DocumentSignerClient({
           )}
 
           {/* Section 6: Official Document Final Preview */}
-          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm">
+          <div className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-7 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
                   {secondParentName.trim() ? "6." : "5."} Финален преглед на
                   официалния документ
                 </h2>
-                <p className="text-xs text-zinc-500 mt-0.5">
+                <p className="text-xs text-zinc-500 mt-0.5 dark:text-zinc-400">
                   Вижте готовия документ с нанесените от Вас данни, избрана
                   форма на участие и положени подписи
                 </p>
               </div>
-              <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-800 shrink-0 self-start sm:self-auto">
+              <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-800 shrink-0 self-start sm:self-auto dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                 ✓ Официален образец{" "}
                 {data.templateVersion ? `v${data.templateVersion}` : ""}
               </span>
@@ -851,11 +861,11 @@ export function DocumentSignerClient({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-14 rounded-2xl bg-zinc-950 text-white font-bold text-sm tracking-wide shadow-lg hover:bg-zinc-800 active:scale-0.99 transition-all"
+              className="w-full h-14 rounded-2xl bg-zinc-950 text-white font-bold text-sm tracking-wide shadow-lg hover:bg-zinc-800 active:scale-0.99 transition-all dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
-                  <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent dark:border-zinc-950 dark:border-t-transparent" />
                   Записване на документа...
                 </span>
               ) : (
@@ -866,8 +876,8 @@ export function DocumentSignerClient({
               )}
             </Button>
 
-            <p className="text-center text-[11px] text-zinc-600 flex items-center justify-center gap-1.5">
-              <ShieldCheck className="size-3.5 text-emerald-600" />
+            <p className="text-center text-[11px] text-zinc-600 flex items-center justify-center gap-1.5 dark:text-zinc-400">
+              <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
               Връзката е криптирана и защитена със сертификат за сигурност
             </p>
           </div>

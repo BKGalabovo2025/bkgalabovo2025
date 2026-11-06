@@ -10,6 +10,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -66,7 +67,7 @@ function getPositionBadgeClasses(position: number): string {
   if (position === 1) return "bg-yellow-500 text-white";
   if (position === 2) return "bg-zinc-400 text-white";
   if (position === 3) return "bg-orange-400 text-white";
-  return "bg-zinc-100 text-zinc-600";
+  return "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300";
 }
 
 interface RankingsClientProps {
@@ -87,6 +88,10 @@ export default function RankingsClient({
   const period = searchParams.get("period") || "all";
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const clockRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    setRankings(initialRankings);
+  }, [initialRankings]);
 
   const refresh = useCallback(async () => {
     try {
@@ -143,6 +148,7 @@ export default function RankingsClient({
     const result = await syncRankingsAction();
     if (result.success) {
       toast.success(result.message);
+      await refresh();
     } else {
       toast.error(result.message);
     }
@@ -159,7 +165,7 @@ export default function RankingsClient({
         mixed: "Смесени",
       }[activeTab as "singles" | "doubles" | "mixed"] || "Смесени";
 
-    return initialRankings
+    return rankings
       .map((r) => {
         const cat = r.categoryBreakdown.find((c) => c.category === catLabel);
         if (!cat) return null;
@@ -203,9 +209,9 @@ export default function RankingsClient({
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
           {liveIndicator}
           <div className="flex w-full items-center gap-2 sm:w-auto">
-            <Calendar className="size-4 shrink-0 text-slate-400" />
+            <Calendar className="size-4 shrink-0 text-slate-400 dark:text-zinc-500" />
             <Select value={period} onValueChange={handlePeriodChange}>
-              <SelectTrigger className="w-full rounded-xl border-slate-200 bg-white shadow-sm sm:w-48 md:w-55">
+              <SelectTrigger className="w-full rounded-xl border-slate-200 bg-white shadow-sm sm:w-48 md:w-55 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                 <SelectValue placeholder="Период" />
               </SelectTrigger>
               <SelectContent>
@@ -220,12 +226,12 @@ export default function RankingsClient({
             variant="outline"
             onClick={handleSyncToMembers}
             disabled={isSyncing}
-            className="w-full sm:w-auto rounded-xl border-slate-200 bg-white"
+            className="w-full sm:w-auto rounded-xl border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
           >
             {isSyncing ? (
               <Loader2 className="mr-2 size-4 animate-spin" />
             ) : (
-              <RefreshCw className="mr-2 size-4 text-slate-500" />
+              <RefreshCw className="mr-2 size-4 text-slate-500 dark:text-zinc-400" />
             )}
             Синхронизирай
           </Button>
@@ -233,10 +239,10 @@ export default function RankingsClient({
         </div>
       </PageHeader>
 
-      {initialRankings.length === 0 ? (
+      {rankings.length === 0 ? (
         <BentoCard className="py-10 sm:py-14 text-center">
           <Award className="mx-auto mb-3 size-10 opacity-20" />
-          <p className="text-sm font-medium tracking-wider text-slate-400 uppercase">
+          <p className="text-sm font-medium tracking-wider text-slate-400 uppercase dark:text-zinc-500">
             Няма намерени данни за избрания период.
           </p>
         </BentoCard>
@@ -249,8 +255,8 @@ export default function RankingsClient({
               <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
                 <Users className="size-4 sm:size-5 text-blue-500" />
                 <div>
-                  <p className="text-xl sm:text-2xl font-light tracking-tight">
-                    {initialRankings.length}
+                  <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
+                    {rankings.length}
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Играчи
@@ -260,8 +266,8 @@ export default function RankingsClient({
               <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
                 <TrendingUp className="size-4 sm:size-5 text-emerald-500" />
                 <div>
-                  <p className="text-xl sm:text-2xl font-light tracking-tight">
-                    {initialRankings[0]?.totalPoints ?? 0}
+                  <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
+                    {rankings[0]?.totalPoints ?? 0}
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Макс. точки
@@ -271,11 +277,8 @@ export default function RankingsClient({
               <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
                 <Trophy className="size-4 sm:size-5 text-yellow-500" />
                 <div>
-                  <p className="text-xl sm:text-2xl font-light tracking-tight">
-                    {initialRankings.reduce(
-                      (s, r) => s + r.tournamentsPlayed,
-                      0
-                    )}
+                  <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
+                    {rankings.reduce((s, r) => s + r.tournamentsPlayed, 0)}
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Участия
@@ -285,8 +288,8 @@ export default function RankingsClient({
               <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
                 <Star className="size-4 sm:size-5 text-purple-500" />
                 <div>
-                  <p className="text-xl sm:text-2xl font-light tracking-tight">
-                    {initialRankings.reduce((s, r) => s + r.wins, 0)}
+                  <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
+                    {rankings.reduce((s, r) => s + r.wins, 0)}
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                     Победи
@@ -297,16 +300,19 @@ export default function RankingsClient({
 
             {/* Podium Col */}
             <BentoCard className="flex h-full flex-col justify-center rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-6 shadow-none lg:col-span-8 dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex items-end justify-center gap-4 pb-4 md:gap-8">
+              <div className="grid grid-cols-1 items-end gap-4 pb-4 sm:grid-cols-3 md:gap-6">
                 {/* 2nd Place */}
                 {topThree[1] && (
-                  <div className="flex w-1/3 flex-col items-center">
-                    <div className="mb-4 text-3xl opacity-50 grayscale">🥈</div>
-                    <div className="w-full rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-center">
-                      <p className="mb-2 truncate px-2 text-[11px] tracking-widest text-zinc-400 uppercase">
+                  <div className="order-2 flex w-full flex-col items-center sm:order-1">
+                    <div className="mb-3 text-3xl opacity-50 grayscale">🥈</div>
+                    <div className="w-full rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                      <Link
+                        href={`/members/${topThree[1].memberId}`}
+                        className="mb-2 block truncate px-2 text-[11px] tracking-widest text-zinc-500 uppercase hover:text-indigo-600 hover:underline dark:text-zinc-300 dark:hover:text-indigo-400"
+                      >
                         {topThree[1].memberName}
-                      </p>
-                      <p className="text-3xl font-light tracking-tighter text-zinc-950">
+                      </Link>
+                      <p className="text-3xl font-light tracking-tighter text-zinc-950 dark:text-white">
                         {topThree[1].totalPoints}
                       </p>
                       <p className="mt-1 text-[9px] tracking-[0.3em] text-zinc-400 uppercase">
@@ -318,16 +324,19 @@ export default function RankingsClient({
 
                 {/* 1st Place */}
                 {topThree[0] && (
-                  <div className="mb-6 flex w-1/3 flex-col items-center">
-                    <div className="mb-4 text-4xl">🥇</div>
-                    <div className="w-full rounded-2xl border border-yellow-200 bg-white p-6 text-center shadow-sm ring-8 ring-yellow-50/50">
-                      <p className="mb-2 truncate px-2 text-[12px] tracking-[0.2em] text-zinc-900 uppercase">
+                  <div className="order-1 flex w-full flex-col items-center sm:order-2 sm:mb-4">
+                    <div className="mb-3 text-4xl">🥇</div>
+                    <div className="w-full rounded-2xl border border-yellow-200 bg-white p-5 sm:p-6 text-center shadow-sm ring-8 ring-yellow-50/50 dark:border-yellow-700/60 dark:bg-zinc-900 dark:ring-yellow-950/30">
+                      <Link
+                        href={`/members/${topThree[0].memberId}`}
+                        className="mb-2 block truncate px-2 text-[12px] tracking-[0.2em] text-zinc-900 uppercase hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+                      >
                         {topThree[0].memberName}
-                      </p>
-                      <p className="text-4xl font-light tracking-tighter text-yellow-600">
+                      </Link>
+                      <p className="text-4xl font-light tracking-tighter text-yellow-600 dark:text-yellow-400">
                         {topThree[0].totalPoints}
                       </p>
-                      <p className="mt-1 text-[10px] tracking-[0.4em] text-yellow-600/60 uppercase">
+                      <p className="mt-1 text-[10px] tracking-[0.4em] text-yellow-600/60 uppercase dark:text-yellow-400/70">
                         точки
                       </p>
                     </div>
@@ -336,13 +345,16 @@ export default function RankingsClient({
 
                 {/* 3rd Place */}
                 {topThree[2] && (
-                  <div className="flex w-1/3 flex-col items-center">
-                    <div className="mb-4 text-3xl opacity-30 grayscale">🥉</div>
-                    <div className="w-full rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-center">
-                      <p className="mb-2 truncate px-2 text-[11px] tracking-widest text-zinc-400 uppercase">
+                  <div className="order-3 flex w-full flex-col items-center">
+                    <div className="mb-3 text-3xl opacity-30 grayscale">🥉</div>
+                    <div className="w-full rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                      <Link
+                        href={`/members/${topThree[2].memberId}`}
+                        className="mb-2 block truncate px-2 text-[11px] tracking-widest text-zinc-500 uppercase hover:text-indigo-600 hover:underline dark:text-zinc-300 dark:hover:text-indigo-400"
+                      >
                         {topThree[2].memberName}
-                      </p>
-                      <p className="text-3xl font-light tracking-tighter text-zinc-950">
+                      </Link>
+                      <p className="text-3xl font-light tracking-tighter text-zinc-950 dark:text-white">
                         {topThree[2].totalPoints}
                       </p>
                       <p className="mt-1 text-[9px] tracking-[0.3em] text-zinc-400 uppercase">
@@ -363,12 +375,12 @@ export default function RankingsClient({
                   Пълно класиране
                 </h3>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-9 overflow-x-auto gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-0.5">
+                  <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-9 overflow-x-auto gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-0.5 dark:border-zinc-800 dark:bg-zinc-900">
                     {CATEGORY_TABS.map((tab) => (
                       <TabsTrigger
                         key={tab.id}
                         value={tab.id}
-                        className="flex-1 sm:flex-none rounded-lg px-3 sm:px-4 py-1 sm:py-0 text-[10px] font-semibold tracking-wider uppercase data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs"
+                        className="flex-1 sm:flex-none rounded-lg px-3 sm:px-4 py-1 sm:py-0 text-[10px] font-semibold tracking-wider uppercase data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
                       >
                         {tab.label}
                       </TabsTrigger>
@@ -380,8 +392,8 @@ export default function RankingsClient({
 
             <div className="hidden overflow-x-auto md:block">
               <Table>
-                <TableHeader className="bg-zinc-50/50">
-                  <TableRow className="h-10 border-zinc-100 hover:bg-transparent">
+                <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
+                  <TableRow className="h-10 border-zinc-100 hover:bg-transparent dark:border-zinc-800">
                     <TableHead className="w-16 text-center text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
                       №
                     </TableHead>
@@ -409,7 +421,7 @@ export default function RankingsClient({
                   {filteredRankings.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="h-64 text-center">
-                        <p className="text-[12px] tracking-widest text-zinc-300 uppercase">
+                        <p className="text-[12px] tracking-widest text-zinc-300 uppercase dark:text-zinc-600">
                           Няма данни за тази категория
                         </p>
                       </TableCell>
@@ -426,15 +438,18 @@ export default function RankingsClient({
                       return (
                         <TableRow
                           key={entry.memberId}
-                          className="group h-20 border-zinc-50 transition-colors hover:bg-zinc-50/50"
+                          className="group h-20 border-zinc-50 transition-colors hover:bg-zinc-50/50 dark:border-zinc-800/80 dark:hover:bg-zinc-900/40"
                         >
-                          <TableCell className="text-center text-xl font-light">
+                          <TableCell className="text-center text-xl font-light text-zinc-900 dark:text-zinc-100">
                             {getMedalEmoji(entry.position)}
                           </TableCell>
                           <TableCell>
-                            <div className="text-[14px] font-medium text-zinc-900">
+                            <Link
+                              href={`/members/${entry.memberId}`}
+                              className="text-[14px] font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                            >
                               {entry.memberName}
-                            </div>
+                            </Link>
                             {activeTab === "all" &&
                               entry.categoryBreakdown.length > 0 && (
                                 <div className="mt-2 flex flex-wrap gap-1">
@@ -443,7 +458,7 @@ export default function RankingsClient({
                                       <Badge
                                         key={c.category}
                                         variant="secondary"
-                                        className="rounded-full border-none bg-zinc-100 px-2 py-0.5 text-[9px] font-medium tracking-widest text-zinc-500 uppercase"
+                                        className="rounded-full border-none bg-zinc-100 px-2 py-0.5 text-[9px] font-medium tracking-widest text-zinc-500 uppercase dark:bg-zinc-800 dark:text-zinc-400"
                                       >
                                         {c.category}
                                       </Badge>
@@ -452,18 +467,18 @@ export default function RankingsClient({
                                 </div>
                               )}
                           </TableCell>
-                          <TableCell className="text-center text-sm text-zinc-600">
+                          <TableCell className="text-center text-sm text-zinc-600 dark:text-zinc-300">
                             {entry.tournamentsPlayed}
                           </TableCell>
-                          <TableCell className="text-center text-sm text-emerald-600">
+                          <TableCell className="text-center text-sm text-emerald-600 dark:text-emerald-400">
                             {entry.wins}
                           </TableCell>
-                          <TableCell className="text-center text-sm text-rose-500">
+                          <TableCell className="text-center text-sm text-rose-500 dark:text-rose-400">
                             {entry.losses}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center gap-3">
-                              <div className="hidden h-1 w-20 overflow-hidden rounded-full bg-zinc-100 md:block">
+                              <div className="hidden h-1 w-20 overflow-hidden rounded-full bg-zinc-100 md:block dark:bg-zinc-800">
                                 <div
                                   className={cn(
                                     "h-full rounded-full transition-all duration-500",
@@ -520,13 +535,16 @@ export default function RankingsClient({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 shrink-0 text-center text-2xl font-light">
+                          <div className="w-8 shrink-0 text-center text-2xl font-light text-zinc-900 dark:text-zinc-100">
                             {getMedalEmoji(entry.position)}
                           </div>
                           <div>
-                            <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                            <Link
+                              href={`/members/${entry.memberId}`}
+                              className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+                            >
                               {entry.memberName}
-                            </span>
+                            </Link>
                             {activeTab === "all" &&
                               entry.categoryBreakdown.length > 0 && (
                                 <div className="mt-1.5 flex flex-wrap gap-1">
@@ -535,7 +553,7 @@ export default function RankingsClient({
                                       <Badge
                                         key={c.category}
                                         variant="secondary"
-                                        className="rounded border-none bg-zinc-100 px-1.5 py-0 text-[8px] font-medium tracking-widest text-zinc-500 uppercase"
+                                        className="rounded border-none bg-zinc-100 px-1.5 py-0 text-[8px] font-medium tracking-widest text-zinc-500 uppercase dark:bg-zinc-800 dark:text-zinc-400"
                                       >
                                         {c.category}
                                       </Badge>
@@ -568,7 +586,7 @@ export default function RankingsClient({
                           <div className="mb-1 text-[9px] tracking-widest text-emerald-600/70 uppercase">
                             Поб.
                           </div>
-                          <div className="text-xs font-semibold text-emerald-600 tabular-nums">
+                          <div className="text-xs font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
                             {entry.wins}
                           </div>
                         </div>
@@ -576,7 +594,7 @@ export default function RankingsClient({
                           <div className="mb-1 text-[9px] tracking-widest text-rose-500/70 uppercase">
                             Заг.
                           </div>
-                          <div className="text-xs font-semibold text-rose-500 tabular-nums">
+                          <div className="text-xs font-semibold text-rose-500 tabular-nums dark:text-rose-400">
                             {entry.losses}
                           </div>
                         </div>
@@ -605,7 +623,7 @@ export default function RankingsClient({
           </BentoCard>
 
           {/* Points System Bento */}
-          <BentoCard className="rounded-2xl border-none bg-zinc-950 p-4 sm:p-5 text-white shadow-none">
+          <BentoCard className="rounded-2xl border-none bg-zinc-950 p-4 sm:p-5 text-white shadow-none dark:bg-zinc-900">
             <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
               <div className="shrink-0">
                 <h4 className="mb-1.5 flex items-center gap-2 text-[11px] tracking-[0.3em] text-zinc-500 uppercase">
@@ -617,7 +635,7 @@ export default function RankingsClient({
                   ранглиста на клуба
                 </p>
               </div>
-              <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+              <div className="grid flex-1 grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
                 {[
                   { pos: "🥇", pts: 100 },
                   { pos: "🥈", pts: 70 },
@@ -626,6 +644,7 @@ export default function RankingsClient({
                   { pos: "5-то", pts: 20 },
                   { pos: "6-то", pts: 15 },
                   { pos: "7-мо", pts: 10 },
+                  { pos: "8-мо", pts: 5 },
                   { pos: "Участие", pts: 3 },
                 ].map(({ pos, pts }) => (
                   <div

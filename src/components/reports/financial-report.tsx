@@ -16,6 +16,7 @@ import {
   Trash2,
   TrendingUp,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import {
@@ -106,18 +107,12 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
     });
   }, [dateFrom, dateTo, paymentType]);
 
-  const handleRowClick = (saleId: string, isPaid: boolean, type?: string) => {
-    if (isPaid) {
-      if (type === "general_service") {
-        router.push(`/finances/general-services/sales/${saleId}/receipt`);
-      } else if (type === "inventory") {
-        router.push(`/inventory/sales/${saleId}/receipt`);
-      } else {
-        router.push(`/sales/${saleId}/receipt`);
-      }
-    } else {
-      router.push(`/sales/${saleId}`);
-    }
+  const handleRowClick = (
+    saleId: string,
+    _isPaid?: boolean,
+    _type?: string
+  ) => {
+    router.push(`/sales/${saleId}`);
   };
 
   const handleEdit = (saleId: string, type?: string) => {
@@ -298,7 +293,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     { header: "Член", key: "member", width: 35 },
                     { header: "Тип", key: "type", width: 20 },
                     {
-                      header: "Сума (лв.)",
+                      header: "Сума (€)",
                       key: "amount",
                       width: 15,
                       align: "right" as const,
@@ -339,7 +334,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     { header: "Член", key: "member", width: 35 },
                     { header: "Тип", key: "type", width: 20 },
                     {
-                      header: "Сума (лв.)",
+                      header: "Сума (€)",
                       key: "amount",
                       width: 15,
                       align: "right" as const,
@@ -507,13 +502,26 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     return (
                       <TableRow
                         key={s.id}
-                        className="group h-20 border-zinc-100 transition-colors hover:bg-zinc-50/50 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
+                        onClick={() => handleRowClick(s.id, s.isPaid, s.type)}
+                        className="group h-20 cursor-pointer border-zinc-100 transition-colors hover:bg-zinc-50/50 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
                       >
                         <TableCell className="px-8 text-[11px] font-medium text-zinc-400">
                           {formatDateShort(s.saleDate)}
                         </TableCell>
                         <TableCell className="text-sm font-light text-zinc-600 dark:text-zinc-300">
-                          {s.memberName}
+                          {s.memberId &&
+                          s.memberId !== "GUEST_EXTERNAL" &&
+                          s.memberId !== "Walk-in Customer" ? (
+                            <Link
+                              href={`/members/${s.memberId}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                            >
+                              {s.memberName}
+                            </Link>
+                          ) : (
+                            s.memberName
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -634,7 +642,19 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                   </div>
                   <div className="mt-1 flex items-center justify-between">
                     <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      {s.memberName}
+                      {s.memberId &&
+                      s.memberId !== "GUEST_EXTERNAL" &&
+                      s.memberId !== "Walk-in Customer" ? (
+                        <Link
+                          href={`/members/${s.memberId}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                        >
+                          {s.memberName}
+                        </Link>
+                      ) : (
+                        s.memberName
+                      )}
                     </span>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">

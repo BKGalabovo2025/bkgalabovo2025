@@ -441,7 +441,7 @@ export function DashboardOverviewView() {
 
         {/* Monthly Revenue Card */}
         <BentoCard
-          onClick={() => router.push(isRecoveryZone ? "/finances" : "/sales")}
+          onClick={() => router.push(isRecoveryZone ? "/reports" : "/sales")}
           className="group relative flex h-full min-h-36 sm:min-h-40 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-purple-100 bg-purple-50/80 p-3.5 sm:p-4 text-purple-600 shadow-none transition-all duration-300 hover:bg-purple-100/50 dark:border-purple-800/50 dark:bg-purple-900/10 dark:text-purple-400 dark:hover:bg-purple-950/20"
         >
           <div className="mb-2 flex items-center justify-between">

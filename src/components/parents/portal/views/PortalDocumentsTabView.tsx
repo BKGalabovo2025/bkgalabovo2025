@@ -51,11 +51,12 @@ export function PortalDocumentsTabView() {
   };
 
   const sentDocs = documentsData?.sentDocuments || [];
+  const checklist = documentsData?.checklist || [];
+  const medicalCert = documentsData?.medicalCertificate;
   const pendingDocs = sentDocs.filter((d) => d.status === "pending");
   const signedDocs = sentDocs.filter((d) => d.status === "completed");
   const isMedicalValid = Boolean(
-    documentsData?.medicalCertificate?.hasCertificate &&
-    !documentsData?.medicalCertificate?.isExpired
+    medicalCert?.hasCertificate && !medicalCert?.isExpired
   );
 
   return (
@@ -252,6 +253,56 @@ export function PortalDocumentsTabView() {
             </div>
           )}
         </div>
+        {/*Official Club Documents Checklist*/}
+        {checklist.length > 0 && (
+          <div className="space-y-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+            <h4 className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+              <CheckCircle2 size={13} className="text-indigo-600" />
+              <span>
+                Чеклист на досието (
+                {checklist.filter((c) => c.hasDocument).length}/
+                {checklist.length}):
+              </span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {checklist.map((item) => (
+                <div
+                  key={item.key}
+                  className={cn(
+                    "flex items-center justify-between gap-2 rounded-2xl border p-3 text-xs",
+                    item.hasDocument
+                      ? "border-emerald-200/80 bg-emerald-50/40 dark:border-emerald-900/40 dark:bg-emerald-950/20"
+                      : "border-zinc-200/80 bg-zinc-50/60 dark:border-zinc-800 dark:bg-zinc-950/40"
+                  )}
+                >
+                  <div className="space-y-0.5 min-w-0">
+                    <p className="font-bold text-zinc-900 dark:text-white truncate">
+                      {item.title}
+                    </p>
+                    {item.handedAt && (
+                      <p className="text-[10px] text-zinc-500">
+                        Входиран на:{" "}
+                        {new Date(item.handedAt).toLocaleDateString("bg-BG")}
+                      </p>
+                    )}
+                  </div>
+                  {item.hasDocument ? (
+                    <Badge className="bg-emerald-600 text-white text-[9px] font-bold shrink-0">
+                      ✓ Наличен
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="text-zinc-500 text-[9px] font-semibold shrink-0"
+                    >
+                      Липсва
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Section 2: Medical Certificate & Health Status ─────────────── */}
@@ -288,7 +339,7 @@ export function PortalDocumentsTabView() {
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
               Текущ статус
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {isMedicalValid ? (
                 <Badge className="bg-emerald-600 text-white text-xs font-bold gap-1.5 py-1">
                   <CheckCircle2 size={13} />
@@ -303,7 +354,38 @@ export function PortalDocumentsTabView() {
                   Липсва или изтекло свидетелство
                 </Badge>
               )}
+              {medicalCert?.status === "pending_review" && (
+                <Badge className="bg-amber-500 text-white text-[10px] font-bold">
+                  ⏳ В процес на проверка
+                </Badge>
+              )}
             </div>
+            {medicalCert?.expiresAt && (
+              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Валидно до:{" "}
+                <span>
+                  {new Date(medicalCert.expiresAt).toLocaleDateString("bg-BG")}
+                </span>
+                {typeof medicalCert.daysUntilExpiry === "number" && (
+                  <span
+                    className={cn(
+                      "ml-1.5 text-[11px]",
+                      medicalCert.daysUntilExpiry < 0
+                        ? "text-rose-600 dark:text-rose-400"
+                        : medicalCert.daysUntilExpiry <= 14
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-emerald-600 dark:text-emerald-400"
+                    )}
+                  >
+                    (
+                    {medicalCert.daysUntilExpiry < 0
+                      ? `изтекло преди ${Math.abs(medicalCert.daysUntilExpiry)} дни`
+                      : `остават ${medicalCert.daysUntilExpiry} дни`}
+                    )
+                  </span>
+                )}
+              </p>
+            )}
             <p className="text-[11px] text-zinc-500 leading-relaxed">
               Валидността е 6 или 12 месеца според възрастта и нормативните
               изисквания на спортния диспансер.
@@ -318,6 +400,16 @@ export function PortalDocumentsTabView() {
               <p>
                 Състезател: <strong>{selectedChild?.fullName}</strong>
               </p>
+              {medicalCert?.issueDate && (
+                <p>
+                  Дата на преглед:{" "}
+                  <strong>
+                    {new Date(medicalCert.issueDate).toLocaleDateString(
+                      "bg-BG"
+                    )}
+                  </strong>
+                </p>
+              )}
               <p>
                 Медицински статус:{" "}
                 <strong>

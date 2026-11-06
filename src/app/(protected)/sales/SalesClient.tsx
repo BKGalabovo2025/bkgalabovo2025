@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   Calendar,
   CheckCheck,
+  Eye,
   Loader2,
   MoreVertical,
   Package,
@@ -16,6 +17,7 @@ import {
   Trash2,
   User,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -94,9 +96,21 @@ function SaleMobileCard({
               className="size-3.5 text-zinc-400 shrink-0"
               strokeWidth={1.5}
             />
-            <span className="text-sm font-semibold text-zinc-900 truncate dark:text-white">
-              {sale.memberName}
-            </span>
+            {sale.memberId &&
+            sale.memberId !== "GUEST_EXTERNAL" &&
+            sale.memberId !== "Walk-in Customer" ? (
+              <Link
+                href={`/members/${sale.memberId}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-sm font-semibold text-zinc-900 truncate hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+              >
+                {sale.memberName}
+              </Link>
+            ) : (
+              <span className="text-sm font-semibold text-zinc-900 truncate dark:text-white">
+                {sale.memberName}
+              </span>
+            )}
           </div>
           {itemsSummary && (
             <p className="text-xs text-zinc-500 truncate dark:text-zinc-400">
@@ -177,6 +191,13 @@ function SaleMobileCard({
                       <span>Отмени плащането</span>
                     </DropdownMenuItem>
                   )}
+                  <DropdownMenuItem
+                    className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                    onSelect={() => router.push(`/sales/${sale.id}`)}
+                  >
+                    <Eye className="mr-2 size-3.5 text-zinc-500" />
+                    <span>Детайли</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
                     onSelect={() => router.push(`/sales/${sale.id}/receipt`)}
@@ -310,7 +331,7 @@ export default function SalesClient({
   }, [sortedSales, statusFilter, searchQuery]);
 
   const handleRowClick = (saleId: string) => {
-    router.push(`/sales/${saleId}/receipt`);
+    router.push(`/sales/${saleId}`);
   };
 
   const handleMarkAsPaid = async (saleId: string) => {
@@ -495,9 +516,21 @@ export default function SalesClient({
                             className="size-3.5 text-zinc-400 shrink-0"
                             strokeWidth={1.5}
                           />
-                          <span className="text-xs font-semibold text-zinc-900 dark:text-white">
-                            {sale.memberName}
-                          </span>
+                          {sale.memberId &&
+                          sale.memberId !== "GUEST_EXTERNAL" &&
+                          sale.memberId !== "Walk-in Customer" ? (
+                            <Link
+                              href={`/members/${sale.memberId}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-xs font-semibold text-zinc-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+                            >
+                              {sale.memberName}
+                            </Link>
+                          ) : (
+                            <span className="text-xs font-semibold text-zinc-900 dark:text-white">
+                              {sale.memberName}
+                            </span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -583,6 +616,13 @@ export default function SalesClient({
                                 <span>Отмени плащането</span>
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem
+                              className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                              onSelect={() => router.push(`/sales/${sale.id}`)}
+                            >
+                              <Eye className="mr-2 size-3.5 text-zinc-500" />
+                              <span>Детайли</span>
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
                               onSelect={() =>

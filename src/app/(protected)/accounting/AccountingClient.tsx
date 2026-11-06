@@ -74,6 +74,7 @@ import {
 import { businessTripService } from "@/services/business-trip-service";
 import { getAllMembers } from "@/services/member-service";
 import { docToScheduleEvent } from "@/services/schedule-service";
+import { useAppStore } from "@/store/use-app-store";
 import {
   BusinessTrip,
   convertEurToBgn,
@@ -177,12 +178,18 @@ async function resolveAttachmentExtension(
 
 interface TripRowCalculations {
   total: number;
+  rowTotal: number;
+  fuelTotal: number;
+  perDiemTotal: number;
+  accomTotal: number;
+  entryTotal: number;
+  otherTotal: number;
   expensesCount: number;
 }
 
 function computeTripRowTotals(
   trip: BusinessTrip,
-  tripExps: TripExpense[]
+  tripExps: TripExpense[] = []
 ): TripRowCalculations {
   const { calcPerDiemEUR: calcPerDiem, calcAccomEUR: calcAccom } =
     calculateTripStatementTotals(trip);
@@ -236,15 +243,25 @@ function computeTripRowTotals(
     }
   });
 
-  const total =
-    (expPerDiem > 0 ? expPerDiem : calcPerDiem) +
-    (expAccom > 0 ? expAccom : calcAccom) +
-    (expEntry > 0 ? expEntry : calcEntry) +
-    (fuelExpenses.length > 0 ? finalFuelEUR : calcFuel) +
-    expTransport +
-    expOther;
+  const perDiemTotal = expPerDiem > 0 ? expPerDiem : calcPerDiem;
+  const accomTotal = expAccom > 0 ? expAccom : calcAccom;
+  const entryTotal = expEntry > 0 ? expEntry : calcEntry;
+  const fuelTotal =
+    (fuelExpenses.length > 0 ? finalFuelEUR : calcFuel) + expTransport;
+  const otherTotal = expOther;
+  const rowTotal =
+    perDiemTotal + accomTotal + entryTotal + fuelTotal + otherTotal;
 
-  return { total, expensesCount: tripExps.length };
+  return {
+    total: rowTotal,
+    rowTotal,
+    fuelTotal,
+    perDiemTotal,
+    accomTotal,
+    entryTotal,
+    otherTotal,
+    expensesCount: tripExps.length,
+  };
 }
 
 function getTripStatusBadge(status?: string) {
@@ -404,7 +421,8 @@ export default function AccountingClient() {
   const [tripSearchQuery, setTripSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const siteId = "bkgalabovo"; // Ideally from context
+  const { activeBranch } = useAppStore();
+  const siteId = activeBranch || "bkgalabovo";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -706,6 +724,7 @@ export default function AccountingClient() {
       { header: "Гориво/Транспорт (EUR)", key: "transport", width: 25 },
       { header: "Нощувки (EUR)", key: "accommodation", width: 20 },
       { header: "Дневни/Храна (EUR)", key: "food", width: 20 },
+      { header: "Такса участие (EUR)", key: "entryFee", width: 20 },
       { header: "Други (EUR)", key: "other", width: 15 },
       { header: "Общо (EUR)", key: "totalEur", width: 15 },
       { header: "Общо (BGN)", key: "totalBgn", width: 15 },
@@ -717,26 +736,15 @@ export default function AccountingClient() {
         ? `${coach.firstName} ${coach.lastName}`
         : "Неизвестен";
 
-      let trans = 0,
-        acc = 0,
-        food = 0,
-        other = 0;
-
-      // Auto vehicle cost
-      const transportCalc = calculateTripTransportTotals(trip);
-      trans += transportCalc.calcFuelEUR;
-
-      // Receipt costs
       const exps = expenses[trip.id!] || [];
-      exps.forEach((ex) => {
-        if (ex.expenseType === "fuel" || ex.expenseType === "transport")
-          trans += ex.amountEUR;
-        else if (ex.expenseType === "accommodation") acc += ex.amountEUR;
-        else if (ex.expenseType === "food") food += ex.amountEUR;
-        else other += ex.amountEUR;
-      });
-
-      const totalEur = trans + acc + food + other;
+      const {
+        fuelTotal,
+        perDiemTotal,
+        accomTotal,
+        entryTotal,
+        otherTotal,
+        rowTotal,
+      } = computeTripRowTotals(trip, exps);
 
       sheet.addRow({
         date: formatDateShort(trip.startDate),
@@ -745,12 +753,13 @@ export default function AccountingClient() {
         activity: trip.financials.isCommercialActivity
           ? "Стопанска"
           : "Нестопанска",
-        transport: trans.toFixed(2),
-        accommodation: acc.toFixed(2),
-        food: food.toFixed(2),
-        other: other.toFixed(2),
-        totalEur: totalEur.toFixed(2),
-        totalBgn: convertEurToBgn(totalEur).toFixed(2),
+        transport: fuelTotal.toFixed(2),
+        accommodation: accomTotal.toFixed(2),
+        food: perDiemTotal.toFixed(2),
+        entryFee: entryTotal.toFixed(2),
+        other: otherTotal.toFixed(2),
+        totalEur: rowTotal.toFixed(2),
+        totalBgn: convertEurToBgn(rowTotal).toFixed(2),
       });
     });
 
