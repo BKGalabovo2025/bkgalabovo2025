@@ -128,11 +128,14 @@ const TEXT_STYLES = {
 
 const TIME_STYLE = "color: #94a3b8; font-weight: normal; font-size: 10px;";
 
+const isTest =
+  typeof process !== "undefined" && process.env.NODE_ENV === "test";
+
 export const shadowLogger = {
   setup(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("SETUP", event, data);
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isTest) return;
     if (data !== undefined) {
       console.log(
         "%c[🏸 SETUP %c%s]%c %s",
@@ -158,7 +161,7 @@ export const shadowLogger = {
   trainer(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("TRAINER", event, data);
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isTest) return;
     if (data !== undefined) {
       console.log(
         "%c[⚡ TRAINER %c%s]%c %s",
@@ -184,7 +187,7 @@ export const shadowLogger = {
   timer(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("TIMER", event, data);
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isTest) return;
     if (data !== undefined) {
       console.log(
         "%c[⏱️ TIMER %c%s]%c %s",
@@ -210,7 +213,7 @@ export const shadowLogger = {
   audio(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("AUDIO", event, data);
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isTest) return;
     if (data !== undefined) {
       console.log(
         "%c[🔊 AUDIO %c%s]%c %s",
@@ -236,7 +239,7 @@ export const shadowLogger = {
   court(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("COURT", event, data);
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isTest) return;
     if (data !== undefined) {
       console.log(
         "%c[🏟️ COURT %c%s]%c %s",
@@ -262,7 +265,7 @@ export const shadowLogger = {
   diagnostic(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("DIAG", event, data);
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isTest) return;
     if (data !== undefined) {
       console.log(
         "%c[🛠️ ДИАГНОСТИКА %c%s]%c %s",
@@ -288,7 +291,7 @@ export const shadowLogger = {
   warn(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("WARN", event, data);
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isTest) return;
     console.warn(
       "%c[⚠️ WARN %c%s]%c %s",
       BADGE_STYLES.WARN,
@@ -303,7 +306,7 @@ export const shadowLogger = {
   error(event: string, error?: unknown, data?: unknown) {
     const ts = getTimestamp();
     recordLog("ERROR", event, { error: String(error), details: data });
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isTest) return;
     console.error(
       "%c[❌ ERROR %c%s]%c %s",
       BADGE_STYLES.ERROR,

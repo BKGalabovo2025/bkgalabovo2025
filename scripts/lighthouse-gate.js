@@ -99,7 +99,7 @@ async function runGate() {
     } catch {}
 
     console.log("Стартиране на локален производствен сървър на порт 3001...");
-    server = spawn(npxCmd, ["next", "start", "-p", "3001"], {
+    server = spawn(`${npxCmd} next start -p 3001`, {
       stdio: "ignore",
       shell: true,
     });

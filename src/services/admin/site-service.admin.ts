@@ -102,7 +102,9 @@ export const getSiteByIdAdmin = async (id: string): Promise<Site | null> => {
       faqs: data.faqs || [],
     };
   } catch (err) {
-    console.error("Admin Site Service Error:", err);
+    if (process.env.NODE_ENV !== "test") {
+      console.error("Admin Site Service Error:", err);
+    }
     return null;
   }
 };

@@ -53,12 +53,14 @@ export const docToMember = (docSnap: DocumentSnapshot): Member | null => {
     // Use Zod to validate and parse the data.
     return MemberSchema.parse(dataToParse);
   } catch (error) {
-    console.warn(
-      "Validation failed for ID %s. Data:",
-      docSnap.id,
-      dataToParse,
-      error
-    );
+    if (process.env.NODE_ENV !== "test") {
+      console.warn(
+        "Validation failed for ID %s. Data:",
+        docSnap.id,
+        dataToParse,
+        error
+      );
+    }
     return null;
   }
 };

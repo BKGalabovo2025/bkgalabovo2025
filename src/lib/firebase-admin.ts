@@ -163,9 +163,11 @@ function initializeFirebaseAdmin() {
     );
 
     if (!initialized) {
-      console.warn(
-        "WARNING: Firebase Admin SDK credentials not found. Server-side Firebase Admin features will fail."
-      );
+      if (process.env.NODE_ENV !== "test") {
+        console.warn(
+          "WARNING: Firebase Admin SDK credentials not found. Server-side Firebase Admin features will fail."
+        );
+      }
       return;
     }
 

@@ -358,6 +358,7 @@ describe("PROMPT 4 — Security Hardening & Negative Tests Suite", () => {
     });
 
     it("NEGATIVE TEST: createFamilyAction rejects non-admin user", async () => {
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
       mockVerifyIdToken.mockResolvedValue({
         uid: "regular-user",
         email: "regular@example.com",
@@ -368,6 +369,7 @@ describe("PROMPT 4 — Security Hardening & Negative Tests Suite", () => {
 
       expect(result.success).toBe(false);
       expect(result.message).toMatch(/Грешка при създаване на семейство/);
+      errorSpy.mockRestore();
     });
   });
 

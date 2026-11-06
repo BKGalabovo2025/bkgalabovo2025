@@ -101,6 +101,7 @@ describe("priceService", () => {
   });
 
   it("updatePrice should throw if price does not exist", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const mockBatch = { update: vi.fn(), set: vi.fn(), commit: vi.fn() };
     vi.mocked(firestore.writeBatch).mockReturnValue(
       mockBatch as unknown as ReturnType<typeof firestore.writeBatch>
@@ -121,5 +122,6 @@ describe("priceService", () => {
       )
     ).rejects.toThrow();
     expect(mockBatch.commit).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 });

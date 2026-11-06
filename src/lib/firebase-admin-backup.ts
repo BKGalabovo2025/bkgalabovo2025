@@ -19,9 +19,11 @@ function initBackupAdmin(): admin.firestore.Firestore | null {
 
   const serviceAccountJson = process.env.FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON;
   if (!serviceAccountJson) {
-    console.warn(
-      "[backup-db] FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON not set — backup Firestore unavailable"
-    );
+    if (process.env.NODE_ENV !== "test") {
+      console.warn(
+        "[backup-db] FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON not set — backup Firestore unavailable"
+      );
+    }
     return null;
   }
 
