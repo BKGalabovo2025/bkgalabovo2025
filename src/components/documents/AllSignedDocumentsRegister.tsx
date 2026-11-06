@@ -359,10 +359,10 @@ export function AllSignedDocumentsRegister() {
               className="size-12 text-zinc-300 mb-3"
               strokeWidth={1}
             />
-            <h3 className="text-sm font-bold text-zinc-900">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
               Няма намерени документи
             </h3>
-            <p className="text-xs text-zinc-500 mt-1 max-w-sm">
+            <p className="text-xs text-zinc-500 mt-1 max-w-sm dark:text-zinc-400">
               Не са открити документи отговарящи на избраните филтри.
             </p>
           </div>
@@ -467,15 +467,15 @@ export function AllSignedDocumentsRegister() {
                             className={cn(
                               "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold w-fit border",
                               validity.isExpired
-                                ? "bg-rose-50 text-rose-700 border-rose-200"
-                                : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/50"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50"
                             )}
                           >
                             <Calendar className="size-3" />
                             {validity.badgeText}
                           </span>
                           {validity.isExpired && (
-                            <span className="text-[9px] font-medium text-amber-700">
+                            <span className="text-[9px] font-medium text-amber-700 dark:text-amber-400">
                               Изисква нова за {validity.currentYear} г.
                             </span>
                           )}
@@ -483,15 +483,15 @@ export function AllSignedDocumentsRegister() {
                       </td>
 
                       {/* Date */}
-                      <td className="py-2 text-zinc-500 text-[11px]">
+                      <td className="py-2 text-zinc-500 text-[11px] dark:text-zinc-400">
                         {req.signedAt ? (
                           <div>
-                            <span className="font-medium text-emerald-700">
+                            <span className="font-medium text-emerald-700 dark:text-emerald-400">
                               {new Date(req.signedAt).toLocaleDateString(
                                 "bg-BG"
                               )}
                             </span>
-                            <span className="text-zinc-400 ml-1 text-[10px]">
+                            <span className="text-zinc-400 ml-1 text-[10px] dark:text-zinc-500">
                               {new Date(req.signedAt).toLocaleTimeString(
                                 "bg-BG",
                                 { hour: "2-digit", minute: "2-digit" }

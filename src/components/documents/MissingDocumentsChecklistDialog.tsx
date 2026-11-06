@@ -355,37 +355,37 @@ export function MissingDocumentsChecklistDialog({
         {/* Top Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
           <div className="rounded-2xl border border-zinc-100 bg-zinc-50/80 p-3 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <span className="text-[11px] font-medium text-zinc-500">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
               Общо състезатели
             </span>
-            <p className="mt-1 text-lg font-bold text-zinc-950">
+            <p className="mt-1 text-lg font-bold text-zinc-950 dark:text-white">
               {stats.total}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3">
-            <span className="text-[11px] font-semibold text-emerald-800">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+            <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
               ✓ Напълно готови
             </span>
-            <p className="mt-1 text-lg font-bold text-emerald-950">
+            <p className="mt-1 text-lg font-bold text-emerald-950 dark:text-emerald-200">
               {stats.fullyReady}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-rose-100 bg-rose-50/50 p-3">
-            <span className="text-[11px] font-semibold text-rose-800">
+          <div className="rounded-2xl border border-rose-100 bg-rose-50/50 p-3 dark:border-rose-900/40 dark:bg-rose-950/20">
+            <span className="text-[11px] font-semibold text-rose-800 dark:text-rose-300">
               ❌ Без валидно медицинско
             </span>
-            <p className="mt-1 text-lg font-bold text-rose-950">
+            <p className="mt-1 text-lg font-bold text-rose-950 dark:text-rose-200">
               {stats.missingMed}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-3">
-            <span className="text-[11px] font-semibold text-amber-800">
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-3 dark:border-amber-900/40 dark:bg-amber-950/20">
+            <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300">
               ❌ Без декларация {currentYear}
             </span>
-            <p className="mt-1 text-lg font-bold text-amber-950">
+            <p className="mt-1 text-lg font-bold text-amber-950 dark:text-amber-200">
               {stats.missingDecl}
             </p>
           </div>

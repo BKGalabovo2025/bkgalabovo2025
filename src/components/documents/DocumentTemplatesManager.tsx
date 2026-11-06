@@ -131,10 +131,15 @@ function DocumentTemplateCard({
       )}
     >
       {/* Top Header Bar */}
-      <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-3.5 py-2.5 dark:border-zinc-800/80 dark:bg-zinc-900/40">
-        <div className="flex items-center gap-1.5 min-w-0">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-zinc-100 bg-zinc-50/70 px-3.5 py-2.5 dark:border-zinc-800/80 dark:bg-zinc-900/40">
+        <div className="flex items-center gap-1.5 min-w-0 max-w-[65%]">
           <Layers className="size-3.5 text-zinc-500 shrink-0" />
-          <span className="truncate text-[10px] font-bold tracking-wider uppercase text-zinc-600 dark:text-zinc-400">
+          <span
+            className="truncate text-[10px] font-bold tracking-wider uppercase text-zinc-600 dark:text-zinc-400"
+            title={
+              DOCUMENT_CATEGORY_LABELS[template.category] || template.category
+            }
+          >
             {DOCUMENT_CATEGORY_LABELS[template.category] || template.category}
           </span>
           {isSelected && (
@@ -161,9 +166,9 @@ function DocumentTemplateCard({
 
       {/* Main Content Body */}
       <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4 space-y-3">
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {/* Title */}
-          <h3 className="text-sm font-bold text-zinc-950 dark:text-white leading-snug">
+          <h3 className="text-sm font-bold text-zinc-950 dark:text-white leading-snug wrap-break-word">
             {template.title}
           </h3>
 
@@ -172,7 +177,7 @@ function DocumentTemplateCard({
             <div>
               <p
                 className={cn(
-                  "text-xs font-light text-zinc-600 dark:text-zinc-400 leading-relaxed",
+                  "text-xs font-light text-zinc-600 dark:text-zinc-400 leading-relaxed wrap-break-word",
                   !isExpanded && hasLongDesc && "line-clamp-2"
                 )}
               >
@@ -217,48 +222,85 @@ function DocumentTemplateCard({
             </div>
           )}
 
+          {/* Scope & Signatures Badges */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+            {template.signatures?.requireParent && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                👨‍👩‍👧 Родител
+              </span>
+            )}
+            {template.signatures?.requireMember && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                👤 Състезател
+              </span>
+            )}
+            {template.signatures?.requirePresident && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                ✍️ Председател
+              </span>
+            )}
+            {template.pageCount && template.pageCount > 1 && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                📄 {template.pageCount} стр. А4
+              </span>
+            )}
+          </div>
+
           {/* Content snippet */}
           {template.content && (
-            <div className="space-y-1">
+            <div className="space-y-1.5 pt-1">
               <div
                 className={cn(
-                  "rounded-xl bg-zinc-50/80 p-2.5 text-[10px] font-mono text-zinc-600 dark:bg-zinc-900/70 dark:text-zinc-400 leading-relaxed border border-zinc-200/60 dark:border-zinc-800",
-                  !showFullSnippet && hasLongSnippet && "line-clamp-3"
+                  "rounded-xl bg-zinc-50/90 p-2.5 text-[11px] leading-relaxed text-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-300 border border-zinc-200/70 dark:border-zinc-800 wrap-break-word whitespace-pre-line",
+                  !showFullSnippet
+                    ? "line-clamp-3"
+                    : "max-h-52 overflow-y-auto overscroll-contain pr-2"
                 )}
               >
                 {template.content}
               </div>
               {hasLongSnippet && (
-                <button
-                  type="button"
-                  onClick={() => setShowFullSnippet(!showFullSnippet)}
-                  className="inline-flex items-center gap-0.5 text-[10px] font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 cursor-pointer"
-                >
-                  <span>
-                    {showFullSnippet ? "Скрий текста" : "Виж пълния текст"}
-                  </span>
-                  {showFullSnippet ? (
-                    <ChevronUp size={11} />
-                  ) : (
-                    <ChevronDown size={11} />
+                <div className="flex items-center justify-between text-[11px] pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowFullSnippet(!showFullSnippet)}
+                    className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
+                  >
+                    <span>
+                      {showFullSnippet ? "Сгъни текста" : "Виж откъс от текста"}
+                    </span>
+                    {showFullSnippet ? (
+                      <ChevronUp size={12} />
+                    ) : (
+                      <ChevronDown size={12} />
+                    )}
+                  </button>
+                  {showFullSnippet && (
+                    <button
+                      type="button"
+                      onClick={onPreview}
+                      className="text-[10px] font-semibold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 cursor-pointer"
+                    >
+                      Пълен преглед ↗
+                    </button>
                   )}
-                </button>
+                </div>
               )}
             </div>
           )}
         </div>
 
         {/* Footer Actions */}
-        <div className="mt-3.5 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1">
+        <div className="mt-3.5 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex flex-wrap items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1 min-w-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={onPreview}
-              className="h-8 rounded-lg px-2 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="h-8 rounded-lg px-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 cursor-pointer"
               title="Преглед на официалния документ"
             >
-              <Eye className="size-3.5 mr-1" />
+              <Eye className="size-3.5 mr-1 shrink-0" />
               <span>Преглед</span>
             </Button>
 
@@ -266,21 +308,21 @@ function DocumentTemplateCard({
               variant="ghost"
               size="sm"
               onClick={onPrint}
-              className="h-8 rounded-lg px-2 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="h-8 rounded-lg px-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 cursor-pointer"
               title="Принтирай празен образец"
             >
-              <Printer className="size-3.5 mr-1" />
+              <Printer className="size-3.5 mr-1 shrink-0" />
               <span>Печат</span>
             </Button>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <Button
               type="button"
               size="sm"
               variant="outline"
               onClick={onCopyLink}
-              className="h-8 px-2 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              className="size-8 p-0 text-zinc-600 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-white cursor-pointer"
               title={`Копирай директен линк към ${template.title}`}
               aria-label={`Копирай директен линк към ${template.title}`}
             >
@@ -298,10 +340,10 @@ function DocumentTemplateCard({
               variant="outline"
               size="sm"
               onClick={onEdit}
-              className="h-8 rounded-lg border-zinc-200 px-2.5 text-xs font-semibold hover:bg-zinc-950 hover:text-white dark:border-zinc-800 dark:hover:bg-zinc-800"
+              className="h-8 rounded-lg border-zinc-200 px-2.5 text-xs font-semibold hover:bg-zinc-950 hover:text-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
               title="Редактирай образеца"
             >
-              <Edit3 className="size-3.5 mr-1" />
+              <Edit3 className="size-3.5 mr-1 shrink-0" />
               <span>Редакция</span>
             </Button>
 
@@ -310,7 +352,7 @@ function DocumentTemplateCard({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="size-8 p-0 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                  className="size-8 p-0 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white cursor-pointer"
                   title="Още действия"
                   aria-label="Още действия"
                 >
@@ -1329,10 +1371,10 @@ export function DocumentTemplatesManager() {
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-zinc-950 sm:text-2xl">
+          <h2 className="text-xl font-bold tracking-tight text-zinc-950 sm:text-2xl dark:text-white">
             Документи и бланки
           </h2>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-xs text-zinc-500 mt-1 dark:text-zinc-400">
             Управление на официалните образци на документи, декларации и молби
             на СНЦ „Бадминтон клуб Гълъбово”.
           </p>
@@ -1344,7 +1386,7 @@ export function DocumentTemplatesManager() {
             size="sm"
             onClick={loadTemplates}
             disabled={isLoading}
-            className="rounded-2xl border-zinc-200 text-xs font-semibold hover:bg-zinc-100"
+            className="rounded-2xl border-zinc-200 text-xs font-semibold hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
           >
             <RefreshCw
               className={cn("size-3.5 mr-1.5", isLoading && "animate-spin")}
@@ -1355,7 +1397,7 @@ export function DocumentTemplatesManager() {
           <Button
             onClick={handleOpenCreate}
             size="sm"
-            className="rounded-2xl bg-zinc-950 text-white text-xs font-bold hover:bg-zinc-800 shadow-xs"
+            className="rounded-2xl bg-zinc-950 text-white text-xs font-bold hover:bg-zinc-800 shadow-xs dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 cursor-pointer"
           >
             <Plus className="size-3.5 mr-1.5" />
             Нов документ
@@ -1374,7 +1416,7 @@ export function DocumentTemplatesManager() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Търсене по заглавие, описание или текст..."
-            className="pl-9 h-9 rounded-xl border-zinc-200 bg-white text-xs shadow-2xs"
+            className="pl-9 h-9 rounded-xl border-zinc-200 bg-white text-xs shadow-2xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 w-full"
           />
         </div>
 
@@ -1385,7 +1427,7 @@ export function DocumentTemplatesManager() {
             aria-label="Филтриране по категория на образците"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 shadow-2xs"
+            className="h-9 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 w-full sm:w-auto"
           >
             <option value="all">Всички категории</option>
             {Object.entries(DOCUMENT_CATEGORY_LABELS).map(([key, label]) => (
@@ -1399,24 +1441,27 @@ export function DocumentTemplatesManager() {
 
       {/* Templates Grid */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-zinc-100">
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-zinc-100 dark:border-zinc-800 dark:bg-zinc-900">
           <Loader2 className="size-7 animate-spin text-zinc-400 mb-2.5" />
-          <p className="text-xs text-zinc-500 font-medium">
+          <p className="text-xs text-zinc-500 font-medium dark:text-zinc-400">
             Зареждане на образците на документи...
           </p>
         </div>
       ) : filteredTemplates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-zinc-100 text-center">
-          <FileText className="size-10 text-zinc-300 mb-2.5" strokeWidth={1} />
-          <h3 className="text-sm font-bold text-zinc-900">
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-zinc-100 text-center dark:border-zinc-800 dark:bg-zinc-900">
+          <FileText
+            className="size-10 text-zinc-300 dark:text-zinc-600 mb-2.5"
+            strokeWidth={1}
+          />
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
             Няма намерени образци
           </h3>
-          <p className="text-xs text-zinc-500 mt-1 max-w-sm">
+          <p className="text-xs text-zinc-500 mt-1 max-w-sm dark:text-zinc-400">
             Не са открити образци отговарящи на търсенето или филтъра.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 items-start">
           {filteredTemplates.map((template) => {
             const isDefault = [
               "internalRules",
