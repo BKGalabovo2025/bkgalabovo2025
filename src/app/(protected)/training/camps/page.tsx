@@ -1,16 +1,21 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 
 import CampsClient from "./CampsClient";
 
 export const metadata: Metadata = {
-  title: "Лагери | Тренировъчен процес",
-  description: "Управление и преглед на всички планирани лагери",
+  title: "Всички лагери | Тренировъчен процес",
+  description: "Управление и преглед на всички планирани лагери.",
 };
 
 export default function CampsPage() {
   return (
-    <div className="flex size-full flex-col">
-      <CampsClient />
-    </div>
+    <Suspense
+      fallback={
+        <div className="h-48 animate-pulse rounded-2xl bg-zinc-100 dark:bg-zinc-900" />
+      }
+    >
+      <CampsClient section="all" />
+    </Suspense>
   );
 }

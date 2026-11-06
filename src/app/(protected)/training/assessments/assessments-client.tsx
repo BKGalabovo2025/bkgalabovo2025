@@ -2,14 +2,15 @@
 
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
-import { ClipboardList, Loader2, Printer, Target, Trash2 } from "lucide-react";
+import { ClipboardList, Loader2, Printer, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { generateAssessmentAnalysis } from "@/lib/assessment-analysis";
 import { BADMINTON_TESTS } from "@/lib/badminton-tests";
 import { cn } from "@/lib/utils";
@@ -38,16 +39,58 @@ const ageGroups: AssessmentAgeGroup[] = [
   "Мъже и Жени",
 ];
 
-export default function AssessmentsClient() {
+interface AssessmentsClientProps {
+  initialTab?: "bwf" | "history";
+}
+
+export default function AssessmentsClient({
+  initialTab = "bwf",
+}: AssessmentsClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const testParam = searchParams.get("test");
+  const assessmentParam = searchParams.get("assessment");
+  const dateParam = searchParams.get("date");
+
   const { activeBranch } = useAppStore();
   const [selectedTest, setSelectedTest] = useState<BadmintonTest | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [printFilter, setPrintFilter] = useState<string | "all">("all");
 
-  const [activeTab, setActiveTab] = useState<"bwf" | "history">("bwf");
+  const [activeTab, setActiveTab] = useState<"bwf" | "history">(initialTab);
   const [members, setMembers] = useState<Member[]>([]);
   const [history, setHistory] = useState<MemberAssessment[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  useEffect(() => {
+    if (activeTab === "bwf" && testParam) {
+      const match = BADMINTON_TESTS.find((t) => t.id === testParam);
+      if (match) {
+        setTimeout(() => {
+          const el = document.getElementById(`test-${match.id}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      }
+    } else if (activeTab === "history" && !isHistoryLoading) {
+      if (assessmentParam) {
+        setTimeout(() => {
+          const el = document.getElementById(`assessment-${assessmentParam}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      } else if (dateParam) {
+        setTimeout(() => {
+          const el = document.getElementById(`date-${dateParam}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 150);
+      }
+    }
+  }, [activeTab, testParam, assessmentParam, dateParam, isHistoryLoading]);
 
   useEffect(() => {
     getAllMembers().then(setMembers).catch(console.error);
@@ -153,46 +196,27 @@ export default function AssessmentsClient() {
       <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
         <Tabs
           value={activeTab}
-          onValueChange={(v) => setActiveTab(v as "bwf" | "history")}
+          onValueChange={(v) => {
+            const next = v as "bwf" | "history";
+            setActiveTab(next);
+            router.push(
+              next === "bwf"
+                ? "/training/assessments"
+                : "/training/assessments/history"
+            );
+          }}
         >
-          <div className="no-print mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase dark:text-white">
-                <Target className="size-6 text-indigo-600 dark:text-indigo-400" />
-                Бадминтон Оценяване (BWF)
-              </h1>
-              <p className="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
-                Официална методика за тестване на физически и технически
-                качества
-              </p>
-            </div>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-              <TabsList className="h-9 rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
-                <TabsTrigger
-                  value="bwf"
-                  className="rounded-lg px-3 py-1 text-xs font-semibold"
-                >
-                  BWF Бланки
-                </TabsTrigger>
-                <TabsTrigger
-                  value="history"
-                  className="rounded-lg px-3 py-1 text-xs font-semibold"
-                >
-                  История
-                </TabsTrigger>
-              </TabsList>
-
-              {activeTab === "bwf" && (
-                <Button
-                  onClick={() => handlePrint("all")}
-                  variant="outline"
-                  className="h-9 w-full sm:w-auto rounded-xl border-zinc-200 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
-                >
-                  <Printer className="mr-1.5 size-3.5" />
-                  Принтирай ВСИЧКИ
-                </Button>
-              )}
-            </div>
+          <div className="no-print mb-4 flex items-center justify-end gap-2">
+            {activeTab === "bwf" && (
+              <Button
+                onClick={() => handlePrint("all")}
+                variant="outline"
+                className="h-9 w-full sm:w-auto rounded-xl border-zinc-200 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
+              >
+                <Printer className="mr-1.5 size-3.5" />
+                Принтирай ВСИЧКИ
+              </Button>
+            )}
           </div>
 
           <TabsContent value="bwf" className="duration-300 animate-in fade-in">
@@ -230,6 +254,7 @@ export default function AssessmentsClient() {
                       {groupTests.map((test: BadmintonTest) => (
                         <div
                           key={test.id}
+                          id={`test-${test.id}`}
                           className={cn(
                             "flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
                             printFilter !== "all" &&
@@ -357,6 +382,7 @@ export default function AssessmentsClient() {
                 return (
                   <Card
                     key={dateStr}
+                    id={`date-${dateStr}`}
                     className="overflow-hidden border-zinc-200 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
                   >
                     <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
@@ -398,6 +424,7 @@ export default function AssessmentsClient() {
                           return (
                             <div
                               key={r.id}
+                              id={`assessment-${r.id}`}
                               className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:px-6 dark:hover:bg-zinc-800/50"
                             >
                               <Link

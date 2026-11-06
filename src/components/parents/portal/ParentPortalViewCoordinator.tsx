@@ -3,6 +3,7 @@
 import { Loader2, Users } from "lucide-react";
 import React from "react";
 
+import { ParentPortalSectionId } from "./parent-portal-sections";
 import { useParentPortalContext } from "./ParentPortalContext";
 import { ParentPortalDialogs } from "./ParentPortalDialogs";
 import { ParentPortalHeader } from "./ParentPortalHeader";
@@ -15,8 +16,12 @@ import { PortalDocumentsTabView } from "./views/PortalDocumentsTabView";
 import { PortalFinancesTabView } from "./views/PortalFinancesTabView";
 import { PortalProfileTabView } from "./views/PortalProfileTabView";
 
-export function ParentPortalViewCoordinator() {
-  const { portal, activeTab } = useParentPortalContext();
+export function ParentPortalViewCoordinator({
+  section = "attendance",
+}: {
+  section?: ParentPortalSectionId;
+}) {
+  const { portal } = useParentPortalContext();
   const { parent, children, isLoading } = portal;
 
   if (isLoading && !parent) {
@@ -71,12 +76,12 @@ export function ParentPortalViewCoordinator() {
 
       {/* ── 4. Tab Views ─────────────────────────────────────────────────── */}
       <main className="min-w-0">
-        {activeTab === "attendance" && <PortalAttendanceTabView />}
-        {activeTab === "documents" && <PortalDocumentsTabView />}
-        {activeTab === "finances" && <PortalFinancesTabView />}
-        {activeTab === "profile" && <PortalProfileTabView />}
-        {activeTab === "development" && <PortalDevelopmentTabView />}
-        {activeTab === "absences" && <PortalAbsencesTabView />}
+        {section === "attendance" && <PortalAttendanceTabView />}
+        {section === "documents" && <PortalDocumentsTabView />}
+        {section === "finances" && <PortalFinancesTabView />}
+        {section === "profile" && <PortalProfileTabView />}
+        {section === "development" && <PortalDevelopmentTabView />}
+        {section === "absences" && <PortalAbsencesTabView />}
       </main>
 
       {/* ── 5. Clean Modal Dialogs ───────────────────────────────────────── */}

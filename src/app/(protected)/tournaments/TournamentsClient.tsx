@@ -26,9 +26,12 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { TournamentListSectionId } from "@/components/tournaments/tournament-list-sections";
+import { TournamentsNav } from "@/components/tournaments/TournamentsNav";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
@@ -38,10 +41,12 @@ import { formatDateShort } from "@/lib/date-utils";
 
 interface TournamentsClientProps {
   initialTournaments: Tournament[];
+  section?: TournamentListSectionId;
 }
 
 export default function TournamentsClient({
   initialTournaments,
+  section = "all",
 }: TournamentsClientProps) {
   const [mounted, setMounted] = useState(false);
   const [tournaments, setTournaments] =
@@ -51,6 +56,18 @@ export default function TournamentsClient({
     null
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+  const isNew = searchParams.get("new") === "true";
+
+  useEffect(() => {
+    if (isNew) {
+      setIsDialogOpen(true);
+    } else if (editId && tournaments.length > 0) {
+      const found = tournaments.find((t) => t.id === editId);
+      if (found) setEditingTournament(found);
+    }
+  }, [isNew, editId, tournaments]);
 
   useEffect(() => {
     setMounted(true);
@@ -136,7 +153,8 @@ export default function TournamentsClient({
     (t) => t.status === "completed"
   );
 
-  if (!mounted) return null;
+  const showActive = section === "all" || section === "active";
+  const showCompleted = section === "all" || section === "completed";
 
   return (
     <div className="space-y-8 duration-500 animate-in fade-in">
@@ -155,6 +173,8 @@ export default function TournamentsClient({
           <Plus className="mr-3 size-4" strokeWidth={1.5} /> Нов турнир
         </Button>
       </PageHeader>
+
+      <TournamentsNav />
 
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 md:grid-cols-4">
         <BentoCard className="p-3.5 sm:p-4 rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
@@ -284,7 +304,7 @@ export default function TournamentsClient({
         </BentoCard>
       ) : (
         <div className="space-y-8 sm:space-y-12">
-          {activeTournaments.length > 0 && (
+          {showActive && activeTournaments.length > 0 && (
             <div className="space-y-10">
               <div className="flex items-center gap-4 px-1">
                 <div className="size-2 animate-pulse rounded-full bg-primary" />
@@ -305,7 +325,7 @@ export default function TournamentsClient({
             </div>
           )}
 
-          {completedTournaments.length > 0 && (
+          {showCompleted && completedTournaments.length > 0 && (
             <div className="space-y-10">
               <div className="flex items-center gap-4 px-1">
                 <div className="size-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
@@ -384,7 +404,10 @@ function TournamentCard({
   };
 
   return (
-    <BentoCard className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-primary/40 dark:border-zinc-800 dark:bg-zinc-950">
+    <BentoCard
+      id={`tournament-${tournament.id}`}
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-primary/40 dark:border-zinc-800 dark:bg-zinc-950"
+    >
       <div className="p-4 sm:p-5 pb-3 sm:pb-3.5">
         <div className="mb-3 flex items-center justify-between">
           {getStatusBadge(tournament.status)}
@@ -393,7 +416,12 @@ function TournamentCard({
           </span>
         </div>
         <h3 className="line-clamp-2 min-h-12 text-lg sm:text-xl leading-tight font-normal text-zinc-900 transition-colors group-hover:text-primary dark:text-white">
-          {tournament.title}
+          <Link
+            href={`/tournaments/${tournament.id}`}
+            className="hover:underline"
+          >
+            {tournament.title}
+          </Link>
         </h3>
         <div className="mt-2.5 flex items-center text-xs font-light tracking-wide text-zinc-400">
           <MapPin className="mr-1.5 size-3.5" strokeWidth={1.5} />{" "}

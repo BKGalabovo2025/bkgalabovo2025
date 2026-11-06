@@ -82,9 +82,7 @@ export function CourtsOccupancyCard() {
     ? `Сауна, ботуши и масажи • Днес, ${formattedDate}`
     : `Кортове 1 – 6 • Днес, ${formattedDate}`;
 
-  const targetLink = isRecovery
-    ? "/schedule?tab=recovery"
-    : "/schedule?tab=courts";
+  const targetLink = isRecovery ? "/schedule/recovery" : "/schedule/courts";
 
   return (
     <div className="flex h-full flex-col justify-between rounded-3xl border border-zinc-200/70 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">

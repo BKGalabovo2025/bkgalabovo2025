@@ -7,6 +7,6 @@ export const metadata: Metadata = {
   description: "Официална база с упражнения от BWF и създаване на собствени.",
 };
 
-export default function ExercisesPage() {
-  return <ExercisesClient />;
+export default function Page() {
+  return <ExercisesClient section="all" />;
 }

@@ -13,7 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -65,8 +65,18 @@ const getScoreColor = (score: string) => {
   return "bg-blue-100 text-blue-700";
 };
 
-export default function BeepTestClient() {
+interface BeepTestClientProps {
+  initialTab?: "new" | "history";
+}
+
+export default function BeepTestClient({
+  initialTab = "new",
+}: BeepTestClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const dateParam = searchParams.get("date");
+  const resultIdParam = searchParams.get("resultId");
+
   const { activeBranch } = useAppStore();
   const { state: beepState, start, pause, reset } = useBeepTestEngine();
 
@@ -89,9 +99,31 @@ export default function BeepTestClient() {
   const [participants, setParticipants] = useState<Participant[]>([]);
 
   // History State
-  const [activeTab, setActiveTab] = useState<"new" | "history">("new");
+  const [activeTab, setActiveTab] = useState<"new" | "history">(initialTab);
   const [history, setHistory] = useState<BeepTestResult[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  useEffect(() => {
+    if (activeTab === "history" && !isHistoryLoading) {
+      if (resultIdParam) {
+        setTimeout(() => {
+          const el = document.getElementById(`result-${resultIdParam}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      } else if (dateParam) {
+        setTimeout(() => {
+          const el = document.getElementById(`beep-date-${dateParam}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 150);
+      }
+    }
+  }, [activeTab, isHistoryLoading, resultIdParam, dateParam]);
 
   useEffect(() => {
     loadMembers();
@@ -296,16 +328,18 @@ export default function BeepTestClient() {
 
   if (!isTestStarted) {
     return (
-      <div className="mx-auto max-w-4xl p-4 sm:p-8">
-        <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-3xl font-black tracking-tighter text-zinc-900 uppercase dark:text-white">
-            Бийп Тест Аналитика
-          </h1>
-        </div>
-
+      <div className="mx-auto max-w-4xl">
         <Tabs
           value={activeTab}
-          onValueChange={(v) => setActiveTab(v as "new" | "history")}
+          onValueChange={(v) => {
+            const nextTab = v as "new" | "history";
+            setActiveTab(nextTab);
+            router.push(
+              nextTab === "new"
+                ? "/training/beep-test"
+                : "/training/beep-test/history"
+            );
+          }}
         >
           <TabsList className="mb-3 grid h-9 w-full max-w-xs grid-cols-2 rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
             <TabsTrigger
@@ -475,6 +509,7 @@ export default function BeepTestClient() {
                 return (
                   <Card
                     key={dateStr}
+                    id={`beep-date-${dateStr}`}
                     className="overflow-hidden border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900"
                   >
                     <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
@@ -502,6 +537,7 @@ export default function BeepTestClient() {
                           return (
                             <div
                               key={r.id}
+                              id={`result-${r.id}`}
                               className="group flex items-center justify-between p-4 transition-colors hover:bg-zinc-50 sm:px-6 dark:hover:bg-zinc-800/50"
                             >
                               <Link

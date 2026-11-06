@@ -21,6 +21,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -46,15 +47,68 @@ import { useAppStore } from "@/store/use-app-store";
 import type { Member } from "@/types";
 import type { Quiz, QuizQuestion, TheoryResult } from "@/types/quiz.types";
 
-export default function TheoryClient() {
+export type TabId = "library" | "builder" | "sent" | "review" | "history";
+
+interface TheoryClientProps {
+  initialTab?: TabId;
+}
+
+export default function TheoryClient({
+  initialTab = "library",
+}: TheoryClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const quizParam = searchParams.get("quiz");
+  const editQuizParam = searchParams.get("editQuiz");
+  const sendQuizParam = searchParams.get("sendQuiz");
+  const resultParam = searchParams.get("result");
+
   const { activeBranch } = useAppStore();
-  const [activeTab, setActiveTab] = useState<TabId>("library");
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [pendingResults, setPendingResults] = useState<TheoryResult[]>([]);
   const [sentResults, setSentResults] = useState<TheoryResult[]>([]);
   const [reviewedResults, setReviewedResults] = useState<TheoryResult[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (editQuizParam && quizzes.length > 0) {
+        const q = quizzes.find((x) => x.id === editQuizParam);
+        if (q) openEdit(q);
+      } else if (sendQuizParam && quizzes.length > 0) {
+        const q = quizzes.find((x) => x.id === sendQuizParam);
+        if (q) openSend(q);
+      } else if (quizParam) {
+        setTimeout(() => {
+          const el = document.getElementById(`quiz-${quizParam}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      } else if (resultParam) {
+        setTimeout(() => {
+          const el =
+            document.getElementById(`result-${resultParam}`) ||
+            document.getElementById(`pending-result-${resultParam}`) ||
+            document.getElementById(`sent-result-${resultParam}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      }
+    }
+  }, [
+    isLoading,
+    quizParam,
+    editQuizParam,
+    sendQuizParam,
+    resultParam,
+    quizzes,
+  ]);
 
   // Send modal
   const [sendQuiz, setSendQuiz] = useState<Quiz | null>(null);
@@ -156,6 +210,12 @@ export default function TheoryClient() {
   const copyLink = () => {
     void navigator.clipboard.writeText(generatedLink);
     toast.success("Линкът е копиран!");
+  };
+
+  const openSend = (quiz: Quiz) => {
+    setSendQuiz(quiz);
+    setGeneratedLink("");
+    setSelectedMemberId("");
   };
 
   // ── EDIT ─────────────────────────────────────────────────────────────────
@@ -369,8 +429,6 @@ export default function TheoryClient() {
   };
 
   // ── UI ───────────────────────────────────────────────────────────────────
-  type TabId = "library" | "builder" | "sent" | "review" | "history";
-
   const tabs: {
     id: TabId;
     label: string;
@@ -407,26 +465,21 @@ export default function TheoryClient() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl p-4 sm:p-8">
-      {/* ── Header ── */}
-      <div className="mb-8">
-        <h1 className="flex items-center gap-3 text-2xl font-black tracking-tight text-zinc-900 uppercase dark:text-white">
-          <Sparkles className="size-6 text-indigo-500" />
-          Теория и Викторини
-        </h1>
-        <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-          Детска бадминтон академия — конструктор на тестове и система за
-          рецензия
-        </p>
-      </div>
-
+    <div className="mx-auto max-w-7xl">
       {/* ── Tabs ── */}
       <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl bg-zinc-100 p-1 sm:grid-cols-5 dark:bg-zinc-900">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
-            onClick={() => setActiveTab(t.id)}
+            onClick={() => {
+              setActiveTab(t.id);
+              router.push(
+                t.id === "library"
+                  ? "/training/theory"
+                  : `/training/theory/${t.id}`
+              );
+            }}
             className={`relative flex items-center justify-center gap-2 rounded-xl px-2 py-2.5 text-[11px] font-semibold transition-all sm:px-4 sm:text-sm ${activeTab === t.id ? "bg-white text-indigo-700 shadow-sm dark:bg-zinc-800 dark:text-indigo-300" : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"}`}
           >
             {t.icon} <span className="hidden sm:inline">{t.label}</span>
@@ -446,6 +499,7 @@ export default function TheoryClient() {
           {quizzes.map((quiz) => (
             <Card
               key={quiz.id}
+              id={`quiz-${quiz.id}`}
               className="overflow-hidden rounded-2xl border-zinc-200 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
             >
               <CardHeader className="bg-linear-to-br from-indigo-500 to-purple-600 p-5">
@@ -485,11 +539,7 @@ export default function TheoryClient() {
                   <Button
                     size="sm"
                     className="flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700"
-                    onClick={() => {
-                      setSendQuiz(quiz);
-                      setGeneratedLink("");
-                      setSelectedMemberId("");
-                    }}
+                    onClick={() => openSend(quiz)}
                   >
                     <Send className="mr-1 size-3" /> Изпрати
                   </Button>
@@ -670,6 +720,7 @@ export default function TheoryClient() {
               {sentResults.map((r) => (
                 <div
                   key={r.id}
+                  id={`sent-result-${r.id}`}
                   className="flex flex-col gap-3 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/40 dark:bg-amber-950/20"
                 >
                   <div className="flex items-center gap-3">
@@ -733,6 +784,7 @@ export default function TheoryClient() {
             pendingResults.map((r) => (
               <Card
                 key={r.id}
+                id={`pending-result-${r.id}`}
                 className="overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <button
@@ -943,6 +995,7 @@ export default function TheoryClient() {
             reviewedResults.map((r) => (
               <Card
                 key={r.id}
+                id={`result-${r.id}`}
                 className="overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <div

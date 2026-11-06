@@ -11,11 +11,16 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
+import {
+  getRankingSectionHref,
+  RANKING_SECTIONS,
+  type RankingSectionId,
+} from "@/components/rankings/ranking-sections";
 import ShareStoryDialog from "@/components/rankings/ShareStoryDialog";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
@@ -35,20 +40,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   refreshRankingsAction,
   syncRankingsAction,
 } from "@/lib/actions/rankings";
 import { cn } from "@/lib/utils";
 import { RankingEntry } from "@/types/ranking.types";
-
-const CATEGORY_TABS = [
-  { id: "all", label: "Общо" },
-  { id: "singles", label: "Единично" },
-  { id: "doubles", label: "Двойки" },
-  { id: "mixed", label: "Смесени" },
-];
 
 function getMedalEmoji(position: number): string {
   if (position === 1) return "🥇";
@@ -72,14 +69,17 @@ function getPositionBadgeClasses(position: number): string {
 
 interface RankingsClientProps {
   initialRankings: RankingEntry[];
+  section?: RankingSectionId;
 }
 
 export default function RankingsClient({
   initialRankings,
+  section = "all",
 }: RankingsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState("all");
+  const activeTab: RankingSectionId = section;
+  const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [isSyncing, setIsSyncing] = useState(false);
   const [rankings, setRankings] = useState<RankingEntry[]>(initialRankings);
@@ -139,7 +139,7 @@ export default function RankingsClient({
     }
 
     startTransition(() => {
-      router.push(`?${params.toString()}`);
+      router.push(`${pathname}?${params.toString()}`);
     });
   };
 
@@ -374,19 +374,27 @@ export default function RankingsClient({
                 <h3 className="text-xs sm:text-sm tracking-[0.2em] text-zinc-400 uppercase font-medium">
                   Пълно класиране
                 </h3>
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="no-scrollbar flex h-auto w-full flex-wrap sm:flex-nowrap sm:h-9 overflow-x-auto gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-0.5 dark:border-zinc-800 dark:bg-zinc-900">
-                    {CATEGORY_TABS.map((tab) => (
-                      <TabsTrigger
-                        key={tab.id}
-                        value={tab.id}
-                        className="flex-1 sm:flex-none rounded-lg px-3 sm:px-4 py-1 sm:py-0 text-[10px] font-semibold tracking-wider uppercase data-[state=active]:bg-white data-[state=active]:text-zinc-950 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-white"
-                      >
-                        {tab.label}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
+                <nav
+                  aria-label="Категории на класирането"
+                  className="no-scrollbar flex h-auto w-full flex-wrap gap-1 overflow-x-auto rounded-xl border border-zinc-100 bg-zinc-50 p-0.5 sm:h-9 sm:w-auto sm:flex-nowrap dark:border-zinc-800 dark:bg-zinc-900"
+                >
+                  {RANKING_SECTIONS.map((tab) => (
+                    <Link
+                      key={tab.id}
+                      href={`${getRankingSectionHref(tab.id)}${period !== "all" ? `?period=${period}` : ""}`}
+                      title={tab.tooltip}
+                      aria-current={activeTab === tab.id ? "page" : undefined}
+                      className={cn(
+                        "flex flex-1 items-center justify-center rounded-lg px-3 py-1 text-[10px] font-semibold tracking-wider uppercase sm:flex-none sm:px-4 sm:py-0",
+                        activeTab === tab.id
+                          ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-800 dark:text-white"
+                          : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                      )}
+                    >
+                      {tab.label}
+                    </Link>
+                  ))}
+                </nav>
               </div>
             </div>
 

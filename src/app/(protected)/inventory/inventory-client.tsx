@@ -1,8 +1,13 @@
 "use client";
 
 import { Edit, Loader2, Plus, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  INVENTORY_SECTIONS,
+  type InventorySectionId,
+} from "@/components/inventory/inventory-sections";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -78,13 +83,24 @@ function InventoryMobileCard({
   );
 }
 
-export default function InventoryClient() {
+export default function InventoryClient({
+  section = "all",
+}: {
+  section?: InventorySectionId;
+}) {
   const { activeBranch } = useAppStore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const itemIdParam = searchParams.get("itemId");
+  const deepLinkHandled = useRef(false);
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [isFetching, setIsFetching] = useState(true);
 
   // Form State
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(
+    searchParams.get("new") === "true"
+  );
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [name, setName] = useState("");
   const [totalQuantity, setTotalQuantity] = useState(1);
@@ -102,13 +118,27 @@ export default function InventoryClient() {
         await inventoryService.seedDefaultInventory(activeBranch);
         curr = await inventoryService.getInventory(activeBranch);
       }
-      setItems(curr.sort((a, b) => a.name.localeCompare(b.name)));
+      const sorted = curr.sort((a, b) => a.name.localeCompare(b.name));
+      setItems(sorted);
+      // Дълбок линк ?itemId=... отваря формата за редакция.
+      if (itemIdParam && !deepLinkHandled.current) {
+        deepLinkHandled.current = true;
+        const target = sorted.find((i) => i.id === itemIdParam);
+        if (target) {
+          setEditingItem(target);
+          setName(target.name);
+          setTotalQuantity(target.totalQuantity);
+          setAllocationType(target.allocationType);
+          setRatioValue(target.ratioValue || "");
+          setIsFormOpen(true);
+        }
+      }
     } catch (error) {
       console.error(error);
     } finally {
       setIsFetching(false);
     }
-  }, [activeBranch]);
+  }, [activeBranch, itemIdParam]);
 
   useEffect(() => {
     void fetchInventory();
@@ -129,6 +159,15 @@ export default function InventoryClient() {
       setRatioValue("");
     }
     setIsFormOpen(true);
+    router.replace(
+      item ? `${pathname}?itemId=${item.id}` : `${pathname}?new=true`,
+      { scroll: false }
+    );
+  };
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+    router.replace(pathname, { scroll: false });
   };
 
   const handleSave = async () => {
@@ -155,7 +194,7 @@ export default function InventoryClient() {
       } else {
         await inventoryService.addInventoryItem(activeBranch, payload);
       }
-      setIsFormOpen(false);
+      closeForm();
       fetchInventory();
     } catch (error) {
       console.error(error);
@@ -191,6 +230,12 @@ export default function InventoryClient() {
     return "";
   };
 
+  const sectionAllocation =
+    INVENTORY_SECTIONS.find((s) => s.id === section)?.allocationType ?? null;
+  const visibleItems = sectionAllocation
+    ? items.filter((i) => i.allocationType === sectionAllocation)
+    : items;
+
   if (isFetching) {
     return (
       <div className="flex h-32 items-center justify-center">
@@ -203,7 +248,7 @@ export default function InventoryClient() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-zinc-800 dark:text-zinc-100">
-          Списък с уреди ({items.length})
+          Списък с уреди ({visibleItems.length})
         </h2>
         <Button
           onClick={() => handleOpenForm()}
@@ -216,7 +261,7 @@ export default function InventoryClient() {
 
       {/* Mobile Cards (< md) */}
       <div className="space-y-3 md:hidden">
-        {items.map((item) => (
+        {visibleItems.map((item) => (
           <InventoryMobileCard
             key={item.id}
             item={item}
@@ -225,7 +270,7 @@ export default function InventoryClient() {
             onDelete={() => handleDelete(item.id)}
           />
         ))}
-        {items.length === 0 && (
+        {visibleItems.length === 0 && (
           <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950">
             Няма добавено оборудване.
           </div>
@@ -252,8 +297,12 @@ export default function InventoryClient() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id} className="dark:border-zinc-800">
+            {visibleItems.map((item) => (
+              <TableRow
+                key={item.id}
+                id={`item-${item.id}`}
+                className="dark:border-zinc-800"
+              >
                 <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
                   {item.name}
                 </TableCell>
@@ -287,7 +336,7 @@ export default function InventoryClient() {
                 </TableCell>
               </TableRow>
             ))}
-            {items.length === 0 && (
+            {visibleItems.length === 0 && (
               <TableRow className="dark:border-zinc-800">
                 <TableCell
                   colSpan={4}
@@ -301,7 +350,10 @@ export default function InventoryClient() {
         </Table>
       </div>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog
+        open={isFormOpen}
+        onOpenChange={(open) => (open ? setIsFormOpen(true) : closeForm())}
+      >
         <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] overflow-y-auto w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md md:max-w-lg flex-col gap-0 rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
           <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
@@ -415,7 +467,7 @@ export default function InventoryClient() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setIsFormOpen(false)}
+              onClick={closeForm}
               className="h-9 rounded-xl border-zinc-200 px-4 text-xs font-semibold dark:border-zinc-800"
             >
               Отказ

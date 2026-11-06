@@ -1,8 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SponsorsTab } from "@/app/(protected)/certificates/components/SponsorsTab";
+import {
+  partnerMatchesSection,
+  type PartnerSectionId,
+} from "@/components/partners/partner-sections";
 import { sponsorService } from "@/services/sponsor-service";
 import { useAppStore } from "@/store/use-app-store";
 import { SponsorPartner } from "@/types/certificates";
@@ -31,8 +36,17 @@ function writeCacheWithTTL<T>(key: string, data: T[]): void {
   }
 }
 
-export function PartnersClient() {
+export function PartnersClient({
+  section = "all",
+}: {
+  section?: PartnerSectionId;
+}) {
   const { activeBranch } = useAppStore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const partnerId = searchParams.get("partnerId");
+  const isNew = searchParams.get("new") === "true";
   const siteId =
     activeBranch === "recoveryzone" ? "recoveryzone" : "bkgalabovo";
 
@@ -70,11 +84,26 @@ export function PartnersClient() {
     loadSponsors(false);
   }, [loadSponsors]);
 
+  const visibleSponsors = useMemo(
+    () => sponsors.filter((s) => partnerMatchesSection(s.category, section)),
+    [sponsors, section]
+  );
+
+  const handleDeepLinkChange = (value: string | null) => {
+    if (value === null) router.replace(pathname, { scroll: false });
+    else if (value === "new")
+      router.replace(`${pathname}?new=true`, { scroll: false });
+    else router.replace(`${pathname}?partnerId=${value}`, { scroll: false });
+  };
+
   return (
     <div className="space-y-6">
       <SponsorsTab
         siteId={siteId}
-        sponsors={sponsors}
+        sponsors={visibleSponsors}
+        deepLinkId={partnerId}
+        deepLinkNew={isNew}
+        onDeepLinkChange={handleDeepLinkChange}
         isLoading={isLoading}
         onRefresh={() => loadSponsors(true)}
       />

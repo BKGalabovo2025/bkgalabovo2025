@@ -1,9 +1,16 @@
 import { Loader2 } from "lucide-react";
+import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import ScheduleClient from "./ScheduleClient";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "График | Тренировки & Събития",
+  description:
+    "Управление на тренировъчни графици, състезания, лагери и клубни събития.",
+};
 
 export default function SchedulePage() {
   return (

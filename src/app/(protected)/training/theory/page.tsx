@@ -1,13 +1,21 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 
 import TheoryClient from "./theory-client";
 
 export const metadata: Metadata = {
-  title: "Теория и Викторини | Бадминтон Клуб",
-  description:
-    "Детска бадминтон викторина — конструктор на тестове и система за рецензия",
+  title: "Библиотека с тестове | Теория",
+  description: "Официални тестове и правила за бадминтон.",
 };
 
 export default function TheoryPage() {
-  return <TheoryClient />;
+  return (
+    <Suspense
+      fallback={
+        <div className="h-48 animate-pulse rounded-2xl bg-zinc-100 dark:bg-zinc-900" />
+      }
+    >
+      <TheoryClient initialTab="library" />
+    </Suspense>
+  );
 }

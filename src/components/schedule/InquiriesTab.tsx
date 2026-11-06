@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import {
   Archive,
   Calendar,
@@ -17,6 +15,7 @@ import {
   Undo2,
   UserCheck,
 } from "lucide-react";
+import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -77,9 +76,23 @@ const levelLabels: Record<string, string> = {
 
 interface InquiriesTabProps {
   onNewCountChange?: (count: number) => void;
+  /** Статус, зададен от маршрута (/inquiries/new ...). Ако е подаден, филтърът е линк-базиран. */
+  status?: InquiryStatus | "all";
+  /** Генерира линк към секция на статус (използва се заедно със status). */
+  buildStatusHref?: (status: InquiryStatus | "all") => string;
+  /** Начален филтър по източник (?source=). */
+  initialSource?: "all" | "bkgalabovo" | "recoveryzone";
+  /** Дълбок линк към запитване (?inquiryId=). */
+  focusId?: string | null;
 }
 
-export function InquiriesTab({ onNewCountChange }: InquiriesTabProps) {
+export function InquiriesTab({
+  onNewCountChange,
+  status,
+  buildStatusHref,
+  initialSource = "all",
+  focusId = null,
+}: InquiriesTabProps) {
   const { idToken } = useAuth();
   const { activeBranch } = useAppStore();
   const isRecovery = activeBranch === "recoveryzone";
@@ -87,12 +100,11 @@ export function InquiriesTab({ onNewCountChange }: InquiriesTabProps) {
 
   const [inquiries, setInquiries] = useState<EventInquiry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<InquiryStatus | "all">(
-    "all"
-  );
+  const [statusState, setStatusFilter] = useState<InquiryStatus | "all">("all");
+  const statusFilter = status ?? statusState;
   const [sourceFilter, setSourceFilter] = useState<
     "all" | "bkgalabovo" | "recoveryzone"
-  >("all");
+  >(initialSource);
   const [searchQuery, setSearchQuery] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -139,6 +151,14 @@ export function InquiriesTab({ onNewCountChange }: InquiriesTabProps) {
     fetchInquiries();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idToken, siteId]);
+
+  // Дълбок линк ?inquiryId=... – превъртане до записа след зареждане.
+  useEffect(() => {
+    if (!focusId || isLoading) return;
+    document
+      .getElementById(`inquiry-${focusId}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [focusId, isLoading]);
 
   const handleUpdateStatus = async (id: string, newStatus: InquiryStatus) => {
     if (!idToken) return;
@@ -387,31 +407,50 @@ export function InquiriesTab({ onNewCountChange }: InquiriesTabProps) {
               label: "Архив",
               count: inquiries.filter((i) => i.status === "archived").length,
             },
-          ].map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => setStatusFilter(item.key as any)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
-                statusFilter === item.key
-                  ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
-                  : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
-              }`}
-            >
-              <span>{item.label}</span>
-              <span
-                className={`py-0.2 rounded-full px-1.5 text-[10px] ${
-                  item.key === "new" && item.count > 0
-                    ? "bg-rose-500 text-white"
-                    : statusFilter === item.key
-                      ? "bg-zinc-800 text-zinc-300 dark:bg-zinc-200 dark:text-zinc-800"
-                      : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800"
-                }`}
+          ].map((item) => {
+            const itemClass = `flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
+              statusFilter === item.key
+                ? "bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950"
+                : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
+            }`;
+            const inner = (
+              <>
+                <span>{item.label}</span>
+                <span
+                  className={`py-0.2 rounded-full px-1.5 text-[10px] ${
+                    item.key === "new" && item.count > 0
+                      ? "bg-rose-500 text-white"
+                      : statusFilter === item.key
+                        ? "bg-zinc-800 text-zinc-300 dark:bg-zinc-200 dark:text-zinc-800"
+                        : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800"
+                  }`}
+                >
+                  {item.count}
+                </span>
+              </>
+            );
+            return buildStatusHref ? (
+              <Link
+                key={item.key}
+                href={buildStatusHref(item.key as InquiryStatus | "all")}
+                aria-current={statusFilter === item.key ? "page" : undefined}
+                className={itemClass}
               >
-                {item.count}
-              </span>
-            </button>
-          ))}
+                {inner}
+              </Link>
+            ) : (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() =>
+                  setStatusFilter(item.key as InquiryStatus | "all")
+                }
+                className={itemClass}
+              >
+                {inner}
+              </button>
+            );
+          })}
         </div>
 
         {/* Right side search + refresh */}
@@ -473,7 +512,8 @@ export function InquiriesTab({ onNewCountChange }: InquiriesTabProps) {
             return (
               <Card
                 key={inq.id}
-                className="overflow-hidden rounded-3xl border-zinc-200 bg-white transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
+                id={`inquiry-${inq.id}`}
+                className={`overflow-hidden rounded-3xl border-zinc-200 bg-white transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 ${inq.id === focusId ? "ring-2 ring-primary" : ""}`}
               >
                 <CardContent className="p-6">
                   {/* Card Header: Event Title + Status Badge & Source Badge */}

@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -52,12 +52,20 @@ const formatLocationLabel = (loc: string) => {
   return loc || "На открито";
 };
 
-function PlannerClientContent() {
+function PlannerClientContent({
+  initialTab = "upcoming",
+}: {
+  initialTab?: "upcoming" | "archive";
+}) {
+  const router = useRouter();
   const { activeBranch } = useAppStore();
   const searchParams = useSearchParams();
   const campIdParam = searchParams.get("campId");
   const dateParam = searchParams.get("date");
   const importTemplateParam = searchParams.get("importTemplate");
+  const sessionParam = searchParams.get("session");
+  const editSessionParam = searchParams.get("editSession");
+  const newParam = searchParams.get("new");
 
   const [sessions, setSessions] = useState<PlannerSession[]>([]);
   const [attendanceCounts, setAttendanceCounts] = useState<
@@ -65,8 +73,14 @@ function PlannerClientContent() {
   >({});
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"upcoming" | "archive">(
-    "upcoming"
+    initialTab
   );
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,7 +96,7 @@ function PlannerClientContent() {
     null
   );
   const [isWizardOpen, setIsWizardOpen] = useState(
-    !!campIdParam || !!importTemplateParam
+    !!campIdParam || !!importTemplateParam || newParam === "true"
   );
 
   useEffect(() => {
@@ -112,6 +126,28 @@ function PlannerClientContent() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isLoading && sessions.length > 0) {
+      if (editSessionParam) {
+        const s = sessions.find((x) => x.id === editSessionParam);
+        if (s) {
+          setEditingSession(s);
+          setIsWizardOpen(true);
+        }
+      } else if (sessionParam) {
+        const s = sessions.find((x) => x.id === sessionParam);
+        if (s) {
+          setSelectedSessionForPreview(s);
+          setIsPreviewOpen(true);
+          setTimeout(() => {
+            const el = document.getElementById(`session-${s.id}`);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 150);
+        }
+      }
+    }
+  }, [isLoading, sessionParam, editSessionParam, sessions]);
 
   const handleDeleteSession = async (sessionId: string) => {
     if (
@@ -253,46 +289,43 @@ function PlannerClientContent() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
-      {/* Header */}
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-950 uppercase dark:text-white">
-            <CalendarRange className="size-6 text-indigo-600 dark:text-indigo-400" />
-            Универсален Планировчик
-          </h1>
-          <p className="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
-            Планиране на лагери и целогодишни тренировки
-          </p>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <Button
-            asChild
-            variant="outline"
-            className="w-full sm:w-auto rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-950/50"
-          >
-            <Link href="/training/theory">
-              <GraduationCap className="mr-2 size-4" />
-              Теория / Викторина
-            </Link>
-          </Button>
-          <Button
-            onClick={() => {
-              setEditingSession(null);
-              setIsWizardOpen(true);
-            }}
-            className="w-full sm:w-auto rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-          >
-            <Plus className="mr-2 size-4" />
-            Планирай тренировка
-          </Button>
-        </div>
+      {/* Action Buttons */}
+      <div className="flex w-full flex-wrap items-center justify-end gap-2">
+        <Button
+          asChild
+          variant="outline"
+          className="w-full sm:w-auto rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-950/50"
+        >
+          <Link href="/training/theory">
+            <GraduationCap className="mr-2 size-4" />
+            Теория / Викторина
+          </Link>
+        </Button>
+        <Button
+          onClick={() => {
+            setEditingSession(null);
+            setIsWizardOpen(true);
+          }}
+          className="w-full sm:w-auto rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+        >
+          <Plus className="mr-2 size-4" />
+          Планирай тренировка
+        </Button>
       </div>
 
       {/* Tabs */}
       <div className="mb-3">
         <Tabs
           value={activeTab}
-          onValueChange={(val) => setActiveTab(val as "upcoming" | "archive")}
+          onValueChange={(val) => {
+            const next = val as "upcoming" | "archive";
+            setActiveTab(next);
+            router.push(
+              next === "upcoming"
+                ? "/training/planner"
+                : "/training/planner/archive"
+            );
+          }}
         >
           <TabsList className="grid h-9 w-full max-w-md grid-cols-2 rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
             <TabsTrigger
@@ -485,6 +518,7 @@ function PlannerClientContent() {
             return (
               <Card
                 key={session.id}
+                id={`session-${session.id}`}
                 className="overflow-hidden border-zinc-200 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-800"
               >
                 <CardContent className="p-0">
@@ -734,7 +768,11 @@ function PlannerClientContent() {
   );
 }
 
-export default function PlannerClient() {
+export default function PlannerClient({
+  initialTab = "upcoming",
+}: {
+  initialTab?: "upcoming" | "archive";
+} = {}) {
   return (
     <Suspense
       fallback={
@@ -743,7 +781,7 @@ export default function PlannerClient() {
         </div>
       }
     >
-      <PlannerClientContent />
+      <PlannerClientContent initialTab={initialTab} />
     </Suspense>
   );
 }

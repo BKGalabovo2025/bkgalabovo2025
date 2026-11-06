@@ -1,21 +1,13 @@
-import { PageHeader } from "@/components/layout/page-header";
+import type { Metadata } from "next";
 
 import InventoryClient from "./inventory-client";
 
-export default function InventoryPage() {
-  return (
-    <div className="flex h-full flex-col space-y-6 p-4 sm:p-6 dark:bg-zinc-950">
-      <PageHeader
-        title="Инвентар и Оборудване"
-        description="Управлявайте клубното оборудване и задавайте правила за разпределение по станции."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Инвентар" },
-        ]}
-      />
-      <div className="flex-1 overflow-auto">
-        <InventoryClient />
-      </div>
-    </div>
-  );
+export const metadata: Metadata = {
+  title: "Инвентар и Оборудване | БК Гълъбово",
+  description:
+    "Цялото клубно оборудване с правила за разпределение по станции.",
+};
+
+export default function Page() {
+  return <InventoryClient section="all" />;
 }

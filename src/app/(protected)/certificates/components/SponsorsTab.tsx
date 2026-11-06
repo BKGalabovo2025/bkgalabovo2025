@@ -35,6 +35,12 @@ interface SponsorsTabProps {
   sponsors: SponsorPartner[];
   isLoading: boolean;
   onRefresh: () => Promise<void>;
+  /** Дълбок линк: ID на партньор, чийто диалог да се отвори (?partnerId=). */
+  deepLinkId?: string | null;
+  /** Дълбок линк: отваря диалога за нов партньор (?new=true). */
+  deepLinkNew?: boolean;
+  /** Съобщава промяна на отворения диалог ("new" | id | null), за синхронизация с URL. */
+  onDeepLinkChange?: (value: string | null) => void;
 }
 
 export function SponsorsTab({
@@ -42,6 +48,9 @@ export function SponsorsTab({
   sponsors,
   isLoading,
   onRefresh,
+  deepLinkId = null,
+  deepLinkNew = false,
+  onDeepLinkChange,
 }: SponsorsTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<SponsorPartner | null>(
@@ -50,14 +59,27 @@ export function SponsorsTab({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const deepSponsor = deepLinkId
+    ? (sponsors.find((s) => s.id === deepLinkId) ?? null)
+    : null;
+  const dialogOpen = isDialogOpen || deepLinkNew || deepSponsor !== null;
+  const dialogSponsor = isDialogOpen ? editingSponsor : deepSponsor;
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    onDeepLinkChange?.(null);
+  };
+
   const handleOpenCreate = () => {
     setEditingSponsor(null);
     setIsDialogOpen(true);
+    onDeepLinkChange?.("new");
   };
 
   const handleOpenEdit = (sponsor: SponsorPartner) => {
     setEditingSponsor(sponsor);
     setIsDialogOpen(true);
+    onDeepLinkChange?.(sponsor.id);
   };
 
   const handleToggleActive = async (sponsor: SponsorPartner) => {
@@ -212,6 +234,7 @@ export function SponsorsTab({
           {sponsors.map((sponsor) => (
             <Card
               key={sponsor.id}
+              id={`partner-${sponsor.id}`}
               className={`group flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-200 hover:shadow-md ${
                 sponsor.isActive
                   ? "border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900"
@@ -364,10 +387,10 @@ export function SponsorsTab({
 
       {/* 4. Add / Edit Sponsor Wizard Dialog */}
       <SponsorWizardDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
+        isOpen={dialogOpen}
+        onClose={handleCloseDialog}
         siteId={siteId}
-        sponsorToEdit={editingSponsor}
+        sponsorToEdit={dialogSponsor}
         totalSponsorsCount={sponsors.length}
         onSaved={onRefresh}
       />

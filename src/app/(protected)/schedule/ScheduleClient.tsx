@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import {
   AlertTriangle,
   Calendar as CalendarIcon,
@@ -16,7 +17,8 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { PrintableEvent } from "@/components/schedule/PrintableEvent";
@@ -67,6 +69,12 @@ import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { EventListItem } from "@/components/schedule/EventListItem";
+import {
+  EVENT_VIEWS,
+  getScheduleSectionHref,
+  SCHEDULE_SECTIONS,
+  type ScheduleSectionId,
+} from "@/components/schedule/schedule-sections";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -134,8 +142,13 @@ const tabTranslations: Record<string, string> = {
 const EVENTS_PER_PAGE = 20;
 const COURT_COUNT = 6;
 
-export default function ScheduleClient() {
+export default function ScheduleClient({
+  mainTab = "events",
+}: {
+  mainTab?: ScheduleSectionId;
+}) {
   const { activeBranch } = useAppStore();
+  const pathname = usePathname();
   const isRecoveryZone = activeBranch === "recoveryzone";
   const router = useRouter();
 
@@ -153,7 +166,27 @@ export default function ScheduleClient() {
     error,
   } = useEvents();
 
-  const [activeTab, setActiveTab] = useState("current");
+  const searchParams = useSearchParams();
+  const viewParam = searchParams.get("view");
+  const dateParam = searchParams.get("date");
+  const [activeTab, setActiveTabState] = useState<string>(
+    (EVENT_VIEWS as readonly string[]).includes(viewParam ?? "")
+      ? (viewParam as string)
+      : "current"
+  );
+  const updateQuery = (patch: Record<string, string | null>) => {
+    const next = new URLSearchParams(searchParams.toString());
+    Object.entries(patch).forEach(([k, v]) => {
+      if (v === null) next.delete(k);
+      else next.set(k, v);
+    });
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+  const setActiveTab = (val: string) => {
+    setActiveTabState(val);
+    updateQuery({ view: val === "current" ? null : val });
+  };
   const [filterType, setFilterType] = useState<ScheduleEventType | "all">(
     "all"
   );
@@ -172,32 +205,43 @@ export default function ScheduleClient() {
   );
   const [eventToDeleteId, setEventToDeleteId] = useState<string | null>(null);
 
-  // Unified Top-level main tabs
-  const [activeMainTab, setActiveMainTab] = useState<
-    "events" | "courts" | "recovery"
-  >("events");
+  // Главната секция е маршрут (/schedule, /schedule/courts, /schedule/recovery).
+  const activeMainTab: ScheduleSectionId = isRecoveryZone
+    ? "recovery"
+    : mainTab;
 
   // Reservations states
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDateState] = useState(() => {
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      const d = new Date(`${dateParam}T12:00:00`);
+      if (!Number.isNaN(d.getTime())) return d;
+    }
+    return new Date();
+  });
+  const setCurrentDate = (d: Date) => {
+    setCurrentDateState(d);
+    const iso = format(d, "yyyy-MM-dd");
+    updateQuery({
+      date: iso === format(new Date(), "yyyy-MM-dd") ? null : iso,
+    });
+  };
   const [refreshKey, setRefreshKey] = useState(0);
-  const [activeReservationTab, setActiveReservationTab] = useState("schedule");
-
-  const searchParams = useSearchParams();
+  const [activeReservationTab, setActiveReservationTabState] = useState(
+    viewParam === "history" ? "history" : "schedule"
+  );
+  const setActiveReservationTab = (val: string) => {
+    setActiveReservationTabState(val);
+    updateQuery({ view: val === "history" ? "history" : null });
+  };
   const urlTab = searchParams.get("tab");
 
+  // Съвместимост със стари линкове (?tab=...) -> нови маршрути.
   useEffect(() => {
-    if (isRecoveryZone) {
-      setActiveMainTab("recovery");
-    } else if (urlTab === "inquiries") {
-      router.replace("/inquiries");
-    } else if (urlTab === "reservations" || urlTab === "courts") {
-      setActiveMainTab("courts");
-    } else if (urlTab === "recovery") {
-      setActiveMainTab("recovery");
-    } else {
-      setActiveMainTab("events");
-    }
-  }, [urlTab, isRecoveryZone, router]);
+    if (urlTab === "inquiries") router.replace("/inquiries");
+    else if (urlTab === "reservations" || urlTab === "courts")
+      router.replace("/schedule/courts");
+    else if (urlTab === "recovery") router.replace("/schedule/recovery");
+  }, [urlTab, router]);
 
   // Handle direct links to events (e.g. from attendance history)
   useEffect(() => {
@@ -217,11 +261,11 @@ export default function ScheduleClient() {
         tomorrow.setDate(tomorrow.getDate() + 1);
 
         if (eventDate < tomorrow && endDate >= today) {
-          setActiveTab("current");
+          setActiveTabState("current");
         } else if (eventDate >= tomorrow) {
-          setActiveTab("upcoming");
+          setActiveTabState("upcoming");
         } else {
-          setActiveTab("past");
+          setActiveTabState("past");
         }
       }
     }
@@ -641,41 +685,27 @@ export default function ScheduleClient() {
 
       {/* Top-Level Main Tabs (Hidden in Recovery Zone) */}
       {!isRecoveryZone && (
-        <div className="mb-4 flex gap-8 border-b border-zinc-200 dark:border-zinc-800">
-          <button
-            onClick={() => setActiveMainTab("events")}
-            className={cn(
-              "relative border-b-2 pb-4 text-xs font-semibold tracking-widest uppercase transition-all",
-              activeMainTab === "events"
-                ? "border-primary text-zinc-950 dark:text-white"
-                : "border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-            )}
-          >
-            Тренировки & Събития
-          </button>
-          <button
-            onClick={() => setActiveMainTab("courts")}
-            className={cn(
-              "relative border-b-2 pb-4 text-xs font-semibold tracking-widest uppercase transition-all",
-              activeMainTab === "courts"
-                ? "border-primary text-zinc-950 dark:text-white"
-                : "hover:text-zinc-650 border-transparent text-zinc-400"
-            )}
-          >
-            Резервация на кортове
-          </button>
-          <button
-            onClick={() => setActiveMainTab("recovery")}
-            className={cn(
-              "relative border-b-2 pb-4 text-xs font-semibold tracking-widest uppercase transition-all",
-              activeMainTab === "recovery"
-                ? "border-primary text-zinc-950 dark:text-white"
-                : "hover:text-zinc-650 border-transparent text-zinc-400"
-            )}
-          >
-            Резервация за възстановяване
-          </button>
-        </div>
+        <nav
+          aria-label="Навигация в график"
+          className="no-scrollbar mb-4 flex gap-8 overflow-x-auto border-b border-zinc-200 dark:border-zinc-800"
+        >
+          {SCHEDULE_SECTIONS.map((section) => (
+            <Link
+              key={section.id}
+              href={getScheduleSectionHref(section.id)}
+              title={section.tooltip}
+              aria-current={activeMainTab === section.id ? "page" : undefined}
+              className={cn(
+                "relative border-b-2 pb-4 text-xs font-semibold tracking-widest whitespace-nowrap uppercase transition-all",
+                activeMainTab === section.id
+                  ? "border-primary text-zinc-950 dark:text-white"
+                  : "border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              )}
+            >
+              {section.label}
+            </Link>
+          ))}
+        </nav>
       )}
 
       {/* Conditional Content Rendering */}

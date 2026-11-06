@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 
 import { ShadowHistoryClient } from "@/components/training/shadow/ShadowHistoryClient";
 import { getGlobalTrainingSessionsAction } from "@/lib/actions/trainings";
@@ -41,12 +41,16 @@ export default async function GlobalShadowHistoryPage() {
     .slice(0, 5);
 
   return (
-    <div className="flex min-h-full w-full flex-1 flex-col overflow-y-auto bg-zinc-50 px-4 pt-4 pb-20 dark:bg-black">
+    <Suspense
+      fallback={
+        <div className="h-48 animate-pulse rounded-2xl bg-zinc-100 dark:bg-zinc-900" />
+      }
+    >
       <ShadowHistoryClient
         sessions={sessions}
         memberNameMap={memberNameMap}
         leaderboard={leaderboard}
       />
-    </div>
+    </Suspense>
   );
 }

@@ -9,7 +9,7 @@ import {
   Info,
   Trophy,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,8 @@ import {
 } from "@/types/planner.types";
 export default function AnnualPlansClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const planParam = searchParams.get("plan");
   const { activeBranch: siteId } = useAppStore();
   const [plans, setPlans] = useState<AnnualPlan[]>([]);
   const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
@@ -69,10 +71,23 @@ export default function AnnualPlansClient() {
       setPlans(fetchedPlans);
       setTemplates(fetchedTemplates);
       setAllExercises(fetchedExercises);
-      if (fetchedPlans.length > 0) setSelectedPlanId(fetchedPlans[0].id);
+      if (fetchedPlans.length > 0) {
+        if (planParam && fetchedPlans.some((p) => p.id === planParam)) {
+          setSelectedPlanId(planParam);
+        } else {
+          setSelectedPlanId(fetchedPlans[0].id);
+        }
+      }
       setLoading(false);
     });
-  }, [siteId]);
+  }, [siteId, planParam]);
+
+  const handleSelectPlan = (id: string) => {
+    setSelectedPlanId(id);
+    const sp = new URLSearchParams(searchParams?.toString() || "");
+    sp.set("plan", id);
+    router.replace(`?${sp.toString()}`, { scroll: false });
+  };
 
   const activePlan = plans.find((p) => p.id === selectedPlanId);
 
@@ -109,21 +124,10 @@ export default function AnnualPlansClient() {
     );
 
   return (
-    <div className="container max-w-6xl space-y-6 py-8">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight dark:text-white">
-            Едногодишни Планове
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            BWF Периодизация и тренировъчни програми (Macrocycles).
-          </p>
-        </div>
-      </div>
-
+    <div className="container max-w-6xl space-y-6">
       <Tabs
         value={selectedPlanId || ""}
-        onValueChange={setSelectedPlanId}
+        onValueChange={handleSelectPlan}
         className="w-full"
       >
         <TabsList className="mb-2.5 flex h-auto flex-wrap gap-1.5 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
@@ -139,7 +143,7 @@ export default function AnnualPlansClient() {
         </TabsList>
 
         {plans.map((plan) => (
-          <TabsContent key={plan.id} value={plan.id}>
+          <TabsContent key={plan.id} value={plan.id} id={`plan-${plan.id}`}>
             <Card className="border-primary/20 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
               <CardHeader className="bg-primary/5 pb-6 dark:bg-zinc-900/50">
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-4">

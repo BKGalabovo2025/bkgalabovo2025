@@ -23,6 +23,8 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { SalesListSectionId } from "@/components/sales/sales-list-sections";
+import { SalesNav } from "@/components/sales/SalesNav";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,6 +62,7 @@ interface SalesClientProps {
   initialSales: Sale[];
   initialMembers: Member[];
   showPageHeader?: boolean;
+  section?: SalesListSectionId;
 }
 
 interface SaleMobileCardProps {
@@ -242,6 +245,7 @@ export default function SalesClient({
   initialSales = [],
   initialMembers = [],
   showPageHeader = true,
+  section = "all",
 }: SalesClientProps) {
   const router = useRouter();
   const { idToken } = useAuth();
@@ -304,6 +308,8 @@ export default function SalesClient({
 
   const filteredSales = useMemo(() => {
     return sortedSales.filter((sale) => {
+      if (section === "paid" && !sale.isPaid) return false;
+      if (section === "pending" && sale.isPaid) return false;
       // 1. Status filter
       if (statusFilter === "pending" && sale.isPaid) return false;
       if (statusFilter === "paid" && !sale.isPaid) return false;
@@ -328,7 +334,7 @@ export default function SalesClient({
       }
       return true;
     });
-  }, [sortedSales, statusFilter, searchQuery]);
+  }, [sortedSales, statusFilter, searchQuery, section]);
 
   const handleRowClick = (saleId: string) => {
     router.push(`/sales/${saleId}`);
@@ -697,6 +703,7 @@ export default function SalesClient({
               продажба
             </Button>
           </PageHeader>
+          <SalesNav />
 
           <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 lg:grid-cols-4">
             <BentoCard

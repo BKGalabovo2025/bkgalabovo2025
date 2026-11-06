@@ -4,9 +4,13 @@ import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { Clock, FileText, Printer, Search, Trash2, User } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-import { PageHeader } from "@/components/layout/page-header";
+import {
+  BLANK_DECLARATION_PDF_URL,
+  type DeclarationSectionId,
+} from "@/components/declarations/declaration-sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,18 +21,21 @@ import { SignedDeclaration } from "@/types";
 
 interface DeclarationsClientProps {
   initialDeclarations?: SignedDeclaration[];
+  section?: DeclarationSectionId;
 }
 
 export default function DeclarationsClient({
   initialDeclarations = [],
+  section = "signed",
 }: DeclarationsClientProps) {
+  const focusId = useSearchParams().get("declarationId");
   const [declarations, setDeclarations] =
     useState<SignedDeclaration[]>(initialDeclarations);
   const [loading, setLoading] = useState(initialDeclarations.length === 0);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    if (initialDeclarations.length > 0) {
+    if (section === "templates" || initialDeclarations.length > 0) {
       setLoading(false);
       return;
     }
@@ -46,14 +53,15 @@ export default function DeclarationsClient({
       }
     }
     fetchDeclarations();
-  }, [initialDeclarations]);
+  }, [initialDeclarations, section]);
 
-  const handlePrint = () => {
-    window.open(
-      "/declaration/Декларация за информирано съгласие BG ENG.pdf",
-      "_blank"
-    );
-  };
+  // Дълбок линк ?declarationId=... – превъртане до записа.
+  useEffect(() => {
+    if (!focusId || loading) return;
+    document
+      .getElementById(`declaration-${focusId}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [focusId, loading]);
 
   const handleDelete = async (id: string, name: string) => {
     if (
@@ -83,27 +91,8 @@ export default function DeclarationsClient({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Декларации за съгласие"
-        description="Управление и принтиране на декларации за информирано съгласие."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Декларации" },
-        ]}
-      >
-        <div className="flex w-full sm:w-auto">
-          <Button
-            onClick={handlePrint}
-            className="w-full sm:w-auto print:hidden"
-          >
-            <Printer className="mr-2 size-4" />
-            Разпечатай празен шаблон
-          </Button>
-        </div>
-      </PageHeader>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+      {section === "signed" && (
+        <div className="space-y-4">
           <div className="flex items-center gap-3 rounded-2xl border border-zinc-100 bg-white p-3.5 sm:p-4 shadow-sm dark:border-zinc-900 dark:bg-zinc-950">
             <Search className="size-5 text-zinc-400" />
             <Input
@@ -142,7 +131,8 @@ export default function DeclarationsClient({
                   {filteredDeclarations.map((decl) => (
                     <div
                       key={decl.id}
-                      className="flex flex-col justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:flex-row sm:items-center sm:gap-4 sm:p-5 dark:hover:bg-zinc-900/50"
+                      id={`declaration-${decl.id}`}
+                      className={`flex flex-col justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:flex-row sm:items-center sm:gap-4 sm:p-5 dark:hover:bg-zinc-900/50 ${decl.id === focusId ? "bg-primary/5 ring-2 ring-primary ring-inset" : ""}`}
                     >
                       <div className="flex items-start gap-3 sm:gap-4">
                         <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -181,18 +171,18 @@ export default function DeclarationsClient({
                       </div>
                       <div className="flex w-full shrink-0 items-center justify-end gap-2 border-t border-zinc-50 pt-2 sm:w-auto sm:border-0 sm:pt-0 dark:border-zinc-900">
                         <Button
+                          asChild
                           variant="outline"
                           size="sm"
                           className="flex-1 sm:flex-none"
-                          onClick={() =>
-                            window.open(
-                              `/print-declaration/${decl.id}`,
-                              "_blank"
-                            )
-                          }
                         >
-                          <Printer className="mr-2 size-4" />
-                          Преглед
+                          <Link
+                            href={`/print-declaration/${decl.id}`}
+                            target="_blank"
+                          >
+                            <Printer className="mr-2 size-4" />
+                            Преглед
+                          </Link>
                         </Button>
                         <Button
                           variant="ghost"
@@ -210,9 +200,14 @@ export default function DeclarationsClient({
             );
           })()}
         </div>
+      )}
 
+      {section === "templates" && (
         <div className="space-y-6">
-          <div className="flex flex-col items-center justify-center rounded-2xl bg-zinc-100 p-8 text-center dark:bg-zinc-900">
+          <div
+            id="template-informed-consent"
+            className="flex flex-col items-center justify-center rounded-2xl bg-zinc-100 p-8 text-center dark:bg-zinc-900"
+          >
             <FileText className="mb-4 size-12 text-zinc-300" />
             <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
               Оригинален PDF шаблон
@@ -221,13 +216,19 @@ export default function DeclarationsClient({
               От тук можете да изтеглите или разпечатате празна бланка, ако ви е
               нужна на хартия.
             </p>
-            <Button onClick={handlePrint} variant="outline" className="w-full">
-              <Printer className="mr-2 size-4" />
-              Отвори шаблона
+            <Button asChild variant="outline" className="w-full">
+              <a
+                href={BLANK_DECLARATION_PDF_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Printer className="mr-2 size-4" />
+                Отвори шаблона
+              </a>
             </Button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

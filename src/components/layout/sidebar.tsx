@@ -413,9 +413,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               >
                 <Link
                   prefetch={false}
-                  href={
-                    !isRecoveryZone ? "/schedule" : "/schedule?tab=reservations"
-                  }
+                  href={!isRecoveryZone ? "/schedule" : "/schedule/recovery"}
                   className="flex w-full items-center gap-3"
                   onClick={() => {
                     if (isRecoveryZone) {

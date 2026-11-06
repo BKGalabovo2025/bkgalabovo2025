@@ -1,12 +1,25 @@
 "use client";
 
+import { usePathname, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 
+import {
+  getActiveInquirySectionId,
+  getInquirySectionHref,
+} from "@/components/inquiries/inquiry-sections";
 import { PageHeader } from "@/components/layout/page-header";
 import { InquiriesTab } from "@/components/schedule/InquiriesTab";
 import { useAppStore } from "@/store/use-app-store";
 
 export default function InquiriesPageClient() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const section = getActiveInquirySectionId(pathname) ?? "all";
+  const sourceParam = searchParams.get("source");
+  const initialSource =
+    sourceParam === "bkgalabovo" || sourceParam === "recoveryzone"
+      ? sourceParam
+      : "all";
   const [newCount, setNewCount] = useState(0);
   const { activeBranch } = useAppStore();
   const isRecovery = activeBranch === "recoveryzone";
@@ -36,7 +49,13 @@ export default function InquiriesPageClient() {
       </PageHeader>
 
       <div className="pt-2">
-        <InquiriesTab onNewCountChange={setNewCount} />
+        <InquiriesTab
+          onNewCountChange={setNewCount}
+          status={section}
+          buildStatusHref={(s) => getInquirySectionHref(s)}
+          initialSource={initialSource}
+          focusId={searchParams.get("inquiryId")}
+        />
       </div>
     </div>
   );

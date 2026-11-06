@@ -16,7 +16,8 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,10 @@ export function ShadowHistoryClient({
   memberNameMap,
   leaderboard,
 }: ShadowHistoryClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionParam = searchParams.get("session");
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMode, setSelectedMode] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<"all" | "7d" | "30d">(
@@ -95,6 +100,37 @@ export function ShadowHistoryClient({
     null
   );
   const [referenceTimestamp] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!sessionParam) return;
+    const match = sessions.find((s) => s.id === sessionParam);
+    if (match) {
+      setInspectSession(match);
+      setTimeout(() => {
+        const el = document.getElementById(`session-${match.id}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 150);
+    }
+  }, [sessionParam, sessions]);
+
+  const handleOpenInspect = (session: TrainingSession) => {
+    setInspectSession(session);
+    if (session.id) {
+      const sp = new URLSearchParams(searchParams?.toString() || "");
+      sp.set("session", session.id);
+      router.replace(`?${sp.toString()}`, { scroll: false });
+    }
+  };
+
+  const handleCloseInspect = () => {
+    setInspectSession(null);
+    const sp = new URLSearchParams(searchParams?.toString() || "");
+    sp.delete("session");
+    const q = sp.toString();
+    router.replace(q ? `?${q}` : window.location.pathname, { scroll: false });
+  };
 
   // Filtered Sessions
   const filteredSessions = useMemo(() => {
@@ -444,6 +480,7 @@ export function ShadowHistoryClient({
                 return (
                   <Card
                     key={session.id}
+                    id={`session-${session.id}`}
                     className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-xs transition-all hover:border-blue-400 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
                   >
                     <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -516,7 +553,7 @@ export function ShadowHistoryClient({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setInspectSession(session)}
+                            onClick={() => handleOpenInspect(session)}
                             className="h-9 rounded-xl text-xs font-bold"
                           >
                             <Eye className="mr-1.5 size-3.5" /> Детайли
@@ -538,7 +575,7 @@ export function ShadowHistoryClient({
       <Dialog
         open={!!inspectSession}
         onOpenChange={(open) => {
-          if (!open) setInspectSession(null);
+          if (!open) handleCloseInspect();
         }}
       >
         <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">

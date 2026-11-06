@@ -8,14 +8,27 @@ import {
   Trophy,
   User,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
 
 import { cn } from "@/lib/utils";
 
-import { PortalTab, useParentPortalContext } from "./ParentPortalContext";
+import {
+  getActiveParentPortalSectionId,
+  getParentPortalSectionHref,
+  ParentPortalSectionId,
+} from "./parent-portal-sections";
+import { useParentPortalContext } from "./ParentPortalContext";
 
 export function ParentPortalNav() {
-  const { activeTab, setActiveTab, portal } = useParentPortalContext();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { portal } = useParentPortalContext();
+  const activeSection: ParentPortalSectionId =
+    getActiveParentPortalSectionId(pathname) || "attendance";
+  const childParam = searchParams.get("child");
+  const qs = childParam ? `?child=${childParam}` : "";
   const { documentsData, absences, feeStatus, permissions } = portal;
 
   const pendingDocsCount = (documentsData?.sentDocuments || []).filter(
@@ -25,7 +38,7 @@ export function ParentPortalNav() {
   const unpaidCount = feeStatus?.unpaidSalesCount || 0;
 
   const TABS: Array<{
-    id: PortalTab;
+    id: ParentPortalSectionId;
     label: string;
     icon: React.ElementType;
     badge?: number | string | null;
@@ -80,13 +93,13 @@ export function ParentPortalNav() {
       <nav className="flex items-center gap-1 overflow-x-auto scrollbar-none">
         {TABS.filter((t) => t.visible !== false).map((tab) => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+          const isActive = activeSection === tab.id;
 
           return (
-            <button
+            <Link
               key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
+              href={`${getParentPortalSectionHref(tab.id as ParentPortalSectionId)}${qs}`}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all cursor-pointer select-none",
                 isActive
@@ -118,7 +131,7 @@ export function ParentPortalNav() {
                   {tab.badge}
                 </span>
               )}
-            </button>
+            </Link>
           );
         })}
       </nav>

@@ -23,9 +23,13 @@ import {
   Ticket,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import type { AccountingSectionId } from "@/components/accounting/accounting-sections";
+import { AccountingNav } from "@/components/accounting/AccountingNav";
 import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
 import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
 import { PageHeader } from "@/components/layout/page-header";
@@ -298,7 +302,7 @@ interface TripMobileCardProps {
     className: string;
     text: string;
   };
-  onManage: (trip: BusinessTrip) => void;
+  onManage?: (trip: BusinessTrip) => void;
 }
 
 function TripMobileCard({
@@ -307,7 +311,7 @@ function TripMobileCard({
   total,
   expensesCount,
   statusBadge,
-  onManage,
+  onManage: _onManage,
 }: TripMobileCardProps) {
   return (
     <div className="space-y-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 transition-colors dark:border-zinc-800/80 dark:bg-zinc-800/30">
@@ -320,7 +324,12 @@ function TripMobileCard({
             className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100"
             title={trip.title}
           >
-            {trip.title}
+            <Link
+              href={`/accounting/trips/${trip.id}`}
+              className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              {trip.title}
+            </Link>
           </h4>
           {trip.destination && (
             <p
@@ -375,12 +384,12 @@ function TripMobileCard({
           {expensesCount > 0 ? `🧾 ${expensesCount} фактури` : "Няма фактури"}
         </span>
         <Button
+          asChild
           variant="outline"
           size="sm"
           className="h-7 border-zinc-200 px-3 text-xs hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
-          onClick={() => onManage(trip)}
         >
-          Управление
+          <Link href={`/accounting/trips/${trip.id}`}>Управление</Link>
         </Button>
       </div>
     </div>
@@ -389,8 +398,15 @@ function TripMobileCard({
 
 const ITEMS_PER_PAGE = 8;
 
-export default function AccountingClient() {
+export default function AccountingClient({
+  section = "all",
+}: {
+  section?: AccountingSectionId;
+}) {
   const site = getSiteConfig();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [trips, setTrips] = useState<BusinessTrip[]>([]);
   const [expenses, setExpenses] = useState<Record<string, TripExpense[]>>({});
   const [membersDict, setMembersDict] = useState<Record<string, Member>>({});
@@ -408,16 +424,38 @@ export default function AccountingClient() {
   const [isSelectEventOpen, setIsSelectEventOpen] = useState(false);
   const [eventSearchQuery, setEventSearchQuery] = useState("");
 
-  // Filters
-  const [selectedMonth, setSelectedMonth] = useState<Date>(
-    startOfMonth(new Date())
-  );
-  const [activityFilter, setActivityFilter] = useState<
-    "all" | "commercial" | "non-commercial"
-  >("all");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "draft" | "approved" | "completed"
-  >("all");
+  // Филтри – живеят в URL (?month=YYYY-MM&status=...), секцията е маршрут.
+  const monthParam = searchParams.get("month");
+  const statusParam = searchParams.get("status");
+  const selectedMonth = useMemo(() => {
+    if (monthParam && /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam)) {
+      return startOfMonth(parseISO(`${monthParam}-01`));
+    }
+    return startOfMonth(new Date());
+  }, [monthParam]);
+  const activityFilter: "all" | "commercial" | "non-commercial" = section;
+  const statusFilter: "all" | "draft" | "approved" | "completed" =
+    statusParam === "draft" ||
+    statusParam === "approved" ||
+    statusParam === "completed"
+      ? statusParam
+      : "all";
+
+  const updateParams = (patch: Record<string, string | null>) => {
+    const next = new URLSearchParams(searchParams.toString());
+    Object.entries(patch).forEach(([k, v]) => {
+      if (v === null) next.delete(k);
+      else next.set(k, v);
+    });
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+  const setSelectedMonth = (d: Date) =>
+    updateParams({ month: format(d, "yyyy-MM") });
+  const setStatusFilter = (val: string) =>
+    updateParams({ status: val === "all" ? null : val });
+  const deepLinkTripId = searchParams.get("tripId");
+  const deepLinkHandled = useRef(false);
   const [tripSearchQuery, setTripSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -485,6 +523,20 @@ export default function AccountingClient() {
       console.error("Error refreshing data after edit", e);
     }
   };
+
+  // Дълбок линк ?tripId=... отваря мениджъра на командировката.
+  useEffect(() => {
+    if (loading || !deepLinkTripId || deepLinkHandled.current) return;
+    const trip = trips.find((t) => t.id === deepLinkTripId);
+    const ev = trip ? events.find((e) => e.id === trip.eventId) : undefined;
+    deepLinkHandled.current = true;
+    if (ev) {
+      setSelectedEvent(ev);
+      setIsTripManagerOpen(true);
+    } else {
+      toast.error("Командировката не е намерена.");
+    }
+  }, [loading, deepLinkTripId, trips, events]);
 
   const handleManageTrip = (trip: BusinessTrip) => {
     const ev = events.find((e) => e.id === trip.eventId);
@@ -708,7 +760,7 @@ export default function AccountingClient() {
   };
 
   const goToCurrentMonth = () => {
-    setSelectedMonth(startOfMonth(new Date()));
+    updateParams({ month: null });
   };
 
   const handleExportExcel = async () => {
@@ -1158,6 +1210,8 @@ export default function AccountingClient() {
         </div>
       </PageHeader>
 
+      <AccountingNav />
+
       {/* ── Compact Streamlined Toolbar (Month + Search + Filters) ── */}
       <div className="flex flex-col gap-2 rounded-xl border border-zinc-200/80 bg-white p-2 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center justify-between gap-1.5 md:justify-start">
@@ -1202,20 +1256,6 @@ export default function AccountingClient() {
               className="h-7.5 w-full pl-7 text-xs"
             />
           </div>
-
-          <Select
-            value={activityFilter}
-            onValueChange={(val: any) => setActivityFilter(val)}
-          >
-            <SelectTrigger className="h-7.5 min-w-28 flex-1 text-xs sm:w-30 sm:flex-none">
-              <SelectValue placeholder="Дейност" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Всички дейности</SelectItem>
-              <SelectItem value="non-commercial">Нестопанска</SelectItem>
-              <SelectItem value="commercial">Стопанска</SelectItem>
-            </SelectContent>
-          </Select>
 
           <Select
             value={statusFilter}
@@ -1435,18 +1475,20 @@ export default function AccountingClient() {
                   return (
                     <TableRow
                       key={trip.id}
+                      id={`trip-${trip.id}`}
                       className="border-b transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40"
                     >
                       <TableCell className="whitespace-nowrap px-2.5 py-1.5 font-medium text-zinc-600 dark:text-zinc-400">
                         {formatDateShort(trip.startDate)}
                       </TableCell>
                       <TableCell className="min-w-40 max-w-60 px-2.5 py-1.5">
-                        <span
-                          className="block truncate font-medium text-zinc-900 dark:text-zinc-100"
+                        <Link
+                          href={`/accounting/trips/${trip.id}`}
+                          className="block truncate font-medium text-zinc-900 hover:text-blue-600 hover:underline dark:text-zinc-100 dark:hover:text-blue-400"
                           title={trip.title}
                         >
                           {trip.title}
-                        </span>
+                        </Link>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {trip.destination && (
                             <span
@@ -1527,12 +1569,14 @@ export default function AccountingClient() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap px-2.5 py-1.5 text-right">
                         <Button
+                          asChild
                           variant="outline"
                           size="sm"
                           className="h-7 border-zinc-200 px-2 text-xs hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
-                          onClick={() => handleManageTrip(trip)}
                         >
-                          Управление
+                          <Link href={`/accounting/trips/${trip.id}`}>
+                            Управление
+                          </Link>
                         </Button>
                       </TableCell>
                     </TableRow>

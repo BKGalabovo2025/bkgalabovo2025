@@ -63,7 +63,7 @@ export const DashboardNotifications = ({
 
         <div className="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
           <Link
-            href={isRecovery ? "/schedule?tab=recovery" : "/schedule"}
+            href={isRecovery ? "/schedule/recovery" : "/schedule"}
             className="group flex items-center justify-between text-xs font-semibold text-zinc-600 transition-colors hover:text-primary dark:text-zinc-400 dark:hover:text-white"
           >
             <span>
@@ -119,13 +119,11 @@ export const DashboardNotifications = ({
                 } else if (reminder.memberId) {
                   router.push(
                     isRecovery
-                      ? "/schedule?tab=recovery"
+                      ? "/schedule/recovery"
                       : `/members/${reminder.memberId}`
                   );
                 } else {
-                  router.push(
-                    isRecovery ? "/schedule?tab=recovery" : "/schedule"
-                  );
+                  router.push(isRecovery ? "/schedule/recovery" : "/schedule");
                 }
               }}
               className="group flex cursor-pointer flex-col gap-1 rounded-xl border border-rose-100/80 bg-white/95 p-2 sm:p-2.5 backdrop-blur-xs transition-all duration-200 hover:border-rose-300 hover:shadow-xs dark:border-zinc-800 dark:bg-zinc-900/95"
