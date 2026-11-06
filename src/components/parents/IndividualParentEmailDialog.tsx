@@ -196,18 +196,21 @@ export function IndividualParentEmailDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg rounded-2xl p-0 overflow-hidden border-zinc-200 dark:border-zinc-800">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader className="border-b border-zinc-100 bg-zinc-50/50 px-5 py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-            <div className="flex items-center justify-between">
+      <DialogContent className="w-[calc(100%-1rem)] sm:max-w-lg max-h-[92dvh] flex flex-col p-0 overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950 shadow-2xl">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
+        >
+          <DialogHeader className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 p-4 sm:p-5 pr-10 sm:pr-12 text-left dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                <Mail className="size-5" />
+                <Mail className="size-5 shrink-0" />
                 <DialogTitle className="text-base font-bold text-zinc-900 dark:text-white">
                   Лично съобщение до родител
                 </DialogTitle>
               </div>
-              <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-none text-[10px] font-bold">
-                🎯 1 Получател (Без спам)
+              <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-none text-[10px] font-bold shrink-0">
+                🎯 1 Получател
               </Badge>
             </div>
             <DialogDescription className="text-xs text-zinc-500 mt-1">
@@ -219,7 +222,15 @@ export function IndividualParentEmailDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 p-5 text-xs max-h-[70vh] overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5 space-y-3 sm:space-y-4 text-xs">
+            {!parent.email && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
+                ⚠️ Този родител няма въведен имейл адрес в профила си. Моля,
+                първо добавете имейл към профила му или се свържете с него по
+                телефон.
+              </div>
+            )}
+
             {/* Child selector if parent has linked children */}
             {childrenList.length > 0 && (
               <div className="space-y-1.5">
@@ -230,7 +241,7 @@ export function IndividualParentEmailDialog({
                   value={selectedChildId}
                   onValueChange={handleChildChange}
                 >
-                  <SelectTrigger className="h-9 rounded-xl text-xs">
+                  <SelectTrigger className="h-9 rounded-xl text-xs w-full">
                     <SelectValue placeholder="Изберете състезател" />
                   </SelectTrigger>
                   <SelectContent>
@@ -256,7 +267,7 @@ export function IndividualParentEmailDialog({
                 value={selectedTemplateId}
                 onValueChange={handleTemplateChange}
               >
-                <SelectTrigger className="h-9 rounded-xl text-xs">
+                <SelectTrigger className="h-9 rounded-xl text-xs w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -283,7 +294,7 @@ export function IndividualParentEmailDialog({
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="напр. Напомняне за месечен абонамент"
-                className="h-9 rounded-xl text-xs"
+                className="h-9 rounded-xl text-xs w-full"
               />
             </div>
 
@@ -297,29 +308,29 @@ export function IndividualParentEmailDialog({
                   Съдържание на съобщението:
                 </Label>
                 <span className="text-[10px] text-zinc-400">
-                  Можете свободно да редактирате текста
+                  Можете да редактирате
                 </span>
               </div>
               <Textarea
                 id="parent-email-body"
                 name="parentEmailBody"
-                rows={6}
+                rows={4}
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 placeholder="Въведете Вашето съобщение тук..."
-                className="rounded-xl text-xs resize-none"
+                className="min-h-24 sm:min-h-32 rounded-xl text-xs resize-y w-full leading-relaxed"
               />
             </div>
           </div>
 
-          <DialogFooter className="border-t border-zinc-100 bg-zinc-50/50 px-5 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <DialogFooter className="shrink-0 border-t border-zinc-100 bg-zinc-50/50 p-3 sm:p-4 sm:px-5 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 dark:border-zinc-800 dark:bg-zinc-900/40">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={onClose}
               disabled={isSending}
-              className="rounded-xl text-xs"
+              className="w-full sm:w-auto rounded-xl text-xs cursor-pointer"
             >
               Отказ
             </Button>
@@ -327,7 +338,7 @@ export function IndividualParentEmailDialog({
               type="submit"
               size="sm"
               disabled={isSending || !parent.email}
-              className="rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-500 text-xs"
+              className="w-full sm:w-auto rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-500 text-xs cursor-pointer"
             >
               {isSending ? (
                 <>

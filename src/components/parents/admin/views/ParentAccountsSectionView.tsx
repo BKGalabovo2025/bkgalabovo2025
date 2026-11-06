@@ -72,6 +72,8 @@ export function ParentAccountsSectionView() {
     setSelectedDocTypePerChild,
     isSendingDocPerChild,
     handleSendDocFromAdmin,
+    isDeletingDocReq,
+    handleDeleteDocRequest,
     handleToggleStatus,
     handleResetPassword,
     setDeleteConfirmUser,
@@ -475,56 +477,95 @@ export function ParentAccountsSectionView() {
 
                             {/* Sent documents status for this child */}
                             {childDocs.length > 0 && (
-                              <div className="space-y-1 pt-1">
-                                {childDocs.slice(0, 4).map((docReq) => {
-                                  const isSigned =
-                                    docReq.status === "completed";
-                                  const isViewed = Boolean(
-                                    docReq.viewedByParentAt
-                                  );
-                                  return (
-                                    <div
-                                      key={docReq.id}
-                                      className="flex flex-wrap items-center justify-between gap-1.5 rounded-lg bg-zinc-50 px-2 py-1 text-[11px] dark:bg-zinc-950/60"
-                                    >
-                                      <span className="font-medium text-zinc-700 dark:text-zinc-300 truncate flex items-center gap-1">
-                                        <FileSignature
-                                          size={11}
-                                          className="text-indigo-500 shrink-0"
-                                        />
-                                        {docReq.documentTitle}
-                                      </span>
-                                      <div className="flex items-center gap-1.5">
-                                        {isSigned ? (
-                                          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                                            ✍️ Подписан (
-                                            {docReq.signedAt
-                                              ? new Date(
-                                                  docReq.signedAt
-                                                ).toLocaleDateString("bg-BG")
-                                              : ""}
-                                            )
-                                          </span>
-                                        ) : isViewed ? (
-                                          <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-bold text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
-                                            👁️ Прегледан (очаква подпис)
-                                          </span>
-                                        ) : (
-                                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                                            ⏳ Изпратен
-                                          </span>
-                                        )}
-                                        <Link
-                                          href={`/sign/${docReq.token}`}
-                                          target="_blank"
-                                          className="text-[10px] font-bold text-blue-600 hover:underline dark:text-blue-400"
+                              <div className="space-y-1.5 pt-1">
+                                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider flex items-center justify-between">
+                                  <span>
+                                    Изпратени документи ({childDocs.length}):
+                                  </span>
+                                </div>
+                                <div className="space-y-1">
+                                  {childDocs.map((docReq) => {
+                                    const isSigned =
+                                      docReq.status === "completed";
+                                    const isViewed = Boolean(
+                                      docReq.viewedByParentAt
+                                    );
+                                    const isDeletingThis =
+                                      isDeletingDocReq === docReq.id;
+
+                                    return (
+                                      <div
+                                        key={docReq.id}
+                                        className="flex flex-wrap items-center justify-between gap-1.5 rounded-lg bg-zinc-50 px-2 py-1.5 text-[11px] border border-zinc-100 dark:border-zinc-800/60 dark:bg-zinc-950/60"
+                                      >
+                                        <span
+                                          className="font-medium text-zinc-700 dark:text-zinc-300 truncate flex items-center gap-1.5 max-w-50 sm:max-w-70"
+                                          title={docReq.documentTitle}
                                         >
-                                          {isSigned ? "Преглед ↗" : "Линк ↗"}
-                                        </Link>
+                                          <FileSignature
+                                            size={12}
+                                            className="text-indigo-500 shrink-0"
+                                          />
+                                          <span className="truncate">
+                                            {docReq.documentTitle}
+                                          </span>
+                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                          {isSigned ? (
+                                            <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                              ✍️ Подписан
+                                              {docReq.signedAt
+                                                ? ` (${new Date(
+                                                    docReq.signedAt
+                                                  ).toLocaleDateString(
+                                                    "bg-BG"
+                                                  )})`
+                                                : ""}
+                                            </span>
+                                          ) : isViewed ? (
+                                            <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-bold text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+                                              👁️ Прегледан
+                                            </span>
+                                          ) : (
+                                            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                                              ⏳ Изпратен
+                                            </span>
+                                          )}
+                                          <Link
+                                            href={`/sign/${docReq.token}`}
+                                            target="_blank"
+                                            className="text-[10px] font-bold text-blue-600 hover:underline dark:text-blue-400 px-1 py-0.5"
+                                          >
+                                            {isSigned ? "Преглед ↗" : "Линк ↗"}
+                                          </Link>
+
+                                          <button
+                                            type="button"
+                                            disabled={isDeletingThis}
+                                            onClick={() =>
+                                              handleDeleteDocRequest(
+                                                docReq.id,
+                                                docReq.documentTitle
+                                              )
+                                            }
+                                            title="Премахни документа от родителския профил (ако е изпратен по грешка)"
+                                            className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/50 transition-colors disabled:opacity-50 cursor-pointer"
+                                          >
+                                            {isDeletingThis ? (
+                                              <Loader2
+                                                size={11}
+                                                className="animate-spin"
+                                              />
+                                            ) : (
+                                              <Trash2 size={11} />
+                                            )}
+                                            <span>Премахни</span>
+                                          </button>
+                                        </div>
                                       </div>
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  })}
+                                </div>
                               </div>
                             )}
                           </div>

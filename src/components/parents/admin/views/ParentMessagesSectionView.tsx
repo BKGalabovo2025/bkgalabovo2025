@@ -89,14 +89,14 @@ export function ParentMessagesSectionView() {
           </div>
 
           {/* Quick Select Parent to start communication */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <select
               id="parent-comm-select"
               name="parentCommSelect"
               aria-label="Изберете родител за контакт"
               value={selectedCommParentId}
               onChange={(e) => setSelectedCommParentId(e.target.value)}
-              className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 min-w-50"
+              className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 w-full sm:min-w-50"
             >
               <option value="all">-- Всички регистрирани родители --</option>
               {parents.map((p) => (
@@ -113,11 +113,11 @@ export function ParentMessagesSectionView() {
                 );
                 if (!selParent) return null;
                 return (
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 w-full sm:w-auto">
                     <Button
                       size="sm"
                       onClick={() => setCallingParent(selParent)}
-                      className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold cursor-pointer"
+                      className="flex-1 sm:flex-initial justify-center rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold cursor-pointer"
                     >
                       <PhoneCall size={13} className="mr-1" />
                       Обаждане
@@ -125,7 +125,7 @@ export function ParentMessagesSectionView() {
                     <Button
                       size="sm"
                       onClick={() => setEmailingParent(selParent)}
-                      className="rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold cursor-pointer"
+                      className="flex-1 sm:flex-initial justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold cursor-pointer"
                     >
                       <Mail size={13} className="mr-1" />
                       Имейл
@@ -149,8 +149,8 @@ export function ParentMessagesSectionView() {
           </Badge>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-50">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
             <Input
               id="comm-search-query"
@@ -158,7 +158,7 @@ export function ParentMessagesSectionView() {
               placeholder="Търси по име на родител, дете или бележка..."
               value={commSearchQuery}
               onChange={(e) => setCommSearchQuery(e.target.value)}
-              className="h-8 pl-8 text-xs rounded-xl"
+              className="h-8 pl-8 text-xs rounded-xl w-full"
             />
           </div>
 
@@ -170,7 +170,7 @@ export function ParentMessagesSectionView() {
             onChange={(e) =>
               setCommChannelFilter(e.target.value as "all" | "phone" | "email")
             }
-            className="h-8 rounded-xl border border-zinc-200 bg-white px-2.5 text-xs font-medium text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+            className="h-8 rounded-xl border border-zinc-200 bg-white px-2.5 text-xs font-medium text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 w-full sm:w-auto"
           >
             <option value="all">Всички канали</option>
             <option value="phone">📞 Само телефонни разговори</option>

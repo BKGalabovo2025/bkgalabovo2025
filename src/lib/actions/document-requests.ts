@@ -881,7 +881,7 @@ export async function cancelDocumentRequestAction(input: {
  */
 export async function deleteDocumentRequestAction(input: {
   requestId: string;
-  idToken: string;
+  idToken?: string;
 }): Promise<ActionResult> {
   try {
     const user = await ensureAdmin(input.idToken);
@@ -999,6 +999,9 @@ export async function deleteDocumentRequestAction(input: {
     if (docData.memberId) {
       revalidatePath(`/members/${docData.memberId}`);
     }
+    revalidatePath("/parents");
+    revalidatePath("/parents/accounts");
+    revalidatePath("/club/parents");
 
     return {
       success: true,

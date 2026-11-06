@@ -12,6 +12,7 @@ import React, {
 import { toast } from "sonner";
 
 import { useParentPortalAdmin } from "@/hooks/useParentPortalAdmin";
+import { deleteDocumentRequestAction } from "@/lib/actions/document-requests";
 import {
   approveDataCorrectionAction,
   approveParentAccessRequestAction,
@@ -119,6 +120,11 @@ interface ParentAdminContextType {
   >;
   isSendingDocPerChild: Record<string, boolean>;
   handleSendDocFromAdmin: (parentId: string, memberId: string) => Promise<void>;
+  isDeletingDocReq: string | null;
+  handleDeleteDocRequest: (
+    requestId: string,
+    docTitle?: string
+  ) => Promise<boolean>;
 
   // Link / Unlink child state & actions
   linkingParentId: string | null;
@@ -351,6 +357,38 @@ export function ParentAdminProvider({
       toast.error("Системна грешка при изпращане.");
     } finally {
       setIsSendingDocPerChild((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const [isDeletingDocReq, setIsDeletingDocReq] = useState<string | null>(null);
+
+  const handleDeleteDocRequest = async (
+    requestId: string,
+    docTitle?: string
+  ): Promise<boolean> => {
+    const label = docTitle ? `„${docTitle}“` : "този документ";
+    const confirmed = window.confirm(
+      `Сигурни ли сте, че искате да премахнете ${label}?\nТой ще бъде заличен от системата и повече няма да се показва в профила на родителя.`
+    );
+    if (!confirmed) return false;
+
+    setIsDeletingDocReq(requestId);
+    try {
+      const res = await deleteDocumentRequestAction({ requestId });
+      if (!res.success) {
+        toast.error(res.error || "Грешка при премахване на документа.");
+        return false;
+      }
+      toast.success(
+        `Документът ${docTitle ? `„${docTitle}“ ` : ""}беше успешно премахнат.`
+      );
+      refetch();
+      return true;
+    } catch {
+      toast.error("Възникна системна грешка при премахване на документа.");
+      return false;
+    } finally {
+      setIsDeletingDocReq(null);
     }
   };
 
@@ -1218,6 +1256,8 @@ export function ParentAdminProvider({
         setSelectedDocTypePerChild,
         isSendingDocPerChild,
         handleSendDocFromAdmin,
+        isDeletingDocReq,
+        handleDeleteDocRequest,
 
         linkingParentId,
         setLinkingParentId,
