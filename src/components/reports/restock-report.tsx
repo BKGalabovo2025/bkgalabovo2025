@@ -30,11 +30,13 @@ const RestockReport = ({ initialProducts }: RestockReportProps) => {
   const [productsToRestock] = useState<Product[]>(initialProducts);
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+    <Card className="border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div>
-          <CardTitle>Протокол за презареждане</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-base font-semibold text-zinc-950 dark:text-zinc-100">
+            Протокол за презареждане
+          </CardTitle>
+          <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
             Списък на продуктите, чиято наличност е достигнала или е под прага
             за презареждане.
           </CardDescription>
@@ -42,6 +44,7 @@ const RestockReport = ({ initialProducts }: RestockReportProps) => {
         <Button
           variant="outline"
           size="sm"
+          className="border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-800"
           onClick={() => {
             const data = productsToRestock.map((p) => ({
               Продукт: p.name,
@@ -58,7 +61,10 @@ const RestockReport = ({ initialProducts }: RestockReportProps) => {
       </CardHeader>
       <CardContent>
         {productsToRestock.length === 0 ? (
-          <p>Няма продукти за презареждане.</p>
+          <p className="py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            Няма продукти за презареждане. Всички наличности са над определения
+            праг.
+          </p>
         ) : (
           <>
             <div className="hidden md:block">

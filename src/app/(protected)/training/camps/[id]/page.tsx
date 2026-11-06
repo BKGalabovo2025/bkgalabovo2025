@@ -1,26 +1,13 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
-import CampDetailsClient from "./CampDetailsClient";
-
-export const dynamic = "force-dynamic";
+import { ItinerarySectionView } from "@/components/camps/views/ItinerarySectionView";
 
 export const metadata: Metadata = {
-  title: "Детайли за лагер | Тренировъчен процес",
-  description: "Детайлен преглед и управление на лагер",
+  title: "Дневен график | Лагери | БК Гълъбово",
+  description:
+    "Дневен тренировъчен график, занимания и метеорологична прогноза за лагера.",
 };
 
-interface CampDetailsPageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default async function CampDetailsPage({
-  params,
-}: CampDetailsPageProps) {
-  const { id } = await params;
-
-  return (
-    <div className="flex size-full flex-col p-6">
-      <CampDetailsClient campId={id} />
-    </div>
-  );
+export default function CampIndexPage() {
+  return <ItinerarySectionView />;
 }

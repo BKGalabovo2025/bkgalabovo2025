@@ -182,11 +182,11 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
     <div className="space-y-4 duration-500 animate-in fade-in">
       {/* Top Controls */}
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
-        <div className="grid grid-cols-1 gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-3 sm:p-4 md:grid-cols-3 lg:col-span-3">
+        <div className="grid grid-cols-1 gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-3 sm:p-4 md:grid-cols-3 lg:col-span-3 dark:border-zinc-800 dark:bg-zinc-900/40">
           <div className="space-y-1">
             <Label
               htmlFor="financial-date-from"
-              className="ml-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase"
+              className="ml-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400"
             >
               От дата
             </Label>
@@ -201,14 +201,14 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 type="date"
                 value={dateFrom ? formatDateInput(dateFrom) : ""}
                 onChange={handleDateChange(setDateFrom)}
-                className="h-9 rounded-xl border-zinc-100 bg-white pl-9 text-xs font-light shadow-2xs focus:ring-zinc-200"
+                className="h-9 rounded-xl border-zinc-200 bg-white pl-9 text-xs font-light shadow-2xs focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
           <div className="space-y-1">
             <Label
               htmlFor="financial-date-to"
-              className="ml-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase"
+              className="ml-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400"
             >
               До дата
             </Label>
@@ -223,14 +223,14 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 type="date"
                 value={dateTo ? formatDateInput(dateTo) : ""}
                 onChange={handleDateChange(setDateTo)}
-                className="h-9 rounded-xl border-zinc-100 bg-white pl-9 text-xs font-light shadow-2xs focus:ring-zinc-200"
+                className="h-9 rounded-xl border-zinc-200 bg-white pl-9 text-xs font-light shadow-2xs focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
           <div className="space-y-1">
             <Label
               htmlFor="financial-payment-type"
-              className="ml-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase"
+              className="ml-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400"
             >
               Тип приходи
             </Label>
@@ -238,7 +238,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
               <SelectTrigger
                 id="financial-payment-type"
                 aria-label="Тип приходи"
-                className="h-9 rounded-xl border-zinc-100 bg-white text-xs font-light shadow-2xs focus:ring-zinc-200"
+                className="h-9 rounded-xl border-zinc-200 bg-white text-xs font-light shadow-2xs focus:ring-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               >
                 <div className="flex items-center gap-2">
                   <Filter
@@ -248,7 +248,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                   <SelectValue placeholder="Всички" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-zinc-100 shadow-xl">
+              <SelectContent className="rounded-xl border-zinc-200 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
                 <SelectItem value="all">Всички</SelectItem>
               </SelectContent>
             </Select>
@@ -261,7 +261,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
               <Button
                 variant="outline"
                 disabled={data.sales.length === 0 || isPending}
-                className="flex h-9 items-center justify-between rounded-xl border-zinc-100 px-4 text-[10px] font-medium tracking-wider uppercase transition-all hover:bg-zinc-50 shadow-2xs"
+                className="flex h-9 items-center justify-between rounded-xl border-zinc-200 px-4 text-[10px] font-medium tracking-wider uppercase transition-all hover:bg-zinc-50 shadow-2xs dark:border-zinc-800 dark:hover:bg-zinc-800"
               >
                 <div className="flex items-center">
                   {isPending ? (
@@ -282,7 +282,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-48 rounded-xl border-zinc-100 p-2 shadow-xl"
+              className="w-48 rounded-xl border-zinc-200 p-2 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
             >
               <DropdownMenuItem
                 className="flex cursor-pointer items-center rounded-lg p-3 text-sm font-medium"
@@ -372,19 +372,19 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
 
       {/* Analytics Row */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <Card className="col-span-1 overflow-hidden rounded-4xl border border-zinc-100 bg-white shadow-none lg:col-span-2">
-          <CardHeader className="border-b border-zinc-50 p-8">
+        <Card className="col-span-1 overflow-hidden rounded-4xl border border-zinc-200/80 bg-white shadow-none lg:col-span-2 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <CardHeader className="border-b border-zinc-100 p-8 dark:border-zinc-800">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                   Разпределение на приходите
                 </CardTitle>
-                <CardDescription className="mt-2 text-sm font-light">
+                <CardDescription className="mt-2 text-sm font-light text-zinc-500 dark:text-zinc-400">
                   Визуализация на източниците за избрания период
                 </CardDescription>
               </div>
               <PieChartIcon
-                className="size-5 text-zinc-200"
+                className="size-5 text-zinc-300 dark:text-zinc-600"
                 strokeWidth={1.5}
               />
             </div>
@@ -469,8 +469,8 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
       </div>
 
       {/* Detailed Table */}
-      <Card className="overflow-hidden rounded-5xl border border-zinc-100 bg-white shadow-none">
-        <CardHeader className="border-b border-zinc-50 p-8">
+      <Card className="overflow-hidden rounded-5xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-900/60">
+        <CardHeader className="border-b border-zinc-100 p-8 dark:border-zinc-800">
           <CardTitle className="text-[11px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
             Детайлен списък
           </CardTitle>
@@ -478,7 +478,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
         <CardContent className="p-0">
           <div className="hidden md:block">
             <Table>
-              <TableHeader className="bg-zinc-50/50">
+              <TableHeader className="bg-zinc-50/50 dark:bg-zinc-800/40">
                 <TableRow className="h-16 border-none hover:bg-transparent">
                   <TableHead className="px-8 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                     Дата
@@ -507,12 +507,12 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     return (
                       <TableRow
                         key={s.id}
-                        className="group h-20 border-zinc-50 transition-colors hover:bg-zinc-50/50"
+                        className="group h-20 border-zinc-100 transition-colors hover:bg-zinc-50/50 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
                       >
                         <TableCell className="px-8 text-[11px] font-medium text-zinc-400">
                           {formatDateShort(s.saleDate)}
                         </TableCell>
-                        <TableCell className="text-sm font-light text-zinc-600">
+                        <TableCell className="text-sm font-light text-zinc-600 dark:text-zinc-300">
                           {s.memberName}
                         </TableCell>
                         <TableCell>
@@ -520,13 +520,13 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                             variant="outline"
                             className={cn(
                               "rounded-full border-none px-3 py-1 text-[9px] font-medium tracking-widest uppercase",
-                              "bg-emerald-50 text-emerald-600"
+                              "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
                             )}
                           >
                             Продажба
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right text-sm font-medium text-zinc-900">
+                        <TableCell className="text-right text-sm font-medium text-zinc-900 dark:text-zinc-100">
                           {formatPrice(s.totalAmount)}
                         </TableCell>
                         <TableCell
@@ -550,7 +550,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                               align="end"
-                              className="w-48 rounded-2xl border-zinc-100 p-2 shadow-xl"
+                              className="w-48 rounded-2xl border-zinc-200 p-2 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
                             >
                               <DropdownMenuItem
                                 className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
@@ -569,7 +569,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                                 Редакция
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-700"
+                                className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-700 dark:focus:bg-rose-950/40"
                                 onClick={() => handleDelete(s.id)}
                               >
                                 <Trash2 className="mr-3 size-4 text-rose-500" />{" "}
@@ -592,7 +592,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 )}
               </TableBody>
               {data.sales.length > 0 && !isPending && (
-                <TableFooter className="border-none bg-zinc-50/50">
+                <TableFooter className="border-none bg-zinc-50/50 dark:bg-zinc-800/40">
                   <TableRow className="h-20 hover:bg-transparent">
                     <TableCell
                       colSpan={3}
@@ -600,7 +600,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     >
                       Общо за периода
                     </TableCell>
-                    <TableCell className="text-right text-2xl font-light text-zinc-950">
+                    <TableCell className="text-right text-2xl font-light text-zinc-950 dark:text-zinc-50">
                       {formatPrice(data.total)}
                     </TableCell>
                     <TableCell></TableCell>
@@ -610,7 +610,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
             </Table>
           </div>
 
-          <div className="flex flex-col divide-y divide-zinc-50 md:hidden">
+          <div className="flex flex-col divide-y divide-zinc-100 md:hidden dark:divide-zinc-800">
             {isPending ? (
               <div className="flex h-48 items-center justify-center">
                 <Loader2 className="size-6 animate-spin text-zinc-300" />
@@ -619,7 +619,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
               data.sales.map((s) => (
                 <div
                   key={s.id}
-                  className="flex flex-col gap-2 bg-white p-4 transition-colors hover:bg-zinc-50/50"
+                  className="flex flex-col gap-2 bg-white p-4 transition-colors hover:bg-zinc-50/50 dark:bg-zinc-900/60 dark:hover:bg-zinc-800/40"
                 >
                   <div className="flex items-start justify-between">
                     <span className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
@@ -627,17 +627,17 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     </span>
                     <Badge
                       variant="outline"
-                      className="rounded-full border-none bg-emerald-50 px-2 py-0.5 text-[9px] font-medium tracking-widest text-emerald-600 uppercase"
+                      className="rounded-full border-none bg-emerald-50 px-2 py-0.5 text-[9px] font-medium tracking-widest text-emerald-600 uppercase dark:bg-emerald-950/40 dark:text-emerald-400"
                     >
                       Продажба
                     </Badge>
                   </div>
                   <div className="mt-1 flex items-center justify-between">
-                    <span className="text-sm font-medium text-zinc-900">
+                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                       {s.memberName}
                     </span>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-zinc-900">
+                      <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         {formatPrice(s.totalAmount)}
                       </span>
                       <DropdownMenu>
@@ -657,7 +657,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="w-48 rounded-2xl border-zinc-100 p-2 shadow-xl"
+                          className="w-48 rounded-2xl border-zinc-200 p-2 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
                         >
                           <DropdownMenuItem
                             className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
@@ -676,7 +676,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                             Редакция
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-700"
+                            className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium text-rose-600 focus:bg-rose-50 focus:text-rose-700 dark:focus:bg-rose-950/40"
                             onClick={() => handleDelete(s.id)}
                           >
                             <Trash2 className="mr-3 size-4 text-rose-500" />{" "}
@@ -696,11 +696,11 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
               </div>
             )}
             {data.sales.length > 0 && !isPending && (
-              <div className="mt-auto flex items-center justify-between border-t border-zinc-100 bg-zinc-50/50 p-4">
-                <span className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase">
+              <div className="mt-auto flex items-center justify-between border-t border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-800/50">
+                <span className="text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase dark:text-zinc-400">
                   Общо за периода
                 </span>
-                <span className="text-xl font-semibold text-zinc-950">
+                <span className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">
                   {formatPrice(data.total)}
                 </span>
               </div>

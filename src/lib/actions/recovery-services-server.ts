@@ -199,6 +199,7 @@ export async function updateRecoveryClientCommunicationAction(
   clientId: string,
   data: {
     communicationStatus: string;
+    notes?: string;
     lastContactAt?: string;
     lastContactType?: "phone" | "email";
   }

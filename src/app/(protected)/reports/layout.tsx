@@ -1,0 +1,216 @@
+import * as admin from "firebase-admin";
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import React from "react";
+
+import {
+  ReportsDataState,
+  ReportsProvider,
+} from "@/components/reports/ReportsContext";
+import { ReportsLayoutClient } from "@/components/reports/ReportsLayoutClient";
+import { generateFinancialReportAction } from "@/lib/actions/reports";
+import { getCachedSalesForBranch } from "@/lib/db/sales";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
+import type { Member, Product, ScheduleEvent } from "@/types";
+
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Справки и Анализи | БК Гълъбово",
+  description:
+    "Генериране на финансови справки, отчети за задължения, посещаемост и инвентар.",
+};
+
+const convertTimestamps = (val: unknown): unknown => {
+  if (!val) return val;
+  if (typeof (val as { toDate?: unknown }).toDate === "function") {
+    return (val as admin.firestore.Timestamp).toDate().toISOString();
+  }
+  if (val instanceof admin.firestore.Timestamp) {
+    return val.toDate().toISOString();
+  }
+  if (Array.isArray(val)) {
+    return val.map(convertTimestamps);
+  }
+  if (typeof val === "object") {
+    const copy: Record<string, unknown> = {};
+    for (const key of Object.keys(val)) {
+      copy[key] = convertTimestamps((val as Record<string, unknown>)[key]);
+    }
+    return copy;
+  }
+  return val;
+};
+
+function snapToData<T>(
+  doc: admin.firestore.DocumentSnapshot | admin.firestore.QueryDocumentSnapshot
+): T | null {
+  if (!doc.exists) return null;
+  const data = doc.data();
+  if (!data) return null;
+
+  return {
+    id: doc.id,
+    ...(convertTimestamps(data) as Record<string, unknown>),
+  } as T;
+}
+
+export default async function ReportsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const cookieStore = await cookies();
+  const activeBranch = cookieStore.get("activeBranch")?.value || "bkgalabovo";
+
+  const adminDb = getAdminDb();
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // Fetch all necessary data in parallel using Admin SDK & server-side cache
+  const [sales, members, events, products] = await Promise.all([
+    getCachedSalesForBranch(activeBranch),
+
+    serverCache.get<Member[]>(
+      `members:${activeBranch || "all"}`,
+      async () => {
+        let membersQuery: admin.firestore.Query = adminDb.collection("members");
+        if (activeBranch && activeBranch !== "bkgalabovo") {
+          membersQuery = membersQuery.where("siteId", "==", activeBranch);
+        }
+        const snap = await membersQuery.get();
+        return snap.docs
+          .map((doc) => snapToData<Member>(doc))
+          .filter((m): m is Member => m !== null);
+      },
+      60000
+    ),
+
+    serverCache.get<ScheduleEvent[]>(
+      `events:${activeBranch || "all"}:${startOfMonth.toISOString()}:${now.toISOString()}`,
+      async () => {
+        let eventsQuery: admin.firestore.Query = adminDb
+          .collection("events")
+          .where("startDate", ">=", startOfMonth.toISOString())
+          .where("startDate", "<=", now.toISOString());
+        if (activeBranch && activeBranch !== "bkgalabovo") {
+          eventsQuery = eventsQuery.where("siteId", "==", activeBranch);
+        }
+        const snap = await eventsQuery.get();
+        return snap.docs
+          .map((doc) => snapToData<ScheduleEvent>(doc))
+          .filter((e): e is ScheduleEvent => e !== null);
+      },
+      30000
+    ),
+
+    serverCache.get<Product[]>(
+      `products:${activeBranch || "all"}`,
+      async () => {
+        let productsQuery: admin.firestore.Query =
+          adminDb.collection("products");
+        if (activeBranch && activeBranch !== "bkgalabovo") {
+          productsQuery = productsQuery.where("siteId", "==", activeBranch);
+        }
+        const snap = await productsQuery.get();
+        return snap.docs
+          .map((doc) => snapToData<Product>(doc))
+          .filter((p): p is Product => p !== null);
+      },
+      60000
+    ),
+  ]);
+
+  const initialFinancialData = await generateFinancialReportAction(
+    startOfMonth.toISOString(),
+    now.toISOString(),
+    "all"
+  );
+
+  const salesForMonth = sales.filter((sale) => {
+    const saleDate = new Date(sale.saleDate);
+    return (
+      saleDate.getFullYear() === currentYear &&
+      saleDate.getMonth() === currentMonth - 1 &&
+      sale.isPaid
+    );
+  });
+  const paidMemberIds = new Set(salesForMonth.map((s) => s.memberId));
+  const unpaidMembers = members.filter(
+    (member) => !paidMemberIds.has(member.id)
+  );
+
+  const memberMap = new Map(members.map((m) => [m.id, m]));
+  const attendanceByMember: { [memberId: string]: number } = {};
+
+  for (const event of events) {
+    const attendees = Array.isArray(event.attendees) ? event.attendees : [];
+    for (const attendee of attendees) {
+      if (attendee.attended) {
+        if (!attendanceByMember[attendee.memberId]) {
+          attendanceByMember[attendee.memberId] = 0;
+        }
+        attendanceByMember[attendee.memberId]++;
+      }
+    }
+  }
+
+  const attendanceReport = Object.keys(attendanceByMember)
+    .map((memberId) => {
+      const member = memberMap.get(memberId);
+      if (!member) {
+        return {
+          member: {
+            id: memberId,
+            siteId: activeBranch,
+            firstName: "Неизвестен",
+            lastName: "Член",
+            name: "Неизвестен Член",
+            email: "",
+            phone: "",
+            instagram: "",
+            dateOfBirth: "",
+            subscriptionStatus: "inactive",
+            status: "inactive",
+            registrationDate: new Date().toISOString(),
+            notes: "",
+            role: "member",
+          } as Member,
+          attendanceCount: attendanceByMember[memberId],
+        };
+      }
+      return {
+        member,
+        attendanceCount: attendanceByMember[memberId],
+      };
+    })
+    .sort((a, b) => b.attendanceCount - a.attendanceCount);
+
+  const productsToRestock = products.filter(
+    (p) =>
+      typeof p.restockThreshold === "number" && p.stock <= p.restockThreshold
+  );
+
+  const reportsData: ReportsDataState = {
+    initialFinancialData,
+    initialLiabilities: unpaidMembers,
+    initialLiabilitiesPeriod: { year: currentYear, month: currentMonth },
+    initialAttendanceData: attendanceReport,
+    initialAttendancePeriod: {
+      startDate: startOfMonth.toISOString(),
+      endDate: now.toISOString(),
+    },
+    initialRestockProducts: productsToRestock,
+    activeBranch,
+  };
+
+  return (
+    <ReportsProvider data={reportsData}>
+      <ReportsLayoutClient>{children}</ReportsLayoutClient>
+    </ReportsProvider>
+  );
+}

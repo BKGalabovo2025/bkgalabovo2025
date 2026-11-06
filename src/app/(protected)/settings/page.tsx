@@ -1,11 +1,13 @@
-import SettingsClient from "./SettingsClient";
+import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+import { GeneralSectionView } from "@/components/settings/views/GeneralSectionView";
 
-export default function SettingsPage() {
-  return (
-    <div className="pb-12">
-      <SettingsClient />
-    </div>
-  );
+export const metadata: Metadata = {
+  title: "Общи настройки | Настройки | БК Гълъбово",
+  description:
+    "Основни системни параметри, клубни данни, контакти и адреси на спортната база.",
+};
+
+export default function SettingsIndexPage() {
+  return <GeneralSectionView />;
 }

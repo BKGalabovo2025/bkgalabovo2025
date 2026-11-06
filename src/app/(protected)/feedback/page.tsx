@@ -1,13 +1,13 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
-import FeedbackClient from "./feedback-client";
+import { SubmissionsSectionView } from "@/components/feedback/views/SubmissionsSectionView";
 
 export const metadata: Metadata = {
-  title: "Отзиви и Анкети | Бадминтон клуб Гълъбово",
+  title: "Отзиви от родители и състезатели | БК Гълъбово",
   description:
-    "Управление на отзиви, анкети за обратна връзка от родители и състезатели, шаблони и модерация.",
+    "Преглед, филтриране и одобряване на попълнени отзиви за тренировки, лагери и състезания.",
 };
 
-export default function FeedbackPage() {
-  return <FeedbackClient />;
+export default function FeedbackIndexPage() {
+  return <SubmissionsSectionView />;
 }

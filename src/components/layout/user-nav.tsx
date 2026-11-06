@@ -67,7 +67,7 @@ export function UserNav() {
         <DropdownMenuSeparator className="mx-2 bg-zinc-50 dark:bg-zinc-800" />
         <DropdownMenuGroup className="p-1">
           <DropdownMenuItem
-            onClick={() => router.push("/settings?tab=profile")}
+            onClick={() => router.push("/settings/profile")}
             className="cursor-pointer rounded-xl px-3 py-2.5 text-xs font-medium tracking-wider text-zinc-600 uppercase transition-colors hover:text-zinc-950 focus:bg-zinc-50 dark:text-zinc-400 dark:hover:text-white dark:focus:bg-zinc-900"
           >
             <User className="mr-3 size-4" strokeWidth={1.5} />

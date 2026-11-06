@@ -52,7 +52,7 @@ export default function NewRecoverySessionClient({
     if (state?.message) {
       if (state.success) {
         toast.success("Готово!", { description: state.message });
-        router.push("/catalogs?tab=recovery");
+        router.push("/catalogs/recovery");
       } else {
         toast.error("Грешка", { description: state.message });
       }
@@ -67,7 +67,7 @@ export default function NewRecoverySessionClient({
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
           { label: "Каталози", href: "/catalogs" },
-          { label: "Възстановяване", href: "/catalogs?tab=recovery" },
+          { label: "Възстановяване", href: "/catalogs/recovery" },
           { label: "Нова процедура" },
         ]}
       />
