@@ -141,7 +141,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === "/dashboard"}
+                isActive={
+                  pathname === "/dashboard" ||
+                  pathname.startsWith("/dashboard/")
+                }
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary active:bg-primary/10 dark:hover:bg-primary/10"
               >
                 <Link

@@ -1,8 +1,15 @@
-import { AlertTriangle, Bug, Clock, TerminalSquare } from "lucide-react";
+import { AlertTriangle, Bug, Clock } from "lucide-react";
+import { Metadata } from "next";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Системен мониторинг | Табло - БК Гълъбово",
+  description:
+    "Мониторинг на системни грешки, събития и стабилност в реално време.",
+};
 
 interface SystemLog {
   id: string;
@@ -33,77 +40,67 @@ export default async function SystemLogsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 sm:space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="mb-2 flex items-center gap-3 text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-            <TerminalSquare className="text-zinc-500 size-6 sm:size-7" />
-            Системни Логове
-          </h1>
-          <p className="text-xs sm:text-sm text-zinc-400">
-            Мониторинг на грешки и проблеми възникнали в системата.
-          </p>
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
+    <div className="space-y-4 duration-500 animate-in fade-in">
+      <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900/60">
         {logs.length === 0 ? (
           <div className="flex flex-col items-center p-8 sm:p-12 text-center">
-            <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
-              <Bug size={32} />
+            <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Bug className="size-7" />
             </div>
-            <h3 className="mb-1 text-lg font-medium text-white">
-              Няма регистрирани грешки
+            <h3 className="mb-1 text-base font-bold text-zinc-900 dark:text-white">
+              Няма регистрирани системни грешки
             </h3>
-            <p className="text-sm text-zinc-500">Системата работи нормално.</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Всички системни модули, квоти и услуги функционират стабилно.
+            </p>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800/50">
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
             {logs.map((log) => (
               <div
                 key={log.id}
-                className="p-4 sm:p-6 transition-colors hover:bg-zinc-800/20"
+                className="p-4 sm:p-5 transition-colors hover:bg-zinc-50/60 dark:hover:bg-zinc-800/20"
               >
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="mt-1 shrink-0">
-                    <AlertTriangle className="text-red-500" size={20} />
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 shrink-0 rounded-lg bg-rose-50 p-1.5 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
+                    <AlertTriangle className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4">
-                      <h4 className="truncate font-medium text-red-400">
+                    <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                      <h4 className="truncate font-semibold text-rose-700 dark:text-rose-400 text-xs sm:text-sm">
                         {log.message}
                       </h4>
-                      <div className="flex items-center gap-1.5 text-xs whitespace-nowrap text-zinc-500">
-                        <Clock size={14} />
+                      <div className="flex items-center gap-1.5 text-[11px] whitespace-nowrap text-zinc-500 dark:text-zinc-400">
+                        <Clock className="size-3" />
                         {new Date(log.timestamp).toLocaleString("bg-BG")}
                       </div>
                     </div>
 
-                    <div className="mb-4 grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
-                      <div className="rounded-lg border border-zinc-800/50 bg-zinc-950 p-3">
-                        <span className="mb-1 block text-xs tracking-wider text-zinc-500 uppercase">
+                    <div className="mb-3 grid grid-cols-1 gap-2.5 text-xs md:grid-cols-2">
+                      <div className="rounded-xl border border-zinc-100 bg-zinc-50/80 p-2.5 dark:border-zinc-800 dark:bg-zinc-950/60">
+                        <span className="mb-1 block text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
                           Път (Path)
                         </span>
-                        <code className="font-mono text-xs break-all text-zinc-300">
+                        <code className="font-mono text-[11px] break-all text-zinc-800 dark:text-zinc-200">
                           {log.path || "N/A"}
                         </code>
                       </div>
-                      <div className="rounded-lg border border-zinc-800/50 bg-zinc-950 p-3">
-                        <span className="mb-1 block text-xs tracking-wider text-zinc-500 uppercase">
+                      <div className="rounded-xl border border-zinc-100 bg-zinc-50/80 p-2.5 dark:border-zinc-800 dark:bg-zinc-950/60">
+                        <span className="mb-1 block text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
                           Контекст
                         </span>
-                        <span className="text-xs text-zinc-300">
+                        <span className="text-[11px] text-zinc-800 dark:text-zinc-200">
                           {log.context || "N/A"}
                         </span>
                       </div>
                     </div>
 
                     {log.stack && (
-                      <div className="overflow-x-auto rounded-lg border border-zinc-800/50 bg-zinc-950 p-3">
-                        <span className="mb-2 block text-xs tracking-wider text-zinc-500 uppercase">
+                      <div className="overflow-x-auto rounded-xl border border-zinc-100 bg-zinc-50/80 p-2.5 dark:border-zinc-800 dark:bg-zinc-950/60">
+                        <span className="mb-1 block text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
                           Stack Trace
                         </span>
-                        <pre className="font-mono text-[10px] leading-relaxed text-zinc-400">
+                        <pre className="font-mono text-[10px] leading-relaxed text-zinc-600 dark:text-zinc-400">
                           {log.stack}
                         </pre>
                       </div>
