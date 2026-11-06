@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertCircle,
   Calendar,
   CheckCheck,
   CreditCard,
@@ -126,13 +127,37 @@ export function SharedSaleDetails({
 
   if (!sale) {
     return (
-      <div className="rounded-3xl border-2 border-dashed bg-slate-50 py-20 text-center">
-        <p className="font-medium text-zinc-400">
-          Продажбата не беше намерена.
-        </p>
-        <Button variant="link" onClick={() => router.push(backUrl)}>
-          Назад към продажби
-        </Button>
+      <div className="mx-auto max-w-xl py-12 px-4 text-center duration-500 animate-in fade-in">
+        <div className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+            <AlertCircle className="size-7" />
+          </div>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
+            Продажбата не бе намерена
+          </h2>
+          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            Продажба с идентификатор{" "}
+            <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200">
+              #{saleId}
+            </span>{" "}
+            не съществува в базата данни или е била изтрита.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => router.push(backUrl)}
+              className="rounded-xl"
+            >
+              Към списъка с продажби
+            </Button>
+            <Button
+              onClick={() => router.push("/sales/new")}
+              className="rounded-xl"
+            >
+              Нова продажба
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

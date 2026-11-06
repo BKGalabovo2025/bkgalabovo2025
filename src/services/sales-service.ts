@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 
 import { getSiteConfig } from "@/config/sites";
+import { getSaleByIdAction } from "@/lib/actions/sales";
 import { getSalesCollection, getSalesQuery } from "@/lib/firebase-collections";
 import { Sale } from "@/types";
 
@@ -161,9 +162,31 @@ export const hasMemberPaidForMonth = async (
 
 export const getSaleById = async (id: string): Promise<Sale | null> => {
   if (!id) return null;
-  const saleRef = doc(getSalesCollection(), id);
-  const docSnap = await getDoc(saleRef);
-  return docToSale(docSnap);
+  try {
+    const saleRef = doc(getSalesCollection(), id);
+    const docSnap = await getDoc(saleRef);
+    if (docSnap.exists()) {
+      const sale = docToSale(docSnap);
+      if (sale) return sale;
+    }
+  } catch (clientErr) {
+    console.warn(
+      "Client getSaleById failed, falling back to server action:",
+      clientErr
+    );
+  }
+
+  // Resilient fallback via Server Action with automatic dual-DB failover
+  try {
+    const res = await getSaleByIdAction(id);
+    if (res.success && res.data) {
+      return res.data;
+    }
+  } catch (serverErr) {
+    console.error("Server fallback getSaleByIdAction also failed:", serverErr);
+  }
+
+  return null;
 };
 
 export const updateSale = async (

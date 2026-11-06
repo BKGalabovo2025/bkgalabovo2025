@@ -895,3 +895,38 @@ export async function createCampFeeSaleAction(
     };
   }
 }
+
+/**
+ * Извлича единична продажба по ID чрез сървърния Admin SDK с автоматичен failover към backup базата.
+ */
+export async function getSaleByIdAction(saleId: string): Promise<{
+  success: boolean;
+  data: Sale | null;
+  error?: string;
+}> {
+  if (!saleId) {
+    return { success: false, data: null, error: "Липсва ID на продажбата." };
+  }
+
+  try {
+    const adminDb = getAdminDb();
+    const saleSnap = await adminDb.collection("sales").doc(saleId).get();
+
+    if (!saleSnap.exists) {
+      return { success: false, data: null, error: "Продажбата не е намерена." };
+    }
+
+    const sale = snapToData<Sale>(saleSnap);
+    return { success: true, data: sale };
+  } catch (err: unknown) {
+    console.error("Error in getSaleByIdAction:", err);
+    return {
+      success: false,
+      data: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Грешка при извличане на продажбата.",
+    };
+  }
+}

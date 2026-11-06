@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, Loader2, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import {
   SaleFormManager,
   SaleItem,
 } from "@/components/shared/sales/SaleFormManager";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
 import { updateSaleAction } from "@/lib/actions/sales";
 import { getSaleById } from "@/services/sales-service";
@@ -43,8 +44,7 @@ export function SharedEditSale({
         const saleData = await getSaleById(saleId);
 
         if (!saleData) {
-          toast.error("Продажбата не е намерена.");
-          router.push(cancelUrl);
+          toast.error("Продажбата не бе намерена.");
           return;
         }
 
@@ -58,7 +58,7 @@ export function SharedEditSale({
     };
 
     fetchInitialData();
-  }, [saleId, router, cancelUrl]);
+  }, [saleId]);
 
   const handleUpdateSale = async ({
     cart,
@@ -137,7 +137,44 @@ export function SharedEditSale({
     );
   }
 
-  if (!initialSale) return null;
+  if (!initialSale) {
+    return (
+      <div className="mx-auto max-w-xl py-12 px-4 text-center duration-500 animate-in fade-in">
+        <div className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+            <AlertCircle className="size-7" />
+          </div>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
+            Продажбата не бе намерена
+          </h2>
+          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            Продажба с идентификатор{" "}
+            <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200">
+              #{saleId}
+            </span>{" "}
+            не съществува в базата данни или е била изтрита.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => router.push(cancelUrl)}
+              className="rounded-xl"
+            >
+              <ArrowLeft className="mr-2 size-4" />
+              Към продажби
+            </Button>
+            <Button
+              onClick={() => router.push("/sales/new")}
+              className="rounded-xl"
+            >
+              <PlusCircle className="mr-2 size-4" />
+              Нова продажба
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <SaleFormManager
