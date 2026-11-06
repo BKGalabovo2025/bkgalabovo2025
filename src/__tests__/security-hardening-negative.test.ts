@@ -75,8 +75,14 @@ import { createSaleAction, updateSaleAction } from "@/lib/actions/sales";
 import { deleteClubService } from "@/lib/actions/services";
 
 describe("PROMPT 4 — Security Hardening & Negative Tests Suite", () => {
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   beforeEach(() => {
     vi.clearAllMocks();
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   describe("SEC-01 (CRITICAL): Audit Logs Server Action Enforcement", () => {

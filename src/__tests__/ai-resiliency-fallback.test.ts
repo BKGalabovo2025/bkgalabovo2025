@@ -57,6 +57,9 @@ describe("AI Endpoint Resiliency & Graceful Fallback Suite", () => {
 
       // Simulate network failure or timeout in fetch to Gemini API
       process.env.GEMINI_API_KEY = "mock-gemini-key";
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       const globalFetch = vi
         .spyOn(global, "fetch")
         .mockRejectedValueOnce(
@@ -83,6 +86,7 @@ describe("AI Endpoint Resiliency & Graceful Fallback Suite", () => {
       const res = await quizAiEvalPost(req);
 
       expect(res.status).toBe(200);
+      consoleErrorSpy.mockRestore();
       const json = await res.json();
 
       // Verify graceful fallback

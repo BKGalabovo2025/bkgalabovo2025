@@ -63,10 +63,14 @@ describe("club-service", () => {
     });
 
     it("should return an empty array if getDocs fails", async () => {
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       mockedGetDocs.mockRejectedValue(new Error("Firebase read failed"));
 
       const result = await getAllClubServices();
       expect(result).toEqual([]);
+      consoleSpy.mockRestore();
     });
   });
 });

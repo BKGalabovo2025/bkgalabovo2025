@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock firebase-admin
 const mockGet = vi.fn();
@@ -30,8 +30,14 @@ vi.mock("@/lib/auth-utils", () => ({
 import { POST } from "@/app/api/quiz/ai-feedback/route";
 
 describe("AI Feedback Endpoint Security & Authorization", () => {
+  let consoleSpy: ReturnType<typeof vi.spyOn>;
   beforeEach(() => {
     vi.clearAllMocks();
+    consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
   });
 
   const validPayload = {

@@ -28,6 +28,10 @@ vi.mock("@/config/sites", () => ({
   getSiteConfig: vi.fn(() => ({ id: "site1" })),
 }));
 
+vi.mock("../skill-evaluation-service", () => ({
+  evaluateMemberSkillLevel: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe("assessmentService", () => {
   beforeEach(() => {
     vi.clearAllMocks();

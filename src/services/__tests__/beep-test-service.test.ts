@@ -29,6 +29,10 @@ vi.mock("@/lib/firebase", () => ({
   getDb: vi.fn(() => ({})),
 }));
 
+vi.mock("../skill-evaluation-service", () => ({
+  evaluateMemberSkillLevel: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe("Beep Test Logic", () => {
   it("getTotalShuttles should calculate correct shuttles for level 1.1", () => {
     expect(getTotalShuttles(1, 1)).toBe(1);

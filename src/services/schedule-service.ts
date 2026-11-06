@@ -117,9 +117,11 @@ export const getEventsForPeriod = async (
   startDate: Date,
   endDate: Date
 ): Promise<ScheduleEvent[]> => {
-  console.log(
-    `getEventsForPeriod: Querying from ${startDate.toISOString()} to ${endDate.toISOString()}`
-  );
+  if (process.env.NODE_ENV === "development") {
+    console.log(
+      `getEventsForPeriod: Querying from ${startDate.toISOString()} to ${endDate.toISOString()}`
+    );
+  }
   const q = query(
     getEventsQuery(),
     where("startDate", ">=", startDate.toISOString()),
