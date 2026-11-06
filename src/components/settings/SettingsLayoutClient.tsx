@@ -2,7 +2,7 @@
 
 import { Save } from "lucide-react";
 import React, { useEffect } from "react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";

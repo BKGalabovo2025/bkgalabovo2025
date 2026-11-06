@@ -5,7 +5,7 @@ import {
 } from "firebase/auth";
 import { Eye, EyeOff, Lock, Shield } from "lucide-react";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";

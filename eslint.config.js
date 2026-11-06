@@ -1,6 +1,3 @@
-// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
-import storybook from "eslint-plugin-storybook";
-
 import nextConfig from "eslint-config-next";
 import tseslint from "typescript-eslint";
 import sonarjs from "eslint-plugin-sonarjs";
@@ -119,6 +116,5 @@ export default tseslint.config(
       "sonarjs/super-linear-regex": "off",
       "sonarjs/duplicates-in-character-class": "off",
     },
-  },
-  storybook.configs["flat/recommended"]
+  }
 );

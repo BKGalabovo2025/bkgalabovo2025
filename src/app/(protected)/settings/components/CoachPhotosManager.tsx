@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import React, { useId, useRef, useState } from "react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 import { getValidImageSrc } from "@/components/club/ShareAthleteDialog";
 import { DocumentViewerDialog } from "@/components/schedule/DocumentViewerDialog";

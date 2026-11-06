@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Toaster } from "react-hot-toast";
 
 import LoginPage from "@/app/login/page";
 import { ParentNotificationsBell } from "@/components/layout/ParentNotificationsBell";
@@ -162,8 +161,6 @@ export default function ProtectedLayoutClient({
       <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50/50 font-sans dark:bg-zinc-950/50">
         <AppSidebar key={`sidebar-${activeBranch}`} />
         <SidebarInset className="relative flex min-w-0 max-w-full flex-1 flex-col overflow-x-hidden border-l border-gray-100 bg-slate-50/50 dark:border-zinc-800 dark:bg-zinc-950/50">
-          <Toaster position="bottom-right" />
-
           <a href="#main-content" className="skip-link">
             Към основното съдържание
           </a>
