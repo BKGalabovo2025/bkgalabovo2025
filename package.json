@@ -26,6 +26,7 @@
     "lighthouse": "node scripts/lighthouse-audit.js",
     "lighthouse:gate": "node scripts/lighthouse-gate.js --local",
     "lighthouse:all": "node scripts/lighthouse-audit.js --limit=100",
+    "vercel:clean": "node scripts/cleanup-vercel-deployments.mjs",
     "icons:generate": "node scripts/generate-icons.js",
     "check:circular": "madge --circular --extensions ts,tsx src",
     "check:deps": "dependency-cruiser --config .dependency-cruiser.cjs src",
