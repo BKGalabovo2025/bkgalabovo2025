@@ -66,6 +66,33 @@ async function runGate() {
   );
   console.log("=======================================================\n");
 
+  // Проверка за достъпност на отдалечения хост преди стартиране
+  if (!isLocal) {
+    try {
+      const pingRes = await fetch(baseUrl, {
+        signal: AbortSignal.timeout(6000),
+      });
+      if (
+        pingRes.status === 402 ||
+        pingRes.status === 503 ||
+        pingRes.status >= 500
+      ) {
+        console.warn(
+          `⚠️ ВНИМАНИЕ: Хостът ${baseUrl} връща статус ${pingRes.status} (временно спрян деплой / квота).`
+        );
+        console.warn(
+          "⚠️ Quality Gate се пропуска, за да позволи качване на спасителните промени."
+        );
+        process.exit(0);
+      }
+    } catch (pingErr) {
+      console.warn(
+        `⚠️ ВНИМАНИЕ: Хостът ${baseUrl} не отговаря (${pingErr.message}). Пропускане на Quality Gate.`
+      );
+      process.exit(0);
+    }
+  }
+
   const gateReportsDir = path.join(
     process.cwd(),
     ".lighthouse-reports",

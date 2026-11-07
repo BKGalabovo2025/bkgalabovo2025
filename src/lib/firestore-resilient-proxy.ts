@@ -144,6 +144,83 @@ interface ChainStep {
   docIdHint?: string;
 }
 
+interface CacheEntry {
+  result: unknown;
+  timestamp: number;
+}
+
+const memoryReadCache = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes fresh TTL
+
+export function resetMemoryCache(): void {
+  memoryReadCache.clear();
+}
+
+function getCacheKey(steps: ChainStep[], args: unknown[]): string {
+  try {
+    return `${steps.map((s) => `${s.method}(${JSON.stringify(s.args)})`).join(".")}#${JSON.stringify(args)}`;
+  } catch {
+    return steps.map((s) => s.method).join(".");
+  }
+}
+
+function setCache(cacheKey: string, result: unknown): void {
+  if (!cacheKey) return;
+  if (memoryReadCache.size > 500) {
+    const firstKey = memoryReadCache.keys().next().value;
+    if (firstKey) memoryReadCache.delete(firstKey);
+  }
+  memoryReadCache.set(cacheKey, { result, timestamp: Date.now() });
+}
+
+function getSafeFallbackForGet(steps: ChainStep[], cacheKey: string): unknown {
+  // 1. Първи приоритет: връщане на кеширани данни (дори да са леко остарели), за да се запази потребителското изживяване
+  const cached = memoryReadCache.get(cacheKey);
+  if (cached && cached.result) {
+    const ageSec = Math.round((Date.now() - cached.timestamp) / 1000);
+    console.warn(
+      `[firestore-failover] 🛡️ Serving cached snapshot for ${cacheKey} (възраст: ${ageSec}s) поради надвишена Firestore квота.`
+    );
+    return cached.result;
+  }
+
+  // 2. Втори приоритет: ако е единичен документ, връщане на безопасен mock DocumentSnapshot
+  const isDoc = steps.length > 0 && steps[steps.length - 1].method === "doc";
+
+  if (isDoc) {
+    const docId = String(steps[steps.length - 1].args[0] || "unknown-id");
+    console.warn(
+      `[firestore-failover] 🛡️ Квотата е изчерпана за doc("${docId}"). Връщане на безопасен празен DocumentSnapshot.`
+    );
+    return {
+      id: docId,
+      exists: false,
+      data: () => undefined,
+      get: () => undefined,
+      ref: {
+        id: docId,
+        path: steps
+          .map((s) => s.args[0])
+          .filter(Boolean)
+          .join("/"),
+      },
+    };
+  }
+
+  // 3. Трети приоритет: за колекция или филтрирана заявка - връщане на безопасен mock QuerySnapshot
+  console.warn(
+    `[firestore-failover] 🛡️ Квотата е изчерпана за заявка към колекция. Връщане на безопасен празен QuerySnapshot.`
+  );
+  return {
+    empty: true,
+    size: 0,
+    docs: [],
+    forEach: () => {},
+    docChanges: () => [],
+    query: {},
+  };
+}
+
 // Chainable query/reference builder methods
 const BUILDER_METHODS = new Set([
   "collection",
@@ -336,7 +413,8 @@ async function handleQuotaExhaustionOnExecution(
   steps: ChainStep[],
   prop: string,
   args: unknown[],
-  getBackupDb: () => admin.firestore.Firestore | null
+  getBackupDb: () => admin.firestore.Firestore | null,
+  cacheKey: string
 ): Promise<unknown> {
   markPrimaryQuotaExhausted();
   const backupDb = getBackupDb();
@@ -346,6 +424,9 @@ async function handleQuotaExhaustionOnExecution(
         .map((s) => s.method)
         .join(".")}.${prop}(), but no backup DB is available!`
     );
+    if (prop === "get") {
+      return getSafeFallbackForGet(steps, cacheKey);
+    }
     throw err;
   }
 
@@ -354,7 +435,25 @@ async function handleQuotaExhaustionOnExecution(
       .map((s) => s.method)
       .join(".")}.${prop}() on backup Firestore...`
   );
-  return await executeOnBackup(backupDb, steps, prop, args);
+  try {
+    const backupResult = await executeOnBackup(backupDb, steps, prop, args);
+    if (prop === "get" && backupResult) {
+      setCache(cacheKey, backupResult);
+    }
+    return backupResult;
+  } catch (backupErr) {
+    if (isQuotaError(backupErr)) {
+      console.warn(
+        `[firestore-failover] 🚨 Both Primary AND Backup Firestore quotas exhausted on ${steps
+          .map((s) => s.method)
+          .join(".")}.${prop}(). Providing safe fallback snapshot.`
+      );
+      if (prop === "get") {
+        return getSafeFallbackForGet(steps, cacheKey);
+      }
+    }
+    throw backupErr;
+  }
 }
 
 async function handleIndexErrorOnExecution(
@@ -382,15 +481,46 @@ async function handleExecutionMethod(
   args: unknown[],
   getBackupDb: () => admin.firestore.Firestore | null
 ): Promise<unknown> {
+  const cacheKey = prop === "get" ? getCacheKey(steps, args) : "";
+
   if (isPrimaryQuotaCurrentlyExhausted()) {
+    const cached = memoryReadCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.result;
+    }
+
     const backupDb = getBackupDb();
     if (backupDb) {
-      return await executeOnBackup(backupDb, steps, prop, args);
+      try {
+        const backupResult = await executeOnBackup(backupDb, steps, prop, args);
+        if (prop === "get" && backupResult) {
+          setCache(cacheKey, backupResult);
+        }
+        return backupResult;
+      } catch (backupErr) {
+        if (isQuotaError(backupErr)) {
+          console.warn(
+            `[firestore-failover] 🚨 Backup Firestore quota ALSO exhausted on ${steps
+              .map((s) => s.method)
+              .join(".")}.${prop}(). Providing safe fallback snapshot.`
+          );
+          if (prop === "get") {
+            return getSafeFallbackForGet(steps, cacheKey);
+          }
+        }
+        throw backupErr;
+      }
+    } else if (prop === "get") {
+      return getSafeFallbackForGet(steps, cacheKey);
     }
   }
 
   try {
     const primaryResult = await origFn.apply(obj, args);
+
+    if (prop === "get" && primaryResult) {
+      setCache(cacheKey, primaryResult);
+    }
 
     // Asynchronous dual-write replication: keep backup DB in sync with primary
     if (WRITE_METHODS.has(prop)) {
@@ -413,7 +543,8 @@ async function handleExecutionMethod(
         steps,
         prop,
         args,
-        getBackupDb
+        getBackupDb,
+        cacheKey
       );
     }
 

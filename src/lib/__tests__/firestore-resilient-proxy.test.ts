@@ -8,6 +8,7 @@ import {
   isPrimaryQuotaCurrentlyExhausted,
   isQuotaError,
   markPrimaryQuotaExhausted,
+  resetMemoryCache,
   resetPrimaryQuotaStatus,
 } from "../firestore-resilient-proxy";
 
@@ -17,6 +18,7 @@ describe("firestore-resilient-proxy", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
     resetPrimaryQuotaStatus();
+    resetMemoryCache();
     vi.clearAllMocks();
   });
 
@@ -425,6 +427,118 @@ describe("firestore-resilient-proxy", () => {
       expect(snapshot.docs[0].data().startDate).toBe("2026-05-01");
       expect(snapshot.docs[1].data().startDate).toBe("2026-05-10");
       expect(snapshot.docs[2].data().startDate).toBe("2026-05-20");
+    });
+  });
+
+  describe("createResilientFirestoreProxy - Quota exhaustion safe fallbacks & memory cache", () => {
+    it("returns safe non-crashing mock DocumentSnapshot when BOTH primary and backup throw quota errors", async () => {
+      const quotaError = new Error("8 RESOURCE_EXHAUSTED: Quota exceeded");
+      const primaryGet = vi.fn().mockRejectedValue(quotaError);
+      const backupGet = vi.fn().mockRejectedValue(quotaError);
+
+      const primaryDb = {
+        collection: vi.fn(() => ({
+          doc: vi.fn((id: string) => ({
+            id,
+            path: `trips/${id}`,
+            get: primaryGet,
+          })),
+        })),
+      } as unknown as admin.firestore.Firestore;
+
+      const backupDb = {
+        collection: vi.fn(() => ({
+          doc: vi.fn((id: string) => ({
+            id,
+            path: `trips/${id}`,
+            get: backupGet,
+          })),
+        })),
+      } as unknown as admin.firestore.Firestore;
+
+      const proxy = createResilientFirestoreProxy(primaryDb, () => backupDb);
+      const docSnap = await proxy.collection("trips").doc("trip-123").get();
+
+      expect(primaryGet).toHaveBeenCalled();
+      expect(backupGet).toHaveBeenCalled();
+      // Should not throw, should return safe fallback
+      expect(docSnap.exists).toBe(false);
+      expect(docSnap.id).toBe("trip-123");
+      expect(docSnap.data()).toBeUndefined();
+    });
+
+    it("returns safe non-crashing mock QuerySnapshot when BOTH primary and backup throw quota errors on queries", async () => {
+      const quotaError = new Error("8 RESOURCE_EXHAUSTED: Quota exceeded");
+      const primaryGet = vi.fn().mockRejectedValue(quotaError);
+      const backupGet = vi.fn().mockRejectedValue(quotaError);
+
+      const primaryDb = {
+        collection: vi.fn(() => ({
+          where: vi.fn(() => ({
+            get: primaryGet,
+          })),
+        })),
+      } as unknown as admin.firestore.Firestore;
+
+      const backupDb = {
+        collection: vi.fn(() => ({
+          where: vi.fn(() => ({
+            get: backupGet,
+          })),
+        })),
+      } as unknown as admin.firestore.Firestore;
+
+      const proxy = createResilientFirestoreProxy(primaryDb, () => backupDb);
+      const querySnap = await proxy
+        .collection("expenses")
+        .where("tripId", "==", "trip-123")
+        .get();
+
+      expect(primaryGet).toHaveBeenCalled();
+      expect(backupGet).toHaveBeenCalled();
+      // Should not throw, should return safe empty query snapshot
+      expect(querySnap.empty).toBe(true);
+      expect(querySnap.size).toBe(0);
+      expect(querySnap.docs).toEqual([]);
+    });
+
+    it("serves cached snapshot when subsequent reads hit quota exhaustion", async () => {
+      const primaryGet = vi.fn().mockResolvedValue({
+        id: "trip-456",
+        exists: true,
+        data: () => ({ title: "Командировка София", destination: "София" }),
+      });
+
+      const primaryDb = {
+        collection: vi.fn(() => ({
+          doc: vi.fn((id: string) => ({
+            id,
+            path: `trips/${id}`,
+            get: primaryGet,
+          })),
+        })),
+      } as unknown as admin.firestore.Firestore;
+
+      const proxy = createResilientFirestoreProxy(primaryDb, () => null);
+
+      // 1. Initial read succeeds and populates memory cache
+      const initialSnap = await proxy.collection("trips").doc("trip-456").get();
+      expect(initialSnap.data()).toEqual({
+        title: "Командировка София",
+        destination: "София",
+      });
+
+      // 2. Next read throws quota error on primary and backup is null
+      primaryGet.mockRejectedValue(
+        new Error("8 RESOURCE_EXHAUSTED: Quota exceeded")
+      );
+      const secondSnap = await proxy.collection("trips").doc("trip-456").get();
+
+      // Should return the cached snapshot!
+      expect(secondSnap.data()).toEqual({
+        title: "Командировка София",
+        destination: "София",
+      });
     });
   });
 });
