@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowLeft, Edit3, Printer } from "lucide-react";
+import { ArrowLeft, Edit3, Printer, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 
+import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
 import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,22 @@ import { TripDetailsNav } from "./TripDetailsNav";
 function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
   const { trip, event, membersDict, refreshData } = useTripDetails();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isManagerDialogOpen, setIsManagerDialogOpen] = useState(false);
+
+  const effectiveEvent: ScheduleEvent =
+    event ||
+    ({
+      id: trip.eventId || trip.id || "event",
+      title: trip.title,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      type: "competition",
+      siteId: trip.siteId,
+      description: trip.destination,
+      location: trip.destination || "",
+      attendees: [],
+      attendeeMemberIds: [],
+    } as unknown as ScheduleEvent);
 
   const coach = trip.coachId ? membersDict[trip.coachId] : null;
   const coachName = coach
@@ -93,9 +110,21 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
             size="sm"
             onClick={() => setIsEditDialogOpen(true)}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+            title="Редактирай параметри на командировката (дати, дестинация, покритие на разходи, МПС)"
           >
             <Edit3 className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
             Редактирай данни
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsManagerDialogOpen(true)}
+            className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+            title="Отвори пълния мениджър с всички бланки, ведомост и подписи"
+          >
+            <SlidersHorizontal className="mr-1.5 size-3.5 text-indigo-600 dark:text-indigo-400" />
+            Пълен мениджър
           </Button>
 
           <Button
@@ -113,16 +142,29 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
 
       <TripDetailsNav tripId={tripId} />
 
-      {event && isEditDialogOpen && (
+      {isEditDialogOpen && (
         <CreateBusinessTripDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
-          event={event}
+          event={effectiveEvent}
           initialData={trip}
           membersDict={membersDict}
           onSuccess={() => {
             setIsEditDialogOpen(false);
             refreshData();
+          }}
+        />
+      )}
+
+      {isManagerDialogOpen && (
+        <BusinessTripManagerDialog
+          event={effectiveEvent}
+          open={isManagerDialogOpen}
+          onOpenChange={(open) => {
+            setIsManagerDialogOpen(open);
+            if (!open) {
+              refreshData();
+            }
           }}
         />
       )}

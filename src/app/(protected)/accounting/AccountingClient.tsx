@@ -303,7 +303,7 @@ interface TripMobileCardProps {
     className: string;
     text: string;
   };
-  onManage?: (trip: BusinessTrip) => void;
+  onManage: (trip: BusinessTrip) => void;
 }
 
 function TripMobileCard({
@@ -312,7 +312,7 @@ function TripMobileCard({
   total,
   expensesCount,
   statusBadge,
-  onManage: _onManage,
+  onManage,
 }: TripMobileCardProps) {
   return (
     <div
@@ -387,14 +387,25 @@ function TripMobileCard({
         <span className="text-[11px] text-zinc-500">
           {expensesCount > 0 ? `🧾 ${expensesCount} фактури` : "Няма фактури"}
         </span>
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className="h-7 border-zinc-200 px-3 text-xs hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
-        >
-          <Link href={`/accounting/trips/${trip.id}`}>Управление</Link>
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-7 border-zinc-200 px-2.5 text-xs font-semibold hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
+          >
+            <Link href={`/accounting/trips/${trip.id}`}>Отвори</Link>
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="h-7 bg-blue-600 px-2.5 text-xs font-semibold text-white shadow-none hover:bg-blue-700"
+            onClick={() => onManage(trip)}
+            title="Бързо управление на документи, ведомост и разходи"
+          >
+            Управление
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -574,11 +585,20 @@ export default function AccountingClient({
   }, [loading, wantsModal, targetDeepLinkId, trips, events]);
 
   const handleManageTrip = (trip: BusinessTrip) => {
-    const ev = events.find((e) => e.id === trip.eventId);
-    if (!ev) {
-      toast.error("Събитието не е намерено. Моля, презаредете страницата.");
-      return;
-    }
+    const ev =
+      events.find((e) => e.id === trip.eventId) ||
+      ({
+        id: trip.eventId || trip.id || "event",
+        title: trip.title,
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        type: "competition",
+        siteId: trip.siteId,
+        description: trip.destination,
+        location: trip.destination || "",
+        attendees: [],
+        attendeeMemberIds: [],
+      } as unknown as ScheduleEvent);
     setSelectedEvent(ev);
     setIsTripManagerOpen(true);
   };
@@ -1615,16 +1635,28 @@ export default function AccountingClient({
                         )}
                       </TableCell>
                       <TableCell className="whitespace-nowrap px-2.5 py-1.5 text-right">
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="sm"
-                          className="h-7 border-zinc-200 px-2 text-xs hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
-                        >
-                          <Link href={`/accounting/trips/${trip.id}`}>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="h-7 border-zinc-200 px-2 text-xs font-semibold hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
+                            title="Отвори пълната страница на командировката"
+                          >
+                            <Link href={`/accounting/trips/${trip.id}`}>
+                              Отвори
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="h-7 bg-blue-600 px-2 text-xs font-semibold text-white shadow-none hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
+                            onClick={() => handleManageTrip(trip)}
+                            title="Бързо управление на документи, ведомост и разходи"
+                          >
                             Управление
-                          </Link>
-                        </Button>
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

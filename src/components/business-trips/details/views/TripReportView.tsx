@@ -1,35 +1,46 @@
 "use client";
 
-import { Download, Loader2 } from "lucide-react";
+import { Download, Eye, Loader2, Pencil } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
 import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
 import { useTripDetails } from "@/components/business-trips/details/TripDetailsContext";
+import { TripReportDialog } from "@/components/business-trips/TripReportDialog";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { formatDateShort } from "@/lib/date-utils";
 
 export function TripReportView() {
-  const { trip, event, expenses, membersDict } = useTripDetails();
+  const { trip, event, expenses, membersDict, refreshData } = useTripDetails();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   const total = expenses.reduce((sum, e) => sum + (e.amountEUR || 0), 0);
 
-  const handleDownload = () => {
+  const handlePrintOrDownload = (
+    action: "download" | "preview" = "download"
+  ) => {
     setIsGenerating(true);
     setTimeout(() => {
       const el = document.getElementById("pdf-report-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
-          m.generatePdfFromElement(
-            el,
-            `Доклад_Командировка_${trip.title}`,
-            "portrait"
-          )
+          const promise =
+            action === "preview"
+              ? m.previewPdfFromElement(el, "portrait")
+              : m.generatePdfFromElement(
+                  el,
+                  `Доклад_Командировка_${trip.title}`,
+                  "portrait"
+                );
+
+          promise
             .then(() => {
-              toast.success("Докладът е генериран успешно.");
+              if (action === "download") {
+                toast.success("Докладът е генериран успешно.");
+              }
             })
             .catch((e) => {
               console.error(e);
@@ -58,18 +69,43 @@ export function TripReportView() {
           </p>
         </div>
 
-        <Button
-          onClick={handleDownload}
-          disabled={isGenerating}
-          className="rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
-        >
-          {isGenerating ? (
-            <Loader2 className="mr-1.5 size-3.5 animate-spin" />
-          ) : (
-            <Download className="mr-1.5 size-3.5" />
-          )}
-          Изтегли Доклад (PDF)
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsReportDialogOpen(true)}
+            className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+            title="Редактирай текста на доклада, резултати и класирания"
+          >
+            <Pencil className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
+            Редактирай доклад
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePrintOrDownload("preview")}
+            disabled={isGenerating}
+            className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+            title="Преглед в нов прозорец за печат"
+          >
+            <Eye className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
+            Преглед
+          </Button>
+
+          <Button
+            onClick={() => handlePrintOrDownload("download")}
+            disabled={isGenerating}
+            className="rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
+          >
+            {isGenerating ? (
+              <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+            ) : (
+              <Download className="mr-1.5 size-3.5" />
+            )}
+            Изтегли Доклад (PDF)
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -156,6 +192,21 @@ export function TripReportView() {
         membersDict={membersDict}
         expenses={expenses}
       />
+
+      {isReportDialogOpen && (
+        <TripReportDialog
+          open={isReportDialogOpen}
+          onOpenChange={setIsReportDialogOpen}
+          trip={trip}
+          event={event}
+          expenses={expenses}
+          membersDict={membersDict}
+          onSuccess={() => {
+            setIsReportDialogOpen(false);
+            refreshData();
+          }}
+        />
+      )}
     </div>
   );
 }

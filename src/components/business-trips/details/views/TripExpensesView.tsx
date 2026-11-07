@@ -192,6 +192,7 @@ export function TripExpensesView() {
           onOpenChange={setIsExpenseDialogOpen}
           tripId={trip.id}
           siteId={trip.siteId || "bkgalabovo"}
+          trip={trip}
           expenseToEdit={editingExpense}
           onSuccess={() => {
             setIsExpenseDialogOpen(false);

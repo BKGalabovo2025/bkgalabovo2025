@@ -7,20 +7,48 @@ import {
   Euro,
   FileText,
   MapPin,
+  Pencil,
+  Repeat,
   Shield,
+  SlidersHorizontal,
+  Sparkles,
   User,
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 
+import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
+import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
 import { useTripDetails } from "@/components/business-trips/details/TripDetailsContext";
+import { TripStatementEditDialog } from "@/components/business-trips/TripStatementEditDialog";
+import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { formatDateShort } from "@/lib/date-utils";
+import { ScheduleEvent } from "@/types";
 
 export function TripOverviewView() {
-  const { trip, event, expenses, membersDict } = useTripDetails();
+  const { trip, event, expenses, membersDict, refreshData } = useTripDetails();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isStatementEditDialogOpen, setIsStatementEditDialogOpen] =
+    useState(false);
+  const [isManagerDialogOpen, setIsManagerDialogOpen] = useState(false);
+
+  const effectiveEvent: ScheduleEvent =
+    event ||
+    ({
+      id: trip.eventId || trip.id || "event",
+      title: trip.title,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      type: "competition",
+      siteId: trip.siteId,
+      description: trip.destination,
+      location: trip.destination || "",
+      attendees: [],
+      attendeeMemberIds: [],
+    } as unknown as ScheduleEvent);
 
   const coach = trip.coachId ? membersDict[trip.coachId] : null;
   const coachName = coach
@@ -31,6 +59,46 @@ export function TripOverviewView() {
     (sum, exp) => sum + (exp.amountEUR || 0),
     0
   );
+
+  const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
+
+  const getCoverageInfo = (cov?: string) => {
+    switch (cov) {
+      case "transport_only":
+        return {
+          badge: "Само транспорт",
+          desc: "Клубът поема единствено транспорт / гориво. Дневни и квартирни пари НЕ се изплащат (еднодневен турнир наблизо).",
+          icon: "🚗",
+        };
+      case "food_only":
+        return {
+          badge: "Само дневни пари",
+          desc: "Клубът поема дневните пари за храна. Транспортът и нощувките са без разход за клуба (организиран или федерационен превоз).",
+          icon: "🍽️",
+        };
+      case "food_and_sleep":
+        return {
+          badge: "Дневни + Нощувки",
+          desc: "Клубът поема дневните пари и квартирните разходи срещу фактура. Транспортът е осигурен безплатно.",
+          icon: "🛏️",
+        };
+      case "transport_and_food":
+        return {
+          badge: "Транспорт + Дневни пари",
+          desc: "Клубът поема гориво/пътни и дневни пари. Нощувки не се поемат (еднодневно пътуване или настаняване без хотелски разход).",
+          icon: "🚗🍽️",
+        };
+      case "transport_food_sleep":
+      default:
+        return {
+          badge: "Пълен пакет",
+          desc: "Клубът поема всички командировъчни разходи: транспорт, дневни пари и квартирни (нощувки).",
+          icon: "✅",
+        };
+    }
+  };
+
+  const covInfo = getCoverageInfo(trip.expensesCoverage);
 
   return (
     <div className="space-y-6">
@@ -151,6 +219,134 @@ export function TripOverviewView() {
         </BentoCard>
       </div>
 
+      {/* ── Travel Parameters & Expense Coverage Bento Card ── */}
+      <BentoCard className="space-y-4 rounded-2xl border border-blue-200/70 bg-linear-to-br from-blue-50/40 via-white to-indigo-50/20 p-5 shadow-none dark:border-blue-900/40 dark:from-blue-950/20 dark:via-zinc-950 dark:to-indigo-950/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3 dark:border-zinc-800">
+          <div className="space-y-0.5">
+            <h3 className="text-sm font-bold tracking-wider text-blue-950 uppercase dark:text-blue-300 flex items-center gap-2">
+              <Sparkles className="size-4 text-blue-600 dark:text-blue-400" />
+              Параметри на пътуването & Покритие на разходи от клуба
+            </h3>
+            <p className="text-xs text-zinc-500">
+              Точният режим на пътуване, видовете поети разходи и финансовите
+              ставки за състезанието
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsStatementEditDialogOpen(true)}
+              className="h-8 rounded-xl border-blue-300 bg-white text-xs font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-300 dark:hover:bg-blue-950/50"
+              title="Корекция на присъствени дни, курсове на пътуване или отпадане на състезатели"
+            >
+              <Pencil className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
+              Корекция дни / курсове
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditDialogOpen(true)}
+              className="h-8 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
+              title="Редактирай покритие на разходи, автомобил или ставки"
+            >
+              <Pencil className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
+              Редактирай параметри
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 text-xs">
+          {/* Режим на пътуване */}
+          <div className="rounded-xl border border-zinc-100 bg-white/80 p-3.5 space-y-1.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <span className="text-[11px] font-semibold text-zinc-500 flex items-center gap-1.5">
+              <Repeat className="size-3.5 text-indigo-500" />
+              Режим на пътуване:
+            </span>
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className={
+                  isDailyCommute
+                    ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+                    : "border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
+                }
+              >
+                {isDailyCommute
+                  ? "🔄 Ежедневно пътуване (без нощувка)"
+                  : "🏨 Еднократно пътуване с престой"}
+              </Badge>
+            </div>
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              {isDailyCommute
+                ? `Отборът пътува всеки състезателен ден и се прибира в гр. Гълъбово без преспиване. Курсове: ${trip.vehicle?.plannedTripsCount || 1} план. (${trip.vehicle?.actualTripsCount ?? trip.actualDays ?? 1} реализирани) • ${trip.vehicle?.distanceKm || 0} км.`
+                : `Отборът пътува еднократно и преспива на място (${trip.actualNights ?? 0} нощувки).`}
+            </p>
+          </div>
+
+          {/* Покритие на разходи */}
+          <div className="rounded-xl border border-zinc-100 bg-white/80 p-3.5 space-y-1.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <span className="text-[11px] font-semibold text-zinc-500 flex items-center gap-1.5">
+              <Shield className="size-3.5 text-emerald-500" />
+              Какво поема клубът като разход:
+            </span>
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 font-bold"
+              >
+                {covInfo.icon} {covInfo.badge}
+              </Badge>
+            </div>
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              {covInfo.desc}
+            </p>
+          </div>
+
+          {/* Ставки & Финанси */}
+          <div className="rounded-xl border border-zinc-100 bg-white/80 p-3.5 space-y-1.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <span className="text-[11px] font-semibold text-zinc-500 flex items-center gap-1.5">
+              <Euro className="size-3.5 text-blue-500" />
+              Ставки и лимити (на лице):
+            </span>
+            <div className="space-y-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300">
+              <p>
+                🍽️ Дневни пари:{" "}
+                <strong>
+                  €{trip.financials.perDiemRateEUR || 22} / ден (
+                  {((trip.financials.perDiemRateEUR || 22) * 1.95583).toFixed(
+                    2
+                  )}{" "}
+                  лв.)
+                </strong>
+              </p>
+              <p>
+                🛏️ Квартирни пари:{" "}
+                <strong>
+                  €{trip.financials.accommodationRateEUR || 0} / нощувка (
+                  {(
+                    (trip.financials.accommodationRateEUR || 0) * 1.95583
+                  ).toFixed(2)}{" "}
+                  лв.)
+                </strong>
+              </p>
+              <p>
+                🎟️ Такса участие:{" "}
+                <strong>
+                  {trip.financials.entryFeeEUR
+                    ? `€${trip.financials.entryFeeEUR}`
+                    : "Поета от клуба / без такса"}
+                </strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      </BentoCard>
+
       {/* Main Details Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <BentoCard className="space-y-4 rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-none lg:col-span-2 dark:border-zinc-800 dark:bg-zinc-950">
@@ -191,6 +387,12 @@ export function TripOverviewView() {
                       ? "Клубен транспорт"
                       : "Обществен транспорт"}
                 </p>
+                {trip.vehicle?.fuelType && (
+                  <p className="text-[11px] text-zinc-400">
+                    Гориво: {trip.vehicle.fuelType} • Норма:{" "}
+                    {trip.vehicle.fuelNorm || "—"} л/100км
+                  </p>
+                )}
               </div>
             </div>
 
@@ -238,10 +440,26 @@ export function TripOverviewView() {
               Бързи действия
             </h3>
             <p className="text-xs text-zinc-500">
-              Всички документи и подстраници са на един клик разстояние:
+              Всички документи, корекции и мениджъри на един клик разстояние:
             </p>
 
             <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start text-xs rounded-xl border-blue-200 bg-blue-50/50 text-blue-800 hover:bg-blue-100 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-300 font-semibold"
+                onClick={() => setIsManagerDialogOpen(true)}
+              >
+                <SlidersHorizontal className="mr-2 size-3.5 text-blue-600" />
+                Пълен мениджър (всички бланки)
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-xs rounded-xl"
+                onClick={() => setIsStatementEditDialogOpen(true)}
+              >
+                <Pencil className="mr-2 size-3.5 text-amber-600" />
+                Корекция дни / курсове / ведомост
+              </Button>
               <Button
                 asChild
                 variant="outline"
@@ -296,6 +514,46 @@ export function TripOverviewView() {
           </div>
         </BentoCard>
       </div>
+
+      {/* Dialogs */}
+      {isEditDialogOpen && (
+        <CreateBusinessTripDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          event={effectiveEvent}
+          initialData={trip}
+          membersDict={membersDict}
+          onSuccess={() => {
+            setIsEditDialogOpen(false);
+            refreshData();
+          }}
+        />
+      )}
+
+      {isStatementEditDialogOpen && (
+        <TripStatementEditDialog
+          open={isStatementEditDialogOpen}
+          onOpenChange={setIsStatementEditDialogOpen}
+          trip={trip}
+          onSuccess={() => {
+            setIsStatementEditDialogOpen(false);
+            refreshData();
+          }}
+        />
+      )}
+
+      {isManagerDialogOpen && (
+        <BusinessTripManagerDialog
+          event={effectiveEvent}
+          open={isManagerDialogOpen}
+          onOpenChange={(open) => {
+            setIsManagerDialogOpen(open);
+            if (!open) {
+              refreshData();
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
