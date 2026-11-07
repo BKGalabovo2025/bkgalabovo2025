@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import type { AccountingSectionId } from "@/components/accounting/accounting-sections";
@@ -65,6 +65,7 @@ import {
 } from "@/components/ui/table";
 import { getSiteConfig } from "@/config/sites";
 import { useAuth } from "@/context/auth-context";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import {
   calculateTripStatementTotals,
   calculateTripTransportTotals,
@@ -314,7 +315,10 @@ function TripMobileCard({
   onManage: _onManage,
 }: TripMobileCardProps) {
   return (
-    <div className="space-y-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 transition-colors dark:border-zinc-800/80 dark:bg-zinc-800/30">
+    <div
+      id={`trip-${trip.id}`}
+      className="space-y-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 transition-colors dark:border-zinc-800/80 dark:bg-zinc-800/30"
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
@@ -441,20 +445,24 @@ export default function AccountingClient({
       ? statusParam
       : "all";
 
-  const updateParams = (patch: Record<string, string | null>) => {
-    const next = new URLSearchParams(searchParams.toString());
-    Object.entries(patch).forEach(([k, v]) => {
-      if (v === null) next.delete(k);
-      else next.set(k, v);
-    });
-    const qs = next.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  };
-  const setSelectedMonth = (d: Date) =>
-    updateParams({ month: format(d, "yyyy-MM") });
+  const updateParams = useCallback(
+    (patch: Record<string, string | null>) => {
+      const next = new URLSearchParams(searchParams.toString());
+      Object.entries(patch).forEach(([k, v]) => {
+        if (v === null) next.delete(k);
+        else next.set(k, v);
+      });
+      const qs = next.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+  const setSelectedMonth = useCallback(
+    (d: Date) => updateParams({ month: format(d, "yyyy-MM") }),
+    [updateParams]
+  );
   const setStatusFilter = (val: string) =>
     updateParams({ status: val === "all" ? null : val });
-  const deepLinkTripId = searchParams.get("tripId");
   const deepLinkHandled = useRef(false);
   const [tripSearchQuery, setTripSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -524,19 +532,46 @@ export default function AccountingClient({
     }
   };
 
-  // Дълбок линк ?tripId=... отваря мениджъра на командировката.
+  const targetDeepLinkId = searchParams.get("id") || searchParams.get("tripId");
+  useDeepLinkHighlight("trip", !loading && trips.length > 0, "tripId");
+
+  // Автоматично превключване към месеца на командировката при директен линк
+  const monthAdjustedRef = useRef(false);
   useEffect(() => {
-    if (loading || !deepLinkTripId || deepLinkHandled.current) return;
-    const trip = trips.find((t) => t.id === deepLinkTripId);
+    if (
+      loading ||
+      !targetDeepLinkId ||
+      monthAdjustedRef.current ||
+      trips.length === 0
+    ) {
+      return;
+    }
+    const target = trips.find((t) => t.id === targetDeepLinkId);
+    if (!target) return;
+    monthAdjustedRef.current = true;
+    if (target.startDate) {
+      const targetMonth = startOfMonth(parseISO(target.startDate));
+      const targetMonthStr = format(targetMonth, "yyyy-MM");
+      const currentMonthStr = format(selectedMonth, "yyyy-MM");
+      if (targetMonthStr !== currentMonthStr) {
+        setSelectedMonth(targetMonth);
+      }
+    }
+  }, [loading, targetDeepLinkId, trips, selectedMonth, setSelectedMonth]);
+
+  // Дълбок линк ?modal=true отваря диалога на събитието, ако е изрично указан.
+  const wantsModal = searchParams.get("modal") === "true";
+  useEffect(() => {
+    if (loading || !wantsModal || !targetDeepLinkId || deepLinkHandled.current)
+      return;
+    const trip = trips.find((t) => t.id === targetDeepLinkId);
     const ev = trip ? events.find((e) => e.id === trip.eventId) : undefined;
     deepLinkHandled.current = true;
     if (ev) {
       setSelectedEvent(ev);
       setIsTripManagerOpen(true);
-    } else {
-      toast.error("Командировката не е намерена.");
     }
-  }, [loading, deepLinkTripId, trips, events]);
+  }, [loading, wantsModal, targetDeepLinkId, trips, events]);
 
   const handleManageTrip = (trip: BusinessTrip) => {
     const ev = events.find((e) => e.id === trip.eventId);
@@ -600,6 +635,18 @@ export default function AccountingClient({
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedMonth, activityFilter, statusFilter, tripSearchQuery]);
+
+  // Автоматично преминаване към страницата на командировката в списъка при deep link
+  useEffect(() => {
+    if (!targetDeepLinkId || filteredTrips.length === 0) return;
+    const idx = filteredTrips.findIndex((t) => t.id === targetDeepLinkId);
+    if (idx >= 0) {
+      const targetPage = Math.floor(idx / ITEMS_PER_PAGE) + 1;
+      if (targetPage !== currentPage) {
+        setCurrentPage(targetPage);
+      }
+    }
+  }, [targetDeepLinkId, filteredTrips, currentPage]);
 
   const totalPages = Math.max(
     1,

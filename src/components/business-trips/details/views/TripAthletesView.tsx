@@ -1,18 +1,21 @@
 "use client";
 
 import { CheckCircle2, PenTool, Users, XCircle } from "lucide-react";
+import Link from "next/link";
 import React, { useState } from "react";
 
 import { useTripDetails } from "@/components/business-trips/details/TripDetailsContext";
 import { TripAthletesSignaturesDialog } from "@/components/business-trips/TripAthletesSignaturesDialog";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 
 export function TripAthletesView() {
   const { trip, membersDict, refreshData } = useTripDetails();
   const [isSignaturesDialogOpen, setIsSignaturesDialogOpen] = useState(false);
 
   const participantIds = trip.participantsIds || [];
+  useDeepLinkHighlight("athlete", participantIds.length > 0, "memberId");
   const athleteSignatures = trip.signatures?.athletes || {};
 
   return (
@@ -54,11 +57,22 @@ export function TripAthletesView() {
             return (
               <BentoCard
                 key={id}
+                id={`athlete-${id}`}
                 className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950"
               >
                 <div>
                   <h4 className="text-xs font-bold text-zinc-900 dark:text-white">
-                    {name}
+                    {member ? (
+                      <Link
+                        href={`/members/${id}`}
+                        title="Профил на състезателя"
+                        className="hover:text-blue-600 hover:underline dark:hover:text-blue-400"
+                      >
+                        {name}
+                      </Link>
+                    ) : (
+                      name
+                    )}
                   </h4>
                   <p className="text-[11px] text-zinc-400">
                     {member?.ageGroup

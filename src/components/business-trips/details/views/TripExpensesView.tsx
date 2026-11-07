@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, Plus, Receipt, Trash2 } from "lucide-react";
+import Link from "next/link";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -16,12 +17,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
 import { TripExpense } from "@/types/business-trip.types";
 
 export function TripExpensesView() {
   const { trip, expenses, refreshData } = useTripDetails();
+  useDeepLinkHighlight("expense", expenses.length > 0, "expenseId");
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<TripExpense | null>(
     null
@@ -128,7 +131,13 @@ export function TripExpensesView() {
                   className="transition-colors hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40"
                 >
                   <TableCell className="font-semibold text-zinc-900 dark:text-white">
-                    {getCategoryLabel(exp.expenseType)}
+                    <Link
+                      href={`/accounting/trips/${trip.id}/expenses?id=${exp.id}`}
+                      title="Директен линк към този разход"
+                      className="hover:underline"
+                    >
+                      {getCategoryLabel(exp.expenseType)}
+                    </Link>
                   </TableCell>
                   <TableCell className="max-w-xs truncate text-zinc-600 dark:text-zinc-400">
                     {exp.notes || exp.supplierName || "—"}

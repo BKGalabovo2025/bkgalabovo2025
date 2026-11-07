@@ -47,7 +47,13 @@ export function TripOverviewView() {
           </div>
           <div className="mt-2">
             <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              €{totalExpenses.toFixed(2)}
+              <Link
+                href={`/accounting/trips/${trip.id}/expenses`}
+                title="Към финансовите разходи"
+                className="hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                €{totalExpenses.toFixed(2)}
+              </Link>
             </p>
             <p className="text-[11px] text-zinc-400">
               {(totalExpenses * 1.95583).toFixed(2)} лв. • {expenses.length}{" "}
@@ -67,7 +73,17 @@ export function TripOverviewView() {
           </div>
           <div className="mt-2">
             <p className="truncate text-base font-bold text-zinc-900 dark:text-white">
-              {coachName}
+              {coach && trip.coachId ? (
+                <Link
+                  href={`/members/${trip.coachId}`}
+                  title="Профил на ръководителя"
+                  className="hover:text-blue-600 hover:underline dark:hover:text-blue-400"
+                >
+                  {coachName}
+                </Link>
+              ) : (
+                coachName
+              )}
             </p>
             <p className="text-[11px] text-zinc-400">
               {coach?.phone || "Няма телефон"}
@@ -86,7 +102,13 @@ export function TripOverviewView() {
           </div>
           <div className="mt-2">
             <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              {trip.participantsIds?.length || 0}
+              <Link
+                href={`/accounting/trips/${trip.id}/athletes`}
+                title="Към списъка със състезатели"
+                className="hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                {trip.participantsIds?.length || 0}
+              </Link>
             </p>
             <p className="text-[11px] text-zinc-400">
               {Object.keys(trip.signatures?.athletes || {}).length} подписани
@@ -103,10 +125,27 @@ export function TripOverviewView() {
           </div>
           <div className="mt-2">
             <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              № {trip.orderNumber || "—"}
+              <Link
+                href={`/accounting/trips/${trip.id}/order`}
+                title="Преглед на официалната заповед"
+                className="hover:text-amber-600 dark:hover:text-amber-400"
+              >
+                № {trip.orderNumber || "—"}
+              </Link>
             </p>
             <p className="text-[11px] text-zinc-400">
-              Решение УС: {trip.usDecision || "—"}
+              Решение УС:{" "}
+              {trip.usDecision ? (
+                <Link
+                  href={`/accounting/trips/${trip.id}/protocol`}
+                  title="Към протокола на УС"
+                  className="hover:underline hover:text-emerald-600 dark:hover:text-emerald-400"
+                >
+                  {trip.usDecision}
+                </Link>
+              ) : (
+                "—"
+              )}
             </p>
           </div>
         </BentoCard>
@@ -241,6 +280,16 @@ export function TripOverviewView() {
                 <Link href={`/accounting/trips/${trip.id}/athletes`}>
                   <Users className="mr-2 size-3.5 text-amber-600" />
                   Състезатели & електронни подписи
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full justify-start text-xs rounded-xl"
+              >
+                <Link href={`/accounting/trips/${trip.id}/report`}>
+                  <FileText className="mr-2 size-3.5 text-rose-600" />
+                  Финансов & технически доклад
                 </Link>
               </Button>
             </div>

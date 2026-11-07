@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, Loader2 } from "lucide-react";
+import Link from "next/link";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -81,13 +82,25 @@ export function TripReportView() {
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
               <span className="text-zinc-500">Общо разходи:</span>
               <span className="font-bold text-zinc-900 dark:text-white">
-                €{total.toFixed(2)} ({(total * 1.95583).toFixed(2)} лв.)
+                <Link
+                  href={`/accounting/trips/${trip.id}/expenses`}
+                  title="Към детайлните разходи"
+                  className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  €{total.toFixed(2)} ({(total * 1.95583).toFixed(2)} лв.)
+                </Link>
               </span>
             </div>
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
               <span className="text-zinc-500">Брой фактури:</span>
               <span className="font-medium text-zinc-900 dark:text-white">
-                {expenses.length} бр.
+                <Link
+                  href={`/accounting/trips/${trip.id}/expenses`}
+                  title="Към детайлните разходи"
+                  className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  {expenses.length} бр.
+                </Link>
               </span>
             </div>
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
@@ -123,7 +136,13 @@ export function TripReportView() {
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
               <span className="text-zinc-500">Участници:</span>
               <span className="text-zinc-700 dark:text-zinc-300">
-                {trip.participantsIds?.length || 0} състезатели
+                <Link
+                  href={`/accounting/trips/${trip.id}/athletes`}
+                  title="Към списъка със състезатели"
+                  className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  {trip.participantsIds?.length || 0} състезатели
+                </Link>
               </span>
             </div>
           </div>
