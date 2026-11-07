@@ -8,6 +8,7 @@ export default tseslint.config(
   {
     ignores: [
       ".next/**",
+      ".netlify/**",
       ".antigravity/**",
       ".gemini/**",
       "node_modules/**",
