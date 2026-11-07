@@ -60,8 +60,13 @@ afterEach(() => {
 describe("member-service", () => {
   describe("docToMember", () => {
     it("should return null if doc does not exist", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       const doc = mockDoc("1", {}, false);
       expect(docToMember(doc)).toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(
+        "docToMember: Document with ID 1 does not exist."
+      );
+      warnSpy.mockRestore();
     });
 
     it("should parse valid member data correctly", () => {
