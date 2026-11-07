@@ -11,7 +11,10 @@ const SidebarContext = React.createContext<{
   state: "expanded" | "collapsed";
   open: boolean;
   setOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
+  openMobile: boolean;
+  setOpenMobile: (value: boolean | ((prev: boolean) => boolean)) => void;
   isMobile: boolean;
+  toggleSidebar: () => void;
 } | null>(null);
 
 export function useSidebar() {
@@ -43,26 +46,57 @@ export const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile();
     const { isSidebarOpen, setSidebarOpen } = useAppStore();
+    const [openMobile, setOpenMobile] = React.useState(false);
 
-    // Support external control via props, but fallback to global store
-    const open = openProp ?? isSidebarOpen;
+    // Desktop open state from props or store
+    const desktopOpen = openProp ?? isSidebarOpen;
+
+    // Active open state: on mobile it's openMobile, on desktop it's desktopOpen
+    const open = isMobile ? openMobile : desktopOpen;
 
     const setOpen = React.useCallback(
       (value: boolean | ((prev: boolean) => boolean)) => {
-        const nextValue = typeof value === "function" ? value(open) : value;
+        if (isMobile) {
+          setOpenMobile((prev) =>
+            typeof value === "function" ? value(prev) : value
+          );
+        } else {
+          const nextValue =
+            typeof value === "function" ? value(desktopOpen) : value;
+          if (onOpenChange) {
+            onOpenChange(nextValue);
+          }
+          setSidebarOpen(nextValue);
+        }
+      },
+      [isMobile, desktopOpen, onOpenChange, setSidebarOpen]
+    );
+
+    const toggleSidebar = React.useCallback(() => {
+      if (isMobile) {
+        setOpenMobile((prev) => !prev);
+      } else {
+        const nextValue = !desktopOpen;
         if (onOpenChange) {
           onOpenChange(nextValue);
         }
         setSidebarOpen(nextValue);
-      },
-      [onOpenChange, open, setSidebarOpen]
-    );
+      }
+    }, [isMobile, desktopOpen, onOpenChange, setSidebarOpen]);
 
     const state = (open ? "expanded" : "collapsed") as "expanded" | "collapsed";
 
     const contextValue = React.useMemo(
-      () => ({ state, open, setOpen, isMobile }),
-      [state, open, setOpen, isMobile]
+      () => ({
+        state,
+        open,
+        setOpen,
+        openMobile,
+        setOpenMobile,
+        isMobile,
+        toggleSidebar,
+      }),
+      [state, open, setOpen, openMobile, isMobile, toggleSidebar]
     );
 
     return (
@@ -266,8 +300,8 @@ SidebarInset.displayName = "SidebarInset";
 export const SidebarTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button">
->(({ className, ...props }, ref) => {
-  const { open, setOpen } = useSidebar();
+>(({ className, onClick, ...props }, ref) => {
+  const { open, toggleSidebar } = useSidebar();
   return (
     <button
       type="button"
@@ -279,7 +313,8 @@ export const SidebarTrigger = React.forwardRef<
       )}
       onClick={(e) => {
         e.stopPropagation();
-        setOpen((prev: boolean) => !prev);
+        onClick?.(e);
+        toggleSidebar();
       }}
       {...props}
     >
