@@ -11,7 +11,7 @@ const targetUrlArg = args.find((a) => a.startsWith("--url="))?.split("=")[1];
 
 const baseUrl =
   targetUrlArg ||
-  (isLocal ? "http://localhost:3001" : "https://bkgalabovo2025.vercel.app");
+  (isLocal ? "http://localhost:3001" : "https://bkgalabovo.netlify.app");
 
 // Представителни ключови цели за бърз качествен контрол
 const GATE_TARGETS = [
