@@ -15,7 +15,35 @@ async function renderElementToCanvas(
     useCORS: true,
     logging: false,
     backgroundColor: "#ffffff",
-    onclone: (clonedDoc: Document) => {
+    onclone: (clonedDoc: Document, clonedElement?: HTMLElement) => {
+      // 1. Ensure target element and all its ancestors are rendered (not display: none)
+      if (clonedElement) {
+        let curr: HTMLElement | null = clonedElement;
+        while (curr && curr !== clonedDoc.body) {
+          if (curr.style.display === "none") {
+            curr.style.display = "block";
+          }
+          if (curr.classList.contains("hidden")) {
+            curr.classList.remove("hidden");
+          }
+          curr = curr.parentElement;
+        }
+      }
+
+      // Also unhide any hidden wrapper ancestors in the cloned document
+      const hiddenParents = clonedDoc.querySelectorAll(
+        ".hidden, [style*='display: none'], [style*='display:none']"
+      );
+      hiddenParents.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl.classList.contains("hidden")) {
+          htmlEl.classList.remove("hidden");
+        }
+        if (htmlEl.style.display === "none") {
+          htmlEl.style.display = "block";
+        }
+      });
+
       // Remove original link stylesheets to avoid redownloading
       const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
       linkTags.forEach((link) => link.remove());
@@ -31,7 +59,7 @@ async function renderElementToCanvas(
           -webkit-font-smoothing: antialiased;
           text-rendering: optimizeLegibility;
           color: #000000 !important;
-}
+        }
       `;
       clonedDoc.head.appendChild(styleEl);
 
@@ -149,15 +177,25 @@ async function createPdf(
         pdf.addPage();
       }
       const pageCanvas = await renderElementToCanvas(pageEl, cleanCSS);
-      const imgData = pageCanvas.toDataURL("image/png");
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      if (!pageCanvas || pageCanvas.width === 0 || pageCanvas.height === 0) {
+        throw new Error(
+          "Неуспешно генериране на PDF: елементът на страницата няма видими размери (0x0)."
+        );
+      }
+      const imgData = pageCanvas.toDataURL("image/jpeg", 0.98);
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
     }
     return pdf;
   }
 
   // Fallback for single container: paginate across multiple pages without squishing
   const canvas = await renderElementToCanvas(element, cleanCSS);
-  const imgData = canvas.toDataURL("image/png");
+  if (!canvas || canvas.width === 0 || canvas.height === 0) {
+    throw new Error(
+      "Неуспешно генериране на PDF: документът няма видими размери (0x0)."
+    );
+  }
+  const imgData = canvas.toDataURL("image/jpeg", 0.98);
   const imgProps = pdf.getImageProperties(imgData);
   const imgWidth = pdfWidth;
   const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
@@ -165,14 +203,14 @@ async function createPdf(
   let heightLeft = imgHeight;
   let position = 0;
 
-  pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+  pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
   heightLeft -= pdfHeight;
 
   // Толеранс 2 мм: 297 мм мин-височина се рендира като ~297.0x мм и без толеранс се получава празна втора страница
   while (heightLeft > 2) {
     position -= pdfHeight;
     pdf.addPage();
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
     heightLeft -= pdfHeight;
   }
 

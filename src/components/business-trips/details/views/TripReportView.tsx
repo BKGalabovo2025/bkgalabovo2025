@@ -20,7 +20,7 @@ export function TripReportView() {
   const handleDownload = () => {
     setIsGenerating(true);
     setTimeout(() => {
-      const el = document.getElementById("pdf-trip-report-template");
+      const el = document.getElementById("pdf-report-template");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
           m.generatePdfFromElement(
@@ -149,15 +149,13 @@ export function TripReportView() {
         </BentoCard>
       </div>
 
-      {/* Hidden PDF template */}
-      <div className="hidden">
-        <BusinessTripPdfTemplates
-          trip={trip}
-          event={event || undefined}
-          membersDict={membersDict}
-          expenses={expenses}
-        />
-      </div>
+      {/* PDF template (positioned off-screen for clean capture) */}
+      <BusinessTripPdfTemplates
+        trip={trip}
+        event={event || undefined}
+        membersDict={membersDict}
+        expenses={expenses}
+      />
     </div>
   );
 }

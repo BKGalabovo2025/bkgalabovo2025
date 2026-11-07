@@ -138,15 +138,13 @@ export function TripOrderView() {
         </div>
       </BentoCard>
 
-      {/* Hidden PDF template for direct download/export */}
-      <div className="hidden">
-        <BusinessTripPdfTemplates
-          trip={trip}
-          event={event || undefined}
-          membersDict={membersDict}
-          expenses={expenses}
-        />
-      </div>
+      {/* PDF template (positioned off-screen for clean capture) */}
+      <BusinessTripPdfTemplates
+        trip={trip}
+        event={event || undefined}
+        membersDict={membersDict}
+        expenses={expenses}
+      />
     </div>
   );
 }
