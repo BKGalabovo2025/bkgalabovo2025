@@ -107,19 +107,28 @@ export function TripAthletesView() {
                 className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950"
               >
                 <div>
-                  <h4 className="text-xs font-bold text-zinc-900 dark:text-white">
-                    {member ? (
-                      <Link
-                        href={`/members/${id}`}
-                        title="Профил на състезателя"
-                        className="hover:text-blue-600 hover:underline dark:hover:text-blue-400"
-                      >
-                        {name}
-                      </Link>
-                    ) : (
-                      name
-                    )}
-                  </h4>
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white">
+                      {member ? (
+                        <Link
+                          href={`/members/${id}`}
+                          title="Профил на състезателя"
+                          className="hover:text-blue-600 hover:underline dark:hover:text-blue-400"
+                        >
+                          {name}
+                        </Link>
+                      ) : (
+                        name
+                      )}
+                    </h4>
+                    <Link
+                      href={`/accounting/trips/${trip.id}/athletes?id=${id}`}
+                      title="Директен линк към картата на състезателя"
+                      className="text-[11px] font-mono text-zinc-300 hover:text-blue-500 dark:text-zinc-600 dark:hover:text-blue-400"
+                    >
+                      #
+                    </Link>
+                  </div>
                   <p className="text-[11px] text-zinc-400">
                     {member?.ageGroup
                       ? `Възраст: ${member.ageGroup}`

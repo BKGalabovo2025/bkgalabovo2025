@@ -14,7 +14,8 @@ export type MemberProfileSectionId =
   | "volume"
   | "assessments"
   | "theory"
-  | "ai-workouts";
+  | "ai-workouts"
+  | "trips";
 
 export interface MemberProfileSection {
   id: MemberProfileSectionId;
@@ -90,6 +91,14 @@ export const MEMBER_PROFILE_SECTIONS: readonly MemberProfileSection[] = [
     label: "AI Програми",
     pathSuffix: "/ai-workouts",
     tooltip: "Индивидуални тренировъчни планове, генерирани от AI треньора",
+    accent: "blue",
+  },
+  {
+    id: "trips",
+    label: "Командировки",
+    pathSuffix: "/trips",
+    tooltip:
+      "Участия в състезания, лагери, командировки, ведомости за дневни пари и финансови отчети",
     accent: "blue",
   },
 ];

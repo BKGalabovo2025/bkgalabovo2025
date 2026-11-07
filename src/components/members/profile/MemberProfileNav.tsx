@@ -3,6 +3,7 @@
 import {
   Award,
   BarChart3,
+  Briefcase,
   CalendarCheck,
   CreditCard,
   FileText,
@@ -45,6 +46,7 @@ const SECTION_ICONS: Record<
   assessments: Award,
   theory: GraduationCap,
   "ai-workouts": Sparkles,
+  trips: Briefcase,
 };
 
 const ACCENT_CLASSES = {

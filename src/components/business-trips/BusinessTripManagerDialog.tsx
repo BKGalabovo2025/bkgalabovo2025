@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  ExternalLink,
   Eye,
   FileDown,
   Info,
@@ -18,6 +19,7 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useState as useLocalState } from "react";
 import { toast } from "sonner";
@@ -755,15 +757,31 @@ export function BusinessTripManagerDialog({
                     >
                       {/* Trip title + info */}
                       <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-                            {trip.title}
-                          </p>
-                          {trip.orderNumber ? (
-                            <span className="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
-                              Командировка № {trip.orderNumber}
-                            </span>
-                          ) : null}
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                              {trip.title}
+                            </p>
+                            {trip.orderNumber ? (
+                              <span className="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+                                Командировка № {trip.orderNumber}
+                              </span>
+                            ) : null}
+                          </div>
+
+                          {trip.id && (
+                            <Button
+                              asChild
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-900/60 dark:text-blue-300"
+                            >
+                              <Link href={`/accounting/trips/${trip.id}`}>
+                                Детайли &amp; Счетоводство
+                                <ExternalLink className="ml-1 size-3 opacity-60" />
+                              </Link>
+                            </Button>
+                          )}
                         </div>
                         <p className="text-sm text-zinc-500">
                           До: {trip.destination} (

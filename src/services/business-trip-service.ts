@@ -165,6 +165,23 @@ export const businessTripService = {
     );
   },
 
+  /**
+   * Връща всички командировки, в които даден член участва:
+   * било като състезател (в participantsIds) или като ръководител (coachId).
+   */
+  async getTripsByMemberId(
+    memberId: string,
+    siteId: string = "bkgalabovo"
+  ): Promise<BusinessTrip[]> {
+    const allTrips = await this.getTrips(siteId);
+    return allTrips.filter(
+      (trip) =>
+        trip.coachId === memberId ||
+        (Array.isArray(trip.participantsIds) &&
+          trip.participantsIds.includes(memberId))
+    );
+  },
+
   async getTripById(id: string): Promise<BusinessTrip | null> {
     const docRef = doc(db, TRIPS_COLLECTION, id);
     const snapshot = await getDoc(docRef);
