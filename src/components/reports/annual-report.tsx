@@ -79,14 +79,24 @@ export default function AnnualReport({
   const [newMedalPlace, setNewMedalPlace] = useState<1 | 2 | 3 | 4>(1);
 
   // Зареждане на отчета за избраната година
-  const loadReport = async (year: number) => {
+  const loadReport = async (year: number, forceRescan: boolean = false) => {
     setIsLoading(true);
     try {
-      const res = await getAnnualReportAction(year, initialCoachId, siteId);
+      const res = await getAnnualReportAction(
+        year,
+        initialCoachId,
+        siteId,
+        forceRescan
+      );
       if (res.success && res.data) {
         setReport(res.data);
         if (res.data.coachName) setCoachName(res.data.coachName);
         if (res.data.coachRole) setCoachRole(res.data.coachRole);
+        if (forceRescan) {
+          toast.success(
+            "Данните са пресканирани динамично от календара, турнирите и командировките!"
+          );
+        }
       } else {
         toast.error("Неуспешно зареждане на отчета");
       }
@@ -494,6 +504,17 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 <Download className="size-3.5" />
               )}
               Официален PDF
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => loadReport(selectedYear, true)}
+              className="h-8 gap-1.5 text-xs rounded-lg dark:border-zinc-800"
+              title="Пресканира събитията, турнирите и командировките от базата данни за избраната година"
+            >
+              <RefreshCw className="size-3.5" />
+              Пресканирай
             </Button>
 
             <Button
@@ -966,7 +987,7 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
             <Button
               variant="outline"
               size="sm"
-              onClick={() => loadReport(selectedYear)}
+              onClick={() => loadReport(selectedYear, true)}
               className="h-7 gap-1 text-[11px] rounded-lg dark:border-zinc-800"
             >
               <RefreshCw className="size-3" />
