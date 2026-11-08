@@ -10,7 +10,7 @@ import { Member, Sale } from "@/types";
 export interface FinancialReportData {
   total: number;
   chartData: { name: string; value: number; color: string }[];
-  sales: (Sale & { memberName: string })[];
+  sales: (Sale & { memberName: string; linkedMemberName?: string | null })[];
 }
 
 export async function generateFinancialReportAction(
@@ -85,11 +85,32 @@ export async function generateFinancialReportAction(
     )
     .map((s) => {
       const member = s.memberId ? memberMap.get(s.memberId) : null;
+      const memberFullName = member
+        ? `${member.firstName} ${member.lastName}`.trim()
+        : "";
+      const clientName = (s.clientName || "").trim();
+
+      // If clientName is provided and differs from linked member (e.g. parent booking recovery zone with shared phone),
+      // prioritize the actual client who made the booking/purchase!
+      let memberName = clientName || memberFullName || "Гост";
+      let linkedMemberName: string | null = null;
+      if (
+        clientName &&
+        memberFullName &&
+        clientName.toLowerCase() !== memberFullName.toLowerCase() &&
+        clientName !== "Външен клиент" &&
+        clientName !== "Външен гост"
+      ) {
+        memberName = clientName;
+        linkedMemberName = memberFullName;
+      } else if (!clientName && memberFullName) {
+        memberName = memberFullName;
+      }
+
       return {
         ...s,
-        memberName: member
-          ? `${member.firstName} ${member.lastName}`
-          : s.clientName || "Гост",
+        memberName,
+        linkedMemberName,
       };
     });
 

@@ -107,11 +107,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
     });
   }, [dateFrom, dateTo, paymentType]);
 
-  const handleRowClick = (
-    saleId: string,
-    isPaid?: boolean,
-    type?: string
-  ) => {
+  const handleRowClick = (saleId: string, isPaid?: boolean, type?: string) => {
     if (saleId.startsWith("camp-")) {
       router.push("/camps");
       return;
@@ -298,14 +294,24 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 onClick={() => {
                   const exportData = data.sales.map((s) => ({
                     date: formatDateShort(s.saleDate),
-                    member: s.memberName,
-                    type: "Продажба",
+                    member: s.linkedMemberName
+                      ? `${s.memberName} (${s.linkedMemberName})`
+                      : s.memberName,
+                    type:
+                      s.items?.[0]?.name ||
+                      (s.type === "recovery_service"
+                        ? "Възстановяване"
+                        : s.type === "training_service"
+                          ? "Тренировка"
+                          : s.type === "general_service"
+                            ? "Услуга"
+                            : "Магазин"),
                     amount: s.totalAmount,
                   }));
                   const columns = [
                     { header: "Дата", key: "date", width: 15 },
-                    { header: "Член", key: "member", width: 35 },
-                    { header: "Тип", key: "type", width: 20 },
+                    { header: "Член / Клиент", key: "member", width: 35 },
+                    { header: "Услуга / Тип", key: "type", width: 25 },
                     {
                       header: "Сума (€)",
                       key: "amount",
@@ -339,14 +345,24 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 onClick={() => {
                   const exportData = data.sales.map((s) => ({
                     date: formatDateShort(s.saleDate),
-                    member: s.memberName,
-                    type: "Продажба",
+                    member: s.linkedMemberName
+                      ? `${s.memberName} (${s.linkedMemberName})`
+                      : s.memberName,
+                    type:
+                      s.items?.[0]?.name ||
+                      (s.type === "recovery_service"
+                        ? "Възстановяване"
+                        : s.type === "training_service"
+                          ? "Тренировка"
+                          : s.type === "general_service"
+                            ? "Услуга"
+                            : "Магазин"),
                     amount: s.totalAmount,
                   }));
                   const columns = [
                     { header: "Дата", key: "date", width: 15 },
-                    { header: "Член", key: "member", width: 35 },
-                    { header: "Тип", key: "type", width: 20 },
+                    { header: "Член / Клиент", key: "member", width: 35 },
+                    { header: "Услуга / Тип", key: "type", width: 25 },
                     {
                       header: "Сума (€)",
                       key: "amount",
@@ -523,30 +539,67 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                           {formatDateShort(s.saleDate)}
                         </TableCell>
                         <TableCell className="text-sm font-light text-zinc-600 dark:text-zinc-300">
-                          {s.memberId &&
-                          s.memberId !== "GUEST_EXTERNAL" &&
-                          s.memberId !== "Walk-in Customer" ? (
-                            <Link
-                              href={`/members/${s.memberId}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
-                            >
-                              {s.memberName}
-                            </Link>
-                          ) : (
-                            s.memberName
-                          )}
+                          <div className="flex flex-col">
+                            {s.memberId &&
+                            s.memberId !== "GUEST_EXTERNAL" &&
+                            s.memberId !== "Walk-in Customer" &&
+                            !s.linkedMemberName ? (
+                              <Link
+                                href={`/members/${s.memberId}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                              >
+                                {s.memberName}
+                              </Link>
+                            ) : (
+                              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {s.memberName}
+                              </span>
+                            )}
+                            {s.linkedMemberName && s.memberId && (
+                              <span className="text-[10px] text-zinc-400">
+                                Член:{" "}
+                                <Link
+                                  href={`/members/${s.memberId}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-indigo-500 hover:underline dark:text-indigo-400"
+                                >
+                                  {s.linkedMemberName}
+                                </Link>
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "rounded-full border-none px-3 py-1 text-[9px] font-medium tracking-widest uppercase",
-                              "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
-                            )}
-                          >
-                            Продажба
-                          </Badge>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                              {s.items?.[0]?.name || "Продажба"}
+                              {s.items && s.items.length > 1
+                                ? ` (+${s.items.length - 1})`
+                                : ""}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "w-fit rounded-full border-none px-2 py-0.5 text-[8px] font-semibold tracking-wider uppercase",
+                                s.type === "recovery_service"
+                                  ? "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
+                                  : s.type === "training_service"
+                                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                    : s.type === "general_service"
+                                      ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                                      : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                              )}
+                            >
+                              {s.type === "recovery_service"
+                                ? "Recovery"
+                                : s.type === "training_service"
+                                  ? "Тренировка"
+                                  : s.type === "general_service"
+                                    ? "Услуга"
+                                    : "Магазин"}
+                            </Badge>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right text-sm font-medium text-zinc-900 dark:text-zinc-100">
                           {formatPrice(s.totalAmount)}
@@ -649,27 +702,58 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     </span>
                     <Badge
                       variant="outline"
-                      className="rounded-full border-none bg-emerald-50 px-2 py-0.5 text-[9px] font-medium tracking-widest text-emerald-600 uppercase dark:bg-emerald-950/40 dark:text-emerald-400"
+                      className={cn(
+                        "rounded-full border-none px-2 py-0.5 text-[8px] font-semibold tracking-wider uppercase",
+                        s.type === "recovery_service"
+                          ? "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
+                          : s.type === "training_service"
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                            : s.type === "general_service"
+                              ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                              : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                      )}
                     >
-                      Продажба
+                      {s.items?.[0]?.name ||
+                        (s.type === "recovery_service"
+                          ? "Recovery"
+                          : s.type === "training_service"
+                            ? "Тренировка"
+                            : s.type === "general_service"
+                              ? "Услуга"
+                              : "Магазин")}
                     </Badge>
                   </div>
                   <div className="mt-1 flex items-center justify-between">
-                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    <div className="flex flex-col">
                       {s.memberId &&
                       s.memberId !== "GUEST_EXTERNAL" &&
-                      s.memberId !== "Walk-in Customer" ? (
+                      s.memberId !== "Walk-in Customer" &&
+                      !s.linkedMemberName ? (
                         <Link
                           href={`/members/${s.memberId}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                          className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
                         >
                           {s.memberName}
                         </Link>
                       ) : (
-                        s.memberName
+                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          {s.memberName}
+                        </span>
                       )}
-                    </span>
+                      {s.linkedMemberName && s.memberId && (
+                        <span className="text-[10px] text-zinc-400">
+                          Член:{" "}
+                          <Link
+                            href={`/members/${s.memberId}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-indigo-500 hover:underline dark:text-indigo-400"
+                          >
+                            {s.linkedMemberName}
+                          </Link>
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         {formatPrice(s.totalAmount)}

@@ -188,39 +188,67 @@ async function findOrCreateGuestProfile(
   const lastName = nameParts.slice(1).join(" ") || "Клиент";
   const branchId = siteId || "bkgalabovo";
 
-  // 1. Try searching by phone number (if provided and valid)
-  if (phone) {
-    const phoneSnapshot = await db
-      .collection("members")
-      .where("phone", "==", phone)
-      .limit(1)
-      .get();
-    if (!phoneSnapshot.empty) {
-      return phoneSnapshot.docs[0].id;
-    }
-  }
-
-  // 2. Try searching by email (if provided)
-  if (email) {
-    const emailSnapshot = await db
-      .collection("members")
-      .where("email", "==", email)
-      .limit(1)
-      .get();
-    if (!emailSnapshot.empty) {
-      return emailSnapshot.docs[0].id;
-    }
-  }
-
-  // 3. Try searching by first and last name
+  // 1. Try searching by exact first and last name first
   const nameSnapshot = await db
     .collection("members")
     .where("firstName", "==", firstName)
     .where("lastName", "==", lastName)
-    .limit(1)
+    .limit(5)
     .get();
   if (!nameSnapshot.empty) {
-    return nameSnapshot.docs[0].id;
+    const matchingDoc =
+      nameSnapshot.docs.find(
+        (d: any) => d.data().phone === phone || d.data().siteId === branchId
+      ) || nameSnapshot.docs[0];
+    return matchingDoc.id;
+  }
+
+  // 2. Try searching by phone number, BUT only accept if the name matches (or generic client name)
+  if (phone) {
+    const phoneSnapshot = await db
+      .collection("members")
+      .where("phone", "==", phone)
+      .limit(5)
+      .get();
+    if (!phoneSnapshot.empty) {
+      const match = phoneSnapshot.docs.find((d: any) => {
+        const data = d.data();
+        const fn = (data.firstName || "").trim().toLowerCase();
+        const ln = (data.lastName || "").trim().toLowerCase();
+        return (
+          fn === firstName.toLowerCase() &&
+          (lastName === "Клиент" || ln === lastName.toLowerCase())
+        );
+      });
+      if (match) {
+        return match.id;
+      }
+      // If phone matches a different person (e.g. parent sharing phone with athlete child),
+      // do not hijack the child's profile! Create/find the separate guest profile below.
+    }
+  }
+
+  // 3. Try searching by email, BUT only accept if the name matches
+  if (email) {
+    const emailSnapshot = await db
+      .collection("members")
+      .where("email", "==", email)
+      .limit(5)
+      .get();
+    if (!emailSnapshot.empty) {
+      const match = emailSnapshot.docs.find((d: any) => {
+        const data = d.data();
+        const fn = (data.firstName || "").trim().toLowerCase();
+        const ln = (data.lastName || "").trim().toLowerCase();
+        return (
+          fn === firstName.toLowerCase() &&
+          (lastName === "Клиент" || ln === lastName.toLowerCase())
+        );
+      });
+      if (match) {
+        return match.id;
+      }
+    }
   }
 
   // 4. Create a new guest profile
