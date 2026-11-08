@@ -262,7 +262,7 @@ export function BusinessTripManagerDialog({
         const sid = (event as { siteId?: string })?.siteId || "bkgalabovo";
         await businessTripService.assignMissingNumbers(sid);
       } catch (e) {
-        console.error("Неуспешно присвояване на номера", e);
+        console.warn("Пропускане на присвояване на номера на командировки:", e);
       }
       const [tripsData, membersData] = await Promise.all([
         businessTripService.getTripsByEventId(event.id),

@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 
+import { assignMissingBusinessTripNumbersAction } from "@/lib/actions/business-trips";
 import { isAutoDecision } from "@/lib/business-trip-numbers";
 import { db } from "@/lib/firebase";
 import { uploadFile } from "@/services/storage-service";
@@ -59,56 +60,73 @@ export const businessTripService = {
    * Присвоява автоматични поредни номера (по календарна година на заповедта)
    * на всички командировки без номер и подменя старите "ID"-базирани номера
    * на решенията на УС. Ръчно въведени номера на решения не се пипат.
+   * Използва Server Action (Admin SDK) с надежден fallback.
    */
   async assignMissingNumbers(siteId: string): Promise<number> {
-    const trips = await this.getTrips(siteId);
-    const stamp = (t: BusinessTrip) =>
-      t.orderDate || t.startDate || t.createdAt || "";
-    const yearOf = (t: BusinessTrip) =>
-      new Date(
-        t.orderDate || t.startDate || t.createdAt || Date.now()
-      ).getFullYear();
-
-    const maxByYear: Record<number, number> = {};
-    trips.forEach((t) => {
-      if (t.orderNumber) {
-        const y = yearOf(t);
-        maxByYear[y] = Math.max(maxByYear[y] ?? 0, t.orderNumber);
+    try {
+      const res = await assignMissingBusinessTripNumbersAction(siteId);
+      if (res?.success && typeof res.count === "number") {
+        return res.count;
       }
-    });
-
-    const missing = trips
-      .filter((t) => !t.orderNumber && t.id)
-      .sort((a, b) => stamp(a).localeCompare(stamp(b)));
-
-    let updatedCount = 0;
-    for (const t of missing) {
-      const y = yearOf(t);
-      const n = (maxByYear[y] ?? 0) + 1;
-      maxByYear[y] = n;
-      await this.updateTrip(t.id as string, {
-        orderNumber: n,
-        ...(isAutoDecision(t.usDecision) ? { usDecision: `${n}-УС` } : {}),
-      });
-      updatedCount++;
+    } catch {
+      // Fallback към клиентски запис при липса на Server Action среда
     }
 
-    // Подменяме стари ID-базирани решения на вече номерирани командировки
-    for (const t of trips) {
-      if (
-        t.id &&
-        t.orderNumber &&
-        isAutoDecision(t.usDecision) &&
-        t.usDecision !== `${t.orderNumber}-УС`
-      ) {
-        await this.updateTrip(t.id, {
-          usDecision: `${t.orderNumber}-УС`,
+    try {
+      const trips = await this.getTrips(siteId);
+      const stamp = (t: BusinessTrip) =>
+        t.orderDate || t.startDate || t.createdAt || "";
+      const yearOf = (t: BusinessTrip) =>
+        new Date(
+          t.orderDate || t.startDate || t.createdAt || Date.now()
+        ).getFullYear();
+
+      const maxByYear: Record<number, number> = {};
+      trips.forEach((t) => {
+        if (t.orderNumber) {
+          const y = yearOf(t);
+          maxByYear[y] = Math.max(maxByYear[y] ?? 0, t.orderNumber);
+        }
+      });
+
+      const missing = trips
+        .filter((t) => !t.orderNumber && t.id)
+        .sort((a, b) => stamp(a).localeCompare(stamp(b)));
+
+      let updatedCount = 0;
+      for (const t of missing) {
+        const y = yearOf(t);
+        const n = (maxByYear[y] ?? 0) + 1;
+        maxByYear[y] = n;
+        await this.updateTrip(t.id as string, {
+          orderNumber: n,
+          siteId: t.siteId || siteId || "bkgalabovo",
+          ...(isAutoDecision(t.usDecision) ? { usDecision: `${n}-УС` } : {}),
         });
         updatedCount++;
       }
-    }
 
-    return updatedCount;
+      // Подменяме стари ID-базирани решения на вече номерирани командировки
+      for (const t of trips) {
+        if (
+          t.id &&
+          t.orderNumber &&
+          isAutoDecision(t.usDecision) &&
+          t.usDecision !== `${t.orderNumber}-УС`
+        ) {
+          await this.updateTrip(t.id, {
+            usDecision: `${t.orderNumber}-УС`,
+            siteId: t.siteId || siteId || "bkgalabovo",
+          });
+          updatedCount++;
+        }
+      }
+
+      return updatedCount;
+    } catch (clientErr) {
+      console.warn("Client fallback assignMissingNumbers skipped:", clientErr);
+      return 0;
+    }
   },
 
   async updateTrip(id: string, data: Partial<BusinessTrip>): Promise<void> {
@@ -117,10 +135,16 @@ export const businessTripService = {
     // Firebase не приема undefined стойности, затова ги изчистваме
     const sanitizedData = JSON.parse(JSON.stringify(data));
 
-    await updateDoc(docRef, {
+    // Уверяваме се, че siteId е налично в payload-а за да преминат правилата за сигурност
+    const updatePayload: Record<string, unknown> = {
       ...sanitizedData,
       updatedAt: new Date().toISOString(),
-    });
+    };
+    if (data.siteId) {
+      updatePayload.siteId = data.siteId;
+    }
+
+    await updateDoc(docRef, updatePayload);
   },
 
   async getTrips(siteId: string): Promise<BusinessTrip[]> {
