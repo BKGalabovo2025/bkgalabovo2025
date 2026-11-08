@@ -52,7 +52,9 @@ export function ReportsNav({ className }: ReportsNavProps) {
                       ? "text-amber-600 dark:text-amber-400"
                       : section.id === "attendance"
                         ? "text-blue-600 dark:text-blue-400"
-                        : "text-purple-600 dark:text-purple-400"
+                        : section.id === "restock"
+                          ? "text-purple-600 dark:text-purple-400"
+                          : "text-amber-500 dark:text-amber-400"
                   : "text-zinc-400 group-hover:text-zinc-600 dark:text-zinc-500 dark:group-hover:text-zinc-300"
               )}
             />

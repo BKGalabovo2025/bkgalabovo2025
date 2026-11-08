@@ -1,7 +1,7 @@
-import { BarChart3, Package, Users, Wallet } from "lucide-react";
+import { Award, BarChart3, Package, Users, Wallet } from "lucide-react";
 
 export type ReportSectionId =
-  "financial" | "liabilities" | "attendance" | "restock";
+  "financial" | "liabilities" | "attendance" | "restock" | "annual";
 
 export interface ReportSectionConfig {
   id: ReportSectionId;
@@ -43,6 +43,14 @@ export const REPORT_SECTIONS: readonly ReportSectionConfig[] = [
     tooltip:
       "Справка за критични складови наличности, пера, екипировка и поръчки",
     icon: Package,
+  },
+  {
+    id: "annual",
+    label: "Годишен отчет",
+    pathSuffix: "annual",
+    tooltip:
+      "Официален годишен отчет за дейността на треньора и клуба с медали, лагери и турнири",
+    icon: Award,
   },
 ] as const;
 

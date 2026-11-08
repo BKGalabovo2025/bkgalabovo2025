@@ -47,6 +47,7 @@ describe("reports sections (hierarchical sub-pages)", () => {
     );
     expect(getActiveReportSectionId("/reports/attendance")).toBe("attendance");
     expect(getActiveReportSectionId("/reports/restock")).toBe("restock");
+    expect(getActiveReportSectionId("/reports/annual")).toBe("annual");
     expect(getActiveReportSectionId("/reports/unknown")).toBeNull();
     expect(getActiveReportSectionId("/dashboard")).toBeNull();
   });

@@ -1,5 +1,6 @@
 // This file is the single source of truth for all data structures in the application.
 // We are re-exporting the Member type from its dedicated file to maintain a single source of truth.
+export * from "./annual-report.types";
 export * from "./business-trip.types";
 export { type SignedDeclaration } from "./declaration.types";
 export * from "./document-request.types";
