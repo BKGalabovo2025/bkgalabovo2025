@@ -97,18 +97,18 @@ export default function ServicesClientPage({
               <Tabs
                 value={view}
                 onValueChange={(v) => setView(v as "grid" | "table")}
-                className="hidden rounded-xl border border-zinc-100 bg-zinc-50 p-1 md:flex"
+                className="hidden rounded-xl border border-zinc-100 bg-zinc-50 p-1 md:flex dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <TabsList className="h-9 border-none bg-transparent">
                   <TabsTrigger
                     value="grid"
-                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
                   >
                     <LayoutGrid className="size-4" />
                   </TabsTrigger>
                   <TabsTrigger
                     value="table"
-                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
                   >
                     <List className="size-4" />
                   </TabsTrigger>
@@ -117,7 +117,7 @@ export default function ServicesClientPage({
 
               <Button
                 onClick={() => setIsAddOpen(true)}
-                className="h-10 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+                className="h-10 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
               >
                 <PlusCircle className="mr-2 size-3.5" strokeWidth={1.5} />{" "}
                 Добави услуга
@@ -130,18 +130,18 @@ export default function ServicesClientPage({
               <Tabs
                 value={view}
                 onValueChange={(v) => setView(v as "grid" | "table")}
-                className="hidden rounded-xl border border-zinc-100 bg-zinc-50 p-1 md:flex"
+                className="hidden rounded-xl border border-zinc-100 bg-zinc-50 p-1 md:flex dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <TabsList className="h-9 border-none bg-transparent">
                   <TabsTrigger
                     value="grid"
-                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
                   >
                     <LayoutGrid className="size-4" />
                   </TabsTrigger>
                   <TabsTrigger
                     value="table"
-                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    className="rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800"
                   >
                     <List className="size-4" />
                   </TabsTrigger>

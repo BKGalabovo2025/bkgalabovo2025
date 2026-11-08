@@ -1,13 +1,17 @@
 "use client";
 
 import {
+  Calendar as CalendarIcon,
+  CalendarX2,
   Camera,
   Download,
+  Edit3,
   FileSignature,
   HeartPulse,
   KeyRound,
   Loader2,
   Printer,
+  Sparkles,
 } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -113,6 +117,11 @@ export function ParentPortalDialogs() {
     // Receipt
     activeReceiptTx,
     setActiveReceiptTx,
+
+    // Welcome Tour
+    showWelcomeTour,
+    setShowWelcomeTour,
+    handleCloseWelcomeTour,
 
     selectedChildAgeStr,
   } = useParentPortalContext();
@@ -591,7 +600,7 @@ export function ParentPortalDialogs() {
                 className="mx-auto max-w-[210mm] overflow-hidden rounded-xl bg-white p-4 sm:p-6 shadow-xs text-zinc-900 print:m-0 print:border-none print:p-0 print:shadow-none space-y-4"
               >
                 {selectedSentDoc.status !== "completed" && (
-                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2.5 text-xs font-semibold text-amber-900">
+                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2.5 text-xs font-semibold text-amber-900 dark:bg-amber-950/40 dark:border-amber-800/60 dark:text-amber-200">
                     <span className="flex items-center gap-1.5">
                       <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
                       Документът очаква вашето цифрово подписване.
@@ -675,7 +684,7 @@ export function ParentPortalDialogs() {
                   size="sm"
                   disabled={isExportingPdf}
                   onClick={handleDownloadDocPdf}
-                  className="rounded-xl border-zinc-200 text-xs font-semibold shadow-2xs"
+                  className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs font-semibold shadow-2xs"
                 >
                   {isExportingPdf ? (
                     <Loader2 size={13} className="mr-1.5 animate-spin" />
@@ -689,7 +698,7 @@ export function ParentPortalDialogs() {
                   variant="outline"
                   size="sm"
                   onClick={() => window.print()}
-                  className="rounded-xl border-zinc-200 text-xs font-semibold shadow-2xs"
+                  className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs font-semibold shadow-2xs"
                 >
                   <Printer size={13} className="mr-1.5" />
                   Печат
@@ -804,7 +813,7 @@ export function ParentPortalDialogs() {
                 accept="image/*,application/pdf"
                 capture="environment"
                 onChange={handleMedicalFileChange}
-                className="h-10 rounded-xl text-xs cursor-pointer file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-xs file:font-semibold"
+                className="h-10 rounded-xl text-xs cursor-pointer file:rounded-lg file:border-0 file:bg-zinc-100 dark:file:bg-zinc-800 dark:file:text-zinc-200 file:px-3 file:py-1 file:text-xs file:font-semibold"
               />
               {parentMedicalFileName && (
                 <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate">
@@ -856,6 +865,74 @@ export function ParentPortalDialogs() {
           childName={selectedChild?.fullName || "Състезател"}
         />
       )}
+
+      {/* ── DIALOG 9: First-Time Welcome Tour Modal ──────────────────── */}
+      <Dialog open={showWelcomeTour} onOpenChange={setShowWelcomeTour}>
+        <DialogContent className="max-w-md rounded-4xl p-6 sm:p-8 bg-white dark:bg-zinc-900 shadow-xl">
+          <div className="text-center space-y-4">
+            <div className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400">
+              <Sparkles className="size-7" />
+            </div>
+
+            <div className="space-y-1.5">
+              <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white">
+                Добре дошли в Родителския портал!
+              </DialogTitle>
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                Специално създаден за родителите на СНЦ „Бадминтон клуб
+                Гълъбово“, за да следите тренировъчния процес лесно и прозрачно:
+              </DialogDescription>
+            </div>
+
+            <div className="space-y-2.5 text-left text-xs">
+              <div className="flex items-start gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-950/60">
+                <CalendarIcon className="size-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <p className="font-semibold text-zinc-900 dark:text-white">
+                    Присъствия в реално време
+                  </p>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-[11px]">
+                    Виждате всяка посетена или пропусната тренировка по месеци.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-950/60">
+                <CalendarX2 className="size-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <p className="font-semibold text-zinc-900 dark:text-white">
+                    Уведомяване при отсъствие от тренировка
+                  </p>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-[11px]">
+                    С 1 клик информирате треньора предварително за ден или
+                    период.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-950/60">
+                <Edit3 className="size-4 shrink-0 mt-0.5 text-purple-600 dark:text-purple-400" />
+                <div>
+                  <p className="font-semibold text-zinc-900 dark:text-white">
+                    Моливче ✏️ за корекция на данни
+                  </p>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-[11px]">
+                    Ако откриете неточност, я коригирате незабавно без излишни
+                    обаждания.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleCloseWelcomeTour}
+              className="w-full h-11 rounded-2xl bg-blue-600 text-xs font-semibold text-white shadow-none hover:bg-blue-700"
+            >
+              Разбрах, да започваме!
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

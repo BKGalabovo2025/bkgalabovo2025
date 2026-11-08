@@ -63,10 +63,10 @@ export function ParentPortalHeader() {
               size="sm"
               onClick={() => handleCopyPortalLink()}
               className={cn(
-                "h-9 gap-1.5 rounded-xl border-zinc-200 text-xs font-semibold shadow-2xs transition-all",
+                "h-9 gap-1.5 rounded-xl border-zinc-200 dark:border-zinc-800 text-xs font-semibold shadow-2xs transition-all",
                 copiedLink
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                  : "bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-700 dark:border-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  : "bg-white text-zinc-700 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
               )}
               title="Копирай директен линк към профила на детето и текущия таб"
             >

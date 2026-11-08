@@ -183,11 +183,11 @@ export const ReservationStep4Review = () => {
               id="applyPaymentToPackage"
               checked={applyPaymentToPackage}
               onChange={(e) => setApplyPaymentToPackage(e.target.checked)}
-              className="size-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+              className="size-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 dark:border-zinc-700"
             />
             <label
               htmlFor="applyPaymentToPackage"
-              className="text-[11px] leading-none font-medium text-zinc-600 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-[11px] leading-none font-medium text-zinc-600 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-zinc-300"
             >
               Приложи плащането/статуса за всички дни от пакета (Препоръчително)
             </label>

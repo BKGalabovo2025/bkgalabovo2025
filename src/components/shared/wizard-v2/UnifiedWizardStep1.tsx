@@ -160,7 +160,7 @@ export const UnifiedWizardStep1 = () => {
                 placeholder="Име"
                 value={newGuestFirstName}
                 onChange={(e) => setNewGuestFirstName(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs"
+                className="h-10 rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </div>
             <div className="space-y-1.5">
@@ -171,7 +171,7 @@ export const UnifiedWizardStep1 = () => {
                 placeholder="Фамилия"
                 value={newGuestLastName}
                 onChange={(e) => setNewGuestLastName(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs"
+                className="h-10 rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
@@ -185,7 +185,7 @@ export const UnifiedWizardStep1 = () => {
                 placeholder="Телефон"
                 value={newGuestPhone}
                 onChange={(e) => setNewGuestPhone(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs"
+                className="h-10 rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </div>
             <div className="space-y-1.5">
@@ -196,7 +196,7 @@ export const UnifiedWizardStep1 = () => {
                 placeholder="Имейл (по избор)"
                 value={newGuestEmail}
                 onChange={(e) => setNewGuestEmail(e.target.value)}
-                className="h-10 rounded-xl border-zinc-200 text-xs"
+                className="h-10 rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
@@ -277,7 +277,7 @@ export const UnifiedWizardStep1 = () => {
                 }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-11 rounded-xl border-zinc-200 pl-11 focus-visible:border-emerald-500 focus-visible:ring-emerald-500"
+                className="h-11 rounded-xl border-zinc-200 pl-11 focus-visible:border-emerald-500 focus-visible:ring-emerald-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </div>
             {clientTypeTab === "guest" && (

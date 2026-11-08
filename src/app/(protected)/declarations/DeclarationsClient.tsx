@@ -2,10 +2,21 @@
 
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
-import { Clock, FileText, Printer, Search, Trash2, User } from "lucide-react";
+import {
+  Check,
+  Clock,
+  FileText,
+  Link2,
+  Printer,
+  Search,
+  Trash2,
+  User,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import {
   BLANK_DECLARATION_PDF_URL,
@@ -13,10 +24,12 @@ import {
 } from "@/components/declarations/declaration-sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import {
   deleteDeclarationAction,
   getAllDeclarationsAction,
 } from "@/lib/actions/declarations";
+import { cn } from "@/lib/utils";
 import { SignedDeclaration } from "@/types";
 
 interface DeclarationsClientProps {
@@ -28,11 +41,16 @@ export default function DeclarationsClient({
   initialDeclarations = [],
   section = "signed",
 }: DeclarationsClientProps) {
-  const focusId = useSearchParams().get("declarationId");
+  const searchParams = useSearchParams();
+  const focusId = searchParams.get("declarationId") || searchParams.get("id");
   const [declarations, setDeclarations] =
     useState<SignedDeclaration[]>(initialDeclarations);
   const [loading, setLoading] = useState(initialDeclarations.length === 0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "adult" | "minor">(
+    "all"
+  );
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (section === "templates" || initialDeclarations.length > 0) {
@@ -83,14 +101,117 @@ export default function DeclarationsClient({
     }
   };
 
-  const filteredDeclarations = declarations.filter(
-    (d) =>
-      d.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (d.phone && d.phone.includes(searchTerm))
+  const metrics = useMemo(() => {
+    const total = declarations.length;
+    const minors = declarations.filter((d) => d.isMinor).length;
+    const adults = total - minors;
+    return { total, adults, minors };
+  }, [declarations]);
+
+  const filteredDeclarations = useMemo(() => {
+    return declarations.filter((d) => {
+      if (roleFilter === "minor" && !d.isMinor) return false;
+      if (roleFilter === "adult" && d.isMinor) return false;
+      return (
+        d.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (d.phone && d.phone.includes(searchTerm))
+      );
+    });
+  }, [declarations, roleFilter, searchTerm]);
+
+  useDeepLinkHighlight(
+    "declaration",
+    !loading && filteredDeclarations.length > 0,
+    "declarationId"
   );
+
+  const handleCopyDeclarationLink = (id: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopiedId(id);
+        toast.success("Директният линк към декларацията е копиран!");
+        setTimeout(() => setCopiedId(null), 2000);
+      })
+      .catch(() => toast.info(`Линк: ${url}`));
+  };
 
   return (
     <div className="space-y-6">
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <button
+          type="button"
+          onClick={() => setRoleFilter("all")}
+          className={cn(
+            "flex items-center justify-between rounded-2xl border p-4 text-left shadow-2xs transition-all cursor-pointer",
+            roleFilter === "all"
+              ? "border-zinc-900 bg-white ring-2 ring-zinc-900/10 dark:border-white dark:bg-zinc-900 dark:ring-white/10"
+              : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
+          )}
+        >
+          <div>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Общо декларации
+            </p>
+            <p className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">
+              {metrics.total}
+            </p>
+          </div>
+          <span className="flex size-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+            <FileText className="size-5" />
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setRoleFilter("adult")}
+          className={cn(
+            "flex items-center justify-between rounded-2xl border p-4 text-left shadow-2xs transition-all cursor-pointer",
+            roleFilter === "adult"
+              ? "border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20 dark:border-blue-500 dark:bg-blue-950/30"
+              : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
+          )}
+        >
+          <div>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              За състезатели (пълнолетни)
+            </p>
+            <p className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">
+              {metrics.adults}
+            </p>
+          </div>
+          <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+            <User className="size-5" />
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setRoleFilter("minor")}
+          className={cn(
+            "flex items-center justify-between rounded-2xl border p-4 text-left shadow-2xs transition-all cursor-pointer",
+            roleFilter === "minor"
+              ? "border-amber-600 bg-amber-50/50 ring-2 ring-amber-500/20 dark:border-amber-500 dark:bg-amber-950/30"
+              : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
+          )}
+        >
+          <div>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              За родители / настойници
+            </p>
+            <p className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">
+              {metrics.minors}
+            </p>
+          </div>
+          <span className="flex size-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
+            <Users className="size-5" />
+          </span>
+        </button>
+      </div>
+
       {section === "signed" && (
         <div className="space-y-4">
           <div className="flex items-center gap-3 rounded-2xl border border-zinc-100 bg-white p-3.5 sm:p-4 shadow-sm dark:border-zinc-900 dark:bg-zinc-950">
@@ -170,6 +291,20 @@ export default function DeclarationsClient({
                         </div>
                       </div>
                       <div className="flex w-full shrink-0 items-center justify-end gap-2 border-t border-zinc-50 pt-2 sm:w-auto sm:border-0 sm:pt-0 dark:border-zinc-900">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopyDeclarationLink(decl.id)}
+                          title="Копирай директен линк към тази декларация"
+                          className="px-2.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        >
+                          {copiedId === decl.id ? (
+                            <Check className="size-4 text-emerald-600" />
+                          ) : (
+                            <Link2 className="size-4" />
+                          )}
+                        </Button>
                         <Button
                           asChild
                           variant="outline"

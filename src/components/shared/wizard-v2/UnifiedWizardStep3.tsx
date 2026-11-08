@@ -63,7 +63,7 @@ export const UnifiedWizardStep3 = () => {
               step="0.01"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="h-10 rounded-xl border-zinc-200 text-xs sm:text-sm"
+              className="h-10 rounded-xl border-zinc-200 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
             />
           </div>
           {showQuantity && (
@@ -83,7 +83,7 @@ export const UnifiedWizardStep3 = () => {
                   step="1"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className="h-10 rounded-xl border-zinc-200 pl-8 text-xs sm:text-sm"
+                  className="h-10 rounded-xl border-zinc-200 pl-8 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 />
               </div>
             </div>
@@ -183,7 +183,7 @@ export const UnifiedWizardStep3 = () => {
                 e.target.value ? new Date(e.target.value).toISOString() : ""
               )
             }
-            className="h-10 rounded-xl border-zinc-200 text-xs sm:text-sm"
+            className="h-10 rounded-xl border-zinc-200 text-xs sm:text-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
         </div>
 
@@ -200,7 +200,7 @@ export const UnifiedWizardStep3 = () => {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={2}
-            className="min-h-16 resize-none rounded-xl border-zinc-200 text-xs"
+            className="min-h-16 resize-none rounded-xl border-zinc-200 text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
         </div>
       </div>

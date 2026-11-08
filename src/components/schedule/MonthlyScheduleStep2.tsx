@@ -64,7 +64,7 @@ export function MonthlyScheduleStep2({
               <Input
                 id="monthly-schedule-month"
                 type="month"
-                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-center text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-center text-sm font-light transition-all focus:border-zinc-200 focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 {...field}
               />
             </FormControl>
@@ -85,7 +85,7 @@ export function MonthlyScheduleStep2({
                 <Input
                   id="monthly-schedule-startTime"
                   type="time"
-                  className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                  className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                   onKeyDown={onKeyDown}
                   {...field}
                 />
@@ -107,7 +107,7 @@ export function MonthlyScheduleStep2({
                 <Input
                   id="monthly-schedule-endTime"
                   type="time"
-                  className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                  className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                   onKeyDown={onKeyDown}
                   {...field}
                 />
@@ -141,8 +141,8 @@ export function MonthlyScheduleStep2({
                 className={cn(
                   "flex h-12 min-w-[50px] flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl border transition-all outline-none select-none focus-visible:ring-2 focus-visible:ring-zinc-950 md:min-w-15",
                   isSelected
-                    ? "border-zinc-950 bg-zinc-950 text-white shadow-lg shadow-zinc-950/20"
-                    : "border-zinc-100 bg-white text-zinc-400 hover:border-zinc-200 hover:bg-zinc-50"
+                    ? "border-zinc-950 bg-zinc-950 text-white shadow-lg shadow-zinc-950/20 dark:border-white dark:bg-white dark:text-zinc-950"
+                    : "border-zinc-100 bg-white text-zinc-400 hover:border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
                 )}
               >
                 <span className="text-[11px] font-medium tracking-widest uppercase">

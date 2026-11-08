@@ -145,7 +145,7 @@ export function ServiceForm({
                   defaultValue={initialData?.description}
                   placeholder="Опишете какво включва услугата..."
                   rows={6}
-                  className="resize-none rounded-2xl border-zinc-100 bg-zinc-50 p-4 transition-all focus:bg-white"
+                  className="resize-none rounded-2xl border-zinc-100 bg-zinc-50 p-4 transition-all focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-900"
                   required
                 />
                 {errors?.description && (
@@ -171,7 +171,7 @@ export function ServiceForm({
                       step="0.01"
                       defaultValue={initialData?.price}
                       placeholder="0.00"
-                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50 pl-12 text-lg font-medium transition-all focus:bg-white"
+                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50 pl-12 text-lg font-medium transition-all focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-900"
                       required
                     />
                     <span className="absolute top-1/2 left-5 -translate-y-1/2 font-medium text-zinc-400">
@@ -196,7 +196,7 @@ export function ServiceForm({
                     name="currency"
                     value="EUR"
                     readOnly
-                    className="h-14 cursor-not-allowed rounded-2xl border-zinc-100 bg-zinc-100 text-zinc-500"
+                    className="h-14 cursor-not-allowed rounded-2xl border-zinc-100 bg-zinc-100 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
                   />
                 </div>
               </div>
@@ -270,7 +270,7 @@ export function ServiceForm({
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="group flex aspect-video w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-zinc-400 transition-colors hover:border-zinc-300"
+                    className="group flex aspect-video w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-zinc-400 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:border-zinc-700"
                   >
                     {isUploading ? (
                       <>
@@ -282,10 +282,10 @@ export function ServiceForm({
                     ) : (
                       <>
                         <Camera
-                          className="mb-3 size-10 text-zinc-300 transition-colors group-hover:text-zinc-500"
+                          className="mb-3 size-10 text-zinc-300 transition-colors group-hover:text-zinc-500 dark:text-zinc-700"
                           strokeWidth={1}
                         />
-                        <span className="text-xs font-semibold text-zinc-600 transition-colors group-hover:text-zinc-900">
+                        <span className="text-xs font-semibold text-zinc-600 transition-colors group-hover:text-zinc-900 dark:text-zinc-300 dark:group-hover:text-zinc-100">
                           Качете нов файл
                         </span>
                         <span className="mt-1 text-[10px] font-light text-zinc-400">
@@ -325,8 +325,8 @@ export function ServiceForm({
                           }}
                           className={`group relative aspect-video overflow-hidden rounded-2xl border transition-all ${
                             isSelected
-                              ? "scale-102 border-zinc-950 shadow-md ring-2 ring-zinc-950"
-                              : "border-zinc-100 hover:scale-102 hover:border-zinc-300"
+                              ? "scale-102 border-zinc-950 shadow-md ring-2 ring-zinc-950 dark:border-white dark:ring-white"
+                              : "border-zinc-100 hover:scale-102 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
                           }`}
                         >
                           <Image
@@ -354,7 +354,7 @@ export function ServiceForm({
               </div>
 
               {imageUrl ? (
-                <div className="space-y-4 border-t border-zinc-100 pt-6">
+                <div className="space-y-4 border-t border-zinc-100 pt-6 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
                       Избрани снимки (
@@ -365,7 +365,7 @@ export function ServiceForm({
                       variant="ghost"
                       size="sm"
                       onClick={() => setImageUrl("")}
-                      className="text-red-650 h-8 rounded-lg px-3 text-xs font-medium hover:bg-red-50 hover:text-red-700"
+                      className="text-red-650 h-8 rounded-lg px-3 text-xs font-medium hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40"
                     >
                       Премахни всички
                     </Button>
@@ -378,7 +378,7 @@ export function ServiceForm({
                         return (
                           <div
                             key={path}
-                            className="group relative aspect-video overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm"
+                            className="group relative aspect-video overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
                           >
                             <Image
                               src={path}
@@ -434,7 +434,7 @@ export function ServiceForm({
                   {["Деца", "Любители"].map((group) => (
                     <label
                       key={group}
-                      className="flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 transition-colors hover:bg-zinc-100"
+                      className="flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                     >
                       <Checkbox
                         name="targetGroups"
@@ -444,7 +444,7 @@ export function ServiceForm({
                         )}
                         className="rounded-md"
                       />
-                      <span className="text-sm font-medium text-zinc-700">
+                      <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                         {group}
                       </span>
                     </label>
@@ -486,13 +486,13 @@ export function ServiceForm({
                   ].map((option) => (
                     <label
                       key={option.value}
-                      className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all ${serviceType === option.value ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-100 bg-zinc-50 text-zinc-700 hover:bg-zinc-100"}`}
+                      className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all ${serviceType === option.value ? "border-zinc-950 bg-zinc-950 text-white dark:border-white dark:bg-white dark:text-zinc-950" : "border-zinc-100 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"}`}
                     >
                       <RadioGroupItem
                         value={option.value}
                         className={
                           serviceType === option.value
-                            ? "border-white text-white"
+                            ? "border-white text-white dark:border-zinc-950 dark:text-zinc-950"
                             : ""
                         }
                       />
@@ -537,7 +537,7 @@ export function ServiceForm({
                     value={billingPeriod}
                     onValueChange={setBillingPeriod}
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50">
+                    <SelectTrigger className="h-12 rounded-xl border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -556,9 +556,9 @@ export function ServiceForm({
                 {serviceType === "Абонамент" ||
                 serviceType === "Годишен абонамент" ? (
                   <div className="space-y-6 animate-in slide-in-from-right-4">
-                    <div className="space-y-4 rounded-3xl border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="space-y-4 rounded-3xl border border-zinc-100 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="grantsLicense" className="font-medium">
+                        <Label htmlFor="grantsLicense" className="font-medium dark:text-zinc-200">
                           Дава право на картотека
                         </Label>
                         <Checkbox
@@ -575,7 +575,7 @@ export function ServiceForm({
                             value={licenseCondition}
                             onValueChange={setLicenseCondition}
                           >
-                            <SelectTrigger className="h-10 rounded-lg border-zinc-200 bg-white text-xs">
+                            <SelectTrigger className="h-10 rounded-lg border-zinc-200 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -597,7 +597,7 @@ export function ServiceForm({
                                   initialData?.licensePaymentCount || 1
                                 }
                                 aria-label="Брой вноски за картотека"
-                                className="h-10 w-20 bg-white"
+                                className="h-10 w-20 bg-white dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                               />
                               <span className="text-xs text-zinc-500">
                                 вноски
@@ -608,9 +608,9 @@ export function ServiceForm({
                       )}
                     </div>
 
-                    <div className="space-y-4 rounded-3xl border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="space-y-4 rounded-3xl border border-zinc-100 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="grantsApparel" className="font-medium">
+                        <Label htmlFor="grantsApparel" className="font-medium dark:text-zinc-200">
                           Дава право на екипировка
                         </Label>
                         <Checkbox
@@ -627,7 +627,7 @@ export function ServiceForm({
                             value={apparelCondition}
                             onValueChange={setApparelCondition}
                           >
-                            <SelectTrigger className="h-10 rounded-lg border-zinc-200 bg-white text-xs">
+                            <SelectTrigger className="h-10 rounded-lg border-zinc-200 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -649,7 +649,7 @@ export function ServiceForm({
                                   initialData?.apparelPaymentCount || 6
                                 }
                                 aria-label="Брой вноски за екипировка"
-                                className="h-10 w-20 bg-white"
+                                className="h-10 w-20 bg-white dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                               />
                               <span className="text-xs text-zinc-500">
                                 вноски
@@ -674,13 +674,13 @@ export function ServiceForm({
                         name="durationMinutes"
                         type="number"
                         defaultValue={initialData?.durationMinutes || 90}
-                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50"
+                        className="h-12 rounded-xl border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                       />
                     </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+                    <div className="flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
                       <Label
                         htmlFor="requiresBooking"
-                        className="cursor-pointer font-medium"
+                        className="cursor-pointer font-medium dark:text-zinc-200"
                       >
                         Изисква предварителна резервация
                       </Label>
@@ -693,9 +693,9 @@ export function ServiceForm({
                   </div>
                 )}
 
-                <div className="space-y-4 border-t border-zinc-100 pt-6">
+                <div className="space-y-4 border-t border-zinc-100 pt-6 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="isCoachLed" className="font-medium">
+                    <Label htmlFor="isCoachLed" className="font-medium dark:text-zinc-200">
                       С присъствие на треньор
                     </Label>
                     <Checkbox
@@ -717,7 +717,7 @@ export function ServiceForm({
                         name="minMembers"
                         type="number"
                         defaultValue={initialData?.minMembers || 1}
-                        className="h-10 rounded-lg bg-zinc-50"
+                        className="h-10 rounded-lg bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                       />
                     </div>
                     <div className="space-y-2">
@@ -732,7 +732,7 @@ export function ServiceForm({
                         name="maxMembers"
                         type="number"
                         defaultValue={initialData?.maxMembers || 1}
-                        className="h-10 rounded-lg bg-zinc-50"
+                        className="h-10 rounded-lg bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                       />
                     </div>
                   </div>

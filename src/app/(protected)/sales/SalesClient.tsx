@@ -3,8 +3,10 @@
 import {
   AlertTriangle,
   Calendar,
+  Check,
   CheckCheck,
   Eye,
+  Link2,
   Loader2,
   MoreVertical,
   Package,
@@ -18,7 +20,7 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -53,6 +55,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/context/auth-context";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { deleteSaleAction, updateSaleAction } from "@/lib/actions/sales";
 import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
@@ -67,6 +70,9 @@ interface SalesClientProps {
 
 interface SaleMobileCardProps {
   sale: Sale & { memberName: string };
+  isHighlighted?: boolean;
+  isCopied?: boolean;
+  onCopyLink: (id: string) => void;
   onRowClick: (id: string) => void;
   onDelete: (id: string) => void;
   onMarkAsPaid: (id: string) => void;
@@ -76,6 +82,9 @@ interface SaleMobileCardProps {
 
 function SaleMobileCard({
   sale,
+  isHighlighted,
+  isCopied,
+  onCopyLink,
   onRowClick,
   onDelete,
   onMarkAsPaid,
@@ -89,8 +98,14 @@ function SaleMobileCard({
 
   return (
     <div
+      id={`sale-${sale.id}`}
       onClick={() => onRowClick(sale.id)}
-      className="cursor-pointer rounded-2xl border border-zinc-100 bg-white p-4 shadow-2xs transition-colors active:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:active:bg-zinc-900"
+      className={cn(
+        "cursor-pointer rounded-2xl border bg-white p-4 shadow-2xs transition-colors active:bg-zinc-50 dark:bg-zinc-950 dark:active:bg-zinc-900",
+        isHighlighted
+          ? "border-blue-500 ring-2 ring-blue-500/40 bg-blue-50/10 dark:border-blue-400 dark:bg-blue-950/20"
+          : "border-zinc-100 dark:border-zinc-800"
+      )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1 min-w-0 flex-1">
@@ -162,7 +177,24 @@ function SaleMobileCard({
               </Button>
             )}
 
-            <div onClick={(e) => e.stopPropagation()}>
+            <div
+              className="flex items-center gap-1"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onCopyLink(sale.id)}
+                className="size-8 rounded-lg text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400"
+                title="Копирай директен линк към продажбата"
+                aria-label="Копирай директен линк към продажбата"
+              >
+                {isCopied ? (
+                  <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <Link2 className="size-3.5" />
+                )}
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -248,16 +280,50 @@ export default function SalesClient({
   section = "all",
 }: SalesClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const targetId = searchParams.get("id");
   const { idToken } = useAuth();
 
   const [sales, setSales] = useState<Sale[]>(initialSales || []);
   const [saleToDelete, setSaleToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [updatingSaleId, setUpdatingSaleId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "paid">(
-    "all"
+    section === "paid" ? "paid" : section === "pending" ? "pending" : "all"
   );
+
+  useEffect(() => {
+    if (section === "paid") setStatusFilter("paid");
+    else if (section === "pending") setStatusFilter("pending");
+    else setStatusFilter("all");
+  }, [section]);
+
+  const handleStatusFilterChange = (nextStatus: "all" | "pending" | "paid") => {
+    setStatusFilter(nextStatus);
+    if (section === "paid" || section === "pending") {
+      if (nextStatus === "all") router.push("/sales");
+      else if (nextStatus === "paid") router.push("/sales/paid");
+      else if (nextStatus === "pending") router.push("/sales/pending");
+    }
+  };
+
+  const handleCopySaleLink = (saleId: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${pathname}?id=${saleId}`;
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setCopiedId(saleId);
+        toast.success("Директният линк към продажбата е копиран!");
+        setTimeout(() => setCopiedId(null), 2500);
+      })
+      .catch(() => {
+        toast.error("Неуспешно копиране на линк.");
+      });
+  };
 
   useEffect(() => {
     setSales(initialSales || []);
@@ -308,9 +374,7 @@ export default function SalesClient({
 
   const filteredSales = useMemo(() => {
     return sortedSales.filter((sale) => {
-      if (section === "paid" && !sale.isPaid) return false;
-      if (section === "pending" && sale.isPaid) return false;
-      // 1. Status filter
+      // 1. Status filter (synced with route section)
       if (statusFilter === "pending" && sale.isPaid) return false;
       if (statusFilter === "paid" && !sale.isPaid) return false;
 
@@ -334,7 +398,9 @@ export default function SalesClient({
       }
       return true;
     });
-  }, [sortedSales, statusFilter, searchQuery, section]);
+  }, [sortedSales, statusFilter, searchQuery]);
+
+  useDeepLinkHighlight("sale", filteredSales.length > 0);
 
   const handleRowClick = (saleId: string) => {
     router.push(`/sales/${saleId}`);
@@ -438,6 +504,9 @@ export default function SalesClient({
               <SaleMobileCard
                 key={sale.id}
                 sale={sale}
+                isHighlighted={targetId === sale.id}
+                isCopied={copiedId === sale.id}
+                onCopyLink={handleCopySaleLink}
                 onRowClick={handleRowClick}
                 onDelete={setSaleToDelete}
                 onMarkAsPaid={handleMarkAsPaid}
@@ -496,8 +565,13 @@ export default function SalesClient({
                   return (
                     <TableRow
                       key={sale.id}
+                      id={`sale-${sale.id}`}
                       onClick={() => handleRowClick(sale.id)}
-                      className="group h-18 cursor-pointer border-zinc-100 transition-colors hover:bg-zinc-50/70 dark:border-zinc-800 dark:hover:bg-zinc-900/50"
+                      className={cn(
+                        "group h-18 cursor-pointer border-zinc-100 transition-colors hover:bg-zinc-50/70 dark:border-zinc-800 dark:hover:bg-zinc-900/50",
+                        targetId === sale.id &&
+                          "bg-blue-50/40 ring-2 ring-blue-500/40 dark:bg-blue-950/20"
+                      )}
                     >
                       <TableCell className="px-6">
                         <div className="flex items-center gap-2.5">
@@ -591,72 +665,92 @@ export default function SalesClient({
                         className="px-4 text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
-                            >
-                              <MoreVertical className="size-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="w-52 rounded-2xl border-zinc-100 p-1.5 shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleCopySaleLink(sale.id)}
+                            className="size-8 rounded-lg text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400"
+                            title="Копирай директен линк към продажбата"
+                            aria-label="Копирай директен линк към продажбата"
                           >
-                            {!sale.isPaid ? (
-                              <DropdownMenuItem
-                                className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:text-emerald-400"
-                                onSelect={() => handleMarkAsPaid(sale.id)}
-                              >
-                                <CheckCheck className="mr-2 size-3.5 text-emerald-600" />
-                                <span>Маркирай като платено</span>
-                              </DropdownMenuItem>
+                            {copiedId === sale.id ? (
+                              <Check className="size-4 text-emerald-600 dark:text-emerald-400" />
                             ) : (
-                              <DropdownMenuItem
-                                className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/40 dark:text-amber-400"
-                                onSelect={() => handleMarkAsUnpaid(sale.id)}
-                              >
-                                <RotateCcw className="mr-2 size-3.5 text-amber-600" />
-                                <span>Отмени плащането</span>
-                              </DropdownMenuItem>
+                              <Link2 className="size-4" />
                             )}
-                            <DropdownMenuItem
-                              className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
-                              onSelect={() => router.push(`/sales/${sale.id}`)}
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                                title="Още действия"
+                                aria-label="Още действия"
+                              >
+                                <MoreVertical className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-52 rounded-2xl border-zinc-100 p-1.5 shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
                             >
-                              <Eye className="mr-2 size-3.5 text-zinc-500" />
-                              <span>Детайли</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
-                              onSelect={() =>
-                                router.push(`/sales/${sale.id}/receipt`)
-                              }
-                            >
-                              <Receipt className="mr-2 size-3.5 text-zinc-500" />
-                              <span>Касова бележка</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
-                              onSelect={() =>
-                                router.push(`/sales/${sale.id}/edit`)
-                              }
-                            >
-                              <Pencil className="mr-2 size-3.5 text-zinc-500" />
-                              <span>Редактирай</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="my-1 bg-zinc-100 dark:bg-zinc-800" />
-                            <DropdownMenuItem
-                              className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
-                              onSelect={() => setSaleToDelete(sale.id)}
-                            >
-                              <Trash2 className="mr-2 size-3.5 text-rose-500" />
-                              <span>Изтрий</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              {!sale.isPaid ? (
+                                <DropdownMenuItem
+                                  className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:text-emerald-400"
+                                  onSelect={() => handleMarkAsPaid(sale.id)}
+                                >
+                                  <CheckCheck className="mr-2 size-3.5 text-emerald-600" />
+                                  <span>Маркирай като платено</span>
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/40 dark:text-amber-400"
+                                  onSelect={() => handleMarkAsUnpaid(sale.id)}
+                                >
+                                  <RotateCcw className="mr-2 size-3.5 text-amber-600" />
+                                  <span>Отмени плащането</span>
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                                onSelect={() =>
+                                  router.push(`/sales/${sale.id}`)
+                                }
+                              >
+                                <Eye className="mr-2 size-3.5 text-zinc-500" />
+                                <span>Детайли</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                                onSelect={() =>
+                                  router.push(`/sales/${sale.id}/receipt`)
+                                }
+                              >
+                                <Receipt className="mr-2 size-3.5 text-zinc-500" />
+                                <span>Касова бележка</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="cursor-pointer rounded-xl py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                                onSelect={() =>
+                                  router.push(`/sales/${sale.id}/edit`)
+                                }
+                              >
+                                <Pencil className="mr-2 size-3.5 text-zinc-500" />
+                                <span>Редактирай</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="my-1 bg-zinc-100 dark:bg-zinc-800" />
+                              <DropdownMenuItem
+                                className="cursor-pointer rounded-xl py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
+                                onSelect={() => setSaleToDelete(sale.id)}
+                              >
+                                <Trash2 className="mr-2 size-3.5 text-rose-500" />
+                                <span>Изтрий</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -707,7 +801,7 @@ export default function SalesClient({
 
           <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 lg:grid-cols-4">
             <BentoCard
-              onClick={() => setStatusFilter("all")}
+              onClick={() => handleStatusFilterChange("all")}
               className={cn(
                 "rounded-2xl border p-3.5 sm:p-4 shadow-none transition-all cursor-pointer",
                 statusFilter === "all"
@@ -733,8 +827,8 @@ export default function SalesClient({
 
             <BentoCard
               onClick={() =>
-                setStatusFilter((prev) =>
-                  prev === "pending" ? "all" : "pending"
+                handleStatusFilterChange(
+                  statusFilter === "pending" ? "all" : "pending"
                 )
               }
               className={cn(
@@ -762,7 +856,17 @@ export default function SalesClient({
               </div>
             </BentoCard>
 
-            <BentoCard className="col-span-2 flex items-center rounded-2xl border-none bg-zinc-950 p-3.5 sm:p-4 text-white shadow-none lg:col-span-2 dark:bg-zinc-900">
+            <BentoCard
+              onClick={() =>
+                handleStatusFilterChange(
+                  statusFilter === "paid" ? "all" : "paid"
+                )
+              }
+              className={cn(
+                "col-span-2 flex items-center rounded-2xl border-none bg-zinc-950 p-3.5 sm:p-4 text-white shadow-none lg:col-span-2 dark:bg-zinc-900 cursor-pointer transition-all",
+                statusFilter === "paid" && "ring-2 ring-emerald-500"
+              )}
+            >
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-3">
                   <Receipt
@@ -841,7 +945,7 @@ export default function SalesClient({
               key={tab.id}
               variant={statusFilter === tab.id ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter(tab.id)}
+              onClick={() => handleStatusFilterChange(tab.id)}
               className="h-8 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer whitespace-nowrap"
             >
               <span>{tab.label}</span>

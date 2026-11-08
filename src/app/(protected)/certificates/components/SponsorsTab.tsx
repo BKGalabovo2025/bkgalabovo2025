@@ -1,26 +1,34 @@
 "use client";
 
 import {
+  Award,
   Building2,
+  Check,
   CheckCircle2,
   ExternalLink,
   Globe,
   Handshake,
+  Link2,
   Loader2,
   Pencil,
   Plus,
   RefreshCw,
+  Search,
   Sparkles,
   Trash2,
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
-import React, { useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { sponsorService } from "@/services/sponsor-service";
 import {
   getSponsorCategoryLabel,
@@ -52,12 +60,63 @@ export function SponsorsTab({
   deepLinkNew = false,
   onDeepLinkChange,
 }: SponsorsTabProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const highlightId =
+    searchParams.get("id") || searchParams.get("partnerId") || deepLinkId;
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<SponsorPartner | null>(
     null
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyLink = (sponsor: SponsorPartner) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${pathname}?id=${sponsor.id}`;
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setCopiedId(sponsor.id);
+        toast.success(`Директният линк към "${sponsor.name}" е копиран!`);
+        setTimeout(() => setCopiedId(null), 2500);
+      })
+      .catch(() => {
+        toast.error("Неуспешно копиране на линк.");
+      });
+  };
+
+  const kpiStats = useMemo(() => {
+    const total = sponsors.length;
+    const commercialSponsors = sponsors.filter((s) =>
+      ["gold", "silver", "bronze", "partner"].includes(s.category)
+    ).length;
+    const institutional = sponsors.filter((s) =>
+      ["institutional", "educational", "sports"].includes(s.category)
+    ).length;
+    const active = sponsors.filter((s) => s.isActive).length;
+    return { total, commercialSponsors, institutional, active };
+  }, [sponsors]);
+
+  const filteredSponsors = useMemo(() => {
+    if (!searchQuery.trim()) return sponsors;
+    const q = searchQuery.toLowerCase().trim();
+    return sponsors.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        (s.description && s.description.toLowerCase().includes(q)) ||
+        getSponsorCategoryLabel(s.category).toLowerCase().includes(q)
+    );
+  }, [sponsors, searchQuery]);
+
+  useDeepLinkHighlight(
+    "partner",
+    !isLoading && filteredSponsors.length > 0,
+    "partnerId"
+  );
 
   const deepSponsor = deepLinkId
     ? (sponsors.find((s) => s.id === deepLinkId) ?? null)
@@ -153,13 +212,81 @@ export function SponsorsTab({
   };
 
   return (
-    <div className="space-y-3 sm:space-y-3.5">
-      {/* 2. Actions Row */}
+    <div className="space-y-4 sm:space-y-5">
+      {/* 1. KPI Summary Cards */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <BentoCard className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Общо партньори
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-zinc-900 dark:text-white">
+              {kpiStats.total}
+            </p>
+          </div>
+          <div className="rounded-xl bg-blue-500/10 p-2 text-blue-600 dark:text-blue-400">
+            <Handshake className="size-4" />
+          </div>
+        </BentoCard>
+
+        <BentoCard className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Спонсори
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-amber-600 dark:text-amber-400">
+              {kpiStats.commercialSponsors}
+            </p>
+          </div>
+          <div className="rounded-xl bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400">
+            <Award className="size-4" />
+          </div>
+        </BentoCard>
+
+        <BentoCard className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Институционални
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-sky-600 dark:text-sky-400">
+              {kpiStats.institutional}
+            </p>
+          </div>
+          <div className="rounded-xl bg-sky-500/10 p-2 text-sky-600 dark:text-sky-400">
+            <Building2 className="size-4" />
+          </div>
+        </BentoCard>
+
+        <BentoCard className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Активни
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-emerald-600 dark:text-emerald-400">
+              {kpiStats.active}
+            </p>
+          </div>
+          <div className="rounded-xl bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="size-4" />
+          </div>
+        </BentoCard>
+      </div>
+
+      {/* 2. Search & Actions Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div>
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
-            Списък с официални партньори ({sponsors.length})
+        <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-3">
+          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider shrink-0">
+            Списък с официални партньори ({filteredSponsors.length})
           </span>
+          <div className="relative flex-1 max-w-sm">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              placeholder="Търсене на партньор или спонсор..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8.5 rounded-xl pl-8 text-xs dark:border-zinc-800 dark:bg-zinc-900"
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -194,14 +321,16 @@ export function SponsorsTab({
             Зареждане на партньори...
           </p>
         </div>
-      ) : sponsors.length === 0 ? (
+      ) : filteredSponsors.length === 0 ? (
         <div className="flex min-h-75 flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex size-16 items-center justify-center rounded-3xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
             <Handshake className="size-8" />
           </div>
           <div className="max-w-md space-y-1">
             <h3 className="text-base font-bold text-zinc-900 dark:text-white">
-              Няма регистрирани партньори или спонсори
+              {searchQuery
+                ? "Няма намерени партньори по това търсене"
+                : "Няма регистрирани партньори или спонсори"}
             </h3>
             <p className="text-xs text-zinc-500">
               Все още няма регистрирани партньори в базата. Можете да добавите
@@ -231,14 +360,16 @@ export function SponsorsTab({
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {sponsors.map((sponsor) => (
+          {filteredSponsors.map((sponsor) => (
             <Card
               key={sponsor.id}
               id={`partner-${sponsor.id}`}
               className={`group flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-200 hover:shadow-md ${
-                sponsor.isActive
-                  ? "border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900"
-                  : "border-zinc-200/50 bg-zinc-50/70 opacity-75 dark:border-zinc-800/50 dark:bg-zinc-950"
+                highlightId === sponsor.id
+                  ? "border-blue-500 ring-2 ring-blue-500/60 bg-blue-50/15 dark:border-blue-400 dark:ring-blue-400/60 dark:bg-blue-950/20"
+                  : sponsor.isActive
+                    ? "border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+                    : "border-zinc-200/50 bg-zinc-50/70 opacity-75 dark:border-zinc-800/50 dark:bg-zinc-950"
               }`}
             >
               <div className="space-y-2.5 p-3 sm:p-3.5">
@@ -353,14 +484,29 @@ export function SponsorsTab({
                   )}
                 </button>
 
-                {/* Edit & Delete Buttons */}
+                {/* Copy Link, Edit & Delete Buttons */}
                 <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleCopyLink(sponsor)}
+                    className="size-7 rounded-lg border-zinc-200/80 bg-white text-zinc-600 shadow-2xs transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-blue-800 dark:hover:bg-blue-950/50 dark:hover:text-blue-400"
+                    title={`Копирай директен линк към ${sponsor.name}`}
+                    aria-label={`Копирай директен линк към ${sponsor.name}`}
+                  >
+                    {copiedId === sponsor.id ? (
+                      <Check className="size-3 text-emerald-600" />
+                    ) : (
+                      <Link2 className="size-3" />
+                    )}
+                  </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => handleOpenEdit(sponsor)}
                     className="size-7 rounded-lg border-zinc-200/80 bg-white text-zinc-600 shadow-2xs transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-blue-800 dark:hover:bg-blue-950/50 dark:hover:text-blue-400"
                     title="Редактиране на партньора"
+                    aria-label="Редактиране на партньора"
                   >
                     <Pencil className="size-3" />
                   </Button>
@@ -371,6 +517,7 @@ export function SponsorsTab({
                     disabled={deletingId === sponsor.id}
                     className="size-7 rounded-lg border-zinc-200/80 bg-white text-red-500 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-red-800 dark:hover:bg-red-950/50"
                     title="Изтриване на партньора"
+                    aria-label="Изтриване на партньора"
                   >
                     {deletingId === sponsor.id ? (
                       <Loader2 className="size-3 animate-spin" />

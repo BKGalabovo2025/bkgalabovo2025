@@ -34,14 +34,16 @@ function VisualCheckbox({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-md border border-zinc-300",
-        checked ? "border-zinc-950 bg-zinc-950" : "bg-white",
+        "flex shrink-0 items-center justify-center rounded-md border border-zinc-300 dark:border-zinc-700",
+        checked
+          ? "border-zinc-950 bg-zinc-950 dark:border-zinc-100 dark:bg-zinc-100"
+          : "bg-white dark:bg-zinc-900",
         className
       )}
     >
       {checked && (
         <Check
-          className="text-white"
+          className="text-white dark:text-zinc-950"
           strokeWidth={3}
           style={{ width: "70%", height: "70%" }}
         />
@@ -92,7 +94,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                     <Input
                       {...field}
                       value={field.value || ""}
-                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                     />
                   </FormControl>
                   <FormMessage />
@@ -112,7 +114,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                       {...field}
                       value={field.value || ""}
                       placeholder="напр. M, L, XL"
-                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                     />
                   </FormControl>
                   <FormMessage />
@@ -132,10 +134,10 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                       onValueChange={field.onChange}
                       defaultValue={field.value || undefined}
                     >
-                      <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
+                      <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900">
                         <SelectValue placeholder="Избери ниво" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-zinc-100">
+                      <SelectContent className="rounded-xl border-zinc-100 dark:border-zinc-800">
                         <SelectItem value="beginner">Начално</SelectItem>
                         <SelectItem value="intermediate">Средно</SelectItem>
                         <SelectItem value="advanced">Напреднало</SelectItem>
@@ -170,10 +172,10 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
+                  <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-zinc-100">
+                  <SelectContent className="rounded-xl border-zinc-100 dark:border-zinc-800">
                     <SelectItem value="active">Активен</SelectItem>
                     <SelectItem value="inactive">Неактивен</SelectItem>
                   </SelectContent>
@@ -190,9 +192,9 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
             const hasMedicalCertificate = form.watch("hasMedicalCertificate");
             const isLicensed = form.watch("isLicensed");
             return (
-              <div className="mt-2 grid grid-cols-1 gap-5 border-t border-zinc-100 pt-6 sm:col-span-2 sm:grid-cols-3 sm:gap-6">
+              <div className="mt-2 grid grid-cols-1 gap-5 border-t border-zinc-100 dark:border-zinc-800 pt-6 sm:col-span-2 sm:grid-cols-3 sm:gap-6">
                 <div
-                  className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 bg-zinc-50/30 p-4 sm:p-5"
+                  className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 p-4 sm:p-5"
                   onClick={() =>
                     form.setValue(
                       "hasSignedDeclaration",
@@ -206,7 +208,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                     className="size-5"
                   />
                   <div className="space-y-1 leading-none">
-                    <p className="text-sm font-medium text-zinc-950">
+                    <p className="text-sm font-medium text-zinc-950 dark:text-zinc-100">
                       Декларация
                     </p>
                     <p className="text-[10px] font-light tracking-wider text-zinc-400 uppercase">
@@ -215,7 +217,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                   </div>
                 </div>
                 <div
-                  className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 bg-zinc-50/30 p-4 sm:p-5"
+                  className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 p-4 sm:p-5"
                   onClick={() =>
                     form.setValue(
                       "hasMedicalCertificate",
@@ -229,7 +231,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                     className="size-5"
                   />
                   <div className="space-y-1 leading-none">
-                    <p className="text-sm font-medium text-zinc-950">
+                    <p className="text-sm font-medium text-zinc-950 dark:text-zinc-100">
                       Медицинско
                     </p>
                     <p className="text-[10px] font-light tracking-wider text-zinc-400 uppercase">
@@ -238,7 +240,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                   </div>
                 </div>
                 <div
-                  className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 bg-zinc-50/30 p-4 sm:p-5"
+                  className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 p-4 sm:p-5"
                   onClick={() =>
                     form.setValue("isLicensed", !isLicensed, {
                       shouldValidate: true,
@@ -247,7 +249,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                 >
                   <VisualCheckbox checked={isLicensed} className="size-5" />
                   <div className="space-y-1 leading-none">
-                    <p className="text-sm font-medium text-zinc-950">
+                    <p className="text-sm font-medium text-zinc-950 dark:text-zinc-100">
                       Картотека
                     </p>
                     <p className="text-[10px] font-light tracking-wider text-zinc-400 uppercase">
@@ -260,7 +262,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
           })()}
 
         {(isRecoveryMember || isClubMember) && (
-          <div className="mt-2 grid grid-cols-1 gap-5 border-t border-zinc-100 pt-6 sm:col-span-2 sm:grid-cols-2 sm:gap-6">
+          <div className="mt-2 grid grid-cols-1 gap-5 border-t border-zinc-100 dark:border-zinc-800 pt-6 sm:col-span-2 sm:grid-cols-2 sm:gap-6">
             <FormField
               name="healthConditionNotes"
               control={form.control}
@@ -275,7 +277,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                       value={field.value || ""}
                       rows={4}
                       placeholder="Опишете предишни травми, операции, алергии или други важни състояния..."
-                      className="resize-none rounded-2xl border-zinc-200 bg-white p-4 text-sm shadow-sm focus:border-primary focus:bg-white focus:ring-primary"
+                      className="resize-none rounded-2xl border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 text-sm shadow-sm focus:border-primary focus:bg-white dark:focus:bg-zinc-900 focus:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -296,7 +298,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                       {...field}
                       value={field.value || ""}
                       rows={4}
-                      className="resize-none rounded-2xl border-zinc-100 bg-zinc-50/50 p-4 text-sm font-light focus:bg-white focus:ring-0"
+                      className="resize-none rounded-2xl border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-4 text-sm font-light focus:bg-white dark:focus:bg-zinc-900 focus:ring-0"
                     />
                   </FormControl>
                   <FormDescription className="ml-1 text-[10px] font-light tracking-wider text-zinc-400 uppercase">

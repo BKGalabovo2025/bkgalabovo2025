@@ -161,17 +161,17 @@ export function GenerateDocumentLinkDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-2xl p-4 sm:p-5 bg-white">
+      <DialogContent className="max-w-md rounded-2xl p-4 sm:p-5 bg-white dark:bg-zinc-950 dark:border-zinc-800">
         <DialogHeader className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="flex size-7.5 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <span className="flex size-7.5 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
               <LinkIcon className="size-4" />
             </span>
-            <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950">
+            <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-zinc-100">
               Линк за онлайн подписване
             </DialogTitle>
           </div>
-          <DialogDescription className="text-xs text-zinc-500 pt-0.5">
+          <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 pt-0.5">
             Изпратете този линк на родителя за попълване и подпис от телефон или
             компютър.
           </DialogDescription>
@@ -179,29 +179,29 @@ export function GenerateDocumentLinkDialog({
 
         <div className="mt-2.5 space-y-3">
           {/* Document & Member pill */}
-          <div className="rounded-2xl border border-zinc-100 bg-zinc-50/80 p-3.5 space-y-1.5 text-xs">
+          <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 p-3.5 space-y-1.5 text-xs">
             <div className="flex justify-between items-center">
-              <span className="text-zinc-500">Документ:</span>
-              <span className="font-semibold text-zinc-900">
+              <span className="text-zinc-500 dark:text-zinc-400">Документ:</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                 {documentTitle}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-zinc-500">Състезател:</span>
-              <span className="font-semibold text-zinc-900">{memberName}</span>
+              <span className="text-zinc-500 dark:text-zinc-400">Състезател:</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{memberName}</span>
             </div>
           </div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-8 space-y-3">
-              <Loader2 className="size-8 animate-spin text-zinc-900" />
-              <p className="text-xs text-zinc-500">
+              <Loader2 className="size-8 animate-spin text-zinc-900 dark:text-zinc-100" />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 Генериране на сигурен криптографски токен...
               </p>
             </div>
           ) : errorMessage ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 space-y-3 text-center">
-              <div className="flex items-center justify-center gap-2 text-rose-700 text-xs font-semibold">
+            <div className="rounded-2xl border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 p-4 space-y-3 text-center">
+              <div className="flex items-center justify-center gap-2 text-rose-700 dark:text-rose-300 text-xs font-semibold">
                 <AlertCircle className="size-4" />
                 <span>{errorMessage}</span>
               </div>
@@ -210,7 +210,7 @@ export function GenerateDocumentLinkDialog({
                 variant="outline"
                 size="sm"
                 onClick={generateLink}
-                className="rounded-xl border-rose-300 text-rose-800 hover:bg-rose-100 text-xs"
+                className="rounded-xl border-rose-300 dark:border-rose-700 text-rose-800 dark:text-rose-200 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-xs"
               >
                 <RefreshCw className="size-3.5 mr-1.5" />
                 Опитай отново
@@ -218,8 +218,8 @@ export function GenerateDocumentLinkDialog({
             </div>
           ) : generatedUrl ? (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 p-2.5 text-xs text-emerald-900">
-                <span className="font-semibold text-emerald-700">
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/70 dark:bg-emerald-950/40 p-2.5 text-xs text-emerald-900 dark:text-emerald-200">
+                <span className="font-semibold text-emerald-700 dark:text-emerald-300">
                   ✓ Подпис на Председателя:
                 </span>
                 <span>
@@ -237,15 +237,15 @@ export function GenerateDocumentLinkDialog({
                   <Input
                     readOnly
                     value={generatedUrl}
-                    className="h-11 rounded-xl border-zinc-200 bg-zinc-50 text-xs font-mono select-all"
+                    className="h-11 rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs font-mono select-all"
                   />
                   <Button
                     type="button"
                     onClick={handleCopy}
-                    className="h-11 px-4 rounded-xl bg-zinc-950 text-white shrink-0 hover:bg-zinc-800"
+                    className="h-11 px-4 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 shrink-0 hover:bg-zinc-800 dark:hover:bg-zinc-200"
                   >
                     {copied ? (
-                      <Check className="size-4 text-emerald-400" />
+                      <Check className="size-4 text-emerald-400 dark:text-emerald-600" />
                     ) : (
                       <Copy className="size-4" />
                     )}
@@ -263,7 +263,7 @@ export function GenerateDocumentLinkDialog({
                     type="button"
                     variant="outline"
                     onClick={handleCopyMessage}
-                    className="h-11 rounded-xl border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 text-xs font-semibold gap-2"
+                    className="h-11 rounded-xl border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-800 text-xs font-semibold gap-2"
                   >
                     <Copy className="size-4" />
                     Копирай текст
@@ -272,7 +272,7 @@ export function GenerateDocumentLinkDialog({
                     type="button"
                     variant="outline"
                     onClick={handleEmailShare}
-                    className="h-11 rounded-xl border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-800 text-xs font-semibold gap-2"
+                    className="h-11 rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-800 text-xs font-semibold gap-2"
                   >
                     <Mail className="size-4" />
                     Изпрати имейл
@@ -281,13 +281,13 @@ export function GenerateDocumentLinkDialog({
               </div>
 
               {/* Open in new tab & validity */}
-              <div className="pt-2 flex justify-between items-center text-[11px] text-zinc-500">
+              <div className="pt-2 flex justify-between items-center text-[11px] text-zinc-500 dark:text-zinc-400">
                 <span>Валидност: 14 дни</span>
                 <a
                   href={generatedUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-medium text-zinc-900 hover:underline"
+                  className="inline-flex items-center gap-1 font-medium text-zinc-900 dark:text-zinc-100 hover:underline"
                 >
                   Отвори линка <ExternalLink className="size-3" />
                 </a>

@@ -94,17 +94,17 @@ export default function PublicCatalogTabs({
   const actualShop = shop.length > 0 ? shop : products;
 
   // Normalize initial tab from URL params if present
-  const tabParam = (searchParams.get("tab") ||
+  const categoryParam = (searchParams.get("category") ||
     searchParams.get("section") ||
     "") as PublicCatalogTab;
   const initialTab: CatalogSectionId = useMemo(() => {
-    if (tabParam === "club-services" || tabParam === "general")
+    if (categoryParam === "club-services" || categoryParam === "general")
       return "club-services";
-    if (tabParam === "recovery") return "recovery";
-    if (tabParam === "shop" || tabParam === "products") return "shop";
-    if (tabParam === "trainings") return "trainings";
+    if (categoryParam === "recovery") return "recovery";
+    if (categoryParam === "shop" || categoryParam === "products") return "shop";
+    if (categoryParam === "trainings") return "trainings";
     return "trainings";
-  }, [tabParam]);
+  }, [categoryParam]);
 
   const [activeTab, setActiveTab] = useState<CatalogSectionId>(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,24 +113,24 @@ export default function PublicCatalogTabs({
 
   // Sync tab with URL if external navigation occurs
   useEffect(() => {
-    if (tabParam) {
+    if (categoryParam) {
       if (
-        (tabParam === "club-services" || tabParam === "general") &&
+        (categoryParam === "club-services" || categoryParam === "general") &&
         activeTab !== "club-services"
       ) {
         setActiveTab("club-services");
-      } else if (tabParam === "recovery" && activeTab !== "recovery") {
+      } else if (categoryParam === "recovery" && activeTab !== "recovery") {
         setActiveTab("recovery");
       } else if (
-        (tabParam === "shop" || tabParam === "products") &&
+        (categoryParam === "shop" || categoryParam === "products") &&
         activeTab !== "shop"
       ) {
         setActiveTab("shop");
-      } else if (tabParam === "trainings" && activeTab !== "trainings") {
+      } else if (categoryParam === "trainings" && activeTab !== "trainings") {
         setActiveTab("trainings");
       }
     }
-  }, [tabParam, activeTab]);
+  }, [categoryParam, activeTab]);
 
   // Deep-link scroll into view when item param is present
   const itemParam = searchParams.get("item");
@@ -149,7 +149,7 @@ export default function PublicCatalogTabs({
   // Update URL helper without full page reloads
   const updateTabInUrl = (newTab: CatalogSectionId) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", newTab);
+    params.set("category", newTab);
     params.delete("item"); // reset targeted item when switching tabs
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
@@ -244,7 +244,7 @@ export default function PublicCatalogTabs({
 
   const handleCopyLink = (item: any) => {
     if (typeof window === "undefined") return;
-    const url = `${window.location.origin}${window.location.pathname}?tab=${activeTab}&item=${item.id}`;
+    const url = `${window.location.origin}${window.location.pathname}?category=${activeTab}&item=${item.id}`;
     if (navigator.clipboard?.writeText) {
       navigator.clipboard
         .writeText(url)

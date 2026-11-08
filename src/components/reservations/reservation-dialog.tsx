@@ -172,7 +172,7 @@ const ReservationDialogContent = ({
                       ? handleOpenChange(false)
                       : handleBack()
                   }
-                  className="h-9.5 rounded-xl px-4 text-xs font-semibold tracking-wide text-zinc-500 uppercase hover:text-zinc-900"
+                  className="h-9.5 rounded-xl px-4 text-xs font-semibold tracking-wide text-zinc-500 uppercase hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
                   {currentStep === "time" ? (
                     "Отказ"

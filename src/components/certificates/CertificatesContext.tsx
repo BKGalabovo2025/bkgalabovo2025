@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import React, {
   createContext,
   useCallback,
@@ -9,9 +10,14 @@ import React, {
 } from "react";
 
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
+import { certificateTemplateService } from "@/services/certificate-template-service";
 import { sponsorService } from "@/services/sponsor-service";
 import { useAppStore } from "@/store/use-app-store";
-import type { IssuedCertificate, SponsorPartner } from "@/types/certificates";
+import type {
+  CertificateTemplate,
+  IssuedCertificate,
+  SponsorPartner,
+} from "@/types/certificates";
 
 const SPONSORS_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -62,9 +68,14 @@ export interface CertificatesContextType {
   siteId: "bkgalabovo" | "recoveryzone";
   isRecoveryZone: boolean;
   sponsors: SponsorPartner[];
+  templates: CertificateTemplate[];
+  isLoadingTemplates: boolean;
+  selectedTemplateForIssuance: string | null;
+  setSelectedTemplateForIssuance: (id: string | null) => void;
   issuedCertificates: IssuedCertificate[];
   isLoadingCertificates: boolean;
   loadSponsors: (forceRefresh?: boolean) => Promise<void>;
+  loadTemplates: () => Promise<void>;
   loadIssuedCertificates: () => Promise<void>;
 }
 
@@ -75,11 +86,16 @@ export function CertificatesProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const { activeBranch } = useAppStore();
   const siteId: "bkgalabovo" | "recoveryzone" =
     activeBranch === "recoveryzone" ? "recoveryzone" : "bkgalabovo";
 
   const [sponsors, setSponsors] = useState<SponsorPartner[]>([]);
+  const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
+  const [selectedTemplateForIssuance, setSelectedTemplateForIssuance] =
+    useState<string | null>(null);
   const [issuedCertificates, setIssuedCertificates] = useState<
     IssuedCertificate[]
   >([]);
@@ -118,6 +134,28 @@ export function CertificatesProvider({
     [siteId]
   );
 
+  const loadTemplates = useCallback(async () => {
+    const cached = readLocalCache<CertificateTemplate>(
+      `bkg_cached_templates_${siteId}`
+    );
+    if (cached && cached.length > 0) {
+      setTemplates(cached);
+      setIsLoadingTemplates(false);
+    }
+
+    try {
+      const data = await certificateTemplateService.getTemplates(siteId);
+      if (Array.isArray(data)) {
+        setTemplates(data);
+        writeLocalCache(`bkg_cached_templates_${siteId}`, data);
+      }
+    } catch (error) {
+      console.warn("Notice loading templates from Firestore:", error);
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  }, [siteId]);
+
   const loadIssuedCertificates = useCallback(async () => {
     const cached = readLocalCache<IssuedCertificate>(
       `bkg_cached_certificates_${siteId}`
@@ -145,17 +183,43 @@ export function CertificatesProvider({
     loadSponsors();
   }, [loadSponsors]);
 
+  // Hydrate from localStorage on mount without hitting Firestore unconditionally
   useEffect(() => {
-    loadIssuedCertificates();
-  }, [loadIssuedCertificates]);
+    const cachedCerts = readLocalCache<IssuedCertificate>(
+      `bkg_cached_certificates_${siteId}`
+    );
+    if (cachedCerts) {
+      setIssuedCertificates(cachedCerts);
+      setIsLoadingCertificates(false);
+    }
+    const cachedTmpls = readLocalCache<CertificateTemplate>(
+      `bkg_cached_templates_${siteId}`
+    );
+    if (cachedTmpls && cachedTmpls.length > 0) {
+      setTemplates(cachedTmpls);
+      setIsLoadingTemplates(false);
+    }
+  }, [siteId]);
+
+  // Only load issued certificates from Firestore when on /issued
+  useEffect(() => {
+    if (pathname?.endsWith("/issued")) {
+      loadIssuedCertificates();
+    }
+  }, [pathname, loadIssuedCertificates]);
 
   const value: CertificatesContextType = {
     siteId,
     isRecoveryZone: siteId === "recoveryzone",
     sponsors,
+    templates,
+    isLoadingTemplates,
+    selectedTemplateForIssuance,
+    setSelectedTemplateForIssuance,
     issuedCertificates,
     isLoadingCertificates,
     loadSponsors,
+    loadTemplates,
     loadIssuedCertificates,
   };
 

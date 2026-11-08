@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Link2,
   Mail,
   Search,
   Trash2,
@@ -41,6 +42,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/context/auth-context";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import {
   bulkUpdateMemberStatusAction,
   deleteMemberAction,
@@ -122,6 +124,23 @@ export function MembersTableComponent({
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredMembers.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredMembers, currentPage]);
+
+  useDeepLinkHighlight("member", paginatedMembers.length > 0);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyMemberLink = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopiedId(id);
+        toast.success("Директният линк към състезателя е копиран!");
+        setTimeout(() => setCopiedId(null), 2000);
+      })
+      .catch(() => toast.info(`Линк: ${url}`));
+  };
 
   const toggleSelectAll = () => {
     if (selectedIds.length === paginatedMembers.length) {
@@ -552,6 +571,7 @@ export function MembersTableComponent({
                     return (
                       <TableRow
                         key={member.id}
+                        id={`member-${member.id}`}
                         className={cn(
                           "group cursor-pointer border-zinc-100/80 transition-colors hover:bg-zinc-50/70 dark:border-zinc-900 dark:hover:bg-zinc-900/60",
                           selectedIds.includes(member.id) &&
@@ -667,31 +687,62 @@ export function MembersTableComponent({
                           className="p-2 text-right"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) =>
-                                  handleDeleteMember(
-                                    e,
-                                    member.id,
-                                    `${member.firstName} ${member.lastName}`
-                                  )
-                                }
-                                aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
-                                className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
-                              >
-                                <Trash2
-                                  className="size-3.5"
-                                  strokeWidth={1.5}
-                                />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="left" className="text-xs">
-                              Изтрива записа след потвърждение.
-                            </TooltipContent>
-                          </Tooltip>
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) =>
+                                    handleCopyMemberLink(e, member.id)
+                                  }
+                                  aria-label={`Копирай линк за ${member.firstName} ${member.lastName}`}
+                                  className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                                >
+                                  {copiedId === member.id ? (
+                                    <Check
+                                      className="size-3.5 text-emerald-600"
+                                      strokeWidth={1.5}
+                                    />
+                                  ) : (
+                                    <Link2
+                                      className="size-3.5"
+                                      strokeWidth={1.5}
+                                    />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="left" className="text-xs">
+                                Копирай директен линк към този ред в регистъра.
+                              </TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) =>
+                                    handleDeleteMember(
+                                      e,
+                                      member.id,
+                                      `${member.firstName} ${member.lastName}`
+                                    )
+                                  }
+                                  aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
+                                  className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
+                                >
+                                  <Trash2
+                                    className="size-3.5"
+                                    strokeWidth={1.5}
+                                  />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="left" className="text-xs">
+                                Изтрива записа след потвърждение.
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -725,6 +776,7 @@ export function MembersTableComponent({
               paginatedMembers.map((member) => (
                 <div
                   key={member.id}
+                  id={`member-${member.id}`}
                   onClick={() => router.push(`/members/${member.id}`)}
                   className={cn(
                     "p-3.5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900",
@@ -784,6 +836,22 @@ export function MembersTableComponent({
                       >
                         {member.status === "active" ? "Активен" : "Неактивен"}
                       </Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => handleCopyMemberLink(e, member.id)}
+                        aria-label={`Копирай линк за ${member.firstName} ${member.lastName}`}
+                        className="size-7 rounded-lg text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+                      >
+                        {copiedId === member.id ? (
+                          <Check
+                            className="size-3.5 text-emerald-600"
+                            strokeWidth={1.5}
+                          />
+                        ) : (
+                          <Link2 className="size-3.5" strokeWidth={1.5} />
+                        )}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

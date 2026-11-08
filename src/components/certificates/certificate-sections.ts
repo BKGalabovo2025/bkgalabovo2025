@@ -1,6 +1,6 @@
-import { FileCheck2, UploadCloud } from "lucide-react";
+import { FileCheck2, Palette, Printer, UploadCloud } from "lucide-react";
 
-export type CertificateSectionId = "issue" | "issued";
+export type CertificateSectionId = "issue" | "studio" | "templates" | "issued";
 
 export interface CertificateSectionConfig {
   id: CertificateSectionId;
@@ -13,16 +13,31 @@ export interface CertificateSectionConfig {
 export const CERTIFICATE_SECTIONS: readonly CertificateSectionConfig[] = [
   {
     id: "issue",
-    label: "Издай ваучер / документ",
-    pathSuffix: "issue",
-    tooltip: "Качване на готови ваучери, генериране на грамоти и QR код",
+    label: "Качи готов ваучер",
+    pathSuffix: "",
+    tooltip: "Качване и издаване на готов PDF или изображение",
     icon: UploadCloud,
+  },
+  {
+    id: "studio",
+    label: "Студио за издаване",
+    pathSuffix: "/studio",
+    tooltip:
+      "Издаване на грамоти, дипломи и ваучери по шаблон (вкл. турнири и лагери)",
+    icon: Printer,
+  },
+  {
+    id: "templates",
+    label: "AI Шаблони & Дизайнер",
+    pathSuffix: "/templates",
+    tooltip: "Визуален и AI дизайнер на шаблони за сертификати и грамоти",
+    icon: Palette,
   },
   {
     id: "issued",
     label: "Издадени документи",
-    pathSuffix: "issued",
-    tooltip: "Регистър на издадени сертификати, ваучери, статуси и верификация",
+    pathSuffix: "/issued",
+    tooltip: "Регистър на всички издадени сертификати, грамоти и ваучери",
     icon: FileCheck2,
   },
 ] as const;
@@ -32,8 +47,8 @@ export function getActiveCertificateSectionId(
 ): CertificateSectionId | null {
   const normalized = pathname.replace(/\/+$/, "") || "/";
 
-  // Base /certificates defaults to "issue"
-  if (normalized === "/certificates") {
+  // Base /certificates or /certificates/issue defaults to "issue"
+  if (normalized === "/certificates" || normalized === "/certificates/issue") {
     return "issue";
   }
 
@@ -41,7 +56,7 @@ export function getActiveCertificateSectionId(
     return null;
   }
 
-  const remainder = normalized.slice("/certificates/".length).split("/")[0];
+  const remainder = "/" + normalized.slice("/certificates/".length).split("/")[0];
 
   const match = CERTIFICATE_SECTIONS.find((s) => s.pathSuffix === remainder);
   return match ? match.id : null;

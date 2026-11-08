@@ -52,9 +52,14 @@ export default function InquiriesPageClient() {
         <InquiriesTab
           onNewCountChange={setNewCount}
           status={section}
-          buildStatusHref={(s) => getInquirySectionHref(s)}
+          buildStatusHref={(s) => {
+            const base = getInquirySectionHref(s);
+            return initialSource !== "all"
+              ? `${base}?source=${initialSource}`
+              : base;
+          }}
           initialSource={initialSource}
-          focusId={searchParams.get("inquiryId")}
+          focusId={searchParams.get("id") || searchParams.get("inquiryId")}
         />
       </div>
     </div>

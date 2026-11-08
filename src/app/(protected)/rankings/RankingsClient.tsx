@@ -3,8 +3,11 @@
 import {
   Award,
   Calendar,
+  Check,
+  Link2,
   Loader2,
   RefreshCw,
+  Search,
   Star,
   TrendingUp,
   Trophy,
@@ -25,6 +28,7 @@ import ShareStoryDialog from "@/components/rankings/ShareStoryDialog";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -40,6 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import {
   refreshRankingsAction,
   syncRankingsAction,
@@ -83,11 +88,29 @@ export default function RankingsClient({
   const [isPending, startTransition] = useTransition();
   const [isSyncing, setIsSyncing] = useState(false);
   const [rankings, setRankings] = useState<RankingEntry[]>(initialRankings);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [secondsAgo, setSecondsAgo] = useState(0);
   const period = searchParams.get("period") || "all";
+  const targetId = searchParams.get("id");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const clockRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleCopyRankingLink = (memberId: string, memberName: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${pathname}?id=${memberId}`;
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setCopiedId(memberId);
+        toast.success(`Директният линк за ${memberName} е копиран!`);
+        setTimeout(() => setCopiedId(null), 2500);
+      })
+      .catch(() => {
+        toast.error("Неуспешно копиране на линк.");
+      });
+  };
 
   useEffect(() => {
     setRankings(initialRankings);
@@ -155,7 +178,7 @@ export default function RankingsClient({
     setIsSyncing(false);
   };
 
-  const filteredRankings = (() => {
+  const categoryFilteredRankings = (() => {
     if (activeTab === "all") return rankings;
 
     const catLabel =
@@ -176,7 +199,15 @@ export default function RankingsClient({
       .map((r, idx) => ({ ...r!, position: idx + 1 })) as RankingEntry[];
   })();
 
-  const topThree = filteredRankings.slice(0, 3);
+  const filteredRankings = searchQuery.trim()
+    ? categoryFilteredRankings.filter((r) =>
+        r.memberName.toLowerCase().includes(searchQuery.toLowerCase().trim())
+      )
+    : categoryFilteredRankings;
+
+  useDeepLinkHighlight("ranking", filteredRankings.length > 0);
+
+  const topThree = categoryFilteredRankings.slice(0, 3);
 
   const liveIndicator = (
     <div className="flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 dark:border-emerald-900/50 dark:bg-emerald-950/30">
@@ -250,49 +281,97 @@ export default function RankingsClient({
         <>
           {/* Top 3 Podium Bento */}
           <div className="grid grid-cols-1 items-end gap-4 lg:grid-cols-12">
-            {/* Stats Col */}
+            {/* Stats Col (Interactive Category Navigation) */}
             <div className="grid h-full grid-cols-2 gap-2.5 sm:gap-3 lg:col-span-4">
-              <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+              <BentoCard
+                onClick={() =>
+                  router.push(
+                    `/rankings${period !== "all" ? `?period=${period}` : ""}`
+                  )
+                }
+                className={cn(
+                  "flex flex-col justify-between rounded-2xl border p-3.5 sm:p-4 shadow-none transition-all cursor-pointer",
+                  activeTab === "all"
+                    ? "border-blue-500 bg-blue-50/20 ring-2 ring-blue-500/20 dark:border-blue-500 dark:bg-blue-950/20"
+                    : "border-zinc-200/80 bg-white hover:border-blue-300 dark:border-zinc-800 dark:bg-zinc-950"
+                )}
+              >
                 <Users className="size-4 sm:size-5 text-blue-500" />
                 <div>
                   <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
                     {rankings.length}
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
-                    Играчи
+                    Всички играчи
                   </p>
                 </div>
               </BentoCard>
-              <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+              <BentoCard
+                onClick={() =>
+                  router.push(
+                    `/rankings/singles${period !== "all" ? `?period=${period}` : ""}`
+                  )
+                }
+                className={cn(
+                  "flex flex-col justify-between rounded-2xl border p-3.5 sm:p-4 shadow-none transition-all cursor-pointer",
+                  activeTab === "singles"
+                    ? "border-emerald-500 bg-emerald-50/20 ring-2 ring-emerald-500/20 dark:border-emerald-500 dark:bg-emerald-950/20"
+                    : "border-zinc-200/80 bg-white hover:border-emerald-300 dark:border-zinc-800 dark:bg-zinc-950"
+                )}
+              >
                 <TrendingUp className="size-4 sm:size-5 text-emerald-500" />
                 <div>
                   <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
                     {rankings[0]?.totalPoints ?? 0}
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
-                    Макс. точки
+                    Единично / Точки
                   </p>
                 </div>
               </BentoCard>
-              <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+              <BentoCard
+                onClick={() =>
+                  router.push(
+                    `/rankings/doubles${period !== "all" ? `?period=${period}` : ""}`
+                  )
+                }
+                className={cn(
+                  "flex flex-col justify-between rounded-2xl border p-3.5 sm:p-4 shadow-none transition-all cursor-pointer",
+                  activeTab === "doubles"
+                    ? "border-yellow-500 bg-yellow-50/20 ring-2 ring-yellow-500/20 dark:border-yellow-500 dark:bg-yellow-950/20"
+                    : "border-zinc-200/80 bg-white hover:border-yellow-300 dark:border-zinc-800 dark:bg-zinc-950"
+                )}
+              >
                 <Trophy className="size-4 sm:size-5 text-yellow-500" />
                 <div>
                   <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
                     {rankings.reduce((s, r) => s + r.tournamentsPlayed, 0)}
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
-                    Участия
+                    Двойки / Участия
                   </p>
                 </div>
               </BentoCard>
-              <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+              <BentoCard
+                onClick={() =>
+                  router.push(
+                    `/rankings/mixed${period !== "all" ? `?period=${period}` : ""}`
+                  )
+                }
+                className={cn(
+                  "flex flex-col justify-between rounded-2xl border p-3.5 sm:p-4 shadow-none transition-all cursor-pointer",
+                  activeTab === "mixed"
+                    ? "border-purple-500 bg-purple-50/20 ring-2 ring-purple-500/20 dark:border-purple-500 dark:bg-purple-950/20"
+                    : "border-zinc-200/80 bg-white hover:border-purple-300 dark:border-zinc-800 dark:bg-zinc-950"
+                )}
+              >
                 <Star className="size-4 sm:size-5 text-purple-500" />
                 <div>
                   <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
                     {rankings.reduce((s, r) => s + r.wins, 0)}
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
-                    Победи
+                    Смесени / Победи
                   </p>
                 </div>
               </BentoCard>
@@ -371,9 +450,20 @@ export default function RankingsClient({
           <BentoCard className="overflow-hidden p-0">
             <div className="border-b border-zinc-100 p-3.5 sm:p-4.5 dark:border-zinc-800">
               <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-                <h3 className="text-xs sm:text-sm tracking-[0.2em] text-zinc-400 uppercase font-medium">
-                  Пълно класиране
-                </h3>
+                <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-3">
+                  <h3 className="text-xs sm:text-sm tracking-[0.2em] text-zinc-400 uppercase font-medium shrink-0">
+                    Пълно класиране
+                  </h3>
+                  <div className="relative flex-1 max-w-xs">
+                    <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+                    <Input
+                      placeholder="Търсене на състезател..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="h-8.5 rounded-xl pl-8 text-xs dark:border-zinc-800 dark:bg-zinc-900"
+                    />
+                  </div>
+                </div>
                 <nav
                   aria-label="Категории на класирането"
                   className="no-scrollbar flex h-auto w-full flex-wrap gap-1 overflow-x-auto rounded-xl border border-zinc-100 bg-zinc-50 p-0.5 sm:h-9 sm:w-auto sm:flex-nowrap dark:border-zinc-800 dark:bg-zinc-900"
@@ -446,18 +536,44 @@ export default function RankingsClient({
                       return (
                         <TableRow
                           key={entry.memberId}
-                          className="group h-20 border-zinc-50 transition-colors hover:bg-zinc-50/50 dark:border-zinc-800/80 dark:hover:bg-zinc-900/40"
+                          id={`ranking-${entry.memberId}`}
+                          className={cn(
+                            "group h-20 border-zinc-50 transition-colors hover:bg-zinc-50/50 dark:border-zinc-800/80 dark:hover:bg-zinc-900/40",
+                            targetId === entry.memberId &&
+                              "bg-indigo-50/40 ring-2 ring-indigo-500/40 dark:bg-indigo-950/20"
+                          )}
                         >
                           <TableCell className="text-center text-xl font-light text-zinc-900 dark:text-zinc-100">
                             {getMedalEmoji(entry.position)}
                           </TableCell>
                           <TableCell>
-                            <Link
-                              href={`/members/${entry.memberId}`}
-                              className="text-[14px] font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
-                            >
-                              {entry.memberName}
-                            </Link>
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/members/${entry.memberId}`}
+                                className="text-[14px] font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-zinc-100 dark:hover:text-indigo-400"
+                              >
+                                {entry.memberName}
+                              </Link>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  handleCopyRankingLink(
+                                    entry.memberId,
+                                    entry.memberName
+                                  )
+                                }
+                                title={`Копирай директен линк към ${entry.memberName}`}
+                                aria-label={`Копирай директен линк към ${entry.memberName}`}
+                                className="size-7 rounded-lg text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                              >
+                                {copiedId === entry.memberId ? (
+                                  <Check className="size-3.5 text-emerald-500" />
+                                ) : (
+                                  <Link2 className="size-3.5" />
+                                )}
+                              </Button>
+                            </div>
                             {activeTab === "all" &&
                               entry.categoryBreakdown.length > 0 && (
                                 <div className="mt-2 flex flex-wrap gap-1">
@@ -539,7 +655,12 @@ export default function RankingsClient({
                   return (
                     <div
                       key={entry.memberId}
-                      className="flex flex-col gap-4 p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900"
+                      id={`ranking-${entry.memberId}`}
+                      className={cn(
+                        "flex flex-col gap-4 p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900",
+                        targetId === entry.memberId &&
+                          "bg-indigo-50/40 ring-2 ring-indigo-500/40 dark:bg-indigo-950/20"
+                      )}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -547,12 +668,33 @@ export default function RankingsClient({
                             {getMedalEmoji(entry.position)}
                           </div>
                           <div>
-                            <Link
-                              href={`/members/${entry.memberId}`}
-                              className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
-                            >
-                              {entry.memberName}
-                            </Link>
+                            <div className="flex items-center gap-1.5">
+                              <Link
+                                href={`/members/${entry.memberId}`}
+                                className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline dark:text-white dark:hover:text-indigo-400"
+                              >
+                                {entry.memberName}
+                              </Link>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  handleCopyRankingLink(
+                                    entry.memberId,
+                                    entry.memberName
+                                  )
+                                }
+                                title={`Копирай директен линк към ${entry.memberName}`}
+                                aria-label={`Копирай директен линк към ${entry.memberName}`}
+                                className="size-7 rounded-lg text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                              >
+                                {copiedId === entry.memberId ? (
+                                  <Check className="size-3.5 text-emerald-500" />
+                                ) : (
+                                  <Link2 className="size-3.5" />
+                                )}
+                              </Button>
+                            </div>
                             {activeTab === "all" &&
                               entry.categoryBreakdown.length > 0 && (
                                 <div className="mt-1.5 flex flex-wrap gap-1">

@@ -2,7 +2,14 @@
 
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
-import { ClipboardList, Loader2, Printer, Trash2 } from "lucide-react";
+import {
+  ClipboardList,
+  Link2,
+  Loader2,
+  Printer,
+  Search,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -10,7 +17,9 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { generateAssessmentAnalysis } from "@/lib/assessment-analysis";
 import { BADMINTON_TESTS } from "@/lib/badminton-tests";
 import { cn } from "@/lib/utils";
@@ -48,19 +57,27 @@ export default function AssessmentsClient({
 }: AssessmentsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const testParam = searchParams.get("test");
-  const assessmentParam = searchParams.get("assessment");
+  const idParam = searchParams.get("id");
+  const testParam = searchParams.get("test") || idParam;
+  const assessmentParam = searchParams.get("assessment") || idParam;
   const dateParam = searchParams.get("date");
 
   const { activeBranch } = useAppStore();
   const [selectedTest, setSelectedTest] = useState<BadmintonTest | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [printFilter, setPrintFilter] = useState<string | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [activeTab, setActiveTab] = useState<"bwf" | "history">(initialTab);
   const [members, setMembers] = useState<Member[]>([]);
   const [history, setHistory] = useState<MemberAssessment[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  useDeepLinkHighlight(
+    activeTab === "bwf" ? "test" : "assessment",
+    activeTab === "bwf" || (!isHistoryLoading && history.length > 0),
+    activeTab === "bwf" ? "test" : "assessment"
+  );
 
   useEffect(() => {
     if (initialTab) {
@@ -97,11 +114,9 @@ export default function AssessmentsClient({
   }, []);
 
   useEffect(() => {
-    if (activeTab === "history") {
-      loadHistory();
-    }
+    loadHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, activeBranch]);
+  }, [activeBranch]);
 
   const loadHistory = async () => {
     setIsHistoryLoading(true);
@@ -136,7 +151,22 @@ export default function AssessmentsClient({
   };
 
   const groupedHistory = useMemo(() => {
-    return history.reduce(
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = !q
+      ? history
+      : history.filter((curr) => {
+          const member = members.find((m) => m.id === curr.memberId);
+          const memberName = member
+            ? `${member.firstName} ${member.lastName}`.toLowerCase()
+            : "";
+          return (
+            memberName.includes(q) ||
+            (curr.testName || "").toLowerCase().includes(q) ||
+            (curr.notes || "").toLowerCase().includes(q)
+          );
+        });
+
+    return filtered.reduce(
       (acc, curr) => {
         const dateStr = curr.date.split("T")[0];
         if (!acc[dateStr]) acc[dateStr] = [];
@@ -145,7 +175,7 @@ export default function AssessmentsClient({
       },
       {} as Record<string, MemberAssessment[]>
     );
-  }, [history]);
+  }, [history, searchQuery, members]);
 
   useEffect(() => {
     const handleAfterPrint = () => {
@@ -206,7 +236,53 @@ export default function AssessmentsClient({
             );
           }}
         >
-          <div className="no-print mb-4 flex items-center justify-end gap-2">
+          <div className="no-print mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <Card className="rounded-2xl border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+              <CardContent className="p-4">
+                <p className="text-[11px] font-bold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                  Общо BWF тестове
+                </p>
+                <p className="mt-1 text-2xl font-black text-zinc-900 dark:text-white">
+                  {BADMINTON_TESTS.length}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+              <CardContent className="p-4">
+                <p className="text-[11px] font-bold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                  Възрастови групи
+                </p>
+                <p className="mt-1 text-2xl font-black text-indigo-600 dark:text-indigo-400">
+                  {ageGroups.length}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+              <CardContent className="p-4">
+                <p className="text-[11px] font-bold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                  Проведени оценявания
+                </p>
+                <p className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                  {history.length}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="no-print mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative flex-1 sm:max-w-md">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={
+                  activeTab === "bwf"
+                    ? "Търси тест по име, фокус или възраст..."
+                    : "Търси по състезател или име на тест..."
+                }
+                className="rounded-xl border-zinc-200 bg-white pl-9 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+              />
+            </div>
             {activeTab === "bwf" && (
               <Button
                 onClick={() => handlePrint("all")}
@@ -229,8 +305,15 @@ export default function AssessmentsClient({
               </div>
 
               {ageGroups.map((group) => {
+                const q = searchQuery.trim().toLowerCase();
                 const groupTests = BADMINTON_TESTS.filter(
-                  (t: BadmintonTest) => t.ageGroup === group
+                  (t: BadmintonTest) =>
+                    t.ageGroup === group &&
+                    (!q ||
+                      t.name.toLowerCase().includes(q) ||
+                      t.description.toLowerCase().includes(q) ||
+                      t.focus.toLowerCase().includes(q) ||
+                      t.ageGroup.toLowerCase().includes(q))
                 );
                 if (groupTests.length === 0) return null;
 
@@ -251,105 +334,126 @@ export default function AssessmentsClient({
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                      {groupTests.map((test: BadmintonTest) => (
-                        <div
-                          key={test.id}
-                          id={`test-${test.id}`}
-                          className={cn(
-                            "flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
-                            printFilter !== "all" &&
-                              printFilter !== test.id &&
-                              "print:hidden"
-                          )}
-                        >
-                          <div>
-                            <div className="mb-2 flex items-start justify-between">
-                              <h3 className="text-lg leading-tight font-bold dark:text-zinc-100">
-                                {test.name}
-                              </h3>
-                              <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-widest text-zinc-400 uppercase dark:bg-zinc-800">
-                                {test.source}
-                              </span>
+                      {groupTests.map((test: BadmintonTest) => {
+                        const isHighlighted = testParam === test.id;
+                        return (
+                          <div
+                            key={test.id}
+                            id={`test-${test.id}`}
+                            className={cn(
+                              "flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
+                              isHighlighted && "ring-2 ring-indigo-500",
+                              printFilter !== "all" &&
+                                printFilter !== test.id &&
+                                "print:hidden"
+                            )}
+                          >
+                            <div>
+                              <div className="mb-2 flex items-start justify-between">
+                                <h3 className="text-lg leading-tight font-bold dark:text-zinc-100">
+                                  {test.name}
+                                </h3>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-widest text-zinc-400 uppercase dark:bg-zinc-800">
+                                    {test.source}
+                                  </span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="no-print size-7 rounded-lg text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                                    onClick={() => {
+                                      const url = `${window.location.origin}${window.location.pathname}?id=${test.id}`;
+                                      void navigator.clipboard.writeText(url);
+                                      toast.success("Линкът е копиран!");
+                                    }}
+                                    title="Копирай директен линк"
+                                    aria-label="Копирай директен линк"
+                                  >
+                                    <Link2 className="size-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                                {test.description}
+                              </p>
+
+                              <div className="space-y-2 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
+                                <p>
+                                  <strong className="text-zinc-800 dark:text-zinc-200">
+                                    Оборудване:
+                                  </strong>{" "}
+                                  <span className="text-zinc-600 dark:text-zinc-400">
+                                    {test.equipment}
+                                  </span>
+                                </p>
+                                <p>
+                                  <strong className="text-zinc-800 dark:text-zinc-200">
+                                    Оценяване:
+                                  </strong>{" "}
+                                  <span className="text-zinc-600 dark:text-zinc-400">
+                                    {test.scoring}
+                                  </span>
+                                </p>
+                                <p>
+                                  <strong className="text-zinc-800 dark:text-zinc-200">
+                                    Фокус:
+                                  </strong>{" "}
+                                  <span className="text-zinc-600 dark:text-zinc-400">
+                                    {test.focus}
+                                  </span>
+                                </p>
+                              </div>
                             </div>
-                            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                              {test.description}
-                            </p>
 
-                            <div className="space-y-2 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
-                              <p>
-                                <strong className="text-zinc-800 dark:text-zinc-200">
-                                  Оборудване:
-                                </strong>{" "}
-                                <span className="text-zinc-600 dark:text-zinc-400">
-                                  {test.equipment}
-                                </span>
-                              </p>
-                              <p>
-                                <strong className="text-zinc-800 dark:text-zinc-200">
-                                  Оценяване:
-                                </strong>{" "}
-                                <span className="text-zinc-600 dark:text-zinc-400">
-                                  {test.scoring}
-                                </span>
-                              </p>
-                              <p>
-                                <strong className="text-zinc-800 dark:text-zinc-200">
-                                  Фокус:
-                                </strong>{" "}
-                                <span className="text-zinc-600 dark:text-zinc-400">
-                                  {test.focus}
-                                </span>
-                              </p>
+                            <div className="no-print mt-4 flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                              <Button
+                                onClick={() => handlePrint(test.id)}
+                                variant="ghost"
+                                className="w-full text-zinc-500 hover:text-zinc-800 sm:w-auto dark:text-zinc-400 dark:hover:text-zinc-100"
+                              >
+                                <Printer className="mr-2 size-4" />
+                                Принтирай
+                              </Button>
+                              <Button
+                                onClick={() => handleConductTest(test)}
+                                className="w-full bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100 sm:w-auto dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+                              >
+                                <ClipboardList className="mr-2 size-4" />
+                                Проведи тест
+                              </Button>
                             </div>
-                          </div>
 
-                          <div className="no-print mt-4 flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-                            <Button
-                              onClick={() => handlePrint(test.id)}
-                              variant="ghost"
-                              className="w-full text-zinc-500 hover:text-zinc-800 sm:w-auto dark:text-zinc-400 dark:hover:text-zinc-100"
-                            >
-                              <Printer className="mr-2 size-4" />
-                              Принтирай
-                            </Button>
-                            <Button
-                              onClick={() => handleConductTest(test)}
-                              className="w-full bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100 sm:w-auto dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
-                            >
-                              <ClipboardList className="mr-2 size-4" />
-                              Проведи тест
-                            </Button>
-                          </div>
-
-                          {/* Print-only empty table rows for writing results */}
-                          <div className="mt-4 hidden border-t border-zinc-200 pt-2 print:block">
-                            <table className="w-full border-collapse border border-zinc-300 text-left text-xs">
-                              <thead>
-                                <tr className="bg-zinc-100">
-                                  <th className="w-1/2 border border-zinc-300 p-1">
-                                    Име на състезател
-                                  </th>
-                                  <th className="w-1/4 border border-zinc-300 p-1">
-                                    Резултат
-                                  </th>
-                                  <th className="w-1/4 border border-zinc-300 p-1">
-                                    Бележка
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {[1, 2, 3, 4, 5, 6].map((row) => (
-                                  <tr key={row}>
-                                    <td className="border border-zinc-300 p-3"></td>
-                                    <td className="border border-zinc-300 p-3"></td>
-                                    <td className="border border-zinc-300 p-3"></td>
+                            {/* Print-only empty table rows for writing results */}
+                            <div className="mt-4 hidden border-t border-zinc-200 pt-2 print:block">
+                              <table className="w-full border-collapse border border-zinc-300 text-left text-xs">
+                                <thead>
+                                  <tr className="bg-zinc-100">
+                                    <th className="w-1/2 border border-zinc-300 p-1">
+                                      Име на състезател
+                                    </th>
+                                    <th className="w-1/4 border border-zinc-300 p-1">
+                                      Резултат
+                                    </th>
+                                    <th className="w-1/4 border border-zinc-300 p-1">
+                                      Бележка
+                                    </th>
                                   </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                                </thead>
+                                <tbody>
+                                  {[1, 2, 3, 4, 5, 6].map((row) => (
+                                    <tr key={row}>
+                                      <td className="border border-zinc-300 p-3"></td>
+                                      <td className="border border-zinc-300 p-3"></td>
+                                      <td className="border border-zinc-300 p-3"></td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );
@@ -421,11 +525,17 @@ export default function AssessmentsClient({
                             }
                           }
 
+                          const isHighlighted = assessmentParam === r.id;
+
                           return (
                             <div
                               key={r.id}
                               id={`assessment-${r.id}`}
-                              className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:px-6 dark:hover:bg-zinc-800/50"
+                              className={cn(
+                                "group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 transition-colors hover:bg-zinc-50 sm:px-6 dark:hover:bg-zinc-800/50",
+                                isHighlighted &&
+                                  "bg-indigo-50/50 ring-2 ring-indigo-500 ring-inset dark:bg-indigo-950/30"
+                              )}
                             >
                               <Link
                                 href={`/members/${r.memberId}/assessments`}
@@ -479,7 +589,22 @@ export default function AssessmentsClient({
                                 </div>
                               </Link>
 
-                              <div className="border-l border-zinc-100 pl-2 dark:border-zinc-800">
+                              <div className="flex items-center gap-1 border-l border-zinc-100 pl-2 dark:border-zinc-800">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    const url = `${window.location.origin}${window.location.pathname}?id=${r.id}`;
+                                    void navigator.clipboard.writeText(url);
+                                    toast.success("Линкът е копиран!");
+                                  }}
+                                  className="text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                                  title="Копирай директен линк"
+                                  aria-label="Копирай директен линк"
+                                >
+                                  <Link2 className="size-4" />
+                                </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -489,6 +614,7 @@ export default function AssessmentsClient({
                                   }}
                                   className="text-zinc-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40"
                                   title="Изтрий резултата"
+                                  aria-label="Изтрий резултата"
                                 >
                                   <Trash2 className="size-4" />
                                 </Button>

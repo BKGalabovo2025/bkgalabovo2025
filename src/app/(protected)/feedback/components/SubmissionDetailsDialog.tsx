@@ -126,7 +126,7 @@ export function SubmissionDetailsDialog({
 
               <Badge
                 variant="outline"
-                className="border-zinc-200 font-medium text-zinc-600"
+                className="border-zinc-200 font-medium text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
               >
                 {submission.respondentRole === "parent"
                   ? "Родител"

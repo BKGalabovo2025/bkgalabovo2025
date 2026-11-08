@@ -831,7 +831,7 @@ export function DocumentTemplatesManager() {
       <div className="space-y-1.5">
         <Label
           htmlFor="template-title"
-          className="text-xs font-bold text-zinc-800"
+          className="text-xs font-bold text-zinc-800 dark:text-zinc-200"
         >
           Заглавие на документа *
         </Label>
@@ -852,7 +852,7 @@ export function DocumentTemplatesManager() {
         <div className="space-y-1.5">
           <Label
             htmlFor="template-category"
-            className="text-xs font-bold text-zinc-800"
+            className="text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             Категория
           </Label>
@@ -866,7 +866,7 @@ export function DocumentTemplatesManager() {
                 category: e.target.value as DocumentTemplateCategory,
               }))
             }
-            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950"
+            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
           >
             {Object.entries(DOCUMENT_CATEGORY_LABELS).map(([key, label]) => (
               <option key={key} value={key}>
@@ -879,7 +879,7 @@ export function DocumentTemplatesManager() {
         <div className="space-y-1.5">
           <Label
             htmlFor="template-header-type"
-            className="text-xs font-bold text-zinc-800"
+            className="text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             Официална клубна шапка с лого
           </Label>
@@ -893,7 +893,7 @@ export function DocumentTemplatesManager() {
                 headerType: e.target.value as "official_club" | "none",
               }))
             }
-            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950"
+            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
           >
             <option value="official_club">
               Включи официална клубна шапка с лого
@@ -908,7 +908,7 @@ export function DocumentTemplatesManager() {
         <div className="space-y-1.5">
           <Label
             htmlFor="template-addressee"
-            className="text-xs font-bold text-zinc-800"
+            className="text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             Адресат (ДО...)
           </Label>
@@ -927,7 +927,7 @@ export function DocumentTemplatesManager() {
         <div className="space-y-1.5">
           <Label
             htmlFor="template-salutation"
-            className="text-xs font-bold text-zinc-800"
+            className="text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             Обръщение (по избор)
           </Label>
@@ -948,7 +948,7 @@ export function DocumentTemplatesManager() {
         <div className="space-y-1.5">
           <Label
             htmlFor="template-applicant-layout"
-            className="text-xs font-bold text-zinc-800"
+            className="text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             Идентификационен блок на лицето
           </Label>
@@ -966,7 +966,7 @@ export function DocumentTemplatesManager() {
                   | "school_note",
               }))
             }
-            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950"
+            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
           >
             <option value="none">Без идентификационен блок</option>
             <option value="parent_for_child">
@@ -984,7 +984,7 @@ export function DocumentTemplatesManager() {
         <div className="space-y-1.5">
           <Label
             htmlFor="template-page-count"
-            className="text-xs font-bold text-zinc-800"
+            className="text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             Обем на документа (А4)
           </Label>
@@ -998,7 +998,7 @@ export function DocumentTemplatesManager() {
                 pageCount: Number(e.target.value),
               }))
             }
-            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950"
+            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
           >
             <option value={1}>
               1 страница А4 (стандартно за молби, декларации и бележки)
@@ -1009,15 +1009,15 @@ export function DocumentTemplatesManager() {
       </div>
 
       {/* 3. Чекбоксове / Форми на участие (динамично добавяне) */}
-      <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4 space-y-3">
+      <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4 space-y-3 dark:border-zinc-800 dark:bg-zinc-900/60">
         <div>
           <Label
             htmlFor="template-new-checkbox-label"
-            className="text-xs font-bold text-zinc-900"
+            className="text-xs font-bold text-zinc-900 dark:text-zinc-100"
           >
             Чекбоксове и форми на участие в документа
           </Label>
-          <p className="text-[11px] text-zinc-500">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
             Добавете опции за избор (напр. такси) или точки за съгласие, които
             да се показват в бланката.
           </p>
@@ -1028,13 +1028,13 @@ export function DocumentTemplatesManager() {
             {formData.checkboxes.map((chk) => (
               <div
                 key={chk.id}
-                className="flex items-center justify-between rounded-xl bg-white p-2.5 border border-zinc-200 text-xs shadow-2xs"
+                className="flex items-center justify-between rounded-xl bg-white p-2.5 border border-zinc-200 text-xs shadow-2xs dark:bg-zinc-950 dark:border-zinc-800"
               >
                 <div className="flex items-center gap-2">
-                  <span className="size-4 rounded-xs border border-zinc-400 bg-zinc-100 flex items-center justify-center text-[10px] font-bold text-zinc-800">
+                  <span className="size-4 rounded-xs border border-zinc-400 bg-zinc-100 flex items-center justify-center text-[10px] font-bold text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
                     ☑
                   </span>
-                  <span className="font-semibold text-zinc-900">
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                     {chk.label}
                   </span>
                 </div>
@@ -1043,7 +1043,7 @@ export function DocumentTemplatesManager() {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveCheckbox(chk.id)}
-                  className="h-7 px-2 text-[11px] text-rose-500 hover:bg-rose-50"
+                  className="h-7 px-2 text-[11px] text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                 >
                   <Trash2 className="size-3.5 mr-1" />
                   Премахни
@@ -1061,7 +1061,7 @@ export function DocumentTemplatesManager() {
             value={newCheckboxLabel}
             onChange={(e) => setNewCheckboxLabel(e.target.value)}
             placeholder="напр. Месечен абонамент – 1 дете (20 EUR) или Декларирам, че..."
-            className="text-xs h-9 bg-white"
+            className="text-xs h-9 bg-white dark:bg-zinc-950"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -1072,7 +1072,7 @@ export function DocumentTemplatesManager() {
           <Button
             type="button"
             onClick={handleAddCheckbox}
-            className="h-9 px-3 text-xs font-bold bg-zinc-950 text-white shrink-0 hover:bg-zinc-800"
+            className="h-9 px-3 text-xs font-bold bg-zinc-950 text-white shrink-0 hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
           >
             <Plus className="mr-1 size-3.5" />
             Добави чекбокс
@@ -1085,11 +1085,11 @@ export function DocumentTemplatesManager() {
         <div className="flex items-center justify-between">
           <Label
             htmlFor="template-content"
-            className="text-xs font-bold text-zinc-800"
+            className="text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             Текст на документа (клаузи и съдържание) *
           </Label>
-          <span className="text-[10px] text-zinc-500">
+          <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
             Използвайте маркерите по-долу за автоматично заместване
           </span>
         </div>
@@ -1109,7 +1109,7 @@ export function DocumentTemplatesManager() {
               key={item.tag}
               type="button"
               onClick={() => handleInsertTag(item.tag)}
-              className="rounded-lg bg-zinc-100 hover:bg-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-700 transition-colors"
+              className="rounded-lg bg-zinc-100 hover:bg-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-700 transition-colors dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
             >
               {item.label}
             </button>
@@ -1131,8 +1131,8 @@ export function DocumentTemplatesManager() {
       </div>
 
       {/* 5. Изисквания за подписи */}
-      <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4 space-y-2">
-        <Label className="text-xs font-bold text-zinc-900">
+      <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4 space-y-2 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <Label className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
           Кой подписва този документ?
         </Label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
@@ -1265,7 +1265,7 @@ export function DocumentTemplatesManager() {
         <div className="space-y-1.5">
           <Label
             htmlFor="template-closing-location"
-            className="text-xs font-bold text-zinc-800"
+            className="text-xs font-bold text-zinc-800 dark:text-zinc-200"
           >
             Място на издаване
           </Label>
@@ -1283,11 +1283,11 @@ export function DocumentTemplatesManager() {
           />
         </div>
 
-        <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 border border-zinc-200 mt-5">
+        <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 border border-zinc-200 mt-5 dark:bg-zinc-900 dark:border-zinc-800">
           <div className="space-y-0.5">
             <Label
               htmlFor="template-is-required-for-member"
-              className="text-xs font-bold text-zinc-900 cursor-pointer"
+              className="text-xs font-bold text-zinc-900 dark:text-zinc-100 cursor-pointer"
             >
               Показвай в досието на състезателя
             </Label>
@@ -1309,21 +1309,21 @@ export function DocumentTemplatesManager() {
       </div>
 
       {/* 7. Прикачен файл (по избор) */}
-      <div className="rounded-2xl border border-dashed border-zinc-300 p-4 bg-zinc-50/50">
+      <div className="rounded-2xl border border-dashed border-zinc-300 p-4 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/40">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="space-y-0.5">
-            <span className="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
               <Paperclip className="size-3.5 text-zinc-500" />
               Прикачен файл (оригинален PDF или Word образец)
             </span>
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
               Незадължително. Родителите и треньорите ще могат да изтеглят
               оригиналния файл.
             </p>
           </div>
 
           <label htmlFor="template-file-upload" className="cursor-pointer">
-            <div className="flex items-center gap-1.5 rounded-xl bg-white border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 transition-all shadow-xs">
+            <div className="flex items-center gap-1.5 rounded-xl bg-white border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 transition-all shadow-xs dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800">
               <Upload className="size-3.5" />
               <span>Избери файл</span>
             </div>
@@ -1340,8 +1340,8 @@ export function DocumentTemplatesManager() {
         </div>
 
         {formData.fileName && (
-          <div className="mt-3 flex items-center justify-between rounded-xl bg-white p-2.5 border border-zinc-200 text-xs">
-            <span className="font-semibold text-zinc-900 truncate">
+          <div className="mt-3 flex items-center justify-between rounded-xl bg-white p-2.5 border border-zinc-200 text-xs dark:bg-zinc-950 dark:border-zinc-800">
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
               {formData.fileName}
             </span>
             <Button
@@ -1356,7 +1356,7 @@ export function DocumentTemplatesManager() {
                   fileType: null,
                 }))
               }
-              className="h-7 text-[11px] text-rose-500 hover:bg-rose-50"
+              className="h-7 text-[11px] text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
             >
               Премахни
             </Button>
@@ -1365,6 +1365,19 @@ export function DocumentTemplatesManager() {
       </div>
     </div>
   );
+
+  const templateMetrics = {
+    total: templates.length,
+    declarations: templates.filter((t) => t.category === "declarations").length,
+    applications: templates.filter((t) => t.category === "registration").length,
+    rules: templates.filter(
+      (t) =>
+        t.category === "safety" ||
+        t.category === "internal_rules" ||
+        t.category === "termination" ||
+        t.category === "custom"
+    ).length,
+  };
 
   return (
     <div className="space-y-6">
@@ -1403,6 +1416,93 @@ export function DocumentTemplatesManager() {
             Нов документ
           </Button>
         </div>
+      </div>
+
+      {/* Interactive KPI Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("all")}
+          className={cn(
+            "text-left rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all cursor-pointer",
+            selectedCategory === "all"
+              ? "border-zinc-900 bg-white ring-2 ring-zinc-900/10 dark:border-white dark:bg-zinc-900 dark:ring-white/10"
+              : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+          )}
+        >
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            Общо шаблони
+          </span>
+          <p className="mt-1 text-xl font-bold text-zinc-950 dark:text-white">
+            {templateMetrics.total}
+          </p>
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+            Всички активни образци
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("declarations")}
+          className={cn(
+            "text-left rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all cursor-pointer",
+            selectedCategory === "declarations"
+              ? "border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-500/20 dark:border-emerald-500 dark:bg-emerald-950/30"
+              : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+          )}
+        >
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            Декларации
+          </span>
+          <p className="mt-1 text-xl font-bold text-zinc-950 dark:text-white">
+            {templateMetrics.declarations}
+          </p>
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+            За съгласие и пътуване
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("registration")}
+          className={cn(
+            "text-left rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all cursor-pointer",
+            selectedCategory === "registration"
+              ? "border-blue-600 bg-blue-50/60 ring-2 ring-blue-500/20 dark:border-blue-500 dark:bg-blue-950/30"
+              : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+          )}
+        >
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            Заявления / Съгласия
+          </span>
+          <p className="mt-1 text-xl font-bold text-zinc-950 dark:text-white">
+            {templateMetrics.applications}
+          </p>
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+            Молби за членство и картотека
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("internal_rules")}
+          className={cn(
+            "text-left rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all cursor-pointer",
+            selectedCategory === "internal_rules"
+              ? "border-purple-600 bg-purple-50/60 ring-2 ring-purple-500/20 dark:border-purple-500 dark:bg-purple-950/30"
+              : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+          )}
+        >
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            Правилници &amp; Бележки
+          </span>
+          <p className="mt-1 text-xl font-bold text-zinc-950 dark:text-white">
+            {templateMetrics.rules}
+          </p>
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+            Инструктаж и училищни бележки
+          </span>
+        </button>
       </div>
 
       {/* Filter and Search Bar */}
@@ -1494,18 +1594,18 @@ export function DocumentTemplatesManager() {
 
       {/* DIALOG: CREATE NEW TEMPLATE */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-5.5">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-5.5 bg-white dark:bg-zinc-900">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-zinc-950 text-white">
+                <span className="flex size-8 items-center justify-center rounded-xl bg-zinc-950 text-white dark:bg-zinc-800">
                   <FilePlus2 className="size-4" />
                 </span>
                 <div>
-                  <DialogTitle className="text-lg font-bold text-zinc-950">
+                  <DialogTitle className="text-lg font-bold text-zinc-950 dark:text-white">
                     Нов образец на документ
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-zinc-500">
+                  <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                     Създайте официален образец с уеднаквен стил, чекбоксове и
                     подписи.
                   </DialogDescription>
@@ -1513,15 +1613,15 @@ export function DocumentTemplatesManager() {
               </div>
 
               {/* Tab Switcher: Form vs Live Preview */}
-              <div className="flex rounded-xl bg-zinc-100 p-1 text-xs font-bold">
+              <div className="flex rounded-xl bg-zinc-100 p-1 text-xs font-bold dark:bg-zinc-800">
                 <button
                   type="button"
                   onClick={() => setDialogTab("form")}
                   className={cn(
                     "px-3 py-1 rounded-lg transition-all",
                     dialogTab === "form"
-                      ? "bg-white text-zinc-950 shadow-xs"
-                      : "text-zinc-600 hover:text-zinc-950"
+                      ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-900 dark:text-white"
+                      : "text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
                   )}
                 >
                   Редакция
@@ -1532,8 +1632,8 @@ export function DocumentTemplatesManager() {
                   className={cn(
                     "px-3 py-1 rounded-lg transition-all",
                     dialogTab === "preview"
-                      ? "bg-white text-zinc-950 shadow-xs"
-                      : "text-zinc-600 hover:text-zinc-950"
+                      ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-900 dark:text-white"
+                      : "text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
                   )}
                 >
                   Преглед на живо
@@ -1543,7 +1643,7 @@ export function DocumentTemplatesManager() {
           </DialogHeader>
 
           {errorMessage && (
-            <div className="rounded-xl bg-rose-50 p-3 text-xs text-rose-700 flex items-center gap-2 border border-rose-200 mt-2">
+            <div className="rounded-xl bg-rose-50 p-3 text-xs text-rose-700 flex items-center gap-2 border border-rose-200 mt-2 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-300">
               <AlertCircle className="size-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -1565,7 +1665,7 @@ export function DocumentTemplatesManager() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="rounded-xl bg-zinc-950 text-white text-xs font-bold h-10 px-6 hover:bg-zinc-800"
+                  className="rounded-xl bg-zinc-950 text-white text-xs font-bold h-10 px-6 hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                 >
                   {isSubmitting && (
                     <Loader2 className="mr-2 size-3.5 animate-spin" />
@@ -1576,7 +1676,7 @@ export function DocumentTemplatesManager() {
             </form>
           ) : (
             <div className="mt-4 space-y-4">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 max-h-[65vh] overflow-y-auto">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 max-h-[65vh] overflow-y-auto dark:border-zinc-800 dark:bg-zinc-950">
                 <OfficialDocumentRenderer
                   slug={formData.slug || "custom"}
                   title={formData.title || "Образец на документ"}
@@ -1610,7 +1710,7 @@ export function DocumentTemplatesManager() {
                   type="button"
                   onClick={handleCreateSubmit}
                   disabled={isSubmitting}
-                  className="rounded-xl bg-zinc-950 text-white text-xs font-bold h-10 px-6 hover:bg-zinc-800"
+                  className="rounded-xl bg-zinc-950 text-white text-xs font-bold h-10 px-6 hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                 >
                   Създай образец
                 </Button>
@@ -1622,18 +1722,18 @@ export function DocumentTemplatesManager() {
 
       {/* DIALOG: EDIT TEMPLATE */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-5.5">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-5.5 bg-white dark:bg-zinc-900">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-zinc-950 text-white">
+                <span className="flex size-8 items-center justify-center rounded-xl bg-zinc-950 text-white dark:bg-zinc-800">
                   <Edit3 className="size-4" />
                 </span>
                 <div>
-                  <DialogTitle className="text-lg font-bold text-zinc-950">
+                  <DialogTitle className="text-lg font-bold text-zinc-950 dark:text-white">
                     Редакция на образец ({formData.title})
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-zinc-500">
+                  <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                     Запазването създава нова версия v
                     {(activeTemplate?.version || 1) + 1}.
                   </DialogDescription>
@@ -1641,15 +1741,15 @@ export function DocumentTemplatesManager() {
               </div>
 
               {/* Tab Switcher: Form vs Live Preview */}
-              <div className="flex rounded-xl bg-zinc-100 p-1 text-xs font-bold">
+              <div className="flex rounded-xl bg-zinc-100 p-1 text-xs font-bold dark:bg-zinc-800">
                 <button
                   type="button"
                   onClick={() => setDialogTab("form")}
                   className={cn(
                     "px-3 py-1 rounded-lg transition-all",
                     dialogTab === "form"
-                      ? "bg-white text-zinc-950 shadow-xs"
-                      : "text-zinc-600 hover:text-zinc-950"
+                      ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-900 dark:text-white"
+                      : "text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
                   )}
                 >
                   Редакция
@@ -1660,8 +1760,8 @@ export function DocumentTemplatesManager() {
                   className={cn(
                     "px-3 py-1 rounded-lg transition-all",
                     dialogTab === "preview"
-                      ? "bg-white text-zinc-950 shadow-xs"
-                      : "text-zinc-600 hover:text-zinc-950"
+                      ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-900 dark:text-white"
+                      : "text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
                   )}
                 >
                   Преглед на живо
@@ -1671,7 +1771,7 @@ export function DocumentTemplatesManager() {
           </DialogHeader>
 
           {errorMessage && (
-            <div className="rounded-xl bg-rose-50 p-3 text-xs text-rose-700 flex items-center gap-2 border border-rose-200 mt-2">
+            <div className="rounded-xl bg-rose-50 p-3 text-xs text-rose-700 flex items-center gap-2 border border-rose-200 mt-2 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-300">
               <AlertCircle className="size-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -1693,7 +1793,7 @@ export function DocumentTemplatesManager() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="rounded-xl bg-zinc-950 text-white text-xs font-bold h-10 px-6 hover:bg-zinc-800"
+                  className="rounded-xl bg-zinc-950 text-white text-xs font-bold h-10 px-6 hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                 >
                   {isSubmitting && (
                     <Loader2 className="mr-2 size-3.5 animate-spin" />
@@ -1704,7 +1804,7 @@ export function DocumentTemplatesManager() {
             </form>
           ) : (
             <div className="mt-4 space-y-4">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 max-h-[65vh] overflow-y-auto">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 max-h-[65vh] overflow-y-auto dark:border-zinc-800 dark:bg-zinc-950">
                 <OfficialDocumentRenderer
                   slug={formData.slug || activeTemplate?.slug}
                   title={formData.title}
@@ -1738,7 +1838,7 @@ export function DocumentTemplatesManager() {
                   type="button"
                   onClick={handleEditSubmit}
                   disabled={isSubmitting}
-                  className="rounded-xl bg-zinc-950 text-white text-xs font-bold h-10 px-6 hover:bg-zinc-800"
+                  className="rounded-xl bg-zinc-950 text-white text-xs font-bold h-10 px-6 hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                 >
                   Запази версия v{(activeTemplate?.version || 1) + 1}
                 </Button>
@@ -1750,25 +1850,25 @@ export function DocumentTemplatesManager() {
 
       {/* DIALOG: PREVIEW TEMPLATE */}
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-5.5">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-5.5 bg-white dark:bg-zinc-900">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div>
-                <DialogTitle className="text-lg font-bold text-zinc-950">
+                <DialogTitle className="text-lg font-bold text-zinc-950 dark:text-white">
                   {activeTemplate?.title}
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500 mt-0.5">
+                <DialogDescription className="text-xs text-zinc-500 mt-0.5 dark:text-zinc-400">
                   Официален образец на СНЦ „Бадминтон клуб Гълъбово” (Версия v
                   {activeTemplate?.version})
                 </DialogDescription>
               </div>
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200">
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
                 Версия {activeTemplate?.version}
               </span>
             </div>
           </DialogHeader>
 
-          <div className="mt-4 rounded-2xl bg-slate-100 p-4 border border-slate-200 max-h-[65vh] overflow-y-auto">
+          <div className="mt-4 rounded-2xl bg-slate-100 p-4 border border-slate-200 max-h-[65vh] overflow-y-auto dark:bg-zinc-950 dark:border-zinc-800">
             {activeTemplate && (
               <OfficialDocumentRenderer
                 slug={activeTemplate.slug}

@@ -1223,7 +1223,7 @@ export default function AccountingClient({
             variant="outline"
             size="sm"
             onClick={handleExportExcel}
-            className="h-8 justify-center rounded-lg border-slate-200 px-2.5 text-xs"
+            className="h-8 justify-center rounded-lg border-slate-200 px-2.5 text-xs dark:border-zinc-800"
           >
             <FileDown className="mr-1.5 size-3.5" /> Excel
           </Button>

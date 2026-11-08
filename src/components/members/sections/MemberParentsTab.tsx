@@ -638,7 +638,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
                             onChange={() =>
                               handleTogglePermission(parent.id, key)
                             }
-                            className="size-3.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                            className="size-3.5 rounded border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500"
                           />
                           <span className={isChecked ? "font-semibold" : ""}>
                             {label}

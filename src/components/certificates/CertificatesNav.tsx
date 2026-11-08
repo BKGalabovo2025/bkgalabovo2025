@@ -1,5 +1,6 @@
 "use client";
 
+import { FileCheck2, Palette, Printer, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -8,8 +9,16 @@ import { cn } from "@/lib/utils";
 
 import {
   CERTIFICATE_SECTIONS,
+  type CertificateSectionId,
   getActiveCertificateSectionId,
 } from "./certificate-sections";
+
+const SECTION_ICONS: Record<CertificateSectionId, typeof UploadCloud> = {
+  issue: UploadCloud,
+  studio: Printer,
+  templates: Palette,
+  issued: FileCheck2,
+};
 
 interface CertificatesNavProps {
   className?: string;
@@ -32,9 +41,11 @@ export function CertificatesNav({
       )}
     >
       {CERTIFICATE_SECTIONS.map((section) => {
-        const Icon = section.icon;
+        const Icon = SECTION_ICONS[section.id] || section.icon;
         const isActive = activeSection === section.id;
-        const href = `/certificates/${section.pathSuffix}`;
+        const href = section.pathSuffix
+          ? `/certificates${section.pathSuffix.startsWith("/") ? section.pathSuffix : `/${section.pathSuffix}`}`
+          : "/certificates";
 
         return (
           <Link
@@ -55,7 +66,11 @@ export function CertificatesNav({
                 isActive
                   ? section.id === "issue"
                     ? "text-blue-600 dark:text-blue-400"
-                    : "text-indigo-600 dark:text-indigo-400"
+                    : section.id === "studio"
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : section.id === "templates"
+                        ? "text-purple-600 dark:text-purple-400"
+                        : "text-indigo-600 dark:text-indigo-400"
                   : "text-zinc-400 group-hover:text-zinc-600 dark:text-zinc-500 dark:group-hover:text-zinc-300"
               )}
             />

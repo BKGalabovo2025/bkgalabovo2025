@@ -469,17 +469,17 @@ export function MissingDocumentsChecklistDialog({
           ) : filteredList.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 text-center">
               <CheckCircle2 className="size-10 text-emerald-500 mb-2" />
-              <h4 className="text-sm font-bold text-zinc-900">
+              <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                 Всички състезатели са с изрядни документи!
               </h4>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 Няма открити липсващи или изтекли документи според избрания
                 филтър.
               </p>
             </div>
           ) : (
             <table className="w-full text-left text-xs">
-              <thead className="bg-zinc-50 text-[10px] font-bold uppercase tracking-wider text-zinc-500 border-b border-zinc-100 sticky top-0">
+              <thead className="bg-zinc-50 dark:bg-zinc-800/80 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 border-b border-zinc-100 dark:border-zinc-800 sticky top-0">
                 <tr>
                   <th className="py-2.5 pl-3">Състезател</th>
                   <th className="py-2.5">Медицинско свидетелство</th>
@@ -489,13 +489,13 @@ export function MissingDocumentsChecklistDialog({
                   <th className="py-2.5 pr-3 text-right">Действие</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-50">
+              <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/60">
                 {filteredList.map((item) => (
                   <tr
                     key={item.member.id}
-                    className="hover:bg-zinc-50/70 transition-colors"
+                    className="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition-colors"
                   >
-                    <td className="py-2.5 pl-3 font-bold text-zinc-900">
+                    <td className="py-2.5 pl-3 font-bold text-zinc-900 dark:text-zinc-100">
                       <div>{item.fullName}</div>
                       <div className="text-[10px] font-normal text-zinc-400">
                         {item.member.parentPhone || item.member.phone || "—"}
@@ -505,13 +505,13 @@ export function MissingDocumentsChecklistDialog({
                     {/* Medical */}
                     <td className="py-2.5">
                       {item.isMedValid ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
-                          <CheckCircle2 className="size-3 text-emerald-600" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                          <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" />
                           Валидно ({item.medDaysRemaining} дн.)
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700 border border-rose-200">
-                          <XCircle className="size-3 text-rose-600" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 text-[10px] font-bold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
+                          <XCircle className="size-3 text-rose-600 dark:text-rose-400" />
                           {item.medDaysRemaining !== null
                             ? `Изтекло (${Math.abs(item.medDaysRemaining)} дн.)`
                             : "Липсва"}
@@ -522,11 +522,11 @@ export function MissingDocumentsChecklistDialog({
                     {/* Declaration */}
                     <td className="py-2.5">
                       {item.hasDeclaration ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                           ✓ Налична
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700 border border-rose-200">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 text-[10px] font-bold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
                           ❌ Липсва
                         </span>
                       )}
@@ -535,11 +535,11 @@ export function MissingDocumentsChecklistDialog({
                     {/* Travel */}
                     <td className="py-2.5">
                       {item.hasTravel ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                           ✓ Налично
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
                           ⏳ Липсва
                         </span>
                       )}
@@ -548,11 +548,11 @@ export function MissingDocumentsChecklistDialog({
                     {/* Safety */}
                     <td className="py-2.5">
                       {item.hasSafety ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                           ✓ Приет
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-500">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
                           Не е приет
                         </span>
                       )}
@@ -569,7 +569,7 @@ export function MissingDocumentsChecklistDialog({
                             setQuickSendDocType("signedDeclaration");
                             setQuickSendOpen(true);
                           }}
-                          className="h-7 rounded-lg border-emerald-200 bg-emerald-50 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100"
+                          className="h-7 rounded-lg border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
                         >
                           <Send className="size-3 mr-1" />
                           Декларация
@@ -583,7 +583,7 @@ export function MissingDocumentsChecklistDialog({
                             setQuickSendDocType("travelDeclaration");
                             setQuickSendOpen(true);
                           }}
-                          className="h-7 rounded-lg border-blue-200 bg-blue-50 text-[11px] font-bold text-blue-800 hover:bg-blue-100"
+                          className="h-7 rounded-lg border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-[11px] font-bold text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
                         >
                           <Send className="size-3 mr-1" />
                           Пътуване
@@ -593,7 +593,7 @@ export function MissingDocumentsChecklistDialog({
                           href={`/members/${item.member.id}/documents`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[11px] text-zinc-500 hover:text-zinc-900 font-semibold inline-flex items-center gap-1"
+                          className="text-[11px] text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 font-semibold inline-flex items-center gap-1"
                         >
                           Досие <ExternalLink className="size-3" />
                         </a>

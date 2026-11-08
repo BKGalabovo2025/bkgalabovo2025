@@ -1,11 +1,8 @@
 "use client";
 
 import {
-  Activity,
-  Contact as FamilyIcon,
   PlusCircle,
   RefreshCw,
-  UserCog,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +23,11 @@ import { useAuth } from "@/context/auth-context";
 import { useFamilies } from "@/hooks/useFamilies";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
+
+import {
+  getActiveMemberListSectionId,
+  MEMBER_LIST_SECTIONS,
+} from "./member-list-sections";
 
 export interface MembersTabCounts {
   all: number;
@@ -52,8 +54,9 @@ export function MembersNavHeader({ counts }: MembersNavHeaderProps) {
   // Динамичен брой семейства от useFamilies, ако не е подаден от сървъра
   const familiesCount = counts?.families ?? families.length;
 
-  const NAV_TABS = [
+  const ALL_NAV_TABS = [
     {
+      id: "all" as const,
       href: "/members",
       label: "Всички",
       icon: Users,
@@ -62,41 +65,25 @@ export function MembersNavHeader({ counts }: MembersNavHeaderProps) {
       description:
         "Пълен регистър на всички състезатели, клиенти на зоната и гости.",
     },
-    {
-      href: "/members/club",
-      label: "Клубни членове",
-      icon: Users,
-      count: counts?.club,
+    ...MEMBER_LIST_SECTIONS.map((sec) => ({
+      id: sec.id,
+      href: sec.href,
+      label: sec.label,
+      icon: sec.icon,
+      count:
+        sec.id === "families"
+          ? familiesCount
+          : counts?.[sec.id as keyof MembersTabCounts],
       exact: false,
-      description:
-        "Картотекирани състезатели на Бадминтон Клуб Гълъбово с възрастови групи.",
-    },
-    {
-      href: "/members/recovery",
-      label: "Зона Възстановяване",
-      icon: Activity,
-      count: counts?.recovery,
-      exact: false,
-      description:
-        "Клиенти на Recovery Zone by ZM със здравни досиета и процедури.",
-    },
-    {
-      href: "/members/guests",
-      label: "Външни / Гости",
-      icon: UserCog,
-      count: counts?.guests,
-      exact: false,
-      description: "Любители и почасови играчи без постоянна клубна картотека.",
-    },
-    {
-      href: "/members/families",
-      label: "Семейства",
-      icon: FamilyIcon,
-      count: familiesCount,
-      exact: false,
-      description: "Обединени семейни профили със споделени такси и отстъпки.",
-    },
+      description: sec.description,
+    })),
   ];
+
+  const NAV_TABS = isRecoveryBranch
+    ? ALL_NAV_TABS.filter((t) => t.id === "recovery" || t.id === "all")
+    : ALL_NAV_TABS;
+
+  const activeSectionId = getActiveMemberListSectionId(pathname);
 
   // Backward compatibility: пренасочване от стар URL с ?tab= към съответната подстраница
   useEffect(() => {
@@ -222,9 +209,12 @@ export function MembersNavHeader({ counts }: MembersNavHeaderProps) {
         <div className="sticky top-0 z-20 -mx-1 p-1 bg-background/80 backdrop-blur-md transition-all">
           <div className="no-scrollbar flex h-auto w-full flex-nowrap gap-1 overflow-x-auto rounded-xl border border-zinc-200/80 bg-zinc-100/70 p-1 sm:inline-flex sm:w-fit dark:border-zinc-800 dark:bg-zinc-900/70">
             {NAV_TABS.map((tab) => {
-              const isActive = tab.exact
-                ? pathname === tab.href
-                : pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+              const isActive =
+                activeSectionId === tab.id ||
+                (tab.exact
+                  ? pathname === tab.href
+                  : pathname === tab.href ||
+                    pathname.startsWith(`${tab.href}/`));
               const Icon = tab.icon;
 
               return (

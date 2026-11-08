@@ -373,7 +373,7 @@ export function RecoverySessionForm({
                     <div
                       key={zone}
                       onClick={() => handleZoneToggle(zone)}
-                      className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all ${zones.includes(zone) ? "border-cyan-600 bg-cyan-600 text-white" : "border-zinc-100 bg-zinc-50 text-zinc-700 hover:bg-zinc-100"}`}
+                      className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all ${zones.includes(zone) ? "border-cyan-600 bg-cyan-600 text-white" : "border-zinc-100 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"}`}
                     >
                       <Checkbox
                         checked={zones.includes(zone)}
@@ -392,7 +392,7 @@ export function RecoverySessionForm({
                 <input type="hidden" name="zones" value={zones.join(",")} />
               </div>
 
-              <div className="space-y-6 border-t border-zinc-50 pt-6">
+              <div className="space-y-6 border-t border-zinc-50 pt-6 dark:border-zinc-800">
                 <div className="flex items-center gap-2">
                   <p className="ml-1 text-sm font-medium text-zinc-500">
                     Необходими ресурси за сесията
@@ -420,7 +420,7 @@ export function RecoverySessionForm({
                             parseInt(e.target.value) || 0
                           )
                         }
-                        className="h-12 rounded-xl bg-zinc-50"
+                        className="h-12 rounded-xl bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                       />
                       <span className="text-[10px] whitespace-nowrap text-zinc-300 uppercase">
                         от {siteInventory?.compressors || "?"} налични
@@ -445,7 +445,7 @@ export function RecoverySessionForm({
                             parseInt(e.target.value) || 0
                           )
                         }
-                        className="h-12 rounded-xl bg-zinc-50"
+                        className="h-12 rounded-xl bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                       />
                       <span className="text-[10px] whitespace-nowrap text-zinc-300 uppercase">
                         от {siteInventory?.attachments?.legs || "?"} налични
@@ -470,7 +470,7 @@ export function RecoverySessionForm({
                             parseInt(e.target.value) || 0
                           )
                         }
-                        className="h-12 rounded-xl bg-zinc-50"
+                        className="h-12 rounded-xl bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                       />
                       <span className="text-[10px] whitespace-nowrap text-zinc-300 uppercase">
                         от {siteInventory?.attachments?.arms || "?"} налични
@@ -495,7 +495,7 @@ export function RecoverySessionForm({
                             parseInt(e.target.value) || 0
                           )
                         }
-                        className="h-12 rounded-xl bg-zinc-50"
+                        className="h-12 rounded-xl bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                       />
                       <span className="text-[10px] whitespace-nowrap text-zinc-300 uppercase">
                         от {siteInventory?.attachments?.hips || "?"} налични
@@ -503,7 +503,7 @@ export function RecoverySessionForm({
                     </div>
                   </div>
                 </div>
-                <p className="rounded-xl border border-amber-100/50 bg-amber-50 p-3 text-[11px] text-amber-600">
+                <p className="rounded-xl border border-amber-100/50 bg-amber-50 p-3 text-[11px] text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300">
                   Тези ресурси ще се блокират автоматично при резервация.
                   Уверете се, че съответстват на избраните зони.
                 </p>
@@ -536,7 +536,7 @@ export function RecoverySessionForm({
                       className={`relative aspect-video cursor-pointer overflow-hidden rounded-2xl border-2 transition-all ${
                         isSelected
                           ? "border-amber-500 shadow-md ring-2 ring-amber-500/20"
-                          : "border-zinc-200 hover:border-amber-300"
+                          : "border-zinc-200 hover:border-amber-300 dark:border-zinc-800"
                       }`}
                     >
                       <Image
@@ -557,7 +557,7 @@ export function RecoverySessionForm({
               </div>
 
               {imageUrl ? (
-                <div className="space-y-4 border-t border-zinc-100 pt-6">
+                <div className="space-y-4 border-t border-zinc-100 pt-6 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
                       Избрани снимки (
@@ -568,7 +568,7 @@ export function RecoverySessionForm({
                       variant="ghost"
                       size="sm"
                       onClick={() => setImageUrl("")}
-                      className="text-red-650 h-8 rounded-lg px-3 text-xs font-medium hover:bg-red-50 hover:text-red-700"
+                      className="text-red-650 h-8 rounded-lg px-3 text-xs font-medium hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40"
                     >
                       Премахни всички
                     </Button>
@@ -580,7 +580,7 @@ export function RecoverySessionForm({
                       .map((path: string, index: number, arr: string[]) => (
                         <div
                           key={path}
-                          className="group relative aspect-video overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm"
+                          className="group relative aspect-video overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
                         >
                           <Image
                             src={path}
@@ -608,18 +608,18 @@ export function RecoverySessionForm({
 
               {/* Display Mode Toggle */}
               {imageUrl && imageUrl.split(",").filter(Boolean).length > 1 && (
-                <div className="space-y-4 border-t border-zinc-100 pt-6">
+                <div className="space-y-4 border-t border-zinc-100 pt-6 dark:border-zinc-800">
                   <p className="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
                     Режим на показване
                   </p>
-                  <div className="flex rounded-xl border border-zinc-100 bg-zinc-50 p-1">
+                  <div className="flex rounded-xl border border-zinc-100 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900">
                     <button
                       type="button"
                       onClick={() => setImageDisplayMode("collage")}
                       className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
                         imageDisplayMode === "collage"
-                          ? "border border-zinc-200 bg-white text-zinc-900 shadow-sm"
-                          : "text-zinc-500 hover:text-zinc-700"
+                          ? "border border-zinc-200 bg-white text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                          : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                       }`}
                     >
                       Колаж (Обединени)
@@ -629,8 +629,8 @@ export function RecoverySessionForm({
                       onClick={() => setImageDisplayMode("carousel")}
                       className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
                         imageDisplayMode === "carousel"
-                          ? "border border-zinc-200 bg-white text-zinc-900 shadow-sm"
-                          : "text-zinc-500 hover:text-zinc-700"
+                          ? "border border-zinc-200 bg-white text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                          : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                       }`}
                     >
                       Въртележка

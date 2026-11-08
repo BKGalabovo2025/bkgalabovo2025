@@ -145,12 +145,12 @@ export function ViewSignedDocumentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto p-0 sm:rounded-2xl border-zinc-200 bg-zinc-100 font-sans">
+      <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto p-0 sm:rounded-2xl border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-950 font-sans">
         {/* Modal Top Bar (Non-printable) */}
-        <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2.5 border-b border-zinc-200/80 bg-white/95 px-4 py-2.5 sm:px-5 sm:py-3 backdrop-blur-md print:hidden">
+        <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2.5 border-b border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 px-4 py-2.5 sm:px-5 sm:py-3 backdrop-blur-md print:hidden">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                 Официален клубен документ
               </span>
               <span
@@ -159,12 +159,12 @@ export function ViewSignedDocumentDialog({
                 {validityBadge.label}
               </span>
             </div>
-            <h2 className="text-base font-bold text-zinc-950 sm:text-lg">
+            <h2 className="text-base font-bold text-zinc-950 dark:text-zinc-100 sm:text-lg">
               {currentReq.documentTitle}
             </h2>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Състезател:{" "}
-              <strong className="text-zinc-900">{currentReq.memberName}</strong>
+              <strong className="text-zinc-900 dark:text-zinc-100">{currentReq.memberName}</strong>
               {signedDateStr && ` • Подписан: ${signedDateStr} ч.`}
             </p>
           </div>
@@ -177,13 +177,13 @@ export function ViewSignedDocumentDialog({
                 size="sm"
                 disabled={isSigningPresident}
                 onClick={handleSignAsPresident}
-                className="h-9 rounded-xl border-emerald-300 bg-emerald-50/70 text-xs font-bold text-emerald-800 hover:bg-emerald-100 shadow-2xs"
+                className="h-9 rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/40 text-xs font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 shadow-2xs"
                 title="Постави електронен подпис на Председателя върху документа"
               >
                 {isSigningPresident ? (
                   <Loader2 className="mr-1.5 size-3.5 animate-spin" />
                 ) : (
-                  <PenTool className="mr-1.5 size-3.5 text-emerald-600" />
+                  <PenTool className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
                 )}
                 Подпиши като Председател
               </Button>
@@ -195,12 +195,12 @@ export function ViewSignedDocumentDialog({
               size="sm"
               disabled={isExportingPdf}
               onClick={handleDownloadPdf}
-              className="h-9 rounded-xl border-zinc-200 text-xs font-semibold hover:bg-zinc-50 shadow-2xs"
+              className="h-9 rounded-xl border-zinc-200 dark:border-zinc-700 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-2xs"
             >
               {isExportingPdf ? (
                 <Loader2 className="mr-1.5 size-3.5 animate-spin" />
               ) : (
-                <Download className="mr-1.5 size-3.5 text-zinc-600" />
+                <Download className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
               )}
               PDF Сваляне
             </Button>
@@ -209,7 +209,7 @@ export function ViewSignedDocumentDialog({
               type="button"
               size="sm"
               onClick={handlePrint}
-              className="h-9 rounded-xl bg-zinc-950 px-4 text-xs font-bold text-white shadow-md hover:bg-zinc-800"
+              className="h-9 rounded-xl bg-zinc-950 dark:bg-zinc-100 px-4 text-xs font-bold text-white dark:text-zinc-950 shadow-md hover:bg-zinc-800 dark:hover:bg-zinc-200"
             >
               <Printer className="mr-1.5 size-3.5" />
               Принтирай
@@ -221,7 +221,7 @@ export function ViewSignedDocumentDialog({
         <div className="p-4 sm:p-8">
           <div
             ref={printAreaRef}
-            className="mx-auto max-w-[210mm] overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none"
+            className="mx-auto max-w-[210mm] overflow-hidden rounded-2xl border border-zinc-200/80 dark:border-zinc-700 bg-white dark:bg-white p-6 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none"
           >
             <OfficialDocumentRenderer
               slug={currentReq.documentType}
@@ -259,7 +259,7 @@ export function ViewSignedDocumentDialog({
             />
 
             {/* Official Digital Signature Certificate Stamp */}
-            <div className="mt-8 border-t border-slate-200 pt-4 text-[7.5pt] text-slate-500 font-sans print:border-slate-400">
+            <div className="mt-8 border-t border-slate-200 dark:border-slate-200 pt-4 text-[7.5pt] text-slate-500 font-sans print:border-slate-400">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 font-medium text-slate-700">
                   <ShieldCheck className="size-3.5 text-emerald-600" />
@@ -275,7 +275,7 @@ export function ViewSignedDocumentDialog({
                 </div>
                 <div>
                   <span>Валидност на картотеката / документа: </span>
-                  <strong className="text-slate-900">
+                  <strong className="text-slate-900 dark:text-slate-900">
                     {validity?.validUntilDateStr ||
                       "края на календарната година"}
                   </strong>

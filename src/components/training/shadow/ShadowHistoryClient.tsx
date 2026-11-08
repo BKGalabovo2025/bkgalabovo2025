@@ -9,6 +9,7 @@ import {
   Flame,
   Info,
   Layers,
+  Link2,
   Search,
   Target,
   Trophy,
@@ -18,6 +19,7 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { ZoneId } from "@/lib/shadow-training/audio-map";
 import { TrainingSession } from "@/types/training.types";
 
@@ -89,7 +92,10 @@ export function ShadowHistoryClient({
 }: ShadowHistoryClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sessionParam = searchParams.get("session");
+  const sessionParam =
+    searchParams.get("id") ||
+    searchParams.get("session") ||
+    searchParams.get("sessionId");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMode, setSelectedMode] = useState<string>("all");
@@ -175,6 +181,8 @@ export function ShadowHistoryClient({
     memberNameMap,
     referenceTimestamp,
   ]);
+
+  useDeepLinkHighlight("session", filteredSessions.length > 0, "session");
 
   // Overall Statistics
   const totalStats = useMemo(() => {
@@ -476,12 +484,15 @@ export function ShadowHistoryClient({
                   minutes > 0
                     ? `${minutes} мин ${seconds} сек`
                     : `${seconds} сек`;
+                const isHighlighted = sessionParam === session.id;
 
                 return (
                   <Card
                     key={session.id}
                     id={`session-${session.id}`}
-                    className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-xs transition-all hover:border-blue-400 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
+                    className={`overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-xs transition-all hover:border-blue-400 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 ${
+                      isHighlighted ? "ring-2 ring-indigo-500" : ""
+                    }`}
                   >
                     <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                       {/* Left: Info */}
@@ -550,6 +561,22 @@ export function ShadowHistoryClient({
                         </div>
 
                         <div className="flex items-center gap-1.5">
+                          {session.id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const url = `${window.location.origin}${window.location.pathname}?id=${session.id}`;
+                                void navigator.clipboard.writeText(url);
+                                toast.success("Линкът е копиран!");
+                              }}
+                              className="size-9 rounded-xl text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                              title="Копирай директен линк"
+                              aria-label="Копирай директен линк"
+                            >
+                              <Link2 className="size-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"

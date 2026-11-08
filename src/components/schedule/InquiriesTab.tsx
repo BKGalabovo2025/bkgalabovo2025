@@ -3,10 +3,12 @@
 import {
   Archive,
   Calendar,
+  Check,
   CheckCircle2,
   Edit3,
   HelpCircle,
   Inbox,
+  Link2,
   Loader2,
   Phone,
   RefreshCw,
@@ -16,6 +18,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -94,6 +97,8 @@ export function InquiriesTab({
   focusId = null,
 }: InquiriesTabProps) {
   const { idToken } = useAuth();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { activeBranch } = useAppStore();
   const isRecovery = activeBranch === "recoveryzone";
   const siteId = isRecovery ? "recoveryzone" : "all";
@@ -107,6 +112,25 @@ export function InquiriesTab({
   >(initialSource);
   const [searchQuery, setSearchQuery] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const effectiveFocusId =
+    focusId || searchParams.get("id") || searchParams.get("inquiryId");
+
+  const handleCopyInquiryLink = (inquiryId: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${pathname}?id=${inquiryId}`;
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setCopiedId(inquiryId);
+        toast.success("Директният линк към запитването е копиран!");
+        setTimeout(() => setCopiedId(null), 2500);
+      })
+      .catch(() => {
+        toast.error("Неуспешно копиране на линк.");
+      });
+  };
 
   // Edit & Delete modal states
   const [editingInquiry, setEditingInquiry] = useState<EventInquiry | null>(
@@ -152,13 +176,13 @@ export function InquiriesTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idToken, siteId]);
 
-  // Дълбок линк ?inquiryId=... – превъртане до записа след зареждане.
+  // Дълбок линк ?id=... / ?inquiryId=... – превъртане до записа след зареждане.
   useEffect(() => {
-    if (!focusId || isLoading) return;
+    if (!effectiveFocusId || isLoading) return;
     document
-      .getElementById(`inquiry-${focusId}`)
+      .getElementById(`inquiry-${effectiveFocusId}`)
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [focusId, isLoading]);
+  }, [effectiveFocusId, isLoading]);
 
   const handleUpdateStatus = async (id: string, newStatus: InquiryStatus) => {
     if (!idToken) return;
@@ -429,10 +453,22 @@ export function InquiriesTab({
                 </span>
               </>
             );
+            const resolvedHref = buildStatusHref
+              ? (() => {
+                  const base = buildStatusHref(
+                    item.key as InquiryStatus | "all"
+                  );
+                  if (sourceFilter !== "all" && !base.includes("source=")) {
+                    const sep = base.includes("?") ? "&" : "?";
+                    return `${base}${sep}source=${sourceFilter}`;
+                  }
+                  return base;
+                })()
+              : "";
             return buildStatusHref ? (
               <Link
                 key={item.key}
-                href={buildStatusHref(item.key as InquiryStatus | "all")}
+                href={resolvedHref}
                 aria-current={statusFilter === item.key ? "page" : undefined}
                 className={itemClass}
               >
@@ -513,7 +549,7 @@ export function InquiriesTab({
               <Card
                 key={inq.id}
                 id={`inquiry-${inq.id}`}
-                className={`overflow-hidden rounded-3xl border-zinc-200 bg-white transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 ${inq.id === focusId ? "ring-2 ring-primary" : ""}`}
+                className={`overflow-hidden rounded-3xl border-zinc-200 bg-white transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 ${inq.id === effectiveFocusId ? "ring-2 ring-primary" : ""}`}
               >
                 <CardContent className="p-6">
                   {/* Card Header: Event Title + Status Badge & Source Badge */}
@@ -553,12 +589,28 @@ export function InquiriesTab({
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <Badge
                         className={`shrink-0 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${config.bg} ${config.text} ${config.border}`}
                       >
                         {config.label}
                       </Badge>
+                      {inq.id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleCopyInquiryLink(inq.id!)}
+                          className="size-8 rounded-xl text-zinc-400 hover:bg-zinc-100 hover:text-blue-600 dark:hover:bg-zinc-800 dark:hover:text-blue-400"
+                          title="Копирай директен линк към запитването"
+                          aria-label="Копирай директен линк към запитването"
+                        >
+                          {copiedId === inq.id ? (
+                            <Check className="size-4 text-emerald-500" />
+                          ) : (
+                            <Link2 className="size-4" />
+                          )}
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -568,6 +620,7 @@ export function InquiriesTab({
                         }}
                         className="size-8 rounded-xl text-zinc-400 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                         title="Редактирай запитване"
+                        aria-label="Редактирай запитване"
                       >
                         <Edit3 className="size-4 text-blue-500" />
                       </Button>

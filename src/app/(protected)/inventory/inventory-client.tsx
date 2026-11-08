@@ -1,13 +1,26 @@
 "use client";
 
-import { Edit, Loader2, Plus, Trash2 } from "lucide-react";
+import {
+  Box,
+  Check,
+  Edit,
+  Layers,
+  Link2,
+  Loader2,
+  Package,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import {
   INVENTORY_SECTIONS,
   type InventorySectionId,
 } from "@/components/inventory/inventory-sections";
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -27,6 +40,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
+import { cn } from "@/lib/utils";
 import { inventoryService } from "@/services/inventory-service";
 import { useAppStore } from "@/store/use-app-store";
 import { AllocationType, InventoryItem } from "@/types/inventory.types";
@@ -34,6 +49,9 @@ import { AllocationType, InventoryItem } from "@/types/inventory.types";
 interface InventoryMobileCardProps {
   item: InventoryItem;
   allocationText: string;
+  isHighlighted?: boolean;
+  isCopied?: boolean;
+  onCopyLink: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -41,11 +59,22 @@ interface InventoryMobileCardProps {
 function InventoryMobileCard({
   item,
   allocationText,
+  isHighlighted,
+  isCopied,
+  onCopyLink,
   onEdit,
   onDelete,
 }: InventoryMobileCardProps) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+    <div
+      id={`item-${item.id}`}
+      className={cn(
+        "rounded-2xl border bg-white p-4 shadow-xs transition-all dark:bg-zinc-950",
+        isHighlighted
+          ? "border-indigo-500 ring-2 ring-indigo-500/40 bg-indigo-50/10 dark:border-indigo-400 dark:bg-indigo-950/20"
+          : "border-zinc-200 dark:border-zinc-800"
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <h3 className="font-semibold text-zinc-900 dark:text-white">
@@ -63,7 +92,24 @@ function InventoryMobileCard({
         <Button
           variant="outline"
           size="sm"
+          onClick={onCopyLink}
+          title="Копирай директен линк към уреда"
+          aria-label="Копирай директен линк към уреда"
+          className="h-8 gap-1.5 rounded-lg text-xs text-zinc-600 hover:text-indigo-600 dark:text-zinc-400"
+        >
+          {isCopied ? (
+            <Check className="size-3.5 text-emerald-600" />
+          ) : (
+            <Link2 className="size-3.5" />
+          )}
+          Линк
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onEdit}
+          title="Редактирай уред"
+          aria-label="Редактирай уред"
           className="h-8 gap-1.5 rounded-lg text-xs text-zinc-600 hover:text-indigo-600 dark:text-zinc-400"
         >
           <Edit className="size-3.5" />
@@ -73,6 +119,8 @@ function InventoryMobileCard({
           variant="ghost"
           size="sm"
           onClick={onDelete}
+          title="Изтрий уред"
+          aria-label="Изтрий уред"
           className="h-8 gap-1.5 rounded-lg text-xs text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
         >
           <Trash2 className="size-3.5" />
@@ -93,9 +141,27 @@ export default function InventoryClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const itemIdParam = searchParams.get("itemId");
+  const highlightIdParam = searchParams.get("id") || itemIdParam;
   const deepLinkHandled = useRef(false);
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [isFetching, setIsFetching] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyLink = (item: InventoryItem) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${pathname}?id=${item.id}`;
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setCopiedId(item.id);
+        toast.success(`Директният линк за "${item.name}" е копиран!`);
+        setTimeout(() => setCopiedId(null), 2500);
+      })
+      .catch(() => {
+        toast.error("Неуспешно копиране на линк.");
+      });
+  };
 
   // Form State
   const [isFormOpen, setIsFormOpen] = useState(
@@ -232,9 +298,31 @@ export default function InventoryClient({
 
   const sectionAllocation =
     INVENTORY_SECTIONS.find((s) => s.id === section)?.allocationType ?? null;
-  const visibleItems = sectionAllocation
-    ? items.filter((i) => i.allocationType === sectionAllocation)
-    : items;
+
+  const visibleItems = useMemo(() => {
+    const base = sectionAllocation
+      ? items.filter((i) => i.allocationType === sectionAllocation)
+      : items;
+    if (!searchQuery.trim()) return base;
+    const q = searchQuery.toLowerCase().trim();
+    return base.filter((i) => i.name.toLowerCase().includes(q));
+  }, [items, sectionAllocation, searchQuery]);
+
+  const kpiStats = useMemo(() => {
+    const totalItems = items.length;
+    const totalUnits = items.reduce(
+      (sum, i) => sum + (Number(i.totalQuantity) || 0),
+      0
+    );
+    const categoriesCount = new Set(items.map((i) => i.allocationType)).size;
+    return { totalItems, totalUnits, categoriesCount };
+  }, [items]);
+
+  useDeepLinkHighlight(
+    "item",
+    !isFetching && visibleItems.length > 0,
+    "itemId"
+  );
 
   if (isFetching) {
     return (
@@ -246,10 +334,66 @@ export default function InventoryClient({
 
   return (
     <div className="space-y-6">
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <BentoCard className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Общо артикули
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-zinc-900 dark:text-white">
+              {kpiStats.totalItems}
+            </p>
+          </div>
+          <div className="rounded-xl bg-indigo-500/10 p-2 text-indigo-600 dark:text-indigo-400">
+            <Package className="size-4" />
+          </div>
+        </BentoCard>
+
+        <BentoCard className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Налични бройки
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-emerald-600 dark:text-emerald-400">
+              {kpiStats.totalUnits} бр.
+            </p>
+          </div>
+          <div className="rounded-xl bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400">
+            <Box className="size-4" />
+          </div>
+        </BentoCard>
+
+        <BentoCard className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Категории
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-blue-600 dark:text-blue-400">
+              {kpiStats.categoriesCount}
+            </p>
+          </div>
+          <div className="rounded-xl bg-blue-500/10 p-2 text-blue-600 dark:text-blue-400">
+            <Layers className="size-4" />
+          </div>
+        </BentoCard>
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-lg font-bold text-zinc-800 dark:text-zinc-100">
-          Списък с уреди ({visibleItems.length})
-        </h2>
+        <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-3">
+          <h2 className="text-lg font-bold text-zinc-800 dark:text-zinc-100">
+            Списък с уреди ({visibleItems.length})
+          </h2>
+          <div className="relative flex-1 max-w-sm">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+            <Input
+              placeholder="Търсене на уред..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 rounded-xl pl-9 text-xs dark:border-zinc-800 dark:bg-zinc-900"
+            />
+          </div>
+        </div>
         <Button
           onClick={() => handleOpenForm()}
           className="w-full sm:w-auto gap-2 bg-indigo-600 text-white hover:bg-indigo-700"
@@ -266,6 +410,9 @@ export default function InventoryClient({
             key={item.id}
             item={item}
             allocationText={getAllocationText(item)}
+            isHighlighted={highlightIdParam === item.id}
+            isCopied={copiedId === item.id}
+            onCopyLink={() => handleCopyLink(item)}
             onEdit={() => handleOpenForm(item)}
             onDelete={() => handleDelete(item.id)}
           />
@@ -291,7 +438,7 @@ export default function InventoryClient({
               <TableHead className="dark:text-zinc-400">
                 Правило за разпределение (в Станции)
               </TableHead>
-              <TableHead className="w-24 text-right dark:text-zinc-400">
+              <TableHead className="w-32 text-right dark:text-zinc-400">
                 Действия
               </TableHead>
             </TableRow>
@@ -301,7 +448,11 @@ export default function InventoryClient({
               <TableRow
                 key={item.id}
                 id={`item-${item.id}`}
-                className="dark:border-zinc-800"
+                className={cn(
+                  "dark:border-zinc-800",
+                  highlightIdParam === item.id &&
+                    "bg-indigo-50/40 ring-2 ring-indigo-500/40 dark:bg-indigo-950/20"
+                )}
               >
                 <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
                   {item.name}
@@ -315,11 +466,27 @@ export default function InventoryClient({
                   {getAllocationText(item)}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyLink(item)}
+                      title={`Копирай директен линк към ${item.name}`}
+                      aria-label={`Копирай директен линк към ${item.name}`}
+                      className="text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400"
+                    >
+                      {copiedId === item.id ? (
+                        <Check className="size-4 text-emerald-600" />
+                      ) : (
+                        <Link2 className="size-4" />
+                      )}
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleOpenForm(item)}
+                      title={`Редактирай ${item.name}`}
+                      aria-label={`Редактирай ${item.name}`}
                       className="text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400"
                     >
                       <Edit className="size-4" />
@@ -328,6 +495,8 @@ export default function InventoryClient({
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDelete(item.id)}
+                      title={`Изтрий ${item.name}`}
+                      aria-label={`Изтрий ${item.name}`}
                       className="text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400"
                     >
                       <Trash2 className="size-4" />

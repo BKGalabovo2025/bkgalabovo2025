@@ -40,7 +40,7 @@ interface MemberSalesHistoryTableRowProps {
 function getBadgeClass(variant: string) {
   if (variant === "default") return "bg-emerald-500 text-white";
   if (variant === "secondary") return "bg-amber-500 text-white";
-  return "bg-zinc-100 text-zinc-400 border-zinc-100";
+  return "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 border-zinc-100 dark:border-zinc-800";
 }
 
 export function MemberSalesHistoryTableRow({
@@ -66,14 +66,14 @@ export function MemberSalesHistoryTableRow({
   return (
     <TableRow
       onClick={() => handleRowClick(sale.id, sale.isPaid, sale.type)}
-      className="group cursor-pointer border-zinc-50 transition-all hover:bg-zinc-50/50"
+      className="group cursor-pointer border-zinc-50 dark:border-zinc-800/60 transition-all hover:bg-zinc-50/50 dark:hover:bg-zinc-900/40"
     >
       <TableCell className="py-4 pl-5 whitespace-nowrap">
         {formatSaleDateCell(sale)}
       </TableCell>
       <TableCell className="max-w-75 py-4">
         <div
-          className="text-xs leading-tight font-medium wrap-break-word text-zinc-900"
+          className="text-xs leading-tight font-medium wrap-break-word text-zinc-900 dark:text-zinc-100"
           title={itemsList}
         >
           {itemsList}
@@ -84,7 +84,7 @@ export function MemberSalesHistoryTableRow({
           </div>
         )}
         {sale.memberId !== memberId && familyMembers && (
-          <div className="mt-0.5 text-[9px] font-medium text-amber-600">
+          <div className="mt-0.5 text-[9px] font-medium text-amber-600 dark:text-amber-400">
             За: {familyMember?.firstName || "Семейство"}{" "}
             {familyMember?.lastName || ""}
           </div>
@@ -126,7 +126,7 @@ export function MemberSalesHistoryTableRow({
           {statusDetails.text}
         </Badge>
       </TableCell>
-      <TableCell className="py-4 text-right text-xs font-medium text-zinc-950">
+      <TableCell className="py-4 text-right text-xs font-medium text-zinc-950 dark:text-zinc-100">
         {formatPrice(sale.totalAmount)}
       </TableCell>
       <TableCell
@@ -140,7 +140,7 @@ export function MemberSalesHistoryTableRow({
                 aria-haspopup="true"
                 size="icon"
                 variant="ghost"
-                className="size-7 rounded-lg text-zinc-400 hover:text-zinc-950"
+                className="size-7 rounded-lg text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100"
               >
                 <MoreHorizontal className="size-3.5" />
                 <span className="sr-only">Toggle menu</span>
@@ -148,7 +148,7 @@ export function MemberSalesHistoryTableRow({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="rounded-xl border-zinc-100 shadow-none"
+              className="rounded-xl border-zinc-100 dark:border-zinc-800 shadow-none"
               onClick={(e) => e.stopPropagation()}
             >
               <DropdownMenuItem
@@ -160,22 +160,22 @@ export function MemberSalesHistoryTableRow({
               {sale.isPaid ? (
                 <DropdownMenuItem
                   onSelect={() => handleMarkAsUnpaid(sale.id)}
-                  className="py-1.5 text-[10px] font-medium tracking-widest text-rose-500 uppercase hover:bg-rose-50 hover:text-rose-600"
+                  className="py-1.5 text-[10px] font-medium tracking-widest text-rose-500 uppercase hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
                 >
                   Отмени плащането
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem
                   onSelect={() => handleMarkAsPaid(sale.id)}
-                  className="py-1.5 text-[10px] font-medium tracking-widest text-emerald-500 uppercase hover:bg-emerald-50 hover:text-emerald-600"
+                  className="py-1.5 text-[10px] font-medium tracking-widest text-emerald-500 uppercase hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600"
                 >
                   Маркирай като платено
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator className="bg-zinc-100" />
+              <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
               <DropdownMenuItem
                 onSelect={() => handleDeleteSale(sale.id)}
-                className="py-1.5 text-[10px] font-medium tracking-widest text-red-500 uppercase hover:bg-red-50 hover:text-red-600"
+                className="py-1.5 text-[10px] font-medium tracking-widest text-red-500 uppercase hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600"
               >
                 Изтрий запис
               </DropdownMenuItem>

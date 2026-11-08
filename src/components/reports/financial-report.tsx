@@ -109,10 +109,24 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
 
   const handleRowClick = (
     saleId: string,
-    _isPaid?: boolean,
-    _type?: string
+    isPaid?: boolean,
+    type?: string
   ) => {
-    router.push(`/sales/${saleId}`);
+    if (saleId.startsWith("camp-")) {
+      router.push("/camps");
+      return;
+    }
+    if (isPaid) {
+      if (type === "general_service") {
+        router.push(`/finances/general-services/sales/${saleId}/receipt`);
+      } else if (type === "inventory") {
+        router.push(`/inventory/sales/${saleId}/receipt`);
+      } else {
+        router.push(`/sales/${saleId}/receipt`);
+      }
+    } else {
+      router.push(`/sales/${saleId}`);
+    }
   };
 
   const handleEdit = (saleId: string, type?: string) => {

@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowLeft, Pencil, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Link2, Pencil, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,7 @@ function getFinancialStatusLabel(
 
 export function MemberProfileHeader() {
   const router = useRouter();
+  const [copiedLink, setCopiedLink] = useState(false);
   const {
     member,
     fullName,
@@ -48,6 +50,18 @@ export function MemberProfileHeader() {
     avatarUrl,
     initials,
   } = useMemberProfileContext();
+
+  const handleCopyProfileLink = () => {
+    if (typeof window === "undefined") return;
+    navigator.clipboard
+      .writeText(window.location.href)
+      .then(() => {
+        setCopiedLink(true);
+        toast.success("Директният линк към досието е копиран!");
+        setTimeout(() => setCopiedLink(false), 2000);
+      })
+      .catch(() => toast.info(`Линк: ${window.location.href}`));
+  };
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -71,6 +85,31 @@ export function MemberProfileHeader() {
           </Tooltip>
 
           <div className="flex w-full items-center gap-2.5 sm:w-auto">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCopyProfileLink}
+                  title="Копирай директен линк към досието"
+                  className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-[11px] font-semibold tracking-wider text-zinc-700 uppercase shadow-2xs transition-all hover:bg-zinc-50 hover:text-zinc-950 sm:h-11 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                >
+                  {copiedLink ? (
+                    <Check
+                      className="mr-2 size-4 text-emerald-600"
+                      strokeWidth={1.75}
+                    />
+                  ) : (
+                    <Link2 className="mr-2 size-4" strokeWidth={1.75} />
+                  )}
+                  Копирай линк
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Копирай директен линк към досието</p>
+              </TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

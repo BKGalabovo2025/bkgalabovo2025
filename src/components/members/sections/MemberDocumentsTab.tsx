@@ -117,23 +117,23 @@ const DocumentRow = ({
   const pendingClass =
     pendingVariant === "danger"
       ? "bg-rose-500 text-white border-rose-500 hover:bg-rose-600"
-      : "bg-zinc-950 text-white border-zinc-950 hover:bg-zinc-800";
+      : "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 border-zinc-950 dark:border-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200";
 
   return (
-    <div className="flex flex-col items-start justify-between gap-4 rounded-3xl border border-zinc-100/50 bg-zinc-50/50 p-5 sm:gap-6 sm:rounded-4xl sm:p-8 lg:flex-row lg:items-center">
+    <div className="flex flex-col items-start justify-between gap-4 rounded-3xl border border-zinc-100/50 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-5 sm:gap-6 sm:rounded-4xl sm:p-8 lg:flex-row lg:items-center">
       <div className="flex w-full items-center gap-4 sm:gap-6">
         <div
           className={cn(
             "shrink-0 rounded-xl p-3 sm:rounded-2xl sm:p-4",
             isCompleted
-              ? "bg-zinc-950 text-white"
-              : "border border-zinc-100 bg-white text-zinc-300"
+              ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950"
+              : "border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-300 dark:text-zinc-600"
           )}
         >
           <IconComponent className="size-5 sm:size-6" strokeWidth={1.5} />
         </div>
         <div className="min-w-0 flex-1">
-          <h4 className="tracking-widest2 mb-1 truncate text-[10px] font-medium text-zinc-950 uppercase sm:text-[11px]">
+          <h4 className="tracking-widest2 mb-1 truncate text-[10px] font-medium text-zinc-950 dark:text-zinc-100 uppercase sm:text-[11px]">
             {title}
           </h4>
           <div className="line-clamp-2 text-xs font-light text-zinc-400 sm:text-sm">
@@ -146,12 +146,12 @@ const DocumentRow = ({
         {onViewSignature && (
           <Button
             variant="outline"
-            className="h-10 flex-1 rounded-lg border-emerald-300 bg-emerald-50/60 px-3 text-[9px] font-bold tracking-wider text-emerald-800 uppercase transition-all hover:bg-emerald-100 hover:text-emerald-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
+            className="h-10 flex-1 rounded-lg border-emerald-300 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/40 px-3 text-[9px] font-bold tracking-wider text-emerald-800 dark:text-emerald-300 uppercase transition-all hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:text-emerald-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
             onClick={onViewSignature}
             title="Прегледай положения електронен подпис"
           >
             <Eye
-              className="mr-1.5 size-3.5 sm:size-4 text-emerald-600"
+              className="mr-1.5 size-3.5 sm:size-4 text-emerald-600 dark:text-emerald-400"
               strokeWidth={2}
             />
             Подпис
@@ -161,12 +161,12 @@ const DocumentRow = ({
         {onViewFile && (
           <Button
             variant="outline"
-            className="h-10 flex-1 rounded-lg border-sky-300 bg-sky-50/60 px-3 text-[9px] font-bold tracking-wider text-sky-800 uppercase transition-all hover:bg-sky-100 hover:text-sky-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
+            className="h-10 flex-1 rounded-lg border-sky-300 dark:border-sky-800 bg-sky-50/60 dark:bg-sky-950/40 px-3 text-[9px] font-bold tracking-wider text-sky-800 dark:text-sky-300 uppercase transition-all hover:bg-sky-100 dark:hover:bg-sky-900/50 hover:text-sky-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
             onClick={onViewFile}
             title="Прегледай прикачения документ"
           >
             <Eye
-              className="mr-1.5 size-3.5 sm:size-4 text-sky-600"
+              className="mr-1.5 size-3.5 sm:size-4 text-sky-600 dark:text-sky-400"
               strokeWidth={2}
             />
             Виж файл
@@ -176,12 +176,12 @@ const DocumentRow = ({
         {onUploadFile && (
           <Button
             variant="outline"
-            className="h-10 flex-1 rounded-lg border-zinc-200 bg-zinc-50/60 px-3 text-[9px] font-semibold tracking-wider text-zinc-700 uppercase transition-all hover:bg-zinc-100 hover:text-zinc-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
+            className="h-10 flex-1 rounded-lg border-zinc-200 dark:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-900/60 px-3 text-[9px] font-semibold tracking-wider text-zinc-700 dark:text-zinc-300 uppercase transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
             onClick={onUploadFile}
             title="Прикачи скан или снимка на документ"
           >
             <Upload
-              className="mr-1.5 size-3.5 sm:size-4 text-zinc-600"
+              className="mr-1.5 size-3.5 sm:size-4 text-zinc-600 dark:text-zinc-400"
               strokeWidth={2}
             />
             Качи файл
@@ -191,12 +191,12 @@ const DocumentRow = ({
         {onGenerateLink && (
           <Button
             variant="outline"
-            className="h-10 flex-1 rounded-lg border-emerald-200/80 bg-emerald-50/40 px-3 text-[9px] font-semibold tracking-wider text-emerald-800 uppercase transition-all hover:bg-emerald-100 hover:text-emerald-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
+            className="h-10 flex-1 rounded-lg border-emerald-200/80 dark:border-emerald-800/60 bg-emerald-50/40 dark:bg-emerald-950/30 px-3 text-[9px] font-semibold tracking-wider text-emerald-800 dark:text-emerald-300 uppercase transition-all hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:text-emerald-900 sm:h-11 sm:rounded-xl sm:px-4 sm:text-[10px] lg:flex-none"
             onClick={onGenerateLink}
             title="Генерирай линк за родител"
           >
             <LinkIcon
-              className="mr-1.5 size-3.5 sm:size-4 text-emerald-600"
+              className="mr-1.5 size-3.5 sm:size-4 text-emerald-600 dark:text-emerald-400"
               strokeWidth={2}
             />
             Линк
@@ -204,7 +204,7 @@ const DocumentRow = ({
         )}
         <Button
           variant="outline"
-          className="h-10 flex-1 rounded-lg border-zinc-100 px-4 text-[9px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-950 hover:text-white sm:h-11 sm:rounded-xl sm:px-6 sm:text-[10px] lg:flex-none"
+          className="h-10 flex-1 rounded-lg border-zinc-100 dark:border-zinc-800 px-4 text-[9px] font-medium tracking-widest uppercase transition-all hover:bg-zinc-950 hover:text-white dark:hover:bg-zinc-100 dark:hover:text-zinc-950 sm:h-11 sm:rounded-xl sm:px-6 sm:text-[10px] lg:flex-none"
           onClick={onPrint}
         >
           <Printer className="mr-2 size-3.5 sm:size-4" strokeWidth={1.5} />
@@ -213,7 +213,7 @@ const DocumentRow = ({
         <Button
           variant="outline"
           className={cn(
-            "h-10 flex-1 rounded-lg border-zinc-100 px-4 text-[9px] font-medium tracking-widest uppercase transition-all sm:h-11 sm:rounded-xl sm:px-6 sm:text-[10px] lg:flex-none",
+            "h-10 flex-1 rounded-lg border-zinc-100 dark:border-zinc-800 px-4 text-[9px] font-medium tracking-widest uppercase transition-all sm:h-11 sm:rounded-xl sm:px-6 sm:text-[10px] lg:flex-none",
             !isCompleted && pendingClass
           )}
           onClick={onToggle}
@@ -235,7 +235,7 @@ function completedText(
   const validity = rawIsoDate ? getCalendarYearValidity(rawIsoDate) : null;
   return (
     <span className="flex flex-wrap items-center gap-2">
-      <span className="font-medium text-emerald-600">
+      <span className="font-medium text-emerald-600 dark:text-emerald-400">
         {label} {date}
       </span>
       {validity && (
@@ -243,15 +243,15 @@ function completedText(
           className={cn(
             "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border",
             validity.isExpired
-              ? "bg-rose-50 text-rose-700 border-rose-200"
-              : "bg-emerald-50 text-emerald-700 border-emerald-200"
+              ? "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/60"
+              : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60"
           )}
         >
           {validity.badgeText}
         </span>
       )}
       {validity?.isExpired && (
-        <span className="text-[10px] font-semibold text-rose-600">
+        <span className="text-[10px] font-semibold text-rose-600 dark:text-rose-400">
           (Изисква подновяване за {validity.currentYear} г.!)
         </span>
       )}
@@ -415,11 +415,11 @@ function getMedicalStatus(
         )}
         {member.medicalCertificateUrl && (
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-            <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-200">
+            <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 dark:bg-sky-950/40 px-2 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60">
               📎 Прикачен скан/файл
             </span>
             {isPendingReview && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
+              <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
                 ⏳ Качен от родител (очаква преглед)
               </span>
             )}
@@ -1068,7 +1068,7 @@ export const MemberDocumentsTab = ({
   );
 
   return (
-    <div className="space-y-4 rounded-3xl border border-zinc-100 bg-white p-4 sm:space-y-6 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
+    <div className="space-y-4 rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 sm:space-y-6 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
       <DocumentRow
         icon={FileText}
         isCompleted={!!member.hasMembershipApplication}
@@ -1367,25 +1367,25 @@ export const MemberDocumentsTab = ({
       ))}
 
       {declarations.length > 0 && (
-        <div className="mt-12 border-t border-zinc-100 pt-8">
-          <h3 className="mb-6 text-lg font-bold text-zinc-900">
+        <div className="mt-12 border-t border-zinc-100 dark:border-zinc-800 pt-8">
+          <h3 className="mb-6 text-lg font-bold text-zinc-900 dark:text-zinc-100">
             Подписани Декларации (Recovery Zone)
           </h3>
           <div className="space-y-4">
             {declarations.map((decl) => (
               <div
                 key={decl.id}
-                className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-zinc-100/50 bg-zinc-50/50 p-5 sm:flex-row sm:items-center sm:p-6"
+                className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-zinc-100/50 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-5 sm:flex-row sm:items-center sm:p-6"
               >
                 <div className="flex items-center gap-4">
-                  <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
+                  <div className="rounded-xl bg-blue-50 dark:bg-blue-950/40 p-3 text-blue-600 dark:text-blue-400">
                     <CheckCircle className="size-5" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <h4 className="mb-1 text-sm font-bold text-zinc-900">
+                    <h4 className="mb-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">
                       Декларация за информирано съгласие
                     </h4>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
                       Подписана на:{" "}
                       {new Date(decl.signedAt).toLocaleDateString("bg-BG")} в{" "}
                       {new Date(decl.signedAt).toLocaleTimeString("bg-BG", {
@@ -1398,7 +1398,7 @@ export const MemberDocumentsTab = ({
                 <div className="flex w-full shrink-0 gap-2 sm:w-auto">
                   <Button
                     variant="outline"
-                    className="h-10 flex-1 rounded-xl border-zinc-200 px-6 text-xs font-medium transition-all hover:bg-zinc-950 hover:text-white sm:flex-none"
+                    className="h-10 flex-1 rounded-xl border-zinc-200 dark:border-zinc-700 px-6 text-xs font-medium transition-all hover:bg-zinc-950 hover:text-white dark:hover:bg-zinc-100 dark:hover:text-zinc-950 sm:flex-none"
                     onClick={() =>
                       window.open(`/print-declaration/${decl.id}`, "_blank")
                     }
@@ -1408,7 +1408,7 @@ export const MemberDocumentsTab = ({
                   </Button>
                   <Button
                     variant="ghost"
-                    className="h-10 shrink-0 rounded-xl border border-transparent px-3 text-red-500 transition-all hover:border-red-100 hover:bg-red-50 hover:text-red-600"
+                    className="h-10 shrink-0 rounded-xl border border-transparent px-3 text-red-500 transition-all hover:border-red-100 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600"
                     onClick={() => handleDeleteDeclaration(decl.id)}
                   >
                     <Trash2 className="size-4" strokeWidth={1.5} />
@@ -1446,17 +1446,17 @@ export const MemberDocumentsTab = ({
 
       {/* Admin Medical Certificate Upload Modal */}
       <Dialog open={isMedicalModalOpen} onOpenChange={handleMedicalModalChange}>
-        <DialogContent className="max-w-md rounded-3xl p-5 sm:p-6 bg-white shadow-xl">
+        <DialogContent className="max-w-md rounded-3xl p-5 sm:p-6 bg-white dark:bg-zinc-950 dark:border-zinc-800 shadow-xl">
           <DialogHeader className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="flex size-8 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+              <span className="flex size-8 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
                 <Stethoscope className="size-4" />
               </span>
-              <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950">
+              <DialogTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-zinc-100">
                 Прикачи медицинско свидетелство
               </DialogTitle>
             </div>
-            <DialogDescription className="text-xs text-zinc-500">
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
               Качете скан или снимка на издаденото от лекар медицинско
               удостоверение за {member.name}.
             </DialogDescription>
@@ -1464,7 +1464,7 @@ export const MemberDocumentsTab = ({
 
           <div className="space-y-4 pt-2">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-800">
+              <label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
                 Дата на медицинския преглед (по печат):
               </label>
               <Input
@@ -1479,17 +1479,17 @@ export const MemberDocumentsTab = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-800">
+              <label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
                 Файл (снимка или PDF):
               </label>
               <Input
                 type="file"
                 accept="image/*,application/pdf"
                 onChange={handleMedicalFileChange}
-                className="h-10 rounded-xl text-xs cursor-pointer file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-xs file:font-semibold"
+                className="h-10 rounded-xl text-xs cursor-pointer file:rounded-lg file:border-0 file:bg-zinc-100 dark:file:bg-zinc-800 file:px-3 file:py-1 file:text-xs file:font-semibold"
               />
               {medicalFileName && (
-                <p className="text-xs font-semibold text-emerald-600 truncate">
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 truncate">
                   ✓ Избран: {medicalFileName}
                 </p>
               )}
@@ -1508,7 +1508,7 @@ export const MemberDocumentsTab = ({
                 type="button"
                 disabled={!medicalFileBase64 || isUploadingMedical}
                 onClick={handleSaveMedicalCertificate}
-                className="h-10 rounded-xl bg-zinc-950 text-white text-xs font-bold hover:bg-zinc-800"
+                className="h-10 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 text-xs font-bold hover:bg-zinc-800 dark:hover:bg-zinc-200"
               >
                 {isUploadingMedical ? (
                   <>

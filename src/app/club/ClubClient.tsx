@@ -577,11 +577,7 @@ export default function ClubClient({
               </p>
             </div>
             <Link
-              href={
-                activeTab === "all"
-                  ? "/club/schedule"
-                  : `/club/schedule?tab=${activeTab}`
-              }
+              href="/club/schedule"
               className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-blue-400 uppercase transition-colors hover:text-blue-300 hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
             >
               Пълен Календар <ArrowRight size={14} />
@@ -604,7 +600,7 @@ export default function ClubClient({
                 <span
                   className={`py-0.2 rounded-full px-1.5 text-[10px] font-extrabold ${
                     activeTab === "all"
-                      ? "bg-zinc-300 text-zinc-900"
+                      ? "bg-zinc-300 text-zinc-900 dark:bg-zinc-300 dark:text-zinc-900"
                       : "bg-zinc-800 text-zinc-400"
                   }`}
                 >

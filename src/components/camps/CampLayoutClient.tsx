@@ -122,7 +122,7 @@ export function CampLayoutClient({ children }: CampLayoutClientProps) {
                     href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(camp.location || "ММЦ Приморско")}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="pointer-events-auto inline-flex items-center gap-1 rounded-md bg-white/90 px-2 py-0.5 text-[9px] font-bold text-zinc-900 shadow-xs hover:bg-white"
+                    className="pointer-events-auto inline-flex items-center gap-1 rounded-md bg-white/90 px-2 py-0.5 text-[9px] font-bold text-zinc-900 shadow-xs hover:bg-white dark:bg-zinc-900/90 dark:text-zinc-100 dark:hover:bg-zinc-900"
                   >
                     <span>Навигация</span>
                     <ExternalLink size={8} />

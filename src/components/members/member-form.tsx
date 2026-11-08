@@ -294,7 +294,7 @@ export const MemberForm = ({
                 variant="outline"
                 onClick={handlePrevStep}
                 disabled={isSubmitting}
-                className="flex h-11 items-center gap-2 rounded-xl border-zinc-200 px-6 text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase hover:bg-zinc-50 sm:h-12 sm:text-[11px]"
+                className="flex h-11 items-center gap-2 rounded-xl border-zinc-200 dark:border-zinc-800 px-6 text-[10px] font-medium tracking-[0.2em] text-zinc-500 dark:text-zinc-400 uppercase hover:bg-zinc-50 dark:hover:bg-zinc-900 sm:h-12 sm:text-[11px]"
               >
                 <ArrowLeft className="size-4" strokeWidth={1.5} /> Назад
               </Button>
@@ -304,7 +304,7 @@ export const MemberForm = ({
                 variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="flex h-11 items-center gap-2 rounded-xl border-zinc-200 px-6 text-[10px] font-medium tracking-[0.2em] text-zinc-500 uppercase hover:bg-zinc-50 sm:h-12 sm:text-[11px]"
+                className="flex h-11 items-center gap-2 rounded-xl border-zinc-200 dark:border-zinc-800 px-6 text-[10px] font-medium tracking-[0.2em] text-zinc-500 dark:text-zinc-400 uppercase hover:bg-zinc-50 dark:hover:bg-zinc-900 sm:h-12 sm:text-[11px]"
               >
                 <X className="size-4" strokeWidth={1.5} /> Отказ
               </Button>
@@ -320,7 +320,7 @@ export const MemberForm = ({
                   handleNextStep();
                 }}
                 disabled={isSubmitting}
-                className="flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-8 text-[10px] font-medium tracking-[0.2em] text-white uppercase hover:bg-zinc-900 sm:h-12 sm:text-[11px]"
+                className="flex h-11 items-center gap-2 rounded-xl bg-zinc-950 dark:bg-zinc-100 px-8 text-[10px] font-medium tracking-[0.2em] text-white dark:text-zinc-950 uppercase hover:bg-zinc-900 dark:hover:bg-zinc-200 sm:h-12 sm:text-[11px]"
               >
                 Напред <ArrowRight className="size-4" strokeWidth={1.5} />
               </Button>

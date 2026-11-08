@@ -101,7 +101,7 @@ const UnifiedSaleWizardContent = () => {
                 variant="outline"
                 onClick={handlePrevStep}
                 disabled={isProcessing}
-                className="h-9 rounded-xl px-3.5 text-xs font-semibold tracking-wider uppercase shadow-sm hover:bg-zinc-50"
+                className="h-9 rounded-xl px-3.5 text-xs font-semibold tracking-wider uppercase shadow-sm hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
               >
                 <ArrowLeft className="mr-1.5 size-3.5" />
                 Назад

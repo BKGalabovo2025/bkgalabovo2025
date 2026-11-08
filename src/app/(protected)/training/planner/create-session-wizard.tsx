@@ -559,20 +559,23 @@ const ExerciseItemCard = ({
   onAddToBlock,
 }: ExerciseItemCardProps) => {
   return (
-    <div className="group rounded-lg border border-zinc-200 bg-zinc-50 p-2 transition-colors hover:border-indigo-300">
+    <div className="group rounded-lg border border-zinc-200 bg-zinc-50 p-2 transition-colors hover:border-indigo-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-700">
       <div className="flex items-start justify-between">
         <div className="w-full">
-          <h4 className="text-xs leading-tight font-semibold text-zinc-800">
+          <h4 className="text-xs leading-tight font-semibold text-zinc-800 dark:text-zinc-100">
             {exercise.name}
           </h4>
           <div className="mt-1 flex flex-wrap items-center gap-1">
             <Badge
               variant="outline"
-              className="bg-white px-1 text-[9px] text-zinc-500"
+              className="bg-white px-1 text-[9px] text-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400"
             >
               {exercise.durationMinutes} мин
             </Badge>
-            <Badge variant="secondary" className="bg-white px-1 text-[9px]">
+            <Badge
+              variant="secondary"
+              className="bg-white px-1 text-[9px] dark:bg-zinc-800 dark:text-zinc-300"
+            >
               {exercise.category}
             </Badge>
           </div>
@@ -651,14 +654,14 @@ const SessionBlockItemCard = ({
   return (
     <div
       className={cn(
-        "group relative rounded-lg border bg-white p-3 shadow-sm transition-colors hover:border-indigo-300",
+        "group relative rounded-lg border bg-white p-3 shadow-sm transition-colors hover:border-indigo-300 dark:bg-zinc-900 dark:hover:border-indigo-700",
         item.type === "station"
-          ? "border-amber-200 bg-amber-50"
-          : "border-zinc-200"
+          ? "border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30"
+          : "border-zinc-200 dark:border-zinc-800"
       )}
     >
       <div className="mb-2 flex items-start justify-between">
-        <div className="pr-6 text-sm font-medium text-zinc-900">
+        <div className="pr-6 text-sm font-medium text-zinc-900 dark:text-zinc-100">
           {item.type === "exercise"
             ? item.exercise?.name
             : "🔄 Станционна Ротация (Успоредно изпълнение)"}
@@ -674,7 +677,7 @@ const SessionBlockItemCard = ({
       </div>
 
       {item.type === "station" && (
-        <div className="mb-2 space-y-1 rounded border border-amber-100 bg-white/50 p-2 text-xs text-zinc-600">
+        <div className="mb-2 space-y-1 rounded border border-amber-100 bg-white/50 p-2 text-xs text-zinc-600 dark:border-amber-900/40 dark:bg-zinc-950/50 dark:text-zinc-300">
           {item.rotations?.map((r, i) => {
             const g =
               groups.find((grp) => grp.id === r.groupId)?.name || "Група";
@@ -690,7 +693,7 @@ const SessionBlockItemCard = ({
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className="border-amber-200 bg-white text-[10px] text-amber-700"
+                    className="border-amber-200 bg-white text-[10px] text-amber-700 dark:border-amber-800 dark:bg-zinc-900 dark:text-amber-300"
                   >
                     {g}
                   </Badge>
@@ -701,7 +704,7 @@ const SessionBlockItemCard = ({
                 </div>
 
                 {shortages.length > 0 && (
-                  <div className="flex items-center gap-1 rounded border border-red-100 bg-red-50 p-1 text-[10px] text-red-600">
+                  <div className="flex items-center gap-1 rounded border border-red-100 bg-red-50 p-1 text-[10px] text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
                     <AlertTriangle className="size-3 shrink-0" />
                     <span>
                       Внимание:{" "}
@@ -721,10 +724,10 @@ const SessionBlockItemCard = ({
         </div>
       )}
 
-      <div className="mt-2 flex items-center gap-1 rounded bg-zinc-900/5 px-2 py-1">
+      <div className="mt-2 flex items-center gap-1 rounded bg-zinc-900/5 px-2 py-1 dark:bg-zinc-800/60">
         <Input
           type="number"
-          className="h-7 w-16 bg-white text-xs"
+          className="h-7 w-16 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
           value={item.durationMinutes}
           onChange={(e) =>
             onUpdateDuration(phase, item.id, parseInt(e.target.value) || 0)
@@ -737,7 +740,7 @@ const SessionBlockItemCard = ({
             value={item.targetGroupId || "none"}
             onValueChange={(v) => onUpdateTargetGroup(phase, item.id, v)}
           >
-            <SelectTrigger className="ml-2 h-7 w-30 bg-white text-xs">
+            <SelectTrigger className="ml-2 h-7 w-30 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
               <SelectValue placeholder="За всички" />
             </SelectTrigger>
             <SelectContent>
@@ -792,7 +795,7 @@ const InventorySelectionSection = ({
 
   if (globalInventory.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-xs text-zinc-500">
+      <div className="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-xs text-zinc-500 dark:border-zinc-800">
         Няма въведено оборудване в модул Инвентар за този клон. Тренировката ще
         използва стандартните клубни уреди.
       </div>
@@ -801,10 +804,10 @@ const InventorySelectionSection = ({
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3 dark:border-zinc-800">
         <div className="text-xs text-zinc-500">
           Избрани:{" "}
-          <span className="font-bold text-indigo-600">
+          <span className="font-bold text-indigo-600 dark:text-indigo-400">
             {Object.keys(sessionInventory).length}
           </span>{" "}
           от {globalInventory.length} уреда
@@ -815,7 +818,7 @@ const InventorySelectionSection = ({
             variant="outline"
             size="sm"
             onClick={handleSelectAll}
-            className="h-7 border-indigo-200 bg-indigo-50/50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+            className="h-7 border-indigo-200 bg-indigo-50/50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300"
           >
             ✓ Маркирай всичко ({globalInventory.length} бр.)
           </Button>
@@ -824,7 +827,7 @@ const InventorySelectionSection = ({
             variant="ghost"
             size="sm"
             onClick={handleClearAll}
-            className="h-7 text-xs text-zinc-500 hover:text-zinc-800"
+            className="h-7 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
           >
             Размаркирай всичко
           </Button>
@@ -841,8 +844,8 @@ const InventorySelectionSection = ({
               className={cn(
                 "flex items-center justify-between rounded-lg border p-3 transition-colors",
                 isSelected
-                  ? "border-indigo-200 bg-indigo-50/30"
-                  : "border-zinc-200 bg-zinc-50 opacity-60"
+                  ? "border-indigo-200 bg-indigo-50/30 dark:border-indigo-800 dark:bg-indigo-950/30"
+                  : "border-zinc-200 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900"
               )}
             >
               <label className="flex flex-1 cursor-pointer items-center gap-3">
@@ -864,7 +867,7 @@ const InventorySelectionSection = ({
                   }}
                 />
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-zinc-900">
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                     {item.name}
                   </span>
                   <span className="text-[10px] text-zinc-500">
@@ -1412,10 +1415,10 @@ function SessionStep3ScheduleBlock({
   return (
     <div className="border-l-4 border-indigo-500 py-2 pl-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="font-semibold text-zinc-800">
+        <span className="font-semibold text-zinc-800 dark:text-zinc-200">
           {getPhaseName(block.phase)}
         </span>
-        <span className="text-sm font-bold text-indigo-600">
+        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
           {currentTotal} мин
         </span>
       </div>
@@ -1424,7 +1427,7 @@ function SessionStep3ScheduleBlock({
           {block.items.map((item) => (
             <li
               key={item.id}
-              className="flex justify-between text-sm text-zinc-600"
+              className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400"
             >
               <span>
                 {item.type === "exercise"
@@ -1537,8 +1540,8 @@ function SessionStep3Summary({
         )}
       </div>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-lg font-bold text-zinc-800">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <h3 className="mb-4 text-lg font-bold text-zinc-800 dark:text-zinc-100">
           Преглед на графика
         </h3>
         <div className="space-y-4">

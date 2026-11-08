@@ -1312,7 +1312,7 @@ export function UploadVoucherTab({
                               : "border-zinc-200 bg-white opacity-60 dark:border-zinc-800 dark:bg-zinc-900"
                           }`}
                         >
-                          <div className="relative size-5 shrink-0 rounded bg-white p-0.5 shadow-xs">
+                          <div className="relative size-5 shrink-0 rounded bg-white p-0.5 shadow-xs dark:bg-zinc-800">
                             <Image
                               src={s.logoUrl}
                               alt={s.name}
@@ -2168,7 +2168,7 @@ export function UploadVoucherTab({
                   <iframe
                     src={previewUrl}
                     title="PDF Fullscreen"
-                    className="h-[65vh] w-full rounded-xl border border-zinc-200 bg-white"
+                    className="h-[65vh] w-full rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
                   />
                 ) : (
                   <div className="flex w-full items-center justify-center">

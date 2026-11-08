@@ -104,7 +104,7 @@ export function DateSelectorField({
               >
                 <SelectTrigger
                   aria-label={`${label} - Година`}
-                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                 >
                   <SelectValue placeholder="Година" />
                 </SelectTrigger>
@@ -125,7 +125,7 @@ export function DateSelectorField({
               >
                 <SelectTrigger
                   aria-label={`${label} - Месец`}
-                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                 >
                   <SelectValue placeholder="Месец" />
                 </SelectTrigger>
@@ -148,7 +148,7 @@ export function DateSelectorField({
               >
                 <SelectTrigger
                   aria-label={`${label} - Ден`}
-                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                 >
                   <SelectValue placeholder="Ден" />
                 </SelectTrigger>

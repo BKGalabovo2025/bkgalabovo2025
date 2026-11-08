@@ -4,7 +4,6 @@ import React from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { ReportsNav } from "@/components/reports/ReportsNav";
-import { BentoCard } from "@/components/ui/bento-card";
 
 interface ReportsLayoutClientProps {
   children: React.ReactNode;
@@ -26,9 +25,7 @@ export function ReportsLayoutClient({ children }: ReportsLayoutClientProps) {
         <ReportsNav />
       </div>
 
-      <BentoCard className="overflow-hidden border-none bg-white p-3 sm:p-5 shadow-2xs rounded-2xl dark:bg-zinc-900/60 dark:border dark:border-zinc-800/80">
-        <div className="duration-300 animate-in fade-in-50">{children}</div>
-      </BentoCard>
+      <div className="duration-300 animate-in fade-in-50">{children}</div>
     </div>
   );
 }

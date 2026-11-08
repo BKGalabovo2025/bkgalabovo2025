@@ -1,9 +1,13 @@
 "use client";
 
-import { Clock, Eye } from "lucide-react";
-import React from "react";
+import { Check, Clock, Eye, Link2, Search } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 
 import { useParentAdminContext } from "../ParentAdminContext";
 
@@ -15,6 +19,42 @@ export function ParentActivitySectionView() {
     isParentOnline,
     members,
   } = useParentAdminContext();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const filteredParents = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return parents;
+    return parents.filter((p) => {
+      const nameMatch = (p.name || "").toLowerCase().includes(q);
+      const phoneMatch = (p.phone || "").toLowerCase().includes(q);
+      const emailMatch = (p.email || "").toLowerCase().includes(q);
+      const actionMatch = (p.lastAction || "").toLowerCase().includes(q);
+      const matchedMembers = members.filter((m) =>
+        p.linkedMemberIds?.includes(m.id)
+      );
+      const childMatch = matchedMembers.some((m) =>
+        (m.fullName || "").toLowerCase().includes(q)
+      );
+      return nameMatch || phoneMatch || emailMatch || actionMatch || childMatch;
+    });
+  }, [parents, members, searchQuery]);
+
+  useDeepLinkHighlight("activity", filteredParents.length > 0);
+
+  const handleCopyLink = (id: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopiedId(id);
+        toast.success("Директният линк към записа е копиран!");
+        setTimeout(() => setCopiedId(null), 2000);
+      })
+      .catch(() => toast.info(`Линк: ${url}`));
+  };
 
   return (
     <div className="space-y-6">
@@ -92,7 +132,7 @@ export function ParentActivitySectionView() {
             <h4 className="text-sm font-bold uppercase text-zinc-900 dark:text-white flex items-center gap-2">
               <span>Статус на профилите &amp; Последен вход</span>
               <Badge variant="outline" className="text-xs">
-                {parents.length} регистрирани родители
+                {filteredParents.length} / {parents.length} родители
               </Badge>
             </h4>
             <p className="text-xs text-zinc-500 mt-0.5">
@@ -100,13 +140,25 @@ export function ParentActivitySectionView() {
               последният му успешен вход в системата.
             </p>
           </div>
+
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
+            <Input
+              id="parent-activity-search"
+              name="parentActivitySearch"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Търси по родител, дете или телефон..."
+              className="h-8 rounded-xl pl-8 text-xs"
+            />
+          </div>
         </div>
 
-        {parents.length === 0 ? (
+        {filteredParents.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-zinc-200 p-10 text-center dark:border-zinc-800">
             <Clock size={36} className="mx-auto text-zinc-400 opacity-60" />
             <h5 className="mt-2 text-sm font-bold text-zinc-900 dark:text-white">
-              Няма регистрирани родители
+              Няма намерени родители
             </h5>
             <p className="mt-1 text-xs text-zinc-500 max-w-sm mx-auto">
               След одобряване на родителски заявки или ръчно добавяне, тук ще
@@ -115,7 +167,7 @@ export function ParentActivitySectionView() {
           </div>
         ) : (
           <div className="space-y-3">
-            {parents
+            {filteredParents
               .slice()
               .sort((a, b) => {
                 const aOnline = isParentOnline(a) ? 1 : 0;
@@ -139,6 +191,7 @@ export function ParentActivitySectionView() {
                 return (
                   <div
                     key={p.id}
+                    id={`activity-${p.id}`}
                     className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border p-4 text-xs transition-all ${
                       online
                         ? "border-emerald-300 bg-emerald-50/40 shadow-xs dark:border-emerald-800/80 dark:bg-emerald-950/20"
@@ -197,45 +250,62 @@ export function ParentActivitySectionView() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:items-end gap-1 shrink-0 text-[11px]">
-                      {online ? (
-                        <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
-                          <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
-                          <span>
-                            Последно: {p.lastAction || "Активен в портала"}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex flex-col sm:items-end gap-1 text-[11px]">
+                        {online ? (
+                          <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                            <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
+                            <span>
+                              Последно: {p.lastAction || "Активен в портала"}
+                            </span>
+                          </div>
+                        ) : p.lastLoginAt ? (
+                          <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
+                            <Clock size={13} className="text-zinc-400" />
+                            <span>
+                              Последен вход:{" "}
+                              <strong>
+                                {new Date(p.lastLoginAt).toLocaleDateString(
+                                  "bg-BG",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}{" "}
+                                ч.
+                              </strong>
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-zinc-400">
+                            Все още не е влизал
                           </span>
-                        </div>
-                      ) : p.lastLoginAt ? (
-                        <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
-                          <Clock size={13} className="text-zinc-400" />
-                          <span>
-                            Последен вход:{" "}
-                            <strong>
-                              {new Date(p.lastLoginAt).toLocaleDateString(
-                                "bg-BG",
-                                {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                }
-                              )}{" "}
-                              ч.
-                            </strong>
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-zinc-400">
-                          Все още не е влизал
-                        </span>
-                      )}
+                        )}
 
-                      {p.lastAction && !online && (
-                        <span className="text-[10px] text-zinc-400">
-                          Действие: {p.lastAction}
-                        </span>
-                      )}
+                        {p.lastAction && !online && (
+                          <span className="text-[10px] text-zinc-400">
+                            Действие: {p.lastAction}
+                          </span>
+                        )}
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleCopyLink(p.id)}
+                        title="Копирай директен линк към активността на родителя"
+                        className="size-8 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                      >
+                        {copiedId === p.id ? (
+                          <Check size={14} className="text-emerald-600" />
+                        ) : (
+                          <Link2 size={14} />
+                        )}
+                      </Button>
                     </div>
                   </div>
                 );

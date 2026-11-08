@@ -247,38 +247,38 @@ export function SendDocumentRequestDialog({
           ) : generatedUrl ? (
             /* Result View */
             <div className="mt-2 space-y-4">
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 space-y-1.5 text-xs">
+              <div className="rounded-2xl border border-emerald-100 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/30 p-4 space-y-1.5 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-500">Документ:</span>
-                  <span className="font-bold text-emerald-950">
+                  <span className="text-zinc-500 dark:text-zinc-400">Документ:</span>
+                  <span className="font-bold text-emerald-950 dark:text-emerald-200">
                     {documentTitle}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-500">Състезател:</span>
-                  <span className="font-bold text-zinc-900">
+                  <span className="text-zinc-500 dark:text-zinc-400">Състезател:</span>
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
                     {selectedMember ? formatFullName(selectedMember) : ""}
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   Линк за споделяне
                 </label>
                 <div className="flex gap-2">
                   <Input
                     readOnly
                     value={generatedUrl}
-                    className="h-11 rounded-xl border-zinc-200 bg-zinc-50 text-xs font-mono select-all"
+                    className="h-11 rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs font-mono select-all"
                   />
                   <Button
                     type="button"
                     onClick={handleCopy}
-                    className="h-11 px-4 rounded-xl bg-zinc-950 text-white shrink-0 hover:bg-zinc-800"
+                    className="h-11 px-4 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 shrink-0 hover:bg-zinc-800 dark:hover:bg-zinc-200"
                   >
                     {copied ? (
-                      <Check className="size-4 text-emerald-400" />
+                      <Check className="size-4 text-emerald-400 dark:text-emerald-600" />
                     ) : (
                       <Copy className="size-4" />
                     )}
@@ -291,7 +291,7 @@ export function SendDocumentRequestDialog({
                   type="button"
                   variant="outline"
                   onClick={handleCopyMessage}
-                  className="h-11 rounded-xl border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 text-xs font-semibold gap-1.5"
+                  className="h-11 rounded-xl border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-xs font-semibold gap-1.5"
                 >
                   <Copy className="size-4" />
                   Копирай текст
@@ -300,20 +300,20 @@ export function SendDocumentRequestDialog({
                   type="button"
                   variant="outline"
                   onClick={handleEmailShare}
-                  className="h-11 rounded-xl border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 text-xs font-semibold gap-1.5"
+                  className="h-11 rounded-xl border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-semibold gap-1.5"
                 >
                   <Mail className="size-4" />
                   Изпрати имейл
                 </Button>
               </div>
 
-              <div className="pt-2 flex justify-between items-center text-[11px] text-zinc-500 border-t border-zinc-100">
+              <div className="pt-2 flex justify-between items-center text-[11px] text-zinc-500 dark:text-zinc-400 border-t border-zinc-100 dark:border-zinc-800">
                 <span>Валидност на линка: 14 дни</span>
                 <a
                   href={generatedUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-semibold text-zinc-900 hover:underline"
+                  className="inline-flex items-center gap-1 font-semibold text-zinc-900 dark:text-zinc-100 hover:underline"
                 >
                   Отвори в нов таб <ExternalLink className="size-3" />
                 </a>
@@ -326,7 +326,7 @@ export function SendDocumentRequestDialog({
                   setGeneratedUrl(null);
                   setSelectedMember(null);
                 }}
-                className="w-full h-10 rounded-xl text-xs font-semibold border-zinc-200"
+                className="w-full h-10 rounded-xl text-xs font-semibold border-zinc-200 dark:border-zinc-800"
               >
                 + Изпрати друг документ
               </Button>
@@ -336,17 +336,17 @@ export function SendDocumentRequestDialog({
             <div className="mt-2 space-y-4">
               {/* 1. Member Selector */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-800">
+                <label className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
                   1. Изберете състезател / член на клуба:
                 </label>
 
                 {selectedMember ? (
-                  <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/40 p-3 text-xs">
+                  <div className="flex items-center justify-between rounded-2xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/40 dark:bg-emerald-950/30 p-3 text-xs">
                     <div>
-                      <p className="font-bold text-zinc-950">
+                      <p className="font-bold text-zinc-950 dark:text-zinc-100">
                         {formatFullName(selectedMember)}
                       </p>
-                      <p className="text-[11px] text-zinc-500">
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                         Родител: {selectedMember.parentName || "—"} •{" "}
                         {selectedMember.parentPhone ||
                           selectedMember.phone ||
@@ -358,7 +358,7 @@ export function SendDocumentRequestDialog({
                       variant="ghost"
                       size="sm"
                       onClick={() => setSelectedMember(null)}
-                      className="h-7 text-xs text-zinc-500 hover:text-zinc-900"
+                      className="h-7 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                     >
                       Смени
                     </Button>
@@ -375,7 +375,7 @@ export function SendDocumentRequestDialog({
                       />
                     </div>
 
-                    <div className="max-h-40 overflow-y-auto rounded-xl border border-zinc-200 divide-y divide-zinc-100">
+                    <div className="max-h-40 overflow-y-auto rounded-xl border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-100 dark:divide-zinc-800/60">
                       {filteredMembers.length === 0 ? (
                         <p className="p-3 text-center text-xs text-zinc-400">
                           Няма намерени състезатели.
@@ -386,9 +386,9 @@ export function SendDocumentRequestDialog({
                             key={m.id}
                             type="button"
                             onClick={() => setSelectedMember(m)}
-                            className="w-full flex items-center justify-between p-2.5 text-left text-xs hover:bg-zinc-50 transition-colors"
+                            className="w-full flex items-center justify-between p-2.5 text-left text-xs hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
                           >
-                            <span className="font-semibold text-zinc-900">
+                            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                               {formatFullName(m)}
                             </span>
                             <span className="text-[11px] text-zinc-400">
@@ -479,11 +479,11 @@ export function SendDocumentRequestDialog({
               </div>
 
               {/* 3. Chairperson Pre-Signing Option */}
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3.5 space-y-2.5">
+              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/70 p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="signAsPresident"
-                    className="flex items-center gap-2 cursor-pointer text-xs font-bold text-zinc-900"
+                    className="flex items-center gap-2 cursor-pointer text-xs font-bold text-zinc-900 dark:text-zinc-100"
                   >
                     <Checkbox
                       id="signAsPresident"
@@ -498,7 +498,7 @@ export function SendDocumentRequestDialog({
                       variant="ghost"
                       size="sm"
                       onClick={() => chairperson.setDialogOpen(true)}
-                      className="h-6 px-2 text-[11px] text-zinc-500 hover:text-zinc-900"
+                      className="h-6 px-2 text-[11px] text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                     >
                       Смени
                     </Button>
@@ -508,27 +508,27 @@ export function SendDocumentRequestDialog({
                 {signAsPresident && (
                   <div className="pt-1">
                     {chairperson.signatureUrl ? (
-                      <div className="flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 p-2 text-xs">
+                      <div className="flex items-center gap-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/60 dark:bg-emerald-950/30 p-2 text-xs">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={chairperson.signatureUrl}
                           alt="Подпис на Председателя"
-                          className="h-7 max-w-25 object-contain bg-white rounded px-1 border border-emerald-100"
+                          className="h-7 max-w-25 object-contain bg-white dark:bg-zinc-100 rounded px-1 border border-emerald-100 dark:border-emerald-800"
                         />
-                        <span className="text-[11px] font-semibold text-emerald-800">
+                        <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
                           ✓ Документът ще бъде предварително подписан от клуба
                           преди изпращане
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50/70 p-2 text-xs text-amber-900">
+                      <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/40 p-2 text-xs text-amber-900 dark:text-amber-200">
                         <span>Няма запазен подпис на Председателя.</span>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => chairperson.setDialogOpen(true)}
-                          className="h-7 text-xs rounded-lg border-amber-300 bg-white hover:bg-amber-100 text-amber-950 font-bold"
+                          className="h-7 text-xs rounded-lg border-amber-300 dark:border-amber-700 bg-white dark:bg-zinc-900 hover:bg-amber-100 dark:hover:bg-amber-950 text-amber-950 dark:text-amber-200 font-bold"
                         >
                           ✍️ Нарисувай подпис сега
                         </Button>
@@ -539,7 +539,7 @@ export function SendDocumentRequestDialog({
               </div>
 
               {errorMessage && (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 flex items-center gap-2">
+                <div className="rounded-xl border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
                   <AlertCircle className="size-4 shrink-0" />
                   <span>{errorMessage}</span>
                 </div>

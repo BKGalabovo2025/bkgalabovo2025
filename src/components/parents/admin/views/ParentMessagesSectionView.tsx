@@ -1,18 +1,22 @@
 "use client";
 
 import {
+  Check,
   History,
+  Link2,
   Mail,
   MessageSquareText,
   Phone,
   PhoneCall,
   Search,
 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { formatPhoneDisplay } from "@/lib/phone-utils";
 
 import { useParentAdminContext } from "../ParentAdminContext";
@@ -62,6 +66,22 @@ export function ParentMessagesSectionView() {
     }
     return true;
   });
+
+  useDeepLinkHighlight("message", filteredComms.length > 0);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyLink = (id: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopiedId(id);
+        toast.success("Директният линк към записа е копиран!");
+        setTimeout(() => setCopiedId(null), 2000);
+      })
+      .catch(() => toast.info(`Линк: ${url}`));
+  };
 
   return (
     <div className="space-y-6">
@@ -202,6 +222,7 @@ export function ParentMessagesSectionView() {
             return (
               <div
                 key={comm.id}
+                id={`message-${comm.id}`}
                 className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs transition-all hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -249,23 +270,43 @@ export function ParentMessagesSectionView() {
                     </div>
                   </div>
 
-                  <div className="text-right text-[11px] text-zinc-400">
-                    <div>
-                      {comm.createdAt
-                        ? new Date(comm.createdAt).toLocaleDateString("bg-BG", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }) + " ч."
-                        : "—"}
-                    </div>
-                    {comm.createdBy && (
-                      <div className="text-[10px] text-zinc-400 font-medium">
-                        от: {comm.createdBy}
+                  <div className="flex items-center gap-2">
+                    <div className="text-right text-[11px] text-zinc-400">
+                      <div>
+                        {comm.createdAt
+                          ? new Date(comm.createdAt).toLocaleDateString(
+                              "bg-BG",
+                              {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            ) + " ч."
+                          : "—"}
                       </div>
-                    )}
+                      {comm.createdBy && (
+                        <div className="text-[10px] text-zinc-400 font-medium">
+                          от: {comm.createdBy}
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyLink(comm.id)}
+                      title="Копирай директен линк към този запис"
+                      className="size-8 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                    >
+                      {copiedId === comm.id ? (
+                        <Check size={14} className="text-emerald-600" />
+                      ) : (
+                        <Link2 size={14} />
+                      )}
+                    </Button>
                   </div>
                 </div>
 

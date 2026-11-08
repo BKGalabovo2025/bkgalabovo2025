@@ -372,7 +372,7 @@ export function ShareAthleteDialog({
             {qrCodeDataUrl && (
               <div className="mt-4 flex items-center justify-between rounded-2xl border border-blue-500/20 bg-blue-950/20 p-3">
                 <div className="flex items-center gap-3">
-                  <div className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-white p-1">
+                  <div className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-white dark:bg-zinc-100 p-1">
                     <Image
                       src={qrCodeDataUrl}
                       alt="QR Код"

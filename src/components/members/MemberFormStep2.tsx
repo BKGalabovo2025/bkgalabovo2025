@@ -77,7 +77,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                 <Input
                   {...field}
                   value={field.value || ""}
-                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                 />
               </FormControl>
               <FormMessage />
@@ -98,7 +98,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                   type="email"
                   {...field}
                   value={field.value || ""}
-                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                 />
               </FormControl>
               <FormMessage />
@@ -119,7 +119,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                   <Input
                     {...field}
                     value={field.value || ""}
-                    className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                    className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                   />
                 </FormControl>
                 <FormMessage />
@@ -130,7 +130,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
 
         {/* 1. Родител / Настойник */}
         {!isGuestOnly && (
-          <div className="mt-4 border-t border-zinc-100 pt-6 sm:col-span-2">
+          <div className="mt-4 border-t border-zinc-100 dark:border-zinc-800 pt-6 sm:col-span-2">
             <h4 className="mb-2 text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase sm:text-[11px]">
               Родител / Настойник (за контакт и родителски портал)
             </h4>
@@ -149,7 +149,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                           {...field}
                           value={field.value || ""}
                           placeholder="Име на родител"
-                          className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white"
+                          className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:focus:bg-zinc-900"
                         />
                       </FormControl>
                       <FormMessage />
@@ -169,7 +169,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                           {...field}
                           value={field.value || ""}
                           placeholder="напр. 0888 123 456"
-                          className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white"
+                          className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:focus:bg-zinc-900"
                         />
                       </FormControl>
                       <FormMessage />
@@ -190,7 +190,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                           {...field}
                           value={field.value || ""}
                           placeholder="roditel@example.com"
-                          className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white"
+                          className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:focus:bg-zinc-900"
                         />
                       </FormControl>
                       <FormMessage />
@@ -204,7 +204,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
 
         {/* 2. Спешен Контакт */}
         {!isGuestOnly && (
-          <div className="mt-2 border-t border-zinc-100 pt-6 sm:col-span-2">
+          <div className="mt-2 border-t border-zinc-100 dark:border-zinc-800 pt-6 sm:col-span-2">
             <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h4 className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase sm:text-[11px]">
@@ -326,7 +326,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                             {...field}
                             value={field.value || ""}
                             placeholder="Име и фамилия"
-                            className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white sm:h-11"
+                            className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white sm:h-11 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:bg-zinc-900"
                           />
                         </FormControl>
                         <FormMessage />
@@ -346,7 +346,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                             {...field}
                             value={field.value || ""}
                             placeholder="напр. 0888 123 456"
-                            className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white sm:h-11"
+                            className="h-10 rounded-xl border-zinc-200 bg-white text-xs focus:bg-white sm:h-11 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:bg-zinc-900"
                           />
                         </FormControl>
                         <FormMessage />

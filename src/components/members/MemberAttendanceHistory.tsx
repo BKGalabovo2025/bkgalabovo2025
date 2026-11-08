@@ -45,31 +45,31 @@ const eventTypeDetails: Record<
     translation: "Тренировки",
     icon: Dumbbell,
     color: "text-blue-500",
-    bgColor: "bg-blue-50",
+    bgColor: "bg-blue-50 dark:bg-blue-950/40",
   },
   competition: {
     translation: "Състезания",
     icon: Trophy,
     color: "text-amber-500",
-    bgColor: "bg-amber-50",
+    bgColor: "bg-amber-50 dark:bg-amber-950/40",
   },
   camp: {
     translation: "Лагери",
     icon: Tent,
     color: "text-green-500",
-    bgColor: "bg-green-50",
+    bgColor: "bg-green-50 dark:bg-green-950/40",
   },
   event: {
     translation: "Събития",
     icon: PartyPopper,
     color: "text-purple-500",
-    bgColor: "bg-purple-50",
+    bgColor: "bg-purple-50 dark:bg-purple-950/40",
   },
   other: {
     translation: "Други",
     icon: HelpCircle,
     color: "text-zinc-400",
-    bgColor: "bg-zinc-50",
+    bgColor: "bg-zinc-50 dark:bg-zinc-900",
   },
 };
 
@@ -156,9 +156,9 @@ export function MemberAttendanceHistory({
 
   if (totalEvents === 0) {
     return (
-      <div className="rounded-5xl border border-zinc-100 bg-white p-16 text-center">
-        <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-zinc-50">
-          <CalendarX className="size-8 text-zinc-200" strokeWidth={1} />
+      <div className="rounded-5xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-16 text-center">
+        <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-zinc-50 dark:bg-zinc-900">
+          <CalendarX className="size-8 text-zinc-200 dark:text-zinc-700" strokeWidth={1} />
         </div>
         <h3 className="tracking-widest3 mb-3 text-[11px] font-medium text-zinc-400 uppercase">
           Няма регистрирани присъствия
@@ -172,10 +172,10 @@ export function MemberAttendanceHistory({
   }
 
   return (
-    <div className="space-y-12 rounded-3xl border border-zinc-100 bg-white p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
+    <div className="space-y-12 rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
       {/* Header Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="flex h-32 flex-col justify-between rounded-3xl bg-zinc-950 p-6 text-white shadow-xl shadow-zinc-950/10 sm:h-40 sm:rounded-5xl sm:p-8">
+        <div className="flex h-32 flex-col justify-between rounded-3xl bg-zinc-950 dark:bg-zinc-900 p-6 text-white shadow-xl shadow-zinc-950/10 sm:h-40 sm:rounded-5xl sm:p-8">
           <p className="tracking-widest2 text-[9px] font-medium text-zinc-400 uppercase sm:text-[10px]">
             Общо посещения
           </p>
@@ -192,41 +192,41 @@ export function MemberAttendanceHistory({
           </div>
         </div>
 
-        <div className="flex h-32 flex-col justify-between rounded-3xl border border-zinc-100 bg-white p-6 sm:h-40 sm:rounded-5xl sm:p-8">
+        <div className="flex h-32 flex-col justify-between rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:h-40 sm:rounded-5xl sm:p-8">
           <p className="tracking-widest2 text-[9px] font-medium text-zinc-400 uppercase sm:text-[10px]">
             Последна активност
           </p>
           <div className="flex items-end justify-between">
-            <h2 className="text-base font-light text-zinc-950 sm:text-xl">
+            <h2 className="text-base font-light text-zinc-950 dark:text-zinc-100 sm:text-xl">
               {attendedEvents.length > 0
                 ? format(new Date(attendedEvents[0].startDate), "dd MMM", {
                     locale: bg,
                   })
                 : "—"}
             </h2>
-            <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-50 sm:size-12">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-800 sm:size-12">
               <CalendarIcon
-                className="size-4 text-zinc-300 sm:size-5"
+                className="size-4 text-zinc-300 dark:text-zinc-500 sm:size-5"
                 strokeWidth={1.5}
               />
             </div>
           </div>
         </div>
 
-        <div className="flex h-32 flex-col justify-between rounded-3xl border border-zinc-100 bg-white p-6 sm:col-span-2 sm:h-40 sm:rounded-5xl sm:p-8 lg:col-span-1">
+        <div className="flex h-32 flex-col justify-between rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:col-span-2 sm:h-40 sm:rounded-5xl sm:p-8 lg:col-span-1">
           <p className="tracking-widest2 text-[9px] font-medium text-zinc-400 uppercase sm:text-[10px]">
             Месечен статус
           </p>
           <div className="flex items-end justify-between">
             <Badge
               variant="outline"
-              className="rounded-full border-green-100 bg-green-50 px-3 py-0.5 text-[9px] font-medium tracking-widest text-green-600 uppercase sm:text-[10px]"
+              className="rounded-full border-green-100 dark:border-green-900/50 bg-green-50 dark:bg-green-950/40 px-3 py-0.5 text-[9px] font-medium tracking-widest text-green-600 dark:text-green-400 uppercase sm:text-[10px]"
             >
               Активен
             </Badge>
-            <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-50 sm:size-12">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-800 sm:size-12">
               <Trophy
-                className="size-4 text-zinc-300 sm:size-5"
+                className="size-4 text-zinc-300 dark:text-zinc-500 sm:size-5"
                 strokeWidth={1.5}
               />
             </div>
@@ -238,14 +238,14 @@ export function MemberAttendanceHistory({
         {Object.entries(groupedEvents).map(([monthKey, monthData]) => (
           <div key={monthKey} className="relative">
             <div className="mb-8 flex items-center gap-6">
-              <h3 className="tracking-widest2 shrink-0 text-sm font-medium text-zinc-950 uppercase">
+              <h3 className="tracking-widest2 shrink-0 text-sm font-medium text-zinc-950 dark:text-zinc-100 uppercase">
                 {monthData.monthName}{" "}
-                <span className="ml-1 text-zinc-300">{monthData.year}</span>
+                <span className="ml-1 text-zinc-300 dark:text-zinc-600">{monthData.year}</span>
               </h3>
-              <div className="h-px grow bg-zinc-100" />
+              <div className="h-px grow bg-zinc-100 dark:bg-zinc-800" />
               <Badge
                 variant="outline"
-                className="rounded-full border-zinc-100 bg-zinc-50/50 px-4 py-1 text-[10px] font-medium tracking-widest text-zinc-400 uppercase"
+                className="rounded-full border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-1 text-[10px] font-medium tracking-widest text-zinc-400 uppercase"
               >
                 {monthData.total} посещения
               </Badge>
@@ -325,11 +325,11 @@ function MemberAttendanceEventCard({
   return (
     <div
       onClick={() => router.push(`/schedule?eventId=${event.id}`)}
-      className="group relative cursor-pointer rounded-3xl border border-zinc-100 bg-white p-6 transition-all duration-500 hover:border-zinc-900 hover:shadow-2xl hover:shadow-zinc-950/5"
+      className="group relative cursor-pointer rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 transition-all duration-500 hover:border-zinc-900 dark:hover:border-zinc-500 hover:shadow-2xl hover:shadow-zinc-950/5"
     >
       <div className="mb-4 flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-xs font-medium text-zinc-950 transition-colors group-hover:text-zinc-900">
+          <p className="text-xs font-medium text-zinc-950 dark:text-zinc-100 transition-colors group-hover:text-zinc-900 dark:group-hover:text-white">
             {event.title}
           </p>
           <p className="text-[10px] font-light tracking-widest text-zinc-400 uppercase">
@@ -367,50 +367,50 @@ function MemberAttendanceEventCard({
           }}
         >
           {payStatus === "paid" && payType === "subscription" && (
-            <div className="flex w-fit items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1">
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1">
               <CheckCircle2
                 className="size-3 text-emerald-500"
                 strokeWidth={2}
               />
-              <span className="text-[9px] font-semibold tracking-widest text-emerald-700 uppercase">
+              <span className="text-[9px] font-semibold tracking-widest text-emerald-700 dark:text-emerald-300 uppercase">
                 Платено – Абонамент
               </span>
             </div>
           )}
           {payStatus === "paid" && payType === "individual" && (
-            <div className="flex w-fit items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1">
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-blue-100 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1">
               <CreditCard className="size-3 text-blue-500" strokeWidth={2} />
-              <span className="text-[9px] font-semibold tracking-widest text-blue-700 uppercase">
+              <span className="text-[9px] font-semibold tracking-widest text-blue-700 dark:text-blue-300 uppercase">
                 Платено – Еднократно
               </span>
             </div>
           )}
           {payStatus === "paid" && !payType && (
-            <div className="flex w-fit items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1">
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1">
               <CheckCircle2
                 className="size-3 text-emerald-500"
                 strokeWidth={2}
               />
-              <span className="text-[9px] font-semibold tracking-widest text-emerald-700 uppercase">
+              <span className="text-[9px] font-semibold tracking-widest text-emerald-700 dark:text-emerald-300 uppercase">
                 Платено
               </span>
             </div>
           )}
           {(payStatus === "unpaid" || !payStatus) && (
-            <div className="flex w-fit items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1">
+            <div className="flex w-fit items-center gap-1.5 rounded-full border border-rose-100 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1">
               <XCircle className="size-3 text-rose-500" strokeWidth={2} />
-              <span className="text-[9px] font-semibold tracking-widest text-rose-700 uppercase">
+              <span className="text-[9px] font-semibold tracking-widest text-rose-700 dark:text-rose-300 uppercase">
                 {payStatus === "unpaid" ? "Неплатено (Дълг)" : "Неплатено"}
               </span>
             </div>
           )}
           {payDate && payStatus === "paid" && (
             <div className="mt-1 flex items-center gap-1">
-              <Receipt className="size-2.5 text-zinc-300" strokeWidth={1.5} />
+              <Receipt className="size-2.5 text-zinc-300 dark:text-zinc-600" strokeWidth={1.5} />
               <span className="text-[8px] font-light text-zinc-400">
                 Платено на: {new Date(payDate).toLocaleDateString("bg-BG")}
                 {saleId && (
-                  <span className="ml-1 text-zinc-300">
+                  <span className="ml-1 text-zinc-300 dark:text-zinc-600">
                     #{saleId.substring(0, 6).toUpperCase()}
                   </span>
                 )}
@@ -420,7 +420,7 @@ function MemberAttendanceEventCard({
         </div>
       )}
 
-      <div className="mt-auto flex items-center gap-4 border-t border-zinc-50 pt-4">
+      <div className="mt-auto flex items-center gap-4 border-t border-zinc-50 dark:border-zinc-800/60 pt-4">
         <div className="flex items-center gap-1.5">
           <Clock className="size-3 text-zinc-300" />
           <span className="text-[10px] font-light tracking-widest text-zinc-400 uppercase">

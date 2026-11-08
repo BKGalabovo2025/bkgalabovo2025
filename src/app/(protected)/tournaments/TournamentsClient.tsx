@@ -15,8 +15,10 @@ const TournamentForm = dynamic(
 );
 import {
   Calendar,
+  Check,
   CheckCircle2,
   LayoutList,
+  Link2,
   MapPin,
   Pencil,
   Plus,
@@ -26,7 +28,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -37,7 +39,9 @@ import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { formatDateShort } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
 
 interface TournamentsClientProps {
   initialTournaments: Tournament[];
@@ -56,9 +60,28 @@ export default function TournamentsClient({
     null
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
+  const targetId = searchParams.get("id");
   const isNew = searchParams.get("new") === "true";
+
+  const handleCopyLink = (tournament: Tournament) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${pathname}?id=${tournament.id}`;
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setCopiedId(tournament.id!);
+        toast.success(`Директният линк към "${tournament.title}" е копиран!`);
+        setTimeout(() => setCopiedId(null), 2500);
+      })
+      .catch(() => {
+        toast.error("Неуспешно копиране на линк.");
+      });
+  };
 
   useEffect(() => {
     if (isNew) {
@@ -156,6 +179,8 @@ export default function TournamentsClient({
   const showActive = section === "all" || section === "active";
   const showCompleted = section === "all" || section === "completed";
 
+  useDeepLinkHighlight("tournament", filteredTournaments.length > 0);
+
   return (
     <div className="space-y-8 duration-500 animate-in fade-in">
       <PageHeader
@@ -177,7 +202,19 @@ export default function TournamentsClient({
       <TournamentsNav />
 
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 md:grid-cols-4">
-        <BentoCard className="p-3.5 sm:p-4 rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+        <BentoCard
+          onClick={() =>
+            router.push(
+              section === "active" ? "/tournaments" : "/tournaments/active"
+            )
+          }
+          className={cn(
+            "p-3.5 sm:p-4 rounded-2xl border shadow-none transition-all cursor-pointer",
+            section === "active"
+              ? "border-primary bg-primary/5 ring-2 ring-primary/20 dark:border-primary"
+              : "border-zinc-200/80 bg-white hover:border-primary/40 dark:border-zinc-800 dark:bg-zinc-950"
+          )}
+        >
           <div className="flex items-start justify-between">
             <div>
               <p className="mb-0.5 text-2xl sm:text-3xl font-light text-zinc-900 dark:text-white">
@@ -192,7 +229,21 @@ export default function TournamentsClient({
             </div>
           </div>
         </BentoCard>
-        <BentoCard className="p-3.5 sm:p-4 rounded-2xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+        <BentoCard
+          onClick={() =>
+            router.push(
+              section === "completed"
+                ? "/tournaments"
+                : "/tournaments/completed"
+            )
+          }
+          className={cn(
+            "p-3.5 sm:p-4 rounded-2xl border shadow-none transition-all cursor-pointer",
+            section === "completed"
+              ? "border-primary bg-primary/5 ring-2 ring-primary/20 dark:border-primary"
+              : "border-zinc-200/80 bg-white hover:border-primary/40 dark:border-zinc-800 dark:bg-zinc-950"
+          )}
+        >
           <div className="flex items-start justify-between">
             <div>
               <p className="mb-0.5 text-2xl sm:text-3xl font-light text-zinc-900 dark:text-white">
@@ -317,6 +368,9 @@ export default function TournamentsClient({
                   <TournamentCard
                     key={t.id}
                     tournament={t}
+                    isHighlighted={targetId === t.id}
+                    isCopied={copiedId === t.id}
+                    onCopyLink={() => handleCopyLink(t)}
                     onEdit={() => setEditingTournament(t)}
                     onDelete={() => handleDelete(t.id!)}
                   />
@@ -338,6 +392,9 @@ export default function TournamentsClient({
                   <TournamentCard
                     key={t.id}
                     tournament={t}
+                    isHighlighted={targetId === t.id}
+                    isCopied={copiedId === t.id}
+                    onCopyLink={() => handleCopyLink(t)}
                     onEdit={() => setEditingTournament(t)}
                     onDelete={() => handleDelete(t.id!)}
                   />
@@ -353,10 +410,16 @@ export default function TournamentsClient({
 
 function TournamentCard({
   tournament,
+  isHighlighted,
+  isCopied,
+  onCopyLink,
   onEdit,
   onDelete,
 }: {
   tournament: Tournament;
+  isHighlighted?: boolean;
+  isCopied?: boolean;
+  onCopyLink: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -406,7 +469,12 @@ function TournamentCard({
   return (
     <BentoCard
       id={`tournament-${tournament.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-none transition-all duration-300 hover:border-primary/40 dark:border-zinc-800 dark:bg-zinc-950"
+      className={cn(
+        "group flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-none transition-all duration-300 hover:border-primary/40 dark:bg-zinc-950",
+        isHighlighted
+          ? "border-primary ring-2 ring-primary/60 bg-primary/5 dark:border-primary dark:ring-primary/60"
+          : "border-zinc-200/80 dark:border-zinc-800"
+      )}
     >
       <div className="p-4 sm:p-5 pb-3 sm:pb-3.5">
         <div className="mb-3 flex items-center justify-between">
@@ -478,19 +546,37 @@ function TournamentCard({
             <LayoutList className="mr-2 size-3.5" strokeWidth={1.5} /> Детайли
           </Link>
         </Button>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onCopyLink}
+            title={`Копирай директен линк към ${tournament.title}`}
+            aria-label={`Копирай директен линк към ${tournament.title}`}
+            className="size-10 rounded-xl border-zinc-100 bg-zinc-50/30 text-zinc-600 transition-all hover:border-primary/30 hover:text-primary dark:border-zinc-800 dark:bg-zinc-900/30"
+          >
+            {isCopied ? (
+              <Check className="size-4 text-emerald-500" strokeWidth={1.5} />
+            ) : (
+              <Link2 className="size-4" strokeWidth={1.5} />
+            )}
+          </Button>
           <Button
             variant="outline"
             size="icon"
             onClick={onEdit}
-            className="size-12 rounded-xl border-zinc-100 bg-zinc-50/30 text-zinc-600 transition-all hover:border-primary/30 hover:text-primary dark:border-zinc-800 dark:bg-zinc-900/30"
+            title={`Редактирай ${tournament.title}`}
+            aria-label={`Редактирай ${tournament.title}`}
+            className="size-10 rounded-xl border-zinc-100 bg-zinc-50/30 text-zinc-600 transition-all hover:border-primary/30 hover:text-primary dark:border-zinc-800 dark:bg-zinc-900/30"
           >
             <Pencil className="size-4" strokeWidth={1.5} />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="size-12 rounded-xl text-zinc-400 transition-all hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
+            title={`Изтрий ${tournament.title}`}
+            aria-label={`Изтрий ${tournament.title}`}
+            className="size-10 rounded-xl text-zinc-400 transition-all hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
             onClick={onDelete}
           >
             <Trash2 className="size-4" strokeWidth={1.5} />

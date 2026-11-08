@@ -4,11 +4,13 @@ import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import {
   CheckCircle2,
+  Link2,
   Loader2,
   Pause,
   Play,
   RotateCcw,
   Save,
+  Search,
   Square,
   Trash2,
 } from "lucide-react";
@@ -19,6 +21,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -26,8 +29,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useBeepTestEngine } from "@/hooks/useBeepTestEngine";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import {
   calculateVO2Max,
   evaluateBadmintonScore,
@@ -75,7 +79,7 @@ export default function BeepTestClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const dateParam = searchParams.get("date");
-  const resultIdParam = searchParams.get("resultId");
+  const resultIdParam = searchParams.get("id") || searchParams.get("resultId");
 
   const { activeBranch } = useAppStore();
   const { state: beepState, start, pause, reset } = useBeepTestEngine();
@@ -102,6 +106,13 @@ export default function BeepTestClient({
   const [activeTab, setActiveTab] = useState<"new" | "history">(initialTab);
   const [history, setHistory] = useState<BeepTestResult[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
+
+  useDeepLinkHighlight(
+    "result",
+    activeTab === "history" && !isHistoryLoading && history.length > 0,
+    "resultId"
+  );
 
   useEffect(() => {
     if (initialTab) {
@@ -197,7 +208,22 @@ export default function BeepTestClient({
   }, [filteredMembers]);
 
   const groupedHistory = useMemo(() => {
-    return history.reduce(
+    const q = historySearch.trim().toLowerCase();
+    const filtered = !q
+      ? history
+      : history.filter((r) => {
+          const member = members.find((m) => m.id === r.memberId);
+          const memberName = member
+            ? `${member.firstName} ${member.lastName}`.toLowerCase()
+            : "";
+          return (
+            memberName.includes(q) ||
+            (r.period || "").toLowerCase().includes(q) ||
+            (r.score || "").toLowerCase().includes(q)
+          );
+        });
+
+    return filtered.reduce(
       (acc, curr) => {
         const dateStr = curr.date.split("T")[0]; // Group by simple date YYYY-MM-DD
         if (!acc[dateStr]) acc[dateStr] = [];
@@ -206,7 +232,7 @@ export default function BeepTestClient({
       },
       {} as Record<string, BeepTestResult[]>
     );
-  }, [history]);
+  }, [history, historySearch, members]);
 
   const toggleParticipant = (id: string) => {
     setSelectedParticipantIds((prev) =>
@@ -341,21 +367,6 @@ export default function BeepTestClient({
             );
           }}
         >
-          <TabsList className="mb-3 grid h-9 w-full max-w-xs grid-cols-2 rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
-            <TabsTrigger
-              value="new"
-              className="rounded-lg text-xs font-semibold"
-            >
-              Нов Тест
-            </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="rounded-lg text-xs font-semibold"
-            >
-              История
-            </TabsTrigger>
-          </TabsList>
-
           <TabsContent
             value="new"
             className="mt-2 duration-300 animate-in fade-in"
@@ -488,6 +499,16 @@ export default function BeepTestClient({
             value="history"
             className="space-y-6 duration-300 animate-in fade-in"
           >
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+              <Input
+                value={historySearch}
+                onChange={(e) => setHistorySearch(e.target.value)}
+                placeholder="Търси по състезател, период или оценка..."
+                className="rounded-xl border-zinc-200 bg-white pl-9 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+              />
+            </div>
+
             {isHistoryLoading && (
               <div className="flex justify-center p-12">
                 <Loader2 className="size-8 animate-spin text-indigo-600" />
@@ -534,11 +555,16 @@ export default function BeepTestClient({
                           const memberName = member
                             ? `${member.firstName} ${member.lastName}`
                             : "Неизвестен";
+                          const isHighlighted = resultIdParam === r.id;
                           return (
                             <div
                               key={r.id}
                               id={`result-${r.id}`}
-                              className="group flex items-center justify-between p-4 transition-colors hover:bg-zinc-50 sm:px-6 dark:hover:bg-zinc-800/50"
+                              className={`group flex items-center justify-between p-4 transition-colors hover:bg-zinc-50 sm:px-6 dark:hover:bg-zinc-800/50 ${
+                                isHighlighted
+                                  ? "bg-indigo-50/50 ring-2 ring-indigo-500 ring-inset dark:bg-indigo-950/30"
+                                  : ""
+                              }`}
                             >
                               <Link
                                 href={`/members/${r.memberId}/assessments`}
@@ -572,8 +598,23 @@ export default function BeepTestClient({
                                 </div>
                               </Link>
 
-                              {/* Delete Button */}
-                              <div className="border-l border-zinc-100 pl-2 dark:border-zinc-800">
+                              {/* Copy Link & Delete Buttons */}
+                              <div className="flex items-center gap-1 border-l border-zinc-100 pl-2 dark:border-zinc-800">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    const url = `${window.location.origin}${window.location.pathname}?id=${r.id}`;
+                                    void navigator.clipboard.writeText(url);
+                                    toast.success("Линкът е копиран!");
+                                  }}
+                                  className="text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                                  title="Копирай директен линк"
+                                  aria-label="Копирай директен линк"
+                                >
+                                  <Link2 className="size-4" />
+                                </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -583,6 +624,7 @@ export default function BeepTestClient({
                                   }}
                                   className="text-zinc-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40"
                                   title="Изтрий резултата"
+                                  aria-label="Изтрий резултата"
                                 >
                                   <Trash2 className="size-4" />
                                 </Button>

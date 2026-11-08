@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Archive,
   Calendar,
   CalendarRange,
   CheckCircle2,
@@ -9,6 +8,7 @@ import {
   Filter,
   GraduationCap,
   History,
+  Link2,
   Loader2,
   MapPin,
   Pencil,
@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { plannerService } from "@/services/planner-service";
 import { useAppStore } from "@/store/use-app-store";
 import { PlannerSession } from "@/types/planner.types";
@@ -57,13 +57,15 @@ function PlannerClientContent({
 }: {
   initialTab?: "upcoming" | "archive";
 }) {
-  const router = useRouter();
   const { activeBranch } = useAppStore();
   const searchParams = useSearchParams();
   const campIdParam = searchParams.get("campId");
   const dateParam = searchParams.get("date");
   const importTemplateParam = searchParams.get("importTemplate");
-  const sessionParam = searchParams.get("session");
+  const sessionParam =
+    searchParams.get("id") ||
+    searchParams.get("session") ||
+    searchParams.get("sessionId");
   const editSessionParam = searchParams.get("editSession");
   const newParam = searchParams.get("new");
 
@@ -273,6 +275,12 @@ function PlannerClientContent({
     dateFilter || searchQuery.trim() || locationFilter !== "all"
   );
 
+  useDeepLinkHighlight(
+    "session",
+    !isLoading && filteredSessions.length > 0,
+    "session"
+  );
+
   const clearFilters = () => {
     setDateFilter("");
     setSearchQuery("");
@@ -311,59 +319,6 @@ function PlannerClientContent({
           <Plus className="mr-2 size-4" />
           Планирай тренировка
         </Button>
-      </div>
-
-      {/* Tabs */}
-      <div className="mb-3">
-        <Tabs
-          value={activeTab}
-          onValueChange={(val) => {
-            const next = val as "upcoming" | "archive";
-            setActiveTab(next);
-            router.push(
-              next === "upcoming"
-                ? "/training/planner"
-                : "/training/planner/archive"
-            );
-          }}
-        >
-          <TabsList className="grid h-9 w-full max-w-md grid-cols-2 rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-900">
-            <TabsTrigger
-              value="upcoming"
-              className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-indigo-300"
-            >
-              <CalendarRange className="size-3.5" />
-              <span>Предстоящи</span>
-              <Badge
-                variant="secondary"
-                className={`ml-1 px-1.5 py-0 text-[10px] font-bold ${
-                  activeTab === "upcoming"
-                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
-                    : "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-                }`}
-              >
-                {upcomingSessions.length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="archive"
-              className="flex items-center gap-1.5 rounded-lg text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-xs dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-indigo-300"
-            >
-              <Archive className="size-3.5" />
-              <span>Архив / Проведени</span>
-              <Badge
-                variant="secondary"
-                className={`ml-1 px-1.5 py-0 text-[10px] font-bold ${
-                  activeTab === "archive"
-                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
-                    : "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-                }`}
-              >
-                {archivedSessions.length}
-              </Badge>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
       {/* Filters Bar */}
@@ -514,12 +469,15 @@ function PlannerClientContent({
           {filteredSessions.map((session) => {
             const attendeeCount = attendanceCounts[session.id] || 0;
             const isCompleted = session.status === "completed";
+            const isHighlighted = sessionParam === session.id;
 
             return (
               <Card
                 key={session.id}
                 id={`session-${session.id}`}
-                className="overflow-hidden border-zinc-200 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-800"
+                className={`overflow-hidden border-zinc-200 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-800 ${
+                  isHighlighted ? "ring-2 ring-indigo-500" : ""
+                }`}
               >
                 <CardContent className="p-0">
                   <div className="flex flex-col sm:flex-row sm:items-center">
@@ -668,10 +626,26 @@ function PlannerClientContent({
                           size="icon"
                           className="rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                           onClick={() => {
+                            const url = `${window.location.origin}${window.location.pathname}?id=${session.id}`;
+                            void navigator.clipboard.writeText(url);
+                            toast.success("Линкът е копиран!");
+                          }}
+                          title="Копирай директен линк"
+                          aria-label="Копирай директен линк"
+                        >
+                          <Link2 className="size-4" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                          onClick={() => {
                             setEditingSession(session);
                             setIsWizardOpen(true);
                           }}
                           title="Редактирай тренировка"
+                          aria-label="Редактирай тренировка"
                         >
                           <Pencil className="size-4" />
                         </Button>

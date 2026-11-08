@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import React from "react";
 
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/store/use-app-store";
 
 import {
   CATALOG_SECTIONS,
@@ -17,7 +18,13 @@ interface CatalogsNavProps {
 
 export function CatalogsNav({ className }: CatalogsNavProps) {
   const pathname = usePathname();
+  const { activeBranch } = useAppStore();
   const activeSection = getActiveCatalogSectionId(pathname) || "trainings";
+
+  const visibleSections =
+    activeBranch === "recoveryzone"
+      ? CATALOG_SECTIONS.filter((s) => s.id === "recovery")
+      : CATALOG_SECTIONS;
 
   return (
     <nav
@@ -27,7 +34,7 @@ export function CatalogsNav({ className }: CatalogsNavProps) {
         className
       )}
     >
-      {CATALOG_SECTIONS.map((section) => {
+      {visibleSections.map((section) => {
         const Icon = section.icon;
         const isActive = activeSection === section.id;
         const href = `/catalogs/${section.pathSuffix}`;

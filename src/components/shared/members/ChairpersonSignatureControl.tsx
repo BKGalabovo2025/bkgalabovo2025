@@ -40,7 +40,7 @@ export function ChairpersonSignatureControl({
               className={`rounded-xl h-9 px-3 text-xs font-medium transition-all ${
                 isApplied
                   ? "bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs"
-                  : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                  : "border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
               }`}
               title={
                 isApplied
@@ -66,7 +66,7 @@ export function ChairpersonSignatureControl({
               variant="outline"
               size="sm"
               onClick={() => setDialogOpen(true)}
-              className="rounded-xl h-9 px-2 text-xs text-slate-600 border-slate-200 hover:bg-slate-50"
+              className="rounded-xl h-9 px-2 text-xs text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
               title="Смени / начертай нов подпис"
             >
               <Edit3 className="size-3.5" />
@@ -78,7 +78,7 @@ export function ChairpersonSignatureControl({
                 variant="outline"
                 size="sm"
                 onClick={handleRemoveSignature}
-                className="rounded-xl h-9 px-2 text-xs text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                className="rounded-xl h-9 px-2 text-xs text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700"
                 title="Изтрий подписа на Председателя от базата данни"
               >
                 <Trash2 className="size-3.5" />
@@ -91,7 +91,7 @@ export function ChairpersonSignatureControl({
             variant="outline"
             size="sm"
             onClick={() => setDialogOpen(true)}
-            className="rounded-xl h-9 px-3 text-xs font-medium text-slate-800 border-slate-300 hover:bg-slate-50"
+            className="rounded-xl h-9 px-3 text-xs font-medium text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
             title="Начертайте подпис на Председателя, който ще се запази за всички официални документи"
           >
             <PenLine className="mr-1.5 size-3.5" />
@@ -159,7 +159,7 @@ export function ChairpersonSignatureLine({
         <div className={`${lineWidthClass} pt-8 border-b border-slate-700`} />
       )}
       {caption && (
-        <p className="mt-1 text-[8pt] text-slate-900 font-semibold italic">
+        <p className="mt-1 text-[8pt] text-slate-900 dark:text-slate-900 font-semibold italic">
           {caption}
         </p>
       )}

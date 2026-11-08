@@ -229,7 +229,7 @@ export function SponsorWizardDialog({
                   <span
                     className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[9px] font-black ${
                       isActiveStep
-                        ? "bg-white text-blue-600"
+                        ? "bg-white text-blue-600 dark:bg-zinc-900 dark:text-blue-300"
                         : isCompleted
                           ? "bg-emerald-600 text-white"
                           : "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-200"
@@ -437,7 +437,7 @@ export function SponsorWizardDialog({
 
                   <div className="grid grid-cols-3 gap-2 text-center">
                     {/* Test 1: Light Canvas */}
-                    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white p-2.5 sm:p-3 shadow-2xs">
+                    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white p-2.5 sm:p-3 shadow-2xs dark:border-zinc-700 dark:bg-zinc-800">
                       <div className="relative h-9 w-20 sm:h-11 sm:w-24">
                         <Image
                           src={logoUrl}
@@ -509,7 +509,7 @@ export function SponsorWizardDialog({
               <div className="space-y-2.5 rounded-2xl border border-zinc-200 bg-white p-3.5 shadow-2xs sm:p-4 dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="flex items-center gap-3">
                   {logoUrl && (
-                    <div className="relative flex size-11 shrink-0 items-center justify-center rounded-xl border bg-zinc-50 p-1 sm:size-12">
+                    <div className="relative flex size-11 shrink-0 items-center justify-center rounded-xl border bg-zinc-50 p-1 sm:size-12 dark:border-zinc-700 dark:bg-zinc-800">
                       <Image
                         src={logoUrl}
                         alt={name}
@@ -573,7 +573,7 @@ export function SponsorWizardDialog({
                       }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                        className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out dark:bg-zinc-100 ${
                           isActive ? "translate-x-5" : "translate-x-0"
                         }`}
                       />

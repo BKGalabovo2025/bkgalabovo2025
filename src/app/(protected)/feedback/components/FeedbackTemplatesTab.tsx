@@ -29,7 +29,7 @@ function renderSiteStatusBadge(
     return (
       <Badge
         variant="outline"
-        className="border-zinc-200 bg-zinc-50 text-[10px] font-medium text-zinc-400"
+        className="border-zinc-200 bg-zinc-50 text-[10px] font-medium text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
       >
         ⚪ Не е пусната на сайта
       </Badge>
@@ -38,7 +38,7 @@ function renderSiteStatusBadge(
 
   if (isLiveOnSite) {
     return (
-      <Badge className="border-emerald-300 bg-emerald-100 text-[11px] font-black text-emerald-800 shadow-2xs">
+      <Badge className="border-emerald-300 bg-emerald-100 text-[11px] font-black text-emerald-800 shadow-2xs dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
         <span className="mr-1.5 inline-block size-2 animate-pulse rounded-full bg-emerald-500" />
         🟢 Активна на сайта
       </Badge>
@@ -48,7 +48,7 @@ function renderSiteStatusBadge(
   return (
     <Badge
       variant="secondary"
-      className="border border-zinc-200 bg-zinc-100 text-[10px] font-bold text-zinc-500"
+      className="border border-zinc-200 bg-zinc-100 text-[10px] font-bold text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
     >
       ⏸️ Спряна от сайта
     </Badge>

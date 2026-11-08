@@ -309,7 +309,7 @@ export function SharedSaleDetails({
                     src={member.avatarUrl ?? undefined}
                     alt={`${member.firstName} ${member.lastName}`}
                   />
-                  <AvatarFallback className="bg-zinc-50 font-medium text-zinc-400">
+                  <AvatarFallback className="bg-zinc-50 font-medium text-zinc-400 dark:bg-zinc-800 dark:text-zinc-300">
                     {member.firstName && member.lastName
                       ? `${member.firstName[0]}${member.lastName[0]}`
                       : "C"}
@@ -385,14 +385,14 @@ export function SharedSaleDetails({
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-slate-50 p-2">
-                  <Calendar className="size-4 text-slate-400" />
+                <div className="rounded-lg bg-slate-50 p-2 dark:bg-zinc-800">
+                  <Calendar className="size-4 text-slate-400 dark:text-zinc-400" />
                 </div>
                 <div>
-                  <p className="text-[10px] leading-none font-medium tracking-[0.2em] text-zinc-300 uppercase">
+                  <p className="text-[10px] leading-none font-medium tracking-[0.2em] text-zinc-300 uppercase dark:text-zinc-500">
                     Дата
                   </p>
-                  <p className="text-sm font-medium text-zinc-600">
+                  <p className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
                     {new Date(sale.saleDate).toLocaleDateString("bg-BG", {
                       day: "2-digit",
                       month: "long",
@@ -402,11 +402,11 @@ export function SharedSaleDetails({
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-slate-50 p-2">
-                  <Hash className="size-4 text-slate-400" />
+                <div className="rounded-lg bg-slate-50 p-2 dark:bg-zinc-800">
+                  <Hash className="size-4 text-slate-400 dark:text-zinc-400" />
                 </div>
                 <div>
-                  <p className="text-[10px] leading-none font-medium tracking-[0.2em] text-zinc-300 uppercase">
+                  <p className="text-[10px] leading-none font-medium tracking-[0.2em] text-zinc-300 uppercase dark:text-zinc-500">
                     ID Продажба
                   </p>
                   <p className="font-mono text-[10px] font-medium text-zinc-400">
@@ -415,15 +415,15 @@ export function SharedSaleDetails({
                 </div>
               </div>
               {sale.note && (
-                <div className="mt-4 flex items-start gap-3 border-t border-zinc-100 pt-4">
-                  <div className="mt-1 rounded-lg bg-amber-50 p-2 text-amber-500">
+                <div className="mt-4 flex items-start gap-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                  <div className="mt-1 rounded-lg bg-amber-50 p-2 text-amber-500 dark:bg-amber-950/40">
                     <FilePenLine className="size-4" />
                   </div>
                   <div>
                     <p className="mb-2 text-[10px] leading-none font-medium tracking-[0.2em] text-zinc-400 uppercase">
                       Бележка
                     </p>
-                    <p className="text-sm font-medium text-zinc-700 italic">
+                    <p className="text-sm font-medium text-zinc-700 italic dark:text-zinc-300">
                       &quot;{sale.note}&quot;
                     </p>
                   </div>

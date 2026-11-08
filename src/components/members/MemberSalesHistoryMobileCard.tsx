@@ -44,7 +44,7 @@ function getMobileBadgeClass(variant: string) {
     return "bg-emerald-500 text-white shadow-lg shadow-emerald-500/10";
   if (variant === "secondary")
     return "bg-amber-500 text-white shadow-lg shadow-amber-500/10";
-  return "bg-zinc-100 text-zinc-400 border-zinc-100";
+  return "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 border-zinc-100 dark:border-zinc-800";
 }
 
 export function MemberSalesHistoryMobileCard({
@@ -70,14 +70,14 @@ export function MemberSalesHistoryMobileCard({
   return (
     <div
       onClick={() => handleRowClick(sale.id, sale.isPaid, sale.type)}
-      className="active:scale-0.98 rounded-xl border border-zinc-100 bg-zinc-50/40 p-4 transition-all"
+      className="active:scale-0.98 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/40 dark:bg-zinc-900/40 p-4 transition-all"
     >
       <div className="mb-3 flex items-start justify-between">
         <div className="space-y-1">
           <p className="text-[8px] font-medium tracking-widest text-zinc-400 uppercase">
             {formatSaleDateMobile(sale)}
           </p>
-          <h3 className="line-clamp-2 text-xs leading-relaxed font-medium text-zinc-950">
+          <h3 className="line-clamp-2 text-xs leading-relaxed font-medium text-zinc-950 dark:text-zinc-100">
             {itemsList}
           </h3>
           <div className="mt-1 flex flex-col">
@@ -117,14 +117,14 @@ export function MemberSalesHistoryMobileCard({
               <Button
                 size="icon"
                 variant="ghost"
-                className="size-6 rounded-lg text-zinc-400 hover:text-zinc-950"
+                className="size-6 rounded-lg text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100"
               >
                 <MoreHorizontal className="size-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="rounded-xl border-zinc-100 shadow-none"
+              className="rounded-xl border-zinc-100 dark:border-zinc-800 shadow-none"
             >
               <DropdownMenuItem
                 onSelect={() => handleRowClick(sale.id, sale.isPaid, sale.type)}
@@ -135,22 +135,22 @@ export function MemberSalesHistoryMobileCard({
               {sale.isPaid ? (
                 <DropdownMenuItem
                   onSelect={() => handleMarkAsUnpaid(sale.id)}
-                  className="py-1.5 text-[10px] font-medium tracking-widest text-rose-500 uppercase hover:bg-rose-50 hover:text-rose-600"
+                  className="py-1.5 text-[10px] font-medium tracking-widest text-rose-500 uppercase hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600"
                 >
                   Отмени плащането
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem
                   onSelect={() => handleMarkAsPaid(sale.id)}
-                  className="py-1.5 text-[10px] font-medium tracking-widest text-emerald-500 uppercase hover:bg-emerald-50 hover:text-emerald-600"
+                  className="py-1.5 text-[10px] font-medium tracking-widest text-emerald-500 uppercase hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600"
                 >
                   Маркирай като платено
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator className="bg-zinc-100" />
+              <DropdownMenuSeparator className="bg-zinc-100 dark:bg-zinc-800" />
               <DropdownMenuItem
                 onSelect={() => handleDeleteSale(sale.id)}
-                className="py-1.5 text-[10px] font-medium tracking-widest text-red-500 uppercase hover:bg-red-50 hover:text-red-600"
+                className="py-1.5 text-[10px] font-medium tracking-widest text-red-500 uppercase hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600"
               >
                 Изтрий запис
               </DropdownMenuItem>
@@ -158,9 +158,9 @@ export function MemberSalesHistoryMobileCard({
           </DropdownMenu>
         </div>
       </div>
-      <div className="flex items-center justify-between border-t border-zinc-100/50 pt-3">
+      <div className="flex items-center justify-between border-t border-zinc-100/50 dark:border-zinc-800/60 pt-3">
         <div className="flex flex-wrap items-center gap-1.5">
-          <div className="flex size-5 items-center justify-center rounded-full border border-zinc-100 bg-white">
+          <div className="flex size-5 items-center justify-center rounded-full border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
             <Receipt className="size-2.5 text-zinc-400" />
           </div>
           <span className="text-[8px] font-medium tracking-widest text-zinc-400 uppercase">
@@ -174,7 +174,7 @@ export function MemberSalesHistoryMobileCard({
             })}
           </span>
         </div>
-        <span className="text-sm font-medium tracking-tight text-zinc-950">
+        <span className="text-sm font-medium tracking-tight text-zinc-950 dark:text-zinc-100">
           {formatPrice(sale.totalAmount)}
         </span>
       </div>

@@ -99,7 +99,7 @@ export const ReservationStep2Package = () => {
           </div>
 
           {isRecoveryZone && (
-            <div className="space-y-4 border-t border-zinc-200/50 pt-4">
+            <div className="space-y-4 border-t border-zinc-200/50 pt-4 dark:border-zinc-800">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">
                   Зона за Клиент 1
@@ -124,7 +124,7 @@ export const ReservationStep2Package = () => {
                           "h-8 rounded-lg border text-[10px] font-bold tracking-wider uppercase transition-all",
                           pd.client1Zone === zone
                             ? "border-cyan-600 bg-cyan-600 text-white"
-                            : "border-zinc-200 bg-white text-zinc-500"
+                            : "border-zinc-200 bg-white text-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400"
                         )}
                       >
                         {zone}
@@ -158,7 +158,7 @@ export const ReservationStep2Package = () => {
                             "h-8 rounded-lg border text-[10px] font-bold tracking-wider uppercase transition-all",
                             pd.client2Zone === zone
                               ? "border-cyan-600 bg-cyan-600 text-white"
-                              : "border-zinc-200 bg-white text-zinc-500"
+                              : "border-zinc-200 bg-white text-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400"
                           )}
                         >
                           {zone}

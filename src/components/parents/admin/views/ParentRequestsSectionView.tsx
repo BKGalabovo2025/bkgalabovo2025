@@ -4,16 +4,21 @@ import {
   AlertTriangle,
   Check,
   CheckCircle2,
+  Link2,
   Mail,
   Phone,
+  Search,
   Users,
   X,
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { formatPhoneDisplay } from "@/lib/phone-utils";
 
 import { useParentAdminContext } from "../ParentAdminContext";
@@ -26,6 +31,36 @@ export function ParentRequestsSectionView() {
     setRejectDialogReq,
     setRejectReason,
   } = useParentAdminContext();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const filteredRequests = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return pendingRequests;
+    return pendingRequests.filter((req) => {
+      const parentMatch = (req.parentName || "").toLowerCase().includes(q);
+      const childMatch = (req.childFullName || "").toLowerCase().includes(q);
+      const phoneMatch = (req.parentPhone || "").toLowerCase().includes(q);
+      const emailMatch = (req.parentEmail || "").toLowerCase().includes(q);
+      return parentMatch || childMatch || phoneMatch || emailMatch;
+    });
+  }, [pendingRequests, searchQuery]);
+
+  useDeepLinkHighlight("request", filteredRequests.length > 0);
+
+  const handleCopyLink = (id: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopiedId(id);
+        toast.success("Директният линк към заявката е копиран!");
+        setTimeout(() => setCopiedId(null), 2000);
+      })
+      .catch(() => toast.info(`Линк: ${url}`));
+  };
 
   if (pendingRequests.length === 0) {
     return (
@@ -45,42 +80,88 @@ export function ParentRequestsSectionView() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      {pendingRequests.map((req) => {
-        const matchedMember = members.find((m) => m.id === req.matchedMemberId);
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
+          <Input
+            id="parent-requests-search"
+            name="parentRequestsSearch"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Търси по родител, състезател, телефон или имейл..."
+            className="h-9 rounded-xl pl-8 text-xs"
+          />
+        </div>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+          Показани: <strong>{filteredRequests.length}</strong> от{" "}
+          {pendingRequests.length} заявки
+        </span>
+      </div>
 
-        const roleLabel =
-          req.parentRole === "mother"
-            ? "Майка"
-            : req.parentRole === "father"
-              ? "Баща"
-              : "Настойник";
+      {filteredRequests.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+          Няма открити заявки за „{searchQuery}“.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {filteredRequests.map((req) => {
+            const matchedMember = members.find(
+              (m) => m.id === req.matchedMemberId
+            );
 
-        return (
-          <div
-            key={req.id}
-            className="flex flex-col justify-between rounded-2xl border border-amber-500/30 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80"
-          >
-            <div>
-              {/* Top badges */}
-              <div className="flex items-center justify-between">
-                <Badge
-                  variant="outline"
-                  className="border-amber-500/40 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 font-bold"
-                >
-                  Чака одобрение
-                </Badge>
-                <span className="text-[11px] text-zinc-400">
-                  {req.createdAt
-                    ? new Date(req.createdAt).toLocaleDateString("bg-BG", {
-                        day: "2-digit",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : ""}
-                </span>
-              </div>
+            const roleLabel =
+              req.parentRole === "mother"
+                ? "Майка"
+                : req.parentRole === "father"
+                  ? "Баща"
+                  : "Настойник";
+
+            return (
+              <div
+                key={req.id}
+                id={`request-${req.id}`}
+                className="flex flex-col justify-between rounded-2xl border border-amber-500/30 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80"
+              >
+                <div>
+                  {/* Top badges */}
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge
+                      variant="outline"
+                      className="border-amber-500/40 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 font-bold"
+                    >
+                      Чака одобрение
+                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-zinc-400">
+                        {req.createdAt
+                          ? new Date(req.createdAt).toLocaleDateString(
+                              "bg-BG",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )
+                          : ""}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleCopyLink(req.id)}
+                        title="Копирай директен линк към тази заявка"
+                        className="size-7 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                      >
+                        {copiedId === req.id ? (
+                          <Check size={13} className="text-emerald-600" />
+                        ) : (
+                          <Link2 size={13} />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
 
               {/* Parent details */}
               <div className="mt-3">
@@ -195,6 +276,8 @@ export function ParentRequestsSectionView() {
           </div>
         );
       })}
+        </div>
+      )}
     </div>
   );
 }

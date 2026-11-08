@@ -171,7 +171,7 @@ const WizardStep2Subscription = ({
               "mt-4 rounded-xl px-4 py-2 text-[10px] font-semibold tracking-widest uppercase transition-all",
               selectedMonthKeys.includes("NO_EVENTS")
                 ? "bg-emerald-500 text-white"
-                : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
             )}
           >
             {selectedMonthKeys.includes("NO_EVENTS") ? (
@@ -266,16 +266,16 @@ const WizardStep2Subscription = ({
 
                   <div className="flex shrink-0 items-center gap-2">
                     {monthData.paidCount > 0 && (
-                      <span className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[9px] font-semibold text-emerald-700 uppercase">
+                      <span className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[9px] font-semibold text-emerald-700 uppercase dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400">
                         {monthData.paidCount} платени
                       </span>
                     )}
                     {hasUnpaid ? (
-                      <span className="rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1 text-[9px] font-semibold text-rose-700 uppercase">
+                      <span className="rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1 text-[9px] font-semibold text-rose-700 uppercase dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400">
                         {monthData.unpaidCount} неплатени
                       </span>
                     ) : (
-                      <span className="rounded-full border border-zinc-100 bg-zinc-50 px-2.5 py-1 text-[9px] font-semibold text-zinc-400 uppercase">
+                      <span className="rounded-full border border-zinc-100 bg-zinc-50 px-2.5 py-1 text-[9px] font-semibold text-zinc-400 uppercase dark:border-zinc-800 dark:bg-zinc-900">
                         Изплатен
                       </span>
                     )}
@@ -391,7 +391,7 @@ const WizardStep2Individual = ({
                     "flex size-5 shrink-0 items-center justify-center rounded-md border transition-all",
                     isChecked
                       ? "border-blue-500 bg-blue-500"
-                      : "border-zinc-200 bg-white dark:bg-zinc-900"
+                      : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
                   )}
                 >
                   {isChecked && (
@@ -425,7 +425,7 @@ const WizardStep2Individual = ({
         </div>
       )}
       {selectedEventIds.length > 0 && (
-        <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-[10px] font-medium text-blue-700">
+        <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-[10px] font-medium text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300">
           Избрани: {selectedEventIds.length} {eventLabel}
         </div>
       )}

@@ -3,12 +3,14 @@
 import {
   AlertTriangle,
   Calendar,
+  Check,
   CheckCircle2,
   Clock,
   Copy,
   Eye,
   FileSignature,
   FileText,
+  Link2,
   Loader2,
   RefreshCw,
   Search,
@@ -26,6 +28,7 @@ import { ViewSignedDocumentDialog } from "@/components/documents/ViewSignedDocum
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { deleteDocumentRequestAction } from "@/lib/actions/document-requests";
 import { getAllClubDocumentRequestsAction } from "@/lib/actions/document-templates";
 import { getCalendarYearValidity } from "@/lib/document-validity";
@@ -50,8 +53,22 @@ export function AllSignedDocumentsRegister() {
     null
   );
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [copiedRowId, setCopiedRowId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
+
+  const handleCopyRowDeepLink = (id: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopiedRowId(id);
+        toast.success("Директният линк към документа е копиран!");
+        setTimeout(() => setCopiedRowId(null), 2000);
+      })
+      .catch(() => toast.info(`Линк: ${url}`));
+  };
 
   const loadRequests = useCallback(async () => {
     if (!user) {
@@ -131,8 +148,13 @@ export function AllSignedDocumentsRegister() {
     const total = requests.length;
     const completed = requests.filter((r) => r.status === "completed").length;
     const pending = requests.filter((r) => r.status === "pending").length;
+    const verified = requests.filter(
+      (r) =>
+        r.status === "completed" &&
+        Boolean(r.presidentSignatureUrl || r.presidentSignedAt)
+    ).length;
     const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { total, completed, pending, rate };
+    return { total, completed, pending, verified, rate };
   }, [requests]);
 
   // Available years for filter
@@ -150,7 +172,14 @@ export function AllSignedDocumentsRegister() {
   const filteredRequests = useMemo(() => {
     return requests.filter((r) => {
       const matchesStatus =
-        selectedStatus === "all" || r.status === selectedStatus;
+        selectedStatus === "all"
+          ? true
+          : selectedStatus === "signed" || selectedStatus === "completed"
+            ? r.status === "completed"
+            : selectedStatus === "verified"
+              ? r.status === "completed" &&
+                Boolean(r.presidentSignatureUrl || r.presidentSignedAt)
+              : r.status === selectedStatus;
       const matchesDocType =
         selectedDocType === "all" || r.documentType === selectedDocType;
       const requestYear = (r.signedAt || r.createdAt || "").slice(0, 4);
@@ -169,11 +198,22 @@ export function AllSignedDocumentsRegister() {
     });
   }, [requests, selectedStatus, selectedDocType, selectedYear, searchQuery]);
 
+  useDeepLinkHighlight("doc", filteredRequests.length > 0);
+
   return (
     <div className="space-y-4">
-      {/* Top Metrics Cards */}
+      {/* Top Interactive KPI Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-        <div className="rounded-2xl border border-zinc-100 bg-white p-3.5 sm:p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
+        <button
+          type="button"
+          onClick={() => setSelectedStatus("all")}
+          className={cn(
+            "text-left rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all cursor-pointer",
+            selectedStatus === "all"
+              ? "border-zinc-900 bg-white ring-2 ring-zinc-900/10 dark:border-white dark:bg-zinc-900 dark:ring-white/10"
+              : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+          )}
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
               Общо документи
@@ -188,9 +228,18 @@ export function AllSignedDocumentsRegister() {
           <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
             Всички заявени бланки
           </span>
-        </div>
+        </button>
 
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-3.5 sm:p-4 shadow-2xs dark:border-emerald-900/40 dark:bg-emerald-950/20">
+        <button
+          type="button"
+          onClick={() => setSelectedStatus("signed")}
+          className={cn(
+            "text-left rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all cursor-pointer",
+            selectedStatus === "signed" || selectedStatus === "completed"
+              ? "border-emerald-600 bg-emerald-50/70 ring-2 ring-emerald-500/20 dark:border-emerald-500 dark:bg-emerald-950/40"
+              : "border-emerald-100 bg-emerald-50/40 hover:border-emerald-300 dark:border-emerald-900/40 dark:bg-emerald-950/20"
+          )}
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
               Подписани онлайн
@@ -205,12 +254,21 @@ export function AllSignedDocumentsRegister() {
           <span className="text-[10px] text-emerald-700 font-medium dark:text-emerald-400">
             С валиден подпис от родител
           </span>
-        </div>
+        </button>
 
-        <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-3.5 sm:p-4 shadow-2xs dark:border-amber-900/40 dark:bg-amber-950/20">
+        <button
+          type="button"
+          onClick={() => setSelectedStatus("pending")}
+          className={cn(
+            "text-left rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all cursor-pointer",
+            selectedStatus === "pending"
+              ? "border-amber-600 bg-amber-50/70 ring-2 ring-amber-500/20 dark:border-amber-500 dark:bg-amber-950/40"
+              : "border-amber-100 bg-amber-50/40 hover:border-amber-300 dark:border-amber-900/40 dark:bg-amber-950/20"
+          )}
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-amber-800 dark:text-amber-300">
-              Очакващи подпис
+              Чакащи подпис
             </span>
             <span className="flex size-7 items-center justify-center rounded-xl bg-amber-500 text-white">
               <Clock className="size-3.5" />
@@ -222,12 +280,21 @@ export function AllSignedDocumentsRegister() {
           <span className="text-[10px] text-amber-700 font-medium dark:text-amber-400">
             Активни линкове
           </span>
-        </div>
+        </button>
 
-        <div className="rounded-2xl border border-zinc-100 bg-white p-3.5 sm:p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
+        <button
+          type="button"
+          onClick={() => setSelectedStatus("verified")}
+          className={cn(
+            "text-left rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all cursor-pointer",
+            selectedStatus === "verified"
+              ? "border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20 dark:border-blue-500 dark:bg-blue-950/30"
+              : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+          )}
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              Процент на завършеност
+              Верифицирани ({metrics.verified})
             </span>
             <span className="flex size-7 items-center justify-center rounded-xl bg-zinc-950 text-white dark:bg-zinc-800">
               <ShieldCheck className="size-3.5" />
@@ -244,7 +311,7 @@ export function AllSignedDocumentsRegister() {
             />
             {/* eslint-enable react/forbid-dom-props */}
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Filters Bar */}
@@ -391,6 +458,7 @@ export function AllSignedDocumentsRegister() {
                   return (
                     <tr
                       key={req.id}
+                      id={`doc-${req.id}`}
                       className="transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-800/50"
                     >
                       {/* Member */}
@@ -511,6 +579,20 @@ export function AllSignedDocumentsRegister() {
                       {/* Actions */}
                       <td className="py-2 pr-2 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleCopyRowDeepLink(req.id)}
+                            className="size-8 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                            title="Копирай директен линк към този документ в регистъра"
+                          >
+                            {copiedRowId === req.id ? (
+                              <Check className="size-3.5 text-emerald-600" />
+                            ) : (
+                              <Link2 className="size-3.5" />
+                            )}
+                          </Button>
+
                           <Button
                             variant="outline"
                             size="sm"

@@ -144,7 +144,9 @@ export function ShopProductCard({
                   key={idx}
                   className={cn(
                     "size-1 rounded-full transition-all",
-                    idx === activeImageIndex ? "bg-white w-2" : "bg-white/50"
+                    idx === activeImageIndex
+                      ? "bg-white dark:bg-zinc-900 w-2"
+                      : "bg-white/50"
                   )}
                 />
               ))}
@@ -463,8 +465,68 @@ export function ShopCatalogView({
     }
   };
 
+  const kpiStats = useMemo(() => {
+    const total = products.length;
+    const active = products.filter((p) => (p.stock || 0) > 0).length;
+    const prices = products
+      .map((p) => Number(p.price) || 0)
+      .filter((p) => p > 0);
+    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+    const avgPrice =
+      prices.length > 0
+        ? prices.reduce((acc, p) => acc + p, 0) / prices.length
+        : 0;
+    return { total, active, minPrice, avgPrice };
+  }, [products]);
+
   return (
     <div className="space-y-6">
+      {/* Compact KPI Summary Cards */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <BentoCard className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Общо позиции
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-zinc-900 dark:text-white">
+              {kpiStats.total}
+            </p>
+          </div>
+          <div className="rounded-xl bg-blue-500/10 p-2 text-blue-600 dark:text-blue-400">
+            <Package className="size-4" />
+          </div>
+        </BentoCard>
+
+        <BentoCard className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Активни (Налични)
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-emerald-600 dark:text-emerald-400">
+              {kpiStats.active}
+            </p>
+          </div>
+          <div className="rounded-xl bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400">
+            <Check className="size-4" />
+          </div>
+        </BentoCard>
+
+        <BentoCard className="col-span-2 flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs sm:col-span-1 dark:border-zinc-800 dark:bg-zinc-950">
+          <div>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-zinc-400">
+              Мин / Средна цена
+            </p>
+            <p className="mt-0.5 text-sm font-bold text-zinc-900 dark:text-white">
+              {formatPrice(kpiStats.minPrice)} /{" "}
+              {formatPrice(kpiStats.avgPrice)}
+            </p>
+          </div>
+          <div className="rounded-xl bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400">
+            <ShoppingCart className="size-4" />
+          </div>
+        </BentoCard>
+      </div>
+
       {/* Search and Category Filter Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-md">

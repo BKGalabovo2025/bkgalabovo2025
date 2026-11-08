@@ -42,9 +42,9 @@ export const MemberTheoryTab = ({ memberId }: MemberTheoryTabProps) => {
 
   if (results.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-zinc-200 py-16 text-center">
-        <History className="mx-auto mb-4 size-10 text-zinc-300" />
-        <h3 className="font-bold text-zinc-700">Няма попълнени тестове</h3>
+      <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 py-16 text-center">
+        <History className="mx-auto mb-4 size-10 text-zinc-300 dark:text-zinc-700" />
+        <h3 className="font-bold text-zinc-700 dark:text-zinc-300">Няма попълнени тестове</h3>
         <p className="mt-1 text-sm text-zinc-400">
           Това дете все още не е предало нито един теоретичен тест.
         </p>
@@ -76,28 +76,28 @@ export const MemberTheoryTab = ({ memberId }: MemberTheoryTabProps) => {
         return (
           <Card
             key={r.id}
-            className="overflow-hidden rounded-2xl border-zinc-200"
+            className="overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800"
           >
-            <div className="flex items-start justify-between gap-2 bg-zinc-50 px-5 py-4">
+            <div className="flex items-start justify-between gap-2 bg-zinc-50 dark:bg-zinc-900 px-5 py-4">
               <div className="flex-1">
                 <div className="mb-1 flex items-center gap-2">
                   <Badge
-                    className={`text-[10px] ${isReviewed ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "bg-amber-100 text-amber-700 hover:bg-amber-100"}`}
+                    className={`text-[10px] ${isReviewed ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100" : "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100"}`}
                   >
                     {isReviewed ? "ОЦЕНЕН" : "ЗА ПРОВЕРКА"}
                   </Badge>
-                  <span className="text-xs font-semibold text-zinc-500">
+                  <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
                     {new Date(r.submittedAt).toLocaleDateString("bg-BG")}
                   </span>
                 </div>
-                <h3 className="leading-tight font-bold text-zinc-900">
+                <h3 className="leading-tight font-bold text-zinc-900 dark:text-zinc-100">
                   {r.quizTitle}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => void handleDelete(r.id)}
-                className="shrink-0 rounded-lg p-1 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                className="shrink-0 rounded-lg p-1 text-zinc-400 transition-colors hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600"
                 title="Изтрий теста"
               >
                 <Trash2 className="size-4" />
@@ -106,39 +106,39 @@ export const MemberTheoryTab = ({ memberId }: MemberTheoryTabProps) => {
 
             <CardContent className="space-y-4 p-5">
               <div className="flex items-center gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-500">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-500">
                   <Trophy className="size-5" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
                     Резултат
                   </p>
-                  <p className="font-bold text-zinc-900">
+                  <p className="font-bold text-zinc-900 dark:text-zinc-100">
                     {r.totalScore}{" "}
-                    <span className="text-xs font-normal text-zinc-500">
+                    <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">
                       точки
                     </span>
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 border-t border-zinc-100 pt-3 text-xs">
+              <div className="grid grid-cols-2 gap-2 border-t border-zinc-100 dark:border-zinc-800 pt-3 text-xs">
                 <div>
-                  <span className="text-zinc-500">Автоматични: </span>
+                  <span className="text-zinc-500 dark:text-zinc-400">Автоматични: </span>
                   <span className="font-bold">{r.autoScore}</span>
                 </div>
                 <div>
-                  <span className="text-zinc-500">От треньор: </span>
+                  <span className="text-zinc-500 dark:text-zinc-400">От треньор: </span>
                   <span className="font-bold">{r.manualScore ?? 0}</span>
                 </div>
               </div>
 
               {isReviewed && r.coachFeedback && (
-                <div className="mt-2 rounded-xl bg-zinc-50 p-3">
+                <div className="mt-2 rounded-xl bg-zinc-50 dark:bg-zinc-900 p-3">
                   <p className="mb-1 text-[10px] font-bold text-zinc-400 uppercase">
                     Отзив от треньор
                   </p>
-                  <p className="text-xs text-zinc-700 italic">
+                  <p className="text-xs text-zinc-700 dark:text-zinc-300 italic">
                     &quot;{r.coachFeedback}&quot;
                   </p>
                 </div>

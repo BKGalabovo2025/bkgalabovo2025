@@ -33,14 +33,16 @@ function VisualCheckbox({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-sm border border-zinc-300",
-        checked ? "border-zinc-950 bg-zinc-950" : "bg-white",
+        "flex shrink-0 items-center justify-center rounded-sm border border-zinc-300 dark:border-zinc-700",
+        checked
+          ? "border-zinc-950 bg-zinc-950 dark:border-zinc-100 dark:bg-zinc-100"
+          : "bg-white dark:bg-zinc-900",
         className
       )}
     >
       {checked && (
         <Check
-          className="text-white"
+          className="text-white dark:text-zinc-950"
           strokeWidth={3}
           style={{ width: "70%", height: "70%" }}
         />
@@ -251,7 +253,7 @@ export function MemberFormStep1({
               <FormControl>
                 <Input
                   {...field}
-                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                 />
               </FormControl>
               <FormMessage />
@@ -269,7 +271,7 @@ export function MemberFormStep1({
               <FormControl>
                 <Input
                   {...field}
-                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                  className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                 />
               </FormControl>
               <FormMessage />
@@ -289,7 +291,7 @@ export function MemberFormStep1({
                   <Input
                     {...field}
                     value={field.value || ""}
-                    className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                    className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                   />
                 </FormControl>
                 <FormMessage />
@@ -313,10 +315,10 @@ export function MemberFormStep1({
                       onValueChange={field.onChange}
                       value={field.value || ""}
                     >
-                      <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12">
+                      <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900">
                         <SelectValue placeholder="Изберете пол" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-zinc-100">
+                      <SelectContent className="rounded-xl border-zinc-100 dark:border-zinc-800">
                         <SelectItem value="male">Мъж</SelectItem>
                         <SelectItem value="female">Жена</SelectItem>
                       </SelectContent>
@@ -352,7 +354,7 @@ export function MemberFormStep1({
                       value={field.value || ""}
                       placeholder="10-цифрено ЕГН"
                       maxLength={10}
-                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 font-mono text-sm tracking-wider focus:bg-white focus:ring-0 sm:h-12"
+                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 font-mono text-sm tracking-wider focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                     />
                   </FormControl>
                   <FormMessage />
@@ -372,7 +374,7 @@ export function MemberFormStep1({
                       {...field}
                       value={field.value || ""}
                       placeholder="напр. гр. Гълъбово"
-                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12"
+                      className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900"
                     />
                   </FormControl>
                   <FormMessage />

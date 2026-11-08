@@ -153,7 +153,7 @@ export default function MonthlyScheduleForm({
                 type="button"
                 variant="ghost"
                 onClick={handlePrevStep}
-                className="h-11 gap-2 rounded-xl px-4 text-xs font-medium tracking-wider text-zinc-500 uppercase hover:border-zinc-50 hover:bg-zinc-50"
+                className="h-11 gap-2 rounded-xl px-4 text-xs font-medium tracking-wider text-zinc-500 uppercase hover:border-zinc-50 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-900"
               >
                 <ArrowLeft className="size-3" /> Назад
               </Button>
@@ -164,7 +164,7 @@ export default function MonthlyScheduleForm({
                 onClick={handleNextStep}
                 className={cn(
                   "ml-auto h-11 gap-2 rounded-xl px-5 text-xs font-medium tracking-wider uppercase",
-                  "bg-zinc-950 text-white shadow-md shadow-zinc-950/10 hover:border-zinc-900 hover:bg-zinc-900"
+                  "bg-zinc-950 text-white shadow-md shadow-zinc-950/10 hover:border-zinc-900 hover:bg-zinc-900 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                 )}
               >
                 Напред <ArrowRight className="size-3" />
@@ -176,8 +176,8 @@ export default function MonthlyScheduleForm({
                 className={cn(
                   "ml-auto h-11 gap-2 rounded-xl px-6 text-xs font-medium tracking-wider uppercase transition-all",
                   canSubmit
-                    ? "bg-zinc-950 text-white shadow-lg shadow-zinc-950/20 hover:border-zinc-900 hover:bg-zinc-900"
-                    : "cursor-not-allowed bg-zinc-300 text-zinc-500 opacity-70"
+                    ? "bg-zinc-950 text-white shadow-lg shadow-zinc-950/20 hover:border-zinc-900 hover:bg-zinc-900 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                    : "cursor-not-allowed bg-zinc-300 text-zinc-500 opacity-70 dark:bg-zinc-800 dark:text-zinc-400"
                 )}
               >
                 {isSaving ? (

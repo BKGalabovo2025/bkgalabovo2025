@@ -23,25 +23,35 @@ import { useLanguage } from "@/context/language-context";
 import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
+import { BirthdayReminder } from "../BirthdayReminder";
 import { CourtsOccupancyCard } from "../CourtsOccupancyCard";
+import { DashboardNotifications } from "../dashboard-notifications";
 import {
   DashboardEvent,
   DashboardProduct,
   useDashboardContext,
 } from "../DashboardContext";
+import { FeedbackDashboardCard } from "../FeedbackDashboardCard";
+import { InquiriesNotificationCard } from "../InquiriesNotificationCard";
 
 export function DashboardOverviewView() {
   const router = useRouter();
-  const { t } = useLanguage();
-  const { stats, isRecoveryZone } = useDashboardContext();
+  const { t, language } = useLanguage();
+  const { stats, reminders, isRecoveryZone } = useDashboardContext();
 
   const monthlyRevenue =
     stats?.revenueCurrentMonth ?? stats?.revenueLast30Days ?? 0;
+
+  const currentMonthName = new Date().toLocaleString(
+    language === "bg" ? "bg-BG" : "en-US",
+    { month: "long" }
+  );
 
   const renderMembersContent = () => {
     if (!stats) {
       return (
         <div className="space-y-1.5">
+          <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
           <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
           <Skeleton className="h-3 w-full bg-blue-200/50 dark:bg-zinc-800" />
         </div>
@@ -105,6 +115,14 @@ export function DashboardOverviewView() {
         </div>
         <div className="flex items-center justify-between text-[11px] leading-tight">
           <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Неактивни:
+          </span>
+          <span className="font-bold text-rose-700 dark:text-rose-400">
+            {stats.inactiveMembersCount ?? 0}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
             Семейства:
           </span>
           <span className="font-bold text-purple-700 dark:text-purple-400">
@@ -119,6 +137,7 @@ export function DashboardOverviewView() {
     if (!stats) {
       return (
         <div className="space-y-1.5">
+          <Skeleton className="h-3 w-full bg-emerald-200/50 dark:bg-zinc-800" />
           <Skeleton className="h-3 w-full bg-emerald-200/50 dark:bg-zinc-800" />
           <Skeleton className="h-3 w-full bg-emerald-200/50 dark:bg-zinc-800" />
         </div>
@@ -149,7 +168,7 @@ export function DashboardOverviewView() {
       );
     }
     return (
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <div className="space-y-1 border-b border-emerald-100 pb-2 text-zinc-700 dark:border-emerald-800/50 dark:text-zinc-300">
           <div className="flex items-center justify-between text-[11px] leading-tight">
             <span className="font-normal text-zinc-600 dark:text-zinc-400">
@@ -161,11 +180,27 @@ export function DashboardOverviewView() {
           </div>
           <div className="flex items-center justify-between text-[11px] leading-tight">
             <span className="font-normal text-zinc-600 dark:text-zinc-400">
-              Състезания & Лагери:
+              Състезания:
             </span>
             <span className="font-bold text-rose-700 dark:text-rose-400">
-              {(stats.todayCompetitionsCount ?? 0) +
-                (stats.todayCampsCount ?? 0)}
+              {stats.todayCompetitionsCount ?? 0}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Лагери & Други:
+            </span>
+            <span className="font-bold text-amber-700 dark:text-amber-400">
+              {(stats.todayCampsCount ?? 0) +
+                (stats.todayOtherEventsCount ?? 0)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] leading-tight">
+            <span className="font-normal text-zinc-600 dark:text-zinc-400">
+              Възстановяване:
+            </span>
+            <span className="font-bold text-blue-600 dark:text-blue-400">
+              {stats.todayRecoveryCount ?? 0}
             </span>
           </div>
           <div className="flex items-center justify-between text-[11px] leading-tight">
@@ -180,7 +215,7 @@ export function DashboardOverviewView() {
 
         {stats.todayEventsList && stats.todayEventsList.length > 0 && (
           <div className="space-y-1.5 pt-0.5">
-            {stats.todayEventsList.slice(0, 2).map((event: DashboardEvent) => (
+            {stats.todayEventsList.slice(0, 3).map((event: DashboardEvent) => (
               <div
                 key={event.id}
                 className="flex items-start justify-between rounded-xl bg-white/60 p-1.5 text-[10px] leading-tight dark:bg-black/20"
@@ -201,6 +236,17 @@ export function DashboardOverviewView() {
                 </span>
               </div>
             ))}
+            {stats.todayEventsList.length > 3 && (
+              <div
+                className="mt-1 cursor-pointer text-center text-[10px] font-medium text-emerald-600/70 hover:underline dark:text-emerald-400/70"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push("/schedule");
+                }}
+              >
+                + още {stats.todayEventsList.length - 3} събития
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -211,6 +257,7 @@ export function DashboardOverviewView() {
     if (!stats) {
       return (
         <div className="space-y-1.5">
+          <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
           <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
           <Skeleton className="h-3 w-full bg-purple-200/50 dark:bg-zinc-800" />
         </div>
@@ -250,6 +297,22 @@ export function DashboardOverviewView() {
         </div>
         <div className="flex items-center justify-between text-[11px] leading-tight">
           <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Възстановяване:
+          </span>
+          <span className="font-bold text-indigo-600 dark:text-indigo-400">
+            {formatPrice(stats.revenueRecovery ?? 0)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
+            Кортове:
+          </span>
+          <span className="font-bold text-pink-800 dark:text-pink-400">
+            {formatPrice(stats.revenueCourts ?? 0)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] leading-tight">
+          <span className="font-normal text-zinc-600 dark:text-zinc-400">
             Магазин & Стоки:
           </span>
           <span className="font-bold text-purple-700 dark:text-purple-300">
@@ -265,13 +328,15 @@ export function DashboardOverviewView() {
       return (
         <div className="space-y-1.5">
           <Skeleton className="h-3 w-full bg-current opacity-10" />
+          <Skeleton className="h-3 w-full bg-current opacity-10" />
         </div>
       );
     }
+    const lowStockProducts = stats.lowStockProducts || [];
     if ((stats.lowStockCount || 0) > 0) {
       return (
-        <div className="relative space-y-1">
-          {stats.lowStockProducts?.slice(0, 3).map((p: DashboardProduct) => (
+        <div className="relative space-y-1.5">
+          {lowStockProducts.slice(0, 4).map((p: DashboardProduct) => (
             <div
               key={p.id}
               className="flex items-center justify-between rounded-md border border-rose-100/50 bg-white/40 px-2 py-0.5 text-[11px] leading-tight dark:border-rose-900/20 dark:bg-black/20"
@@ -287,6 +352,11 @@ export function DashboardOverviewView() {
               </span>
             </div>
           ))}
+          {lowStockProducts.length > 4 && (
+            <div className="mt-1 text-right text-[9px] font-medium text-rose-600 opacity-70 dark:text-rose-400">
+              + още {lowStockProducts.length - 4} продукта
+            </div>
+          )}
         </div>
       );
     }
@@ -413,9 +483,11 @@ export function DashboardOverviewView() {
           </div>
         </BentoCard>
 
-        {/* Schedule / Training Card (Direct link without ?tab=) */}
+        {/* Schedule / Training Card */}
         <BentoCard
-          onClick={() => router.push("/schedule")}
+          onClick={() =>
+            router.push(isRecoveryZone ? "/schedule/recovery" : "/schedule")
+          }
           className="group flex h-full min-h-36 sm:min-h-40 cursor-pointer flex-col justify-between rounded-2xl border border-emerald-100 bg-emerald-50/80 p-3.5 sm:p-4 text-emerald-600 shadow-none transition-all hover:border-emerald-200 hover:bg-emerald-100/50 dark:border-emerald-800/50 dark:bg-emerald-900/10 dark:text-emerald-400"
         >
           <div className="mb-2 flex items-center justify-between">
@@ -441,7 +513,7 @@ export function DashboardOverviewView() {
 
         {/* Monthly Revenue Card */}
         <BentoCard
-          onClick={() => router.push(isRecoveryZone ? "/reports" : "/sales")}
+          onClick={() => router.push(isRecoveryZone ? "/finances" : "/reports")}
           className="group relative flex h-full min-h-36 sm:min-h-40 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-purple-100 bg-purple-50/80 p-3.5 sm:p-4 text-purple-600 shadow-none transition-all duration-300 hover:bg-purple-100/50 dark:border-purple-800/50 dark:bg-purple-900/10 dark:text-purple-400 dark:hover:bg-purple-950/20"
         >
           <div className="mb-2 flex items-center justify-between">
@@ -453,8 +525,8 @@ export function DashboardOverviewView() {
             <div className="mb-2 flex items-baseline justify-between">
               <p className="text-xs font-bold text-purple-900 dark:text-purple-200">
                 {isRecoveryZone
-                  ? `Оборот Релакс Зона`
-                  : `${t("dash.monthly_revenue")}`}
+                  ? `Оборот Релакс Зона (${currentMonthName})`
+                  : `Месечен Приход (${currentMonthName})`}
               </p>
               <div className="flex items-center gap-1">
                 <span className="text-sm font-extrabold text-purple-700 dark:text-purple-300">
@@ -471,7 +543,7 @@ export function DashboardOverviewView() {
           </div>
         </BentoCard>
 
-        {/* Low Stock / Inventory Card (Direct link to /catalogs/shop) */}
+        {/* Low Stock / Inventory Card */}
         {!isRecoveryZone && (
           <BentoCard
             onClick={() => router.push("/catalogs/shop")}
@@ -526,9 +598,17 @@ export function DashboardOverviewView() {
         )}
       </div>
 
-      {/* Real-time Courts & Hall Occupancy */}
-      <div className="w-full">
+      {/* Middle Operations Grid: Courts & Inquiries */}
+      <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5 lg:grid-cols-2">
         <CourtsOccupancyCard />
+        <InquiriesNotificationCard />
+      </div>
+
+      {/* Community, Reviews & Alerts Grid: Reminders, Customer Reviews & Birthdays */}
+      <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5 md:grid-cols-2 lg:grid-cols-3">
+        <DashboardNotifications reminders={isRecoveryZone ? [] : reminders} />
+        <FeedbackDashboardCard />
+        <BirthdayReminder />
       </div>
     </div>
   );

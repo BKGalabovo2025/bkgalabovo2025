@@ -122,7 +122,9 @@ export function ImageGallery({
               <div
                 key={i}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  activeImgIndex === i ? "w-4 bg-white" : "w-1.5 bg-white/40"
+                  activeImgIndex === i
+                    ? "w-4 bg-white dark:bg-zinc-100"
+                    : "w-1.5 bg-white/40 dark:bg-zinc-100/40"
                 }`}
               />
             ))}

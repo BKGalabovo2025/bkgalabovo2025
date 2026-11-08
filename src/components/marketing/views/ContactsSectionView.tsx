@@ -15,6 +15,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const AUDIENCE_SEGMENTS = [
+  { id: "all", label: "🌟 Всички" },
+  { id: "athletes", label: "🏸 Състезатели" },
+  { id: "recovery", label: "🌿 Recovery" },
+  { id: "members", label: "👥 Членове" },
+] as const;
+
 export function ContactsSectionView() {
   const {
     filteredContacts,
@@ -58,8 +65,8 @@ export function ContactsSectionView() {
             )}
           </div>
 
-          {/* Branch Selector */}
-          <div className="flex items-center gap-2">
+          {/* Branch & Status Selectors */}
+          <div className="flex flex-wrap items-center gap-2">
             <Select
               value={contactBranchFilter}
               onValueChange={setContactBranchFilter}
@@ -73,45 +80,46 @@ export function ContactsSectionView() {
                 <SelectItem value="recoveryzone">💆 Recovery Zone</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
 
-        {/* Secondary Filter Chips & Bulk Action */}
-        <div className="flex flex-col gap-2 pt-1 border-t border-zinc-100 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {/* Status Filter */}
             <Select
               value={contactStatusFilter}
               onValueChange={setContactStatusFilter}
             >
-              <SelectTrigger className="h-7.5 w-32 rounded-lg text-[11px] font-medium">
+              <SelectTrigger className="h-8.5 w-40 rounded-xl text-xs font-semibold">
                 <SelectValue placeholder="Статус" />
               </SelectTrigger>
               <SelectContent className="rounded-xl text-xs">
-                <SelectItem value="all">Всички статуси</SelectItem>
-                <SelectItem value="pending">⏳ Чакащи контакт</SelectItem>
-                <SelectItem value="contacted">📞 Проведен разговор</SelectItem>
-                <SelectItem value="confirmed">✅ Потвърдени</SelectItem>
-                <SelectItem value="declined">❌ Отказали</SelectItem>
-                <SelectItem value="no_answer">📵 Без отговор</SelectItem>
+                <SelectItem value="all">🌟 Всички статуси</SelectItem>
+                <SelectItem value="pending">🔵 За контакт</SelectItem>
+                <SelectItem value="contacted">🟡 Свързан по тел.</SelectItem>
+                <SelectItem value="emailed">🟢 Изпратен имейл</SelectItem>
+                <SelectItem value="archived">⚪ Архив</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </div>
 
-            {/* Segment Filter */}
-            <Select
-              value={contactSegmentFilter}
-              onValueChange={setContactSegmentFilter}
-            >
-              <SelectTrigger className="h-7.5 w-32 rounded-lg text-[11px] font-medium">
-                <SelectValue placeholder="Сегмент" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl text-xs">
-                <SelectItem value="all">Всички сегменти</SelectItem>
-                <SelectItem value="athletes">🏸 Състезатели</SelectItem>
-                <SelectItem value="recovery">💆 Recovery Zone</SelectItem>
-                <SelectItem value="members">👥 Треньори/Членове</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Secondary Filter Chips (1-click Smart Audience Segment Pills) & Bulk Action */}
+        <div className="flex flex-col gap-2 pt-1.5 border-t border-zinc-100 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {AUDIENCE_SEGMENTS.map((seg) => (
+              <Button
+                key={seg.id}
+                type="button"
+                size="sm"
+                variant={
+                  contactSegmentFilter === seg.id ? "default" : "outline"
+                }
+                onClick={() => setContactSegmentFilter(seg.id)}
+                className={`h-7.5 rounded-lg px-2.5 text-xs font-semibold transition-all ${
+                  contactSegmentFilter === seg.id
+                    ? "bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-900"
+                    : "border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-400"
+                }`}
+              >
+                {seg.label}
+              </Button>
+            ))}
 
             {(contactSearch ||
               contactBranchFilter !== "all" ||
@@ -135,36 +143,35 @@ export function ContactsSectionView() {
           </div>
 
           {/* Bulk Selection Actions */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-zinc-500">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-[11px] font-semibold text-zinc-500">
               Показани: {filteredContacts.length}
             </span>
 
-            {filteredContacts.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleSelectAllFiltered}
-                  className="h-7.5 rounded-lg border-zinc-200 text-[11px] font-semibold text-zinc-700 shadow-2xs hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200"
-                >
-                  {selectedContactIds.size === filteredContacts.length
-                    ? "Откажи всички"
-                    : "Избери всички"}
-                </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={filteredContacts.length === 0}
+              onClick={toggleSelectAllFiltered}
+              className="h-7.5 rounded-lg border-zinc-200 px-2.5 text-xs font-semibold text-zinc-700 shadow-2xs hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200"
+            >
+              {selectedContactIds.size === filteredContacts.length &&
+              filteredContacts.length > 0
+                ? "Отмаркирай всички"
+                : `Маркирай (${filteredContacts.length})`}
+            </Button>
 
-                {selectedContactIds.size > 0 && (
-                  <Button
-                    size="sm"
-                    onClick={handleOpenBulkEmail}
-                    className="h-7.5 rounded-lg bg-indigo-600 px-3 text-[11px] font-bold text-white shadow-xs hover:bg-indigo-700"
-                  >
-                    <Mail className="mr-1.5 size-3" />
-                    Имейл ({selectedContactIds.size})
-                  </Button>
-                )}
-              </>
-            )}
+            <Button
+              type="button"
+              size="sm"
+              disabled={selectedContactIds.size === 0}
+              onClick={handleOpenBulkEmail}
+              className="h-7.5 rounded-lg bg-blue-600 px-2.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700"
+            >
+              <Mail className="mr-1 size-3.5" />
+              Групов имейл ({selectedContactIds.size})
+            </Button>
           </div>
         </div>
       </div>

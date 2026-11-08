@@ -31,6 +31,11 @@ import {
   ParentSentDocumentItem,
 } from "@/types/parent-portal.types";
 
+import {
+  getActiveParentPortalSectionId,
+  getParentPortalSectionHref,
+} from "./parent-portal-sections";
+
 export type PortalTab =
   | "attendance"
   | "documents"
@@ -188,6 +193,11 @@ interface ParentPortalContextType {
   expandedEvents: Record<string, boolean>;
   toggleEventExpanded: (id: string, title?: string) => void;
 
+  // Welcome Tour
+  showWelcomeTour: boolean;
+  setShowWelcomeTour: (open: boolean) => void;
+  handleCloseWelcomeTour: () => void;
+
   // Other helpers
   handleLogout: () => Promise<void>;
   logSessionAction: (actionText: string) => void;
@@ -209,7 +219,9 @@ export function ParentPortalProvider({
 
   // URL state reading
   const urlChild = searchParams.get("child") || undefined;
-  const urlTab = (searchParams.get("tab") as PortalTab) || "attendance";
+  const routeSection = getActiveParentPortalSectionId(pathname);
+  const urlTab =
+    routeSection || (searchParams.get("tab") as PortalTab) || "attendance";
   const urlDoc = searchParams.get("doc") || null;
   const urlMonth = searchParams.get("month");
   const urlYear = searchParams.get("year");
@@ -227,10 +239,30 @@ export function ParentPortalProvider({
     isUnauthorized,
   } = portal;
 
-  // Active tab state synced with URL
+  // First-time Welcome Tour state
+  const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+
+  useEffect(() => {
+    if (parent?.id) {
+      const tourKey = `bkgalabovo_parent_tour_seen_${parent.id}`;
+      const seen = localStorage.getItem(tourKey);
+      if (!seen) {
+        setShowWelcomeTour(true);
+      }
+    }
+  }, [parent?.id]);
+
+  const handleCloseWelcomeTour = useCallback(() => {
+    if (parent?.id) {
+      localStorage.setItem(`bkgalabovo_parent_tour_seen_${parent.id}`, "true");
+    }
+    setShowWelcomeTour(false);
+  }, [parent]);
+
+  // Active tab state synced with URL / hierarchical route
   const [activeTab, setActiveTabState] = useState<PortalTab>(urlTab);
 
-  // Synchronize activeTab from URL when searchParams change
+  // Synchronize activeTab from URL when pathname or searchParams change
   useEffect(() => {
     if (urlTab && urlTab !== activeTab) {
       setActiveTabState(urlTab);
@@ -281,9 +313,13 @@ export function ParentPortalProvider({
   const setActiveTab = useCallback(
     (newTab: PortalTab) => {
       setActiveTabState(newTab);
-      updateUrlParams({ tab: newTab === "attendance" ? null : newTab });
+      const targetHref = getParentPortalSectionHref(newTab);
+      const current = new URLSearchParams(searchParams.toString());
+      current.delete("tab");
+      const query = current.toString() ? `?${current.toString()}` : "";
+      router.push(`${targetHref}${query}`);
     },
-    [updateUrlParams]
+    [router, searchParams]
   );
 
   const handleSelectChild = useCallback(
@@ -318,16 +354,20 @@ export function ParentPortalProvider({
     updateUrlParams({ month: String(nextM), year: String(nextY) });
   }, [selectedMonth, selectedYear, updateUrlParams]);
 
-  // Copy link handler
+  // Copy link handler (uses clean hierarchical route URL)
   const [copiedLink, setCopiedLink] = useState(false);
   const handleCopyPortalLink = useCallback(
     (overrideTab?: PortalTab) => {
       if (typeof window === "undefined") return;
-      const targetTab = overrideTab || activeTab;
-      const params = new URLSearchParams();
-      if (selectedChildId) params.set("child", selectedChildId);
-      if (targetTab !== "attendance") params.set("tab", targetTab);
-      const url = `${window.location.origin}/club/parents${params.toString() ? `?${params.toString()}` : ""}`;
+      const basePath = overrideTab
+        ? getParentPortalSectionHref(overrideTab)
+        : pathname;
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("tab");
+      if (selectedChildId && params.has("child")) {
+        params.set("child", selectedChildId);
+      }
+      const url = `${window.location.origin}${basePath}${params.toString() ? `?${params.toString()}` : ""}`;
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard
@@ -344,13 +384,15 @@ export function ParentPortalProvider({
         toast.info(`Линк: ${url}`);
       }
     },
-    [activeTab, selectedChildId]
+    [pathname, searchParams, selectedChildId]
   );
 
   // Session Activity Logger
   const sessionStartTimeRef = useRef<string>("");
   const sessionStartMsRef = useRef<number>(0);
   const sessionActionsRef = useRef<Array<{ time: string; text: string }>>([]);
+  const hasSentReportRef = useRef<boolean>(false);
+  const hasLoggedLoginRef = useRef<boolean>(false);
 
   useEffect(() => {
     sessionStartTimeRef.current = new Date().toISOString();
@@ -364,6 +406,92 @@ export function ParentPortalProvider({
     });
     sessionActionsRef.current.push({ time, text: actionText });
   }, []);
+
+  useEffect(() => {
+    if (parent?.name && !hasLoggedLoginRef.current) {
+      hasLoggedLoginRef.current = true;
+      logSessionAction(`Вход в профила в Родителския портал (${parent.name})`);
+    }
+  }, [parent?.name, logSessionAction]);
+
+  const sendSessionReport = useCallback(
+    (reason: "logout" | "close" = "close") => {
+      if (hasSentReportRef.current) return;
+      if (!parent?.name) return;
+      if (sessionActionsRef.current.length === 0) return;
+
+      hasSentReportRef.current = true;
+      const exitTime = new Date().toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const actions = [
+        ...sessionActionsRef.current,
+        {
+          time: exitTime,
+          text:
+            reason === "logout"
+              ? "Успешен изход от профила (бутон „Изход“)"
+              : "Затваряне на портала / браузъра",
+        },
+      ];
+
+      const payload = {
+        parentName: parent.name,
+        parentEmail: parent.email,
+        childrenNames: (portal.children || [])
+          .map(
+            (c: { fullName?: string; name?: string }) =>
+              c.fullName || c.name || "дете"
+          )
+          .join(", "),
+        startTime: sessionStartTimeRef.current,
+        endTime: new Date().toISOString(),
+        durationMinutes: Math.max(
+          1,
+          Math.round(
+            (Date.now() - (sessionStartMsRef.current || Date.now())) / 60000
+          )
+        ),
+        actions,
+      };
+
+      if (reason === "logout") {
+        sendParentSessionReportAction(payload).catch(() => {});
+      } else {
+        try {
+          const blob = new Blob([JSON.stringify(payload)], {
+            type: "application/json",
+          });
+          if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+            navigator.sendBeacon("/api/parents/session-report", blob);
+          } else {
+            fetch("/api/parents/session-report", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+              keepalive: true,
+            }).catch(() => {});
+          }
+        } catch {
+          // ignore
+        }
+      }
+    },
+    [parent, portal.children]
+  );
+
+  // Send session activity report via beacon when closing tab
+  useEffect(() => {
+    if (!parent) return;
+    const handleBeforeUnload = () => {
+      sendSessionReport("close");
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [parent, sendSessionReport]);
 
   // Heartbeat & auto-report (throttled to 10m and only when active to save CDN/Server Action calls)
   useEffect(() => {
@@ -390,34 +518,14 @@ export function ParentPortalProvider({
   // Logout handler
   const handleLogout = useCallback(async () => {
     try {
-      if (sessionActionsRef.current.length > 0 && parent) {
-        await sendParentSessionReportAction({
-          parentName: parent.name,
-          parentEmail: parent.email,
-          childrenNames: (portal.children || [])
-            .map(
-              (c: { fullName?: string; name?: string }) =>
-                c.fullName || c.name || "дете"
-            )
-            .join(", "),
-          startTime: sessionStartTimeRef.current,
-          endTime: new Date().toISOString(),
-          durationMinutes: Math.max(
-            1,
-            Math.round(
-              (Date.now() - (sessionStartMsRef.current || Date.now())) / 60000
-            )
-          ),
-          actions: sessionActionsRef.current,
-        }).catch(() => {});
-      }
+      sendSessionReport("logout");
       await parentLogoutAction();
       toast.success("Успешно излязохте от профила си.");
       router.push("/club/parents/login");
     } catch {
       router.push("/club/parents/login");
     }
-  }, [parent, portal.children, router]);
+  }, [router, sendSessionReport]);
 
   // Age and Birthday
   const isBirthdayToday = useMemo(() => {
@@ -915,6 +1023,10 @@ export function ParentPortalProvider({
 
     expandedEvents,
     toggleEventExpanded,
+
+    showWelcomeTour,
+    setShowWelcomeTour,
+    handleCloseWelcomeTour,
 
     handleLogout,
     logSessionAction,

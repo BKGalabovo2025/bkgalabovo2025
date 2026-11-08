@@ -1,12 +1,23 @@
 "use client";
 
-import { ShieldAlert, Trash2, Trophy, UserPlus } from "lucide-react";
+import {
+  Check,
+  Link2,
+  Search,
+  ShieldAlert,
+  Trash2,
+  Trophy,
+  UserPlus,
+} from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import React, { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,10 +26,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
+import { cn } from "@/lib/utils";
 
 import { useTournamentDetailsContext } from "../TournamentDetailsContext";
 
 export function TournamentParticipantsSectionView() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const targetId = searchParams.get("id");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const {
     entries,
     matches,
@@ -30,16 +49,58 @@ export function TournamentParticipantsSectionView() {
     getCategoryName,
   } = useTournamentDetailsContext();
 
+  const filteredEntries = useMemo(() => {
+    if (!searchQuery.trim()) return entries;
+    const q = searchQuery.toLowerCase().trim();
+    return entries.filter((entry) => {
+      const p1 = getPlayerName(entry.memberId, entry.externalName).toLowerCase();
+      const p2 = getPlayerName(
+        entry.partnerMemberId,
+        entry.partnerExternalName
+      ).toLowerCase();
+      const cat = getCategoryName(entry.categoryId).toLowerCase();
+      return p1.includes(q) || p2.includes(q) || cat.includes(q);
+    });
+  }, [entries, searchQuery, getPlayerName, getCategoryName]);
+
+  useDeepLinkHighlight("participant", filteredEntries.length > 0);
+
+  const handleCopyLink = (entryId: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${pathname}?id=${entryId}`;
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setCopiedId(entryId);
+        toast.success("Директният линк към участника е копиран!");
+        setTimeout(() => setCopiedId(null), 2500);
+      })
+      .catch(() => {
+        toast.error("Неуспешно копиране на линк.");
+      });
+  };
+
   return (
     <BentoCard className="overflow-hidden p-0">
       <div className="flex flex-col items-start justify-between gap-3 border-b border-zinc-100 p-3.5 sm:flex-row sm:items-center sm:p-4.5 dark:border-zinc-800">
-        <div>
-          <h3 className="text-base font-medium text-zinc-900 sm:text-lg dark:text-white">
-            Списък с участници
-          </h3>
-          <p className="mt-0.5 text-xs font-light text-zinc-400 sm:text-sm">
-            Всички регистрирани играчи за този турнир
-          </p>
+        <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-3 w-full">
+          <div>
+            <h3 className="text-base font-medium text-zinc-900 sm:text-lg dark:text-white">
+              Списък с участници
+            </h3>
+            <p className="mt-0.5 text-xs font-light text-zinc-400 sm:text-sm">
+              Всички регистрирани играчи за този турнир
+            </p>
+          </div>
+          <div className="relative flex-1 max-w-xs">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              placeholder="Търсене на участник..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 rounded-xl pl-8 text-xs dark:border-zinc-800 dark:bg-zinc-900"
+            />
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {entries.length >= 2 && (
@@ -79,8 +140,15 @@ export function TournamentParticipantsSectionView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {entries.map((entry) => (
-                    <TableRow key={entry.id}>
+                  {filteredEntries.map((entry) => (
+                    <TableRow
+                      key={entry.id}
+                      id={`participant-${entry.id}`}
+                      className={cn(
+                        targetId === entry.id &&
+                          "bg-indigo-50/40 ring-2 ring-indigo-500/40 dark:bg-indigo-950/20"
+                      )}
+                    >
                       <TableCell>
                         <Badge variant="secondary">
                           {getCategoryName(entry.categoryId)}
@@ -122,16 +190,34 @@ export function TournamentParticipantsSectionView() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteEntry(entry.id!)}
-                          title="Премахни участник от турнира"
-                          aria-label="Премахни участник от турнира"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          {entry.id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleCopyLink(entry.id!)}
+                              title="Копирай директен линк към участник"
+                              aria-label="Копирай директен линк към участник"
+                              className="text-zinc-400 hover:text-indigo-600"
+                            >
+                              {copiedId === entry.id ? (
+                                <Check className="size-4 text-emerald-500" />
+                              ) : (
+                                <Link2 className="size-4" />
+                              )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteEntry(entry.id!)}
+                            title="Премахни участник от турнира"
+                            aria-label="Премахни участник от турнира"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -140,10 +226,15 @@ export function TournamentParticipantsSectionView() {
             </div>
 
             <div className="divide-y divide-zinc-50 md:hidden dark:divide-zinc-900">
-              {entries.map((entry) => (
+              {filteredEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="flex flex-col gap-3 p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900"
+                  id={`participant-${entry.id}`}
+                  className={cn(
+                    "flex flex-col gap-3 p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900",
+                    targetId === entry.id &&
+                      "bg-indigo-50/40 ring-2 ring-indigo-500/40 dark:bg-indigo-950/20"
+                  )}
                 >
                   <div className="flex items-center justify-between">
                     <Badge
@@ -152,16 +243,34 @@ export function TournamentParticipantsSectionView() {
                     >
                       {getCategoryName(entry.categoryId)}
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 shrink-0 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                      onClick={() => handleDeleteEntry(entry.id!)}
-                      title="Премахни участник от турнира"
-                      aria-label="Премахни участник от турнира"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      {entry.id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleCopyLink(entry.id!)}
+                          title="Копирай директен линк към участник"
+                          aria-label="Копирай директен линк към участник"
+                          className="size-8 shrink-0 rounded-lg text-zinc-400 hover:text-indigo-600"
+                        >
+                          {copiedId === entry.id ? (
+                            <Check className="size-4 text-emerald-500" />
+                          ) : (
+                            <Link2 className="size-4" />
+                          )}
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 shrink-0 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                        onClick={() => handleDeleteEntry(entry.id!)}
+                        title="Премахни участник от турнира"
+                        aria-label="Премахни участник от турнира"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="mt-1 space-y-1">

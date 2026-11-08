@@ -71,12 +71,12 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
 
   if (attendances.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-20 text-center">
-        <Activity className="mx-auto mb-4 size-12 text-zinc-300" />
-        <h3 className="mb-2 text-lg font-bold text-zinc-900">
+      <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 py-20 text-center">
+        <Activity className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-700" />
+        <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
           Няма данни за натоварване
         </h3>
-        <p className="mx-auto max-w-md text-zinc-500">
+        <p className="mx-auto max-w-md text-zinc-500 dark:text-zinc-400">
           Този състезател все още няма записани присъствия в Универсалния
           Планировчик.
         </p>
@@ -118,52 +118,52 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Card className="border-indigo-100 bg-indigo-50/50">
+        <Card className="border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/30">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-black text-indigo-900">
+            <div className="text-2xl font-black text-indigo-900 dark:text-indigo-200">
               {attendances.length}
             </div>
-            <div className="text-xs font-medium tracking-wider text-indigo-700 uppercase">
+            <div className="text-xs font-medium tracking-wider text-indigo-700 dark:text-indigo-400 uppercase">
               Общо Тренировки
             </div>
           </CardContent>
         </Card>
-        <Card className="border-zinc-200">
+        <Card className="border-zinc-200 dark:border-zinc-800">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-black text-zinc-900">
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
               {courtCount}
             </div>
-            <div className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
+            <div className="text-xs font-medium tracking-wider text-zinc-500 dark:text-zinc-400 uppercase">
               Зала (Court)
             </div>
           </CardContent>
         </Card>
-        <Card className="border-zinc-200">
+        <Card className="border-zinc-200 dark:border-zinc-800">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-black text-zinc-900">
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
               {stadiumCount}
             </div>
-            <div className="text-xs font-medium tracking-wider text-zinc-500 uppercase">
+            <div className="text-xs font-medium tracking-wider text-zinc-500 dark:text-zinc-400 uppercase">
               Стадион/Пясък
             </div>
           </CardContent>
         </Card>
-        <Card className="border-rose-100 bg-rose-50/50">
+        <Card className="border-rose-100 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-black text-rose-900">
+            <div className="text-2xl font-black text-rose-900 dark:text-rose-200">
               {medicalIssues}
             </div>
-            <div className="text-xs font-medium tracking-wider text-rose-700 uppercase">
+            <div className="text-xs font-medium tracking-wider text-rose-700 dark:text-rose-400 uppercase">
               Оплаквания
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="overflow-hidden border-zinc-200 shadow-sm">
-        <CardHeader className="border-b border-zinc-100 bg-zinc-50">
+      <Card className="overflow-hidden border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <CardHeader className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
           <CardTitle className="flex items-center gap-2 text-sm font-bold">
-            <Activity className="size-4 text-indigo-600" />
+            <Activity className="size-4 text-indigo-600 dark:text-indigo-400" />
             Мониторинг на Умората (RPE 1-10)
           </CardTitle>
         </CardHeader>
@@ -235,7 +235,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
       </Card>
 
       <div className="space-y-3">
-        <h3 className="px-1 text-sm font-bold text-zinc-900">
+        <h3 className="px-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">
           История на присъствията
         </h3>
         {attendances
@@ -252,12 +252,12 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                     ? att.id
                     : `att-${att.sessionId || "sess"}-${att.date || "d"}-${idx}`
                 }
-                className="flex flex-col items-start justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center"
+                className="flex flex-col items-start justify-between gap-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:flex-row sm:items-center"
               >
                 <div>
                   <div className="mb-1 flex items-center gap-2">
-                    <span className="text-sm font-bold text-zinc-900">
-                      <span className="text-zinc-600">Зала: </span>
+                    <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                      <span className="text-zinc-600 dark:text-zinc-400">Зала: </span>
                       <span className="font-semibold">
                         {s.location === "court" ? "Да" : "Не"}
                       </span>{" "}
@@ -274,7 +274,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                     {att.medicalStatus === "discomfort" && (
                       <Badge
                         variant="outline"
-                        className="border-amber-200 bg-amber-50 text-[9px] text-amber-700 uppercase"
+                        className="border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/40 text-[9px] text-amber-700 dark:text-amber-300 uppercase"
                       >
                         Болки
                       </Badge>
@@ -282,7 +282,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                     {att.medicalStatus === "injured" && (
                       <Badge
                         variant="outline"
-                        className="border-red-200 bg-red-50 text-[9px] text-red-700 uppercase"
+                        className="border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 text-[9px] text-red-700 dark:text-red-300 uppercase"
                       >
                         Контузия
                       </Badge>

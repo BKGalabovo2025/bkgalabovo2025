@@ -89,14 +89,14 @@ const InfoRow = ({
   return (
     <div
       className={cn(
-        "flex border-b border-zinc-50 py-4 last:border-0 sm:py-6",
+        "flex border-b border-zinc-50 dark:border-zinc-800/60 py-4 last:border-0 sm:py-6",
         isBlock
           ? "flex-col items-start gap-3 sm:gap-4"
           : "flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-4"
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-50">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-50 dark:bg-zinc-900">
           <Icon className="size-3.5 text-zinc-400" strokeWidth={1.5} />
         </div>
         <span className="tracking-widest2 text-[10px] font-medium text-zinc-400 uppercase">
@@ -104,7 +104,7 @@ const InfoRow = ({
         </span>
       </div>
       {!isBlock ? (
-        <span className="w-full pl-12 text-sm font-light text-zinc-900 sm:w-auto sm:pl-0 sm:text-right">
+        <span className="w-full pl-12 text-sm font-light text-zinc-900 dark:text-zinc-100 sm:w-auto sm:pl-0 sm:text-right">
           {value}
         </span>
       ) : (
@@ -140,7 +140,7 @@ export const MemberPersonalTab = ({
   };
 
   return (
-    <div className="rounded-3xl border border-zinc-100 bg-white p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
+    <div className="rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
       <div className="grid grid-cols-1 gap-x-16 gap-y-2 md:grid-cols-2">
         <InfoRow
           icon={Contact}
@@ -197,8 +197,8 @@ export const MemberPersonalTab = ({
                   className={cn(
                     "rounded-full border px-2 py-0.5 text-[10px] font-medium",
                     member.isSkillLevelAutoCalculated
-                      ? "border-green-200 bg-green-50 text-green-700"
-                      : "border-zinc-200 bg-zinc-50 text-zinc-600"
+                      ? "border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300"
+                      : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400"
                   )}
                 >
                   {member.isSkillLevelAutoCalculated
@@ -226,7 +226,7 @@ export const MemberPersonalTab = ({
           }
         />
         <div className="md:col-span-2">
-          <div className="my-6 h-px bg-zinc-50" />
+          <div className="my-6 h-px bg-zinc-50 dark:bg-zinc-800/60" />
         </div>
         <InfoRow
           icon={Calendar}
@@ -245,7 +245,7 @@ export const MemberPersonalTab = ({
             icon={Contact}
             label="ЕГН"
             value={
-              <span className="font-mono text-xs font-semibold tracking-wider text-slate-800">
+              <span className="font-mono text-xs font-semibold tracking-wider text-slate-800 dark:text-slate-200">
                 {member.egn}
               </span>
             }
@@ -311,20 +311,20 @@ export const MemberPersonalTab = ({
             {familyMembers.map((familyMember) => (
               <div
                 key={familyMember.id}
-                className="group flex cursor-pointer items-center gap-4 rounded-2xl border border-zinc-100 p-4 transition-all hover:bg-zinc-50"
+                className="group flex cursor-pointer items-center gap-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4 transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
                 onClick={() => router.push(`/members/${familyMember.id}`)}
               >
-                <Avatar className="size-12 rounded-xl ring-1 ring-zinc-100">
+                <Avatar className="size-12 rounded-xl ring-1 ring-zinc-100 dark:ring-zinc-800">
                   <AvatarImage
                     src={familyMember.avatarUrl ?? undefined}
                     alt={formatFullName(familyMember)}
                   />
-                  <AvatarFallback className="bg-zinc-50 text-zinc-400">
+                  <AvatarFallback className="bg-zinc-50 dark:bg-zinc-900 text-zinc-400">
                     {getInitials(formatFullName(familyMember))}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-zinc-900">
+                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
                     {formatFullName(familyMember)}
                   </p>
                   <p className="mt-1 truncate text-[10px] font-light tracking-widest text-zinc-400 uppercase">

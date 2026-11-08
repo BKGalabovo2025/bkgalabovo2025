@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  BookOpen,
   Check,
   ChevronDown,
   ChevronUp,
@@ -9,6 +8,7 @@ import {
   Database,
   Edit,
   History,
+  Link2,
   Loader2,
   MessageSquare,
   Plus,
@@ -21,7 +21,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { QUESTION_BANK, QuestionBankItem } from "@/lib/question-bank";
 import { evaluateTacticalAnswer } from "@/lib/tactical-evaluator";
 import { getAllMembers } from "@/services/member-service";
@@ -56,12 +57,12 @@ interface TheoryClientProps {
 export default function TheoryClient({
   initialTab = "library",
 }: TheoryClientProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const quizParam = searchParams.get("quiz");
+  const idParam = searchParams.get("id");
+  const quizParam = searchParams.get("quiz") || idParam;
   const editQuizParam = searchParams.get("editQuiz");
   const sendQuizParam = searchParams.get("sendQuiz");
-  const resultParam = searchParams.get("result");
+  const resultParam = searchParams.get("result") || idParam;
 
   const { activeBranch } = useAppStore();
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
@@ -71,6 +72,19 @@ export default function TheoryClient({
   const [reviewedResults, setReviewedResults] = useState<TheoryResult[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [theorySearch, setTheorySearch] = useState("");
+
+  useDeepLinkHighlight(
+    activeTab === "library"
+      ? "quiz"
+      : activeTab === "sent"
+        ? "sent-result"
+        : activeTab === "review"
+          ? "pending-result"
+          : "result",
+    !isLoading,
+    activeTab === "library" ? "quiz" : "result"
+  );
 
   useEffect(() => {
     if (initialTab) {
@@ -429,32 +443,35 @@ export default function TheoryClient({
   };
 
   // ── UI ───────────────────────────────────────────────────────────────────
-  const tabs: {
-    id: TabId;
-    label: string;
-    icon: React.ReactNode;
-    count?: number;
-  }[] = [
-    {
-      id: "library",
-      label: "Библиотека",
-      icon: <BookOpen className="size-4" />,
-    },
-    { id: "builder", label: "Конструктор", icon: <Plus className="size-4" /> },
-    {
-      id: "sent",
-      label: "Изпратени",
-      icon: <Send className="size-4" />,
-      count: sentResults.length,
-    },
-    {
-      id: "review",
-      label: "За Проверка",
-      icon: <MessageSquare className="size-4" />,
-      count: pendingResults.length,
-    },
-    { id: "history", label: "История", icon: <History className="size-4" /> },
-  ];
+  const qLower = theorySearch.trim().toLowerCase();
+  const filteredQuizzes = !qLower
+    ? quizzes
+    : quizzes.filter(
+        (q) =>
+          q.title.toLowerCase().includes(qLower) ||
+          (q.description || "").toLowerCase().includes(qLower)
+      );
+  const filteredSentResults = !qLower
+    ? sentResults
+    : sentResults.filter(
+        (r) =>
+          r.playerName.toLowerCase().includes(qLower) ||
+          r.quizTitle.toLowerCase().includes(qLower)
+      );
+  const filteredPendingResults = !qLower
+    ? pendingResults
+    : pendingResults.filter(
+        (r) =>
+          r.playerName.toLowerCase().includes(qLower) ||
+          r.quizTitle.toLowerCase().includes(qLower)
+      );
+  const filteredReviewedResults = !qLower
+    ? reviewedResults
+    : reviewedResults.filter(
+        (r) =>
+          r.playerName.toLowerCase().includes(qLower) ||
+          r.quizTitle.toLowerCase().includes(qLower)
+      );
 
   if (isLoading) {
     return (
@@ -465,88 +482,95 @@ export default function TheoryClient({
   }
 
   return (
-    <div className="mx-auto max-w-7xl">
-      {/* ── Tabs ── */}
-      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl bg-zinc-100 p-1 sm:grid-cols-5 dark:bg-zinc-900">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => {
-              setActiveTab(t.id);
-              router.push(
-                t.id === "library"
-                  ? "/training/theory"
-                  : `/training/theory/${t.id}`
-              );
-            }}
-            className={`relative flex items-center justify-center gap-2 rounded-xl px-2 py-2.5 text-[11px] font-semibold transition-all sm:px-4 sm:text-sm ${activeTab === t.id ? "bg-white text-indigo-700 shadow-sm dark:bg-zinc-800 dark:text-indigo-300" : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"}`}
-          >
-            {t.icon} <span className="hidden sm:inline">{t.label}</span>
-            <span className="sm:hidden">{t.label.split(" ")[0]}</span>
-            {t.count != null && t.count > 0 && (
-              <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white">
-                {t.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+    <div className="mx-auto max-w-7xl space-y-6">
+      {activeTab !== "builder" && (
+        <div className="relative max-w-md">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+          <Input
+            value={theorySearch}
+            onChange={(e) => setTheorySearch(e.target.value)}
+            placeholder="Търси по заглавие на тест или състезател..."
+            className="rounded-xl border-zinc-200 bg-white pl-9 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+          />
+        </div>
+      )}
 
       {/* ══════════════════════════════════ LIBRARY ══════════════════════════ */}
       {activeTab === "library" && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {quizzes.map((quiz) => (
-            <Card
-              key={quiz.id}
-              id={`quiz-${quiz.id}`}
-              className="overflow-hidden rounded-2xl border-zinc-200 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <CardHeader className="bg-linear-to-br from-indigo-500 to-purple-600 p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <Badge
-                      variant="secondary"
-                      className={`mb-2 text-[10px] ${quiz.isCustom ? "bg-amber-100 text-amber-700" : "bg-white/20 text-white"}`}
-                    >
-                      {quiz.isCustom ? "✏️ Редактиран" : "📚 Базов"}
-                    </Badge>
-                    <h3 className="leading-tight font-bold text-white">
-                      {quiz.title}
-                    </h3>
+          {filteredQuizzes.map((quiz) => {
+            const isHighlighted = quizParam === quiz.id;
+            return (
+              <Card
+                key={quiz.id}
+                id={`quiz-${quiz.id}`}
+                className={`overflow-hidden rounded-2xl border-zinc-200 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 ${
+                  isHighlighted ? "ring-2 ring-indigo-500" : ""
+                }`}
+              >
+                <CardHeader className="bg-linear-to-br from-indigo-500 to-purple-600 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <Badge
+                        variant="secondary"
+                        className={`mb-2 text-[10px] ${quiz.isCustom ? "bg-amber-100 text-amber-700" : "bg-white/20 text-white"}`}
+                      >
+                        {quiz.isCustom ? "✏️ Редактиран" : "📚 Базов"}
+                      </Badge>
+                      <h3 className="leading-tight font-bold text-white">
+                        {quiz.title}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-lg text-white/80 hover:bg-white/20 hover:text-white"
+                        onClick={() => {
+                          const url = `${window.location.origin}${window.location.pathname}?id=${quiz.id}`;
+                          void navigator.clipboard.writeText(url);
+                          toast.success("Линкът е копиран!");
+                        }}
+                        title="Копирай директен линк"
+                        aria-label="Копирай директен линк"
+                      >
+                        <Link2 className="size-4" />
+                      </Button>
+                      <Trophy className="size-5 shrink-0 text-white/70" />
+                    </div>
                   </div>
-                  <Trophy className="size-5 shrink-0 text-white/70" />
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <p className="mb-3 line-clamp-2 text-sm text-zinc-500">
-                  {quiz.description}
-                </p>
-                <div className="mb-4 flex items-center gap-2 text-xs text-zinc-400">
-                  <span>{quiz.questions.length} въпроса</span>
-                  <span>•</span>
-                  <span>до 100 т.</span>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 rounded-xl"
-                    onClick={() => openEdit(quiz)}
-                  >
-                    <Edit className="mr-1 size-3" /> Редактирай
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700"
-                    onClick={() => openSend(quiz)}
-                  >
-                    <Send className="mr-1 size-3" /> Изпрати
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent className="p-4">
+                  <p className="mb-3 line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    {quiz.description}
+                  </p>
+                  <div className="mb-4 flex items-center gap-2 text-xs text-zinc-400">
+                    <span>{quiz.questions.length} въпроса</span>
+                    <span>•</span>
+                    <span>до 100 т.</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 rounded-xl"
+                      onClick={() => openEdit(quiz)}
+                    >
+                      <Edit className="mr-1 size-3" /> Редактирай
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                      onClick={() => openSend(quiz)}
+                    >
+                      <Send className="mr-1 size-3" /> Изпрати
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -701,10 +725,10 @@ export default function TheoryClient({
       {/* ══════════════════════════════════ SENT ══════════════════════════════ */}
       {activeTab === "sent" && (
         <div className="space-y-4">
-          {sentResults.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center">
-              <Send className="mx-auto mb-4 size-10 text-zinc-300" />
-              <h3 className="font-bold text-zinc-700">
+          {filteredSentResults.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center dark:border-zinc-800">
+              <Send className="mx-auto mb-4 size-10 text-zinc-300 dark:text-zinc-700" />
+              <h3 className="font-bold text-zinc-700 dark:text-zinc-200">
                 Няма изпратени тестове
               </h3>
               <p className="text-sm text-zinc-400">
@@ -713,55 +737,74 @@ export default function TheoryClient({
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 Тези тестове са изпратени, но детето все още не ги е отворило
                 или попълнило.
               </p>
-              {sentResults.map((r) => (
-                <div
-                  key={r.id}
-                  id={`sent-result-${r.id}`}
-                  className="flex flex-col gap-3 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/40 dark:bg-amber-950/20"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
-                      <Send className="size-4" />
+              {filteredSentResults.map((r) => {
+                const isHighlighted = resultParam === r.id;
+                return (
+                  <div
+                    key={r.id}
+                    id={`sent-result-${r.id}`}
+                    className={`flex flex-col gap-3 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/40 dark:bg-amber-950/20 ${
+                      isHighlighted ? "ring-2 ring-indigo-500" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                        <Send className="size-4" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-zinc-900 dark:text-zinc-100">
+                          {r.playerName}
+                        </p>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                          {r.quizTitle}
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-400">
+                          Изпратен:{" "}
+                          {new Date(r.submittedAt).toLocaleString("bg-BG")}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-zinc-900 dark:text-zinc-100">
-                        {r.playerName}
-                      </p>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        {r.quizTitle}
-                      </p>
-                      <p className="mt-0.5 text-[10px] text-zinc-400">
-                        Изпратен:{" "}
-                        {new Date(r.submittedAt).toLocaleString("bg-BG")}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className="border-amber-200 bg-white text-[10px] text-amber-700 dark:border-amber-800 dark:bg-zinc-900 dark:text-amber-300"
+                      >
+                        ⏳ Чака отговор
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                        onClick={() => {
+                          const url = `${window.location.origin}${window.location.pathname}?id=${r.id}`;
+                          void navigator.clipboard.writeText(url);
+                          toast.success("Линкът е копиран!");
+                        }}
+                        title="Копирай директен линк"
+                        aria-label="Копирай директен линк"
+                      >
+                        <Link2 className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                        onClick={() => {
+                          const url = `${window.location.origin}/quiz/${r.shareToken}`;
+                          void navigator.clipboard.writeText(url);
+                          toast.success("Линкът е копиран!");
+                        }}
+                      >
+                        <Copy className="mr-1 size-3.5" /> Копирай линк
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="outline"
-                      className="border-amber-200 bg-white text-[10px] text-amber-700 dark:border-amber-800 dark:bg-zinc-900 dark:text-amber-300"
-                    >
-                      ⏳ Чака отговор
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-                      onClick={() => {
-                        const url = `${window.location.origin}/quiz/${r.shareToken}`;
-                        void navigator.clipboard.writeText(url);
-                        toast.success("Линкът е копиран!");
-                      }}
-                    >
-                      <Copy className="mr-1 size-3.5" /> Копирай линк
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -770,7 +813,7 @@ export default function TheoryClient({
       {/* ══════════════════════════════════ REVIEW ═══════════════════════════ */}
       {activeTab === "review" && (
         <div className="space-y-4">
-          {pendingResults.length === 0 ? (
+          {filteredPendingResults.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center dark:border-zinc-800">
               <Check className="mx-auto mb-4 size-10 text-green-400" />
               <h3 className="font-bold text-zinc-700 dark:text-zinc-200">
@@ -781,199 +824,240 @@ export default function TheoryClient({
               </p>
             </div>
           ) : (
-            pendingResults.map((r) => (
-              <Card
-                key={r.id}
-                id={`pending-result-${r.id}`}
-                className="overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (expandedReview === r.id) {
-                      setExpandedReview(null);
-                      setReviewResult(null);
-                    } else {
-                      setExpandedReview(r.id);
-                      openReview(r);
-                    }
-                  }}
-                  className="flex w-full items-center justify-between p-5 text-left transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+            filteredPendingResults.map((r) => {
+              const isHighlighted = resultParam === r.id;
+              return (
+                <Card
+                  key={r.id}
+                  id={`pending-result-${r.id}`}
+                  className={`overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 ${
+                    isHighlighted ? "ring-2 ring-indigo-500" : ""
+                  }`}
                 >
-                  <div>
+                  <div className="flex w-full items-center justify-between p-5 text-left transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (expandedReview === r.id) {
+                          setExpandedReview(null);
+                          setReviewResult(null);
+                        } else {
+                          setExpandedReview(r.id);
+                          openReview(r);
+                        }
+                      }}
+                      className="flex flex-1 items-center justify-between text-left"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Users className="size-4 text-indigo-500" />
+                          <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                            {r.playerName}
+                          </span>
+                          <Badge className="bg-amber-100 text-[10px] text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                            PENDING
+                          </Badge>
+                        </div>
+                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                          {r.quizTitle} •{" "}
+                          {new Date(r.submittedAt).toLocaleString("bg-BG", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <p className="mt-0.5 text-xs text-zinc-400">
+                          Автоматични: {r.autoScore} т.
+                        </p>
+                      </div>
+                    </button>
                     <div className="flex items-center gap-2">
-                      <Users className="size-4 text-indigo-500" />
-                      <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                        {r.playerName}
-                      </span>
-                      <Badge className="bg-amber-100 text-[10px] text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
-                        PENDING
-                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const url = `${window.location.origin}${window.location.pathname}?id=${r.id}`;
+                          void navigator.clipboard.writeText(url);
+                          toast.success("Линкът е копиран!");
+                        }}
+                        className="text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                        title="Копирай директен линк"
+                        aria-label="Копирай директен линк"
+                      >
+                        <Link2 className="size-4" />
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (expandedReview === r.id) {
+                            setExpandedReview(null);
+                            setReviewResult(null);
+                          } else {
+                            setExpandedReview(r.id);
+                            openReview(r);
+                          }
+                        }}
+                        className="p-1 text-zinc-400"
+                      >
+                        {expandedReview === r.id ? (
+                          <ChevronUp className="size-4" />
+                        ) : (
+                          <ChevronDown className="size-4" />
+                        )}
+                      </button>
                     </div>
-                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                      {r.quizTitle} •{" "}
-                      {new Date(r.submittedAt).toLocaleString("bg-BG", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                    <p className="mt-0.5 text-xs text-zinc-400">
-                      Автоматични: {r.autoScore} т.
-                    </p>
                   </div>
-                  {expandedReview === r.id ? (
-                    <ChevronUp className="size-4 text-zinc-400" />
-                  ) : (
-                    <ChevronDown className="size-4 text-zinc-400" />
-                  )}
-                </button>
-                {expandedReview === r.id && (
-                  <div className="space-y-4 border-t border-zinc-100 p-5">
-                    {quizzes
-                      .find((q) => q.id === r.quizId)
-                      ?.questions.filter((q) => q.type === "SINGLE_CHOICE")
-                      .map((q, i) => {
-                        const userAnswer = r.answers?.[q.id];
-                        return (
-                          <div
-                            key={q.id}
-                            className="rounded-xl border border-zinc-200 bg-white p-3"
-                          >
-                            <p className="mb-2 text-xs font-bold text-zinc-800">
-                              {i + 1}. {q.text}
-                            </p>
-                            <div className="space-y-1">
-                              {q.options?.map((opt, optIdx) => {
-                                const isSelected = userAnswer === optIdx;
-                                const isActuallyCorrect =
-                                  q.correctAnswer === optIdx;
-                                let bgClass = "text-zinc-600";
-                                let bgClassCircle = "bg-zinc-200 text-zinc-500";
-                                if (isActuallyCorrect) {
-                                  bgClass =
-                                    "bg-emerald-50 text-emerald-800 font-bold";
-                                  bgClassCircle = "bg-emerald-500 text-white";
-                                } else if (isSelected) {
-                                  bgClass = "bg-red-50 text-red-800";
-                                  bgClassCircle = "bg-red-500 text-white";
-                                }
-                                return (
-                                  <div
-                                    key={optIdx}
-                                    className={`flex items-center gap-2 rounded-lg px-2 py-1 text-xs ${bgClass}`}
-                                  >
+                  {expandedReview === r.id && (
+                    <div className="space-y-4 border-t border-zinc-100 p-5 dark:border-zinc-800">
+                      {quizzes
+                        .find((q) => q.id === r.quizId)
+                        ?.questions.filter((q) => q.type === "SINGLE_CHOICE")
+                        .map((q, i) => {
+                          const userAnswer = r.answers?.[q.id];
+                          return (
+                            <div
+                              key={q.id}
+                              className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
+                            >
+                              <p className="mb-2 text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                                {i + 1}. {q.text}
+                              </p>
+                              <div className="space-y-1">
+                                {q.options?.map((opt, optIdx) => {
+                                  const isSelected = userAnswer === optIdx;
+                                  const isActuallyCorrect =
+                                    q.correctAnswer === optIdx;
+                                  let bgClass =
+                                    "text-zinc-600 dark:text-zinc-400";
+                                  let bgClassCircle =
+                                    "bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400";
+                                  if (isActuallyCorrect) {
+                                    bgClass =
+                                      "bg-emerald-50 text-emerald-800 font-bold dark:bg-emerald-950/40 dark:text-emerald-300";
+                                    bgClassCircle = "bg-emerald-500 text-white";
+                                  } else if (isSelected) {
+                                    bgClass =
+                                      "bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300";
+                                    bgClassCircle = "bg-red-500 text-white";
+                                  }
+                                  return (
                                     <div
-                                      className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${bgClassCircle}`}
+                                      key={optIdx}
+                                      className={`flex items-center gap-2 rounded-lg px-2 py-1 text-xs ${bgClass}`}
                                     >
-                                      {["А", "Б", "В"][optIdx] ??
-                                        String(optIdx + 1)}
+                                      <div
+                                        className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${bgClassCircle}`}
+                                      >
+                                        {["А", "Б", "В"][optIdx] ??
+                                          String(optIdx + 1)}
+                                      </div>
+                                      <span>{opt}</span>
+                                      {isSelected && (
+                                        <span className="ml-auto text-[10px] opacity-70">
+                                          отговор на детето
+                                        </span>
+                                      )}
                                     </div>
-                                    <span>{opt}</span>
-                                    {isSelected && (
-                                      <span className="ml-auto text-[10px] opacity-70">
-                                        отговор на детето
-                                      </span>
-                                    )}
+                                  );
+                                })}
+                              </div>
+                              {typeof userAnswer === "number" &&
+                                userAnswer !== q.correctAnswer && (
+                                  <div className="mt-3 rounded-lg bg-orange-50 p-3 dark:bg-orange-950/30">
+                                    <Label className="mb-1 text-[10px] font-bold text-orange-800 uppercase dark:text-orange-300">
+                                      AI Анализ на грешката (Редактируем)
+                                    </Label>
+                                    <Textarea
+                                      value={coachExplanations[q.id] || ""}
+                                      onChange={(e) =>
+                                        setCoachExplanations((prev) => ({
+                                          ...prev,
+                                          [q.id]: e.target.value,
+                                        }))
+                                      }
+                                      className="h-16 resize-none rounded-md border-orange-200 bg-white text-xs text-orange-900 placeholder:text-orange-300 dark:border-orange-900/50 dark:bg-zinc-900 dark:text-orange-200"
+                                      placeholder="Въведи обяснение за грешния отговор..."
+                                    />
                                   </div>
-                                );
-                              })}
+                                )}
                             </div>
-                            {typeof userAnswer === "number" &&
-                              userAnswer !== q.correctAnswer && (
-                                <div className="mt-3 rounded-lg bg-orange-50 p-3">
-                                  <Label className="mb-1 text-[10px] font-bold text-orange-800 uppercase">
-                                    AI Анализ на грешката (Редактируем)
-                                  </Label>
-                                  <Textarea
-                                    value={coachExplanations[q.id] || ""}
-                                    onChange={(e) =>
-                                      setCoachExplanations((prev) => ({
-                                        ...prev,
-                                        [q.id]: e.target.value,
-                                      }))
-                                    }
-                                    className="h-16 resize-none rounded-md border-orange-200 bg-white text-xs text-orange-900 placeholder:text-orange-300"
-                                    placeholder="Въведи обяснение за грешния отговор..."
-                                  />
-                                </div>
-                              )}
+                          );
+                        })}
+                      {(() => {
+                        const quiz = quizzes.find((q) => q.id === r.quizId);
+                        const openQ = quiz?.questions.find(
+                          (q) => q.type === "OPEN_TEXT"
+                        );
+                        if (!openQ && !r.tacticalAnswer) return null;
+                        const maxPoints = openQ?.points || 28;
+
+                        return (
+                          <div className="mb-4 rounded-xl bg-indigo-50 p-4 dark:bg-indigo-950/30">
+                            <p className="mb-2 text-xs font-bold text-indigo-700 uppercase dark:text-indigo-300">
+                              Тактическа мисия
+                            </p>
+                            {openQ && (
+                              <p className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                                {openQ.text}
+                              </p>
+                            )}
+                            <div className="mb-4 rounded-lg border border-indigo-100 bg-white p-3 dark:border-indigo-900/50 dark:bg-zinc-950">
+                              <p className="mb-1 text-[10px] font-bold text-zinc-400 uppercase">
+                                Отговор на детето:
+                              </p>
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                                {r.tacticalAnswer || (
+                                  <span className="text-zinc-400 italic">
+                                    Няма отговор
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                            <div>
+                              <Label className="mb-1 font-bold text-indigo-900 dark:text-indigo-200">
+                                Оцени отговора (0–{maxPoints} точки)
+                              </Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={maxPoints}
+                                value={manualScore}
+                                onChange={(e) =>
+                                  setManualScore(Number(e.target.value))
+                                }
+                                className="rounded-xl bg-white dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                              />
+                            </div>
                           </div>
                         );
-                      })}
-                    {(() => {
-                      const quiz = quizzes.find((q) => q.id === r.quizId);
-                      const openQ = quiz?.questions.find(
-                        (q) => q.type === "OPEN_TEXT"
-                      );
-                      if (!openQ && !r.tacticalAnswer) return null;
-                      const maxPoints = openQ?.points || 28;
-
-                      return (
-                        <div className="mb-4 rounded-xl bg-indigo-50 p-4">
-                          <p className="mb-2 text-xs font-bold text-indigo-700 uppercase">
-                            Тактическа мисия
-                          </p>
-                          {openQ && (
-                            <p className="mb-3 text-sm font-semibold text-zinc-800">
-                              {openQ.text}
-                            </p>
-                          )}
-                          <div className="mb-4 rounded-lg border border-indigo-100 bg-white p-3">
-                            <p className="mb-1 text-[10px] font-bold text-zinc-400 uppercase">
-                              Отговор на детето:
-                            </p>
-                            <p className="text-sm text-zinc-700">
-                              {r.tacticalAnswer || (
-                                <span className="text-zinc-400 italic">
-                                  Няма отговор
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                          <div>
-                            <Label className="mb-1 font-bold text-indigo-900">
-                              Оцени отговора (0–{maxPoints} точки)
-                            </Label>
-                            <Input
-                              type="number"
-                              min={0}
-                              max={maxPoints}
-                              value={manualScore}
-                              onChange={(e) =>
-                                setManualScore(Number(e.target.value))
-                              }
-                              className="rounded-xl bg-white"
-                            />
-                          </div>
-                        </div>
-                      );
-                    })()}
-                    <div>
-                      <Label className="mb-1 font-bold">
-                        Рецензия / Препоръка от Треньора
-                      </Label>
-                      <Textarea
-                        placeholder='напр. "Супер си с правилата, но научи по-добре точкуването при двойки!"'
-                        value={coachFeedback}
-                        onChange={(e) => setCoachFeedback(e.target.value)}
-                        className="rounded-xl"
-                        rows={3}
-                      />
+                      })()}
+                      <div>
+                        <Label className="mb-1 font-bold dark:text-zinc-200">
+                          Рецензия / Препоръка от Треньора
+                        </Label>
+                        <Textarea
+                          placeholder='напр. "Супер си с правилата, но научи по-добре точкуването при двойки!"'
+                          value={coachFeedback}
+                          onChange={(e) => setCoachFeedback(e.target.value)}
+                          className="rounded-xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                          rows={3}
+                        />
+                      </div>
+                      <Button
+                        className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700"
+                        onClick={() => void submitReview()}
+                      >
+                        <Check className="mr-2 size-4" /> Одобри и Запиши в
+                        Досието
+                      </Button>
                     </div>
-                    <Button
-                      className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700"
-                      onClick={() => void submitReview()}
-                    >
-                      <Check className="mr-2 size-4" /> Одобри и Запиши в
-                      Досието
-                    </Button>
-                  </div>
-                )}
-              </Card>
-            ))
+                  )}
+                </Card>
+              );
+            })
           )}
         </div>
       )}
@@ -981,7 +1065,7 @@ export default function TheoryClient({
       {/* ══════════════════════════════════ HISTORY ═══════════════════════════ */}
       {activeTab === "history" && (
         <div className="space-y-4">
-          {reviewedResults.length === 0 ? (
+          {filteredReviewedResults.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center dark:border-zinc-800">
               <History className="mx-auto mb-4 size-10 text-zinc-300 dark:text-zinc-700" />
               <h3 className="font-bold text-zinc-700 dark:text-zinc-200">
@@ -992,191 +1076,216 @@ export default function TheoryClient({
               </p>
             </div>
           ) : (
-            reviewedResults.map((r) => (
-              <Card
-                key={r.id}
-                id={`result-${r.id}`}
-                className="overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => {
-                    if (expandedReview === r.id) setExpandedReview(null);
-                    else setExpandedReview(r.id);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
+            filteredReviewedResults.map((r) => {
+              const isHighlighted = resultParam === r.id;
+              return (
+                <Card
+                  key={r.id}
+                  id={`result-${r.id}`}
+                  className={`overflow-hidden rounded-2xl border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 ${
+                    isHighlighted ? "ring-2 ring-indigo-500" : ""
+                  }`}
+                >
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
                       if (expandedReview === r.id) setExpandedReview(null);
                       else setExpandedReview(r.id);
-                    }
-                  }}
-                  className="flex w-full cursor-pointer items-center justify-between p-5 text-left transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Users className="size-4 text-emerald-500" />
-                      <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                        {r.playerName}
-                      </span>
-                      <Badge className="bg-emerald-100 text-[10px] text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                        REVIEWED
-                      </Badge>
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        if (expandedReview === r.id) setExpandedReview(null);
+                        else setExpandedReview(r.id);
+                      }
+                    }}
+                    className="flex w-full cursor-pointer items-center justify-between p-5 text-left transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Users className="size-4 text-emerald-500" />
+                        <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                          {r.playerName}
+                        </span>
+                        <Badge className="bg-emerald-100 text-[10px] text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                          REVIEWED
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        {r.quizTitle} •{" "}
+                        {r.reviewedAt
+                          ? new Date(r.reviewedAt).toLocaleString("bg-BG", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : new Date(r.submittedAt).toLocaleString("bg-BG", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                      </p>
+                      <p className="mt-0.5 text-xs text-zinc-400">
+                        Точки: {r.totalScore} (Авто: {r.autoScore} / Тактика:{" "}
+                        {r.manualScore})
+                      </p>
                     </div>
-                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                      {r.quizTitle} •{" "}
-                      {r.reviewedAt
-                        ? new Date(r.reviewedAt).toLocaleString("bg-BG", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : new Date(r.submittedAt).toLocaleString("bg-BG", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                    </p>
-                    <p className="mt-0.5 text-xs text-zinc-400">
-                      Точки: {r.totalScore} (Авто: {r.autoScore} / Тактика:{" "}
-                      {r.manualScore})
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const url = `${window.location.origin}${window.location.pathname}?id=${r.id}`;
+                          void navigator.clipboard.writeText(url);
+                          toast.success("Линкът е копиран!");
+                        }}
+                        className="text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                        title="Копирай директен линк"
+                        aria-label="Копирай директен линк"
+                      >
+                        <Link2 className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleDeleteResult(r.id);
+                        }}
+                        className="text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                        title="Изтрий резултата"
+                        aria-label="Изтрий резултата"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                      {expandedReview === r.id ? (
+                        <ChevronUp className="size-4 text-zinc-400" />
+                      ) : (
+                        <ChevronDown className="size-4 text-zinc-400" />
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handleDeleteResult(r.id);
-                      }}
-                      className="text-red-400 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                    {expandedReview === r.id ? (
-                      <ChevronUp className="size-4 text-zinc-400" />
-                    ) : (
-                      <ChevronDown className="size-4 text-zinc-400" />
-                    )}
-                  </div>
-                </div>
-                {expandedReview === r.id && (
-                  <div className="space-y-4 border-t border-zinc-100 p-5">
-                    {quizzes
-                      .find((q) => q.id === r.quizId)
-                      ?.questions.filter((q) => q.type === "SINGLE_CHOICE")
-                      .map((q, i) => {
-                        const userAnswer = r.answers?.[q.id];
-                        return (
-                          <div
-                            key={q.id}
-                            className="rounded-xl border border-zinc-200 bg-white p-3"
-                          >
-                            <p className="mb-2 text-xs font-bold text-zinc-800">
-                              {i + 1}. {q.text}
-                            </p>
-                            <div className="space-y-1">
-                              {q.options?.map((opt, optIdx) => {
-                                const isSelected = userAnswer === optIdx;
-                                const isActuallyCorrect =
-                                  q.correctAnswer === optIdx;
-                                let bgClass = "text-zinc-600";
-                                let bgClassCircle = "bg-zinc-200 text-zinc-500";
-                                if (isActuallyCorrect) {
-                                  bgClass =
-                                    "bg-emerald-50 text-emerald-800 font-bold";
-                                  bgClassCircle = "bg-emerald-500 text-white";
-                                } else if (isSelected) {
-                                  bgClass = "bg-red-50 text-red-800";
-                                  bgClassCircle = "bg-red-500 text-white";
-                                }
-                                return (
-                                  <div
-                                    key={optIdx}
-                                    className={`flex items-center gap-2 rounded-lg px-2 py-1 text-xs ${bgClass}`}
-                                  >
+                  {expandedReview === r.id && (
+                    <div className="space-y-4 border-t border-zinc-100 p-5 dark:border-zinc-800">
+                      {quizzes
+                        .find((q) => q.id === r.quizId)
+                        ?.questions.filter((q) => q.type === "SINGLE_CHOICE")
+                        .map((q, i) => {
+                          const userAnswer = r.answers?.[q.id];
+                          return (
+                            <div
+                              key={q.id}
+                              className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
+                            >
+                              <p className="mb-2 text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                                {i + 1}. {q.text}
+                              </p>
+                              <div className="space-y-1">
+                                {q.options?.map((opt, optIdx) => {
+                                  const isSelected = userAnswer === optIdx;
+                                  const isActuallyCorrect =
+                                    q.correctAnswer === optIdx;
+                                  let bgClass =
+                                    "text-zinc-600 dark:text-zinc-400";
+                                  let bgClassCircle =
+                                    "bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400";
+                                  if (isActuallyCorrect) {
+                                    bgClass =
+                                      "bg-emerald-50 text-emerald-800 font-bold dark:bg-emerald-950/40 dark:text-emerald-300";
+                                    bgClassCircle = "bg-emerald-500 text-white";
+                                  } else if (isSelected) {
+                                    bgClass =
+                                      "bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300";
+                                    bgClassCircle = "bg-red-500 text-white";
+                                  }
+                                  return (
                                     <div
-                                      className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${bgClassCircle}`}
+                                      key={optIdx}
+                                      className={`flex items-center gap-2 rounded-lg px-2 py-1 text-xs ${bgClass}`}
                                     >
-                                      {["А", "Б", "В"][optIdx] ??
-                                        String(optIdx + 1)}
+                                      <div
+                                        className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${bgClassCircle}`}
+                                      >
+                                        {["А", "Б", "В"][optIdx] ??
+                                          String(optIdx + 1)}
+                                      </div>
+                                      <span>{opt}</span>
+                                      {isSelected && (
+                                        <span className="ml-auto text-[10px] opacity-70">
+                                          отговор на детето
+                                        </span>
+                                      )}
                                     </div>
-                                    <span>{opt}</span>
-                                    {isSelected && (
-                                      <span className="ml-auto text-[10px] opacity-70">
-                                        отговор на детето
-                                      </span>
-                                    )}
+                                  );
+                                })}
+                              </div>
+                              {typeof userAnswer === "number" &&
+                                userAnswer !== q.correctAnswer && (
+                                  <div className="mt-3 rounded-lg bg-orange-50 p-3 dark:bg-orange-950/30">
+                                    <Label className="mb-1 text-[10px] font-bold text-orange-800 uppercase dark:text-orange-300">
+                                      AI Анализ на грешката
+                                    </Label>
+                                    <p className="text-xs text-orange-900 dark:text-orange-200">
+                                      {r.aiExplanations?.[q.id] ||
+                                        q.explanation ||
+                                        `Според официалните правила на BWF верният отговор е "${q.options?.[q.correctAnswer ?? 0]}".`}
+                                    </p>
                                   </div>
-                                );
-                              })}
+                                )}
                             </div>
-                            {typeof userAnswer === "number" &&
-                              userAnswer !== q.correctAnswer && (
-                                <div className="mt-3 rounded-lg bg-orange-50 p-3">
-                                  <Label className="mb-1 text-[10px] font-bold text-orange-800 uppercase">
-                                    AI Анализ на грешката
-                                  </Label>
-                                  <p className="text-xs text-orange-900">
-                                    {r.aiExplanations?.[q.id] ||
-                                      q.explanation ||
-                                      `Според официалните правила на BWF верният отговор е "${q.options?.[q.correctAnswer ?? 0]}".`}
-                                  </p>
-                                </div>
-                              )}
+                          );
+                        })}
+                      {(() => {
+                        const quiz = quizzes.find((q) => q.id === r.quizId);
+                        const openQ = quiz?.questions.find(
+                          (q) => q.type === "OPEN_TEXT"
+                        );
+                        if (!openQ && !r.tacticalAnswer) return null;
+                        return (
+                          <div className="rounded-xl bg-indigo-50 p-4 dark:bg-indigo-950/30">
+                            <p className="mb-2 text-xs font-bold text-indigo-700 uppercase dark:text-indigo-300">
+                              Тактическа мисия
+                            </p>
+                            {openQ && (
+                              <p className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                                {openQ.text}
+                              </p>
+                            )}
+                            <div className="rounded-lg border border-indigo-100 bg-white p-3 dark:border-indigo-900/50 dark:bg-zinc-950">
+                              <p className="mb-1 text-[10px] font-bold text-zinc-400 uppercase">
+                                Отговор на детето:
+                              </p>
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                                {r.tacticalAnswer || (
+                                  <span className="text-zinc-400 italic">
+                                    Няма отговор
+                                  </span>
+                                )}
+                              </p>
+                            </div>
                           </div>
                         );
-                      })}
-                    {(() => {
-                      const quiz = quizzes.find((q) => q.id === r.quizId);
-                      const openQ = quiz?.questions.find(
-                        (q) => q.type === "OPEN_TEXT"
-                      );
-                      if (!openQ && !r.tacticalAnswer) return null;
-                      return (
-                        <div className="rounded-xl bg-indigo-50 p-4">
-                          <p className="mb-2 text-xs font-bold text-indigo-700 uppercase">
-                            Тактическа мисия
+                      })()}
+                      {r.coachFeedback && (
+                        <div className="rounded-xl bg-purple-50 p-4 dark:bg-purple-950/30">
+                          <p className="mb-1 text-xs font-bold text-purple-700 uppercase dark:text-purple-300">
+                            Рецензия от треньора
                           </p>
-                          {openQ && (
-                            <p className="mb-3 text-sm font-semibold text-zinc-800">
-                              {openQ.text}
-                            </p>
-                          )}
-                          <div className="rounded-lg border border-indigo-100 bg-white p-3">
-                            <p className="mb-1 text-[10px] font-bold text-zinc-400 uppercase">
-                              Отговор на детето:
-                            </p>
-                            <p className="text-sm text-zinc-700">
-                              {r.tacticalAnswer || (
-                                <span className="text-zinc-400 italic">
-                                  Няма отговор
-                                </span>
-                              )}
-                            </p>
-                          </div>
+                          <p className="text-sm text-purple-800 italic dark:text-purple-200">
+                            &quot;{r.coachFeedback}&quot;
+                          </p>
                         </div>
-                      );
-                    })()}
-                    {r.coachFeedback && (
-                      <div className="rounded-xl bg-purple-50 p-4">
-                        <p className="mb-1 text-xs font-bold text-purple-700 uppercase">
-                          Рецензия от треньора
-                        </p>
-                        <p className="text-sm text-purple-800 italic">
-                          &quot;{r.coachFeedback}&quot;
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </Card>
-            ))
+                      )}
+                    </div>
+                  )}
+                </Card>
+              );
+            })
           )}
         </div>
       )}

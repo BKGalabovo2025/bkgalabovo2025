@@ -1,1 +1,1 @@
-npm run typecheck && npm run lint && npm test && (npm run lighthouse:gate || true) && npm run vercel:clean
+npm run typecheck && npm run lint && npm test && (npm run lighthouse:gate || true)

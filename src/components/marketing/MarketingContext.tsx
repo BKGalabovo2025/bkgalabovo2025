@@ -426,25 +426,21 @@ export function MarketingProvider({ children }: { children: React.ReactNode }) {
     }));
 
     try {
-      await marketingService.logMessage({
-        siteId,
-        recipientId: contact.id,
-        recipientName: contact.name,
-        recipientPhone: contact.phone,
-        channel: "phone",
-        messageText: note || `Проведено телефонно обаждане (${newStatus})`,
-        templateUsed: "Телефонно обаждане",
-        campaignTitle: "CRM Директно обаждане",
-        status: "sent",
-        sentBy: user?.uid || "admin",
-      });
+      await marketingService.logPhoneCall(
+        contact,
+        "Телефонно обаждане",
+        note,
+        user?.email || "admin"
+      );
 
-      await updateRecoveryClientCommunicationAction(contactId, {
-        communicationStatus: newStatus,
-        notes: note,
-        lastContactAt: now,
-        lastContactType: "phone",
-      });
+      if (contact.siteId === "recoveryzone") {
+        await updateRecoveryClientCommunicationAction(contactId, {
+          communicationStatus: newStatus,
+          notes: note,
+          lastContactAt: now,
+          lastContactType: "phone",
+        });
+      }
 
       toast.success(`Разговорът с ${contact.name} беше регистриран успешно!`);
 

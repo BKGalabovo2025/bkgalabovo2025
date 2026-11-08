@@ -45,7 +45,7 @@ export function MonthlyScheduleStep1({
               <select
                 id="monthly-schedule-type"
                 name="type"
-                className="h-12 w-full rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                className="h-12 w-full rounded-2xl border-zinc-100 bg-zinc-50/50 px-4 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 value={field.value || "training"}
                 onChange={(e) => field.onChange(e.target.value)}
               >
@@ -73,7 +73,7 @@ export function MonthlyScheduleStep1({
               <Input
                 id="monthly-schedule-title"
                 placeholder="напр. Тренировка - Група А"
-                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 onKeyDown={onKeyDown}
                 {...field}
               />
@@ -95,7 +95,7 @@ export function MonthlyScheduleStep1({
               <Input
                 id="monthly-schedule-location"
                 placeholder="напр. Зала Енергетик"
-                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0"
+                className="h-12 rounded-2xl border-zinc-100 bg-zinc-50/50 text-sm font-light transition-all focus:border-zinc-200 focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 onKeyDown={onKeyDown}
                 {...field}
               />

@@ -1,12 +1,23 @@
 "use client";
 
-import { CheckCircle2, Download, FileDown, Trophy } from "lucide-react";
+import {
+  Check,
+  CheckCircle2,
+  Download,
+  FileDown,
+  Link2,
+  Search,
+  Trophy,
+} from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,6 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
+import { cn } from "@/lib/utils";
 
 import {
   type Standing,
@@ -22,6 +35,12 @@ import {
 } from "../TournamentDetailsContext";
 
 export function TournamentResultsSectionView() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const targetId = searchParams.get("id");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const {
     tournament,
     entries,
@@ -33,6 +52,23 @@ export function TournamentResultsSectionView() {
     handleExport,
     handleCompleteTournament,
   } = useTournamentDetailsContext();
+
+  useDeepLinkHighlight("standing", entries.length > 0);
+
+  const handleCopyStandingLink = (entryId: string) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}${pathname}?id=${entryId}`;
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setCopiedId(entryId);
+        toast.success("Директният линк към класирането е копиран!");
+        setTimeout(() => setCopiedId(null), 2500);
+      })
+      .catch(() => {
+        toast.error("Неуспешно копиране на линк.");
+      });
+  };
 
   if (!tournament) return null;
 
@@ -82,6 +118,15 @@ export function TournamentResultsSectionView() {
 
   return (
     <div className="space-y-6">
+      <div className="relative max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+        <Input
+          placeholder="Търсене на участник в класирането..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="h-9 rounded-xl pl-9 text-xs dark:border-zinc-800 dark:bg-zinc-900"
+        />
+      </div>
       {tournament.categories.map((cat) => {
         const catEntries = entries.filter((e) => e.categoryId === cat);
         const catMatches = matches.filter(
@@ -141,13 +186,19 @@ export function TournamentResultsSectionView() {
           }
         });
 
-        const standings = Object.values(standingsMap).sort((a, b) => {
+        const allStandings = Object.values(standingsMap).sort((a, b) => {
           if (b.points !== a.points) return b.points - a.points;
           if (b.wins !== a.wins) return b.wins - a.wins;
           const aDiff = a.gamesWon - a.gamesLost;
           const bDiff = b.gamesWon - b.gamesLost;
           return bDiff - aDiff;
         });
+
+        const standings = searchQuery.trim()
+          ? allStandings.filter((s) =>
+              s.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
+            )
+          : allStandings;
 
         return (
           <BentoCard key={cat} className="mb-4 overflow-hidden p-0">
@@ -222,17 +273,36 @@ export function TournamentResultsSectionView() {
                     {standings.map((s, idx) => (
                       <TableRow
                         key={s.entryId}
-                        className={
+                        id={`standing-${s.entryId}`}
+                        className={cn(
                           idx === 0 && s.played > 0
                             ? "bg-yellow-50 dark:bg-yellow-900/10"
-                            : ""
-                        }
+                            : "",
+                          targetId === s.entryId &&
+                            "ring-2 ring-indigo-500/50 bg-indigo-50/30 dark:bg-indigo-950/20"
+                        )}
                       >
                         <TableCell className="text-center font-medium text-zinc-900 dark:text-zinc-100">
                           {getMedalEmoji(idx, s.wins)}
                         </TableCell>
                         <TableCell className="font-medium">
-                          {renderEntryParticipantLinks(s.entryId, s.name)}
+                          <div className="flex items-center gap-1.5">
+                            {renderEntryParticipantLinks(s.entryId, s.name)}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleCopyStandingLink(s.entryId)}
+                              title="Копирай директен линк"
+                              aria-label="Копирай директен линк"
+                              className="size-7 text-zinc-400 hover:text-indigo-600"
+                            >
+                              {copiedId === s.entryId ? (
+                                <Check className="size-3.5 text-emerald-500" />
+                              ) : (
+                                <Link2 className="size-3.5" />
+                              )}
+                            </Button>
+                          </div>
                         </TableCell>
                         <TableCell className="text-center">
                           {s.played}
@@ -269,20 +339,38 @@ export function TournamentResultsSectionView() {
                 {standings.map((s, idx) => (
                   <div
                     key={s.entryId}
-                    className={`flex flex-col gap-4 p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900 ${
+                    id={`standing-${s.entryId}`}
+                    className={cn(
+                      "flex flex-col gap-4 p-5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900",
                       idx === 0 && s.played > 0
                         ? "bg-yellow-50/50 dark:bg-yellow-900/5"
-                        : ""
-                    }`}
+                        : "",
+                      targetId === s.entryId &&
+                        "ring-2 ring-indigo-500/50 bg-indigo-50/30 dark:bg-indigo-950/20"
+                    )}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <div className="w-8 shrink-0 text-center text-2xl font-light">
                           {getMedalEmoji(idx, s.wins)}
                         </div>
                         <span className="text-sm font-medium text-zinc-900 dark:text-white">
                           {renderEntryParticipantLinks(s.entryId, s.name)}
                         </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleCopyStandingLink(s.entryId)}
+                          title="Копирай директен линк"
+                          aria-label="Копирай директен линк"
+                          className="size-7 text-zinc-400 hover:text-indigo-600"
+                        >
+                          {copiedId === s.entryId ? (
+                            <Check className="size-3.5 text-emerald-500" />
+                          ) : (
+                            <Link2 className="size-3.5" />
+                          )}
+                        </Button>
                       </div>
                       <Badge
                         variant={

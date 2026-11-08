@@ -84,7 +84,7 @@ export const ReservationStep3Details = () => {
                 setShowMemberDropdown(true);
               }}
               onFocus={() => setShowMemberDropdown(true)}
-              className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-xs text-zinc-900 focus:bg-white focus:ring-0"
+              className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-xs text-zinc-900 focus:bg-white focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-950"
             />
             {showMemberDropdown && searchTerm && (
               <div className="absolute z-50 mt-1 max-h-48 w-full divide-y divide-zinc-100 overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:divide-zinc-900 dark:border-zinc-800 dark:bg-zinc-950">
@@ -145,7 +145,7 @@ export const ReservationStep3Details = () => {
             <FormControl>
               <Input
                 placeholder="Иван Иванов"
-                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
+                className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-950"
                 {...field}
               />
             </FormControl>
@@ -165,7 +165,7 @@ export const ReservationStep3Details = () => {
               <FormControl>
                 <Input
                   placeholder="0888..."
-                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
+                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-950"
                   {...field}
                 />
               </FormControl>
@@ -184,7 +184,7 @@ export const ReservationStep3Details = () => {
               <FormControl>
                 <Input
                   placeholder="email@..."
-                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
+                  className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-950"
                   {...field}
                 />
               </FormControl>
@@ -247,7 +247,7 @@ export const ReservationStep3Details = () => {
                       setShowMemberDropdown2(true);
                     }}
                     onFocus={() => setShowMemberDropdown2(true)}
-                    className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-xs text-zinc-900 focus:bg-white focus:ring-0"
+                    className="h-12 rounded-xl border-zinc-100 bg-zinc-50/50 text-xs text-zinc-900 focus:bg-white focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-950"
                   />
                   {showMemberDropdown2 && searchTerm2 && (
                     <div className="absolute z-50 mt-1 max-h-48 w-full divide-y divide-zinc-100 overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:divide-zinc-900 dark:border-zinc-800 dark:bg-zinc-950">
@@ -309,7 +309,7 @@ export const ReservationStep3Details = () => {
                   <FormControl>
                     <Input
                       placeholder="Петър Петров"
-                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
+                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-950"
                       {...field}
                     />
                   </FormControl>
@@ -328,7 +328,7 @@ export const ReservationStep3Details = () => {
                   <FormControl>
                     <Input
                       placeholder="0888..."
-                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0"
+                      className="h-14 rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-900 transition-all focus:bg-white focus:ring-0 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-950"
                       {...field}
                     />
                   </FormControl>

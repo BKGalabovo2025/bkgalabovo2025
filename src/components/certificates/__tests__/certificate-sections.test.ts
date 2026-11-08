@@ -24,7 +24,8 @@ describe("certificates sections (hierarchical sub-pages)", () => {
   it.each(CERTIFICATE_SECTIONS.map((s) => [s.id, s.pathSuffix] as const))(
     "секция %s сочи към съществуваща page.tsx",
     (_id, suffix) => {
-      const file = path.join(CERTIFICATES_ROUTE_DIR, suffix, "page.tsx");
+      const cleanSuffix = suffix.replace(/^\/+/, "");
+      const file = path.join(CERTIFICATES_ROUTE_DIR, cleanSuffix, "page.tsx");
       expect(fs.existsSync(file)).toBe(true);
     }
   );
@@ -33,6 +34,12 @@ describe("certificates sections (hierarchical sub-pages)", () => {
     expect(getActiveCertificateSectionId("/certificates")).toBe("issue");
     expect(getActiveCertificateSectionId("/certificates/")).toBe("issue");
     expect(getActiveCertificateSectionId("/certificates/issue")).toBe("issue");
+    expect(getActiveCertificateSectionId("/certificates/studio")).toBe(
+      "studio"
+    );
+    expect(getActiveCertificateSectionId("/certificates/templates")).toBe(
+      "templates"
+    );
     expect(getActiveCertificateSectionId("/certificates/issued")).toBe(
       "issued"
     );

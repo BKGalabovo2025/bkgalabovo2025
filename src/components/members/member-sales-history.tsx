@@ -234,7 +234,7 @@ export const MemberSalesHistory = ({
 
     if (error) {
       return (
-        <div className="rounded-4xl border border-rose-100 bg-rose-50 p-10 text-center text-sm font-light text-rose-500">
+        <div className="rounded-4xl border border-rose-100 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-10 text-center text-sm font-light text-rose-500 dark:text-rose-400">
           Грешка: {error}
         </div>
       );
@@ -242,8 +242,8 @@ export const MemberSalesHistory = ({
 
     if (sales.length === 0) {
       return (
-        <div className="rounded-4xl border border-dashed border-zinc-100 bg-zinc-50/50 py-20 text-center">
-          <p className="text-[11px] font-medium tracking-[0.2em] text-zinc-300 uppercase">
+        <div className="rounded-4xl border border-dashed border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 py-20 text-center">
+          <p className="text-[11px] font-medium tracking-[0.2em] text-zinc-300 dark:text-zinc-600 uppercase">
             Няма регистрирани продажби.
           </p>
         </div>
@@ -266,45 +266,45 @@ export const MemberSalesHistory = ({
           return (
             <div
               key={year}
-              className="overflow-hidden rounded-3xl border border-zinc-100 bg-zinc-50/20 transition-all"
+              className="overflow-hidden rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/20 dark:bg-zinc-900/20 transition-all"
             >
               <button
                 type="button"
                 onClick={() => toggleYear(year)}
-                className="flex w-full items-center justify-between border-b border-zinc-100 bg-zinc-50/50 p-5 text-left transition-colors hover:bg-zinc-50 sm:p-6"
+                className="flex w-full items-center justify-between border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/60 p-5 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/60 sm:p-6"
               >
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <span className="text-lg font-light tracking-tight text-zinc-950 sm:text-xl">
+                  <span className="text-lg font-light tracking-tight text-zinc-950 dark:text-zinc-100 sm:text-xl">
                     {year} г.
                   </span>
                   <Badge
                     variant="outline"
-                    className="rounded-full border-zinc-200 px-2.5 py-0.5 text-[8px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[9px]"
+                    className="rounded-full border-zinc-200 dark:border-zinc-700 px-2.5 py-0.5 text-[8px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[9px]"
                   >
                     {yearSales.length}{" "}
                     {yearSales.length === 1 ? "запис" : "записа"}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <span className="text-xs font-medium text-zinc-950 sm:text-sm">
+                  <span className="text-xs font-medium text-zinc-950 dark:text-zinc-100 sm:text-sm">
                     Общо: {formatPrice(yearTotal)}
                   </span>
                   <MoreHorizontal
                     className={cn(
                       "size-4 text-zinc-400 transition-transform duration-300",
-                      isExpanded && "rotate-90 text-zinc-950"
+                      isExpanded && "rotate-90 text-zinc-950 dark:text-zinc-100"
                     )}
                   />
                 </div>
               </button>
 
               {isExpanded && (
-                <div className="space-y-4 bg-white p-3 duration-200 animate-in slide-in-from-top-1 sm:p-6">
+                <div className="space-y-4 bg-white dark:bg-zinc-950 p-3 duration-200 animate-in slide-in-from-top-1 sm:p-6">
                   {/* Desktop Table View */}
-                  <div className="hidden overflow-hidden rounded-2xl border border-zinc-100 md:block">
+                  <div className="hidden overflow-hidden rounded-2xl border border-zinc-100 dark:border-zinc-800 md:block">
                     <Table>
                       <TableHeader>
-                        <TableRow className="border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50/50">
+                        <TableRow className="border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
                           <TableHead className="h-10 pl-5 text-[9px] font-medium tracking-[0.2em] text-zinc-400 uppercase">
                             Дата
                           </TableHead>
@@ -406,10 +406,10 @@ export const MemberSalesHistory = ({
   };
 
   return (
-    <div className="rounded-3xl border border-zinc-100 bg-white p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
+    <div className="rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
       <div className="mb-8 flex flex-col items-start justify-between gap-6 sm:mb-12 md:flex-row md:items-center">
         <div>
-          <h2 className="mb-2 text-2xl font-light tracking-tighter text-zinc-950 sm:text-3xl">
+          <h2 className="mb-2 text-2xl font-light tracking-tighter text-zinc-950 dark:text-zinc-100 sm:text-3xl">
             История на продажбите
           </h2>
           <p className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 uppercase">

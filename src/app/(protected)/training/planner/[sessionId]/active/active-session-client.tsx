@@ -576,7 +576,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
             <Button
               size="lg"
               onClick={() => toggleTimerPause()}
-              className="min-h-14 min-w-14 bg-white text-zinc-950 hover:bg-zinc-200"
+              className="min-h-14 min-w-14 bg-white text-zinc-950 hover:bg-zinc-200 dark:bg-zinc-100 dark:text-zinc-950"
             >
               <Pause className="size-5" />
             </Button>

@@ -93,7 +93,7 @@ export function ParentPortalKpiRow() {
                 type="button"
                 size="sm"
                 onClick={() => handleOpenSignDocument(topPendingDoc)}
-                className="h-9 rounded-xl bg-white px-4 text-xs font-bold text-indigo-900 shadow-sm hover:bg-indigo-50 cursor-pointer"
+                className="h-9 rounded-xl bg-white dark:bg-zinc-100 px-4 text-xs font-bold text-indigo-900 dark:text-indigo-950 shadow-sm hover:bg-indigo-50 dark:hover:bg-white cursor-pointer"
               >
                 ✍️ Подпиши онлайн
               </Button>

@@ -1,6 +1,14 @@
 "use client";
 
-import { Download, Dumbbell, Home, Loader2, MapPin, Plus } from "lucide-react";
+import {
+  Download,
+  Dumbbell,
+  Home,
+  Link2,
+  Loader2,
+  MapPin,
+  Plus,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -22,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
 import { plannerService } from "@/services/planner-service";
 import { useAppStore } from "@/store/use-app-store";
@@ -38,8 +47,10 @@ export default function ExercisesClient({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const idParam = searchParams.get("id");
   const exerciseParam =
     searchParams.get("exercise") ?? searchParams.get("edit");
+  const highlightExerciseId = idParam || exerciseParam;
   const isNewParam = searchParams.get("new") === "true";
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,6 +58,12 @@ export default function ExercisesClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [ageGroupFilter, setAgeGroupFilter] = useState("all");
+
+  useDeepLinkHighlight(
+    "exercise",
+    !isLoading && exercises.length > 0,
+    "exercise"
+  );
 
   useEffect(() => {
     loadExercises();
@@ -319,91 +336,117 @@ export default function ExercisesClient({
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredExercises.map((ex) => (
-            <Link
-              key={ex.id}
-              id={`exercise-${ex.id}`}
-              href={`${getExerciseSectionHref(section)}?exercise=${ex.id}`}
-              className="block rounded-xl focus-visible:outline-2 focus-visible:outline-indigo-500"
-            >
-              <Card className="h-full cursor-pointer transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                <CardContent className="p-5">
-                  <div className="mb-3 flex items-start justify-between">
-                    <Badge
-                      variant="secondary"
-                      className="text-[10px] font-bold tracking-wider uppercase"
-                    >
-                      {(() => {
-                        switch (ex.category) {
-                          case "physical":
-                            return "Физическо";
-                          case "technique":
-                            return "Техника";
-                          case "tactics":
-                            return "Тактика";
-                          case "games":
-                            return "Игри";
-                          case "warmup":
-                            return "Загрявка";
-                          case "cooldown":
-                            return "Разпускане";
-                          default:
-                            return ex.category;
-                        }
-                      })()}
-                    </Badge>
-                    <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-400 dark:bg-zinc-800 dark:text-zinc-400">
-                      {ex.durationMinutes} мин
-                    </span>
-                  </div>
-                  <h3 className="mb-2 text-lg leading-tight font-bold text-zinc-900 dark:text-zinc-100">
-                    {ex.name}
-                  </h3>
-                  <p className="mb-4 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    {ex.description}
-                  </p>
-                  {ex.coachingPoints && ex.coachingPoints.length > 0 && (
-                    <div className="mb-4 line-clamp-2 rounded-lg border border-amber-100 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
-                      <span className="font-bold">Насоки:</span>{" "}
-                      {ex.coachingPoints[0]}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-4 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="size-3" />
-                      {(() => {
-                        if (ex.location.includes("beach")) return "Плаж";
-                        if (ex.location.includes("stadium")) return "Стадион";
-                        return "В зала";
-                      })()}
-                    </div>
-                    {ex.isHomeFriendly && (
-                      <div
-                        className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"
-                        title="Подходящо за дома"
+          {filteredExercises.map((ex) => {
+            const isHighlighted = highlightExerciseId === ex.id;
+            return (
+              <Link
+                key={ex.id}
+                id={`exercise-${ex.id}`}
+                href={`${getExerciseSectionHref(section)}?exercise=${ex.id}`}
+                className="block rounded-xl focus-visible:outline-2 focus-visible:outline-indigo-500"
+              >
+                <Card
+                  className={`h-full cursor-pointer transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 ${
+                    isHighlighted ? "ring-2 ring-indigo-500" : ""
+                  }`}
+                >
+                  <CardContent className="p-5">
+                    <div className="mb-3 flex items-start justify-between">
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] font-bold tracking-wider uppercase"
                       >
-                        <Home className="size-3" />
-                        <span>Вкъщи</span>
+                        {(() => {
+                          switch (ex.category) {
+                            case "physical":
+                              return "Физическо";
+                            case "technique":
+                              return "Техника";
+                            case "tactics":
+                              return "Тактика";
+                            case "games":
+                              return "Игри";
+                            case "warmup":
+                              return "Загрявка";
+                            case "cooldown":
+                              return "Разпускане";
+                            default:
+                              return ex.category;
+                          }
+                        })()}
+                      </Badge>
+                      <div className="flex items-center gap-1.5">
+                        <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-400 dark:bg-zinc-800 dark:text-zinc-400">
+                          {ex.durationMinutes} мин
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-7 rounded-lg text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const url = `${window.location.origin}${window.location.pathname}?id=${ex.id}`;
+                            void navigator.clipboard.writeText(url);
+                            toast.success("Линкът е копиран!");
+                          }}
+                          title="Копирай директен линк"
+                          aria-label="Копирай директен линк"
+                        >
+                          <Link2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <h3 className="mb-2 text-lg leading-tight font-bold text-zinc-900 dark:text-zinc-100">
+                      {ex.name}
+                    </h3>
+                    <p className="mb-4 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
+                      {ex.description}
+                    </p>
+                    {ex.coachingPoints && ex.coachingPoints.length > 0 && (
+                      <div className="mb-4 line-clamp-2 rounded-lg border border-amber-100 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
+                        <span className="font-bold">Насоки:</span>{" "}
+                        {ex.coachingPoints[0]}
                       </div>
                     )}
-                  </div>
-                  {ex.targetKineticChain &&
-                    ex.targetKineticChain.length > 0 && (
-                      <div className="mt-3 flex flex-wrap items-center gap-1">
-                        {ex.targetKineticChain.map((chain) => (
-                          <span
-                            key={chain}
-                            className="rounded-sm bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-indigo-600 uppercase dark:bg-indigo-950/50 dark:text-indigo-300"
-                          >
-                            {chain}
-                          </span>
-                        ))}
+                    <div className="flex items-center gap-4 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="size-3" />
+                        {(() => {
+                          if (ex.location.includes("beach")) return "Плаж";
+                          if (ex.location.includes("stadium")) return "Стадион";
+                          return "В зала";
+                        })()}
                       </div>
-                    )}
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                      {ex.isHomeFriendly && (
+                        <div
+                          className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"
+                          title="Подходящо за дома"
+                        >
+                          <Home className="size-3" />
+                          <span>Вкъщи</span>
+                        </div>
+                      )}
+                    </div>
+                    {ex.targetKineticChain &&
+                      ex.targetKineticChain.length > 0 && (
+                        <div className="mt-3 flex flex-wrap items-center gap-1">
+                          {ex.targetKineticChain.map((chain) => (
+                            <span
+                              key={chain}
+                              className="rounded-sm bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-indigo-600 uppercase dark:bg-indigo-950/50 dark:text-indigo-300"
+                            >
+                              {chain}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
 
