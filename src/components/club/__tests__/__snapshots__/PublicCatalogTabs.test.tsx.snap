@@ -228,7 +228,7 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
         Няма намерени артикули в този каталог.
       </p>
       <p
-        class="mt-1 text-xs text-zinc-500"
+        class="mt-1 text-xs text-zinc-400"
       >
         Опитайте с друго търсене или изчистете избраната категория.
       </p>
