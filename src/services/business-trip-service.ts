@@ -12,7 +12,10 @@ import {
 } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 
-import { assignMissingBusinessTripNumbersAction } from "@/lib/actions/business-trips";
+import {
+  assignMissingBusinessTripNumbersAction,
+  renumberAllBusinessTripsChronologicallyAction,
+} from "@/lib/actions/business-trips";
 import { isAutoDecision } from "@/lib/business-trip-numbers";
 import { db } from "@/lib/firebase";
 import { uploadFile } from "@/services/storage-service";
@@ -127,6 +130,19 @@ export const businessTripService = {
       console.warn("Client fallback assignMissingNumbers skipped:", clientErr);
       return 0;
     }
+  },
+
+  /**
+   * Преномерира абсолютно всички командировки в хронологичен ред по startDate.
+   * Актуализира Заповед № (1..N), Решение на УС (1..N-УС), Протокол (1..N-ПР)
+   * и замества старите номера в съхранените текстове на протоколи и доклади.
+   */
+  async renumberAllTripsChronologically(siteId: string): Promise<number> {
+    const res = await renumberAllBusinessTripsChronologicallyAction(siteId);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешно преномериране на командировките");
+    }
+    return res.count || 0;
   },
 
   async updateTrip(id: string, data: Partial<BusinessTrip>): Promise<void> {

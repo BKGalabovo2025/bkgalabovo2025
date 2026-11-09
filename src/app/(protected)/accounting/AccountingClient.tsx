@@ -19,6 +19,7 @@ import {
   Mail,
   Pizza,
   Plus,
+  RotateCcw,
   Search,
   Ticket,
   X,
@@ -45,6 +46,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -429,6 +431,7 @@ export default function AccountingClient({
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isZipping, setIsZipping] = useState(false);
+  const [isRenumbering, setIsRenumbering] = useState(false);
   const { user } = useAuth();
 
   // Modal states
@@ -1188,6 +1191,30 @@ export default function AccountingClient({
     }, 100);
   };
 
+  const handleRenumberAllChronologically = async () => {
+    if (isRenumbering) return;
+    const confirmed = window.confirm(
+      "Сигурни ли сте, че искате да преномерирате всички командировки хронологично според тяхната начална дата?\n\nТова ще актуализира номерата на заповедите (№ 1..N), решенията на УС и протоколите във всички документи."
+    );
+    if (!confirmed) return;
+
+    setIsRenumbering(true);
+    toast.info("Преномериране на всички командировки...");
+    try {
+      const updatedCount =
+        await businessTripService.renumberAllTripsChronologically(siteId);
+      toast.success(`Успешно преномерирани ${updatedCount} командировки!`);
+      await loadData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(
+        err?.message || "Възникна неочаквана грешка при преномерирането."
+      );
+    } finally {
+      setIsRenumbering(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-12 text-center text-muted-foreground">
@@ -1271,6 +1298,21 @@ export default function AccountingClient({
               >
                 <Mail className="mr-2 size-3.5" />
                 <span>Изпрати по имейл</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleRenumberAllChronologically}
+                disabled={isRenumbering}
+                className="cursor-pointer text-xs text-amber-600 focus:text-amber-700 dark:text-amber-400 dark:focus:text-amber-300"
+              >
+                <RotateCcw
+                  className={`mr-2 size-3.5 ${isRenumbering ? "animate-spin" : ""}`}
+                />
+                <span>
+                  {isRenumbering
+                    ? "Преномериране..."
+                    : "Преномерирай хронологично"}
+                </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
