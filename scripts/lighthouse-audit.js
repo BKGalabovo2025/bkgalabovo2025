@@ -24,11 +24,7 @@ if (modeArg === "desktop" || presetArg === "desktop") {
 }
 
 const limitArg = args.find((a) => a.startsWith("--limit="))?.split("=")[1];
-const pageLimit = limitArg
-  ? parseInt(limitArg, 10)
-  : process.env.CI
-    ? 20
-    : Infinity;
+const pageLimit = limitArg ? parseInt(limitArg, 10) : Infinity;
 const targetUrlArg = args.find((a) => a.startsWith("--url="))?.split("=")[1];
 const routeArg = args.find((a) => a.startsWith("--route="))?.split("=")[1];
 
@@ -362,12 +358,131 @@ async function getSessionCookieAndApp(serverBaseUrl) {
 }
 
 /**
- * 4. Главно изпълнение на одита
+ * 4. Инкрементална детекция на промени за спестяване на излишни одити
+ */
+function getChangedFiles() {
+  const changed = new Set();
+  try {
+    let diffCmd = "";
+    if (process.env.GITHUB_BASE_REF) {
+      diffCmd = `git diff --name-only origin/${process.env.GITHUB_BASE_REF}...HEAD`;
+    } else if (process.env.GITHUB_SHA) {
+      diffCmd = "git diff --name-only HEAD~1 HEAD";
+    } else {
+      diffCmd = "git diff --name-only HEAD";
+    }
+
+    const output = execSync(diffCmd, {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "ignore"],
+    });
+    output
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .forEach((f) => changed.add(f.replace(/\\/g, "/")));
+  } catch {
+    try {
+      const fallbackOut = execSync("git diff --name-only HEAD~1", {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "ignore"],
+      });
+      fallbackOut
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .forEach((f) => changed.add(f.replace(/\\/g, "/")));
+    } catch {
+      // При липса на предходен комит, списъкът остава празен
+    }
+  }
+  return Array.from(changed);
+}
+
+function checkIsGlobalChange(changedFiles) {
+  const GLOBAL_PATTERNS = [
+    "src/app/globals.css",
+    "src/app/layout.tsx",
+    "tailwind.config",
+    "next.config",
+    "package.json",
+    "package-lock.json",
+  ];
+  return changedFiles.some((f) =>
+    GLOBAL_PATTERNS.some((pattern) => f.includes(pattern))
+  );
+}
+
+function isPageModified(page, changedFiles, isGlobalChange) {
+  if (isGlobalChange) return true;
+  if (!changedFiles || changedFiles.length === 0) return false;
+
+  const pageRelPath = path
+    .relative(process.cwd(), page.filePath)
+    .replace(/\\/g, "/");
+  const pageDir = path.dirname(pageRelPath);
+
+  // 1. Директна промяна в страницата или файлове в същата папка (loading, layout, error, etc.)
+  if (changedFiles.some((f) => f.startsWith(pageDir))) {
+    return true;
+  }
+
+  // 2. Промяна в свързани компоненти, екшъни, услуги или типове
+  const segments = page.rawRoute
+    .split("/")
+    .filter(Boolean)
+    .map((s) => s.replace(/\[|\]/g, "").toLowerCase());
+
+  if (segments.length > 0) {
+    for (const f of changedFiles) {
+      const fLower = f.toLowerCase();
+      if (
+        fLower.startsWith("src/components/") ||
+        fLower.startsWith("src/lib/actions/") ||
+        fLower.startsWith("src/services/") ||
+        fLower.startsWith("src/types/")
+      ) {
+        const matched = segments.some(
+          (seg) => seg.length > 2 && fLower.includes(seg)
+        );
+        if (matched) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * 5. Главно изпълнение на одита
  */
 async function run() {
   const reportsDir = path.join(process.cwd(), ".lighthouse-reports");
   if (!fs.existsSync(reportsDir)) {
     fs.mkdirSync(reportsDir, { recursive: true });
+  }
+
+  const forceAudit = args.includes("--force") || args.includes("--no-cache");
+  const changedFiles = forceAudit ? [] : getChangedFiles();
+  const isGlobalChange = forceAudit ? true : checkIsGlobalChange(changedFiles);
+
+  if (forceAudit) {
+    console.log(
+      "⚡ Режим --force / --no-cache: Принудителен пълен одит на всички страници."
+    );
+  } else if (isGlobalChange) {
+    console.log(
+      "⚡ Открити глобални промени в оформлението/конфигурацията. Всички страници ще бъдат преодитирани."
+    );
+  } else {
+    console.log(
+      `⚡ Инкрементален режим (интелигентно кеширане): Открити ${changedFiles.length} променени файла. Непроменените страници с оценка 100/100 се пазят и пропускат.`
+    );
+    if (changedFiles.length > 0) {
+      console.log(
+        `   Променени файлове: ${changedFiles.slice(0, 5).join(", ")}${changedFiles.length > 5 ? ` (+${changedFiles.length - 5} още)` : ""}`
+      );
+    }
   }
 
   let server = null;
@@ -534,15 +649,6 @@ async function run() {
     const page = targetPages[i];
     const fullUrl = `${baseUrl}${page.urlRoute}`;
 
-    // Warm up the route (serverless cold-start / Next.js image & ISR cache)
-    try {
-      await fetch(fullUrl, {
-        headers: sessionCookie ? { Cookie: sessionCookie } : {},
-      });
-    } catch {
-      // ignore warm-up errors
-    }
-
     for (const mode of modes) {
       const isDesktop = mode === "desktop";
       const modeLabel = isDesktop ? "DESKTOP 🖥️" : "MOBILE 📱";
@@ -568,9 +674,81 @@ async function run() {
         `${page.name}${fileSuffix}.json`
       );
 
+      // Проверка за съществуващ кеширан репорт от предишен одит
+      const existingJson = fs.existsSync(outputJson)
+        ? outputJson
+        : fs.existsSync(fallbackJson)
+          ? fallbackJson
+          : null;
+
+      const pageModified = isPageModified(page, changedFiles, isGlobalChange);
+
+      if (existingJson && !forceAudit && !pageModified) {
+        try {
+          const cachedData = JSON.parse(fs.readFileSync(existingJson, "utf8"));
+          const cats = cachedData.categories || {};
+          const audits = cachedData.audits || {};
+          const pScore = Math.round((cats.performance?.score || 0) * 100);
+          const aScore = Math.round((cats.accessibility?.score || 0) * 100);
+          const bScore = Math.round((cats["best-practices"]?.score || 0) * 100);
+          const sScore = Math.round((cats.seo?.score || 0) * 100);
+
+          // Пропуска се САМО ако всички метрики са били 100/100 (или покриват таргета)
+          const isPerfect =
+            pScore >= minPerf &&
+            aScore >= minA11y &&
+            bScore >= minBP &&
+            sScore >= minSEO;
+
+          if (isPerfect) {
+            console.log(
+              `⚡ [КЕШ 100/100] ${page.rawRoute} [${modeLabel}] - Perf: ${pScore} | A11y: ${aScore} | BP: ${bScore} | SEO: ${sScore} (Няма промени в кода - пропуснат одит)`
+            );
+
+            results.push({
+              route: page.rawRoute,
+              url: fullUrl,
+              mode,
+              performance: pScore,
+              accessibility: aScore,
+              bestPractices: bScore,
+              seo: sScore,
+              fcp: audits["first-contentful-paint"]?.displayValue || "N/A",
+              lcp: audits["largest-contentful-paint"]?.displayValue || "N/A",
+              cls: audits["cumulative-layout-shift"]?.displayValue || "0",
+              reportFile: fs.existsSync(outputHtml)
+                ? `${page.name}${fileSuffix}.report.html`
+                : `${page.name}${fileSuffix}.html`,
+              failedAudits: [],
+              isFailed: false,
+              cached: true,
+            });
+
+            continue; // Прескачаме тежкото изпълнение на браузърния тест!
+          }
+        } catch {
+          // При невалиден кеш JSON продължаваме към реален тест
+        }
+      }
+
+      const statusTag = pageModified
+        ? "🔄 [ПРОМЕНЕНА]"
+        : existingJson
+          ? "⚠️ [НЕ Е 100/100]"
+          : "🆕 [НОВА СТРАНИЦА]";
+
       console.log(
-        `[${i + 1}/${targetPages.length}] Одит на: ${page.rawRoute} (${fullUrl}) [${modeLabel}]...`
+        `[${i + 1}/${targetPages.length}] ${statusTag} Одит на: ${page.rawRoute} (${fullUrl}) [${modeLabel}]...`
       );
+
+      // Warm up the route (serverless cold-start / Next.js image & ISR cache)
+      try {
+        await fetch(fullUrl, {
+          headers: sessionCookie ? { Cookie: sessionCookie } : {},
+        });
+      } catch {
+        // ignore warm-up errors
+      }
 
       const cmd = `npx lighthouse "${fullUrl}" --output=html,json --output-path="${outputBase}" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} ${extraHeaders} --quiet`;
 

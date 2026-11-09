@@ -7,16 +7,16 @@ on:
     branches: ["main"]
   workflow_dispatch:
     inputs:
-      limit:
-        description: 'Брой страници за одит (напр. 20 или 100)'
-        required: false
-        default: '20'
+      force:
+        description: 'Принудителен одит на всички страници (без пропускане на кеша)?'
+        type: boolean
+        default: false
 
 jobs:
   lighthouse-audit:
     name: Lighthouse Audit (Shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -26,6 +26,8 @@ jobs:
       - name: Checkout Repository
         # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 2
 
       - name: Setup Node.js
         # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
@@ -33,6 +35,15 @@ jobs:
         with:
           node-version: "24"
           cache: "npm"
+
+      - name: Restore Lighthouse Reports Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .lighthouse-reports/
+          key: lighthouse-reports-v1-${{ runner.os }}-${{ github.ref_name }}
+          restore-keys: |
+            lighthouse-reports-v1-${{ runner.os }}-main
+            lighthouse-reports-v1-${{ runner.os }}-
 
       - name: Install Dependencies
         run: npm ci || npm install
@@ -44,7 +55,14 @@ jobs:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: "bkgalabovo2025"
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
-        run: node scripts/lighthouse-audit.js --shard=${{ matrix.shard }}/4 --limit=${{ inputs.limit || 20 }}
+        run: node scripts/lighthouse-audit.js --shard=${{ matrix.shard }}/4 ${{ inputs.force && '--force' || '' }}
+
+      - name: Save Lighthouse Reports Cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .lighthouse-reports/
+          key: lighthouse-reports-v1-${{ runner.os }}-${{ github.ref_name }}-${{ github.sha }}
 
       - name: Upload Lighthouse Reports
         if: always()
