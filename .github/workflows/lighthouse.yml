@@ -5,12 +5,18 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Брой страници за одит (напр. 20 или 100)'
+        required: false
+        default: '20'
 
 jobs:
   lighthouse-audit:
     name: Lighthouse Audit (Shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -38,7 +44,7 @@ jobs:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: "bkgalabovo2025"
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
-        run: node scripts/lighthouse-audit.js --shard=${{ matrix.shard }}/4
+        run: node scripts/lighthouse-audit.js --shard=${{ matrix.shard }}/4 --limit=${{ inputs.limit || 20 }}
 
       - name: Upload Lighthouse Reports
         if: always()

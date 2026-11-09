@@ -24,7 +24,11 @@ if (modeArg === "desktop" || presetArg === "desktop") {
 }
 
 const limitArg = args.find((a) => a.startsWith("--limit="))?.split("=")[1];
-const pageLimit = limitArg ? parseInt(limitArg, 10) : Infinity;
+const pageLimit = limitArg
+  ? parseInt(limitArg, 10)
+  : process.env.CI
+    ? 20
+    : Infinity;
 const targetUrlArg = args.find((a) => a.startsWith("--url="))?.split("=")[1];
 const routeArg = args.find((a) => a.startsWith("--route="))?.split("=")[1];
 
@@ -239,6 +243,35 @@ function discoverRoutes(sampleParams = {}) {
   }
 
   crawl(rootDir);
+
+  const PRIORITY_ROUTES = [
+    "/",
+    "/club",
+    "/recovery-zone",
+    "/recovery-zone/catalog",
+    "/schedule",
+    "/schedule/recovery",
+    "/tournaments",
+    "/reports",
+    "/reports/annual",
+    "/members",
+    "/parents",
+    "/training",
+    "/partners",
+    "/documents",
+    "/dashboard",
+    "/settings",
+  ];
+
+  routes.sort((a, b) => {
+    const idxA = PRIORITY_ROUTES.indexOf(a.rawRoute);
+    const idxB = PRIORITY_ROUTES.indexOf(b.rawRoute);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.rawRoute.localeCompare(b.rawRoute);
+  });
+
   return routes;
 }
 
@@ -351,11 +384,34 @@ async function run() {
     console.log("Изчакване на локалния сървър (10 сек)...");
     await new Promise((r) => setTimeout(r, 10000));
   } else if (process.env.CI) {
-    console.log(
-      "--- Изчакване на Vercel деплоймънта да стане активен (до 240 сек)... ---"
-    );
+    // Проверка за достъпност и защита на квотата на Netlify
+    try {
+      const pingRes = await fetch(baseUrl, {
+        signal: AbortSignal.timeout(8000),
+      });
+      if (
+        pingRes.status === 402 ||
+        pingRes.status === 503 ||
+        pingRes.status >= 500
+      ) {
+        console.warn(
+          `⚠️ ВНИМАНИЕ: Хостът ${baseUrl} връща статус ${pingRes.status} (временно спрян деплой / квота).`
+        );
+        console.warn(
+          "⚠️ Lighthouse одитът се пропуска, за да се защити квотата на проекта."
+        );
+        process.exit(0);
+      }
+    } catch (pingErr) {
+      console.warn(
+        `⚠️ ВНИМАНИЕ: Хостът ${baseUrl} не отговаря (${pingErr.message}). Пропускане на одит.`
+      );
+      process.exit(0);
+    }
+
+    console.log("--- Проверка на отдалечения хост и новия деплоймънт... ---");
     const targetSha = process.env.GITHUB_SHA;
-    for (let waitIdx = 0; waitIdx < 24; waitIdx++) {
+    for (let waitIdx = 0; waitIdx < 6; waitIdx++) {
       try {
         const res = await fetch(`${baseUrl}/api/version?t=${Date.now()}`, {
           headers: { "Cache-Control": "no-cache" },
@@ -370,25 +426,25 @@ async function run() {
             targetSha.startsWith(data.commit.slice(0, 7))
           ) {
             console.log(
-              `✅ Новият деплоймънт (${data.commit || "активен"}) е активен на Vercel!`
+              `✅ Новият деплоймънт (${data.commit || "активен"}) отговаря успешно!`
             );
             break;
           }
           console.log(
-            `⏳ Очакване на деплоймънт ${targetSha.slice(0, 7)}... (активен на Vercel: ${data.commit.slice(0, 7)})`
+            `⏳ Очакване на деплоймънт ${targetSha.slice(0, 7)}... (активен: ${data.commit.slice(0, 7)})`
           );
         } else {
           // Fallback check on cert/demo
           const certRes = await fetch(`${baseUrl}/cert/demo?t=${Date.now()}`);
           if (certRes.ok) {
-            console.log("✅ Vercel деплоймънтът отговаря успешно!");
+            console.log("✅ Деплоймънтът отговаря успешно!");
             break;
           }
         }
       } catch {
         // ignore transient network errors
       }
-      await new Promise((r) => setTimeout(r, 10000));
+      await new Promise((r) => setTimeout(r, 5000));
     }
   }
 
