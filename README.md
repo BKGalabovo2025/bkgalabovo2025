@@ -2,7 +2,7 @@
 
 Официална уеб платформа и цялостна екосистема за дигитално управление на **СНЦ „Бадминтон клуб Гълъбово“** и Център за физическо възстановяване **„Recovery Zone by ZM“**. Проектът обединява два самостоятелни спортни бранда в единен високоефективен хибриден портал, съчетаващ публичен клубен сайт, център за възстановяване, родителски портал и защитен административен център.
 
-🌐 **Публичен адрес (Production):** [https://bkgalabovo.netlify.app](https://bkgalabovo.netlify.app)  
+🌐 **Публичен адрес (Production):** [https://bkgalabovo2025.vercel.app](https://bkgalabovo2025.vercel.app)  
 📁 **GitHub Repository:** [BKGalabovo2025/bkgalabovo2025](https://github.com/BKGalabovo2025/bkgalabovo2025)
 
 ---
@@ -30,7 +30,7 @@
 - **Библиотека за интерфейс:** [React 19.3.0](https://react.dev/) + [Framer Motion 12.43](https://motion.dev/).
 - **Стилизиране & Дизайн система:** [Tailwind CSS 4.3.3](https://tailwindcss.com/) + Shadcn/ui (Radix UI примитиви) с пълна поддръжка на тъмна тема (`next-themes`).
 - **Backend & База данни:** [Firebase 12.19](https://firebase.google.com/) (Cloud Firestore, Authentication, Cloud Storage) и [Firebase Admin SDK 13.10](https://firebase.google.com/docs/admin/setup).
-- **Хостинг и CI/CD:** [Netlify](https://www.netlify.com/) с `@netlify/plugin-nextjs 5.9.4`, Netlify Functions и приоритетно маршрутизиране.
+- **Хостинг и CI/CD:** [Vercel](https://vercel.com/) (Edge Network, Serverless Functions) с автоматизирани GitHub Actions работни потоци за качество и деплой.
 - **Интелигентно разпознаване & Експорт:** OCR сканиране чрез `tesseract.js 7.0`, PDF генерация чрез `jspdf 4.2` и `pdf-lib 1.17`, електронни таблици чрез `exceljs 4.4` и графичен подпис чрез `react-signature-canvas`.
 - **Контрол на качеството (QA):**
   - **Vitest 4.1.11:** 83 тестови файла с 555 преминаващи модулни и интеграционни теста.

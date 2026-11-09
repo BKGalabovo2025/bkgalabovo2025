@@ -40,12 +40,6 @@ function getVercelToken() {
 }
 
 function runCleanup() {
-  // If project is hosted on Netlify and FORCE_VERCEL_CLEANUP is not explicitly requested, skip cleanly
-  if ((fs.existsSync("netlify.toml") || fs.existsSync(".netlify/site.json")) && !process.env.FORCE_VERCEL_CLEANUP) {
-    console.log("ℹ️ Проектът се хоства в Netlify. Пропускане на Vercel почистване.");
-    return;
-  }
-
   console.log("=======================================================");
   console.log("🧹 АВТОМАТИЧНО ПОЧИСТВАНЕ НА VERCEL ДЕПЛОЙДИ");
   console.log(`🎯 Проект: ${PROJECT_NAME} (Запазване само на активния)`);
@@ -97,7 +91,7 @@ function runCleanup() {
       combined.includes("blocked") ||
       combined.includes("paused")
     ) {
-      console.log("ℹ️ Vercel токенът е неактивен или акаунтът е спрян (хостингът е на Netlify). Пропускане.");
+      console.log("ℹ️ Vercel токенът е неактивен или акаунтът е временно спрян. Пропускане.");
       return;
     }
 

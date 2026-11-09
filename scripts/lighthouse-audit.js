@@ -43,7 +43,7 @@ const minSEO = 100;
 
 const baseUrl =
   targetUrlArg ||
-  (isLocal ? "http://localhost:3001" : "https://bkgalabovo.netlify.app");
+  (isLocal ? "http://localhost:3001" : "https://bkgalabovo2025.vercel.app");
 
 /**
  * 1. Извличане на примерни ID-та от Firestore за реалистичен одит на динамичните маршрути
