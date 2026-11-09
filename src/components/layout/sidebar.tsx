@@ -108,7 +108,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900">
-              <Link prefetch={false} href="/" className="relative size-10">
+              <Link prefetch={false} href="/" aria-label="Начална страница" className="relative size-10">
                 <Image
                   src={brandLogo}
                   alt="Logo"

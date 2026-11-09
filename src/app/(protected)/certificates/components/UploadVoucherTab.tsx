@@ -932,6 +932,7 @@ export function UploadVoucherTab({
                           size="icon"
                           onClick={handleClearTemplateCache}
                           className="size-7 rounded-lg text-zinc-400 hover:text-red-500"
+                          aria-label="Изчисти шаблона"
                         >
                           <X className="size-3.5" />
                         </Button>

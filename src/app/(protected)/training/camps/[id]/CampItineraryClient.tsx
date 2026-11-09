@@ -1618,6 +1618,7 @@ export function CampItineraryClient({
                             size="sm"
                             onClick={() => removeGroup(g.id)}
                             className="size-6 p-0 text-red-500"
+                            aria-label="Премахни група"
                           >
                             <Trash2 className="size-4" />
                           </Button>
@@ -1635,6 +1636,7 @@ export function CampItineraryClient({
                           className="h-8"
                           onClick={addGroup}
                           type="button"
+                          aria-label="Добави група"
                         >
                           <Plus className="size-4" />
                         </Button>

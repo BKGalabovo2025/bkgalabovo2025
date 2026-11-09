@@ -1388,6 +1388,7 @@ export default function TheoryClient({
                     size="icon"
                     className="rounded-xl"
                     onClick={copyLink}
+                    aria-label="Копирай линк"
                   >
                     <Copy className="size-4" />
                   </Button>

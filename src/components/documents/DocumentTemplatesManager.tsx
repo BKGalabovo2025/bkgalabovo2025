@@ -215,6 +215,7 @@ function DocumentTemplateCard({
                   download={template.fileName}
                   className="shrink-0 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 p-1"
                   title="Свали файла"
+                  aria-label="Свали файла"
                 >
                   <FileDown className="size-3.5" />
                 </a>
@@ -735,7 +736,7 @@ export function DocumentTemplatesManager() {
             ? `
           <div class="header-box">
             <div class="logo-group">
-              <img src="/icons/LOGO.webp" class="logo-img" onerror="this.src='/icons/LOGO.jpg'" />
+              <img src="/icons/LOGO.webp" alt="Лого на БК Гълъбово" class="logo-img" onerror="this.src='/icons/LOGO.jpg'" />
               <div class="header-text">
                 <div style="font-weight: bold; font-size: 9.5pt;">СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“</div>
                 <div style="font-style: italic;">гр. Гълъбово, п.к 6280, обл. Стара Загора, ул. "Иван Вазов" №22</div>

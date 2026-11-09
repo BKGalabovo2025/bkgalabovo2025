@@ -200,6 +200,7 @@ const FamilyDetailsPage = () => {
                     className="size-8 rounded-full text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/30"
                     onClick={handleUpdateName}
                     disabled={isSavingName}
+                    aria-label="Запази името"
                   >
                     {isSavingName ? (
                       <Loader2 className="size-4 animate-spin" />
@@ -218,6 +219,7 @@ const FamilyDetailsPage = () => {
                     variant="ghost"
                     className="size-8 rounded-full text-zinc-400 opacity-0 transition-opacity group-hover/title:opacity-100 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                     onClick={() => setIsEditingName(true)}
+                    aria-label="Редактирай името"
                   >
                     <Pencil className="size-3.5" />
                   </Button>
@@ -299,6 +301,7 @@ const FamilyDetailsPage = () => {
                     variant="ghost"
                     className="size-8 rounded-full text-rose-500 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600"
                     disabled={removingId !== null}
+                    aria-label="Премахни члена от семейството"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleRemoveMember(member.id);

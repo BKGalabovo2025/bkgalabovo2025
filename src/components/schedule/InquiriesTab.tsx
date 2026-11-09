@@ -509,6 +509,7 @@ export function InquiriesTab({
             disabled={isLoading}
             className="size-10 shrink-0 rounded-xl"
             title="Опресни"
+            aria-label="Опресни"
           >
             <RefreshCw
               className={`size-4 ${isLoading ? "animate-spin" : ""}`}

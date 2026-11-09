@@ -367,6 +367,11 @@ function getChangedFiles() {
     let diffCmd = "";
     if (process.env.GITHUB_BASE_REF) {
       diffCmd = `git diff --name-only origin/${process.env.GITHUB_BASE_REF}...HEAD`;
+    } else if (
+      process.env.GITHUB_EVENT_BEFORE &&
+      process.env.GITHUB_EVENT_BEFORE !== "0000000000000000000000000000000000000000"
+    ) {
+      diffCmd = `git diff --name-only ${process.env.GITHUB_EVENT_BEFORE} HEAD`;
     } else if (process.env.GITHUB_SHA) {
       diffCmd = "git diff --name-only HEAD~1 HEAD";
     } else {
@@ -401,17 +406,11 @@ function getChangedFiles() {
 }
 
 function checkIsGlobalChange(changedFiles) {
-  const GLOBAL_PATTERNS = [
-    "src/app/globals.css",
-    "src/app/layout.tsx",
-    "tailwind.config",
-    "next.config",
-    "package.json",
-    "package-lock.json",
-  ];
-  return changedFiles.some((f) =>
-    GLOBAL_PATTERNS.some((pattern) => f.includes(pattern))
-  );
+  // Пълен одит на всички страници се задейства само при изричен флаг --force / --global
+  if (process.env.FORCE_GLOBAL_AUDIT === "true" || args.includes("--global")) {
+    return true;
+  }
+  return false;
 }
 
 function isPageModified(page, changedFiles, isGlobalChange) {
@@ -527,7 +526,7 @@ async function run() {
 
     console.log("--- Проверка на отдалечения хост и новия деплоймънт... ---");
     const targetSha = process.env.GITHUB_SHA;
-    for (let waitIdx = 0; waitIdx < 6; waitIdx++) {
+    for (let waitIdx = 0; waitIdx < 30; waitIdx++) {
       try {
         const res = await fetch(`${baseUrl}/api/version?t=${Date.now()}`, {
           headers: { "Cache-Control": "no-cache" },

@@ -292,6 +292,7 @@ export function PublicEventCard({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 p-1 text-zinc-200 transition-colors hover:bg-zinc-700 hover:text-white"
                   title="Изтегли файла"
+                  aria-label="Изтегли файла"
                 >
                   <Download size={13} />
                 </a>

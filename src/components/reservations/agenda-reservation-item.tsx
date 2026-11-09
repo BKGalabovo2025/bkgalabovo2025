@@ -355,6 +355,7 @@ function StatusAndActions({
                 size="icon"
                 className="size-11 rounded-2xl text-blue-600 transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20"
                 title="Изпрати потвърждение"
+                aria-label="Изпрати потвърждение"
               >
                 <Send className="size-5" />
               </Button>
@@ -413,6 +414,7 @@ function StatusAndActions({
             className="size-11 rounded-2xl text-emerald-600 transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
             onClick={() => onMarkAsPaid(reservation.id)}
             title="Маркирай като платено"
+            aria-label="Маркирай като платено"
           >
             <CheckCircle2 className="size-5" />
           </Button>
@@ -425,6 +427,7 @@ function StatusAndActions({
               size="icon"
               className="size-11 rounded-2xl text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
               title="Издай документ"
+              aria-label="Издай документ"
             >
               <FileText className="size-5" />
             </Button>
@@ -438,6 +441,7 @@ function StatusAndActions({
               size="icon"
               className="size-11 rounded-2xl text-blue-600 transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20"
               title="Попълни декларация"
+              aria-label="Попълни декларация"
             >
               <PenTool className="size-5" />
             </Button>
@@ -457,6 +461,7 @@ function StatusAndActions({
             variant="ghost"
             size="icon"
             className="size-11 rounded-2xl transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            aria-label="Редактирай резервация"
           >
             <Pencil className="size-4 text-zinc-400" />
           </Button>
@@ -467,6 +472,7 @@ function StatusAndActions({
           size="icon"
           className="size-11 rounded-2xl transition-all hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
           onClick={() => onDelete(reservation.id)}
+          aria-label="Изтрий резервация"
         >
           <Trash2 className="size-4" />
         </Button>

@@ -94,6 +94,7 @@ export function AgendaBlockedItem({
             variant="ghost"
             size="icon"
             className="size-11 rounded-2xl transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            aria-label="Редактирай блокиран слот"
           >
             <Pencil className="size-4 text-zinc-400" />
           </Button>
@@ -104,6 +105,7 @@ export function AgendaBlockedItem({
           size="icon"
           className="size-11 rounded-2xl transition-all hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
           onClick={() => onDelete(slot.id)}
+          aria-label="Изтрий блокиран слот"
         >
           <Trash2 className="size-4" />
         </Button>

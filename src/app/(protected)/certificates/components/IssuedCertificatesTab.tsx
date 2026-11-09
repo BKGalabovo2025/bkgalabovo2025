@@ -954,6 +954,7 @@ export function IssuedCertificatesTab({
                               rel="noopener noreferrer"
                               className="inline-flex size-7 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
                               title="Отвори страница за проверка"
+                              aria-label="Отвори страница за проверка"
                             >
                               <ExternalLink className="size-3" />
                             </a>
@@ -966,6 +967,7 @@ export function IssuedCertificatesTab({
                               disabled={deletingId === cert.id}
                               className="size-7 rounded-lg text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50"
                               title="Изтриване от регистъра"
+                              aria-label="Изтриване от регистъра"
                             >
                               {deletingId === cert.id ? (
                                 <Loader2 className="size-3 animate-spin" />

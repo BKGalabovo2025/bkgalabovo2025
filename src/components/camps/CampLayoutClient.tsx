@@ -44,6 +44,7 @@ export function CampLayoutClient({ children }: CampLayoutClientProps) {
           href="/training/camps"
           className="flex size-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
           title="Към списъка с лагери"
+          aria-label="Към списъка с лагери"
         >
           <ChevronLeft size={20} />
         </Link>

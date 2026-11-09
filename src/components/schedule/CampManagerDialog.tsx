@@ -374,6 +374,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                   size="icon"
                   onClick={handleAddGuest}
                   title="Добави гост"
+                  aria-label="Добави гост"
                 >
                   <Plus className="size-4" />
                 </Button>
@@ -560,6 +561,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                   target="_blank"
                                   className="ml-2 text-blue-500 hover:text-blue-600"
                                   title="Виж разписка"
+                                  aria-label="Виж разписка"
                                 >
                                   <FileText className="size-4" />
                                 </Link>
@@ -575,6 +577,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                     )
                                   }
                                   title="Издай разписка"
+                                  aria-label="Издай разписка"
                                 >
                                   <FileText className="size-3" />
                                 </Button>
@@ -591,6 +594,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                   )
                                 }
                                 title="Изчисти капарото (Внимание: Не изтрива плащането от Отчети)"
+                                aria-label="Изчисти капарото"
                               >
                                 &times;
                               </Button>
@@ -639,6 +643,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                     target="_blank"
                                     className="ml-2 text-blue-500 hover:text-blue-600"
                                     title="Виж разписка"
+                                    aria-label="Виж разписка"
                                   >
                                     <FileText className="size-4" />
                                   </Link>
@@ -654,6 +659,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                       )
                                     }
                                     title="Издай разписка"
+                                    aria-label="Издай разписка"
                                   >
                                     <FileText className="size-3" />
                                   </Button>
@@ -670,6 +676,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                     )
                                   }
                                   title="Изчисти остатъка (Внимание: Не изтрива плащането от Отчети)"
+                                  aria-label="Изчисти остатъка"
                                 >
                                   &times;
                                 </Button>
@@ -712,6 +719,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                     target="_blank"
                                     className="ml-2 text-blue-500 hover:text-blue-600"
                                     title="Виж разписка"
+                                    aria-label="Виж разписка"
                                   >
                                     <FileText className="size-4" />
                                   </Link>
@@ -727,6 +735,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                       )
                                     }
                                     title="Издай разписка"
+                                    aria-label="Издай разписка"
                                   >
                                     <FileText className="size-3" />
                                   </Button>
@@ -743,6 +752,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                                     )
                                   }
                                   title="Изчисти застраховката (Внимание: Не изтрива плащането от Отчети)"
+                                  aria-label="Изчисти застраховката"
                                 >
                                   &times;
                                 </Button>

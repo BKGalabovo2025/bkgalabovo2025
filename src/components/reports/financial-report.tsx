@@ -615,6 +615,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                                 size="icon"
                                 className="size-8 rounded-xl opacity-0 transition-all group-hover:opacity-100 focus:opacity-100"
                                 disabled={isDeleting === s.id}
+                                aria-label="Опции за продажбата"
                               >
                                 {isDeleting === s.id ? (
                                   <Loader2 className="size-4 animate-spin text-zinc-400" />
@@ -765,6 +766,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                             size="icon"
                             className="size-8 rounded-xl"
                             disabled={isDeleting === s.id}
+                            aria-label="Опции за продажбата"
                           >
                             {isDeleting === s.id ? (
                               <Loader2 className="size-4 animate-spin text-zinc-400" />

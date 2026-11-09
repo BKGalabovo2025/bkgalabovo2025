@@ -396,7 +396,7 @@ export default function PublicCatalogTabs({
           <p className="text-sm font-medium text-zinc-300">
             Няма намерени артикули в този каталог.
           </p>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-zinc-400">
             Опитайте с друго търсене или изчистете избраната категория.
           </p>
         </div>

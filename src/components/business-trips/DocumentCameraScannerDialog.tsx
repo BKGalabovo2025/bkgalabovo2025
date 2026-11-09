@@ -281,6 +281,7 @@ export function DocumentCameraScannerDialog({
             size="icon"
             onClick={() => onOpenChange(false)}
             className="size-8 text-zinc-400 hover:text-white"
+            aria-label="Затвори"
           >
             <X className="size-4" />
           </Button>
@@ -366,6 +367,7 @@ export function DocumentCameraScannerDialog({
                 onClick={toggleTorch}
                 className="rounded-full text-zinc-300 hover:bg-zinc-800 hover:text-white"
                 title="Включи / изключи осветление"
+                aria-label="Включи / изключи осветление"
               >
                 {torchOn ? (
                   <Flashlight className="size-5 text-amber-400" />
@@ -400,6 +402,7 @@ export function DocumentCameraScannerDialog({
               onClick={toggleFacingMode}
               className="rounded-full text-zinc-300 hover:bg-zinc-800 hover:text-white"
               title="Смени камерата"
+              aria-label="Смени камерата"
             >
               <FlipHorizontal className="size-5" />
             </Button>

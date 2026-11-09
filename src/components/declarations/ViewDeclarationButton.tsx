@@ -66,6 +66,7 @@ export function ViewDeclarationButton({
               size="icon"
               className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
               title="Виж декларация"
+              aria-label="Виж декларация"
             >
               <Eye className="size-4 text-emerald-500" />
             </Button>
@@ -102,6 +103,7 @@ export function ViewDeclarationButton({
       size="icon"
       className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
       title="Виж декларация"
+      aria-label="Виж декларация"
       onClick={(e) => {
         e.stopPropagation();
         handleFetch();

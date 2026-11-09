@@ -721,6 +721,7 @@ export default function BeepTestClient({
               variant="outline"
               onClick={reset}
               className="h-14 px-8 dark:border-zinc-800"
+              aria-label="Нулиране на теста"
             >
               <RotateCcw className="size-5" />
             </Button>

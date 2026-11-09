@@ -201,6 +201,7 @@ function SaleMobileCard({
                     variant="ghost"
                     size="icon"
                     className="size-8 rounded-lg text-zinc-400 hover:text-zinc-600"
+                    aria-label="Още действия"
                   >
                     <MoreVertical className="size-4" />
                   </Button>

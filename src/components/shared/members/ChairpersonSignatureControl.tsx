@@ -68,6 +68,7 @@ export function ChairpersonSignatureControl({
               onClick={() => setDialogOpen(true)}
               className="rounded-xl h-9 px-2 text-xs text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
               title="Смени / начертай нов подпис"
+              aria-label="Смени / начертай нов подпис"
             >
               <Edit3 className="size-3.5" />
             </Button>
@@ -80,6 +81,7 @@ export function ChairpersonSignatureControl({
                 onClick={handleRemoveSignature}
                 className="rounded-xl h-9 px-2 text-xs text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700"
                 title="Изтрий подписа на Председателя от базата данни"
+                aria-label="Изтрий подписа на Председателя от базата данни"
               >
                 <Trash2 className="size-3.5" />
               </Button>

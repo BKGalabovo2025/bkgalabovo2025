@@ -841,6 +841,7 @@ export default function ScheduleClient({
                     size="icon"
                     onClick={goToPreviousDay}
                     className="size-10 rounded-xl transition-all hover:bg-white hover:shadow-sm dark:hover:bg-zinc-800"
+                    aria-label="Предишен ден"
                   >
                     <ChevronLeft className="size-4" strokeWidth={2} />
                   </Button>
@@ -856,6 +857,7 @@ export default function ScheduleClient({
                     size="icon"
                     onClick={goToNextDay}
                     className="size-10 rounded-xl transition-all hover:bg-white hover:shadow-sm dark:hover:bg-zinc-800"
+                    aria-label="Следващ ден"
                   >
                     <ChevronRight className="size-4" strokeWidth={2} />
                   </Button>

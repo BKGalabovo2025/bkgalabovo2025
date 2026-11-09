@@ -1258,6 +1258,7 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 size="sm"
                 onClick={handleAddMedal}
                 className="h-8 shrink-0 bg-indigo-600 px-3 text-xs text-white hover:bg-indigo-700"
+                aria-label="Добави медал"
               >
                 <Plus className="size-3.5" />
               </Button>

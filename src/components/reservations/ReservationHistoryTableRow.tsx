@@ -224,6 +224,7 @@ export function ReservationHistoryTableRow({
               className="size-8 rounded-lg text-emerald-600 transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
               onClick={() => handleMarkAsPaid(res.id)}
               title="Маркирай като платено"
+              aria-label="Маркирай като платено"
             >
               <CheckCircle2 className="size-4" />
             </Button>
@@ -236,6 +237,7 @@ export function ReservationHistoryTableRow({
                 size="icon"
                 className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
                 title="Издай документ"
+                aria-label="Издай документ"
               >
                 <FileText className="size-4" />
               </Button>
@@ -249,6 +251,7 @@ export function ReservationHistoryTableRow({
                 size="icon"
                 className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
                 title="Декларация"
+                aria-label="Декларация"
               >
                 <PenTool className="size-4" />
               </Button>
@@ -271,6 +274,7 @@ export function ReservationHistoryTableRow({
               size="icon"
               className="size-8 rounded-lg transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
               title="Редактирай"
+              aria-label="Редактирай"
             >
               <Pencil className="size-4 text-zinc-400" />
             </Button>
@@ -282,6 +286,7 @@ export function ReservationHistoryTableRow({
             className="size-8 rounded-lg transition-all hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
             onClick={() => handleDeleteReservation(res.id)}
             title="Изтрий"
+            aria-label="Изтрий"
           >
             <Trash2 className="size-4" />
           </Button>
@@ -292,6 +297,7 @@ export function ReservationHistoryTableRow({
             onClick={() => onViewInCalendar(startTime)}
             className="group size-8 rounded-lg transition-all hover:bg-primary hover:text-white"
             title="Виж в календара"
+            aria-label="Виж в календара"
           >
             <Eye className="size-4 transition-transform group-hover:scale-110" />
           </Button>
@@ -398,6 +404,7 @@ export function ReservationHistoryMobileCard({
               size="icon"
               className="size-8 rounded-lg text-emerald-600 transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
               onClick={() => handleMarkAsPaid(res.id)}
+              aria-label="Маркирай като платено"
             >
               <CheckCircle2 className="size-4" />
             </Button>
@@ -409,6 +416,7 @@ export function ReservationHistoryMobileCard({
                 variant="ghost"
                 size="icon"
                 className="size-8 rounded-lg text-zinc-900 transition-all hover:bg-zinc-100 dark:text-white dark:hover:bg-zinc-800"
+                aria-label="Издай документ"
               >
                 <FileText className="size-4" />
               </Button>
@@ -424,6 +432,7 @@ export function ReservationHistoryMobileCard({
               variant="ghost"
               size="icon"
               className="size-8 rounded-lg transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              aria-label="Редактирай"
             >
               <Pencil className="size-4 text-zinc-400" />
             </Button>
@@ -434,6 +443,7 @@ export function ReservationHistoryMobileCard({
             size="icon"
             className="size-8 rounded-lg transition-all hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
             onClick={() => handleDeleteReservation(res.id)}
+            aria-label="Изтрий"
           >
             <Trash2 className="size-4" />
           </Button>
@@ -444,6 +454,7 @@ export function ReservationHistoryMobileCard({
             onClick={() => onViewInCalendar(startTime)}
             className="group size-8 rounded-lg transition-all hover:bg-primary hover:text-white"
             title="Виж в календара"
+            aria-label="Виж в календара"
           >
             <Eye className="size-4 transition-transform group-hover:scale-110" />
           </Button>

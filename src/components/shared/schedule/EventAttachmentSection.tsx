@@ -116,6 +116,7 @@ export const EventAttachmentSection: React.FC<EventAttachmentSectionProps> = ({
               onClick={handleClear}
               className="h-8 rounded-xl px-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
               title="Премахни документа"
+              aria-label="Премахни документа"
             >
               <Trash2 className="size-3.5" />
             </Button>

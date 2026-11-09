@@ -311,6 +311,7 @@ export function CoachPhotoGallery({
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Свали снимката"
+                aria-label="Свали снимката"
                 className="flex size-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-zinc-300 transition-colors hover:bg-white/20 hover:text-white"
               >
                 <Download className="size-4" />

@@ -16,7 +16,7 @@ jobs:
   lighthouse-audit:
     name: Lighthouse Audit (Shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +27,7 @@ jobs:
         # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Setup Node.js
         # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag
@@ -57,6 +57,7 @@ jobs:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: "bkgalabovo2025"
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
         run: node scripts/lighthouse-audit.js --shard=${{ matrix.shard }}/4 ${{ inputs.force && '--force' || '' }}
 
       - name: Save Lighthouse Reports Cache

@@ -118,6 +118,7 @@ export function MemberSalesHistoryMobileCard({
                 size="icon"
                 variant="ghost"
                 className="size-6 rounded-lg text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100"
+                aria-label="Още опции"
               >
                 <MoreHorizontal className="size-3" />
               </Button>

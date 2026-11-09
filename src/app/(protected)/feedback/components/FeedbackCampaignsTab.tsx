@@ -330,11 +330,13 @@ export function FeedbackCampaignsTab({
                           size="icon"
                           className="size-8 rounded-xl text-zinc-600 hover:bg-indigo-50 hover:text-indigo-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
                           title="Преглед на анкетата"
+                          aria-label="Преглед на анкетата"
                         >
                           <a
                             href={`/feedback/${sc.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label="Преглед на анкетата"
                           >
                             <ExternalLink className="size-3.5" />
                           </a>
@@ -346,6 +348,7 @@ export function FeedbackCampaignsTab({
                           onClick={() => handleDelete(sc.id)}
                           className="size-8 rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
                           title="Изтрий"
+                          aria-label="Изтрий"
                         >
                           <Trash2 className="size-4" />
                         </Button>
@@ -513,11 +516,13 @@ export function FeedbackCampaignsTab({
                         size="icon"
                         className="size-8 rounded-xl text-zinc-600 hover:bg-indigo-50 hover:text-indigo-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
                         title="Отвори публичната форма"
+                        aria-label="Отвори публичната форма"
                       >
                         <a
                           href={`/feedback/${c.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
+                          aria-label="Отвори публичната форма"
                         >
                           <ExternalLink className="size-4" />
                         </a>

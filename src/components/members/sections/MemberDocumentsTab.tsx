@@ -920,7 +920,7 @@ export const MemberDocumentsTab = ({
             ? `
           <div class="header-box">
             <div class="logo-group">
-              <img src="/icons/LOGO.webp" class="logo-img" onerror="this.src='/icons/LOGO.jpg'" />
+              <img src="/icons/LOGO.webp" alt="Лого на БК Гълъбово" class="logo-img" onerror="this.src='/icons/LOGO.jpg'" />
               <div class="header-text">
                 <div style="font-weight: bold; font-size: 9.5pt;">СНЦ „БАДМИНТОН КЛУБ ГЪЛЪБОВО“</div>
                 <div style="font-style: italic;">гр. Гълъбово, п.к 6280, обл. Стара Загора, ул. "Иван Вазов" №22</div>

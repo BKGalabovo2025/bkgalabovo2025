@@ -210,6 +210,7 @@ export function SharedSalesHistory({
                           size="icon"
                           className="size-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                           disabled={isDeleting === sale.id}
+                          aria-label="Опции за продажбата"
                         >
                           {isDeleting === sale.id ? (
                             <Loader2 className="size-4 animate-spin" />
@@ -302,6 +303,7 @@ export function SharedSalesHistory({
                       size="icon"
                       className="size-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                       disabled={isDeleting === sale.id}
+                      aria-label="Опции за продажбата"
                     >
                       {isDeleting === sale.id ? (
                         <Loader2 className="size-4 animate-spin" />

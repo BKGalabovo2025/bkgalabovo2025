@@ -1135,7 +1135,7 @@ const GroupsManagementSection = ({
                 onChange={(e) => setNewGroupName(e.target.value)}
                 className="h-8 text-sm"
               />
-              <Button size="sm" className="h-8" onClick={onAddGroup}>
+              <Button size="sm" className="h-8" onClick={onAddGroup} aria-label="Добави група">
                 <Plus className="size-4" />
               </Button>
             </div>
