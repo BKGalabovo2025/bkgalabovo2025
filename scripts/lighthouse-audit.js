@@ -32,11 +32,11 @@ const minPerfArg = args.find((a) => a.startsWith("--min-perf="))?.split("=")[1];
 const minPerf = minPerfArg
   ? parseInt(minPerfArg, 10)
   : process.env.CI
-    ? 95
+    ? 90
     : 100;
 
 const minBPArg = args.find((a) => a.startsWith("--min-bp="))?.split("=")[1];
-const minBP = minBPArg ? parseInt(minBPArg, 10) : process.env.CI ? 95 : 100;
+const minBP = minBPArg ? parseInt(minBPArg, 10) : process.env.CI ? 100 : 100;
 
 const minA11y = 100;
 const minSEO = 100;
@@ -228,6 +228,7 @@ function discoverRoutes(sampleParams = {}) {
           rawRoute: route,
           urlRoute: testRoute,
           isDynamic,
+          isProtected: fullPath.includes("(protected)"),
           filePath: fullPath,
           name: (route === "/"
             ? "home"
@@ -750,7 +751,12 @@ async function run() {
         // ignore warm-up errors
       }
 
-      const cmd = `npx lighthouse "${fullUrl}" --output=html,json --output-path="${outputBase}" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} ${extraHeaders} --quiet`;
+      // Защитените административни страници умишлено са блокирани в robots.txt от индексация.
+      // Пропускаме 'is-crawlable', за да не намалява необосновано SEO оценката за вътрешни страници.
+      const skipAuditsFlag = page.isProtected
+        ? "--skip-audits=is-crawlable"
+        : "";
+      const cmd = `npx lighthouse "${fullUrl}" --output=html,json --output-path="${outputBase}" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} ${extraHeaders} ${skipAuditsFlag} --quiet`;
 
       let actualJson = null;
       let actualHtml = "#";

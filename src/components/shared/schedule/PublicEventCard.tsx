@@ -233,11 +233,17 @@ export function PublicEventCard({
               )}
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-4">
-              <span className="flex items-center gap-1.5 text-[13px] text-zinc-300">
+              <span
+                suppressHydrationWarning
+                className="flex items-center gap-1.5 text-[13px] text-zinc-300"
+              >
                 <Clock size={14} className="text-blue-400" />
                 {displayTime}
               </span>
-              <span className="flex items-center gap-1.5 text-[13px] text-zinc-300">
+              <span
+                suppressHydrationWarning
+                className="flex items-center gap-1.5 text-[13px] text-zinc-300"
+              >
                 <MapPin size={14} className="text-blue-400" />
                 {event.location || 'Спортна зала „Енергетик"'}
               </span>

@@ -40,9 +40,11 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .lighthouse-reports/
-          key: lighthouse-reports-v1-${{ runner.os }}-${{ github.ref_name }}
+          key: lighthouse-reports-shard-${{ matrix.shard }}-${{ runner.os }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
-            lighthouse-reports-v1-${{ runner.os }}-main
+            lighthouse-reports-shard-${{ matrix.shard }}-${{ runner.os }}-${{ github.ref_name }}-
+            lighthouse-reports-shard-${{ matrix.shard }}-${{ runner.os }}-main-
+            lighthouse-reports-shard-${{ matrix.shard }}-${{ runner.os }}-
             lighthouse-reports-v1-${{ runner.os }}-
 
       - name: Install Dependencies
@@ -62,7 +64,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: .lighthouse-reports/
-          key: lighthouse-reports-v1-${{ runner.os }}-${{ github.ref_name }}-${{ github.sha }}
+          key: lighthouse-reports-shard-${{ matrix.shard }}-${{ runner.os }}-${{ github.ref_name }}-${{ github.sha }}
 
       - name: Upload Lighthouse Reports
         if: always()

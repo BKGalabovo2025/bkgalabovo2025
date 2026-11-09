@@ -319,6 +319,7 @@ export default function ScheduleClient({ schedule }: Props) {
                   {/* Date Header */}
                   <div className="mb-4 flex items-center gap-4">
                     <span
+                      suppressHydrationWarning
                       className={`rounded-full px-3 py-1 text-xs font-bold tracking-[0.35em] uppercase ${
                         isSpecialLabel(dateLabel)
                           ? "border border-blue-600/40 bg-blue-600/20 text-blue-300"
