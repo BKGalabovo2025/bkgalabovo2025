@@ -1,13 +1,15 @@
 "use client";
 
 import {
+  AlertTriangle,
   Award,
   Calendar,
   Check,
+  CheckCircle2,
   Copy,
-  Download,
   Dumbbell,
   FileDown,
+  FileText,
   Flame,
   Globe,
   Loader2,
@@ -55,7 +57,7 @@ interface AnnualReportProps {
 const AVAILABLE_YEARS = [2027, 2026, 2025, 2024, 2023];
 
 export default function AnnualReport({
-  initialYear = 2025,
+  initialYear = 2026,
   initialCoachId = "mira_georgieva",
   siteId = "bkgalabovo",
 }: AnnualReportProps) {
@@ -70,12 +72,12 @@ export default function AnnualReport({
   const [report, setReport] = useState<AnnualReportData | null>(null);
   const printableRef = useRef<HTMLDivElement>(null);
 
-  // Нова форма за добавяне на медал
+  // Форма за добавяне на медал
   const [newMedalAthlete, setNewMedalAthlete] = useState("");
   const [newMedalTournament, setNewMedalTournament] = useState("");
   const [newMedalType, setNewMedalType] = useState<
     "zonal" | "state" | "national" | "international"
-  >("national");
+  >("zonal");
   const [newMedalPlace, setNewMedalPlace] = useState<1 | 2 | 3 | 4>(1);
 
   // Зареждане на отчета за избраната година
@@ -94,14 +96,15 @@ export default function AnnualReport({
         if (res.data.coachRole) setCoachRole(res.data.coachRole);
         if (forceRescan) {
           toast.success(
-            "Данните са пресканирани динамично от календара, турнирите и командировките!"
+            "Данните са пресканирани динамично от базата и качените протоколи!"
           );
         }
       } else {
-        toast.error("Неуспешно зареждане на отчета");
+        toast.error(res.error || "Грешка при зареждане на годишния отчет");
       }
-    } catch {
-      toast.error("Грешка при връзка със сървъра");
+    } catch (err) {
+      console.error(err);
+      toast.error("Възникна непредвидена грешка при зареждане");
     } finally {
       setIsLoading(false);
     }
@@ -112,31 +115,33 @@ export default function AnnualReport({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear]);
 
-  // Запис на промените
-  const handleSave = async () => {
+  // Запис на отчета
+  const handleSaveReport = async () => {
     if (!report) return;
     setIsSaving(true);
     try {
-      const payload: AnnualReportData = {
+      const updatedReport: AnnualReportData = {
         ...report,
-        year: selectedYear,
         coachName,
         coachRole,
+        year: selectedYear,
       };
-      const res = await saveAnnualReportAction(payload);
+      const res = await saveAnnualReportAction(updatedReport);
       if (res.success) {
-        toast.success("Годишният отчет е запазен успешно!");
+        toast.success("Годишният отчет е записан успешно в базата!");
+        setReport(updatedReport);
       } else {
         toast.error(res.error || "Грешка при запис");
       }
-    } catch {
-      toast.error("Възникна системна грешка при запис");
+    } catch (err) {
+      console.error(err);
+      toast.error("Неуспешен запис на отчета");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Редакция на месечен брой тренировки
+  // Редакция на брой тренировки за конкретен месец
   const handleUpdateMonthTraining = (monthIdx: number, count: number) => {
     if (!report) return;
     const newMonthly = [...report.trainings.monthly];
@@ -145,6 +150,7 @@ export default function AnnualReport({
       conductedCount: Math.max(0, count),
     };
     const totalCount = newMonthly.reduce((s, m) => s + m.conductedCount, 0);
+
     setReport({
       ...report,
       trainings: {
@@ -158,7 +164,7 @@ export default function AnnualReport({
   // Добавяне на медал
   const handleAddMedal = () => {
     if (!report || !newMedalAthlete.trim() || !newMedalTournament.trim()) {
-      toast.error("Моля, въведете състезател и име на турнира");
+      toast.error("Моля, въведете състезател и име на състезанието");
       return;
     }
 
@@ -170,33 +176,34 @@ export default function AnnualReport({
       athleteName: newMedalAthlete.trim(),
       category: "singles",
       place: newMedalPlace,
+      placementText: newMedalPlace === 4 ? "3/4" : String(newMedalPlace),
+      notes: "Ръчно добавен от треньора",
     };
 
     const updatedList = [newMedal, ...report.medalsAnalysis.medalsList];
-    const zonal =
-      updatedList.filter((m) => m.tournamentType === "zonal").length ||
-      report.medalsAnalysis.zonalCount;
-    const state =
-      updatedList.filter((m) => m.tournamentType === "state").length ||
-      report.medalsAnalysis.stateCount;
-    const national =
-      updatedList.filter((m) => m.tournamentType === "national").length ||
-      report.medalsAnalysis.nationalCount;
-    const international =
-      updatedList.filter((m) => m.tournamentType === "international").length ||
-      report.medalsAnalysis.internationalCount;
+    const zonal = updatedList.filter(
+      (m) => m.tournamentType === "zonal"
+    ).length;
+    const state = updatedList.filter(
+      (m) => m.tournamentType === "state"
+    ).length;
+    const national = updatedList.filter(
+      (m) => m.tournamentType === "national"
+    ).length;
+    const international = updatedList.filter(
+      (m) => m.tournamentType === "international"
+    ).length;
 
     setReport({
       ...report,
       medalsAnalysis: {
         ...report.medalsAnalysis,
         medalsList: updatedList,
-        zonalCount: newMedalType === "zonal" ? zonal + 1 : zonal,
-        stateCount: newMedalType === "state" ? state + 1 : state,
-        nationalCount: newMedalType === "national" ? national + 1 : national,
-        internationalCount:
-          newMedalType === "international" ? international + 1 : international,
-        totalMedals: report.medalsAnalysis.totalMedals + 1,
+        zonalCount: zonal,
+        stateCount: state,
+        nationalCount: national,
+        internationalCount: international,
+        totalMedals: updatedList.length,
       },
     });
 
@@ -208,24 +215,22 @@ export default function AnnualReport({
   // Премахване на медал
   const handleRemoveMedal = (id: string) => {
     if (!report) return;
-    const item = report.medalsAnalysis.medalsList.find((m) => m.id === id);
     const updatedList = report.medalsAnalysis.medalsList.filter(
       (m) => m.id !== id
     );
 
-    let zonal = report.medalsAnalysis.zonalCount;
-    let state = report.medalsAnalysis.stateCount;
-    let national = report.medalsAnalysis.nationalCount;
-    let international = report.medalsAnalysis.internationalCount;
-
-    if (item) {
-      if (item.tournamentType === "zonal") zonal = Math.max(0, zonal - 1);
-      if (item.tournamentType === "state") state = Math.max(0, state - 1);
-      if (item.tournamentType === "national")
-        national = Math.max(0, national - 1);
-      if (item.tournamentType === "international")
-        international = Math.max(0, international - 1);
-    }
+    const zonal = updatedList.filter(
+      (m) => m.tournamentType === "zonal"
+    ).length;
+    const state = updatedList.filter(
+      (m) => m.tournamentType === "state"
+    ).length;
+    const national = updatedList.filter(
+      (m) => m.tournamentType === "national"
+    ).length;
+    const international = updatedList.filter(
+      (m) => m.tournamentType === "international"
+    ).length;
 
     setReport({
       ...report,
@@ -236,7 +241,7 @@ export default function AnnualReport({
         stateCount: state,
         nationalCount: national,
         internationalCount: international,
-        totalMedals: Math.max(0, report.medalsAnalysis.totalMedals - 1),
+        totalMedals: updatedList.length,
       },
     });
   };
@@ -248,122 +253,58 @@ export default function AnnualReport({
     try {
       await generatePdfFromElement(
         printableRef.current,
-        `Otchet_Deynost_${selectedYear}_${coachName.replace(/\s+/g, "_")}.pdf`
+        `Godishen_otchet_${selectedYear}_BK_Galabovo.pdf`,
+        "portrait"
       );
       toast.success("PDF отчетът е генериран успешно!");
-    } catch (e) {
-      console.error(e);
-      toast.error("Грешка при генериране на PDF");
+    } catch (err) {
+      console.error(err);
+      toast.error("Възникна грешка при създаването на PDF документа.");
     } finally {
       setIsGeneratingPdf(false);
     }
   };
 
-  // Експорт към DOC (Word)
+  // Експорт към Word
   const handleExportWord = () => {
-    if (!report) return;
+    if (!printableRef.current) return;
+    const htmlContent = printableRef.current.innerHTML;
+    const header =
+      "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+      "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+      "xmlns='http://www.w3.org/TR/REC-html40'>" +
+      "<head><meta charset='utf-8'><title>Годишен отчет</title>" +
+      "<style>body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #111827; } " +
+      "table { border-collapse: collapse; width: 100%; margin: 12px 0; } " +
+      "th, td { border: 1px solid #cbd5e1; padding: 6px 10px; font-size: 10pt; text-align: left; } " +
+      "th { background-color: #f1f5f9; font-weight: bold; } " +
+      "h1 { font-size: 16pt; color: #1e1b4b; text-align: center; text-transform: uppercase; margin-bottom: 4px; } " +
+      "h2 { font-size: 13pt; color: #334155; text-align: center; text-transform: uppercase; margin-top: 0; } " +
+      "h3 { font-size: 12pt; color: #1e1b4b; border-bottom: 1px solid #94a3b8; padding-bottom: 3px; margin-top: 16px; text-transform: uppercase; } " +
+      ".badge { font-weight: bold; padding: 2px 6px; border-radius: 4px; } " +
+      "</style></head><body>";
+    const footer = "</body></html>";
+    const sourceHTML = header + htmlContent + footer;
 
-    const htmlContent = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-      <head>
-        <meta charset='utf-8'>
-        <title>ОТЧЕТ ЗА ДЕЙНОСТТА ПРЕЗ ${selectedYear} ГОДИНА</title>
-        <style>
-          body { font-family: 'Calibri', 'Times New Roman', sans-serif; font-size: 11pt; line-height: 1.4; color: #111; }
-          h1 { font-size: 16pt; text-align: center; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; }
-          h2 { font-size: 12pt; text-align: center; font-weight: bold; margin-top: 0; color: #333; }
-          h3 { font-size: 12pt; font-weight: bold; margin-top: 16px; margin-bottom: 6px; border-bottom: 1px solid #ccc; padding-bottom: 2px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 12px; }
-          th, td { border: 1px solid #888; padding: 6px 10px; font-size: 10.5pt; }
-          th { background-color: #f2f2f2; text-align: left; }
-          ul { margin-top: 4px; margin-bottom: 8px; }
-          li { margin-bottom: 3px; }
-          .signature-box { margin-top: 40px; text-align: right; font-weight: bold; }
-        </style>
-      </head>
-      <body>
-        <h1>ОТЧЕТ ЗА ДЕЙНОСТТА ПРЕЗ ${selectedYear} ГОДИНА</h1>
-        <h2>от ${coachName} – ${coachRole}<br>към ${report.organizationName}</h2>
-        <br>
-        <p>Дейността ми като треньор по бадминтон към ${report.organizationName} за ${selectedYear} година бе в няколко основни направления:</p>
-        <ol>
-          <li>Организиране и провеждане на тренировки по бадминтон.</li>
-          <li>Подготовка и участие в състезания.</li>
-          <li>Организиране и провеждане на състезания по бадминтон.</li>
-          <li>Организиране и провеждане на летен спортен лагер.</li>
-          <li>Организиране и/или провеждане и участие в/на демонстрации по бадминтон.</li>
-          <li>Анализ на постигнатите резултати.</li>
-        </ol>
-
-        <h3>1. и 2. Организиране и провеждане на тренировки и участие в състезания</h3>
-        <p>${report.trainings.description}</p>
-        <p><strong>За ${selectedYear} година тренировките се проведоха както следва (Общо ${report.trainings.totalCount} тренировки):</strong></p>
-        <table>
-          <tr><th>Месец</th><th>Проведени тренировки</th></tr>
-          ${report.trainings.monthly.map((m) => `<tr><td>м. ${m.monthName.toUpperCase()}</td><td>${m.conductedCount} тренировки</td></tr>`).join("")}
-          <tr><td><strong>ОБЩО ЗА ГОДИНАТА</strong></td><td><strong>${report.trainings.totalCount} тренировки</strong></td></tr>
-        </table>
-
-        <h3>3. Организиране и провеждане на състезания</h3>
-        <p>${report.organizedTournaments.description}</p>
-        <ul>
-          ${report.organizedTournaments.list.map((t) => `<li><strong>${t.month}:</strong> ${t.title} (${t.ageGroups})</li>`).join("")}
-        </ul>
-
-        <h3>4. Организиране и провеждане на летен спортен лагер</h3>
-        <p><strong>${report.sportsCamp.title}</strong> – ${report.sportsCamp.dateRange} – ${report.sportsCamp.facility}, ${report.sportsCamp.location}.</p>
-        <p>В рамките на лагера се осъществиха общо <strong>${report.sportsCamp.sessionsCount} интензивни тренировъчни занимания</strong>, посветени на цялостната подготовка на състезателите за предстоящите отборни първенства.</p>
-        <p><strong>Основни акценти:</strong></p>
-        <ul>
-          ${report.sportsCamp.focusAreas.map((f) => `<li>${f}</li>`).join("")}
-        </ul>
-
-        <h3>5. Организиране и провеждане на демонстрации и други събития</h3>
-        <p>${report.demonstrations.description}</p>
-        <ul>
-          ${report.demonstrations.list.map((d) => `<li><strong>${d.title} (${d.date}):</strong> ${d.description} (Партньор: ${d.partner})</li>`).join("")}
-        </ul>
-
-        <h3>6. Анализ на резултатите (Спечелени медали)</h3>
-        <p>${report.medalsAnalysis.description}</p>
-        <table>
-          <tr><th>Ниво на първенството</th><th>Брой спечелени медали</th></tr>
-          <tr><td>Зонални първенства</td><td><strong>${report.medalsAnalysis.zonalCount} медала</strong></td></tr>
-          <tr><td>Държавни първенства</td><td><strong>${report.medalsAnalysis.stateCount} медал</strong></td></tr>
-          <tr><td>Национални турнири</td><td><strong>${report.medalsAnalysis.nationalCount} медала</strong></td></tr>
-          <tr><td>Международни турнири</td><td><strong>${report.medalsAnalysis.internationalCount} медала</strong></td></tr>
-          <tr><td><strong>ОБЩО МЕДАЛИ</strong></td><td><strong>${report.medalsAnalysis.totalMedals} медала</strong></td></tr>
-        </table>
-
-        <div class="signature-box">
-          <p>Изготвил:<br>....................................................<br>${coachName} – ${coachRole}<br>„Бадминтон клуб Гълъбово”</p>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const blob = new Blob(["\ufeff", htmlContent], {
-      type: "application/msword",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Otchet_Deynost_${selectedYear}_${coachName.replace(/\s+/g, "_")}.doc`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success("Word документът е изтеглен успешно!");
+    const source =
+      "data:application/vnd.ms-word;charset=utf-8," +
+      encodeURIComponent(sourceHTML);
+    const fileDownload = document.createElement("a");
+    document.body.appendChild(fileDownload);
+    fileDownload.href = source;
+    fileDownload.download = `Godishen_Otchet_${selectedYear}_BK_Galabovo.doc`;
+    fileDownload.click();
+    document.body.removeChild(fileDownload);
+    toast.success("Word файлът (.doc) е свален успешно!");
   };
 
   // Копиране на текст
   const handleCopyText = () => {
     if (!report) return;
-    const text = `ОТЧЕТ ЗА ДЕЙНОСТТА ПРЕЗ ${selectedYear} ГОДИНА
+    const text = `${report.organizationName.toUpperCase()}
+ОТЧЕТ ЗА ДЕЙНОСТТА ПРЕЗ ${selectedYear} ГОДИНА
 от ${coachName} – ${coachRole}
-КЪМ ${report.organizationName}
 
-Дейността ми като треньор по бадминтон към ${report.organizationName} за ${selectedYear} година бе в няколко основни направления:
 1. Организиране и провеждане на тренировки по бадминтон.
 2. Подготовка и участие в състезания.
 3. Организиране и провеждане на състезания по бадминтон.
@@ -371,28 +312,31 @@ export default function AnnualReport({
 5. Организиране и/или провеждане и участие в/на демонстрации по бадминтон.
 6. Анализ на постигнатите резултати.
 
-1. и 2. Организиране и провеждане на тренировки по бадминтон. Подготовка и участие в състезания.
+1. и 2. Организиране и провеждане на тренировки и състезания:
 ${report.trainings.description}
-За ${selectedYear} година, тренировките се проведоха както следва (Общо ${report.trainings.totalCount}):
-${report.trainings.monthly.map((m) => `• м. ${m.monthName.toUpperCase()} – ${m.conductedCount} тренировки`).join("\n")}
+Общо проведени тренировки: ${report.trainings.totalCount} бр.
+${report.trainings.monthly.map((m) => `• м. ${m.monthName}: ${m.conductedCount} тренировки`).join("\n")}
 
-3. Организиране и провеждане на състезания.
-${report.organizedTournaments.list.map((t) => `• Месец ${t.month} – ${t.title} (${t.ageGroups})`).join("\n")}
+Официални състезателни командировки: ${report.competitions.tripsCount} бр.
 
-4. Организиране и провеждане на летен спортен лагер
-${report.sportsCamp.title} – ${report.sportsCamp.dateRange} – ${report.sportsCamp.facility} ${report.sportsCamp.location}.
-Общо ${report.sportsCamp.sessionsCount} интензивни тренировъчни занимания.
-${report.sportsCamp.focusAreas.map((f) => `• ${f}`).join("\n")}
+3. Организиране и провеждане на състезания:
+${report.organizedTournaments.description}
+${report.organizedTournaments.list.map((t) => `• Месец ${t.month} – ${t.title} (${t.location})`).join("\n")}
 
-5. Организиране и/или провеждане на демонстрации и други събития
+4. Организиране и провеждане на летен спортен лагер:
+${report.sportsCamp.title} – ${report.sportsCamp.dateRange} (${report.sportsCamp.facility}, ${report.sportsCamp.location}).
+Проведени занимания: ${report.sportsCamp.sessionsCount} бр.
+Участници: ${report.sportsCamp.participantsCount} състезатели.
+
+5. Организиране и/или провеждане на демонстрации и обществени събития:
 ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.description}`).join("\n")}
 
-6. Анализ на резултатите:
+6. Анализ на резултатите (Спечелени медали):
 • Зонални първенства – ${report.medalsAnalysis.zonalCount} медала
 • Държавни първенства – ${report.medalsAnalysis.stateCount} медал
-• Национални турнири – ${report.medalsAnalysis.nationalCount}
-• Международни турнири – ${report.medalsAnalysis.internationalCount}
-ОБЩО: ${report.medalsAnalysis.totalMedals} медала`;
+• Национални турнири – ${report.medalsAnalysis.nationalCount} медала
+• Международни турнири – ${report.medalsAnalysis.internationalCount} медала
+ОБЩО СПЕЧЕЛЕНИ МЕДАЛИ: ${report.medalsAnalysis.totalMedals} бр.`;
 
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -405,7 +349,8 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
       <div className="flex h-96 flex-col items-center justify-center gap-3">
         <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400 size-8" />
         <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-          Зареждане на годишния отчет и сканиране на резултатите...
+          Зареждане на реалния годишен отчет и извличане на класиранията от
+          протоколите...
         </p>
       </div>
     );
@@ -435,8 +380,8 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 Официален годишен отчет за дейността
               </h1>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Автоматизирано извличане на тренировки, състезания, лагери и
-                медали по Златен стандарт
+                100% реални данни от базата, турнирите, командировките и
+                качените протоколи
               </p>
             </div>
           </div>
@@ -501,82 +446,76 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
               {isGeneratingPdf ? (
                 <Loader2 className="animate-spin size-3.5" />
               ) : (
-                <Download className="size-3.5" />
+                <FileText className="size-3.5" />
               )}
-              Официален PDF
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => loadReport(selectedYear, true)}
-              className="h-8 gap-1.5 text-xs rounded-lg dark:border-zinc-800"
-              title="Пресканира събитията, турнирите и командировките от базата данни за избраната година"
-            >
-              <RefreshCw className="size-3.5" />
-              Пресканирай
+              PDF Отчет
             </Button>
 
             <Button
               size="sm"
-              onClick={handleSave}
+              onClick={handleSaveReport}
               disabled={isSaving}
-              className="h-8 gap-1.5 bg-indigo-600 text-xs text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg shadow-xs"
+              className="h-8 gap-1.5 text-xs bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg shadow-xs"
             >
               {isSaving ? (
                 <Loader2 className="animate-spin size-3.5" />
               ) : (
                 <Save className="size-3.5" />
               )}
-              Запази
+              Запази промените
             </Button>
           </div>
         </div>
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          2. ТРЕНЬОР И ОРГАНИЗАЦИЯ (Редактируеми реквизити)
+          2. ТРЕНЬОР И КЛУБ (Editable Header Parameters)
       ───────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
-          <Label className="text-xs text-zinc-500">Треньор / Докладчик:</Label>
-          <div className="mt-1 flex items-center gap-2">
+      <BentoCard className="p-4 rounded-xl border border-zinc-200/80 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div>
+            <Label className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+              Треньор (Изготвил отчета):
+            </Label>
             <Input
               value={coachName}
               onChange={(e) => setCoachName(e.target.value)}
-              className="h-8 text-xs font-semibold uppercase bg-white dark:bg-zinc-900"
+              className="mt-1 h-8 text-xs font-semibold bg-white dark:bg-zinc-900"
             />
+          </div>
+          <div>
+            <Label className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+              Длъжност:
+            </Label>
             <Input
               value={coachRole}
               onChange={(e) => setCoachRole(e.target.value)}
-              className="h-8 text-xs bg-white dark:bg-zinc-900"
-              placeholder="Длъжност"
+              className="mt-1 h-8 text-xs bg-white dark:bg-zinc-900"
             />
           </div>
-        </div>
-
-        <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
-          <Label className="text-xs text-zinc-500">Организация / Клуб:</Label>
-          <div className="mt-1">
+          <div>
+            <Label className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+              Спортен клуб / Организация:
+            </Label>
             <Input
               value={report.organizationName}
               onChange={(e) =>
                 setReport({ ...report, organizationName: e.target.value })
               }
-              className="h-8 text-xs font-medium bg-white dark:bg-zinc-900"
+              className="mt-1 h-8 text-xs bg-white dark:bg-zinc-900"
             />
           </div>
         </div>
-      </div>
+      </BentoCard>
 
       {/* ─────────────────────────────────────────────────────────────
-          3. BENTO KPI КАРТИ НА ГОДИНАТА
+          3. КАРТИ С КЛЮЧОВИ ПОКАЗАТЕЛИ (KPI Grid)
       ───────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <BentoCard className="p-4 rounded-xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              Тренировки
+              Проведени тренировки
             </span>
             <div className="flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 size-7">
               <Dumbbell className="size-3.5" />
@@ -586,11 +525,65 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
             {report.trainings.totalCount}
           </div>
           <p className="mt-0.5 text-[10px] text-zinc-400">
-            Целогодишни занимания
+            За {selectedYear} година
           </p>
         </BentoCard>
 
         <BentoCard className="p-4 rounded-xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+              Командировки & Турнири
+            </span>
+            <div className="flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 size-7">
+              <Flame className="size-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            {report.competitions.tripsCount}
+          </div>
+          <p className="mt-0.5 text-[10px] text-zinc-400">
+            {report.medalsAnalysis.withRankingsCount} с класиране /{" "}
+            {report.medalsAnalysis.withoutRankingsCount} без
+          </p>
+        </BentoCard>
+
+        <BentoCard className="p-4 rounded-xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+              Организирани турнири
+            </span>
+            <div className="flex items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400 size-7">
+              <Medal className="size-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            {report.organizedTournaments.list.length}
+          </div>
+          <p className="mt-0.5 text-[10px] text-zinc-400">
+            Зала „Енергетик“ Гълъбово
+          </p>
+        </BentoCard>
+
+        <BentoCard className="p-4 rounded-xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+              Спортен лагер
+            </span>
+            <div className="flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 size-7">
+              <Tent className="size-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            {report.sportsCamp.sessionsCount > 0 ? "1" : "0"}
+          </div>
+          <p className="mt-0.5 text-[10px] text-zinc-400">
+            {report.sportsCamp.sessionsCount > 0
+              ? `${report.sportsCamp.facility} (${report.sportsCamp.sessionsCount} сесии)`
+              : "Няма проведен лагер"}
+          </p>
+        </BentoCard>
+
+        <BentoCard className="col-span-2 sm:col-span-1 p-4 rounded-xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
               Спечелени медали
@@ -603,58 +596,7 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
             {report.medalsAnalysis.totalMedals}
           </div>
           <p className="mt-0.5 text-[10px] text-zinc-400">
-            Зонални, Държавни и Нац.
-          </p>
-        </BentoCard>
-
-        <BentoCard className="p-4 rounded-xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              Организирани турнири
-            </span>
-            <div className="flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 size-7">
-              <Medal className="size-3.5" />
-            </div>
-          </div>
-          <div className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-            {report.organizedTournaments.list.length}
-          </div>
-          <p className="mt-0.5 text-[10px] text-zinc-400">
-            Национални и клубни
-          </p>
-        </BentoCard>
-
-        <BentoCard className="p-4 rounded-xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              Спортни лагери
-            </span>
-            <div className="flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 size-7">
-              <Tent className="size-3.5" />
-            </div>
-          </div>
-          <div className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-            1
-          </div>
-          <p className="mt-0.5 text-[10px] text-zinc-400">
-            Приморско (12 сесии)
-          </p>
-        </BentoCard>
-
-        <BentoCard className="col-span-2 sm:col-span-1 p-4 rounded-xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              Обществени събития
-            </span>
-            <div className="flex items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400 size-7">
-              <Globe className="size-3.5" />
-            </div>
-          </div>
-          <div className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-            {report.demonstrations.list.length}
-          </div>
-          <p className="mt-0.5 text-[10px] text-zinc-400">
-            Be Active, ДАЗД, ЕДС
+            От качени съдийски протоколи
           </p>
         </BentoCard>
       </div>
@@ -742,7 +684,7 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
       <BentoCard className="p-5 rounded-2xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center justify-between border-b border-zinc-200/80 pb-3 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 size-8">
+            <div className="flex items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400 size-8">
               <Medal className="size-4" />
             </div>
             <div>
@@ -750,16 +692,22 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 3. Организиране и провеждане на състезания
               </h2>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Национални вериги, вътрешни първенства и тематични коледни
-                турнири
+                Турнири, домакинствани от „БК Гълъбово“ в спортна зала
+                „Енергетик“
               </p>
             </div>
           </div>
+          <Badge
+            variant="outline"
+            className="rounded-full bg-purple-50/50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-300 border-none font-semibold text-xs"
+          >
+            {report.organizedTournaments.list.length} проведени турнира
+          </Badge>
         </div>
 
         <div className="mt-4">
           <Label className="text-xs text-zinc-500">
-            Описание на турнирната дейност:
+            Описание на турнирната дейност на родна сцена:
           </Label>
           <Textarea
             value={report.organizedTournaments.description}
@@ -777,36 +725,44 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
         </div>
 
         <div className="mt-4 space-y-2">
-          {report.organizedTournaments.list.map((tour, idx) => (
-            <div
-              key={tour.id || idx}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-zinc-200/70 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-950/40"
-            >
-              <div className="flex items-center gap-2.5">
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "text-[10px] font-semibold uppercase border-none",
-                    tour.type === "national"
-                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                      : tour.type === "thematic"
-                        ? "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
-                        : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
-                  )}
-                >
-                  {tour.month}
-                </Badge>
-                <div>
-                  <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                    {tour.title}
-                  </h4>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    {tour.ageGroups}
-                  </p>
+          {report.organizedTournaments.list.length > 0 ? (
+            report.organizedTournaments.list.map((tour, idx) => (
+              <div
+                key={tour.id || idx}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-zinc-200/70 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-950/40"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-[10px] font-semibold uppercase border-none",
+                      tour.type === "national"
+                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                        : tour.type === "thematic"
+                          ? "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
+                          : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                    )}
+                  >
+                    {tour.month}
+                  </Badge>
+                  <div>
+                    <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                      {tour.title}
+                    </h4>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Място: {tour.location} · Дата: {tour.dateRange} ·
+                      Възрастови групи: {tour.ageGroups}
+                    </p>
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="p-4 text-center text-xs text-zinc-400">
+              Няма регистрирани организирани състезания за {selectedYear}{" "}
+              година.
             </div>
-          ))}
+          )}
         </div>
       </BentoCard>
 
@@ -824,7 +780,7 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 4. Организиране и провеждане на летен спортен лагер
               </h2>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Подготовка на състезателите в ММЦ „Хелиос“ Приморско
+                Подготовка на състезателите в ММЦ Приморско
               </p>
             </div>
           </div>
@@ -832,7 +788,8 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
             variant="outline"
             className="rounded-full bg-blue-50/50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300 border-none font-semibold text-xs"
           >
-            {report.sportsCamp.sessionsCount} занимания
+            {report.sportsCamp.sessionsCount} занимания ·{" "}
+            {report.sportsCamp.participantsCount} състезатели
           </Badge>
         </div>
 
@@ -850,13 +807,13 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                   },
                 })
               }
-              className="mt-0.5 h-7 text-xs bg-white dark:bg-zinc-900"
+              className="mt-1 h-7 text-xs font-medium bg-white dark:bg-zinc-900"
             />
           </div>
           <div className="rounded-xl border border-zinc-200/70 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-950/40">
-            <span className="text-[10px] text-zinc-400">Локация и база:</span>
+            <span className="text-[10px] text-zinc-400">Локация / База:</span>
             <Input
-              value={`${report.sportsCamp.facility}, ${report.sportsCamp.location}`}
+              value={report.sportsCamp.facility}
               onChange={(e) =>
                 setReport({
                   ...report,
@@ -866,12 +823,12 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                   },
                 })
               }
-              className="mt-0.5 h-7 text-xs bg-white dark:bg-zinc-900"
+              className="mt-1 h-7 text-xs font-medium bg-white dark:bg-zinc-900"
             />
           </div>
           <div className="rounded-xl border border-zinc-200/70 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-950/40">
             <span className="text-[10px] text-zinc-400">
-              Брой интензивни тренировки:
+              Брой тренировъчни сесии:
             </span>
             <Input
               type="number"
@@ -885,36 +842,38 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                   },
                 })
               }
-              className="mt-0.5 h-7 text-xs bg-white dark:bg-zinc-900"
+              className="mt-1 h-7 text-xs font-medium bg-white dark:bg-zinc-900"
             />
           </div>
         </div>
 
         <div className="mt-4">
           <Label className="text-xs text-zinc-500">
-            Основни физически качества и акценти:
+            Описание на лагерната подготовка:
           </Label>
-          <div className="mt-2 space-y-2">
-            {report.sportsCamp.focusAreas.map((f, fIdx) => (
-              <div
-                key={fIdx}
-                className="flex items-start gap-2 rounded-lg bg-zinc-50/80 p-2 text-xs text-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-300"
-              >
-                <Flame className="mt-0.5 shrink-0 text-amber-500 size-3.5" />
-                <span>{f}</span>
-              </div>
-            ))}
-          </div>
+          <Textarea
+            value={report.sportsCamp.description}
+            onChange={(e) =>
+              setReport({
+                ...report,
+                sportsCamp: {
+                  ...report.sportsCamp,
+                  description: e.target.value,
+                },
+              })
+            }
+            className="mt-1 min-h-15 text-xs leading-relaxed dark:bg-zinc-950"
+          />
         </div>
       </BentoCard>
 
       {/* ─────────────────────────────────────────────────────────────
-          7. РАЗДЕЛ 5: ДЕМОНСТРАЦИИ И ДРУГИ СЪБИТИЯ
+          7. РАЗДЕЛ 5: ДЕМОНСТРАЦИИ И ОБЩЕСТВЕНИ СЪБИТИЯ
       ───────────────────────────────────────────────────────────── */}
       <BentoCard className="p-5 rounded-2xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center justify-between border-b border-zinc-200/80 pb-3 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400 size-8">
+            <div className="flex items-center justify-center rounded-lg bg-pink-50 text-pink-600 dark:bg-pink-950/40 dark:text-pink-400 size-8">
               <Globe className="size-4" />
             </div>
             <div>
@@ -922,50 +881,73 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 5. Организиране и провеждане на демонстрации и събития
               </h2>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Популяризиране на бадминтона сред училищата и общността в гр.
-                Гълъбово
+                Популяризиране на бадминтона в училища, детски градини и
+                обществени инициативи
               </p>
             </div>
           </div>
+          <Badge
+            variant="outline"
+            className="rounded-full bg-pink-50/50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-300 border-none font-semibold text-xs"
+          >
+            {report.demonstrations.list.length} събития
+          </Badge>
         </div>
 
-        <div className="mt-4 space-y-3">
-          {report.demonstrations.list.map((demo) => (
-            <div
-              key={demo.id}
-              className="rounded-xl border border-zinc-200/70 bg-zinc-50/50 p-3.5 dark:border-zinc-800 dark:bg-zinc-950/40"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className="border-none bg-purple-50 text-[10px] font-semibold text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
-                  >
-                    {demo.date}
-                  </Badge>
-                  <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+        <div className="mt-4">
+          <Label className="text-xs text-zinc-500">
+            Описание на обществената дейност:
+          </Label>
+          <Textarea
+            value={report.demonstrations.description}
+            onChange={(e) =>
+              setReport({
+                ...report,
+                demonstrations: {
+                  ...report.demonstrations,
+                  description: e.target.value,
+                },
+              })
+            }
+            className="mt-1 min-h-15 text-xs leading-relaxed dark:bg-zinc-950"
+          />
+        </div>
+
+        <div className="mt-4 space-y-2">
+          {report.demonstrations.list.length > 0 ? (
+            report.demonstrations.list.map((demo, idx) => (
+              <div
+                key={demo.id || idx}
+                className="rounded-xl border border-zinc-200/70 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-950/40"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                     {demo.title}
                   </h4>
+                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Дата: {demo.date} · Място: {demo.partner}
+                  </span>
                 </div>
-                <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                  Партньор: {demo.partner}
-                </span>
-              </div>
-              <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
-                {demo.description}
-              </p>
-              {demo.participants && (
-                <p className="mt-1 text-[11px] text-indigo-600 dark:text-indigo-400">
-                  Участници: {demo.participants}
+                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                  {demo.description}
                 </p>
-              )}
+                {demo.participants && (
+                  <p className="mt-1 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+                    Участници: {demo.participants}
+                  </p>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="p-4 text-center text-xs text-zinc-400">
+              Няма регистрирани обществени събития за {selectedYear} година.
             </div>
-          ))}
+          )}
         </div>
       </BentoCard>
 
       {/* ─────────────────────────────────────────────────────────────
-          8. РАЗДЕЛ 6: АНАЛИЗ НА РЕЗУЛТАТИТЕ (МЕДАЛИ И СЪВПАДЕНИЯ)
+          8. РАЗДЕЛ 6: АНАЛИЗ НА РЕЗУЛТАТИТЕ (МЕДАЛИ, СЪСТЕЗАНИЯ И ПРОТОКОЛИ)
       ───────────────────────────────────────────────────────────── */}
       <BentoCard className="p-5 rounded-2xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center justify-between border-b border-zinc-200/80 pb-3 dark:border-zinc-800">
@@ -975,11 +957,12 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
             </div>
             <div>
               <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                6. Анализ на резултатите (Спечелени медали)
+                6. Анализ на резултатите (Спечелени медали и статус на
+                класиранията)
               </h2>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Автоматично съпоставяне на състезателите от командировките и
-                класиранията на „БК Гълъбово“
+                Автоматично сканиране на съдийските протоколи и извличане
+                единствено на състезателите на „БК Гълъбово“
               </p>
             </div>
           </div>
@@ -991,7 +974,7 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
               className="h-7 gap-1 text-[11px] rounded-lg dark:border-zinc-800"
             >
               <RefreshCw className="size-3" />
-              Пресканирай
+              Пресканирай протоколите
             </Button>
           </div>
         </div>
@@ -1047,10 +1030,166 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
           </div>
         </div>
 
-        {/* Форма за бързо добавяне / корекция на медал */}
-        <div className="mt-5 rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 p-3.5 dark:border-zinc-800 dark:bg-zinc-950/30">
+        {/* 6A. Списък с всички официални състезателни командировки и техния статус на класиране */}
+        <div className="mt-5 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+              Официални състезания за {selectedYear} г. и статус на качените
+              класирания ({report.competitions.tripsList?.length || 0}):
+            </h4>
+            <div className="flex items-center gap-2 text-[11px]">
+              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="size-3" />{" "}
+                {report.medalsAnalysis.withRankingsCount} с качено класиране
+              </span>
+              <span className="text-zinc-300">·</span>
+              <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="size-3" />{" "}
+                {report.medalsAnalysis.withoutRankingsCount} без класиране
+              </span>
+            </div>
+          </div>
+
+          <div className="divide-y divide-zinc-200/60 rounded-xl border border-zinc-200/80 bg-zinc-50/50 max-h-72 overflow-y-auto dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950/40">
+            {report.competitions.tripsList &&
+            report.competitions.tripsList.length > 0 ? (
+              report.competitions.tripsList.map((t) => (
+                <div
+                  key={t.tripId}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 text-xs"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                        {t.title}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="text-[9px] uppercase border-none bg-zinc-200/70 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                      >
+                        {t.tournamentType === "zonal"
+                          ? "Зонално"
+                          : t.tournamentType === "state"
+                            ? "Държавно"
+                            : t.tournamentType === "international"
+                              ? "Международно"
+                              : "Национално"}
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                      Място: {t.destination} · Участници ({t.participantsCount}
+                      ): {t.participantsNames.join(", ") || "Няма отбелязани"}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {t.hasRankingUploaded ? (
+                      <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-300/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 text-[10px] gap-1">
+                        <CheckCircle2 className="size-3" />
+                        Качено класиране ({t.rankingFilesCount} файла)
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-amber-500/15 text-amber-700 border-amber-300/60 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800 text-[10px] gap-1">
+                        <AlertTriangle className="size-3" />
+                        Няма качено класиране
+                      </Badge>
+                    )}
+                    {t.medalsCount > 0 && (
+                      <Badge className="bg-amber-500 text-white text-[10px]">
+                        +{t.medalsCount} медала
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-3 text-center text-xs text-zinc-400">
+                Няма регистрирани състезателни командировки за {selectedYear}{" "}
+                година.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 6B. Списък с автоматично извлечените медалисти от съдийските протоколи */}
+        <div className="mt-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+              Автоматично извлечени медалисти за „БК Гълъбово“ (
+              {report.medalsAnalysis.medalsList.length}):
+            </Label>
+          </div>
+
+          {report.medalsAnalysis.medalsList.length > 0 ? (
+            <div className="max-h-72 overflow-y-auto space-y-1.5 pr-1">
+              {report.medalsAnalysis.medalsList.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex items-center justify-between rounded-lg border border-zinc-200/60 bg-white p-2.5 text-xs shadow-2xs dark:border-zinc-800 dark:bg-zinc-900"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-base shrink-0">
+                      {m.place === 1 ? "🥇" : m.place === 2 ? "🥈" : "🥉"}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                          {m.athleteName}
+                        </span>
+                        {m.partnerName && (
+                          <span className="text-zinc-500 dark:text-zinc-400">
+                            / {m.partnerName}
+                          </span>
+                        )}
+                        <Badge
+                          variant="outline"
+                          className="border-none text-[9px] uppercase bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 font-bold"
+                        >
+                          {m.placementText || (m.place === 4 ? "3/4" : m.place)}{" "}
+                          МЯСТО
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="border-none text-[9px] uppercase bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                        >
+                          {m.ageGroup}
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                        Състезание: {m.tournamentName}{" "}
+                        {m.notes ? `· ${m.notes}` : ""}{" "}
+                        {m.sourceAttachmentName
+                          ? `· Файл: ${m.sourceAttachmentName}`
+                          : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveMedal(m.id)}
+                    className="p-0 text-zinc-400 hover:text-red-500 size-6 shrink-0"
+                    title="Премахни запис"
+                  >
+                    <Trash2 className="size-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-zinc-200 p-4 text-center text-xs text-zinc-400 dark:border-zinc-800">
+              Няма намерени класирания за {selectedYear} година. Качете съдийски
+              протоколи в командировките или използвайте формата по-долу за
+              ръчно добавяне.
+            </div>
+          )}
+        </div>
+
+        {/* 6C. Форма за бързо добавяне / корекция на медал */}
+        <div className="mt-4 rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 p-3.5 dark:border-zinc-800 dark:bg-zinc-950/30">
           <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-            + Добави медалист / състезател от първенство:
+            + Ръчно добавяне / корекция на медалист от първенство:
           </h4>
           <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-5">
             <Input
@@ -1111,7 +1250,7 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                     🥉 3-то място (Бронз)
                   </SelectItem>
                   <SelectItem value="4" className="text-xs">
-                    3-4 място
+                    🥉 3-4 място
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -1125,62 +1264,6 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
             </div>
           </div>
         </div>
-
-        {/* Списък с идентифицирани медалисти */}
-        {report.medalsAnalysis.medalsList.length > 0 && (
-          <div className="mt-4 space-y-2">
-            <Label className="text-xs font-medium text-zinc-500">
-              Идентифицирани медалисти от състезания:
-            </Label>
-            <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
-              {report.medalsAnalysis.medalsList.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex items-center justify-between rounded-lg border border-zinc-200/60 bg-white p-2 text-xs shadow-2xs dark:border-zinc-800 dark:bg-zinc-900"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">
-                      {m.place === 1
-                        ? "🥇"
-                        : m.place === 2
-                          ? "🥈"
-                          : m.place === 3
-                            ? "🥉"
-                            : "🏅"}
-                    </span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {m.athleteName}
-                    </span>
-                    <span className="text-zinc-400">·</span>
-                    <span className="text-zinc-600 dark:text-zinc-400">
-                      {m.tournamentName}
-                    </span>
-                    <Badge
-                      variant="outline"
-                      className="border-none text-[9px] uppercase bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-                    >
-                      {m.tournamentType === "zonal"
-                        ? "Зонално"
-                        : m.tournamentType === "state"
-                          ? "Държавно"
-                          : m.tournamentType === "international"
-                            ? "Международно"
-                            : "Национално"}
-                    </Badge>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveMedal(m.id)}
-                    className="p-0 text-zinc-400 hover:text-red-500 size-6"
-                  >
-                    <Trash2 className="size-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </BentoCard>
 
       {/* ─────────────────────────────────────────────────────────────
@@ -1241,6 +1324,11 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 </div>
               ))}
             </div>
+            <p className="mt-2 text-justify">
+              През {selectedYear} г. отборът на клуба реализира общо{" "}
+              {report.competitions.tripsCount} официални състезателни
+              командировки съгласно Държавния спортен календар на БФ Бадминтон.
+            </p>
           </div>
 
           {/* 3. Състезания */}
@@ -1252,7 +1340,7 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
             <ul className="list-disc pl-5 space-y-1 mt-1.5">
               {report.organizedTournaments.list.map((t, idx) => (
                 <li key={idx}>
-                  <strong>Месец {t.month}:</strong> {t.title} ({t.ageGroups})
+                  <strong>Месец {t.month}:</strong> {t.title} ({t.location})
                 </li>
               ))}
             </ul>
@@ -1274,7 +1362,8 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 {report.sportsCamp.sessionsCount} интензивни тренировъчни
                 занимания
               </strong>
-              , посветени на цялостната физическа и тактическа подготовка.
+              , посветени на цялостната физическа и тактическа подготовка на{" "}
+              {report.sportsCamp.participantsCount} състезатели.
             </p>
             <ul className="list-disc pl-5 space-y-0.5 mt-1">
               {report.sportsCamp.focusAreas.map((f, idx) => (
@@ -1332,6 +1421,40 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 {report.medalsAnalysis.totalMedals} МЕДАЛА
               </div>
             </div>
+
+            {/* Списък на медалистите */}
+            {report.medalsAnalysis.medalsList.length > 0 && (
+              <div className="mt-3">
+                <p className="font-semibold mb-1">
+                  Списък на завоюваните призови места:
+                </p>
+                <div className="space-y-1 text-[11px]">
+                  {report.medalsAnalysis.medalsList.map((m, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between border-b border-zinc-100 py-0.5"
+                    >
+                      <span>
+                        {m.place === 1
+                          ? "🥇 1-во място"
+                          : m.place === 2
+                            ? "🥈 2-ро място"
+                            : "🥉 3-то място"}
+                        : <strong>{m.athleteName}</strong>{" "}
+                        {m.partnerName ? `/ ${m.partnerName}` : ""} (
+                        {m.category === "singles"
+                          ? "единично"
+                          : m.category === "doubles"
+                            ? "двойки"
+                            : "смесени двойки"}
+                        )
+                      </span>
+                      <span className="text-zinc-500">{m.tournamentName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Подпис */}
