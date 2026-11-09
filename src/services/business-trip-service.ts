@@ -52,9 +52,19 @@ export const businessTripService = {
     );
     const newId = docRef.id;
     try {
-      await this.assignMissingNumbers(validatedData.siteId);
+      await this.renumberAllTripsChronologically(
+        validatedData.siteId || "bkgalabovo"
+      );
     } catch (e) {
-      console.error("Неуспешно присвояване на номер на заповед", e);
+      console.warn(
+        "Хронологичното преномериране при създаване срещна проблем, опит с assignMissingNumbers:",
+        e
+      );
+      try {
+        await this.assignMissingNumbers(validatedData.siteId);
+      } catch (fallbackErr) {
+        console.error("Неуспешно присвояване на номер на заповед", fallbackErr);
+      }
     }
     return newId;
   },
@@ -251,6 +261,16 @@ export const businessTripService = {
 
     // 2. Изтриваме самата командировка
     await deleteDoc(doc(db, TRIPS_COLLECTION, id));
+
+    // 3. Преномерираме останалите командировки, за да няма пропуски в номерацията
+    try {
+      await this.renumberAllTripsChronologically(trip.siteId || "bkgalabovo");
+    } catch (renumberErr) {
+      console.warn(
+        "Преномериране след изтриване на командировка пропуснато:",
+        renumberErr
+      );
+    }
   },
 
   // ---------------------------------------------

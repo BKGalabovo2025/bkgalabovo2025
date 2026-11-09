@@ -4,11 +4,18 @@ import {
   FileText,
   Info,
   Receipt,
+  SlidersHorizontal,
   Users,
 } from "lucide-react";
 
 export type TripDetailSectionId =
-  "overview" | "expenses" | "order" | "protocol" | "athletes" | "report";
+  | "overview"
+  | "expenses"
+  | "order"
+  | "protocol"
+  | "athletes"
+  | "report"
+  | "manage";
 
 export interface TripDetailSectionConfig {
   id: TripDetailSectionId;
@@ -60,6 +67,13 @@ export const TRIP_DETAIL_SECTIONS: readonly TripDetailSectionConfig[] = [
     pathSuffix: "report",
     tooltip: "Спортно-технически доклад и финансово отчитане",
     icon: FileSpreadsheet,
+  },
+  {
+    id: "manage",
+    label: "Управление",
+    pathSuffix: "manage",
+    tooltip: "Пълен мениджър за управление на бланки, ведомост и подписи",
+    icon: SlidersHorizontal,
   },
 ] as const;
 

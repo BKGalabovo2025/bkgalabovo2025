@@ -574,18 +574,34 @@ export default function AccountingClient({
   }, [loading, targetDeepLinkId, trips, selectedMonth, setSelectedMonth]);
 
   // Дълбок линк ?modal=true отваря диалога на събитието, ако е изрично указан.
-  const wantsModal = searchParams.get("modal") === "true";
+  const wantsModal =
+    searchParams.get("modal") === "true" || !!searchParams.get("manageTrip");
+  const effectiveManageId = searchParams.get("manageTrip") || targetDeepLinkId;
+
   useEffect(() => {
-    if (loading || !wantsModal || !targetDeepLinkId || deepLinkHandled.current)
+    if (loading || !wantsModal || !effectiveManageId || deepLinkHandled.current)
       return;
-    const trip = trips.find((t) => t.id === targetDeepLinkId);
+    const trip = trips.find((t) => t.id === effectiveManageId);
     const ev = trip ? events.find((e) => e.id === trip.eventId) : undefined;
     deepLinkHandled.current = true;
     if (ev) {
       setSelectedEvent(ev);
       setIsTripManagerOpen(true);
     }
-  }, [loading, wantsModal, targetDeepLinkId, trips, events]);
+  }, [loading, wantsModal, effectiveManageId, trips, events]);
+
+  // Дълбок линк за отваряне на "Създаване / Управление на командировка" (?action=new-trip или ?newTrip=true)
+  const wantsNewTrip =
+    searchParams.get("action") === "new-trip" ||
+    searchParams.get("action") === "new" ||
+    searchParams.get("newTrip") === "true";
+
+  useEffect(() => {
+    if (!loading && wantsNewTrip && !isSelectEventOpen) {
+      setEventSearchQuery("");
+      setIsSelectEventOpen(true);
+    }
+  }, [loading, wantsNewTrip, isSelectEventOpen]);
 
   const handleManageTrip = (trip: BusinessTrip) => {
     const ev =
@@ -604,6 +620,9 @@ export default function AccountingClient({
       } as unknown as ScheduleEvent);
     setSelectedEvent(ev);
     setIsTripManagerOpen(true);
+    if (trip.id) {
+      updateParams({ tripId: trip.id, modal: "true" });
+    }
   };
 
   // Derived state (filtered data)
@@ -1240,6 +1259,7 @@ export default function AccountingClient({
             onClick={() => {
               setEventSearchQuery("");
               setIsSelectEventOpen(true);
+              updateParams({ action: "new-trip" });
             }}
             className="col-span-2 h-8 justify-center rounded-lg bg-emerald-600 px-2.5 text-xs text-white shadow-xs hover:bg-emerald-700 sm:col-span-1"
           >
@@ -2265,7 +2285,15 @@ export default function AccountingClient({
       </div>
 
       {/* Dialog for selecting an event to create/manage business trip */}
-      <Dialog open={isSelectEventOpen} onOpenChange={setIsSelectEventOpen}>
+      <Dialog
+        open={isSelectEventOpen}
+        onOpenChange={(open) => {
+          setIsSelectEventOpen(open);
+          if (!open) {
+            updateParams({ action: null, newTrip: null });
+          }
+        }}
+      >
         <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
           <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
@@ -2408,6 +2436,7 @@ export default function AccountingClient({
           onOpenChange={(open) => {
             setIsTripManagerOpen(open);
             if (!open) {
+              updateParams({ tripId: null, modal: null, manageTrip: null });
               loadData(); // refresh table if they edited/deleted anything
             }
           }}
