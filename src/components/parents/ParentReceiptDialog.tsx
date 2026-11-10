@@ -48,7 +48,9 @@ export function ParentReceiptDialog({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl p-0 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
         {/* Print Stylesheet injection */}
-        <style jsx global>{`
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           @media print {
             body * {
               visibility: hidden !important;
@@ -74,7 +76,9 @@ export function ParentReceiptDialog({
               display: none !important;
             }
           }
-        `}</style>
+        `,
+          }}
+        />
 
         {/* Dialog Action Header */}
         <div className="no-print flex items-center justify-between border-b border-zinc-100 bg-zinc-50/80 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/60">

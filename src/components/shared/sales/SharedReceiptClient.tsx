@@ -498,7 +498,9 @@ export function SharedReceiptClient({
 
   return (
     <>
-      <style jsx global>{`
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @media print {
           @page {
             margin: 0;
@@ -528,7 +530,9 @@ export function SharedReceiptClient({
             display: none !important;
           }
         }
-      `}</style>
+      `,
+        }}
+      />
 
       <div className="receipt-container mx-auto max-w-4xl p-4 sm:p-8">
         {/* ACTION BAR */}
