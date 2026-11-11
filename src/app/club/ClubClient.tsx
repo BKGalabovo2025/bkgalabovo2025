@@ -723,7 +723,7 @@ export default function ClubClient({
                   <p className="text-xl font-light text-zinc-300">
                     {getEmptyState().title}
                   </p>
-                  <p className="text-md mt-2 text-zinc-500">
+                  <p className="text-md mt-2 text-zinc-400">
                     {getEmptyState().subtitle}
                   </p>
                 </div>
