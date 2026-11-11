@@ -54,11 +54,16 @@ jobs:
         # Passing required environment variables as secrets for the custom script
         env:
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY || 'fake-api-key' }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: "bkgalabovo2025"
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           GITHUB_EVENT_BEFORE: ${{ github.event.before }}
-        run: node scripts/lighthouse-audit.js --shard=${{ matrix.shard }}/4 ${{ inputs.force && '--force' || '' }}
+          NEXT_PUBLIC_SITE_ID: "bkgalabovo"
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "bkgalabovo2025.firebaseapp.com"
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "bkgalabovo2025.appspot.com"
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "123456789"
+          NEXT_PUBLIC_FIREBASE_APP_ID: "1:123456789:web:test"
+        run: node scripts/lighthouse-audit.js --shard=${{ matrix.shard }}/4 --local ${{ inputs.force && '--force' || '' }}
 
       - name: Save Lighthouse Reports Cache
         if: always()

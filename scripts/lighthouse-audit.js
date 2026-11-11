@@ -9,7 +9,7 @@ dotenv.config({ path: ".env.local" });
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-const isLocal = args.includes("--local");
+let isLocal = args.includes("--local");
 const staticOnly = args.includes("--static-only");
 const includeDynamic = !staticOnly; // По подразбиране: включва абсолютно всички открити страници
 const modeArg = args.find((a) => a.startsWith("--mode="))?.split("=")[1];
@@ -41,8 +41,9 @@ const minBP = minBPArg ? parseInt(minBPArg, 10) : process.env.CI ? 100 : 100;
 const minA11y = 100;
 const minSEO = 100;
 
-const baseUrl =
+let baseUrl =
   targetUrlArg ||
+  process.env.LIGHTHOUSE_BASE_URL ||
   (isLocal ? "http://localhost:3001" : "https://bkgalabovo2025.vercel.app");
 
 /**
@@ -497,20 +498,10 @@ async function run() {
   }
 
   let server = null;
-  if (isLocal) {
-    console.log("--- Стъпка 1: Компилиране на чист билд локално ---");
-    execSync("npm run build", { stdio: "inherit" });
 
-    console.log("\n--- Стъпка 2: Стартиране на сървъра на порт 3001 ---");
-    const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
-    server = spawn(npxCmd, ["next", "start", "-p", "3001"], {
-      stdio: "inherit",
-    });
-
-    console.log("Изчакване на локалния сървър (10 сек)...");
-    await new Promise((r) => setTimeout(r, 10000));
-  } else if (process.env.CI) {
-    // Проверка за достъпност и защита на квотата на Netlify
+  // Ако не е изрично подаден --local, но сме в CI и отдалеченият хост не отговаря или е на пауза (402/503),
+  // автоматично превключваме към локален билд и одит на порт 3001
+  if (!isLocal && process.env.CI) {
     try {
       const pingRes = await fetch(baseUrl, {
         signal: AbortSignal.timeout(8000),
@@ -523,18 +514,74 @@ async function run() {
         console.warn(
           `⚠️ ВНИМАНИЕ: Хостът ${baseUrl} връща статус ${pingRes.status} (временно спрян деплой / квота).`
         );
-        console.warn(
-          "⚠️ Lighthouse одитът се пропуска, за да се защити квотата на проекта."
+        console.log(
+          "🔄 Автоматично превключване към ЛОКАЛЕН режим (--local) на порт 3001 за изпълнение на одита!"
         );
-        process.exit(0);
+        isLocal = true;
+        baseUrl = "http://localhost:3001";
       }
     } catch (pingErr) {
       console.warn(
-        `⚠️ ВНИМАНИЕ: Хостът ${baseUrl} не отговаря (${pingErr.message}). Пропускане на одит.`
+        `⚠️ ВНИМАНИЕ: Хостът ${baseUrl} не отговаря (${pingErr.message}). Превключване към локален режим.`
       );
-      process.exit(0);
+      isLocal = true;
+      baseUrl = "http://localhost:3001";
     }
+  }
 
+  if (isLocal) {
+    // Освобождаване на порт 3001, ако има изостанал процес
+    try {
+      if (process.platform === "win32") {
+        const out = execSync("netstat -ano | findstr :3001", {
+          encoding: "utf8",
+        });
+        const pids = out
+          .split("\n")
+          .map((l) => l.trim().split(/\s+/).pop())
+          .filter(Boolean);
+        for (const pid of pids) {
+          if (pid && pid !== "0" && !isNaN(Number(pid))) {
+            try {
+              execSync(`taskkill /pid ${pid} /F /T`, { stdio: "ignore" });
+            } catch {}
+          }
+        }
+      } else {
+        execSync("fuser -k 3001/tcp || true", { stdio: "ignore" });
+      }
+    } catch {}
+
+    console.log("--- Стъпка 1: Компилиране на билд локално ---");
+    execSync("npm run build", { stdio: "inherit" });
+
+    console.log("\n--- Стъпка 2: Стартиране на сървъра на порт 3001 ---");
+    const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
+    server = spawn(npxCmd, ["next", "start", "-p", "3001"], {
+      stdio: "inherit",
+    });
+
+    console.log("Изчакване на готовност на локалния сървър на порт 3001...");
+    let ready = false;
+    for (let p = 0; p < 35; p++) {
+      try {
+        const res = await fetch("http://localhost:3001");
+        if (res.status < 500) {
+          ready = true;
+          console.log(
+            `✅ Локалният сървър е готов за одит (статус: ${res.status})!`
+          );
+          break;
+        }
+      } catch {}
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    if (!ready) {
+      console.warn(
+        "⚠️ Локалният сървър може би все още се зарежда, продължаваме..."
+      );
+    }
+  } else if (process.env.CI) {
     console.log("--- Проверка на отдалечения хост и новия деплоймънт... ---");
     const targetSha = process.env.GITHUB_SHA;
     for (let waitIdx = 0; waitIdx < 30; waitIdx++) {

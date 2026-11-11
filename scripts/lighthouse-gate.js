@@ -11,6 +11,7 @@ const targetUrlArg = args.find((a) => a.startsWith("--url="))?.split("=")[1];
 
 const baseUrl =
   targetUrlArg ||
+  process.env.LIGHTHOUSE_BASE_URL ||
   (isLocal ? "http://localhost:3001" : "https://bkgalabovo2025.vercel.app");
 
 // Представителни ключови цели за бърз качествен контрол
