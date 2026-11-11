@@ -9,12 +9,14 @@ import { ParentPortalViewCoordinator } from "@/components/parents/portal/ParentP
 
 export default function ParentPortalClient({
   section = "attendance",
+  initialData,
 }: {
   section?: ParentPortalSectionId;
+  initialData?: unknown;
 }) {
   return (
     <Suspense fallback={<ParentPortalSkeleton />}>
-      <ParentPortalProvider>
+      <ParentPortalProvider initialData={initialData}>
         <ParentPortalViewCoordinator section={section} />
       </ParentPortalProvider>
     </Suspense>

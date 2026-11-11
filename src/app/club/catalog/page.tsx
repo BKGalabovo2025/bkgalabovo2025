@@ -2,7 +2,6 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
-import { Suspense } from "react";
 
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
 import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
@@ -14,7 +13,7 @@ export const metadata: Metadata = {
   description: "Разгледайте нашите тренировки, услуги и продукти.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 function serializeDoc(data: unknown): unknown {
   if (!data) return data;
@@ -108,10 +107,10 @@ export default async function CatalogPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
-      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-400/30 bg-black/80 px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 backdrop-blur-xl">
+      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-400/30 bg-black/85 px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 backdrop-blur-md">
         <Link
           href="/club"
-          className="flex items-center gap-2 text-sm text-zinc-400 transition-all hover:text-blue-400 hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
+          className="flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-blue-400 hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
         >
           <ArrowLeft size={16} />
           Назад към клуба
@@ -125,10 +124,10 @@ export default async function CatalogPage() {
       </nav>
 
       {/* Hero / Header */}
-      <div className="relative overflow-hidden px-4 pt-14 pb-2 sm:px-6 sm:pt-16 sm:pb-3">
-        <div className="pointer-events-none absolute top-0 left-1/2 h-96 w-full max-w-3xl -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
+      <div className="relative overflow-hidden px-4 pt-20 pb-6 sm:px-6 sm:pt-28 sm:pb-10">
+        <div className="pointer-events-none absolute top-0 left-1/2 h-72 w-full max-w-2xl -translate-x-1/2 rounded-full bg-blue-500/10 blur-lg" />
         <div className="relative z-10 m-auto max-w-6xl text-center">
-          <h1 className="mb-1 text-2xl font-light tracking-tight sm:text-3xl">
+          <h1 className="mb-2 text-2xl font-light tracking-tight sm:text-4xl">
             Клубни{" "}
             <span className="bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text font-bold text-transparent drop-shadow-[0_0_12px_rgba(59,130,246,0.4)]">
               Каталози
@@ -145,20 +144,14 @@ export default async function CatalogPage() {
       <main className="relative z-10 px-3 pb-8 sm:px-6 sm:pb-12">
         <div className="m-auto max-w-6xl">
           <div className="glassmorphism rounded-2xl border border-blue-400/20 bg-black/80 p-3 sm:rounded-3xl sm:p-5">
-            <Suspense
-              fallback={
-                <div className="h-64 animate-pulse rounded-2xl bg-zinc-900/50" />
-              }
-            >
-              <PublicCatalogTabs
-                trainings={services}
-                clubServices={generalServices}
-                generalServices={generalServices}
-                products={products}
-                shop={products}
-                recoveryServices={recoveryServices}
-              />
-            </Suspense>
+            <PublicCatalogTabs
+              trainings={services}
+              clubServices={generalServices}
+              generalServices={generalServices}
+              products={products}
+              shop={products}
+              recoveryServices={recoveryServices}
+            />
           </div>
         </div>
       </main>

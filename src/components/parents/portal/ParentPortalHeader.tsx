@@ -31,7 +31,7 @@ export function ParentPortalHeader() {
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="relative size-12 shrink-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-950">
               <Image
-                src="/icons/LOGO.jpg"
+                src="/icons/logo-128.webp"
                 alt="Бадминтон Клуб Гълъбово"
                 fill
                 sizes="48px"

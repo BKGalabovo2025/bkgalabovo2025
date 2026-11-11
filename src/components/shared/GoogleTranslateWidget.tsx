@@ -8,17 +8,20 @@ export function GoogleTranslateWidget() {
   const [currentLang, setCurrentLang] = useState("bg");
 
   useEffect(() => {
-    setIsClient(true);
+    const timer = setTimeout(() => {
+      setIsClient(true);
 
-    // Check cookies to see if google translate is active
-    if (typeof document !== "undefined") {
-      const match = document.cookie.match(/googtrans=\/bg\/([a-z]{2})/);
-      if (match && match[1] === "en") {
-        setCurrentLang("en");
-      } else {
-        setCurrentLang("bg");
+      // Check cookies to see if google translate is active
+      if (typeof document !== "undefined") {
+        const match = document.cookie.match(/googtrans=\/bg\/([a-z]{2})/);
+        if (match && match[1] === "en") {
+          setCurrentLang("en");
+        } else {
+          setCurrentLang("bg");
+        }
       }
-    }
+    }, 1000);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

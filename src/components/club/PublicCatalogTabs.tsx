@@ -23,9 +23,10 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -33,9 +34,23 @@ import {
   CatalogSectionId,
 } from "@/components/catalogs/catalog-sections";
 import { ProductStockBadge } from "@/components/catalogs/views/ShopCatalogView";
-import { CatalogInquiryDialog } from "@/components/club/CatalogInquiryDialog";
-import { RecoveryInquiryDialog } from "@/components/recovery/RecoveryInquiryDialog";
 import { Badge } from "@/components/ui/badge";
+
+const CatalogInquiryDialog = dynamic(
+  () =>
+    import("@/components/club/CatalogInquiryDialog").then(
+      (m) => m.CatalogInquiryDialog
+    ),
+  { ssr: false }
+);
+
+const RecoveryInquiryDialog = dynamic(
+  () =>
+    import("@/components/recovery/RecoveryInquiryDialog").then(
+      (m) => m.RecoveryInquiryDialog
+    ),
+  { ssr: false }
+);
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,8 +82,60 @@ export interface PublicCatalogTabsProps {
 const cleanUrl = (src: string) => {
   if (!src) return "";
   const sanitized = sanitizeImageUrl(src);
-  return sanitized || "";
+  if (!sanitized) return "";
+  if (sanitized.includes("/планове/") && sanitized.endsWith(".png")) {
+    return sanitized.replace(/\.png$/, ".webp");
+  }
+  return sanitized;
 };
+
+function CatalogUrlSync({
+  onTabChange,
+  onItemChange,
+}: {
+  onTabChange: (tab: CatalogSectionId) => void;
+  onItemChange: (itemId: string | null) => void;
+}) {
+  const searchParams = useSearchParams();
+  const categoryParam = (searchParams.get("category") ||
+    searchParams.get("section") ||
+    "") as PublicCatalogTab;
+  const itemParam = searchParams.get("item");
+
+  useEffect(() => {
+    if (itemParam) {
+      onItemChange(itemParam);
+    }
+  }, [itemParam, onItemChange]);
+
+  useEffect(() => {
+    if (categoryParam) {
+      if (categoryParam === "club-services" || categoryParam === "general") {
+        onTabChange("club-services");
+      } else if (categoryParam === "recovery") {
+        onTabChange("recovery");
+      } else if (categoryParam === "shop" || categoryParam === "products") {
+        onTabChange("shop");
+      } else if (categoryParam === "trainings") {
+        onTabChange("trainings");
+      }
+    }
+  }, [categoryParam, onTabChange]);
+
+  useEffect(() => {
+    if (itemParam) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`item-${itemParam}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [itemParam]);
+
+  return null;
+}
 
 export default function PublicCatalogTabs({
   trainings = [],
@@ -83,7 +150,6 @@ export default function PublicCatalogTabs({
 }: PublicCatalogTabsProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   // Consolidate prop aliases
   const actualTrainings = trainings;
@@ -93,62 +159,17 @@ export default function PublicCatalogTabs({
     recoveryServices.length > 0 ? recoveryServices : recovery;
   const actualShop = shop.length > 0 ? shop : products;
 
-  // Normalize initial tab from URL params if present
-  const categoryParam = (searchParams.get("category") ||
-    searchParams.get("section") ||
-    "") as PublicCatalogTab;
-  const initialTab: CatalogSectionId = useMemo(() => {
-    if (categoryParam === "club-services" || categoryParam === "general")
-      return "club-services";
-    if (categoryParam === "recovery") return "recovery";
-    if (categoryParam === "shop" || categoryParam === "products") return "shop";
-    if (categoryParam === "trainings") return "trainings";
-    return "trainings";
-  }, [categoryParam]);
-
-  const [activeTab, setActiveTab] = useState<CatalogSectionId>(initialTab);
+  const [activeTab, setActiveTab] = useState<CatalogSectionId>("trainings");
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
 
-  // Sync tab with URL if external navigation occurs
-  useEffect(() => {
-    if (categoryParam) {
-      if (
-        (categoryParam === "club-services" || categoryParam === "general") &&
-        activeTab !== "club-services"
-      ) {
-        setActiveTab("club-services");
-      } else if (categoryParam === "recovery" && activeTab !== "recovery") {
-        setActiveTab("recovery");
-      } else if (
-        (categoryParam === "shop" || categoryParam === "products") &&
-        activeTab !== "shop"
-      ) {
-        setActiveTab("shop");
-      } else if (categoryParam === "trainings" && activeTab !== "trainings") {
-        setActiveTab("trainings");
-      }
-    }
-  }, [categoryParam, activeTab]);
-
-  // Deep-link scroll into view when item param is present
-  const itemParam = searchParams.get("item");
-  useEffect(() => {
-    if (itemParam) {
-      const timer = setTimeout(() => {
-        const el = document.getElementById(`item-${itemParam}`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [itemParam, activeTab]);
-
   // Update URL helper without full page reloads
   const updateTabInUrl = (newTab: CatalogSectionId) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const currentSearch =
+      typeof window !== "undefined" ? window.location.search : "";
+    const params = new URLSearchParams(currentSearch);
     params.set("category", newTab);
     params.delete("item"); // reset targeted item when switching tabs
     const qs = params.toString();
@@ -275,6 +296,12 @@ export default function PublicCatalogTabs({
 
   return (
     <div className="space-y-5">
+      <Suspense fallback={null}>
+        <CatalogUrlSync
+          onTabChange={setActiveTab}
+          onItemChange={setSelectedItemId}
+        />
+      </Suspense>
       {/* Golden Hybrid 4-Section Navigation Bar */}
       <nav
         aria-label="Навигация в клубни каталози"
@@ -384,7 +411,7 @@ export default function PublicCatalogTabs({
               item={item}
               index={itemIdx}
               tab={activeTab}
-              isSelected={itemParam === item.id}
+              isSelected={selectedItemId === item.id}
               isCopied={copiedItemId === item.id}
               onCopyLink={() => handleCopyLink(item)}
               onRecoveryInquiry={onRecoveryInquiry}
@@ -459,15 +486,16 @@ function PublicCatalogCard({
   }, [item.imageUrl, item.name, item.zones, tab]);
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
-  // Carousel cycle if multiple images
+  // Carousel cycle on hover if multiple images
   useEffect(() => {
-    if (images.length <= 1) return;
+    if (!isHovered || images.length <= 1) return;
     const interval = setInterval(() => {
       setActiveImageIndex((prev) => (prev + 1) % images.length);
-    }, 4000);
+    }, 2500);
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [isHovered, images.length]);
 
   const hasLongDesc = (item.description?.length || 0) > 110;
   const isSubscription = [
@@ -574,37 +602,39 @@ function PublicCatalogCard({
   return (
     <BentoCard
       id={`item-${item.id}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setActiveImageIndex(0);
+      }}
       className={cn(
-        "group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-zinc-900/90 p-0 shadow-xs transition-all duration-300 hover:border-zinc-700 hover:shadow-md",
+        "group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-zinc-900/90 p-0 shadow-xs transition-colors duration-200 hover:border-zinc-700 hover:shadow-md",
         isSelected
           ? "border-blue-500 ring-2 ring-blue-500/60 shadow-lg bg-blue-950/20"
           : "border-zinc-800/80"
       )}
     >
       {/* Top Media Banner or Sleek Compact Header */}
-      {images.length > 0 ? (
+      {images.length > 0 && images[activeImageIndex] ? (
         <div className="relative h-36 sm:h-40 w-full overflow-hidden border-b border-zinc-800/60 bg-zinc-950">
-          {images.map((imgUrl: string, idx: number) => (
-            <Image
-              key={imgUrl}
-              src={imgUrl}
-              alt={`${item.name} - ${idx + 1}`}
-              priority={index < 2 && idx === 0}
-              fill
-              unoptimized={
-                imgUrl.startsWith("/api/") ||
-                imgUrl.includes("/api/upload") ||
-                imgUrl.startsWith("data:")
-              }
-              sizes="(max-width: 768px) 100vw, 33vw"
-              className={cn(
-                "absolute inset-0 object-contain p-2 transition-all duration-700 group-hover:scale-105",
-                idx === activeImageIndex
-                  ? "z-0 scale-100 opacity-100"
-                  : "-z-10 scale-95 opacity-0"
-              )}
-            />
-          ))}
+          <Image
+            key={images[activeImageIndex]}
+            src={images[activeImageIndex]}
+            alt={`${item.name} - ${activeImageIndex + 1}`}
+            priority={index === 0 && activeImageIndex === 0}
+            quality={65}
+            decoding={index === 0 ? "sync" : "async"}
+            fill
+            unoptimized={
+              images[activeImageIndex].endsWith(".webp") ||
+              images[activeImageIndex].includes("/планове/") ||
+              images[activeImageIndex].startsWith("/api/") ||
+              images[activeImageIndex].includes("/api/upload") ||
+              images[activeImageIndex].startsWith("data:")
+            }
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 250px"
+            className="absolute inset-0 object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+          />
 
           {/* Type Badge & Stock on Image */}
           <div className="absolute bottom-2 left-2 z-10 flex flex-wrap items-center gap-1.5">
@@ -874,158 +904,161 @@ function PublicCatalogCard({
       </div>
 
       {/* Detailed Modal Dialog */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white [&>button:last-child]:z-10">
-          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain min-h-0">
-            {images.length > 0 ? (
-              <div className="relative h-48 sm:h-56 w-full bg-black">
-                {images.map((imgUrl: string, idx: number) => (
-                  <Image
-                    key={imgUrl}
-                    src={imgUrl}
-                    alt={item.name}
-                    fill
-                    unoptimized={
-                      imgUrl.startsWith("/api/") ||
-                      imgUrl.includes("/api/upload") ||
-                      imgUrl.startsWith("data:")
-                    }
-                    className={cn(
-                      "object-contain p-2 transition-opacity duration-500",
-                      idx === activeImageIndex ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                ))}
-                <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
-              </div>
-            ) : null}
-
-            <div
-              className={cn(
-                "p-4 sm:p-5",
-                images.length > 0 && "-mt-10 relative"
-              )}
-            >
-              <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/90 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
-                <DialogHeader>
-                  <DialogTitle className="mb-2 text-xl sm:text-2xl leading-tight font-bold text-white">
-                    {item.name}
-                  </DialogTitle>
-                  <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <div className="text-xl font-bold tracking-tight text-blue-400">
-                      <span>
-                        {typeof item.price === "number" && item.price > 0
-                          ? formatPrice(item.price)
-                          : "0,00 €"}
-                      </span>
-                      <span className="text-xs font-normal text-zinc-400 ml-1">
-                        {getPriceSuffix()}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsModalOpen(false);
-                        if (tab === "recovery" && onRecoveryInquiry) {
-                          onRecoveryInquiry(item);
-                        } else {
-                          setIsInquiryOpen(true);
-                        }
-                      }}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-500 cursor-pointer"
-                    >
-                      <MessageSquare size={16} />
-                      <span>{getPrimaryActionLabel()}</span>
-                    </button>
-                  </div>
-                </DialogHeader>
-              </div>
-
-              <div className="space-y-5">
-                {/* Parameters & Badges */}
-                <div className="flex flex-wrap gap-2">
-                  <Badge
-                    variant="outline"
-                    className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                  >
-                    Категория: {typeBadge.label}
-                  </Badge>
-
-                  {(item.durationMinutes || item.duration) && (
-                    <Badge
-                      variant="outline"
-                      className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                    >
-                      Продължителност: {item.durationMinutes || item.duration}{" "}
-                      мин.
-                    </Badge>
-                  )}
-
-                  {item.athleteCount && (
-                    <Badge
-                      variant="outline"
-                      className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                    >
-                      Капацитет: {item.athleteCount} спортисти
-                    </Badge>
-                  )}
-
-                  {item.zones && (
-                    <Badge
-                      variant="outline"
-                      className="border-cyan-800 bg-cyan-950/60 px-3 py-1 text-xs text-cyan-300"
-                    >
-                      Зони:{" "}
-                      {Array.isArray(item.zones)
-                        ? item.zones.join(", ")
-                        : item.zones}
-                    </Badge>
-                  )}
-
-                  {tab === "shop" && typeof item.stock === "number" && (
-                    <ProductStockBadge
-                      stock={item.stock}
-                      threshold={item.restockThreshold}
+      {isModalOpen && (
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white [&>button:last-child]:z-10">
+            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain min-h-0">
+              {images.length > 0 ? (
+                <div className="relative h-48 sm:h-56 w-full bg-black">
+                  {images.map((imgUrl: string, idx: number) => (
+                    <Image
+                      key={imgUrl}
+                      src={imgUrl}
+                      alt={item.name}
+                      fill
+                      unoptimized={
+                        imgUrl.startsWith("/api/") ||
+                        imgUrl.includes("/api/upload") ||
+                        imgUrl.startsWith("data:")
+                      }
+                      className={cn(
+                        "object-contain p-2 transition-opacity duration-500",
+                        idx === activeImageIndex ? "opacity-100" : "opacity-0"
+                      )}
                     />
-                  )}
+                  ))}
+                  <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent" />
+                </div>
+              ) : null}
+
+              <div
+                className={cn(
+                  "p-4 sm:p-5",
+                  images.length > 0 && "-mt-10 relative"
+                )}
+              >
+                <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/90 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
+                  <DialogHeader>
+                    <DialogTitle className="mb-2 text-xl sm:text-2xl leading-tight font-bold text-white">
+                      {item.name}
+                    </DialogTitle>
+                    <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                      <div className="text-xl font-bold tracking-tight text-blue-400">
+                        <span>
+                          {typeof item.price === "number" && item.price > 0
+                            ? formatPrice(item.price)
+                            : "0,00 €"}
+                        </span>
+                        <span className="text-xs font-normal text-zinc-400 ml-1">
+                          {getPriceSuffix()}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsModalOpen(false);
+                          if (tab === "recovery" && onRecoveryInquiry) {
+                            onRecoveryInquiry(item);
+                          } else {
+                            setIsInquiryOpen(true);
+                          }
+                        }}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-500 cursor-pointer"
+                      >
+                        <MessageSquare size={16} />
+                        <span>{getPrimaryActionLabel()}</span>
+                      </button>
+                    </div>
+                  </DialogHeader>
                 </div>
 
-                <DialogDescription className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
-                  {item.description ||
-                    "Няма допълнително описание за този артикул."}
-                </DialogDescription>
+                <div className="space-y-5">
+                  {/* Parameters & Badges */}
+                  <div className="flex flex-wrap gap-2">
+                    <Badge
+                      variant="outline"
+                      className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                    >
+                      Категория: {typeBadge.label}
+                    </Badge>
+
+                    {(item.durationMinutes || item.duration) && (
+                      <Badge
+                        variant="outline"
+                        className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                      >
+                        Продължителност: {item.durationMinutes || item.duration}{" "}
+                        мин.
+                      </Badge>
+                    )}
+
+                    {item.athleteCount && (
+                      <Badge
+                        variant="outline"
+                        className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
+                      >
+                        Капацитет: {item.athleteCount} спортисти
+                      </Badge>
+                    )}
+
+                    {item.zones && (
+                      <Badge
+                        variant="outline"
+                        className="border-cyan-800 bg-cyan-950/60 px-3 py-1 text-xs text-cyan-300"
+                      >
+                        Зони:{" "}
+                        {Array.isArray(item.zones)
+                          ? item.zones.join(", ")
+                          : item.zones}
+                      </Badge>
+                    )}
+
+                    {tab === "shop" && typeof item.stock === "number" && (
+                      <ProductStockBadge
+                        stock={item.stock}
+                        threshold={item.restockThreshold}
+                      />
+                    )}
+                  </div>
+
+                  <DialogDescription className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
+                    {item.description ||
+                      "Няма допълнително описание за този артикул."}
+                  </DialogDescription>
+                </div>
               </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Public Inquiry Dialog */}
-      {tab === "recovery" ? (
-        <RecoveryInquiryDialog
-          isOpen={isInquiryOpen}
-          onClose={() => setIsInquiryOpen(false)}
-          procedure={{
-            title: item.name || "Възстановителна процедура",
-            category: item.sessionType || item.category,
-            duration: String(item.durationMinutes || item.duration || ""),
-            price:
-              typeof item.price === "number" ? formatPrice(item.price) : "",
-            preferredZone: Array.isArray(item.zones)
-              ? item.zones[0]
-              : item.zones || undefined,
-          }}
-        />
-      ) : (
-        <CatalogInquiryDialog
-          isOpen={isInquiryOpen}
-          onClose={() => setIsInquiryOpen(false)}
-          item={item}
-          tab={tab}
-          lang="bg"
-        />
-      )}
+      {isInquiryOpen &&
+        (tab === "recovery" ? (
+          <RecoveryInquiryDialog
+            isOpen={isInquiryOpen}
+            onClose={() => setIsInquiryOpen(false)}
+            procedure={{
+              title: item.name || "Възстановителна процедура",
+              category: item.sessionType || item.category,
+              duration: String(item.durationMinutes || item.duration || ""),
+              price:
+                typeof item.price === "number" ? formatPrice(item.price) : "",
+              preferredZone: Array.isArray(item.zones)
+                ? item.zones[0]
+                : item.zones || undefined,
+            }}
+          />
+        ) : (
+          <CatalogInquiryDialog
+            isOpen={isInquiryOpen}
+            onClose={() => setIsInquiryOpen(false)}
+            item={item}
+            tab={tab}
+            lang="bg"
+          />
+        ))}
     </BentoCard>
   );
 }

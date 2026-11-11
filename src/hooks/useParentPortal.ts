@@ -13,7 +13,14 @@ import {
   ParentShadowAndQuizzesData,
 } from "@/types/parent-portal.types";
 
-export function useParentPortal(initialChildId?: string) {
+type ParentDashboardData = NonNullable<
+  Awaited<ReturnType<typeof getParentDashboardDataAction>>["data"]
+>;
+
+export function useParentPortal(
+  initialChildId?: string,
+  fallbackData?: unknown
+) {
   const [selectedChildId, setSelectedChildId] = useState<string>(
     initialChildId || ""
   );
@@ -40,6 +47,7 @@ export function useParentPortal(initialChildId?: string) {
     ["parent-portal-dashboard", selectedChildId],
     fetcher,
     {
+      fallbackData: fallbackData as ParentDashboardData | undefined,
       refreshInterval: 0, // Disabled aggressive 20s polling to preserve Firestore quota; updates on tab focus, user action, or manual refetch
       revalidateOnFocus: true,
       dedupingInterval: 60000,

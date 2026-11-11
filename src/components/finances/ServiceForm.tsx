@@ -36,23 +36,23 @@ import { uploadFile } from "@/services/storage-service";
 const localImages = [
   {
     name: "Абонамент - Дете",
-    path: "/планове/абонамент - дете .png",
+    path: "/планове/абонамент - дете .webp",
   },
   {
     name: "Абонамент - Дете (2)",
-    path: "/планове/абонамент - дете  втора снимка.png",
+    path: "/планове/абонамент - дете  втора снимка.webp",
   },
   {
     name: "Абонамент - Любител",
-    path: "/планове/абонамент - любител .png",
+    path: "/планове/абонамент - любител .webp",
   },
   {
     name: "Персонална - Дете",
-    path: "/планове/персонална тренировка - дете .png",
+    path: "/планове/персонална тренировка - дете .webp",
   },
   {
     name: "Персонална - Любител",
-    path: "/планове/персонална тренировка - любител .png",
+    path: "/планове/персонална тренировка - любител .webp",
   },
 ];
 
@@ -558,7 +558,10 @@ export function ServiceForm({
                   <div className="space-y-6 animate-in slide-in-from-right-4">
                     <div className="space-y-4 rounded-3xl border border-zinc-100 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="grantsLicense" className="font-medium dark:text-zinc-200">
+                        <Label
+                          htmlFor="grantsLicense"
+                          className="font-medium dark:text-zinc-200"
+                        >
                           Дава право на картотека
                         </Label>
                         <Checkbox
@@ -610,7 +613,10 @@ export function ServiceForm({
 
                     <div className="space-y-4 rounded-3xl border border-zinc-100 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="grantsApparel" className="font-medium dark:text-zinc-200">
+                        <Label
+                          htmlFor="grantsApparel"
+                          className="font-medium dark:text-zinc-200"
+                        >
                           Дава право на екипировка
                         </Label>
                         <Checkbox
@@ -695,7 +701,10 @@ export function ServiceForm({
 
                 <div className="space-y-4 border-t border-zinc-100 pt-6 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="isCoachLed" className="font-medium dark:text-zinc-200">
+                    <Label
+                      htmlFor="isCoachLed"
+                      className="font-medium dark:text-zinc-200"
+                    >
                       С присъствие на треньор
                     </Label>
                     <Checkbox

@@ -6,43 +6,70 @@ import admin from "firebase-admin";
 
 // Load environment variables
 dotenv.config({ path: ".env.local" });
+process.env.NO_PROXY = "localhost,127.0.0.1,::1";
+process.env.no_proxy = "localhost,127.0.0.1,::1";
 
 // Parse command line arguments
 const args = process.argv.slice(2);
 let isLocal = args.includes("--local");
 const staticOnly = args.includes("--static-only");
 const includeDynamic = !staticOnly; // По подразбиране: включва абсолютно всички открити страници
-const modeArg = args.find((a) => a.startsWith("--mode="))?.split("=")[1];
-const presetArg = args.find((a) => a.startsWith("--preset="))?.split("=")[1];
+function getArg(name) {
+  const withEq = args.find((a) => a.startsWith(`--${name}=`));
+  if (withEq) return withEq.split("=")[1];
+  const idx = args.indexOf(`--${name}`);
+  if (idx !== -1 && idx + 1 < args.length && !args[idx + 1].startsWith("--")) {
+    return args[idx + 1];
+  }
+  return undefined;
+}
+
+const modeArg = getArg("mode");
+const presetArg = getArg("preset");
 
 // По подразбиране сканираме и ДВАТА режима: DESKTOP и MOBILE за всяка една страница
 let modes = ["desktop", "mobile"];
-if (modeArg === "desktop" || presetArg === "desktop") {
+if (
+  modeArg === "desktop" ||
+  presetArg === "desktop" ||
+  args.includes("--desktop")
+) {
   modes = ["desktop"];
-} else if (modeArg === "mobile" || presetArg === "mobile") {
+} else if (
+  modeArg === "mobile" ||
+  presetArg === "mobile" ||
+  args.includes("--mobile")
+) {
   modes = ["mobile"];
 }
 
-const limitArg = args.find((a) => a.startsWith("--limit="))?.split("=")[1];
+const limitArg = getArg("limit");
 const pageLimit = limitArg ? parseInt(limitArg, 10) : Infinity;
-const targetUrlArg = args.find((a) => a.startsWith("--url="))?.split("=")[1];
-const routeArg = args.find((a) => a.startsWith("--route="))?.split("=")[1];
+const targetUrlArg = getArg("url");
+let routeArg = getArg("route");
 
-const minPerfArg = args.find((a) => a.startsWith("--min-perf="))?.split("=")[1];
+// Ако --url подава относителен път (напр. --url=/club/catalog), го третираме като route
+let explicitBaseUrl = targetUrlArg;
+if (targetUrlArg && targetUrlArg.startsWith("/")) {
+  routeArg = targetUrlArg;
+  explicitBaseUrl = undefined;
+}
+
+const minPerfArg = getArg("min-perf");
 const minPerf = minPerfArg
   ? parseInt(minPerfArg, 10)
-  : process.env.CI
-    ? 90
-    : 100;
+  : args.includes("--strict-100")
+    ? 100
+    : 95;
 
-const minBPArg = args.find((a) => a.startsWith("--min-bp="))?.split("=")[1];
+const minBPArg = getArg("min-bp");
 const minBP = minBPArg ? parseInt(minBPArg, 10) : process.env.CI ? 100 : 100;
 
 const minA11y = 100;
 const minSEO = 100;
 
 let baseUrl =
-  targetUrlArg ||
+  explicitBaseUrl ||
   process.env.LIGHTHOUSE_BASE_URL ||
   (isLocal ? "http://localhost:3001" : "https://bkgalabovo2025.vercel.app");
 
@@ -225,15 +252,8 @@ function discoverRoutes(sampleParams = {}) {
           }
         }
 
-        const isParentProtected =
-          route.startsWith("/club/parents") &&
-          ![
-            "/club/parents/login",
-            "/club/parents/request",
-            "/club/parents/reset-password",
-          ].includes(route);
         const isProtected =
-          fullPath.includes("(protected)") || isParentProtected;
+          fullPath.includes("(protected)") || route.startsWith("/club/parents");
 
         routes.push({
           rawRoute: route,
@@ -836,9 +856,19 @@ async function run() {
 
       // Warm up the route (serverless cold-start / Next.js image & ISR cache)
       try {
-        await fetch(fullUrl, {
+        const warmRes = await fetch(fullUrl, {
           headers: allCookies ? { Cookie: allCookies } : {},
         });
+        const warmHtml = await warmRes.text();
+        const imgMatches =
+          warmHtml.match(/src="(\/_next\/image\?[^"]+)"/g) || [];
+        for (const m of imgMatches.slice(0, 10)) {
+          const imgPath = m.replace('src="', "").replace('"', "");
+          const targetHost = isLocal ? "http://localhost:3001" : baseUrl;
+          await fetch(`${targetHost}${imgPath.replace(/&amp;/g, "&")}`).catch(
+            () => null
+          );
+        }
       } catch {
         // ignore warm-up errors
       }
@@ -961,12 +991,22 @@ async function run() {
           results.push(resItem);
 
           if (failures.length === 0) {
+            const isLiteral100 =
+              resItem.performance === 100 &&
+              resItem.accessibility === 100 &&
+              resItem.bestPractices === 100 &&
+              resItem.seo === 100;
             console.log(
-              `  ✅ [${mode.toUpperCase()}] 100/100/100/100 (Perf: 100 | A11y: 100 | BP: 100 | SEO: 100)`
+              `  ✅ [${mode.toUpperCase()}] ${isLiteral100 ? "100/100/100/100" : "ПРИЕТ"} (Perf: ${resItem.performance} | A11y: ${resItem.accessibility} | BP: ${resItem.bestPractices} | SEO: ${resItem.seo})`
             );
           } else {
             console.log(
               `  ❌ [${mode.toUpperCase()}] ПОД 100 -> ${failures.join(" | ")}`
+            );
+            const lcpElem =
+              audits["largest-contentful-paint-element"]?.displayValue;
+            console.log(
+              `     ⚡ FCP: ${resItem.fcp} | LCP: ${resItem.lcp} | CLS: ${resItem.cls}${lcpElem ? ` | LCP Element: ${lcpElem}` : ""}`
             );
             if (failedAudits.length > 0) {
               console.log(

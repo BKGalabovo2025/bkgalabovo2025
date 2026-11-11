@@ -210,8 +210,10 @@ const ParentPortalContext = createContext<ParentPortalContextType | null>(null);
 
 export function ParentPortalProvider({
   children,
+  initialData,
 }: {
   children: React.ReactNode;
+  initialData?: unknown;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -227,7 +229,7 @@ export function ParentPortalProvider({
   const urlYear = searchParams.get("year");
 
   // Portal hook initialized with child from URL if present
-  const portal = useParentPortal(urlChild);
+  const portal = useParentPortal(urlChild, initialData);
   const {
     parent,
     selectedChild,
