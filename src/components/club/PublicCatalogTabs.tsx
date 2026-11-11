@@ -378,10 +378,11 @@ export default function PublicCatalogTabs({
       {/* Catalog Grid View */}
       {filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredItems.map((item) => (
+          {filteredItems.map((item, itemIdx) => (
             <PublicCatalogCard
               key={item.id}
               item={item}
+              index={itemIdx}
               tab={activeTab}
               isSelected={itemParam === item.id}
               isCopied={copiedItemId === item.id}
@@ -410,6 +411,7 @@ export default function PublicCatalogTabs({
 // ---------------------------------------------------------------------------
 function PublicCatalogCard({
   item,
+  index = 0,
   tab,
   isSelected,
   isCopied,
@@ -417,6 +419,7 @@ function PublicCatalogCard({
   onRecoveryInquiry,
 }: {
   item: any;
+  index?: number;
   tab: CatalogSectionId;
   isSelected?: boolean;
   isCopied?: boolean;
@@ -586,7 +589,7 @@ function PublicCatalogCard({
               key={imgUrl}
               src={imgUrl}
               alt={`${item.name} - ${idx + 1}`}
-              priority={idx === 0}
+              priority={index < 2 && idx === 0}
               fill
               unoptimized={
                 imgUrl.startsWith("/api/") ||
@@ -684,9 +687,9 @@ function PublicCatalogCard({
         <div className="space-y-2.5">
           {/* Title - Fully readable without clipping */}
           <div>
-            <h3 className="text-sm font-bold text-white transition-colors group-hover:text-blue-400 sm:text-base leading-snug">
+            <h2 className="text-sm font-bold text-white transition-colors group-hover:text-blue-400 sm:text-base leading-snug">
               {item.name}
-            </h3>
+            </h2>
 
             {/* Target Groups / Category tags */}
             {item.targetGroups && item.targetGroups.length > 0 && (

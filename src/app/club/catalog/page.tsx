@@ -77,22 +77,27 @@ const getCachedCollection = unstable_cache(
 );
 
 export default async function CatalogPage() {
-  const servicesRaw = await getCachedCollection("clubServices");
+  const [servicesRaw, generalRaw, productsRaw, recoveryRaw] = await Promise.all(
+    [
+      getCachedCollection("clubServices"),
+      getCachedCollection("clubGeneralServices"),
+      getCachedCollection("products"),
+      getCachedCollection("sessions"),
+    ]
+  );
+
   const services = servicesRaw.filter(
     (item) => !item.siteId || item.siteId === "bkgalabovo"
   );
 
-  const generalRaw = await getCachedCollection("clubGeneralServices");
   const generalServices = generalRaw.filter(
     (item) => !item.siteId || item.siteId === "bkgalabovo"
   );
 
-  const productsRaw = await getCachedCollection("products");
   const products = productsRaw.filter(
     (item) => !item.siteId || item.siteId === "bkgalabovo"
   );
 
-  const recoveryRaw = await getCachedCollection("sessions");
   const recoveryServices = recoveryRaw.map((item) => ({
     ...item,
     price:

@@ -1,20 +1,59 @@
 "use client";
 
-import { Loader2, Users } from "lucide-react";
+import { Users } from "lucide-react";
+import dynamic from "next/dynamic";
 import React from "react";
 
 import { ParentPortalSectionId } from "./parent-portal-sections";
 import { useParentPortalContext } from "./ParentPortalContext";
-import { ParentPortalDialogs } from "./ParentPortalDialogs";
 import { ParentPortalHeader } from "./ParentPortalHeader";
 import { ParentPortalKpiRow } from "./ParentPortalKpiRow";
 import { ParentPortalNav } from "./ParentPortalNav";
-import { PortalAbsencesTabView } from "./views/PortalAbsencesTabView";
+import { ParentPortalSkeleton } from "./ParentPortalSkeleton";
 import { PortalAttendanceTabView } from "./views/PortalAttendanceTabView";
-import { PortalDevelopmentTabView } from "./views/PortalDevelopmentTabView";
-import { PortalDocumentsTabView } from "./views/PortalDocumentsTabView";
-import { PortalFinancesTabView } from "./views/PortalFinancesTabView";
-import { PortalProfileTabView } from "./views/PortalProfileTabView";
+
+const ParentPortalDialogs = dynamic(
+  () => import("./ParentPortalDialogs").then((m) => m.ParentPortalDialogs),
+  { ssr: false }
+);
+
+const PortalAbsencesTabView = dynamic(
+  () =>
+    import("./views/PortalAbsencesTabView").then(
+      (m) => m.PortalAbsencesTabView
+    ),
+  { ssr: false }
+);
+
+const PortalDevelopmentTabView = dynamic(
+  () =>
+    import("./views/PortalDevelopmentTabView").then(
+      (m) => m.PortalDevelopmentTabView
+    ),
+  { ssr: false }
+);
+
+const PortalDocumentsTabView = dynamic(
+  () =>
+    import("./views/PortalDocumentsTabView").then(
+      (m) => m.PortalDocumentsTabView
+    ),
+  { ssr: false }
+);
+
+const PortalFinancesTabView = dynamic(
+  () =>
+    import("./views/PortalFinancesTabView").then(
+      (m) => m.PortalFinancesTabView
+    ),
+  { ssr: false }
+);
+
+const PortalProfileTabView = dynamic(
+  () =>
+    import("./views/PortalProfileTabView").then((m) => m.PortalProfileTabView),
+  { ssr: false }
+);
 
 export function ParentPortalViewCoordinator({
   section = "attendance",
@@ -25,14 +64,7 @@ export function ParentPortalViewCoordinator({
   const { parent, children, isLoading } = portal;
 
   if (isLoading && !parent) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
-        <Loader2 className="size-8 animate-spin text-blue-600" />
-        <p className="text-sm font-semibold text-zinc-500">
-          Зареждане на родителския портал...
-        </p>
-      </div>
-    );
+    return <ParentPortalSkeleton />;
   }
 
   if (!isLoading && children.length === 0) {

@@ -1,10 +1,10 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import React, { Suspense } from "react";
 
 import { ParentPortalSectionId } from "@/components/parents/portal/parent-portal-sections";
 import { ParentPortalProvider } from "@/components/parents/portal/ParentPortalContext";
+import { ParentPortalSkeleton } from "@/components/parents/portal/ParentPortalSkeleton";
 import { ParentPortalViewCoordinator } from "@/components/parents/portal/ParentPortalViewCoordinator";
 
 export default function ParentPortalClient({
@@ -13,16 +13,7 @@ export default function ParentPortalClient({
   section?: ParentPortalSectionId;
 }) {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
-          <Loader2 className="size-8 animate-spin text-blue-600" />
-          <p className="text-sm font-medium text-slate-500">
-            Зареждане на родителския портал...
-          </p>
-        </div>
-      }
-    >
+    <Suspense fallback={<ParentPortalSkeleton />}>
       <ParentPortalProvider>
         <ParentPortalViewCoordinator section={section} />
       </ParentPortalProvider>

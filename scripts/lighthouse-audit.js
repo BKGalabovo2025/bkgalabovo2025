@@ -552,13 +552,21 @@ async function run() {
       }
     } catch {}
 
-    console.log("--- Стъпка 1: Компилиране на билд локално ---");
-    execSync("npm run build", { stdio: "inherit" });
+    const nextDir = path.join(process.cwd(), ".next");
+    if (!fs.existsSync(nextDir) || args.includes("--rebuild")) {
+      console.log("--- Стъпка 1: Компилиране на билд локално ---");
+      execSync("npm run build", { stdio: "inherit" });
+    } else {
+      console.log(
+        "--- Стъпка 1: Използване на наличния локален .next билд ---"
+      );
+    }
 
     console.log("\n--- Стъпка 2: Стартиране на сървъра на порт 3001 ---");
     const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
     server = spawn(npxCmd, ["next", "start", "-p", "3001"], {
-      stdio: "inherit",
+      stdio: "ignore",
+      shell: process.platform === "win32",
     });
 
     console.log("Изчакване на готовност на локалния сървър на порт 3001...");
