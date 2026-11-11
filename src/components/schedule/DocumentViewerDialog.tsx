@@ -489,16 +489,22 @@ const DocxViewer: React.FC<{
 }> = ({ url, name, onDownload, onSwitchToExternalViewer }) => {
   const [blocks, setBlocks] = React.useState<DocxBlock[] | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setError(false);
+    setErrorMessage(null);
 
     fetch(url)
       .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: Неуспешно изтегляне на файла`);
+        }
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("text/html")) {
+          throw new Error("Сървърът върна HTML страница вместо документ.");
+        }
         return res.arrayBuffer();
       })
       .then((buf) => loadDocxFromBuffer(buf))
@@ -507,12 +513,16 @@ const DocxViewer: React.FC<{
         if (parsed && parsed.length > 0) {
           setBlocks(parsed);
         } else {
-          setError(true);
+          setErrorMessage("Документът е празен или няма четими параграфи.");
         }
       })
-      .catch((e) => {
-        console.warn("Could not preview docx locally:", e);
-        if (!cancelled) setError(true);
+      .catch((e: unknown) => {
+        const msg =
+          e instanceof Error
+            ? e.message
+            : "Неуспешно разчитане на Word документа.";
+        console.warn("Docx preview fallback:", msg);
+        if (!cancelled) setErrorMessage(msg);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -534,7 +544,7 @@ const DocxViewer: React.FC<{
     );
   }
 
-  if (error || !blocks) {
+  if (errorMessage || !blocks) {
     return (
       <div className="flex size-full flex-col items-center justify-center p-8 text-center">
         <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-zinc-800">
@@ -544,8 +554,8 @@ const DocxViewer: React.FC<{
           {name || "Word Документ"}
         </h3>
         <p className="mt-1 max-w-md text-xs text-zinc-500 dark:text-zinc-400">
-          Документът не можа да се визуализира локално. Можете да го отворите
-          през онлайн четец или да го свалите директно.
+          {errorMessage ||
+            "Документът не можа да се визуализира локално. Можете да го отворите през онлайн четец или да го свалите директно."}
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           {onSwitchToExternalViewer && (
@@ -631,6 +641,7 @@ interface ViewerBodyProps {
   officeViewerUrl: string;
   googleViewerUrl: string;
   isLegacyBinary?: boolean;
+  isLocalUrl?: boolean;
   onDownload?: () => void | Promise<void>;
 }
 
@@ -648,6 +659,7 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   officeViewerUrl,
   googleViewerUrl,
   isLegacyBinary: _isLegacyBinary = false,
+  isLocalUrl = false,
   onDownload,
 }) => {
   const [activeViewer, setActiveViewer] = useState<"office" | "google">(
@@ -715,6 +727,33 @@ const DocumentViewerBody: React.FC<ViewerBodyProps> = ({
   }
 
   if (isOffice || (isDocx && showDocxExternal)) {
+    if (isLocalUrl) {
+      return (
+        <div className="flex size-full flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-zinc-900/50">
+          <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-zinc-800">
+            {getDocumentIcon(documentType, "size-10")}
+          </div>
+          <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+            {documentName}
+          </h3>
+          <p className="mt-2 max-w-md text-xs text-zinc-600 dark:text-zinc-400">
+            Документът е на локален адрес (localhost). Облачните визуализатори
+            на Microsoft и Google нямат достъп до локалния ви компютър и не
+            могат да го отворят директно през външен iframe.
+          </p>
+          <div className="mt-6 flex items-center gap-3">
+            <a
+              href={documentUrl}
+              download={documentName || "document"}
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
+              onClick={() => onDownload?.()}
+            >
+              ⬇️ Свали и отвори документа
+            </a>
+          </div>
+        </div>
+      );
+    }
     const currentIframeSrc =
       activeViewer === "google" ? googleViewerUrl : officeViewerUrl;
     const currentViewerName =
@@ -890,6 +929,14 @@ function parseDocumentViewerData(
     absoluteDocUrl
   )}&embedded=true`;
 
+  const isLocalUrl =
+    typeof window !== "undefined"
+      ? window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1" ||
+        absoluteDocUrl.includes("localhost") ||
+        absoluteDocUrl.includes("127.0.0.1")
+      : false;
+
   return {
     isGoogleDrive,
     googleDrivePreviewUrl,
@@ -899,6 +946,7 @@ function parseDocumentViewerData(
     isOffice,
     isRtf,
     isLegacyBinary,
+    isLocalUrl,
     effectiveType,
     officeViewerUrl,
     googleViewerUrl,
@@ -925,6 +973,7 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
     isOffice,
     isRtf,
     isLegacyBinary,
+    isLocalUrl,
     effectiveType,
     officeViewerUrl,
     googleViewerUrl,
@@ -1029,6 +1078,7 @@ export const DocumentViewerDialog: React.FC<DocumentViewerDialogProps> = ({
             officeViewerUrl={officeViewerUrl}
             googleViewerUrl={googleViewerUrl}
             isLegacyBinary={isLegacyBinary}
+            isLocalUrl={isLocalUrl}
             onDownload={onDownload}
           />
         </div>

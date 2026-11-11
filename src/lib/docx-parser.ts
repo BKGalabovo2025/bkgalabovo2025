@@ -220,12 +220,60 @@ export function parseDocxXml(xmlString: string): DocxBlock[] {
 export async function loadDocxFromBuffer(
   buffer: ArrayBuffer
 ): Promise<DocxBlock[]> {
+  if (!buffer || buffer.byteLength < 4) {
+    throw new Error("Файлът е празен или повреден.");
+  }
+
+  const bytes = new Uint8Array(buffer.slice(0, 8));
+
+  // Check magic bytes
+  const isZip =
+    bytes[0] === 0x50 &&
+    bytes[1] === 0x4b &&
+    bytes[2] === 0x03 &&
+    bytes[3] === 0x04;
+  const isOle2 =
+    bytes[0] === 0xd0 &&
+    bytes[1] === 0xcf &&
+    bytes[2] === 0x11 &&
+    bytes[3] === 0xe0;
+  const isRtf =
+    bytes[0] === 0x7b &&
+    bytes[1] === 0x5c &&
+    bytes[2] === 0x72 &&
+    bytes[3] === 0x74;
+  const isHtml = bytes[0] === 0x3c; // '<'
+
+  if (isOle2) {
+    throw new Error(
+      "Този файл е в по-стар Word 97-2003 (.doc) бинарен формат, а не съвременен .docx ZIP архив."
+    );
+  }
+
+  if (isRtf) {
+    throw new Error("Файлът е в RTF формат, записан с разширение .docx.");
+  }
+
+  if (isHtml) {
+    throw new Error(
+      "Сървърът върна уеб страница вместо документ (вероятно адресът изисква удостоверяване или е пренасочен)."
+    );
+  }
+
+  if (!isZip) {
+    throw new Error(
+      "Файлът не е валиден Word (.docx) документ или съдържанието му е повредено."
+    );
+  }
+
   const { default: JSZip } = await import("jszip");
   const zip = await JSZip.loadAsync(buffer);
 
   const docFile = zip.file("word/document.xml");
   if (!docFile) {
-    throw new Error("Файлът не е валиден Word (.docx) документ.");
+    throw new Error(
+      "Файлът не съдържа word/document.xml (не е валиден Word документ)."
+    );
   }
 
   const xmlString = await docFile.async("string");

@@ -621,11 +621,11 @@ export function CreateBusinessTripDialog({
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel className="cursor-pointer text-xs font-medium">
-                            Прилагам официални протоколи от срещите на
-                            състезателите
+                            Прилагам официално класиране от съответното
+                            състезание.
                           </FormLabel>
                           <FormDescription className="text-[11px]">
-                            Ако е отбелязано, протоколите от турнира се описват
+                            Ако е отбелязано, класирането от турнира се описва
                             автоматично като приложение към Доклада за
                             извършената работа.
                           </FormDescription>

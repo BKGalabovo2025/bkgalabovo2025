@@ -412,15 +412,13 @@ export function buildReportApplicationsText(
 ): string {
   const lines: string[] = [];
 
-  // 1. Официален съдийски протокол
+  // 1. Официално класиране от състезанието
   const matchProtos = trip.matchProtocols || [];
   if (matchProtos.length > 0) {
     const names = matchProtos.map((p) => p.name).join("; ");
-    lines.push(`• Официални съдийски протоколи от срещите: ${names};`);
+    lines.push(`• Официално класиране от съответното състезание: ${names};`);
   } else if (attachMatchProtocols || trip.attachMatchProtocols) {
-    lines.push(
-      `• Официални съдийски протоколи от изиграните срещи на турнира;`
-    );
+    lines.push(`• Официално класиране от съответното състезание;`);
   }
 
   // 2. Оригинални разходооправдателни документи (общо, без изброяване)

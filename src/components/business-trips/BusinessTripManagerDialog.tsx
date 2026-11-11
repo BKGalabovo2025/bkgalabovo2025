@@ -1306,7 +1306,7 @@ export function BusinessTripManagerDialog({
                           </Button>
                         </div>
 
-                        {/* Официални съдийски протоколи от срещите */}
+                        {/* Официално класиране от състезанието */}
                         {trip.attachMatchProtocols &&
                           trip.matchProtocols &&
                           trip.matchProtocols.length > 0 &&
@@ -1318,7 +1318,7 @@ export function BusinessTripManagerDialog({
                               proto.name.length > 18
                                 ? `${proto.name.slice(0, 18)}...`
                                 : proto.name;
-                            let protoLabel = `Протокол (${baseName})`;
+                            let protoLabel = `Класиране (${baseName})`;
                             if (isProtoDownloaded && proto.downloadedAt) {
                               protoLabel += ` (Изтеглен ${format(new Date(proto.downloadedAt), "dd.MM, HH:mm")})`;
                             }

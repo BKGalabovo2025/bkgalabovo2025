@@ -106,8 +106,7 @@ export function TripReportDialog({
 
   const handleToggleProtocols = (checked: boolean) => {
     setAttachMatchProtocols(checked);
-    const protocolItem =
-      "• Официални съдийски протоколи от изиграните срещи на състезателите;";
+    const protocolItem = "• Официално класиране от съответното състезание;";
 
     if (checked) {
       if (!reportText.includes(protocolItem)) {
@@ -334,27 +333,26 @@ export function TripReportDialog({
                   htmlFor="attachProtocols"
                   className="cursor-pointer text-xs font-semibold text-slate-800 dark:text-slate-200"
                 >
-                  Прилагам официални протоколи от срещите на състезателите
+                  Прилагам официално класиране от съответното състезание.
                 </label>
                 <p className="text-[11px] text-muted-foreground">
-                  Когато е отбелязано, протоколите от срещите автоматично се
-                  включват в текста на доклада (т. 4 Приложения). При
-                  отмаркиране се премахват.
+                  Ако е отбелязано, класирането от турнира се описва автоматично
+                  като приложение към Доклада за извършената работа.
                 </p>
               </div>
             </div>
 
-            {/* Секция за качване и преглед на протоколите, когато чекбоксът е активен */}
+            {/* Секция за качване и преглед на класирането, когато чекбоксът е активен */}
             {attachMatchProtocols && (
               <div className="space-y-2.5 rounded-lg border border-indigo-200/80 bg-white p-3.5 shadow-xs dark:border-indigo-900/50 dark:bg-zinc-900">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h4 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                      Прикачени официални протоколи ({protocols.length})
+                      Прикачено официално класиране ({protocols.length})
                     </h4>
                     <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                      Качете PDF сканове или снимки на съдийските протоколи от
-                      срещите.
+                      Качете PDF сканове или файлове с официалното класиране от
+                      състезанието.
                     </p>
                   </div>
 
