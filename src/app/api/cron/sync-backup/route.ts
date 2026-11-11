@@ -342,7 +342,28 @@ export async function GET(request: Request) {
   let totalSynced = 0;
   let quotaHit = false;
 
-  for (const col of COLLECTIONS_TO_SYNC) {
+  // Автоматично динамично откриване на всички колекции в двете бази данни
+  const discoveredCollections = new Set<string>(COLLECTIONS_TO_SYNC);
+  try {
+    const [pCols, bCols] = await Promise.all([
+      primaryDb.listCollections().catch(() => []),
+      backupDb.listCollections().catch(() => []),
+    ]);
+    pCols.forEach((c) => discoveredCollections.add(c.id));
+    bCols.forEach((c) => discoveredCollections.add(c.id));
+  } catch (err) {
+    console.warn(
+      "[sync-backup] ⚠️ listCollections fallback to baseline list:",
+      err
+    );
+  }
+
+  const EXCLUDED_FROM_SYNC = new Set(["system_sync_logs", "system_backups"]);
+  const collectionsToProcess = Array.from(discoveredCollections).filter(
+    (col) => !EXCLUDED_FROM_SYNC.has(col)
+  );
+
+  for (const col of collectionsToProcess) {
     const result = await syncCollection(primaryDb, backupDb, col, isFullSync);
     results[col] = result;
 

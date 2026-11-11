@@ -72,8 +72,21 @@ export async function executeBackup(siteId = getSiteConfig().id) {
   const stats: Record<string, number> = {};
   const collectionsData: Record<string, unknown[]> = {};
 
-  // 1. Export main collections
-  for (const colName of BACKUP_COLLECTIONS) {
+  // 1. Динамично откриване на всички колекции в базата данни
+  const discoveredCollections = new Set<string>(BACKUP_COLLECTIONS);
+  try {
+    const cols = await adminDb.listCollections();
+    cols.forEach((c) => discoveredCollections.add(c.id));
+  } catch (err) {
+    console.warn("[backup] listCollections fallback to baseline list:", err);
+  }
+
+  const EXCLUDED_FROM_BACKUP = new Set(["system_backups", "system_sync_logs"]);
+  const collectionsToExport = Array.from(discoveredCollections).filter(
+    (c) => !EXCLUDED_FROM_BACKUP.has(c)
+  );
+
+  for (const colName of collectionsToExport) {
     try {
       const snapshot = await adminDb
         .collection(colName)
