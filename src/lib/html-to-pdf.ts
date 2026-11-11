@@ -15,6 +15,8 @@ async function renderElementToCanvas(
     useCORS: true,
     logging: false,
     backgroundColor: "#ffffff",
+    windowWidth: 1024,
+    windowHeight: 1200,
     onclone: (clonedDoc: Document, clonedElement?: HTMLElement) => {
       // 1. Ensure target element and all its ancestors are rendered (not display: none)
       if (clonedElement) {
@@ -44,6 +46,98 @@ async function renderElementToCanvas(
         }
       });
 
+      // Remove dark theme so exported PDF always renders clean white print layout
+      clonedDoc.documentElement.classList.remove("dark");
+      clonedDoc.body.classList.remove("dark");
+
+      // Format receipt / printable-area to exact A4 dimensions and 50/50 split matching print preview
+      const printableArea = clonedElement?.classList.contains("printable-area")
+        ? clonedElement
+        : (clonedDoc.querySelector(".printable-area") as HTMLElement | null);
+
+      if (printableArea) {
+        printableArea.style.width = "794px";
+        printableArea.style.minWidth = "794px";
+        printableArea.style.maxWidth = "794px";
+        printableArea.style.height = "1123px";
+        printableArea.style.minHeight = "1123px";
+        printableArea.style.maxHeight = "1123px";
+        printableArea.style.margin = "0 auto";
+        printableArea.style.padding = "26px 38px";
+        printableArea.style.boxSizing = "border-box";
+        printableArea.style.display = "flex";
+        printableArea.style.flexDirection = "column";
+        printableArea.style.justifyContent = "space-between";
+        printableArea.style.borderRadius = "0";
+        printableArea.style.border = "none";
+        printableArea.style.boxShadow = "none";
+        printableArea.style.backgroundColor = "#ffffff";
+        printableArea.style.color = "#000000";
+        printableArea.style.fontWeight = "400";
+
+        const halves =
+          printableArea.querySelectorAll<HTMLElement>(".receipt-half");
+        halves.forEach((half) => {
+          half.style.flex = "1 1 0%";
+          half.style.height = "auto";
+          half.style.minHeight = "0";
+          half.style.maxHeight = "none";
+          half.style.width = "100%";
+          half.style.display = "flex";
+          half.style.flexDirection = "column";
+          half.style.justifyContent = "space-between";
+          half.style.boxSizing = "border-box";
+          half.style.overflow = "hidden";
+        });
+
+        const cards =
+          printableArea.querySelectorAll<HTMLElement>(".receipt-card");
+        cards.forEach((card) => {
+          card.style.height = "100%";
+          card.style.maxHeight = "100%";
+          card.style.minHeight = "100%";
+          card.style.width = "100%";
+          card.style.border = "1px solid #71717a";
+          card.style.borderRadius = "8px";
+          card.style.padding = "12px 16px";
+          card.style.display = "flex";
+          card.style.flexDirection = "column";
+          card.style.justifyContent = "space-between";
+          card.style.boxSizing = "border-box";
+          card.style.backgroundColor = "#ffffff";
+          card.style.color = "#000000";
+        });
+
+        const cutLines = printableArea.querySelectorAll<HTMLElement>(
+          ".cut-line-container"
+        );
+        cutLines.forEach((cutLine) => {
+          cutLine.style.flex = "0 0 34px";
+          cutLine.style.height = "34px";
+          cutLine.style.maxHeight = "34px";
+          cutLine.style.minHeight = "34px";
+          cutLine.style.display = "flex";
+          cutLine.style.alignItems = "center";
+          cutLine.style.justifyContent = "center";
+          cutLine.style.position = "relative";
+          cutLine.style.width = "100%";
+          cutLine.style.margin = "0";
+          cutLine.style.padding = "0";
+          cutLine.style.boxSizing = "border-box";
+
+          const dashed = cutLine.querySelector<HTMLElement>(".border-dashed");
+          if (dashed) {
+            dashed.style.borderColor = "#71717a";
+            dashed.style.borderTopWidth = "1px";
+          }
+          const label = cutLine.querySelector<HTMLElement>(".relative");
+          if (label) {
+            label.style.backgroundColor = "#ffffff";
+            label.style.color = "#52525b";
+          }
+        });
+      }
+
       // Remove original link stylesheets to avoid redownloading
       const linkTags = clonedDoc.querySelectorAll("link[rel='stylesheet']");
       linkTags.forEach((link) => link.remove());
@@ -54,6 +148,16 @@ async function renderElementToCanvas(
         cleanCSS +
         "\n" +
         `
+        /* Crisp normal typography for PDF export - avoid unreadable bold Cyrillic */
+        .printable-area,
+        .printable-area * {
+          font-weight: 400 !important;
+          color: #000000 !important;
+        }
+        .printable-area h2,
+        .printable-area .font-medium {
+          font-weight: 500 !important;
+        }
         /* Clean font smoothing without forced word-spacing that causes clipping */
         html, body {
           -webkit-font-smoothing: antialiased;

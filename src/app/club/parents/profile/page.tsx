@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "Данни за детето | Родителски портал",
   description:
     "Картон на спортиста, контактни данни и заявка за корекция на информацията.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function Page() {

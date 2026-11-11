@@ -20,18 +20,20 @@ export default async function ReceiptPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-8 pb-12 duration-500 animate-in fade-in">
-      <PageHeader
-        title="Касова бележка"
-        description={`Преглед на детайли за продажба #${saleId.substring(0, 8).toUpperCase()}`}
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Продажби", href: "/sales" },
-          { label: "Разписка" },
-        ]}
-      />
+    <div className="space-y-8 pb-12 duration-500 animate-in fade-in print:m-0 print:p-0 print:space-y-0 print:animate-none">
+      <div className="no-print">
+        <PageHeader
+          title="Касова бележка"
+          description={`Преглед на детайли за продажба #${saleId.substring(0, 8).toUpperCase()}`}
+          breadcrumbs={[
+            { label: "Начало", href: "/dashboard" },
+            { label: "Продажби", href: "/sales" },
+            { label: "Разписка" },
+          ]}
+        />
+      </div>
 
-      <div className="w-full">
+      <div className="w-full print:m-0 print:p-0">
         <ReceiptClientPage saleId={saleId} initialDetails={result.data} />
       </div>
     </div>

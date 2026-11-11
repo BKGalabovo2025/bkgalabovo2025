@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: "Родителски портал | БК Гълъбово",
   description:
     "Вход и управление на профила на детето, присъствия и тренировъчен график в Бадминтон Клуб Гълъбово.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function ParentPortalPage() {

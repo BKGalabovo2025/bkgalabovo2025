@@ -224,11 +224,21 @@ function discoverRoutes(sampleParams = {}) {
           }
         }
 
+        const isParentProtected =
+          route.startsWith("/club/parents") &&
+          ![
+            "/club/parents/login",
+            "/club/parents/request",
+            "/club/parents/reset-password",
+          ].includes(route);
+        const isProtected =
+          fullPath.includes("(protected)") || isParentProtected;
+
         routes.push({
           rawRoute: route,
           urlRoute: testRoute,
           isDynamic,
-          isProtected: fullPath.includes("(protected)"),
+          isProtected,
           filePath: fullPath,
           name: (route === "/"
             ? "home"
@@ -369,7 +379,8 @@ function getChangedFiles() {
       diffCmd = `git diff --name-only origin/${process.env.GITHUB_BASE_REF}...HEAD`;
     } else if (
       process.env.GITHUB_EVENT_BEFORE &&
-      process.env.GITHUB_EVENT_BEFORE !== "0000000000000000000000000000000000000000"
+      process.env.GITHUB_EVENT_BEFORE !==
+        "0000000000000000000000000000000000000000"
     ) {
       diffCmd = `git diff --name-only ${process.env.GITHUB_EVENT_BEFORE} HEAD`;
     } else if (process.env.GITHUB_SHA) {
@@ -565,13 +576,40 @@ async function run() {
 
   // Придобиване на сесийна бисквитка и Firebase Admin за параметрите
   const { sessionCookie, adminApp } = await getSessionCookieAndApp(baseUrl);
+
+  // Генериране на родителска сесийна бисквитка за /club/parents портала
+  const SECRET_KEY =
+    process.env.AUTH_SECRET ||
+    process.env.JWT_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    "bkgalabovo-parent-portal-secure-key-2026";
+  const parentPayload = {
+    parentId: "demo-parent-auditor",
+    email: "parent.audit@bkgalabovo.com",
+    phone: "0888888888",
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+  };
+  const parentEncoded = Buffer.from(JSON.stringify(parentPayload)).toString(
+    "base64url"
+  );
+  const cryptoModule = (await import("crypto")).default;
+  const parentSignature = cryptoModule
+    .createHmac("sha256", SECRET_KEY)
+    .update(parentEncoded)
+    .digest("base64url");
+  const parentSessionCookie = `parent_session=${parentEncoded}.${parentSignature}`;
+
+  const allCookies = [sessionCookie, parentSessionCookie]
+    .filter(Boolean)
+    .join("; ");
+
   let extraHeaders = "";
-  if (sessionCookie) {
+  if (allCookies) {
     const headersFilePath = path.join(reportsDir, ".lighthouse-headers.json");
     fs.writeFileSync(
       headersFilePath,
       JSON.stringify({
-        Cookie: sessionCookie,
+        Cookie: allCookies,
       }),
       "utf8"
     );
@@ -744,16 +782,16 @@ async function run() {
       // Warm up the route (serverless cold-start / Next.js image & ISR cache)
       try {
         await fetch(fullUrl, {
-          headers: sessionCookie ? { Cookie: sessionCookie } : {},
+          headers: allCookies ? { Cookie: allCookies } : {},
         });
       } catch {
         // ignore warm-up errors
       }
 
-      // Защитените административни страници умишлено са блокирани в robots.txt от индексация.
-      // Пропускаме 'is-crawlable', за да не намалява необосновано SEO оценката за вътрешни страници.
+      // Защитените административни и родителски страници умишлено са блокирани в robots.txt от индексация.
+      // Пропускаме 'is-crawlable' и 'redirects', за да не намаляват необосновано SEO оценката за вътрешни страници.
       const skipAuditsFlag = page.isProtected
-        ? "--skip-audits=is-crawlable"
+        ? "--skip-audits=is-crawlable,redirects"
         : "";
       const cmd = `npx lighthouse "${fullUrl}" --output=html,json --output-path="${outputBase}" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} ${extraHeaders} ${skipAuditsFlag} --quiet`;
 

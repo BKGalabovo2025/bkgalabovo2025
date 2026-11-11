@@ -2,11 +2,14 @@
 
 import {
   AlertCircle,
-  BadgeCheck,
+  ArrowLeft,
   FileDown,
+  Loader2,
   Printer,
+  Receipt,
   Scissors,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -61,7 +64,7 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
   const clientName =
     sale?.clientName ||
     (member ? `${member.firstName} ${member.lastName}` : "Външен клиент");
-  const clientPhone = member?.phone || sale?.note || ""; // fallback
+  const clientPhone = member?.phone || sale?.note || "";
 
   const start = sale?.saleDate ? new Date(sale.saleDate) : new Date();
   const end = new Date(start.getTime() + hours * 3600000);
@@ -81,7 +84,6 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
     " - " +
     end.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
 
-  // Extract court number from product ID (e.g. court_rental_3 -> 3) or name
   const courtMatch = sale?.items?.[0]?.productId?.match(/\d+/);
   const nameMatch = sale?.items?.[0]?.name?.match(/\d+/);
   const courtId = courtMatch?.[0] || nameMatch?.[0] || "-";
@@ -91,33 +93,35 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
     sale?.siteId === "recoveryzone";
 
   return (
-    <div className="relative flex flex-1 flex-col rounded-2xl border border-zinc-200 bg-white p-6 font-sans tracking-wide text-zinc-950 shadow-sm">
-      <div className="flex h-full flex-col">
+    <div className="receipt-card relative flex h-full flex-col justify-between rounded-2xl border border-zinc-300 dark:border-zinc-700/80 bg-zinc-50/50 dark:bg-zinc-950/40 p-4 sm:p-5 font-sans tracking-wide text-zinc-950 dark:text-zinc-100 box-border overflow-hidden print:bg-white print:text-black print:border-zinc-600 print:rounded-xl">
+      <div className="flex h-full flex-col justify-between">
         {/* Header */}
-        <div className="mb-3 flex items-start justify-between border-b border-zinc-200 pb-3 text-[10px]">
-          <div className="space-y-1">
-            <h2 className="text-xs font-bold tracking-tight text-zinc-900 uppercase">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-2 text-[10px] sm:text-xs">
+          <div className="space-y-0.5">
+            <h2 className="text-sm sm:text-base print:text-base font-medium tracking-tight text-zinc-950 dark:text-white uppercase print:text-black">
               ДОКУМЕНТ ЗА ДАРЕНИЕ
             </h2>
-            <p className="text-[9px] font-bold text-zinc-500 uppercase">
+            <p className="text-[11px] sm:text-xs print:text-xs font-normal text-zinc-600 dark:text-zinc-400 print:text-zinc-700 uppercase">
               № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
               {issueDate}
             </p>
-            <p className="text-[9px] font-bold text-zinc-500 uppercase">
+            <p className="text-[11px] sm:text-xs print:text-xs font-normal text-zinc-800 dark:text-zinc-200 print:text-black uppercase">
               {label}
             </p>
           </div>
-          <div className="space-y-0.5 text-right text-[9px] text-zinc-500">
-            <p className="font-bold text-zinc-700 uppercase">{clubInfo.name}</p>
+          <div className="space-y-0.5 text-left sm:text-right text-[10px] sm:text-[11px] print:text-[11px] text-zinc-600 dark:text-zinc-400 print:text-zinc-700 leading-tight">
+            <p className="font-medium text-zinc-950 dark:text-white print:text-black uppercase">
+              {clubInfo.name}
+            </p>
             <p className="uppercase">{clubInfo.address}</p>
             <p className="uppercase">{clubInfo.contact}</p>
           </div>
         </div>
 
         {/* Legal statement */}
-        <div className="mb-3 text-justify text-[10px] leading-relaxed text-zinc-700">
+        <div className="my-2 text-justify text-[10px] sm:text-xs print:text-[11px] leading-relaxed text-zinc-800 dark:text-zinc-300 print:text-zinc-800">
           С настоящия документ се потвърждава постъпило целево дарение от{" "}
-          <span className="font-bold text-zinc-900 uppercase">
+          <span className="font-medium text-zinc-950 dark:text-white print:text-black uppercase">
             {clientName}
           </span>{" "}
           {clientPhone && `(тел. ${clientPhone})`} в полза на СНЦ „БАДМИНТОН
@@ -130,53 +134,53 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
         </div>
 
         {/* Table */}
-        <div className="flex-1">
-          <table className="w-full border-collapse border border-zinc-200 text-[9px]">
+        <div className="flex-1 my-1 overflow-x-auto">
+          <table className="w-full border-collapse border border-zinc-200 dark:border-zinc-700 print:border-zinc-400 text-[10px] sm:text-xs print:text-xs">
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50 text-[8px] font-bold text-zinc-500 uppercase">
-                <th className="border-r border-zinc-200 p-1.5 text-left">
+              <tr className="border-b border-zinc-200 dark:border-zinc-700 print:border-zinc-400 bg-zinc-100/60 dark:bg-zinc-800/60 print:bg-zinc-50/60 text-[9px] sm:text-[10px] print:text-[10px] font-medium text-zinc-600 dark:text-zinc-400 print:text-zinc-700 uppercase">
+                <th className="border-r border-zinc-200 dark:border-zinc-700 print:border-zinc-400 px-3 py-1.5 sm:py-2 text-left">
                   Описание на дарението
                 </th>
-                <th className="border-r border-zinc-200 p-1.5 text-center">
+                <th className="border-r border-zinc-200 dark:border-zinc-700 print:border-zinc-400 px-2 py-1.5 sm:py-2 text-center w-20">
                   {isRecovery ? "Услуга" : "Корт"}
                 </th>
-                <th className="border-r border-zinc-200 p-1.5 text-center">
+                <th className="border-r border-zinc-200 dark:border-zinc-700 print:border-zinc-400 px-2 py-1.5 sm:py-2 text-center w-36">
                   Дата / Час
                 </th>
-                <th className="p-1.5 text-right">Сума</th>
+                <th className="px-3 py-1.5 sm:py-2 text-right w-24">Сума</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-zinc-200 font-medium">
-                <td className="border-r border-zinc-200 p-1.5 text-left font-bold text-zinc-800">
+              <tr className="border-b border-zinc-200 dark:border-zinc-700/60 print:border-zinc-400 font-normal">
+                <td className="border-r border-zinc-200 dark:border-zinc-700/60 print:border-zinc-400 px-3 py-1.5 sm:py-2 text-left font-normal text-zinc-900 dark:text-white print:text-black">
                   Целево дарение в полза на СНЦ „Бадминтон клуб Гълъбово“{" "}
                   {isRecovery
                     ? "от възстановителни процедури от Recovery zone by ZM"
                     : "за ползване на бадминтон корт"}
                 </td>
-                <td className="border-r border-zinc-200 p-1.5 text-center font-bold text-zinc-800">
+                <td className="border-r border-zinc-200 dark:border-zinc-700/60 print:border-zinc-400 px-2 py-1.5 sm:py-2 text-center font-normal text-zinc-900 dark:text-white print:text-black">
                   {isRecovery
                     ? sale?.items?.[0]?.name?.replace("Възстановяване: ", "") ||
                       "Услуга"
                     : courtId}
                 </td>
-                <td className="border-r border-zinc-200 p-1.5 text-center text-zinc-800">
+                <td className="border-r border-zinc-200 dark:border-zinc-700/60 print:border-zinc-400 px-2 py-1.5 sm:py-2 text-center text-zinc-800 dark:text-zinc-200 print:text-black font-normal">
                   {formattedDate}
                   <br />
                   {timeRange} ({hours} ч.)
                 </td>
-                <td className="p-1.5 text-right font-bold text-zinc-800">
+                <td className="px-3 py-1.5 sm:py-2 text-right font-medium text-zinc-900 dark:text-white print:text-black">
                   {formatPrice(totalAmount)}
                 </td>
               </tr>
-              <tr>
+              <tr className="bg-zinc-100/60 dark:bg-zinc-800/60 print:bg-zinc-50/60 font-medium">
                 <td
                   colSpan={3}
-                  className="border-r border-zinc-200 p-1.5 text-right text-[8px] font-bold text-zinc-400 uppercase"
+                  className="border-r border-zinc-200 dark:border-zinc-700 print:border-zinc-400 px-3 py-1.5 sm:py-2 text-right text-[10px] sm:text-xs print:text-xs uppercase text-zinc-900 dark:text-white print:text-black font-medium"
                 >
                   Обща стойност:
                 </td>
-                <td className="p-1.5 text-right text-[10px] font-bold text-zinc-900">
+                <td className="px-3 py-1.5 sm:py-2 text-right text-xs sm:text-sm print:text-sm text-zinc-950 dark:text-white print:text-black font-medium">
                   {formatPrice(totalAmount)}
                 </td>
               </tr>
@@ -185,23 +189,14 @@ const DonationReceipt = ({ label, sale, member }: ReceiptCopyProps) => {
         </div>
 
         {/* Signatures */}
-        <div className="mt-4 flex justify-between gap-12 text-zinc-500">
-          <div className="flex-1">
-            <div className="h-px w-full bg-zinc-300" />
-            <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
-              За Клуба: {clubInfo.name}
-            </p>
-          </div>
-          <div className="flex-1">
-            <div className="h-px w-full bg-zinc-300" />
-            <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
-              Дарител: {clientName}
-            </p>
-          </div>
+        <div className="mt-3 flex justify-between text-[11px] sm:text-xs print:text-xs font-normal uppercase text-zinc-800 dark:text-zinc-300 print:text-black">
+          <div>За Клуба: {clubInfo.name}</div>
+          <div>Дарител: {clientName}</div>
         </div>
 
-        <div className="mt-4 text-center">
-          <p className="text-[7px] font-bold tracking-widest text-zinc-400 uppercase">
+        {/* Disclaimer */}
+        <div className="mt-1.5 text-center">
+          <p className="text-[8px] sm:text-[9px] print:text-[9px] font-normal tracking-widest text-zinc-500 dark:text-zinc-400 uppercase">
             ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
           </p>
         </div>
@@ -234,58 +229,67 @@ const StandardReceipt = ({
   }
 
   return (
-    <div className="relative flex flex-1 flex-col rounded-2xl border border-zinc-200 bg-white p-6 font-sans tracking-wide text-zinc-950 shadow-sm">
-      <div className="flex h-full flex-col">
+    <div className="receipt-card relative flex h-full flex-col justify-between rounded-2xl border border-zinc-300 dark:border-zinc-700/80 bg-zinc-50/50 dark:bg-zinc-950/40 p-4 sm:p-5 font-sans tracking-wide text-zinc-950 dark:text-zinc-100 box-border overflow-hidden print:bg-white print:text-black print:border-zinc-600 print:rounded-xl">
+      <div className="flex h-full flex-col justify-between">
         {/* Header */}
-        <div className="mb-3 flex items-start justify-between border-b border-zinc-200 pb-3 text-[10px]">
-          <div className="space-y-1">
-            <h2 className="text-xs font-bold tracking-tight text-zinc-900 uppercase">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-2 text-[10px] sm:text-xs">
+          <div className="space-y-0.5">
+            <h2 className="text-sm sm:text-base print:text-base font-medium tracking-tight text-zinc-950 dark:text-white uppercase print:text-black">
               РАЗПИСКА ЗА ПЛАЩАНЕ
             </h2>
-            <p className="text-[9px] font-bold text-zinc-500 uppercase">
+            <p className="text-[11px] sm:text-xs print:text-xs font-normal text-zinc-600 dark:text-zinc-400 print:text-zinc-700 uppercase">
               № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"} /{" "}
               {issueDate}
             </p>
-            <p className="mt-1 text-[9px] font-bold text-zinc-500 uppercase">
+            <p className="text-[11px] sm:text-xs print:text-xs font-normal text-zinc-800 dark:text-zinc-200 print:text-black uppercase">
               {label}
             </p>
           </div>
-          <div className="space-y-0.5 text-right text-[9px] text-zinc-500">
-            <p className="font-bold text-zinc-700 uppercase">{clubInfo.name}</p>
+          <div className="space-y-0.5 text-left sm:text-right text-[10px] sm:text-[11px] print:text-[11px] text-zinc-600 dark:text-zinc-400 print:text-zinc-700 leading-tight">
+            <p className="font-medium text-zinc-950 dark:text-white print:text-black uppercase">
+              {clubInfo.name}
+            </p>
             <p className="uppercase">{clubInfo.address}</p>
             <p className="uppercase">{clubInfo.contact}</p>
           </div>
         </div>
 
         {/* Info Block (Получател, Статус, Начин на плащане) */}
-        <div className="mb-3 flex items-start justify-between rounded-lg border border-zinc-100 bg-zinc-50 p-2.5 text-[9px]">
-          <div className="space-y-0.5">
-            <span className="mb-0.5 block font-bold tracking-widest text-zinc-400 uppercase">
+        <div className="my-2.5 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/80 p-3 text-[10px] sm:text-xs print:grid-cols-3 print:bg-zinc-50/50 print:border-zinc-400 print:p-2.5">
+          <div>
+            <span className="block text-[9px] sm:text-[10px] font-normal tracking-wider text-zinc-500 uppercase">
               Получател на услугата
             </span>
-            <span className="text-[10px] font-bold text-zinc-800 uppercase">
-              {clientDisplayName}
+            <span className="text-xs sm:text-sm font-medium text-zinc-950 dark:text-white print:text-black uppercase mt-0.5 block">
+              {sale?.memberId ? (
+                <Link
+                  href={`/members/${sale.memberId}`}
+                  className="hover:underline text-blue-600 dark:text-blue-400 print:text-black print:no-underline"
+                >
+                  {clientDisplayName}
+                </Link>
+              ) : (
+                clientDisplayName
+              )}
             </span>
           </div>
-          <div className="space-y-0.5 text-center">
-            <span className="mb-0.5 block font-bold tracking-widest text-zinc-400 uppercase">
+          <div className="text-left sm:text-center print:text-center">
+            <span className="block text-[9px] sm:text-[10px] font-normal tracking-wider text-zinc-500 uppercase">
               Статус на плащане
             </span>
-            <span
-              className={`text-[10px] font-bold uppercase ${
-                sale?.isPaid ? "text-emerald-600" : "text-amber-600"
-              }`}
-            >
-              {sale?.isPaid ? "Платено" : "Неплатено"}
+            <span className="block text-xs sm:text-sm font-medium text-zinc-950 dark:text-white print:text-black uppercase mt-0.5">
+              {sale?.isPaid ? "ПЛАТЕНО" : "НЕПЛАТЕНО"}
             </span>
-            <span className="mt-0.5 block text-zinc-500">{paymentDate}</span>
+            <span className="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400 print:text-zinc-600">
+              {paymentDate} г.
+            </span>
           </div>
-          <div className="space-y-0.5 text-right">
-            <span className="mb-0.5 block font-bold tracking-widest text-zinc-400 uppercase">
+          <div className="text-left sm:text-right print:text-right">
+            <span className="block text-[9px] sm:text-[10px] font-normal tracking-wider text-zinc-500 uppercase">
               Начин на плащане
             </span>
-            <span className="text-[10px] font-bold text-zinc-800 uppercase">
-              {sale?.paymentMethod || "N/A"}
+            <span className="text-xs sm:text-sm font-medium text-zinc-950 dark:text-white print:text-black uppercase mt-0.5 block">
+              {sale?.paymentMethod || "В брой"}
             </span>
           </div>
         </div>
@@ -295,11 +299,11 @@ const StandardReceipt = ({
           !clientDisplayName.includes(
             sale?.client2Name || relatedMember?.firstName || "---"
           ) && (
-            <div className="mb-3 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-2 text-[9px]">
-              <span className="mr-1 font-bold tracking-widest text-zinc-500 uppercase">
+            <div className="mb-1 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/50 px-2.5 py-1 text-[9px] sm:text-[10px]">
+              <span className="mr-1 font-normal tracking-widest text-zinc-500 uppercase">
                 Втори клиент:
               </span>
-              <span className="font-bold text-zinc-800">
+              <span className="font-medium text-zinc-900 dark:text-zinc-200">
                 {sale?.client2Name || formatFullName(relatedMember!)}
               </span>
               {sale?.client2Phone && (
@@ -312,29 +316,31 @@ const StandardReceipt = ({
 
         {/* Note Block */}
         {sale?.note && (
-          <div className="mb-3 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-2 text-[9px]">
-            <span className="mr-1 font-bold tracking-widest text-zinc-500 uppercase">
+          <div className="mb-1 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/50 px-2.5 py-1 text-[9px] sm:text-[10px]">
+            <span className="mr-1 font-normal tracking-widest text-zinc-500 uppercase">
               Бележка:
             </span>
-            <span className="text-zinc-800 italic">{sale.note}</span>
+            <span className="text-zinc-800 dark:text-zinc-300 italic">
+              {sale.note}
+            </span>
           </div>
         )}
 
         {/* Content Table */}
-        <div className="flex-1">
-          <table className="w-full border-collapse border border-zinc-200 text-[9px]">
+        <div className="flex-1 my-1 overflow-x-auto">
+          <table className="w-full border-collapse border border-zinc-200 dark:border-zinc-700 print:border-zinc-400 text-[10px] sm:text-xs print:text-xs">
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50 text-[8px] font-bold text-zinc-500 uppercase">
-                <th className="border-r border-zinc-200 p-1.5 text-left">
+              <tr className="border-b border-zinc-200 dark:border-zinc-700 print:border-zinc-400 bg-zinc-100/60 dark:bg-zinc-800/60 print:bg-zinc-50/60 text-[9px] sm:text-[10px] print:text-[10px] font-medium text-zinc-600 dark:text-zinc-400 print:text-zinc-700 uppercase">
+                <th className="border-r border-zinc-200 dark:border-zinc-700 print:border-zinc-400 px-3 py-1.5 sm:py-2 text-left">
                   Описание на услугата / продукта
                 </th>
-                <th className="border-r border-zinc-200 p-1.5 text-center">
+                <th className="border-r border-zinc-200 dark:border-zinc-700 print:border-zinc-400 px-2 py-1.5 sm:py-2 text-center w-16">
                   К-во
                 </th>
-                <th className="border-r border-zinc-200 p-1.5 text-right">
+                <th className="border-r border-zinc-200 dark:border-zinc-700 print:border-zinc-400 px-3 py-1.5 sm:py-2 text-right w-24">
                   Ед. цена
                 </th>
-                <th className="p-1.5 text-right">Общо</th>
+                <th className="px-3 py-1.5 sm:py-2 text-right w-24">Общо</th>
               </tr>
             </thead>
             <tbody>
@@ -342,36 +348,36 @@ const StandardReceipt = ({
                 sale.items.map((item, index) => (
                   <tr
                     key={index}
-                    className="border-b border-zinc-200 font-medium"
+                    className="border-b border-zinc-200 dark:border-zinc-700/60 print:border-zinc-400 font-normal"
                   >
-                    <td className="border-r border-zinc-200 p-1.5 text-left font-bold text-zinc-800">
+                    <td className="border-r border-zinc-200 dark:border-zinc-700/60 print:border-zinc-400 px-3 py-1.5 sm:py-2 text-left font-normal text-zinc-900 dark:text-white print:text-black">
                       {item.name || "(Липсва име)"}
                       {sale?.targetMonthLabels &&
                         sale.targetMonthLabels.length > 0 && (
-                          <span className="ml-1 text-[9px] font-normal text-zinc-500">
+                          <span className="ml-1 text-[9px] font-normal text-zinc-500 dark:text-zinc-400 print:text-zinc-600">
                             ({sale.targetMonthLabels.join(", ")})
                           </span>
                         )}
                       {sale?.targetEventDates &&
                         sale.targetEventDates.length > 0 && (
-                          <span className="ml-1 text-[9px] font-normal text-zinc-500">
+                          <span className="ml-1 text-[9px] font-normal text-zinc-500 dark:text-zinc-400 print:text-zinc-600">
                             (Дата: {sale.targetEventDates.join(", ")})
                           </span>
                         )}
 
                       {service?.name && (
-                        <span className="mt-0.5 block text-[8px] font-normal text-zinc-500">
+                        <span className="block text-[8px] font-normal text-zinc-500 dark:text-zinc-400">
                           {service.name}
                         </span>
                       )}
                     </td>
-                    <td className="border-r border-zinc-200 p-1.5 text-center text-zinc-800">
+                    <td className="border-r border-zinc-200 dark:border-zinc-700/60 print:border-zinc-400 px-2 py-1.5 sm:py-2 text-center text-zinc-800 dark:text-zinc-200 print:text-black font-normal">
                       {item.quantity}
                     </td>
-                    <td className="border-r border-zinc-200 p-1.5 text-right text-zinc-800">
+                    <td className="border-r border-zinc-200 dark:border-zinc-700/60 print:border-zinc-400 px-3 py-1.5 sm:py-2 text-right text-zinc-800 dark:text-zinc-200 print:text-black">
                       {formatPrice(item.price)}
                     </td>
-                    <td className="p-1.5 text-right font-bold text-zinc-800">
+                    <td className="px-3 py-1.5 sm:py-2 text-right font-medium text-zinc-900 dark:text-white print:text-black">
                       {formatPrice(item.quantity * item.price)}
                     </td>
                   </tr>
@@ -380,20 +386,20 @@ const StandardReceipt = ({
                 <tr>
                   <td
                     colSpan={4}
-                    className="p-4 text-center text-zinc-400 italic"
+                    className="p-3 text-center text-zinc-400 italic"
                   >
                     Няма добавени артикули
                   </td>
                 </tr>
               )}
-              <tr>
+              <tr className="bg-zinc-100/60 dark:bg-zinc-800/60 print:bg-zinc-50/60 font-medium">
                 <td
                   colSpan={3}
-                  className="border-r border-zinc-200 p-1.5 text-right text-[8px] font-bold text-zinc-400 uppercase"
+                  className="border-r border-zinc-200 dark:border-zinc-700 print:border-zinc-400 px-3 py-1.5 sm:py-2 text-right text-[10px] sm:text-xs print:text-xs uppercase text-zinc-900 dark:text-white print:text-black"
                 >
                   Обща стойност:
                 </td>
-                <td className="p-1.5 text-right text-[10px] font-bold text-zinc-900">
+                <td className="px-3 py-1.5 sm:py-2 text-right text-xs sm:text-sm print:text-sm text-zinc-950 dark:text-white print:text-black font-medium">
                   {formatPrice(sale?.totalAmount || 0)}
                 </td>
               </tr>
@@ -402,23 +408,14 @@ const StandardReceipt = ({
         </div>
 
         {/* Signatures */}
-        <div className="mt-4 flex justify-between gap-12 text-zinc-500">
-          <div className="flex-1">
-            <div className="h-px w-full bg-zinc-300" />
-            <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
-              Доставчик: {clubInfo.name}
-            </p>
-          </div>
-          <div className="flex-1">
-            <div className="h-px w-full bg-zinc-300" />
-            <p className="mt-0.5 text-center text-[7px] font-bold uppercase">
-              Получател: {clientDisplayName}
-            </p>
-          </div>
+        <div className="mt-3 flex justify-between text-[11px] sm:text-xs print:text-xs font-normal uppercase text-zinc-800 dark:text-zinc-300 print:text-black">
+          <div>Доставчик: {clubInfo.name}</div>
+          <div>Получател: {clientDisplayName}</div>
         </div>
 
-        <div className="mt-4 text-center">
-          <p className="text-[7px] font-bold tracking-widest text-zinc-400 uppercase">
+        {/* Disclaimer */}
+        <div className="mt-1.5 text-center">
+          <p className="text-[8px] sm:text-[9px] print:text-[9px] font-normal tracking-widest text-zinc-500 dark:text-zinc-400 uppercase">
             ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
           </p>
         </div>
@@ -480,7 +477,8 @@ export function SharedReceiptClient({
       const { generatePdfFromElement } = await import("@/lib/html-to-pdf");
       await generatePdfFromElement(
         receiptRef.current,
-        `receipt-${saleId.substring(0, 8)}.pdf`
+        `receipt-${saleId.substring(0, 8)}.pdf`,
+        "portrait"
       );
       toast.success("PDF документът е генериран успешно!");
     } catch (err) {
@@ -503,131 +501,279 @@ export function SharedReceiptClient({
           __html: `
         @media print {
           @page {
-            margin: 0;
             size: A4 portrait;
-          }
-          body * {
-            visibility: hidden;
-          }
-          .printable-area,
-          .printable-area * {
-            visibility: visible;
-          }
-          .printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
             margin: 0;
-            padding: 0;
+          }
+          *, *::before, *::after {
+            box-sizing: border-box !important;
+            color-scheme: light !important;
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+            filter: none !important;
+            perspective: none !important;
+          }
+          html,
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            overflow: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          /* Hide application chrome, sidebar, header, navigation, and buttons */
+          .peer,
+          [data-state],
+          [data-sidebar],
+          .sidebar,
+          header,
+          nav,
+          aside,
+          .skip-link,
+          .no-print,
+          button,
+          [data-slot="page-header"] {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+          }
+          /* Neutralize all ancestor wrappers */
+          body > div,
+          .group\/sidebar-wrapper,
+          .group\/sidebar-wrapper > div,
+          main,
+          [data-slot="sidebar-inset"],
+          #main-content,
+          #main-content > div,
+          .receipt-container,
+          .receipt-print-wrapper {
+            display: block !important;
+            position: static !important;
+            float: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
             border: none !important;
             box-shadow: none !important;
+            background: transparent !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+            transform: none !important;
           }
-          .no-print {
-            display: none !important;
+          /* Full A4 sheet (210mm x 297mm) with 10mm lateral and 7mm top/bottom padding */
+          .printable-area {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            min-width: 210mm !important;
+            max-width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            margin: 0 !important;
+            padding: 7mm 10mm !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            page-break-inside: avoid !important;
+            page-break-after: avoid !important;
+            page-break-before: avoid !important;
+            overflow: hidden !important;
+            z-index: 999999 !important;
           }
-          .no-print-visible {
-            display: none !important;
+          /* Crisp normal typography without unreadable heavy bolding */
+          .printable-area,
+          .printable-area * {
+            font-weight: 400 !important;
+            color: #000000 !important;
+          }
+          .printable-area h2,
+          .printable-area .font-medium {
+            font-weight: 500 !important;
+          }
+          /* Each half takes exactly 50% of available printable height */
+          .receipt-half {
+            flex: 1 1 0% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+          }
+          /* Clear, legible receipt card filling its half */
+          .receipt-card {
+            height: 100% !important;
+            max-height: 100% !important;
+            min-height: 100% !important;
+            width: 100% !important;
+            border: 1px solid #71717a !important;
+            border-radius: 8px !important;
+            padding: 12px 16px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            box-sizing: border-box !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+          }
+          /* Midline scissors cutting boundary at exact 50% center of sheet */
+          .cut-line-container {
+            flex: 0 0 9mm !important;
+            height: 9mm !important;
+            max-height: 9mm !important;
+            min-height: 9mm !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            position: relative !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+          }
+          .cut-line-container .border-dashed {
+            border-top: 1px dashed #71717a !important;
+          }
+          .printable-area .overflow-x-auto {
+            overflow: visible !important;
           }
         }
       `,
         }}
       />
 
-      <div className="receipt-container mx-auto max-w-4xl p-4 sm:p-8">
-        {/* ACTION BAR */}
-        <div className="no-print mb-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-zinc-100 bg-zinc-50 p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-12 rounded-2xl border-zinc-200 hover:bg-zinc-100"
-              onClick={() => (window.location.href = backUrl)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-arrow-left"
+      <div className="receipt-container mx-auto max-w-4xl p-3 sm:p-6 md:p-8 print:m-0 print:p-0 print:max-w-none print:w-full space-y-6">
+        {/* GOLDEN HYBRID ACTION BAR */}
+        <div className="no-print rounded-3xl border border-zinc-200/80 bg-white p-4 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900/70 backdrop-blur-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-10 sm:size-11 shrink-0 rounded-2xl border-zinc-200 hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 dark:text-zinc-200"
+                onClick={() => (window.location.href = backUrl)}
+                title="Назад към продажбите"
               >
-                <path d="m12 19-7-7 7-7" />
-                <path d="M19 12H5" />
-              </svg>
-            </Button>
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500 shadow-lg shadow-emerald-500/20">
-              <BadgeCheck className="size-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black tracking-tight text-zinc-950 uppercase">
-                Разписка за Плащане
-              </h1>
-              <p className="mt-1 text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
-                А4 формат (2 екземпляра)
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <Button
-              onClick={handlePrint}
-              variant="outline"
-              size="lg"
-              className="h-12 rounded-2xl border-zinc-200 px-6 text-[10px] font-bold tracking-widest uppercase hover:bg-zinc-50"
-            >
-              <Printer className="mr-2 size-4" />
-              Принтирай
-            </Button>
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={isGeneratingPDF}
-              size="lg"
-              className="h-12 rounded-2xl bg-emerald-500 px-8 text-[10px] font-bold tracking-widest text-white uppercase shadow-xl shadow-emerald-500/20 hover:bg-emerald-600"
-            >
-              <FileDown className="mr-2 size-4" />
-              {isGeneratingPDF ? "Генериране..." : "Изтегли PDF"}
-            </Button>
-          </div>
-        </div>
-
-        {/* PRINTABLE AREA */}
-        <div className="overflow-x-auto rounded-3xl bg-zinc-50 p-4 dark:bg-zinc-950/50">
-          <div
-            ref={receiptRef}
-            className="printable-area mx-auto flex min-h-[1123px] w-[794px] min-w-[794px] shrink-0 flex-col justify-between gap-6 bg-white p-8 text-zinc-950 shadow-2xl"
-            // eslint-disable-next-line react/forbid-dom-props
-            style={{ fontFamily: "'Inter', sans-serif" }}
-          >
-            <ReceiptCopy
-              label="Екземпляр за получателя"
-              sale={sale}
-              member={member}
-              relatedMember={relatedMember}
-              service={service}
-              family={family}
-              familyMembers={familyMembers}
-            />
-
-            <div className="no-print-visible relative flex items-center justify-center py-2">
-              <div className="absolute inset-x-0 border-t-2 border-dashed border-zinc-300" />
-              <div className="relative bg-white px-4 text-zinc-300">
-                <Scissors className="size-5" />
+                <ArrowLeft className="size-4 sm:size-5" />
+              </Button>
+              <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20">
+                <Receipt className="size-5 sm:size-6" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-lg sm:xl font-black tracking-tight text-zinc-950 dark:text-white uppercase truncate">
+                    Разписка за Плащане
+                  </h1>
+                  <span
+                    className={`rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                      sale?.isPaid
+                        ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60"
+                        : "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60"
+                    }`}
+                  >
+                    {sale?.isPaid ? "Платено" : "Неплатено"}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                    № {sale?.id ? sale.id.substring(0, 8).toUpperCase() : "N/A"}
+                  </span>
+                  <span>•</span>
+                  <span>А4 формат (2 екземпляра на 1 лист)</span>
+                </p>
               </div>
             </div>
 
-            <ReceiptCopy
-              label="Екземпляр за клуба"
-              sale={sale}
-              member={member}
-              relatedMember={relatedMember}
-              service={service}
-              family={family}
-              familyMembers={familyMembers}
-            />
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+              <Button
+                onClick={handlePrint}
+                variant="outline"
+                className="flex-1 sm:flex-none h-10 sm:h-11 rounded-2xl border-zinc-200 px-5 text-xs font-bold uppercase hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800 dark:text-zinc-100"
+                title="Принтирай на принтер"
+              >
+                <Printer className="mr-1.5 size-4 text-blue-600 dark:text-blue-400" />
+                Принтирай
+              </Button>
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPDF}
+                className="flex-1 sm:flex-none h-10 sm:h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-6 text-xs font-bold text-white uppercase shadow-sm shadow-emerald-600/20"
+              >
+                {isGeneratingPDF ? (
+                  <Loader2 className="mr-1.5 size-4 animate-spin" />
+                ) : (
+                  <FileDown className="mr-1.5 size-4" />
+                )}
+                Изтегли PDF
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* RESPONSIVE ON-SCREEN SHEET & PRINT TARGET */}
+        <div className="receipt-print-wrapper w-full mx-auto print:max-w-none print:w-full print:m-0 print:p-0">
+          <div
+            ref={receiptRef}
+            className="printable-area pdf-page mx-auto w-full flex flex-col justify-between gap-5 sm:gap-6 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 p-4 sm:p-6 md:p-8 shadow-sm print:shadow-none print:border-none print:p-0 print:m-0 print:rounded-none print:bg-white print:text-black"
+            // eslint-disable-next-line react/forbid-dom-props
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            {/* Top Half: 1/2 A4 */}
+            <div className="receipt-half top-half w-full flex flex-col justify-between box-border">
+              <ReceiptCopy
+                label="Екземпляр за получателя"
+                sale={sale}
+                member={member}
+                relatedMember={relatedMember}
+                service={service}
+                family={family}
+                familyMembers={familyMembers}
+              />
+            </div>
+
+            {/* Midline cutting marker between the two 1/2 A4 halves */}
+            <div className="cut-line-container w-full h-[11mm] relative flex items-center justify-center my-0">
+              <div className="absolute inset-x-0 border-t border-dashed border-zinc-300 dark:border-zinc-700 print:border-zinc-400" />
+              <div className="relative flex items-center gap-1.5 bg-white dark:bg-zinc-900 print:bg-white px-3 text-zinc-500 dark:text-zinc-400 print:text-zinc-600 text-[9px] sm:text-[10px] font-medium tracking-widest uppercase">
+                <Scissors className="size-3.5" />
+                <span>Линия за изрязване (1/2 А4)</span>
+              </div>
+            </div>
+
+            {/* Bottom Half: 1/2 A4 */}
+            <div className="receipt-half bottom-half w-full flex flex-col justify-between box-border">
+              <ReceiptCopy
+                label="Екземпляр за клуба"
+                sale={sale}
+                member={member}
+                relatedMember={relatedMember}
+                service={service}
+                family={family}
+                familyMembers={familyMembers}
+              />
+            </div>
           </div>
         </div>
       </div>
