@@ -79,7 +79,48 @@ export function BackupTab() {
   const [backups, setBackups] = useState<BackupItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleManualSync = async () => {
+    setSyncing(true);
+    try {
+      const token = await user?.getIdToken();
+      const res = await fetch("/api/cron/sync-backup?full=true", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Неуспешна синхронизация.");
+      }
+
+      const result = await res.json();
+      if (result.quotaExhausted) {
+        toast.warning(
+          result.message ||
+            "Основната база все още е с изчерпана квота от Google. Опитайте след възстановяване на квотата.",
+          {
+            duration: 6000,
+          }
+        );
+      } else {
+        toast.success(
+          result.message ||
+            `Синхронизирани са ${result.totalSynced || 0} документа между двете бази!`,
+          { duration: 6000 }
+        );
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      const msg =
+        err instanceof Error ? err.message : "Грешка при синхронизация";
+      toast.error(msg);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const fetchBackups = useCallback(async () => {
     setLoading(true);
@@ -312,6 +353,20 @@ export function BackupTab() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <Button
+              variant="outline"
+              onClick={handleManualSync}
+              disabled={syncing}
+              className="h-9.5 rounded-xl border-zinc-200 px-4 text-xs font-medium tracking-wider uppercase transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
+            >
+              {syncing ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <Database className="mr-2 size-4 text-emerald-500" />
+              )}
+              {syncing ? "Синхронизиране..." : "Уеднакви базите данни"}
+            </Button>
+
             <Button
               variant="outline"
               onClick={() => handleDownload("latest")}

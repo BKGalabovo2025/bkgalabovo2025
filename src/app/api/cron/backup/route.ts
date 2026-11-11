@@ -29,6 +29,11 @@ export const BACKUP_COLLECTIONS = [
   "theory_results",
   "inventory",
   "audit_logs",
+  "business_trips",
+  "trip_expenses",
+  "trip_signing_tokens",
+  "document_requests",
+  "document_templates",
 ] as const;
 
 async function checkAuth(request: Request): Promise<boolean> {

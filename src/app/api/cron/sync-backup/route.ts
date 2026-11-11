@@ -41,11 +41,26 @@ const COLLECTIONS_TO_SYNC = [
   "sponsors",
   "inventory",
   "trainings",
+  "training_attendance",
   "reservations",
+  "blockedSlots",
   "sessions",
   "tournaments",
   "tournament_entries",
   "tournament_matches",
+  "business_trips",
+  "trip_expenses",
+  "trip_signing_tokens",
+  "document_requests",
+  "document_templates",
+  "feedback_submissions",
+  "feedback_campaigns",
+  "quizzes",
+  "theory_results",
+  "beep_test_results",
+  "member_assessments",
+  "member_declarations",
+  "inquiries",
 ];
 
 function isQuotaError(err: unknown): boolean {
@@ -242,11 +257,34 @@ async function syncCollection(
   }
 }
 
-export async function GET(request: Request) {
-  // Защита с CRON_SECRET за сигурност
+async function checkAuth(request: Request): Promise<boolean> {
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+
+  if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+    return true;
+  }
+
+  try {
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.split("Bearer ")[1]
+      : null;
+
+    if (token) {
+      const { ensureAdmin } = await import("@/lib/auth-utils");
+      await ensureAdmin(token);
+      return true;
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
+}
+
+export async function GET(request: Request) {
+  const isAuthorized = await checkAuth(request);
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
