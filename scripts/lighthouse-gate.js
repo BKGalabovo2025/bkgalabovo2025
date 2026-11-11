@@ -126,6 +126,11 @@ async function runGate() {
       }
     } catch {}
 
+    if (!fs.existsSync(path.join(process.cwd(), ".next"))) {
+      console.log("Компилиране на производствен билд за порт 3001...");
+      execSync("npm run build", { stdio: "inherit" });
+    }
+
     console.log("Стартиране на локален производствен сървър на порт 3001...");
     server = spawn(`${npxCmd} next start -p 3001`, {
       stdio: "ignore",
