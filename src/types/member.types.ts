@@ -157,6 +157,10 @@ export const MemberSchema = z.object({
 
   safetyDeclarationSignatureUrl: z.string().nullable().optional(),
 
+  // --- Official Stored Athlete Signature (Used across business trips & documents) ---
+  signature: z.string().nullable().optional(),
+  signatureUpdatedAt: z.string().nullable().optional(),
+
   // --- Miscellaneous ---
   suspended: z.boolean().optional(),
   analysisCache: z.unknown().nullable().optional(),

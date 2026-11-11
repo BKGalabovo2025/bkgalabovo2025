@@ -9,6 +9,8 @@ import { TripDetailsLayoutClient } from "@/components/business-trips/details/Tri
 import { Button } from "@/components/ui/button";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
+import { businessTripService } from "@/services/business-trip-service";
+import { getAllMembers } from "@/services/member-service";
 import { getAllMembersServer } from "@/services/member-service.server";
 import { docToScheduleEvent } from "@/services/schedule-service";
 import { ScheduleEvent } from "@/types";
@@ -17,61 +19,85 @@ import { Member } from "@/types/member.types";
 
 async function getInitialTripData(id: string) {
   try {
-    const db = getAdminDb();
-    const tripDoc = await db.collection("business_trips").doc(id).get();
+    let trip: BusinessTrip | null = null;
 
-    if (!tripDoc.exists) return null;
+    // 1. Primary: Try via Admin DB
+    try {
+      const db = getAdminDb();
+      const tripDoc = await db.collection("business_trips").doc(id).get();
+      if (tripDoc.exists) {
+        trip = serializeFirestoreData({
+          id: tripDoc.id,
+          ...tripDoc.data(),
+        }) as BusinessTrip;
+      }
+    } catch (adminErr) {
+      console.warn(
+        "getAdminDb in trip layout failed, attempting client service fallback:",
+        adminErr
+      );
+    }
 
-    const trip = serializeFirestoreData({
-      id: tripDoc.id,
-      ...tripDoc.data(),
-    }) as BusinessTrip;
+    // 2. Resilient fallback: Try via businessTripService (client SDK)
+    if (!trip) {
+      try {
+        trip = await businessTripService.getTripById(id);
+      } catch (serviceErr) {
+        console.warn("businessTripService fallback also failed:", serviceErr);
+      }
+    }
+
+    if (!trip) return null;
 
     let event: ScheduleEvent | null = null;
     let expenses: TripExpense[] = [];
     const membersDict: Record<string, Member> = {};
 
     try {
-      const promises: Promise<unknown>[] = [
-        db
+      // Expenses
+      try {
+        const db = getAdminDb();
+        const snap = await db
           .collection("trip_expenses")
           .where("tripId", "==", id)
-          .get()
-          .then((snap) => {
-            expenses = snap.docs.map((d) =>
-              serializeFirestoreData({ id: d.id, ...d.data() })
-            ) as TripExpense[];
-          }),
-        getAllMembersServer()
-          .then((members) => {
-            members.forEach((m) => {
-              if (m.id) membersDict[m.id] = m;
-            });
-          })
-          .catch(() => {}),
-      ];
-
-      if (trip.eventId) {
-        promises.push(
-          db
-            .collection("schedule_events")
-            .doc(trip.eventId)
-            .get()
-            .then((eDoc) => {
-              if (eDoc.exists) {
-                event = docToScheduleEvent(eDoc as never);
-              }
-            })
-            .catch(() => {})
-        );
+          .get();
+        expenses = snap.docs.map((d) =>
+          serializeFirestoreData({ id: d.id, ...d.data() })
+        ) as TripExpense[];
+      } catch {
+        expenses = await businessTripService.getExpensesByTrip(id);
       }
 
-      await Promise.all(promises);
-    } catch (e) {
-      console.warn(
-        "Вторичното зареждане на данни за командировката бе прекъснато:",
-        e
-      );
+      // Members
+      try {
+        const members = await getAllMembersServer();
+        members.forEach((m) => {
+          if (m.id) membersDict[m.id] = m;
+        });
+      } catch {
+        const members = await getAllMembers(false, trip.siteId || "bkgalabovo");
+        members.forEach((m) => {
+          if (m.id) membersDict[m.id] = m;
+        });
+      }
+
+      // Optional Schedule Event
+      if (trip.eventId) {
+        try {
+          const db = getAdminDb();
+          const eDoc = await db
+            .collection("schedule_events")
+            .doc(trip.eventId)
+            .get();
+          if (eDoc.exists) {
+            event = docToScheduleEvent(eDoc as never);
+          }
+        } catch {
+          // ignore optional event
+        }
+      }
+    } catch (secErr) {
+      console.warn("Secondary data load in trip layout:", secErr);
     }
 
     return { trip, event, expenses, membersDict };

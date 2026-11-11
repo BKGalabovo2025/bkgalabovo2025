@@ -3,20 +3,33 @@
 import {
   Briefcase,
   Calendar,
+  Check,
   CheckCircle2,
   ExternalLink,
   FileText,
   MapPin,
+  PenTool,
   Repeat,
   Shield,
+  Sparkles,
+  Trash2,
   User,
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
+import { SignaturePadDialog } from "@/components/business-trips/SignaturePadDialog";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import {
+  batchApplyAthleteSignatureToTripsAction,
+  clearMemberStoredSignatureAction,
+  saveDirectAthleteSignatureAction,
+  saveMemberStoredSignatureAction,
+  syncMemberSignatureFromTripsAction,
+} from "@/lib/actions/trip-signatures";
 import {
   getTripDecisionNumber,
   getTripOrderNumber,
@@ -28,35 +41,223 @@ import { BusinessTrip } from "@/types/business-trip.types";
 import { useMemberProfileContext } from "../MemberProfileContext";
 
 export function MemberTripsTabView() {
-  const { memberId, member, fullName } = useMemberProfileContext();
+  const { memberId, member, fullName, refetch } = useMemberProfileContext();
   const [trips, setTrips] = useState<BusinessTrip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPadOpen, setIsPadOpen] = useState(false);
+  const [targetTripId, setTargetTripId] = useState<string | null>(null);
+  const [isBatchApplying, setIsBatchApplying] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [isSyncingFromTrip, setIsSyncingFromTrip] = useState(false);
+  const hasAutoSyncedRef = useRef(false);
+
+  const loadTrips = useCallback(async () => {
+    try {
+      const data = await businessTripService.getTripsByMemberId(
+        memberId,
+        member.siteId || "bkgalabovo"
+      );
+      setTrips(data);
+    } catch (err) {
+      console.error("Грешка при зареждане на командировките на члена:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [memberId, member.siteId]);
 
   useEffect(() => {
-    let isMounted = true;
-    async function loadTrips() {
-      try {
-        setLoading(true);
-        const data = await businessTripService.getTripsByMemberId(
+    setLoading(true);
+    loadTrips();
+  }, [loadTrips]);
+
+  const handleSaveSignature = async (base64: string) => {
+    try {
+      if (targetTripId) {
+        // Direct sign from trip card
+        const res = await saveDirectAthleteSignatureAction({
+          tripId: targetTripId,
           memberId,
-          member.siteId || "bkgalabovo"
-        );
-        if (isMounted) {
-          setTrips(data);
+          signatureBase64: base64,
+          siteId: member.siteId,
+          propagateAll: true,
+        });
+        if (res.success) {
+          toast.success(
+            res.message || "Подписът е запазен и приложен към командировките!"
+          );
+        } else {
+          toast.error(res.error || "Грешка при запазване на подписа.");
         }
-      } catch (err) {
-        console.error("Грешка при зареждане на командировките на члена:", err);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
+      } else {
+        // Global signature for member profile
+        const res = await saveMemberStoredSignatureAction({
+          memberId,
+          signatureBase64: base64,
+          siteId: member.siteId,
+        });
+        if (res.success) {
+          toast.success(
+            res.message || "Подписът е запазен в профила на състезателя!"
+          );
+        } else {
+          toast.error(res.error || "Грешка при запазване на подписа.");
         }
       }
+
+      setIsPadOpen(false);
+      setTargetTripId(null);
+      await Promise.all([refetch(), loadTrips()]);
+    } catch (err) {
+      console.error(err);
+      toast.error("Възникна грешка при обработка на подписа.");
     }
-    loadTrips();
-    return () => {
-      isMounted = false;
-    };
-  }, [memberId, member.siteId]);
+  };
+
+  const handleBatchApply = async () => {
+    if (!member.signature) {
+      toast.error("Състезателят няма съхранен подпис в профила.");
+      return;
+    }
+    try {
+      setIsBatchApplying(true);
+      const res = await batchApplyAthleteSignatureToTripsAction({
+        memberId,
+        siteId: member.siteId,
+      });
+      if (res.success) {
+        toast.success(
+          res.message || "Подписът беше приложен към всички командировки!"
+        );
+        await loadTrips();
+      } else {
+        toast.error(res.error || "Грешка при прилагане на подписа.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Възникна грешка при синхронизацията.");
+    } finally {
+      setIsBatchApplying(false);
+    }
+  };
+
+  const handleApplySingleTrip = async (tripId: string) => {
+    if (!member.signature) return;
+    try {
+      const res = await saveDirectAthleteSignatureAction({
+        tripId,
+        memberId,
+        signatureBase64: member.signature,
+        siteId: member.siteId,
+        propagateAll: true,
+      });
+      if (res.success) {
+        toast.success("Подписът беше успешно приложен към тази ведомост!");
+        await loadTrips();
+      } else {
+        toast.error(res.error || "Грешка при прилагане на подписа.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Грешка при прилагане на подписа.");
+    }
+  };
+
+  const handleClearStoredSignature = async () => {
+    if (
+      !confirm(
+        "Сигурни ли сте, че искате да премахнете съхранения подпис от профила на състезателя?"
+      )
+    ) {
+      return;
+    }
+    try {
+      setIsClearing(true);
+      const res = await clearMemberStoredSignatureAction({ memberId });
+      if (res.success) {
+        toast.success(res.message || "Подписът беше премахнат от профила.");
+        await refetch();
+      } else {
+        toast.error(res.error || "Грешка при премахване на подписа.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Грешка при изчистване на подписа.");
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
+  const asAthleteTrips = trips.filter(
+    (t) =>
+      Array.isArray(t.participantsIds) && t.participantsIds.includes(memberId)
+  );
+  const asCoachTrips = trips.filter((t) => t.coachId === memberId);
+  const signedTrip = asAthleteTrips.find(
+    (t) =>
+      Boolean(t.signatures?.athletes?.[memberId]) ||
+      Boolean((t.signatures as Record<string, string> | undefined)?.[memberId])
+  );
+  const clientSignature =
+    signedTrip?.signatures?.athletes?.[memberId] ||
+    (signedTrip?.signatures as Record<string, string> | undefined)?.[memberId];
+
+  const signedCount = asAthleteTrips.filter(
+    (t) =>
+      (t.signatures?.athletes && Boolean(t.signatures.athletes[memberId])) ||
+      Boolean((t.signatures as Record<string, string> | undefined)?.[memberId])
+  ).length;
+  const unsignedCount = asAthleteTrips.length - signedCount;
+
+  const handleSyncFromTrip = useCallback(
+    async (tripId: string, sigBase64?: string) => {
+      try {
+        setIsSyncingFromTrip(true);
+        const res = await syncMemberSignatureFromTripsAction({
+          memberId,
+          tripId,
+          signatureBase64: sigBase64 || clientSignature,
+          siteId: member.siteId,
+        });
+        if (res.success) {
+          toast.success(
+            res.message ||
+              "Подписът беше успешно запазен в профила на състезателя!"
+          );
+          await Promise.all([refetch(), loadTrips()]);
+        } else {
+          toast.error(res.error || "Грешка при синхронизиране на подписа.");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Възникна непредвидена грешка при синхронизацията.");
+      } finally {
+        setIsSyncingFromTrip(false);
+      }
+    },
+    [memberId, member.siteId, clientSignature, refetch, loadTrips]
+  );
+
+  // Auto-sync: If member has no signature in profile, but has an existing signature in one of their trips, auto-migrate it!
+  useEffect(() => {
+    if (
+      !loading &&
+      !member.signature &&
+      signedTrip?.id &&
+      clientSignature &&
+      !isSyncingFromTrip &&
+      !hasAutoSyncedRef.current
+    ) {
+      hasAutoSyncedRef.current = true;
+      void handleSyncFromTrip(signedTrip.id, clientSignature);
+    }
+  }, [
+    loading,
+    member.signature,
+    signedTrip?.id,
+    clientSignature,
+    isSyncingFromTrip,
+    handleSyncFromTrip,
+  ]);
 
   if (loading) {
     return (
@@ -66,15 +267,6 @@ export function MemberTripsTabView() {
       </div>
     );
   }
-
-  const asAthleteTrips = trips.filter(
-    (t) =>
-      Array.isArray(t.participantsIds) && t.participantsIds.includes(memberId)
-  );
-  const asCoachTrips = trips.filter((t) => t.coachId === memberId);
-  const signedCount = asAthleteTrips.filter(
-    (t) => t.signatures?.athletes && Boolean(t.signatures.athletes[memberId])
-  ).length;
 
   return (
     <div className="space-y-6">
@@ -116,6 +308,138 @@ export function MemberTripsTabView() {
           </p>
         </BentoCard>
       </div>
+
+      {/* Official Stored Signature Panel */}
+      <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+                <PenTool className="size-4" />
+              </div>
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                Електронен подпис за командировки и ведомости
+              </h3>
+              {member.signature ? (
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                  <CheckCircle2 className="size-3" />
+                  Активен в профила
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                  <XCircle className="size-3 text-zinc-400" />
+                  Няма съхранен подпис
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              {member.signature
+                ? `Подписът на ${fullName} се прилага автоматично във всяка ведомост за състезания. Последно обновен: ${member.signatureUpdatedAt ? formatDateShort(member.signatureUpdatedAt) : "Наскоро"}.`
+                : signedTrip
+                  ? `Открит е положен подпис във ведомостта за „${signedTrip.title}“! Можете директно да го запазите в профила и да го приложите към всички командировки.`
+                  : `Когато ${fullName} положи подпис тук веднъж, програмата ще го съхрани и ще го постави автоматично във всяка минала и бъдеща командировка.`}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {member.signature ? (
+              <>
+                <div
+                  title="Съхранен официален подпис"
+                  className="flex h-12 w-28 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white p-1 shadow-sm dark:border-zinc-700 dark:bg-white"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={member.signature}
+                    alt={`Подпис на ${fullName}`}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+
+                {unsignedCount > 0 && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isBatchApplying}
+                    onClick={handleBatchApply}
+                    className="rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700"
+                  >
+                    <Sparkles className="mr-1.5 size-3.5" />
+                    {isBatchApplying
+                      ? "Прилагане..."
+                      : `Приложи към всички неподписани (${unsignedCount})`}
+                  </Button>
+                )}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setTargetTripId(null);
+                    setIsPadOpen(true);
+                  }}
+                  className="rounded-xl text-xs font-semibold"
+                >
+                  <PenTool className="mr-1.5 size-3.5 text-zinc-500" />
+                  Нов подпис
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isClearing}
+                  onClick={handleClearStoredSignature}
+                  className="rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
+                  title="Премахни съхранения подпис от профила"
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                {signedTrip && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isSyncingFromTrip}
+                    onClick={() =>
+                      handleSyncFromTrip(signedTrip.id!, clientSignature)
+                    }
+                    className="rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm"
+                  >
+                    <Sparkles className="mr-1.5 size-3.5" />
+                    {isSyncingFromTrip
+                      ? "Синхронизиране..."
+                      : `Запази подписа от „${signedTrip.title}“`}
+                  </Button>
+                )}
+
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={signedTrip ? "outline" : "default"}
+                  onClick={() => {
+                    setTargetTripId(null);
+                    setIsPadOpen(true);
+                  }}
+                  className={`rounded-xl text-xs font-bold ${
+                    signedTrip
+                      ? "border-zinc-300 dark:border-zinc-700"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  <PenTool className="mr-1.5 size-3.5" />
+                  {signedTrip
+                    ? "Положи нов подпис"
+                    : "Положи подпис за всички командировки"}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </BentoCard>
 
       {/* Trips List */}
       <div className="space-y-3">
@@ -242,17 +566,70 @@ export function MemberTripsTabView() {
                     </span>
 
                     {isAthlete && (
-                      <span className="ml-auto inline-flex items-center gap-1">
+                      <span className="ml-auto inline-flex items-center gap-2">
                         {isSigned ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                            <CheckCircle2 className="size-3.5" />
-                            Ведомостта е подписана
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="size-3.5" />
+                              Ведомостта е подписана
+                            </span>
+                            {!member.signature && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const sig =
+                                    trip.signatures?.athletes?.[memberId] ||
+                                    (
+                                      trip.signatures as
+                                        Record<string, string> | undefined
+                                    )?.[memberId];
+                                  handleSyncFromTrip(trip.id!, sig);
+                                }}
+                                className="h-6 rounded-lg border-emerald-300 bg-emerald-50 px-2 text-[10px] font-semibold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                title="Запази този подпис като официален в профила на състезателя"
+                              >
+                                <Sparkles className="mr-1 size-3 text-emerald-600 dark:text-emerald-400" />
+                                Запази в профила
+                              </Button>
+                            )}
+                          </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-                            <XCircle className="size-3.5" />
-                            Чака подпис във ведомостта
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 mr-1">
+                              <XCircle className="size-3.5" />
+                              Чака подпис
+                            </span>
+
+                            {member.signature ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleApplySingleTrip(trip.id!)}
+                                className="h-6 rounded-lg border-emerald-300 bg-emerald-50 px-2 text-[10px] font-semibold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                title="Приложи съхранения подпис към тази командировка"
+                              >
+                                <Check className="mr-1 size-3 text-emerald-600 dark:text-emerald-400" />
+                                Приложи подпис
+                              </Button>
+                            ) : (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setTargetTripId(trip.id!);
+                                  setIsPadOpen(true);
+                                }}
+                                className="h-6 rounded-lg border-blue-200 px-2 text-[10px] font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300"
+                              >
+                                <PenTool className="mr-1 size-3" />
+                                Подпиши
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </span>
                     )}
@@ -263,6 +640,22 @@ export function MemberTripsTabView() {
           </div>
         )}
       </div>
+
+      {isPadOpen && (
+        <SignaturePadDialog
+          open={isPadOpen}
+          onOpenChange={(op) => {
+            if (!op) setTargetTripId(null);
+            setIsPadOpen(op);
+          }}
+          title={
+            targetTripId
+              ? `Електронен подпис за командировка: ${fullName}`
+              : `Официален подпис за всички командировки: ${fullName}`
+          }
+          onSave={handleSaveSignature}
+        />
+      )}
     </div>
   );
 }

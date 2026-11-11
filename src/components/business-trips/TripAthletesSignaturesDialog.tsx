@@ -8,6 +8,7 @@ import {
   ExternalLink,
   PenTool,
   Share2,
+  Sparkles,
   Trash2,
   User,
   Users,
@@ -26,6 +27,7 @@ import {
 import {
   clearTripAthleteSignatureAction,
   getOrCreateTripSigningTokenAction,
+  saveDirectAthleteSignatureAction,
 } from "@/lib/actions/trip-signatures";
 import type { BusinessTrip } from "@/types/business-trip.types";
 import type { Member } from "@/types/member.types";
@@ -177,6 +179,59 @@ export function TripAthletesSignaturesDialog({
     }
   };
 
+  const athletesWithStoredSig = athletes.filter(
+    (a) => !a.signature && Boolean(a.member?.signature)
+  );
+
+  const handleApplyProfileSignature = async (
+    memberId: string,
+    memberName: string,
+    sigBase64: string
+  ) => {
+    try {
+      const res = await saveDirectAthleteSignatureAction({
+        tripId: trip.id!,
+        memberId,
+        signatureBase64: sigBase64,
+        siteId: trip.siteId,
+        propagateAll: true,
+      });
+      if (res.success) {
+        toast.success(`Съхраненият подпис за ${memberName} беше приложен!`);
+        onRefresh();
+      } else {
+        toast.error(res.error || "Грешка при прилагане на подписа.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при прилагане на подписа.");
+    }
+  };
+
+  const handleApplyAllProfileSignatures = async () => {
+    if (athletesWithStoredSig.length === 0) return;
+    try {
+      let count = 0;
+      for (const a of athletesWithStoredSig) {
+        if (a.member?.signature) {
+          const res = await saveDirectAthleteSignatureAction({
+            tripId: trip.id!,
+            memberId: a.id,
+            signatureBase64: a.member.signature,
+            siteId: trip.siteId,
+            propagateAll: true,
+          });
+          if (res.success) count++;
+        }
+      }
+      toast.success(`Приложени бяха ${count} съхранени подписа!`);
+      onRefresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при прилагане на съхранените подписи.");
+    }
+  };
+
   const handleClearSignature = async (memberId: string, memberName: string) => {
     if (
       !window.confirm(
@@ -239,21 +294,35 @@ export function TripAthletesSignaturesDialog({
               </div>
 
               {athletes.length > 0 && (
-                <div className="mt-3 flex items-center justify-between pt-2 border-t border-blue-200/50 dark:border-blue-900/30">
+                <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-blue-200/50 dark:border-blue-900/30">
                   <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    Подписът се нанася директно в колона &bdquo;Подпис&ldquo; на
-                    ведомостта в син цвят.
+                    Подписът се нанася директно във ведомостта в син цвят и се
+                    съхранява в профила.
                   </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyAllLinks}
-                    disabled={isCopyingAll}
-                    className="h-7 text-xs bg-white text-blue-700 hover:bg-blue-50 border-blue-300 dark:bg-zinc-900 dark:border-blue-800 dark:text-blue-300"
-                  >
-                    <Share2 className="mr-1.5 size-3.5" />
-                    {isCopyingAll ? "Копиране..." : "Копирай всички линкове"}
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {athletesWithStoredSig.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleApplyAllProfileSignatures}
+                        className="h-7 text-xs bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300"
+                        title="Приложи съхранените подписи от профилите"
+                      >
+                        <Sparkles className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
+                        Приложи съхранени ({athletesWithStoredSig.length})
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyAllLinks}
+                      disabled={isCopyingAll}
+                      className="h-7 text-xs bg-white text-blue-700 hover:bg-blue-50 border-blue-300 dark:bg-zinc-900 dark:border-blue-800 dark:text-blue-300"
+                    >
+                      <Share2 className="mr-1.5 size-3.5" />
+                      {isCopyingAll ? "Копиране..." : "Копирай всички линкове"}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -339,6 +408,25 @@ export function TripAthletesSignaturesDialog({
                               <Trash2 className="size-3.5" />
                             </Button>
                           </>
+                        )}
+
+                        {!isSigned && Boolean(athlete.member?.signature) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleApplyProfileSignature(
+                                athlete.id,
+                                athlete.name,
+                                athlete.member!.signature!
+                              )
+                            }
+                            className="h-8 text-xs rounded-lg border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                            title="Приложи съхранения подпис от профила на състезателя"
+                          >
+                            <Sparkles className="size-3.5 mr-1 text-emerald-600 dark:text-emerald-400" />
+                            От профила
+                          </Button>
                         )}
 
                         <Button

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { BusinessTripSchema } from "../types/business-trip.types";
+import { MemberSchema } from "../types/member.types";
 
 describe("Business Trip Signatures & Athlete Individual Signing", () => {
   const baseTripData = {
@@ -105,5 +106,51 @@ describe("Business Trip Signatures & Athlete Individual Signing", () => {
       "data:image/png;base64,member101Sig"
     );
     expect(getPersonSig("member_999")).toBeUndefined();
+  });
+
+  it("should validate member schema with stored signature and signatureUpdatedAt", () => {
+    const validMember = {
+      id: "mem_zhivko",
+      siteId: "bkgalabovo",
+      firstName: "Живко",
+      lastName: "Иванов",
+      name: "Живко Иванов",
+      registrationDate: "2026-01-01T00:00:00.000Z",
+      signature: "data:image/png;base64,zhivkoBlueOfficialSignature",
+      signatureUpdatedAt: "2026-11-11T12:00:00.000Z",
+    };
+
+    const parsed = MemberSchema.parse(validMember);
+    expect(parsed.signature).toBe(
+      "data:image/png;base64,zhivkoBlueOfficialSignature"
+    );
+    expect(parsed.signatureUpdatedAt).toBe("2026-11-11T12:00:00.000Z");
+  });
+
+  it("should auto-fill athlete signatures for participants with stored profile signatures", () => {
+    const mockMembersDict: Record<string, { signature?: string }> = {
+      zhivko: { signature: "data:image/png;base64,zhivkoSig" },
+      petar: { signature: undefined },
+      ivan: { signature: "data:image/png;base64,ivanSig" },
+    };
+
+    const participantsIds = ["zhivko", "petar", "ivan"];
+    const existingSignatures: Record<string, string> = {};
+
+    // Simulation of prefill logic
+    participantsIds.forEach((id) => {
+      if (!existingSignatures[id]) {
+        const storedSig = mockMembersDict[id]?.signature;
+        if (storedSig) {
+          existingSignatures[id] = storedSig;
+        }
+      }
+    });
+
+    expect(existingSignatures["zhivko"]).toBe(
+      "data:image/png;base64,zhivkoSig"
+    );
+    expect(existingSignatures["ivan"]).toBe("data:image/png;base64,ivanSig");
+    expect(existingSignatures["petar"]).toBeUndefined();
   });
 });

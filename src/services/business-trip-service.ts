@@ -35,8 +35,46 @@ export const businessTripService = {
   // ---------------------------------------------
 
   async createTrip(data: Omit<BusinessTrip, "id">): Promise<string> {
+    // Auto-populate stored athlete signatures from member profiles if any participant lacks a signature
+    const athleteSignatures: Record<string, string> = {
+      ...(data.signatures?.athletes || {}),
+    };
+    if (
+      Array.isArray(data.participantsIds) &&
+      data.participantsIds.length > 0
+    ) {
+      const missingIds = data.participantsIds.filter(
+        (id) => !athleteSignatures[id]
+      );
+      if (missingIds.length > 0) {
+        try {
+          await Promise.all(
+            missingIds.map(async (id) => {
+              try {
+                const memberSnap = await getDoc(doc(db, "members", id));
+                if (memberSnap.exists()) {
+                  const mData = memberSnap.data();
+                  if (mData?.signature && typeof mData.signature === "string") {
+                    athleteSignatures[id] = mData.signature;
+                  }
+                }
+              } catch {
+                // Silently continue if single lookup fails
+              }
+            })
+          );
+        } catch {
+          // Ignore lookup batch errors
+        }
+      }
+    }
+
     const validatedData = BusinessTripSchema.omit({ id: true }).parse({
       ...data,
+      signatures: {
+        ...data.signatures,
+        athletes: athleteSignatures,
+      },
       // Официална дата на заповедта: ако потребителят я е определил ръчно, използваме нея; иначе вземаме сегашната
       orderDate: data.orderDate || new Date().toISOString(),
       createdAt: new Date().toISOString(),

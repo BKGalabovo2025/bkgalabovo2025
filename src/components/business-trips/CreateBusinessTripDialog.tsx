@@ -247,9 +247,29 @@ export function CreateBusinessTripDialog({
             ? initialData.participantsIds
             : participantIds;
 
+      // Auto-prefill stored athlete signatures from member profiles for all participants
+      const athleteSignatures: Record<string, string> = {
+        ...(initialData?.signatures?.athletes || {}),
+        ...(values.signatures?.athletes || {}),
+      };
+
+      for (const pid of effectiveParticipantsIds) {
+        if (!athleteSignatures[pid]) {
+          const m = membersDict[pid];
+          if (m?.signature) {
+            athleteSignatures[pid] = m.signature;
+          }
+        }
+      }
+
       const tripPayload = {
         ...values,
         participantsIds: effectiveParticipantsIds,
+        signatures: {
+          ...initialData?.signatures,
+          ...values.signatures,
+          athletes: athleteSignatures,
+        },
         coachName,
         coachRole,
         orderDate: values.orderDate,

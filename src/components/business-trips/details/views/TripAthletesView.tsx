@@ -1,6 +1,14 @@
 "use client";
 
-import { CheckCircle2, Pencil, PenTool, Users, XCircle } from "lucide-react";
+import {
+  Check,
+  CheckCircle2,
+  Pencil,
+  PenTool,
+  Sparkles,
+  Users,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 import { toast } from "sonner";
@@ -12,12 +20,14 @@ import { TripStatementEditDialog } from "@/components/business-trips/TripStateme
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
+import { saveDirectAthleteSignatureAction } from "@/lib/actions/trip-signatures";
 import { businessTripService } from "@/services/business-trip-service";
 
 export function TripAthletesView() {
   const { trip, membersDict, refreshData } = useTripDetails();
   const [isSignaturesDialogOpen, setIsSignaturesDialogOpen] = useState(false);
   const [isStatementDialogOpen, setIsStatementDialogOpen] = useState(false);
+  const [isApplyingStored, setIsApplyingStored] = useState(false);
   const [directSignMember, setDirectSignMember] = useState<{
     id: string;
     name: string;
@@ -27,26 +37,105 @@ export function TripAthletesView() {
   useDeepLinkHighlight("athlete", participantIds.length > 0, "memberId");
   const athleteSignatures = trip.signatures?.athletes || {};
 
+  const missingAthletesWithStoredSig = participantIds.filter(
+    (id) => !athleteSignatures[id] && Boolean(membersDict[id]?.signature)
+  );
+
   const handleSaveAthleteSignature = async (base64: string) => {
     if (!directSignMember || !trip.id) return;
     try {
-      const currentAthletes = trip.signatures?.athletes || {};
-      const newSignatures = {
-        ...trip.signatures,
-        athletes: {
-          ...currentAthletes,
-          [directSignMember.id]: base64,
-        },
-      };
-      await businessTripService.updateTrip(trip.id, {
-        signatures: newSignatures,
+      const res = await saveDirectAthleteSignatureAction({
+        tripId: trip.id,
+        memberId: directSignMember.id,
+        signatureBase64: base64,
+        siteId: trip.siteId,
+        propagateAll: true,
       });
-      toast.success(`Подписът за ${directSignMember.name} е запазен успешно!`);
+
+      if (res.success) {
+        toast.success(
+          res.message ||
+            `Подписът за ${directSignMember.name} е запазен успешно!`
+        );
+      } else {
+        const currentAthletes = trip.signatures?.athletes || {};
+        const newSignatures = {
+          ...trip.signatures,
+          athletes: {
+            ...currentAthletes,
+            [directSignMember.id]: base64,
+          },
+        };
+        await businessTripService.updateTrip(trip.id, {
+          signatures: newSignatures,
+        });
+        toast.success(
+          `Подписът за ${directSignMember.name} е запазен за тази командировка!`
+        );
+      }
       setDirectSignMember(null);
       await refreshData();
     } catch (e) {
       console.error(e);
       toast.error("Грешка при запазване на подписа.");
+    }
+  };
+
+  const handleApplyStoredSignature = async (
+    memberId: string,
+    memberName: string,
+    signatureBase64: string
+  ) => {
+    if (!trip.id) return;
+    try {
+      const res = await saveDirectAthleteSignatureAction({
+        tripId: trip.id,
+        memberId,
+        signatureBase64,
+        siteId: trip.siteId,
+        propagateAll: true,
+      });
+      if (res.success) {
+        toast.success(`Съхраненият подпис за ${memberName} беше приложен!`);
+        await refreshData();
+      } else {
+        toast.error(res.error || "Грешка при прилагане на подписа.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при прилагане на подписа.");
+    }
+  };
+
+  const handleBatchApplyStoredSignatures = async () => {
+    if (!trip.id || missingAthletesWithStoredSig.length === 0) return;
+    try {
+      setIsApplyingStored(true);
+      let successCount = 0;
+      for (const id of missingAthletesWithStoredSig) {
+        const m = membersDict[id];
+        if (m?.signature) {
+          const res = await saveDirectAthleteSignatureAction({
+            tripId: trip.id,
+            memberId: id,
+            signatureBase64: m.signature,
+            siteId: trip.siteId,
+            propagateAll: true,
+          });
+          if (res.success) {
+            successCount++;
+          }
+        }
+      }
+      toast.success(
+        `Успешно бяха приложени ${successCount} съхранени подписа!`
+      );
+      await refreshData();
+    } catch (err) {
+      console.error(err);
+      toast.error("Грешка при прилагане на съхранените подписи.");
+    } finally {
+      setIsApplyingStored(false);
     }
   };
 
@@ -64,6 +153,23 @@ export function TripAthletesView() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {missingAthletesWithStoredSig.length > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isApplyingStored}
+              onClick={handleBatchApplyStoredSignatures}
+              className="rounded-xl border-emerald-300 bg-emerald-50 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60"
+              title="Приложи съхранените подписи от профилите на състезателите"
+            >
+              <Sparkles className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
+              {isApplyingStored
+                ? "Прилагане..."
+                : `Приложи съхранени (${missingAthletesWithStoredSig.length})`}
+            </Button>
+          )}
+
           <Button
             type="button"
             variant="outline"
@@ -143,16 +249,36 @@ export function TripAthletesView() {
                       Подписан
                     </span>
                   ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDirectSignMember({ id, name })}
-                      className="h-7 px-2 text-[10px] text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
-                      title="Положи подпис на екрана"
-                    >
-                      <XCircle className="mr-1 size-3 text-zinc-400" />
-                      Подпиши
-                    </Button>
+                    <div className="flex items-center gap-1.5">
+                      {Boolean(member?.signature) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleApplyStoredSignature(
+                              id,
+                              name,
+                              member!.signature!
+                            )
+                          }
+                          className="h-7 px-2 text-[10px] font-semibold text-emerald-700 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300"
+                          title="Приложи съхранения подпис от профила на състезателя"
+                        >
+                          <Check className="mr-1 size-3 text-emerald-600 dark:text-emerald-400" />
+                          От профила
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDirectSignMember({ id, name })}
+                        className="h-7 px-2 text-[10px] text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
+                        title="Положи подпис на екрана"
+                      >
+                        <XCircle className="mr-1 size-3 text-zinc-400" />
+                        Подпиши
+                      </Button>
+                    </div>
                   )}
                 </div>
               </BentoCard>

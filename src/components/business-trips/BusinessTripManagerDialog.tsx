@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/context/auth-context";
+import { saveDirectAthleteSignatureAction } from "@/lib/actions/trip-signatures";
 import {
   checkTripCompleteness,
   countBySeverity,
@@ -655,23 +656,37 @@ export function BusinessTripManagerDialog({
       const trip = businessTrips.find((t) => t.id === signatureTripId);
       if (!trip) return;
 
-      let newSignatures = { ...trip.signatures };
       if (signatureRole === "coach" || signatureRole === "chairman") {
-        newSignatures = { ...newSignatures, [signatureRole]: base64 };
+        const newSignatures = { ...trip.signatures, [signatureRole]: base64 };
+        await businessTripService.updateTrip(signatureTripId, {
+          signatures: newSignatures,
+        });
+        toast.success("Подписът е запазен успешно!");
       } else {
-        const existingAthletes = { ...(trip.signatures?.athletes || {}) };
-        existingAthletes[signatureRole] = base64;
-        newSignatures = {
-          ...newSignatures,
-          athletes: existingAthletes,
-        };
+        // Direct athlete signature: save to profile and propagate across all trips
+        const res = await saveDirectAthleteSignatureAction({
+          tripId: signatureTripId,
+          memberId: signatureRole,
+          signatureBase64: base64,
+          siteId: trip.siteId,
+          propagateAll: true,
+        });
+
+        if (res.success) {
+          toast.success(
+            res.message || "Подписът е запазен и приложен към ведомостите!"
+          );
+        } else {
+          // Fallback to local trip update
+          const existingAthletes = { ...(trip.signatures?.athletes || {}) };
+          existingAthletes[signatureRole] = base64;
+          await businessTripService.updateTrip(signatureTripId, {
+            signatures: { ...trip.signatures, athletes: existingAthletes },
+          });
+          toast.success("Подписът е запазен за тази командировка!");
+        }
       }
 
-      await businessTripService.updateTrip(signatureTripId, {
-        signatures: newSignatures,
-      });
-
-      toast.success("Подписът е запазен успешно!");
       setSignatureAthleteName(null);
       loadData();
     } catch (e) {
