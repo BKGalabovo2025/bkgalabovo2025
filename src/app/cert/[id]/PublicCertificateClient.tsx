@@ -54,7 +54,7 @@ function PartnerLogoOrEmblem({
   // If valid image provided and hasn't errored
   if (logoUrl && !imageError && !logoUrl.includes("wikipedia.org")) {
     return (
-      <div className="relative size-10 sm:size-11 shrink-0 overflow-hidden rounded-xl bg-white p-1">
+      <div className="relative size-10 sm:size-11 shrink-0 overflow-hidden rounded-xl bg-white p-1 dark:bg-zinc-900">
         <img
           src={logoUrl}
           alt={name}
@@ -576,7 +576,7 @@ export function PublicCertificateClient({
             <div className="flex flex-col gap-4 border-b border-amber-100 pb-5 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
               {/* Club Emblem & Title */}
               <div className="flex items-center gap-3.5">
-                <div className="relative size-14 shrink-0 overflow-hidden rounded-2xl border-2 border-amber-200/90 bg-white p-1.5 shadow-sm dark:border-zinc-800">
+                <div className="relative size-14 shrink-0 overflow-hidden rounded-2xl border-2 border-amber-200/90 bg-white p-1.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                   <Image
                     src={clubLogo}
                     alt="Club Crest"

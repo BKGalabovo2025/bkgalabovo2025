@@ -14,6 +14,7 @@ import { ClubService } from "@/types";
 export default function EditRecoverySessionClient({
   initialData,
   siteInventory,
+  hideHeader = false,
 }: {
   initialData: ClubService;
   siteInventory?: {
@@ -24,6 +25,7 @@ export default function EditRecoverySessionClient({
       hips: number;
     };
   };
+  hideHeader?: boolean;
 }) {
   const router = useRouter();
   const { idToken } = useAuth();
@@ -62,16 +64,18 @@ export default function EditRecoverySessionClient({
 
   return (
     <div className="space-y-12 duration-700 animate-in fade-in">
-      <PageHeader
-        title="Редактиране на Процедура"
-        description={`Редактиране на ${initialData.name}`}
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Каталози", href: "/catalogs" },
-          { label: "Възстановяване", href: "/catalogs/recovery" },
-          { label: "Редактиране" },
-        ]}
-      />
+      {!hideHeader && (
+        <PageHeader
+          title="Редактиране на Процедура"
+          description={`Редактиране на ${initialData.name}`}
+          breadcrumbs={[
+            { label: "Начало", href: "/dashboard" },
+            { label: "Каталози", href: "/catalogs" },
+            { label: "Възстановяване", href: "/catalogs/recovery" },
+            { label: "Редактиране" },
+          ]}
+        />
+      )}
 
       <div className="max-w-6xl">
         <RecoverySessionForm

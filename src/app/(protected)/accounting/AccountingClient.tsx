@@ -1242,16 +1242,33 @@ export default function AccountingClient({
     );
   }
 
+  const isCommercial =
+    section === "commercial" || pathname?.startsWith("/accounting/commercial");
+  const isNonCommercial =
+    section === "non-commercial" ||
+    pathname?.startsWith("/accounting/non-commercial");
+
+  const breadcrumbs = isCommercial
+    ? [
+        { label: "Начало", href: "/dashboard" },
+        { label: "Счетоводство", href: "/accounting" },
+        { label: "Стопанска дейност" },
+      ]
+    : isNonCommercial
+      ? [
+          { label: "Начало", href: "/dashboard" },
+          { label: "Счетоводство", href: "/accounting" },
+          { label: "Нестопанска дейност" },
+        ]
+      : [{ label: "Начало", href: "/dashboard" }, { label: "Счетоводство" }];
+
   return (
     <div className="relative space-y-3 pb-6 duration-500 animate-in fade-in">
       {/* ── Compact Page Header ── */}
       <PageHeader
         title="Счетоводни отчети"
         description="Глобален преглед на разходите и командировките по месеци."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Отчети" },
-        ]}
+        breadcrumbs={breadcrumbs}
       >
         <div className="grid w-full grid-cols-2 items-center gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2">
           <Button

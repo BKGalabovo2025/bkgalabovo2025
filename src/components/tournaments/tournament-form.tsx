@@ -306,7 +306,7 @@ export function TournamentForm({
                     else if (form.getValues("entryFee") === 0)
                       form.setValue("entryFee", 10);
                   }}
-                  className="size-5 cursor-pointer rounded border-zinc-300 accent-zinc-950"
+                  className="size-5 cursor-pointer rounded border-zinc-300 accent-zinc-950 dark:border-zinc-700 dark:accent-white"
                 />
               </div>
 
@@ -430,7 +430,7 @@ export function TournamentForm({
                       type="checkbox"
                       checked={field.value}
                       onChange={(e) => field.onChange(e.target.checked)}
-                      className="size-5 cursor-pointer rounded border-zinc-300 accent-zinc-950"
+                      className="size-5 cursor-pointer rounded border-zinc-300 accent-zinc-950 dark:border-zinc-700 dark:accent-white"
                     />
                   </FormControl>
                 </FormItem>
@@ -523,7 +523,7 @@ export function TournamentForm({
                               )
                             }
                             onClick={(e) => e.stopPropagation()}
-                            className="size-4.5 cursor-pointer rounded border-zinc-300 accent-zinc-950"
+                            className="size-4.5 cursor-pointer rounded border-zinc-300 accent-zinc-950 dark:border-zinc-700 dark:accent-white"
                           />
                           <label
                             htmlFor={`cat-${item.id}`}

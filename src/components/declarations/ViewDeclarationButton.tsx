@@ -73,7 +73,7 @@ export function ViewDeclarationButton({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="rounded-xl border-zinc-100 p-2 shadow-xl"
+            className="rounded-xl border-zinc-100 p-2 shadow-xl dark:border-zinc-800"
           >
             <div className="mb-1 px-3 py-2 text-xs font-bold tracking-widest text-zinc-400 uppercase">
               Избери декларация

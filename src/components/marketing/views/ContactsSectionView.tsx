@@ -154,7 +154,7 @@ export function ContactsSectionView() {
               size="sm"
               disabled={filteredContacts.length === 0}
               onClick={toggleSelectAllFiltered}
-              className="h-7.5 rounded-lg border-zinc-200 px-2.5 text-xs font-semibold text-zinc-700 shadow-2xs hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200"
+              className="h-7.5 rounded-lg border-zinc-200 px-2.5 text-xs font-semibold text-zinc-700 shadow-2xs hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
             >
               {selectedContactIds.size === filteredContacts.length &&
               filteredContacts.length > 0

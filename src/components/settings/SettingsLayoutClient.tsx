@@ -1,6 +1,7 @@
 "use client";
 
 import { Save } from "lucide-react";
+import { usePathname } from "next/navigation";
 import React, { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -10,6 +11,10 @@ import { revalidateSiteAction } from "@/lib/actions/site";
 import { updateSite } from "@/services/site-service";
 import { useSettingsStore } from "@/store/use-settings-store";
 
+import {
+  getActiveSettingsSectionId,
+  SETTINGS_SECTIONS,
+} from "./settings-sections";
 import { SettingsNav } from "./SettingsNav";
 
 interface SettingsLayoutClientProps {
@@ -17,6 +22,7 @@ interface SettingsLayoutClientProps {
 }
 
 export function SettingsLayoutClient({ children }: SettingsLayoutClientProps) {
+  const pathname = usePathname();
   const {
     formData,
     isLoading,
@@ -25,6 +31,21 @@ export function SettingsLayoutClient({ children }: SettingsLayoutClientProps) {
     fetchLogs,
     setIsSaving,
   } = useSettingsStore();
+
+  const normalizedPath = pathname?.replace(/\/+$/, "") || "/settings";
+  const isSubpage = normalizedPath !== "/settings";
+  const activeSectionId = getActiveSettingsSectionId(pathname || "");
+  const currentSection = SETTINGS_SECTIONS.find(
+    (s) => s.id === activeSectionId
+  );
+
+  const breadcrumbs: { label: string; href?: string }[] = isSubpage
+    ? [
+        { label: "Начало", href: "/dashboard" },
+        { label: "Настройки", href: "/settings" },
+        { label: currentSection?.label || "Секция" },
+      ]
+    : [{ label: "Начало", href: "/dashboard" }, { label: "Настройки" }];
 
   useEffect(() => {
     fetchSettings();
@@ -96,10 +117,7 @@ export function SettingsLayoutClient({ children }: SettingsLayoutClientProps) {
       <PageHeader
         title="Настройки"
         description="Управление на системните параметри, сигурността и брандирането на клуба."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Настройки", href: "/settings" },
-        ]}
+        breadcrumbs={breadcrumbs}
       >
         <Button
           onClick={handleSave}

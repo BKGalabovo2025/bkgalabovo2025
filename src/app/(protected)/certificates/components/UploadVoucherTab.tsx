@@ -1728,7 +1728,7 @@ export function UploadVoucherTab({
               {/* Header Logos Row */}
               <div className="flex items-center justify-between border-b border-zinc-100 pb-2 dark:border-zinc-800">
                 <div className="flex items-center gap-2">
-                  <div className="relative size-8 shrink-0 overflow-hidden rounded-lg border border-zinc-200 bg-white p-0.5 shadow-xs dark:border-zinc-800">
+                  <div className="relative size-8 shrink-0 overflow-hidden rounded-lg border border-zinc-200 bg-white p-0.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
                     <Image
                       src={clubLogoUrl}
                       alt={

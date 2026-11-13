@@ -13,10 +13,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
+import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { getActiveParentAdminSectionId } from "./parent-admin-sections";
+import {
+  getActiveParentAdminSectionId,
+  PARENT_ADMIN_SECTIONS,
+} from "./parent-admin-sections";
 import { useParentAdminContext } from "./ParentAdminContext";
 import { ParentAdminDialogs } from "./ParentAdminDialogs";
 import { ParentsNav } from "./ParentsNav";
@@ -30,6 +34,18 @@ export function ParentAdminLayoutClient({
 }: ParentAdminLayoutClientProps) {
   const pathname = usePathname();
   const activeSection = getActiveParentAdminSectionId(pathname) || "requests";
+  const activeSectionConfig = PARENT_ADMIN_SECTIONS.find(
+    (s) => s.id === activeSection
+  );
+  const activeSubpage: { label: string; href?: string }[] = activeSectionConfig
+    ? [{ label: activeSectionConfig.label }]
+    : [];
+
+  const breadcrumbs: { label: string; href?: string }[] = [
+    { label: "Начало", href: "/dashboard" },
+    { label: "Родители", href: "/parents" },
+    ...activeSubpage,
+  ];
 
   const {
     stats,
@@ -44,24 +60,20 @@ export function ParentAdminLayoutClient({
   return (
     <div className="space-y-6 p-4 sm:p-8">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black tracking-tight uppercase text-zinc-900 sm:text-3xl dark:text-white">
-              Родителски достъп
-            </h1>
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2">
+            <span>Родителски достъп</span>
             {stats.totalPending > 0 && (
-              <Badge className="bg-red-600 text-white font-bold animate-pulse">
+              <Badge className="bg-red-600 text-white font-bold animate-pulse text-xs">
                 {stats.totalPending} чакащи
               </Badge>
             )}
-          </div>
-          <p className="mt-1 text-xs text-zinc-500 sm:text-sm dark:text-zinc-400">
-            Управление на родителски профили, заявки за регистрация, уведомления
-            за отсъствия и корекции на данни.
-          </p>
-        </div>
-
+          </span>
+        }
+        description="Управление на родителски профили, заявки за регистрация, уведомления за отсъствия и корекции на данни."
+        breadcrumbs={breadcrumbs}
+      >
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -96,7 +108,7 @@ export function ParentAdminLayoutClient({
             />
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
       {/* KPI Stats Cards as Deep Links */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 sm:gap-3">

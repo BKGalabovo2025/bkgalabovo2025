@@ -98,7 +98,7 @@ const FamilyDetailsPage = () => {
       if (result.success) {
         toast.success(result.message);
         if (result.familyDeleted) {
-          router.push("/members");
+          router.push("/members/families");
         } else {
           refetch();
         }
@@ -120,7 +120,7 @@ const FamilyDetailsPage = () => {
           description="Моля изчакайте, докато заредим семейния профил."
           breadcrumbs={[
             { label: "Начало", href: "/dashboard" },
-            { label: "Членове", href: "/members" },
+            { label: "Семейства", href: "/members/families" },
             { label: "Семейство" },
           ]}
         />
@@ -169,7 +169,7 @@ const FamilyDetailsPage = () => {
         }.`}
         breadcrumbs={[
           { label: "Начало", href: "/dashboard" },
-          { label: "Членове", href: "/members" },
+          { label: "Семейства", href: "/members/families" },
           { label: family.name || "Семейство" },
         ]}
       />
@@ -299,7 +299,7 @@ const FamilyDetailsPage = () => {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="size-8 rounded-full text-rose-500 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600"
+                    className="size-8 rounded-full text-rose-500 opacity-100 sm:opacity-0 transition-opacity sm:group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
                     disabled={removingId !== null}
                     aria-label="Премахни члена от семейството"
                     onClick={(e) => {

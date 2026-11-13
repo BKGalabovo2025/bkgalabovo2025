@@ -513,7 +513,7 @@ export default function TheoryClient({
                     <div>
                       <Badge
                         variant="secondary"
-                        className={`mb-2 text-[10px] ${quiz.isCustom ? "bg-amber-100 text-amber-700" : "bg-white/20 text-white"}`}
+                        className={`mb-2 text-[10px] ${quiz.isCustom ? "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300" : "bg-white/20 text-white"}`}
                       >
                         {quiz.isCustom ? "✏️ Редактиран" : "📚 Базов"}
                       </Badge>
@@ -1606,7 +1606,7 @@ export default function TheoryClient({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => {}} // Handled by parent div
-                        className="mt-1 size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                        className="mt-1 size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 dark:border-zinc-700 dark:bg-zinc-800"
                       />
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-wrap items-center gap-2">

@@ -144,7 +144,7 @@ export const DashboardNotifications = ({
 
       <div className="relative z-10 mt-4 border-t border-rose-200/50 pt-3 dark:border-zinc-800">
         <Link
-          href="/schedule"
+          href={isRecovery ? "/schedule/recovery" : "/schedule"}
           className="group flex items-center justify-between text-xs font-semibold text-rose-900 transition-colors hover:text-rose-700 dark:text-rose-300 dark:hover:text-rose-100"
         >
           <span>Към графика и посещенията</span>

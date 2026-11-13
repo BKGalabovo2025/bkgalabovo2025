@@ -269,7 +269,7 @@ function DayDetailCard({
               variant="outline"
               disabled={saving}
               onClick={() => handleToggleDayCompleted(false)}
-              className="h-7.5 rounded-xl border-zinc-300 text-xs text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300"
+              className="h-7.5 rounded-xl border-zinc-300 text-xs text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300"
             >
               <RotateCcw className="mr-1 size-3" /> Върни
             </Button>
@@ -817,7 +817,7 @@ export function MemberAiWorkoutsTab({
                     )}
                   </ul>
                   {viewingProgram.safetyAudit.coachSafetyNotes && (
-                    <p className="mt-2 border-t border-zinc-200/50 pt-2 text-[11px] text-zinc-500 italic">
+                    <p className="mt-2 border-t border-zinc-200/50 dark:border-zinc-800 pt-2 text-[11px] text-zinc-500 italic">
                       Бележка: {viewingProgram.safetyAudit.coachSafetyNotes}
                     </p>
                   )}

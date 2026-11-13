@@ -1108,7 +1108,7 @@ export function IssuedCertificatesTab({
                     {/* Branding Header in Preview */}
                     <div className="flex flex-col gap-3 border-b border-zinc-100 pb-3 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
                       <div className="flex items-center gap-2.5">
-                        <div className="relative size-10 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 dark:border-zinc-800">
+                        <div className="relative size-10 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-900">
                           <Image
                             src={
                               previewCert.branding?.clubLogoUrl ||

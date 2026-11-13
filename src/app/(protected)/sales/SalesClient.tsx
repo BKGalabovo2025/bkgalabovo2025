@@ -533,7 +533,7 @@ export default function SalesClient({
         {/* Desktop Table View (>= md) */}
         <div className="hidden md:block overflow-x-auto">
           <Table>
-            <TableHeader className="bg-zinc-50/50">
+            <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/50">
               <TableRow className="h-14 border-none hover:bg-transparent">
                 <TableHead className="px-6 text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase">
                   Дата и Час
@@ -778,6 +778,24 @@ export default function SalesClient({
     );
   };
 
+  const isPaid = section === "paid" || pathname?.startsWith("/sales/paid");
+  const isPending =
+    section === "pending" || pathname?.startsWith("/sales/pending");
+
+  const breadcrumbs = isPaid
+    ? [
+        { label: "Начало", href: "/dashboard" },
+        { label: "Продажби", href: "/sales" },
+        { label: "Платени" },
+      ]
+    : isPending
+      ? [
+          { label: "Начало", href: "/dashboard" },
+          { label: "Продажби", href: "/sales" },
+          { label: "Чакащи плащане" },
+        ]
+      : [{ label: "Начало", href: "/dashboard" }, { label: "Продажби" }];
+
   return (
     <div className="space-y-6 duration-500 animate-in fade-in">
       {showPageHeader ? (
@@ -785,10 +803,7 @@ export default function SalesClient({
           <PageHeader
             title="Продажби"
             description="Проследяване на продажби на инвентар, напитки и услуги в реално време."
-            breadcrumbs={[
-              { label: "Начало", href: "/dashboard" },
-              { label: "Продажби" },
-            ]}
+            breadcrumbs={breadcrumbs}
           >
             <Button
               onClick={() => router.push("/sales/new")}

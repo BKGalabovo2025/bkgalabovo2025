@@ -45,7 +45,7 @@ export function DeleteTrainingButton({ trainingId }: Props) {
     <Button
       variant="ghost"
       size="icon"
-      className="text-zinc-400 hover:bg-rose-50 hover:text-rose-500"
+      className="text-zinc-400 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
       onClick={handleDelete}
       disabled={isDeleting}
       title="Изтрий записа"

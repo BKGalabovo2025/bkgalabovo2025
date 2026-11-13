@@ -54,37 +54,39 @@ const AmateurContractPage = () => {
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 md:p-8">
+    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 md:p-8 dark:bg-zinc-950">
       {/* Non-printable header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <Button
           variant="outline"
           onClick={handleBack}
-          className="rounded-xl border-slate-200"
+          className="rounded-xl border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
         >
           <ArrowLeft className="mr-2 size-4" /> Назад
         </Button>
         <div className="flex flex-wrap items-center gap-2">
           {/* Editable Date Selector */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700 shadow-2xs">
-            <Calendar className="size-3.5 text-slate-500" />
-            <span className="font-semibold text-slate-600">Дата:</span>
+          <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+            <Calendar className="size-3.5 text-slate-500 dark:text-zinc-400" />
+            <span className="font-semibold text-slate-600 dark:text-zinc-400">
+              Дата:
+            </span>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent font-medium text-slate-900 outline-none cursor-pointer"
+              className="bg-transparent font-medium text-slate-900 dark:text-zinc-100 outline-none cursor-pointer"
               title="Редактирай датата на договора"
             />
           </div>
 
           <ChairpersonSignatureControl {...chairperson} />
-          <span className="hidden text-xs text-slate-500 sm:inline">
+          <span className="hidden text-xs text-slate-500 dark:text-zinc-400 sm:inline">
             (2 стр. А4)
           </span>
           <Button
             onClick={() => window.print()}
-            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
+            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
             <Printer className="mr-2 size-4" /> Принтирай
           </Button>

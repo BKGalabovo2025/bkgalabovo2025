@@ -585,12 +585,9 @@ export default function ClubReviewsClient({
                   )}
                 </div>
 
-                <Button
-                  size="sm"
-                  className="shrink-0 rounded-xl bg-blue-600 text-xs font-bold text-white group-hover:bg-blue-500"
-                >
+                <span className="inline-flex h-8 shrink-0 items-center justify-center rounded-xl bg-blue-600 px-3 text-xs font-bold text-white transition-colors group-hover:bg-blue-500">
                   Попълни
-                </Button>
+                </span>
               </Link>
             ))}
           </div>

@@ -140,11 +140,11 @@ export default function PrintClientPage({ service }: { service: Service }) {
 
       <div className="service-print-container mx-auto max-w-4xl p-4 sm:p-8">
         {/* ACTION BAR */}
-        <div className="no-print mb-10 flex items-center justify-end gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <div className="no-print mb-10 flex items-center justify-end gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <Button
             onClick={() => window.print()}
             variant="outline"
-            className="bg-white"
+            className="bg-white dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100"
           >
             <Printer className="mr-2 size-4" />
             Принтирай

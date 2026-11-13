@@ -138,26 +138,28 @@ export const GenericDeclarationPage = ({
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 font-serif md:p-8">
+    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 font-serif md:p-8 dark:bg-zinc-950">
       {/* Non-printable header */}
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <Button
           variant="outline"
           onClick={handleBack}
-          className="rounded-xl border-slate-200"
+          className="rounded-xl border-slate-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
         >
           <ArrowLeft className="mr-2 size-4" /> Назад
         </Button>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Interactive Date Picker */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs">
-            <span className="text-[11px] font-medium text-zinc-500">Дата:</span>
+          <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs dark:border-zinc-800 dark:bg-zinc-900">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+              Дата:
+            </span>
             <input
               type="date"
               value={docDate}
               onChange={(e) => setDocDate(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-zinc-900 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none cursor-pointer"
             />
           </div>
 
@@ -166,7 +168,7 @@ export const GenericDeclarationPage = ({
             variant="outline"
             onClick={() => setSignatureOpen(true)}
             disabled={isSaving}
-            className="rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase transition-all hover:border-zinc-950 hover:bg-zinc-50"
+            className="rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase transition-all hover:border-zinc-950 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
           >
             {isSaving ? (
               <Loader2 className="mr-2 size-4 animate-spin" />
@@ -179,7 +181,7 @@ export const GenericDeclarationPage = ({
           </Button>
           <Button
             onClick={() => window.print()}
-            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
+            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
             <Printer className="mr-2 size-4" /> Принтирай
           </Button>

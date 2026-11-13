@@ -220,7 +220,7 @@ export function BirthdayReminder() {
               <div className="flex items-center gap-2.5">
                 <Avatar className="size-9 border border-rose-100 transition-colors group-hover:border-rose-300">
                   <AvatarImage src={getValidAvatarUrl(bday.member.avatarUrl)} />
-                  <AvatarFallback className="bg-rose-50 text-xs font-semibold text-rose-700">
+                  <AvatarFallback className="bg-rose-50 text-xs font-semibold text-rose-700 dark:bg-rose-950 dark:text-rose-300">
                     {bday.member.firstName?.[0]}
                     {bday.member.lastName?.[0]}
                   </AvatarFallback>

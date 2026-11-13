@@ -1677,7 +1677,7 @@ export function CampItineraryClient({
                                           p.memberId
                                         )
                                       }
-                                      className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                                      className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 dark:border-zinc-700 dark:bg-zinc-800"
                                     />
                                     {g.name}
                                   </label>

@@ -2,7 +2,6 @@
 
 import {
   CalendarDays,
-  ChevronLeft,
   CloudRain,
   Coins,
   ExternalLink,
@@ -11,9 +10,9 @@ import {
   Users,
   Waves,
 } from "lucide-react";
-import Link from "next/link";
 import React from "react";
 
+import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,24 +38,16 @@ export function CampLayoutClient({ children }: CampLayoutClientProps) {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 pb-12 duration-500 animate-in fade-in">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link
-          href="/training/camps"
-          className="flex size-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
-          title="Към списъка с лагери"
-          aria-label="Към списъка с лагери"
-        >
-          <ChevronLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            {camp.title}
-          </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Детайлен преглед на лагера и участниците
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={camp.title}
+        description="Детайлен преглед на лагера и участниците"
+        breadcrumbs={[
+          { label: "Начало", href: "/dashboard" },
+          { label: "Тренировки", href: "/training/planner" },
+          { label: "Лагери", href: "/training/camps" },
+          { label: camp.title },
+        ]}
+      />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Left Column: General Information Card */}

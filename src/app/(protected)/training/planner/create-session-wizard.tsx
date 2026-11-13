@@ -851,7 +851,7 @@ const InventorySelectionSection = ({
               <label className="flex flex-1 cursor-pointer items-center gap-3">
                 <input
                   type="checkbox"
-                  className="size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                  className="size-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 dark:border-zinc-700 dark:bg-zinc-800"
                   checked={isSelected}
                   onChange={(e) => {
                     const checked = e.target.checked;
@@ -1135,7 +1135,12 @@ const GroupsManagementSection = ({
                 onChange={(e) => setNewGroupName(e.target.value)}
                 className="h-8 text-sm"
               />
-              <Button size="sm" className="h-8" onClick={onAddGroup} aria-label="Добави група">
+              <Button
+                size="sm"
+                className="h-8"
+                onClick={onAddGroup}
+                aria-label="Добави група"
+              >
                 <Plus className="size-4" />
               </Button>
             </div>
@@ -1195,7 +1200,7 @@ const GroupsManagementSection = ({
                           type="checkbox"
                           checked={g.memberIds.includes(p.id)}
                           onChange={() => onToggleParticipant(g.id, p.id)}
-                          className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600"
+                          className="size-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-600 dark:border-zinc-700 dark:bg-zinc-800"
                         />
                         {g.name}
                       </label>

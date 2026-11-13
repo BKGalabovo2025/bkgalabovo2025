@@ -109,7 +109,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
 
   const handleRowClick = (saleId: string, isPaid?: boolean, type?: string) => {
     if (saleId.startsWith("camp-")) {
-      router.push("/camps");
+      router.push("/training/camps");
       return;
     }
     if (isPaid) {

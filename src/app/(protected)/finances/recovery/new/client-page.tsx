@@ -19,10 +19,12 @@ interface NewRecoverySessionClientProps {
       hips: number;
     };
   };
+  hideHeader?: boolean;
 }
 
 export default function NewRecoverySessionClient({
   siteInventory,
+  hideHeader = false,
 }: NewRecoverySessionClientProps) {
   const router = useRouter();
   const { idToken } = useAuth();
@@ -61,16 +63,18 @@ export default function NewRecoverySessionClient({
 
   return (
     <div className="space-y-12 duration-700 animate-in fade-in">
-      <PageHeader
-        title="Нова Процедура"
-        description="Добавяне на нова процедура за възстановяване към каталога."
-        breadcrumbs={[
-          { label: "Начало", href: "/dashboard" },
-          { label: "Каталози", href: "/catalogs" },
-          { label: "Възстановяване", href: "/catalogs/recovery" },
-          { label: "Нова процедура" },
-        ]}
-      />
+      {!hideHeader && (
+        <PageHeader
+          title="Нова Процедура"
+          description="Добавяне на нова процедура за възстановяване към каталога."
+          breadcrumbs={[
+            { label: "Начало", href: "/dashboard" },
+            { label: "Каталози", href: "/catalogs" },
+            { label: "Възстановяване", href: "/catalogs/recovery" },
+            { label: "Нова процедура" },
+          ]}
+        />
+      )}
 
       <div className="max-w-6xl">
         <RecoverySessionForm
