@@ -450,7 +450,7 @@ export default function PublicCatalogTabs({
                 "group inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 sm:shrink",
                 isActive
                   ? isRecoveryTheme
-                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                    ? "bg-emerald-700 text-white shadow-md shadow-emerald-700/30"
                     : "bg-blue-600 text-white shadow-md shadow-blue-600/30"
                   : "text-zinc-400 hover:bg-slate-200/70 hover:text-slate-900 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-200"
               )}
@@ -1099,7 +1099,7 @@ function PublicCatalogCard({
               className={cn(
                 "h-8.5 rounded-xl text-[11px] font-semibold tracking-wide text-white shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer",
                 isRecovery
-                  ? "bg-emerald-600 hover:bg-emerald-500"
+                  ? "bg-emerald-700 hover:bg-emerald-600"
                   : "bg-blue-600 hover:bg-blue-500"
               )}
             >
@@ -1218,7 +1218,7 @@ function PublicCatalogCard({
                           className={cn(
                             "inline-flex items-center justify-center gap-2 rounded-xl px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg transition-colors cursor-pointer",
                             isRecovery
-                              ? "bg-emerald-600 shadow-emerald-600/20 hover:bg-emerald-500"
+                              ? "bg-emerald-700 shadow-emerald-700/20 hover:bg-emerald-600"
                               : "bg-blue-600 shadow-blue-600/20 hover:bg-blue-500"
                           )}
                         >
