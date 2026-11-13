@@ -643,12 +643,14 @@ export default function RecoveryZoneClient({
                       </div>
                       <div className="flex w-full sm:w-auto sm:justify-end">
                         {day.data?.isOpen ? (
-                          <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-black/50 px-4 py-2 transition-colors group-hover:border-emerald-500/20">
-                            <span className="text-lg font-medium text-emerald-400 md:text-xl">
+                          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-emerald-50/80 px-4 py-2 transition-colors group-hover:border-emerald-500/30 dark:border-white/5 dark:bg-black/50 dark:group-hover:border-emerald-500/20">
+                            <span className="text-lg font-medium text-emerald-700 md:text-xl dark:text-emerald-400">
                               {day.data.open}
                             </span>
-                            <span className="px-1 text-zinc-600">-</span>
-                            <span className="text-lg font-medium text-emerald-400 md:text-xl">
+                            <span className="px-1 text-slate-400 dark:text-zinc-600">
+                              -
+                            </span>
+                            <span className="text-lg font-medium text-emerald-700 md:text-xl dark:text-emerald-400">
                               {day.data.close}
                             </span>
                           </div>

@@ -446,7 +446,7 @@ export default async function TeamPage() {
               <div
                 className={
                   clubSite.therapists.length === 1
-                    ? "m-auto max-w-md"
+                    ? "m-auto max-w-4xl"
                     : "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
                 }
               >
@@ -454,18 +454,22 @@ export default async function TeamPage() {
                   const cleanBio = coach.bio
                     ? coach.bio.replace("Провесионалният", "Професионалният")
                     : undefined;
+                  const isSingleCoach = clubSite.therapists!.length === 1;
                   return (
                     <div
                       key={idx}
-                      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-800/50 bg-black/40 p-4 backdrop-blur-xl transition-all duration-500 hover:border-blue-500/30 sm:rounded-3xl sm:p-5"
+                      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs backdrop-blur-xl transition-all duration-500 hover:border-blue-500/40 hover:shadow-md sm:rounded-3xl sm:p-7 dark:border-zinc-800/50 dark:bg-black/40"
                     >
                       <div className="pointer-events-none absolute top-0 right-0 size-64 rounded-full bg-blue-500/5 blur-[80px] transition-colors duration-700 group-hover:bg-blue-500/10" />
 
-                      <CoachPhotoGallery coach={coach}>
-                        <h3 className="mb-1 text-lg font-medium text-white sm:text-xl">
+                      <CoachPhotoGallery
+                        coach={coach}
+                        layout={isSingleCoach ? "horizontal" : "vertical"}
+                      >
+                        <h3 className="mb-1 text-xl font-semibold text-slate-900 sm:text-2xl dark:text-white">
                           {coach.name}
                         </h3>
-                        <p className="mb-2.5 text-[10px] font-semibold tracking-widest text-blue-400 uppercase sm:mb-3 sm:text-[11px]">
+                        <p className="mb-3 text-[11px] font-bold tracking-widest text-blue-600 uppercase dark:text-blue-400">
                           <Translate
                             bg={coach.role || "Треньор"}
                             en={
@@ -477,7 +481,7 @@ export default async function TeamPage() {
                           />
                         </p>
                         {cleanBio && (
-                          <p className="mb-2 text-xs leading-relaxed text-zinc-400 sm:text-xs">
+                          <p className="mb-2 text-sm leading-relaxed text-slate-600 dark:text-zinc-300">
                             {cleanBio}
                           </p>
                         )}

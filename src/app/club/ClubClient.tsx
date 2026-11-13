@@ -303,30 +303,33 @@ export default function ClubClient({
 
       <main id="main-content">
         {/* Hero Section - Fullscreen Attention-Grabbing First Impression */}
-        <section className="keep-dark relative flex h-dvh min-h-dvh w-full flex-col items-center justify-center overflow-hidden bg-zinc-950 px-4 pt-14 pb-8 text-white sm:px-6 sm:pt-16">
+        <section className="relative flex h-dvh min-h-dvh w-full flex-col items-center justify-center overflow-hidden bg-slate-50 px-4 pt-14 pb-8 text-slate-900 sm:px-6 sm:pt-16 dark:bg-zinc-950 dark:text-white">
           <div className="absolute inset-0">
             <Image
               src="/bk-hero.webp"
               alt="БК Гълъбово"
               fill
               sizes="100vw"
-              className="object-cover opacity-45"
+              className="object-cover opacity-20 dark:opacity-45"
               priority
               fetchPriority="high"
             />
-            {/* Rich Dark gradient overlay */}
-            <div className="absolute inset-0 bg-linear-to-b from-black/70 via-zinc-950/75 to-zinc-950" />
+            {/* Theme-aware gradient overlay */}
+            <div className="absolute inset-0 bg-linear-to-b from-blue-50/80 via-slate-50/85 to-slate-50 dark:from-black/70 dark:via-zinc-950/75 dark:to-zinc-950" />
           </div>
 
           <div className="relative z-10 m-auto flex max-w-5xl flex-col items-center justify-center text-center">
-            <div className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-blue-400/50 bg-black/80 px-3.5 py-1.5 text-xs font-semibold tracking-widest text-blue-400 uppercase shadow-[0_0_20px_rgba(30,58,138,0.4)] sm:mb-5 sm:px-4 sm:py-2">
-              <Trophy size={14} className="animate-pulse text-amber-400" />
+            <div className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-50 px-3.5 py-1.5 text-xs font-semibold tracking-widest text-blue-700 uppercase shadow-xs sm:mb-5 sm:px-4 sm:py-2 dark:border-blue-400/50 dark:bg-black/80 dark:text-blue-400 dark:shadow-[0_0_20px_rgba(30,58,138,0.4)]">
+              <Trophy
+                size={14}
+                className="animate-pulse text-amber-500 dark:text-amber-400"
+              />
               Основан 2014 г.
             </div>
 
             <h1 className="mx-auto mb-6 max-w-4xl text-3xl font-black tracking-tight uppercase leading-1.1 sm:mb-8 sm:text-5xl md:text-6xl lg:text-7xl">
               <span className="block sm:inline">Страстта към </span>
-              <span className="text-blue-400 drop-shadow-[0_0_30px_rgba(59,130,246,0.75)]">
+              <span className="text-blue-600 dark:text-blue-400 dark:drop-shadow-[0_0_30px_rgba(59,130,246,0.75)]">
                 Бадминтона
               </span>
             </h1>
@@ -334,7 +337,7 @@ export default function ClubClient({
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-xs sm:max-w-none mx-auto">
               <a
                 href="#contacts"
-                className="group flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-xs font-bold tracking-widest text-white uppercase shadow-[0_0_25px_rgba(30,58,138,0.7)] transition-all hover:-translate-y-1 hover:bg-blue-500 hover:shadow-[0_0_35px_rgba(59,130,246,0.9)] sm:px-9 sm:py-4 sm:text-sm"
+                className="group flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-xs font-bold tracking-widest text-white uppercase shadow-[0_0_25px_rgba(30,58,138,0.35)] transition-all hover:-translate-y-1 hover:bg-blue-500 hover:shadow-[0_0_35px_rgba(59,130,246,0.6)] sm:px-9 sm:py-4 sm:text-sm dark:shadow-[0_0_25px_rgba(30,58,138,0.7)] dark:hover:shadow-[0_0_35px_rgba(59,130,246,0.9)]"
               >
                 Стани Член{" "}
                 <ChevronRight
@@ -344,13 +347,13 @@ export default function ClubClient({
               </a>
               <a
                 href="#schedule"
-                className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-black/80 px-6 py-3.5 text-xs font-bold tracking-widest text-white uppercase transition-all hover:-translate-y-1 hover:border-blue-400 hover:bg-black hover:shadow-[0_0_20px_rgba(30,58,138,0.4)] sm:px-9 sm:py-4 sm:text-sm"
+                className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-xs font-bold tracking-widest text-slate-900 uppercase transition-all hover:-translate-y-1 hover:border-blue-500 hover:bg-blue-50 hover:shadow-[0_0_20px_rgba(30,58,138,0.15)] sm:px-9 sm:py-4 sm:text-sm dark:border-zinc-800 dark:bg-black/80 dark:text-white dark:hover:border-blue-400 dark:hover:bg-black dark:hover:shadow-[0_0_20px_rgba(30,58,138,0.4)]"
               >
                 График и Тренировки
               </a>
               <Link
                 href="/club/parents/login"
-                className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-indigo-500/50 bg-indigo-950/40 px-6 py-3.5 text-xs font-bold tracking-widest text-indigo-200 uppercase transition-all hover:-translate-y-1 hover:border-indigo-400 hover:bg-indigo-900/60 hover:text-white hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] sm:px-8 sm:py-4 sm:text-sm"
+                className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-indigo-300 bg-indigo-50 px-6 py-3.5 text-xs font-bold tracking-widest text-indigo-700 uppercase transition-all hover:-translate-y-1 hover:border-indigo-500 hover:bg-indigo-100 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] sm:px-8 sm:py-4 sm:text-sm dark:border-indigo-500/50 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:border-indigo-400 dark:hover:bg-indigo-900/60 dark:hover:text-white dark:hover:shadow-[0_0_25px_rgba(99,102,241,0.5)]"
               >
                 <Users size={16} />
                 Родителски вход

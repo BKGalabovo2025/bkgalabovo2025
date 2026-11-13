@@ -23,11 +23,11 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-400/20 bg-black/85 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:px-5 lg:gap-3 lg:px-6">
         <Link
           prefetch={false}
           href="/club"
-          className="flex shrink-0 items-center gap-2.5 whitespace-nowrap"
+          className="flex shrink-0 items-center gap-2 whitespace-nowrap"
         >
           <div className="relative size-8 shrink-0 overflow-hidden rounded-xl shadow-[0_0_10px_rgba(30,58,138,0.5)]">
             <Image
@@ -39,13 +39,13 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
               priority
             />
           </div>
-          <span className="max-w-40 truncate text-sm font-semibold tracking-wide whitespace-nowrap text-white uppercase">
+          <span className="max-w-44 truncate text-xs font-bold tracking-wide whitespace-nowrap text-white uppercase sm:max-w-none xl:text-[13px]">
             {brandName}
           </span>
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden items-center gap-5 text-[11px] font-bold tracking-wider whitespace-nowrap text-zinc-400 uppercase lg:flex xl:gap-6">
+        <div className="hidden items-center gap-3 text-[11px] font-bold tracking-wider whitespace-nowrap text-zinc-400 uppercase lg:flex xl:gap-3.5">
           <Link
             prefetch={false}
             href="/club#about"
@@ -113,13 +113,13 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
           </Link>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {/* Brand Switcher Pill */}
           <div className="hidden items-center gap-0.5 rounded-full border border-white/10 bg-white/5 p-0.5 text-[11px] font-semibold whitespace-nowrap xl:inline-flex">
             <Link
               prefetch={false}
               href="/recovery-zone"
-              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 whitespace-nowrap text-emerald-300 transition-colors hover:bg-emerald-500/15 hover:text-emerald-200"
+              className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 whitespace-nowrap text-emerald-300 transition-colors hover:bg-emerald-500/15 hover:text-emerald-200"
             >
               <span className="size-1.5 rounded-full bg-emerald-400" />
               <span>Recovery Zone</span>
@@ -127,7 +127,7 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
             <Link
               prefetch={false}
               href="/"
-              className="rounded-full px-2.5 py-1 whitespace-nowrap text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              className="rounded-full px-2 py-1 whitespace-nowrap text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
             >
               Портал
             </Link>
@@ -136,7 +136,7 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
           <Link
             prefetch={false}
             href="/club/parents/login"
-            className="hidden shrink-0 items-center gap-1.5 rounded-full border border-blue-500/40 bg-linear-to-r from-blue-600/90 to-indigo-600/90 px-3.5 py-1.5 text-[11px] font-bold whitespace-nowrap text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] transition-all hover:border-blue-400 hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] sm:inline-flex"
+            className="hidden shrink-0 items-center gap-1.5 rounded-full border border-blue-500/40 bg-linear-to-r from-blue-600/90 to-indigo-600/90 px-3 py-1.5 text-[11px] font-bold whitespace-nowrap text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] transition-all hover:border-blue-400 hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] sm:inline-flex"
           >
             <Users size={13} className="shrink-0" />
             <span>Родителски вход</span>

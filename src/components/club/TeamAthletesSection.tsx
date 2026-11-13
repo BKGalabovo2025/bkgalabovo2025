@@ -6,6 +6,7 @@ import {
   ChevronUp,
   GraduationCap,
   MapPin,
+  Maximize2,
   Search,
   Share2,
   User as UserIcon,
@@ -23,6 +24,14 @@ const ShareAthleteDialog = dynamic(
   () =>
     import("@/components/club/ShareAthleteDialog").then(
       (mod) => mod.ShareAthleteDialog
+    ),
+  { ssr: false }
+);
+
+const AthleteProfileDialog = dynamic(
+  () =>
+    import("@/components/club/AthleteProfileDialog").then(
+      (mod) => mod.AthleteProfileDialog
     ),
   { ssr: false }
 );
@@ -50,19 +59,23 @@ function isCompetitorMember(member: TeamMemberForCard): boolean {
   );
 }
 
-function clearAthleteQueryParam() {
-  if (
-    typeof window !== "undefined" &&
-    window.location.search.includes("athlete=")
-  ) {
-    const url = new URL(window.location.href);
+function updateAthleteQueryParam(athleteId: string | null) {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (athleteId) {
+    url.searchParams.set("athlete", athleteId);
+  } else {
     url.searchParams.delete("athlete");
-    window.history.replaceState(
-      window.history.state,
-      "",
-      url.pathname + (url.search ? url.search : "") + url.hash
-    );
   }
+  window.history.replaceState(
+    window.history.state,
+    "",
+    url.pathname + (url.search ? url.search : "") + url.hash
+  );
+}
+
+function clearAthleteQueryParam() {
+  updateAthleteQueryParam(null);
 }
 
 function updateShareQueryParam(athleteId: string | null) {
@@ -85,6 +98,8 @@ function TeamAthletesContent({
   sortedAgeGroups,
 }: TeamAthletesSectionProps) {
   const [selectedAthlete, setSelectedAthlete] =
+    useState<TeamMemberForCard | null>(null);
+  const [activeProfileAthlete, setActiveProfileAthlete] =
     useState<TeamMemberForCard | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
@@ -146,29 +161,38 @@ function TeamAthletesContent({
     });
   };
 
-  // Deep-link check: if ?athlete=[id] is present in URL, highlight & scroll to the card
+  // Deep-link check: if ?athlete=[id] is present in URL, open full profile modal & highlight card
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const athleteId = new URLSearchParams(window.location.search).get(
-      "athlete"
-    );
-    if (!athleteId) return;
+    const syncAthleteFromUrl = () => {
+      const athleteId = new URLSearchParams(window.location.search).get(
+        "athlete"
+      );
+      if (!athleteId) {
+        setActiveProfileAthlete(null);
+        return;
+      }
 
-    const matched = allMembers.find((m) => m.id === athleteId);
-    if (matched) {
-      setNotFoundAthleteId(null);
-      setHighlightedAthleteId(matched.id);
-      setExpandedIds((prev) => new Set(prev).add(matched.id));
-      // Scroll to athlete card if in DOM
-      setTimeout(() => {
-        const el = document.getElementById(`athlete-${athleteId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }, 300);
-    } else {
-      setNotFoundAthleteId(athleteId);
-    }
+      const matched = allMembers.find((m) => m.id === athleteId);
+      if (matched) {
+        setNotFoundAthleteId(null);
+        setHighlightedAthleteId(matched.id);
+        setActiveProfileAthlete(matched);
+        setExpandedIds((prev) => new Set(prev).add(matched.id));
+        setTimeout(() => {
+          const el = document.getElementById(`athlete-${athleteId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 300);
+      } else {
+        setNotFoundAthleteId(athleteId);
+      }
+    };
+
+    syncAthleteFromUrl();
+    window.addEventListener("popstate", syncAthleteFromUrl);
+    return () => window.removeEventListener("popstate", syncAthleteFromUrl);
   }, [allMembers]);
 
   // Deep-link check: if ?share=[id] is present in URL, auto-open ShareAthleteDialog
@@ -317,7 +341,7 @@ function TeamAthletesContent({
                 <span className="block h-px flex-1 bg-linear-to-r from-blue-500/50 to-transparent" />
               </h3>
 
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {members.map((member, memberIdx) => {
                   const isAboveTheFold = groupIdx === 0 && memberIdx < 4;
                   const isCompetitor = isCompetitorMember(member);
@@ -332,14 +356,32 @@ function TeamAthletesContent({
                       key={member.id}
                       id={`athlete-${member.id}`}
                       className={cn(
-                        "group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-white backdrop-blur-xl transition-all duration-500 hover:border-blue-500/40 hover:shadow-[0_0_30px_rgba(30,58,138,0.15)] dark:bg-black/40",
+                        "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white backdrop-blur-xl transition-all duration-500 hover:border-blue-500/40 hover:shadow-[0_0_30px_rgba(30,58,138,0.15)] dark:bg-black/40",
                         highlightedAthleteId === member.id
                           ? "border-blue-500 ring-2 ring-blue-500/70 shadow-[0_0_35px_rgba(59,130,246,0.3)]"
                           : "border-slate-200 dark:border-zinc-800/50"
                       )}
                     >
-                      {/* Athlete Photo Container */}
-                      <div className="relative aspect-4/5 overflow-hidden bg-zinc-900">
+                      {/* Athlete Photo Container - Click to enlarge full photo & details */}
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Отвори профила и снимката на ${athleteName}`}
+                        onClick={() => {
+                          setActiveProfileAthlete(member);
+                          setHighlightedAthleteId(member.id);
+                          updateAthleteQueryParam(member.id);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setActiveProfileAthlete(member);
+                            setHighlightedAthleteId(member.id);
+                            updateAthleteQueryParam(member.id);
+                          }
+                        }}
+                        className="keep-dark relative aspect-4/3 cursor-pointer overflow-hidden bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      >
                         <div className="absolute inset-0 z-10 bg-linear-to-t from-black via-black/30 to-transparent" />
                         {validAvatar ? (
                           <Image
@@ -352,32 +394,38 @@ function TeamAthletesContent({
                             }
                             priority={isAboveTheFold}
                             loading={isAboveTheFold ? "eager" : "lazy"}
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                            className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
                           />
                         ) : (
                           <div className="flex size-full items-center justify-center text-zinc-800">
-                            <UserIcon size={80} />
+                            <UserIcon size={64} />
                           </div>
                         )}
+
+                        {/* Subtle enlarge indicator on hover */}
+                        <div className="keep-dark pointer-events-none absolute top-2.5 left-2.5 z-20 flex size-8 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white/90 opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100">
+                          <Maximize2 size={13} />
+                        </div>
 
                         {/* Quick Share Button on photo overlay */}
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedAthlete(member);
                             updateShareQueryParam(member.id);
                           }}
                           title="Сподели профила"
                           aria-label={`Сподели профила на ${athleteName}`}
-                          className="keep-dark absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white/90 backdrop-blur-md transition-all hover:scale-105 hover:bg-blue-600 hover:text-white"
+                          className="keep-dark absolute top-2.5 right-2.5 z-20 flex size-8 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white/90 backdrop-blur-md transition-all hover:scale-105 hover:bg-blue-600 hover:text-white"
                         >
                           <Share2 size={14} />
                         </button>
 
                         {/* Name & Age Group Overlay */}
-                        <div className="keep-dark absolute inset-x-0 bottom-0 z-20 p-4 sm:p-5">
-                          <h4 className="mb-1.5 text-lg font-semibold text-white drop-shadow-md sm:text-xl wrap-break-word">
+                        <div className="keep-dark absolute inset-x-0 bottom-0 z-20 p-3.5 sm:p-4">
+                          <h4 className="mb-1 text-base font-semibold text-white drop-shadow-md sm:text-lg wrap-break-word">
                             {athleteName}
                           </h4>
                           <div className="flex flex-wrap items-center gap-1.5">
@@ -398,10 +446,10 @@ function TeamAthletesContent({
                       </div>
 
                       {/* Athlete Details: School & Tournaments */}
-                      <div className="flex flex-1 flex-col gap-3.5 border-t border-slate-200 bg-white p-4 sm:p-5 dark:border-zinc-800/50 dark:bg-zinc-950/60">
+                      <div className="flex flex-1 flex-col gap-2.5 border-t border-slate-200 bg-white p-3.5 sm:p-4 dark:border-zinc-800/50 dark:bg-zinc-950/60">
                         {member.educationInstitution && (
                           <div className="flex items-start gap-2 text-xs text-zinc-300">
-                            <GraduationCap className="mt-0.5 size-4 shrink-0 text-blue-400" />
+                            <GraduationCap className="mt-0.5 size-3.5 shrink-0 text-blue-400" />
                             <span className="leading-snug font-medium wrap-break-word">
                               {member.educationInstitution}
                             </span>
@@ -409,7 +457,7 @@ function TeamAthletesContent({
                         )}
 
                         <div className="flex flex-1 flex-col">
-                          <div className="mb-2 flex items-center justify-between text-[11px] font-semibold tracking-wider text-blue-400 uppercase">
+                          <div className="mb-1.5 flex items-center justify-between text-[11px] font-semibold tracking-wider text-blue-400 uppercase">
                             <span className="flex items-center gap-1.5">
                               <MapPin size={12} />
                               Състезания
@@ -425,10 +473,10 @@ function TeamAthletesContent({
                             </p>
                           ) : (
                             <div>
-                              <ul className="space-y-1.5">
+                              <ul className="space-y-1">
                                 {(isExpanded
                                   ? tournaments
-                                  : tournaments.slice(0, 3)
+                                  : tournaments.slice(0, 2)
                                 ).map((t, idx) => (
                                   <li
                                     key={idx}
@@ -442,11 +490,11 @@ function TeamAthletesContent({
                                 ))}
                               </ul>
 
-                              {tournaments.length > 3 && (
+                              {tournaments.length > 2 && (
                                 <button
                                   type="button"
                                   onClick={() => toggleAthleteExpand(member.id)}
-                                  className="mt-2.5 inline-flex items-center gap-1 text-xs font-semibold text-blue-400 transition-colors hover:text-blue-300"
+                                  className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-blue-400 transition-colors hover:text-blue-300"
                                 >
                                   {isExpanded ? (
                                     <>
@@ -457,7 +505,7 @@ function TeamAthletesContent({
                                     <>
                                       <ChevronDown className="size-3.5" />
                                       <span>
-                                        Още {tournaments.length - 3} състезания
+                                        Още {tournaments.length - 2} състезания
                                       </span>
                                     </>
                                   )}
@@ -476,7 +524,21 @@ function TeamAthletesContent({
         </div>
       )}
 
-      {/* Share Athlete Dialog */}
+      {/* Enlarged Athlete Profile Dialog (?athlete=[id]) */}
+      {activeProfileAthlete && (
+        <AthleteProfileDialog
+          member={activeProfileAthlete}
+          open={Boolean(activeProfileAthlete)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setActiveProfileAthlete(null);
+              clearAthleteQueryParam();
+            }
+          }}
+        />
+      )}
+
+      {/* Share Athlete Dialog (?share=[id]) */}
       {selectedAthlete && (
         <ShareAthleteDialog
           member={selectedAthlete}

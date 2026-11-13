@@ -3,13 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ShareAthleteDialog } from "../ShareAthleteDialog";
 
-// Mock QRCode
-vi.mock("qrcode", () => ({
-  default: {
-    toDataURL: vi.fn().mockResolvedValue("data:image/png;base64,mockqr"),
-  },
-}));
-
 // Mock sonner toast
 vi.mock("sonner", () => ({
   toast: {
@@ -29,11 +22,7 @@ describe("ShareAthleteDialog", () => {
     skillLevel: "advanced" as const,
     ageGroupDisplay: "U11",
     educationInstitution: "СУ „Васил Левски“ - Гълъбово",
-    tournaments: [
-      "Държавно лично първенство U11",
-      "Турнир Млади Таланти Севлиево",
-      "Коледен турнир Гълъбово",
-    ],
+    tournaments: ["Държавно лично първенство U11"],
   };
 
   beforeEach(() => {
@@ -55,7 +44,7 @@ describe("ShareAthleteDialog", () => {
     expect(container!).toBeEmptyDOMElement();
   });
 
-  it("renders athlete details correctly when open", async () => {
+  it("renders athlete name and direct URL link when open", async () => {
     await act(async () => {
       render(
         <ShareAthleteDialog
@@ -66,48 +55,17 @@ describe("ShareAthleteDialog", () => {
       );
     });
 
-    // Checks name
     expect(screen.getAllByText("Християн Христов").length).toBeGreaterThan(0);
-    // Checks skill level badge
-    expect(screen.getByText("Състезател")).toBeInTheDocument();
-    // Checks school
     expect(
-      screen.getByText("СУ „Васил Левски“ - Гълъбово")
+      screen.getByText(/\/club\/team\?athlete=athlete-123/)
     ).toBeInTheDocument();
-    // Checks tournament count
-    expect(screen.getByText("Участия в Турнири (3)")).toBeInTheDocument();
-    // Checks tournament names
-    expect(
-      screen.getByText("Държавно лично първенство U11")
-    ).toBeInTheDocument();
-  });
 
-  it("opens Facebook sharer when clicking Facebook share button", async () => {
-    const windowOpenSpy = vi
-      .spyOn(window, "open")
-      .mockImplementation(() => null);
-
-    await act(async () => {
-      render(
-        <ShareAthleteDialog
-          member={mockMember}
-          open={true}
-          onOpenChange={vi.fn()}
-        />
-      );
-    });
-
-    const fbButton = screen.getByText("Facebook").closest("button");
-    expect(fbButton).toBeInTheDocument();
-    await act(async () => {
-      fireEvent.click(fbButton!);
-    });
-
-    expect(windowOpenSpy).toHaveBeenCalledWith(
-      expect.stringContaining("facebook.com/sharer/sharer.php"),
-      "_blank",
-      expect.any(String)
+    const directLink = screen.getByTitle("Отвори URL страницата");
+    expect(directLink).toHaveAttribute(
+      "href",
+      "/club/team?athlete=athlete-123"
     );
+    expect(screen.getByText("Сподели")).toBeInTheDocument();
   });
 
   it("copies direct link to clipboard when clicking copy button", async () => {
@@ -128,14 +86,14 @@ describe("ShareAthleteDialog", () => {
       );
     });
 
-    const copyBtn = screen.getByText("Копирай директен линк").closest("button");
+    const copyBtn = screen.getByText("Копирай линк").closest("button");
     expect(copyBtn).toBeInTheDocument();
     await act(async () => {
       fireEvent.click(copyBtn!);
     });
 
     expect(writeTextMock).toHaveBeenCalledWith(
-      expect.stringContaining("athlete=athlete-123")
+      expect.stringContaining("/club/team?athlete=athlete-123")
     );
   });
 });

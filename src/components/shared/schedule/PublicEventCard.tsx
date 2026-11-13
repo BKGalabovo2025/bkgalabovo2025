@@ -73,7 +73,7 @@ const EVENT_TYPE_STYLES: Record<string, EventTypeConfig> = {
   training: {
     label: "Тренировка",
     badgeBg: "bg-blue-500/15",
-    badgeText: "text-blue-300",
+    badgeText: "text-blue-700 dark:text-blue-300",
     badgeBorder: "border-blue-500/30",
     barBg: "bg-blue-500",
     barShadow: "shadow-[0_0_8px_rgba(59,130,246,0.6)]",
@@ -84,7 +84,7 @@ const EVENT_TYPE_STYLES: Record<string, EventTypeConfig> = {
   competition: {
     label: "Състезание / Турнир",
     badgeBg: "bg-amber-500/15",
-    badgeText: "text-amber-300",
+    badgeText: "text-amber-800 dark:text-amber-300",
     badgeBorder: "border-amber-500/40",
     barBg: "bg-amber-500",
     barShadow: "shadow-[0_0_8px_rgba(245,158,11,0.6)]",
@@ -95,7 +95,7 @@ const EVENT_TYPE_STYLES: Record<string, EventTypeConfig> = {
   camp: {
     label: "Спортен лагер",
     badgeBg: "bg-emerald-500/15",
-    badgeText: "text-emerald-300",
+    badgeText: "text-emerald-800 dark:text-emerald-300",
     badgeBorder: "border-emerald-500/40",
     barBg: "bg-emerald-500",
     barShadow: "shadow-[0_0_8px_rgba(16,185,129,0.6)]",
@@ -106,7 +106,7 @@ const EVENT_TYPE_STYLES: Record<string, EventTypeConfig> = {
   event: {
     label: "Клубно събитие",
     badgeBg: "bg-purple-500/15",
-    badgeText: "text-purple-300",
+    badgeText: "text-purple-800 dark:text-purple-300",
     badgeBorder: "border-purple-500/40",
     barBg: "bg-purple-500",
     barShadow: "shadow-[0_0_8px_rgba(168,85,247,0.6)]",
@@ -117,7 +117,7 @@ const EVENT_TYPE_STYLES: Record<string, EventTypeConfig> = {
   other: {
     label: "Друго събитие",
     badgeBg: "bg-cyan-500/15",
-    badgeText: "text-cyan-300",
+    badgeText: "text-cyan-800 dark:text-cyan-300",
     badgeBorder: "border-cyan-500/40",
     barBg: "bg-cyan-500",
     barShadow: "shadow-[0_0_8px_rgba(6,182,212,0.6)]",
@@ -261,7 +261,7 @@ export function PublicEventCard({
               )}
 
               {event.isCancelled && (
-                <span className="rounded-md border border-rose-500/30 bg-rose-500/20 px-2.5 py-1 text-[10px] font-bold tracking-widest text-rose-300 uppercase">
+                <span className="rounded-md border border-rose-500/30 bg-rose-500/15 px-2.5 py-1 text-[10px] font-bold tracking-widest text-rose-700 uppercase dark:bg-rose-500/20 dark:text-rose-300">
                   Отменена
                 </span>
               )}
@@ -297,11 +297,17 @@ export function PublicEventCard({
                       ? "noopener noreferrer"
                       : undefined
                   }
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300 transition-colors hover:bg-amber-500/20"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
                 >
-                  <Trophy size={13} className="text-amber-400" />
+                  <Trophy
+                    size={13}
+                    className="text-amber-600 dark:text-amber-400"
+                  />
                   <span>Страница на състезанието / Схема</span>
-                  <ExternalLink size={12} className="text-amber-300" />
+                  <ExternalLink
+                    size={12}
+                    className="text-amber-700 dark:text-amber-300"
+                  />
                 </a>
               </div>
             )}
@@ -355,7 +361,7 @@ export function PublicEventCard({
           {event.type === "camp" && event.id && (
             <Link
               href={`/club/camps/${event.id}`}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-600/15 px-3 py-1.5 text-xs font-bold text-emerald-300 transition-colors hover:bg-emerald-600/25 hover:text-white"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-600/15 px-3 py-1.5 text-xs font-bold text-emerald-800 transition-colors hover:bg-emerald-600/25 hover:text-emerald-950 dark:text-emerald-300 dark:hover:text-white"
             >
               <span>Детайли за лагера</span>
               <ChevronRight size={14} />
@@ -384,7 +390,7 @@ export function PublicEventCard({
                 setIsInquiryOpen(true);
                 if (event.id) updateEventUrlParam("eventInquire", event.id);
               }}
-              className="ml-2 inline-flex items-center gap-1.5 rounded-xl border border-blue-500/40 bg-blue-600/20 px-3.5 py-1.5 text-xs font-bold text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)] transition-all hover:border-blue-400 hover:bg-blue-600/30 hover:text-white"
+              className="ml-2 inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-blue-500/40 bg-blue-600/20 px-3.5 py-1.5 text-xs font-bold whitespace-nowrap text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)] transition-all hover:border-blue-400 hover:bg-blue-600/30 hover:text-white"
             >
               <span>Запиши се</span>
               <ChevronRight

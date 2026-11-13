@@ -27,6 +27,7 @@ interface CoachPhotoGalleryProps {
   className?: string;
   children?: React.ReactNode;
   priority?: boolean;
+  layout?: "vertical" | "horizontal";
 }
 
 interface PhotoItem {
@@ -41,7 +42,9 @@ export function CoachPhotoGallery({
   className = "",
   children,
   priority = true,
+  layout = "vertical",
 }: CoachPhotoGalleryProps) {
+  const isHorizontal = layout === "horizontal";
   // Lightbox state: active photo index, or null if closed
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const filmstripRef = useRef<HTMLDivElement>(null);
@@ -205,10 +208,18 @@ export function CoachPhotoGallery({
   return (
     <>
       <div
-        className={`relative flex w-full flex-col items-center text-center ${className}`}
+        className={`relative flex w-full flex-col items-center text-center ${
+          isHorizontal
+            ? "gap-5 md:flex-row md:items-start md:gap-8 md:text-left"
+            : ""
+        } ${className}`}
       >
         {/* Main Coach Avatar / Featured Photo */}
-        <div className="relative mb-3 sm:mb-4">
+        <div
+          className={
+            isHorizontal ? "relative shrink-0" : "relative mb-3 sm:mb-4"
+          }
+        >
           {primaryUrl ? (
             <div
               role="button"
@@ -222,13 +233,17 @@ export function CoachPhotoGallery({
                 }
               }}
               title="Кликнете за преглед на цял екран"
-              className="group/avatar relative size-28 cursor-pointer overflow-hidden rounded-full border-2 border-zinc-800 bg-zinc-900 shadow-xl transition-all duration-300 hover:scale-105 hover:border-blue-500/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:size-32"
+              className={`group/avatar keep-dark relative cursor-pointer overflow-hidden border-2 border-slate-200 bg-zinc-900 shadow-lg transition-all duration-300 hover:scale-103 hover:border-blue-500/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-800 ${
+                isHorizontal
+                  ? "size-44 rounded-2xl sm:size-52"
+                  : "size-28 rounded-full sm:size-32"
+              }`}
             >
               <Image
                 src={primaryUrl}
                 alt={coach.name}
                 fill
-                sizes="128px"
+                sizes={isHorizontal ? "208px" : "128px"}
                 unoptimized={
                   primaryUrl.startsWith("data:") ||
                   primaryUrl.includes("/api/upload")
@@ -244,96 +259,116 @@ export function CoachPhotoGallery({
 
               {/* Total photos badge */}
               {allPhotos.length > 1 && (
-                <div className="absolute inset-x-0 bottom-1.5 mx-auto flex w-fit items-center gap-1 rounded-full border border-white/20 bg-black/80 px-2 py-0.5 text-[9px] font-semibold text-white shadow-lg backdrop-blur-md">
-                  <Camera className="size-2.5 text-blue-400" />
+                <div className="keep-dark absolute inset-x-0 bottom-2 mx-auto flex w-fit items-center gap-1 rounded-full border border-white/20 bg-black/80 px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-lg backdrop-blur-md">
+                  <Camera className="size-3 text-blue-400" />
                   <span>{allPhotos.length} снимки</span>
                 </div>
               )}
             </div>
           ) : (
-            <div className="flex size-28 items-center justify-center rounded-full border-2 border-zinc-800 bg-zinc-900 text-zinc-700 shadow-xl sm:size-32">
+            <div
+              className={`flex items-center justify-center border-2 border-slate-200 bg-slate-100 text-slate-400 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-700 ${
+                isHorizontal
+                  ? "size-44 rounded-2xl sm:size-52"
+                  : "size-28 rounded-full sm:size-32"
+              }`}
+            >
               <UserIcon size={44} />
             </div>
           )}
         </div>
 
-        {/* Coach Details (Name, Role, Bio passed as children) */}
-        {children}
+        <div
+          className={
+            isHorizontal
+              ? "flex min-w-0 flex-1 flex-col items-center text-center md:items-start md:text-left"
+              : "flex w-full flex-col items-center"
+          }
+        >
+          {/* Coach Details (Name, Role, Bio passed as children) */}
+          {children}
 
-        {/* Compact Preview Strip (Only when additional photos exist) */}
-        {additionalPhotos.length > 0 && (
-          <div className="mt-4 w-full border-t border-zinc-800/60 pt-4">
-            {/* Row of 4 thumbnails with "+X" badge on the last one */}
-            <div className="flex items-center justify-center gap-2">
-              {visibleThumbs.map((photo, idx) => {
-                // Corresponding index in allPhotos (primary is index 0, so additional is idx + 1)
-                const targetIndex = idx + 1;
-                const isLastWithMore =
-                  idx === MAX_PREVIEW_THUMBS - 1 && remainingCount > 0;
-
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleOpenLightbox(targetIndex)}
-                    aria-label={
-                      isLastWithMore
-                        ? `Виж още ${remainingCount} снимки`
-                        : photo.caption || `Снимка ${targetIndex}`
-                    }
-                    title={
-                      isLastWithMore
-                        ? `Виж още ${remainingCount} снимки`
-                        : photo.caption || `Снимка ${targetIndex}`
-                    }
-                    className="group/thumb relative size-14 cursor-pointer overflow-hidden rounded-xl border border-zinc-700/80 bg-zinc-900 shadow-md transition-all duration-300 hover:scale-108 hover:border-blue-400 hover:shadow-[0_0_15px_rgba(96,165,250,0.3)] active:scale-95 sm:size-16"
-                  >
-                    <Image
-                      src={photo.url}
-                      alt={`${coach.name} миниатюра ${idx + 1}`}
-                      fill
-                      sizes="64px"
-                      unoptimized={
-                        photo.url.startsWith("data:") ||
-                        photo.url.includes("/api/upload")
-                      }
-                      className="object-cover transition-transform duration-500 group-hover/thumb:scale-110"
-                    />
-
-                    {isLastWithMore ? (
-                      /* "+X още" Overlay on 4th thumbnail */
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-[1px] transition-colors group-hover/thumb:bg-black/60">
-                        <span className="text-xs font-bold text-white drop-shadow-md sm:text-sm">
-                          +{remainingCount}
-                        </span>
-                        <span className="text-[9px] font-medium text-blue-300">
-                          още
-                        </span>
-                      </div>
-                    ) : (
-                      /* Regular hover zoom icon */
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[1px] transition-opacity duration-200 group-hover/thumb:opacity-100">
-                        <Maximize2 className="size-4 text-white drop-shadow-md" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Pill Button: "Разгледай галерия (N снимки)" */}
-            <div className="mt-3.5">
-              <button
-                type="button"
-                onClick={() => handleOpenLightbox(0)}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-400 transition-all duration-300 hover:scale-103 hover:border-blue-500/60 hover:bg-blue-500/20 hover:text-white hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95"
+          {/* Compact Preview Strip (Only when additional photos exist) */}
+          {additionalPhotos.length > 0 && (
+            <div className="mt-4 w-full border-t border-slate-200 pt-4 dark:border-zinc-800/60">
+              {/* Row of 4 thumbnails with "+X" badge on the last one */}
+              <div
+                className={`flex items-center gap-2 ${
+                  isHorizontal
+                    ? "justify-center md:justify-start"
+                    : "justify-center"
+                }`}
               >
-                <Camera className="size-3.5" />
-                <span>Разгледай галерия ({allPhotos.length} снимки)</span>
-              </button>
+                {visibleThumbs.map((photo, idx) => {
+                  // Corresponding index in allPhotos (primary is index 0, so additional is idx + 1)
+                  const targetIndex = idx + 1;
+                  const isLastWithMore =
+                    idx === MAX_PREVIEW_THUMBS - 1 && remainingCount > 0;
+
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleOpenLightbox(targetIndex)}
+                      aria-label={
+                        isLastWithMore
+                          ? `Виж още ${remainingCount} снимки`
+                          : photo.caption || `Снимка ${targetIndex}`
+                      }
+                      title={
+                        isLastWithMore
+                          ? `Виж още ${remainingCount} снимки`
+                          : photo.caption || `Снимка ${targetIndex}`
+                      }
+                      className="group/thumb relative size-14 cursor-pointer overflow-hidden rounded-xl border border-zinc-700/80 bg-zinc-900 shadow-md transition-all duration-300 hover:scale-108 hover:border-blue-400 hover:shadow-[0_0_15px_rgba(96,165,250,0.3)] active:scale-95 sm:size-16"
+                    >
+                      <Image
+                        src={photo.url}
+                        alt={`${coach.name} миниатюра ${idx + 1}`}
+                        fill
+                        sizes="64px"
+                        unoptimized={
+                          photo.url.startsWith("data:") ||
+                          photo.url.includes("/api/upload")
+                        }
+                        className="object-cover transition-transform duration-500 group-hover/thumb:scale-110"
+                      />
+
+                      {isLastWithMore ? (
+                        /* "+X още" Overlay on 4th thumbnail */
+                        <div className="keep-dark absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-[1px] transition-colors group-hover/thumb:bg-black/60">
+                          <span className="text-xs font-bold text-white drop-shadow-md sm:text-sm">
+                            +{remainingCount}
+                          </span>
+                          <span className="text-[9px] font-medium text-blue-300">
+                            още
+                          </span>
+                        </div>
+                      ) : (
+                        /* Regular hover zoom icon */
+                        <div className="keep-dark absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[1px] transition-opacity duration-200 group-hover/thumb:opacity-100">
+                          <Maximize2 className="size-4 text-white drop-shadow-md" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Pill Button: "Разгледай галерия (N снимки)" */}
+              <div className="mt-3.5">
+                <button
+                  type="button"
+                  onClick={() => handleOpenLightbox(0)}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-600 transition-all duration-300 hover:scale-103 hover:border-blue-500/60 hover:bg-blue-500/20 hover:text-blue-700 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] active:scale-95 dark:text-blue-400 dark:hover:text-white"
+                >
+                  <Camera className="size-3.5" />
+                  <span>Разгледай галерия ({allPhotos.length} снимки)</span>
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Luxury Fullscreen Lightbox / Carousel Modal */}

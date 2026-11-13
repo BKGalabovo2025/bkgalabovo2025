@@ -26,12 +26,12 @@ export function RecoveryNav({ onBookClick, site }: RecoveryNavProps) {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-emerald-500/20 bg-black/85 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:px-5 lg:gap-3 lg:px-6">
         {/* Brand */}
         <Link
           prefetch={false}
           href="/recovery-zone"
-          className="group flex shrink-0 items-center gap-2.5 whitespace-nowrap transition-opacity hover:opacity-95"
+          className="group flex shrink-0 items-center gap-2 whitespace-nowrap transition-opacity hover:opacity-95"
         >
           <div className="relative size-9 shrink-0 overflow-hidden rounded-xl border border-emerald-500/50 bg-emerald-950/40 p-1.5 shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all group-hover:border-emerald-400 group-hover:shadow-[0_0_16px_rgba(16,185,129,0.5)]">
             <Image
@@ -44,7 +44,7 @@ export function RecoveryNav({ onBookClick, site }: RecoveryNavProps) {
             />
           </div>
           <div className="flex flex-col leading-none">
-            <span className="max-w-40 truncate text-sm font-bold tracking-wider whitespace-nowrap text-white">
+            <span className="max-w-32 truncate text-sm font-bold tracking-wider whitespace-nowrap text-white xl:max-w-36">
               {brandName}
             </span>
             <span className="mt-0.5 text-[10px] font-semibold tracking-widest whitespace-nowrap text-emerald-400">
@@ -54,7 +54,7 @@ export function RecoveryNav({ onBookClick, site }: RecoveryNavProps) {
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden items-center gap-6 text-[11px] font-bold tracking-wider whitespace-nowrap text-zinc-400 uppercase lg:flex xl:gap-7">
+        <div className="hidden items-center gap-4 text-[11px] font-bold tracking-wider whitespace-nowrap text-zinc-400 uppercase lg:flex xl:gap-5">
           <Link
             prefetch={false}
             href="/recovery-zone#about"
