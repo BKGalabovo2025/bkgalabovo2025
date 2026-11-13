@@ -380,9 +380,9 @@ function TeamAthletesContent({
                             updateAthleteQueryParam(member.id);
                           }
                         }}
-                        className="keep-dark relative aspect-4/3 cursor-pointer overflow-hidden bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        className="keep-dark relative aspect-4/5 cursor-pointer overflow-hidden bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:aspect-3/4"
                       >
-                        <div className="absolute inset-0 z-10 bg-linear-to-t from-black via-black/30 to-transparent" />
+                        <div className="absolute inset-x-0 bottom-0 z-10 h-32 bg-linear-to-t from-black via-black/40 to-transparent" />
                         {validAvatar ? (
                           <Image
                             src={validAvatar}

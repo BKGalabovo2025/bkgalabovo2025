@@ -252,6 +252,18 @@ function discoverRoutes(sampleParams = {}) {
           }
         }
 
+        // Пропускаме страници, които са само чисто пренасочване (redirect shims без UI)
+        try {
+          const fileContent = fs.readFileSync(fullPath, "utf8");
+          if (
+            fileContent.includes("redirect(") &&
+            !fileContent.includes("<") &&
+            !fileContent.includes("return (")
+          ) {
+            continue;
+          }
+        } catch {}
+
         const isProtected =
           fullPath.includes("(protected)") || route.startsWith("/club/parents");
 

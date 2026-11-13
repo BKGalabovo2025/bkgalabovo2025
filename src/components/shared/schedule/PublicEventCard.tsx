@@ -297,16 +297,16 @@ export function PublicEventCard({
                       ? "noopener noreferrer"
                       : undefined
                   }
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/50 bg-amber-100/90 px-3 py-1 text-xs font-bold text-amber-950 transition-colors hover:bg-amber-200 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/60"
                 >
                   <Trophy
                     size={13}
-                    className="text-amber-600 dark:text-amber-400"
+                    className="text-amber-800 dark:text-amber-400"
                   />
                   <span>Страница на състезанието / Схема</span>
                   <ExternalLink
                     size={12}
-                    className="text-amber-700 dark:text-amber-300"
+                    className="text-amber-800 dark:text-amber-300"
                   />
                 </a>
               </div>
@@ -320,20 +320,20 @@ export function PublicEventCard({
                     setIsDocViewerOpen(true);
                     if (event.id) updateEventUrlParam("doc", event.id);
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300 transition-colors hover:bg-blue-500/20"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-400/50 bg-blue-100/80 px-3 py-1 text-xs font-bold text-blue-900 transition-colors hover:bg-blue-200/90 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-500/20"
                 >
                   {getDocumentIcon(event.attachmentType, "size-3.5")}
                   <span className="max-w-50 truncate sm:max-w-75">
                     {event.attachmentName || "Наредба за състезанието"}
                   </span>
-                  <Eye size={12} className="text-blue-300" />
+                  <Eye size={12} className="text-blue-700 dark:text-blue-300" />
                 </button>
                 <a
                   href={event.attachmentUrl}
                   download={event.attachmentName || "document"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 p-1 text-zinc-200 transition-colors hover:bg-zinc-700 hover:text-white"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-slate-100 p-1 text-slate-700 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 dark:hover:text-white"
                   title="Изтегли файла"
                   aria-label="Изтегли файла"
                 >
@@ -372,7 +372,7 @@ export function PublicEventCard({
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-blue-300 transition-colors hover:text-blue-200"
+              className="flex items-center gap-1.5 text-[13px] font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
             >
               <Info size={16} />
               <span>{expanded ? "Свий описанието" : "Виж бележките"}</span>
@@ -390,7 +390,7 @@ export function PublicEventCard({
                 setIsInquiryOpen(true);
                 if (event.id) updateEventUrlParam("eventInquire", event.id);
               }}
-              className="ml-2 inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-blue-500/40 bg-blue-600/20 px-3.5 py-1.5 text-xs font-bold whitespace-nowrap text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)] transition-all hover:border-blue-400 hover:bg-blue-600/30 hover:text-white"
+              className="ml-2 inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-blue-500 bg-blue-600 px-3.5 py-1.5 text-xs font-bold whitespace-nowrap text-white shadow-sm transition-all hover:bg-blue-700 dark:border-blue-500/40 dark:bg-blue-600/20 dark:text-blue-300 dark:shadow-[0_0_12px_rgba(59,130,246,0.2)] dark:hover:border-blue-400 dark:hover:bg-blue-600/30 dark:hover:text-white"
             >
               <span>Запиши се</span>
               <ChevronRight

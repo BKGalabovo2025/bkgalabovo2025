@@ -347,13 +347,13 @@ export default function ClubClient({
               </a>
               <a
                 href="#schedule"
-                className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-xs font-bold tracking-widest text-slate-900 uppercase transition-all hover:-translate-y-1 hover:border-blue-500 hover:bg-blue-50 hover:shadow-[0_0_20px_rgba(30,58,138,0.15)] sm:px-9 sm:py-4 sm:text-sm dark:border-zinc-800 dark:bg-black/80 dark:text-white dark:hover:border-blue-400 dark:hover:bg-black dark:hover:shadow-[0_0_20px_rgba(30,58,138,0.4)]"
+                className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-xs font-bold tracking-widest text-slate-900 uppercase transition-all hover:-translate-y-1 hover:border-blue-500 hover:bg-blue-50 hover:shadow-[0_0_20px_rgba(30,58,138,0.15)] sm:px-9 sm:py-4 sm:text-sm dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:border-blue-400 dark:hover:bg-white/20 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] backdrop-blur-md"
               >
                 График и Тренировки
               </a>
               <Link
                 href="/club/parents/login"
-                className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-indigo-300 bg-indigo-50 px-6 py-3.5 text-xs font-bold tracking-widest text-indigo-700 uppercase transition-all hover:-translate-y-1 hover:border-indigo-500 hover:bg-indigo-100 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] sm:px-8 sm:py-4 sm:text-sm dark:border-indigo-500/50 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:border-indigo-400 dark:hover:bg-indigo-900/60 dark:hover:text-white dark:hover:shadow-[0_0_25px_rgba(99,102,241,0.5)]"
+                className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-indigo-300 bg-indigo-50 px-6 py-3.5 text-xs font-bold tracking-widest text-indigo-700 uppercase transition-all hover:-translate-y-1 hover:border-indigo-500 hover:bg-indigo-100 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] sm:px-8 sm:py-4 sm:text-sm dark:border-indigo-400/40 dark:bg-indigo-600/20 dark:text-indigo-200 dark:hover:border-indigo-300 dark:hover:bg-indigo-600/35 dark:hover:text-white dark:hover:shadow-[0_0_25px_rgba(99,102,241,0.4)] backdrop-blur-md"
               >
                 <Users size={16} />
                 Родителски вход

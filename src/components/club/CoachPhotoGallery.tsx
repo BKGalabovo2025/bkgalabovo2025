@@ -233,17 +233,19 @@ export function CoachPhotoGallery({
                 }
               }}
               title="Кликнете за преглед на цял екран"
-              className={`group/avatar keep-dark relative cursor-pointer overflow-hidden border-2 border-slate-200 bg-zinc-900 shadow-lg transition-all duration-300 hover:scale-103 hover:border-blue-500/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-800 ${
+              className={`group/avatar keep-dark relative cursor-pointer overflow-hidden border-2 border-slate-200 bg-zinc-900 shadow-lg transition-all duration-300 hover:scale-102 hover:border-blue-500/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-800 ${
                 isHorizontal
-                  ? "size-44 rounded-2xl sm:size-52"
-                  : "size-28 rounded-full sm:size-32"
+                  ? "w-48 h-60 sm:w-56 sm:h-72 rounded-2xl"
+                  : "w-40 h-50 sm:w-48 sm:h-60 rounded-2xl"
               }`}
             >
               <Image
                 src={primaryUrl}
                 alt={coach.name}
                 fill
-                sizes={isHorizontal ? "208px" : "128px"}
+                sizes={
+                  isHorizontal ? "(max-width: 640px) 192px, 224px" : "192px"
+                }
                 unoptimized={
                   primaryUrl.startsWith("data:") ||
                   primaryUrl.includes("/api/upload")
@@ -269,8 +271,8 @@ export function CoachPhotoGallery({
             <div
               className={`flex items-center justify-center border-2 border-slate-200 bg-slate-100 text-slate-400 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-700 ${
                 isHorizontal
-                  ? "size-44 rounded-2xl sm:size-52"
-                  : "size-28 rounded-full sm:size-32"
+                  ? "w-48 h-60 sm:w-56 sm:h-72 rounded-2xl"
+                  : "w-40 h-50 sm:w-48 sm:h-60 rounded-2xl"
               }`}
             >
               <UserIcon size={44} />

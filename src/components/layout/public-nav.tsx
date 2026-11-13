@@ -39,13 +39,13 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
               priority
             />
           </div>
-          <span className="max-w-44 truncate text-xs font-bold tracking-wide whitespace-nowrap text-white uppercase sm:max-w-none xl:text-[13px]">
+          <span className="max-w-44 truncate text-xs font-bold tracking-wide whitespace-nowrap text-white uppercase sm:max-w-none sm:overflow-visible sm:text-clip xl:text-[13px]">
             {brandName}
           </span>
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden items-center gap-3 text-[11px] font-bold tracking-wider whitespace-nowrap text-zinc-400 uppercase lg:flex xl:gap-3.5">
+        <div className="hidden items-center gap-2.5 text-[10.5px] font-bold tracking-wider whitespace-nowrap text-zinc-400 uppercase lg:flex xl:gap-3.5 xl:text-[11px]">
           <Link
             prefetch={false}
             href="/club#about"
