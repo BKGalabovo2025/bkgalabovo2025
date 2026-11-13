@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { Activity, Loader2, TrendingUp } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   CartesianGrid,
@@ -24,10 +25,13 @@ import { BeepTestResult } from "@/types/beep-test.types";
 
 export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
   const getScoreColor = (score: string) => {
-    if (score === "Елитен състезател") return "bg-purple-100 text-purple-700";
-    if (score === "Отличен") return "bg-emerald-100 text-emerald-700";
-    if (score === "Лош") return "bg-red-100 text-red-700";
-    return "bg-blue-100 text-blue-700";
+    if (score === "Елитен състезател")
+      return "bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300";
+    if (score === "Отличен")
+      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300";
+    if (score === "Лош")
+      return "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300";
+    return "bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300";
   };
 
   const getBeepTestReport = (entry: BeepTestResult) => {
@@ -124,10 +128,26 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
         <h3 className="text-lg font-bold text-zinc-700 dark:text-zinc-100">
           Няма данни от тестове
         </h3>
-        <p className="mt-2 text-sm text-zinc-500">
+        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
           Започнете да провеждате тестове от меню &quot;Тренировъчен процес
           -&gt; Тестове&quot;.
         </p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/training/assessments"
+            className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            <TrendingUp className="size-3.5" />
+            Физически тестове
+          </Link>
+          <Link
+            href="/training/beep-test"
+            className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+          >
+            <Activity className="size-3.5" />
+            Бийп тест
+          </Link>
+        </div>
       </div>
     );
   }
@@ -144,6 +164,22 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
 
   return (
     <div className="space-y-8 duration-500 animate-in fade-in">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Link
+          href="/training/assessments"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        >
+          <TrendingUp className="size-3.5" />
+          Физически тестове
+        </Link>
+        <Link
+          href="/training/beep-test"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        >
+          <Activity className="size-3.5" />
+          Бийп тест
+        </Link>
+      </div>
       {/* BEEP TEST RESULTS CARD */}
       {beepResults.length > 0 && (
         <div className="rounded-3xl border border-indigo-100 bg-white p-5 shadow-sm shadow-indigo-100/50 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none">
@@ -184,7 +220,10 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                   activeDot={{ r: 8 }}
                   name="VO2 Max"
                 />
-                <CartesianGrid stroke="#f4f4f5" strokeDasharray="5 5" />
+                <CartesianGrid
+                  className="stroke-zinc-200 dark:stroke-zinc-800"
+                  strokeDasharray="5 5"
+                />
                 <XAxis
                   dataKey="formattedDate"
                   tick={{ fontSize: 12, fill: "#71717a" }}
@@ -198,9 +237,12 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                 <Tooltip
                   contentStyle={{
                     borderRadius: "12px",
-                    border: "none",
-                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
+                    border: "1px solid var(--border, #e4e4e7)",
+                    backgroundColor: "var(--card, #ffffff)",
+                    color: "var(--card-foreground, #18181b)",
+                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)",
                   }}
+                  labelStyle={{ color: "var(--card-foreground, #18181b)" }}
                   labelFormatter={(label) => `Дата: ${label}`}
                 />
               </LineChart>
@@ -337,7 +379,10 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                     dot={{ r: 6, fill: "#4f46e5" }}
                     activeDot={{ r: 8 }}
                   />
-                  <CartesianGrid stroke="#f4f4f5" strokeDasharray="5 5" />
+                  <CartesianGrid
+                    className="stroke-zinc-200 dark:stroke-zinc-800"
+                    strokeDasharray="5 5"
+                  />
                   <XAxis
                     dataKey="formattedDate"
                     tick={{ fontSize: 12, fill: "#71717a" }}
@@ -350,9 +395,12 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                   <Tooltip
                     contentStyle={{
                       borderRadius: "12px",
-                      border: "none",
-                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
+                      border: "1px solid var(--border, #e4e4e7)",
+                      backgroundColor: "var(--card, #ffffff)",
+                      color: "var(--card-foreground, #18181b)",
+                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)",
                     }}
+                    labelStyle={{ color: "var(--card-foreground, #18181b)" }}
                     formatter={(
                       _value: unknown,
                       _name: unknown,

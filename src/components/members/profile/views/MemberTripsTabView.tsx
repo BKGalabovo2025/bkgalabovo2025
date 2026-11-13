@@ -273,7 +273,7 @@ export function MemberTripsTabView() {
       {/* Metrics Row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
-          <span className="text-xs font-medium text-zinc-500">
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
             Общо пътувания
           </span>
           <p className="mt-2 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
@@ -282,7 +282,7 @@ export function MemberTripsTabView() {
         </BentoCard>
 
         <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
-          <span className="text-xs font-medium text-zinc-500">
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
             Като състезател
           </span>
           <p className="mt-2 text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
@@ -291,7 +291,7 @@ export function MemberTripsTabView() {
         </BentoCard>
 
         <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
-          <span className="text-xs font-medium text-zinc-500">
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
             Като ръководител
           </span>
           <p className="mt-2 text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
@@ -300,7 +300,7 @@ export function MemberTripsTabView() {
         </BentoCard>
 
         <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
-          <span className="text-xs font-medium text-zinc-500">
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
             Подписани ведомости
           </span>
           <p className="mt-2 text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
@@ -443,27 +443,36 @@ export function MemberTripsTabView() {
 
       {/* Trips List */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider dark:text-white">
             Хронология на командировките ({trips.length})
           </h3>
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs rounded-xl"
-          >
-            <Link href="/accounting">Към модул Счетоводство →</Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              asChild
+              size="sm"
+              className="h-8 rounded-xl bg-zinc-950 text-xs font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
+            >
+              <Link href="/accounting/trips/new">+ Нова командировка</Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs rounded-xl"
+            >
+              <Link href="/accounting">Към модул Счетоводство →</Link>
+            </Button>
+          </div>
         </div>
 
         {trips.length === 0 ? (
-          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-12 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950">
+          <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-12 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
             <Briefcase className="mx-auto mb-2.5 size-8 text-zinc-300 dark:text-zinc-700" />
             <p className="font-semibold text-zinc-800 dark:text-zinc-200">
               Няма регистрирани командировки
             </p>
-            <p className="mt-1 text-zinc-500">
+            <p className="mt-1 text-zinc-500 dark:text-zinc-400">
               {fullName} все още няма участия в командировки или състезания с
               официална заповед.
             </p>
@@ -475,7 +484,12 @@ export function MemberTripsTabView() {
               const isAthlete =
                 Array.isArray(trip.participantsIds) &&
                 trip.participantsIds.includes(memberId);
-              const isSigned = Boolean(trip.signatures?.athletes?.[memberId]);
+              const isSigned = Boolean(
+                trip.signatures?.athletes?.[memberId] ||
+                (trip.signatures as Record<string, string> | undefined)?.[
+                  memberId
+                ]
+              );
               const isDaily = trip.vehicle?.commuteMode === "daily_commute";
 
               return (
@@ -505,7 +519,7 @@ export function MemberTripsTabView() {
                         )}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
                         <span className="inline-flex items-center gap-1">
                           <MapPin className="size-3.5 text-zinc-400" />
                           {trip.destination}

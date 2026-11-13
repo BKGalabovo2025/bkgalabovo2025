@@ -1,12 +1,19 @@
 export const dynamic = "force-dynamic";
 
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 
+import {
+  isClubMemberProfile,
+  isGuestProfile,
+  isRecoveryProfile,
+} from "@/components/members/list/member-list-sections";
 import {
   MembersNavHeader,
   MembersTabCounts,
 } from "@/components/members/list/MembersNavHeader";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { getAllMembersServer } from "@/services/member-service.server";
 
 export default async function MembersListLayout({
@@ -17,19 +24,32 @@ export default async function MembersListLayout({
   let counts: MembersTabCounts | undefined;
 
   try {
-    const members = await getAllMembersServer();
+    const cookieStore = await cookies();
+    const activeBranch = cookieStore.get("activeBranch")?.value || "bkgalabovo";
+
+    const [members, familiesCount] = await Promise.all([
+      getAllMembersServer(),
+      (async () => {
+        try {
+          const adminDb = getAdminDb();
+          const snap = await adminDb
+            .collection("families")
+            .where("siteId", "==", activeBranch)
+            .count()
+            .get();
+          return snap.data().count;
+        } catch {
+          return 0;
+        }
+      })(),
+    ]);
+
     counts = {
       all: members.length,
-      club: members.filter(
-        (m) =>
-          m.isClubMember === true ||
-          (!m.isGuest && m.memberType === "regular" && !m.isRecoveryMember)
-      ).length,
-      recovery: members.filter(
-        (m) => m.isRecoveryMember || m.memberType === "recovery"
-      ).length,
-      guests: members.filter((m) => m.isGuest || m.memberType === "guest")
-        .length,
+      club: members.filter(isClubMemberProfile).length,
+      recovery: members.filter(isRecoveryProfile).length,
+      guests: members.filter(isGuestProfile).length,
+      families: familiesCount,
     };
   } catch (e) {
     console.error("Failed to load members counts for header:", e);

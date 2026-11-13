@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FieldErrors, useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -21,15 +21,54 @@ interface MemberFormProps {
   initialData?: Partial<Member>;
 }
 
+const formatLocalDate = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 const ensureDateString = (val: unknown): string | undefined => {
   if (!val) return undefined;
   if (typeof val === "string") return val.split("T")[0];
   if (typeof (val as { toDate?: () => Date })?.toDate === "function") {
-    return (val as { toDate: () => Date }).toDate().toISOString().split("T")[0];
+    return formatLocalDate((val as { toDate: () => Date }).toDate());
   }
-  if (val instanceof Date) return val.toISOString().split("T")[0];
+  if (val instanceof Date) return formatLocalDate(val);
   return String(val);
 };
+
+const STEP_1_FIELDS = new Set([
+  "firstName",
+  "lastName",
+  "middleName",
+  "gender",
+  "dateOfBirth",
+  "registrationDate",
+  "egn",
+  "birthPlace",
+  "avatarUrl",
+  "showOnPublicTeam",
+  "isClubMember",
+  "isRecoveryMember",
+  "isGuest",
+  "isCoach",
+  "siteId",
+  "memberType",
+]);
+
+const STEP_2_FIELDS = new Set([
+  "phone",
+  "email",
+  "address",
+  "parentName",
+  "parentPhone",
+  "parentEmail",
+  "hasEmergencyContact",
+  "emergencyContactRole",
+  "emergencyContactName",
+  "emergencyContactPhone",
+]);
 
 export const MemberForm = ({
   onSave,
@@ -158,9 +197,10 @@ export const MemberForm = ({
   const isClubMember = watch("isClubMember");
   const isRecoveryMember = watch("isRecoveryMember");
   const isGuest = watch("isGuest");
+  const isCoach = watch("isCoach");
   const isRecoveryBranch = activeBranch === "recoveryzone";
 
-  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
+  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember && !isCoach;
 
   // Calculate total steps
   const totalSteps = isGuestOnly ? 2 : 3;
@@ -244,26 +284,32 @@ export const MemberForm = ({
     // Determine primary memberType for backward compatibility
     if (data.isClubMember) {
       data.memberType = "regular";
-      data.isGuest = false;
-      data.isRecoveryMember = false;
     } else if (data.isRecoveryMember) {
       data.memberType = "recovery";
-      data.isGuest = false;
-      data.isClubMember = false;
     } else if (data.isGuest) {
       data.memberType = "guest";
-      data.isClubMember = false;
-      data.isRecoveryMember = false;
     }
 
     await onSave(data);
+  };
+
+  const onInvalid = (errors: FieldErrors<MemberFormValues>) => {
+    const firstErrorKey = Object.keys(errors)[0];
+    if (!firstErrorKey) return;
+    if (STEP_1_FIELDS.has(firstErrorKey)) {
+      setStep(1);
+    } else if (STEP_2_FIELDS.has(firstErrorKey)) {
+      setStep(2);
+    } else {
+      setStep(Math.min(3, totalSteps));
+    }
   };
 
   return (
     <Form {...form}>
       <form
         aria-label="member-form"
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, onInvalid)}
         className="flex h-full flex-col"
       >
         {/* STEP PROGRESS BAR */}

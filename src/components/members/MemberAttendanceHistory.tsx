@@ -19,7 +19,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 
 import { Badge } from "@/components/ui/badge";
@@ -86,28 +86,54 @@ export function MemberAttendanceHistory({
   memberId,
 }: MemberAttendanceHistoryProps) {
   const router = useRouter();
+  const [attendanceFilter, setAttendanceFilter] = useState<
+    "all" | "attended" | "missed"
+  >("all");
   const { data: memberEvents, isLoading: loading } = useSWR(
     memberId ? `events_${memberId}` : null,
     () => getEventsByMemberId(memberId)
   );
 
-  const attendedEvents = useMemo(() => {
+  const memberParticipationEvents = useMemo(() => {
     if (!memberEvents) return [];
     return memberEvents
-      .filter((event) => {
-        const attendeeRecord = event.attendees?.find(
-          (a: Attendee) => a.memberId === memberId
-        );
-        return attendeeRecord?.attended === true;
-      })
+      .filter((event) =>
+        event.attendees?.some((a: Attendee) => a.memberId === memberId)
+      )
       .sort(
         (a, b) =>
           new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
       );
   }, [memberEvents, memberId]);
 
+  const attendedCount = useMemo(
+    () =>
+      memberParticipationEvents.filter((event) => {
+        const attendeeRecord = event.attendees?.find(
+          (a: Attendee) => a.memberId === memberId
+        );
+        return attendeeRecord?.attended === true;
+      }).length,
+    [memberParticipationEvents, memberId]
+  );
+
+  const missedCount = memberParticipationEvents.length - attendedCount;
+
+  const filteredEvents = useMemo(() => {
+    if (attendanceFilter === "all") return memberParticipationEvents;
+    return memberParticipationEvents.filter((event) => {
+      const attendeeRecord = event.attendees?.find(
+        (a: Attendee) => a.memberId === memberId
+      );
+      if (attendanceFilter === "attended") {
+        return attendeeRecord?.attended === true;
+      }
+      return attendeeRecord?.attended !== true;
+    });
+  }, [memberParticipationEvents, attendanceFilter, memberId]);
+
   const groupedEvents = useMemo(() => {
-    return attendedEvents.reduce((acc, event) => {
+    return filteredEvents.reduce((acc, event) => {
       const eventDate = new Date(event.startDate);
       const monthKey = format(eventDate, "yyyy-MM");
 
@@ -139,9 +165,9 @@ export function MemberAttendanceHistory({
 
       return acc;
     }, {} as GroupedEvents);
-  }, [attendedEvents]);
+  }, [filteredEvents]);
 
-  const totalEvents = attendedEvents.length;
+  const totalEvents = memberParticipationEvents.length;
 
   if (loading) {
     return (
@@ -158,7 +184,10 @@ export function MemberAttendanceHistory({
     return (
       <div className="rounded-5xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-16 text-center">
         <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-zinc-50 dark:bg-zinc-900">
-          <CalendarX className="size-8 text-zinc-200 dark:text-zinc-700" strokeWidth={1} />
+          <CalendarX
+            className="size-8 text-zinc-200 dark:text-zinc-700"
+            strokeWidth={1}
+          />
         </div>
         <h3 className="tracking-widest3 mb-3 text-[11px] font-medium text-zinc-400 uppercase">
           Няма регистрирани присъствия
@@ -181,7 +210,7 @@ export function MemberAttendanceHistory({
           </p>
           <div className="flex items-end justify-between">
             <h2 className="text-3xl font-light tracking-tighter sm:text-5xl">
-              {totalEvents}
+              {attendedCount}
             </h2>
             <div className="flex size-9 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm sm:size-12">
               <Dumbbell
@@ -198,10 +227,14 @@ export function MemberAttendanceHistory({
           </p>
           <div className="flex items-end justify-between">
             <h2 className="text-base font-light text-zinc-950 dark:text-zinc-100 sm:text-xl">
-              {attendedEvents.length > 0
-                ? format(new Date(attendedEvents[0].startDate), "dd MMM", {
-                    locale: bg,
-                  })
+              {memberParticipationEvents.length > 0
+                ? format(
+                    new Date(memberParticipationEvents[0].startDate),
+                    "dd MMM",
+                    {
+                      locale: bg,
+                    }
+                  )
                 : "—"}
             </h2>
             <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-800 sm:size-12">
@@ -234,65 +267,113 @@ export function MemberAttendanceHistory({
         </div>
       </div>
 
-      <div className="space-y-16">
-        {Object.entries(groupedEvents).map(([monthKey, monthData]) => (
-          <div key={monthKey} className="relative">
-            <div className="mb-8 flex items-center gap-6">
-              <h3 className="tracking-widest2 shrink-0 text-sm font-medium text-zinc-950 dark:text-zinc-100 uppercase">
-                {monthData.monthName}{" "}
-                <span className="ml-1 text-zinc-300 dark:text-zinc-600">{monthData.year}</span>
-              </h3>
-              <div className="h-px grow bg-zinc-100 dark:bg-zinc-800" />
-              <Badge
-                variant="outline"
-                className="rounded-full border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-1 text-[10px] font-medium tracking-widest text-zinc-400 uppercase"
-              >
-                {monthData.total} посещения
-              </Badge>
-            </div>
-
-            <div className="grid grid-cols-1 gap-8">
-              {Object.entries(monthData.events).map(([type, events]) => {
-                const details =
-                  eventTypeDetails[type as ScheduleEventType] ||
-                  eventTypeDetails.other;
-                if (events.length === 0) return null;
-
-                return (
-                  <div key={type} className="group/section">
-                    <div className="mb-6 flex items-center gap-4">
-                      <div className={cn("rounded-xl p-2", details.bgColor)}>
-                        <details.icon
-                          className={cn("size-4", details.color)}
-                          strokeWidth={1.5}
-                        />
-                      </div>
-                      <h4 className="tracking-widest2 text-[10px] font-medium text-zinc-400 uppercase">
-                        {details.translation}{" "}
-                        <span className="ml-1 text-zinc-200">
-                          / {events.length}
-                        </span>
-                      </h4>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {events.map((event) => (
-                        <MemberAttendanceEventCard
-                          key={event.id}
-                          event={event}
-                          memberId={memberId}
-                          details={details}
-                          router={router}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+      {/* Attendance Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setAttendanceFilter("all")}
+          className={cn(
+            "rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-colors",
+            attendanceFilter === "all"
+              ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+              : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          )}
+        >
+          Всички ({memberParticipationEvents.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setAttendanceFilter("attended")}
+          className={cn(
+            "rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-colors",
+            attendanceFilter === "attended"
+              ? "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-zinc-950"
+              : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          )}
+        >
+          Присъствал ({attendedCount})
+        </button>
+        <button
+          type="button"
+          onClick={() => setAttendanceFilter("missed")}
+          className={cn(
+            "rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-colors",
+            attendanceFilter === "missed"
+              ? "bg-rose-600 text-white dark:bg-rose-500 dark:text-white"
+              : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          )}
+        >
+          Отсъствал ({missedCount})
+        </button>
       </div>
+
+      {filteredEvents.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
+          Няма записи за избрания филтър.
+        </div>
+      ) : (
+        <div className="space-y-16">
+          {Object.entries(groupedEvents).map(([monthKey, monthData]) => (
+            <div key={monthKey} className="relative">
+              <div className="mb-8 flex items-center gap-6">
+                <h3 className="tracking-widest2 shrink-0 text-sm font-medium text-zinc-950 dark:text-zinc-100 uppercase">
+                  {monthData.monthName}{" "}
+                  <span className="ml-1 text-zinc-300 dark:text-zinc-600">
+                    {monthData.year}
+                  </span>
+                </h3>
+                <div className="h-px grow bg-zinc-100 dark:bg-zinc-800" />
+                <Badge
+                  variant="outline"
+                  className="rounded-full border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-1 text-[10px] font-medium tracking-widest text-zinc-400 uppercase"
+                >
+                  {monthData.total} посещения
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 gap-8">
+                {Object.entries(monthData.events).map(([type, events]) => {
+                  const details =
+                    eventTypeDetails[type as ScheduleEventType] ||
+                    eventTypeDetails.other;
+                  if (events.length === 0) return null;
+
+                  return (
+                    <div key={type} className="group/section">
+                      <div className="mb-6 flex items-center gap-4">
+                        <div className={cn("rounded-xl p-2", details.bgColor)}>
+                          <details.icon
+                            className={cn("size-4", details.color)}
+                            strokeWidth={1.5}
+                          />
+                        </div>
+                        <h4 className="tracking-widest2 text-[10px] font-medium text-zinc-400 uppercase">
+                          {details.translation}{" "}
+                          <span className="ml-1 text-zinc-400 dark:text-zinc-500">
+                            / {events.length}
+                          </span>
+                        </h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {events.map((event) => (
+                          <MemberAttendanceEventCard
+                            key={event.id}
+                            event={event}
+                            memberId={memberId}
+                            details={details}
+                            router={router}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -335,6 +416,12 @@ function MemberAttendanceEventCard({
           <p className="text-[10px] font-light tracking-widest text-zinc-400 uppercase">
             {format(new Date(event.startDate), "dd MMMM", { locale: bg })}
           </p>
+          {attendeeRecord?.attended === false && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 text-[10px] font-semibold text-rose-600 dark:text-rose-400">
+              <XCircle className="size-2.5" />
+              Отсъствал
+            </span>
+          )}
         </div>
         <div
           className={cn(
@@ -406,7 +493,10 @@ function MemberAttendanceEventCard({
           )}
           {payDate && payStatus === "paid" && (
             <div className="mt-1 flex items-center gap-1">
-              <Receipt className="size-2.5 text-zinc-300 dark:text-zinc-600" strokeWidth={1.5} />
+              <Receipt
+                className="size-2.5 text-zinc-300 dark:text-zinc-600"
+                strokeWidth={1.5}
+              />
               <span className="text-[8px] font-light text-zinc-400">
                 Платено на: {new Date(payDate).toLocaleDateString("bg-BG")}
                 {saleId && (

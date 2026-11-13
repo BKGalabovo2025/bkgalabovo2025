@@ -19,6 +19,7 @@ import {
   Upload,
   UserMinus,
 } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -73,6 +74,7 @@ interface MemberDocumentsTabProps {
     baseField: DocumentField,
     action: "print" | "submit" | "cancel"
   ) => Promise<void>;
+  onRefresh?: () => Promise<unknown>;
 }
 
 // ── DocumentRow sub-component ────────────────────────────────────────────────
@@ -403,7 +405,7 @@ function getMedicalStatus(
           member.medicalCertificateDate || member.medicalCertificateHandedAt
         )}
         {member.medicalCertificateDate && (
-          <div className="text-[11px] text-zinc-500">
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
             Дата на преглед:{" "}
             <b>
               {new Date(member.medicalCertificateDate).toLocaleDateString(
@@ -475,6 +477,7 @@ export const MemberDocumentsTab = ({
   member,
   formatDocDate,
   updateDocumentStatus,
+  onRefresh,
 }: MemberDocumentsTabProps) => {
   const { idToken, getFreshToken } = useAuth();
   const pathname = usePathname();
@@ -666,7 +669,11 @@ export const MemberDocumentsTab = ({
         handleMedicalModalChange(false);
         setMedicalFileBase64(null);
         setMedicalFileName("");
-        window.location.reload();
+        if (onRefresh) {
+          await onRefresh();
+        } else {
+          router.refresh();
+        }
       } else {
         toast.error(res.error || "Грешка при качване на медицинско.");
       }
@@ -753,10 +760,12 @@ export const MemberDocumentsTab = ({
 
   const handlePrintDocumentTemplate = (
     tpl: DocumentTemplate | undefined,
-    field: DocumentField,
+    field: DocumentField | null,
     fallbackPath: string
   ) => {
-    updateDocumentStatus(field, "print");
+    if (field) {
+      updateDocumentStatus(field, "print");
+    }
 
     if (!tpl) {
       window.open(fallbackPath, "_blank");
@@ -771,8 +780,12 @@ export const MemberDocumentsTab = ({
     );
     const signatureUrl =
       matchingReq?.signatureUrl ||
-      ((member as Record<string, unknown>)[`${field}SignatureUrl`] as string) ||
-      ((member as Record<string, unknown>)[`${field}Url`] as string) ||
+      (field
+        ? ((member as Record<string, unknown>)[
+            `${field}SignatureUrl`
+          ] as string) ||
+          ((member as Record<string, unknown>)[`${field}Url`] as string)
+        : null) ||
       null;
     const secondParentSigUrl = matchingReq?.secondParentSignatureUrl || null;
     const memberSigUrl = matchingReq?.memberSignatureUrl || null;
@@ -1067,8 +1080,74 @@ export const MemberDocumentsTab = ({
     (r) => r.documentType === "licenseApplication" && r.status === "completed"
   );
 
+  // Document readiness summary
+  const coreDocsCompleted = [
+    !!member.hasMembershipApplication,
+    !!member.hasSignedDeclaration,
+    !!member.hasInternalRules,
+    !!member.hasTravelDeclaration,
+    !!member.hasSafetyInstruction,
+    !!member.hasMedicalCertificate,
+  ].filter(Boolean).length;
+  const coreDocsTotal = 6;
+  const medicalValidity = member.hasMedicalCertificate
+    ? getCalendarYearValidity(
+        member.medicalCertificateDate || member.medicalCertificateHandedAt
+      )
+    : null;
+  const isMedicalMissingOrExpired =
+    !member.hasMedicalCertificate || !!medicalValidity?.isExpired;
+
   return (
     <div className="space-y-4 rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 sm:space-y-6 sm:rounded-4xl sm:p-8 lg:rounded-5xl lg:p-10">
+      {/* Compact Readiness Summary & Quick Links */}
+      <div className="flex flex-col gap-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex-1 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+              Готовност на документите: {coreDocsCompleted} / {coreDocsTotal}
+            </span>
+            {isMedicalMissingOrExpired && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 dark:text-rose-300">
+                <AlertTriangle className="size-3" />
+                {!member.hasMedicalCertificate
+                  ? "Липсва медицинско свидетелство"
+                  : `Изтекло медицинско (${medicalValidity?.currentYear} г.)`}
+              </span>
+            )}
+          </div>
+          <div className="h-2 w-full max-w-sm overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                ["w-0", "w-1/6", "w-2/6", "w-3/6", "w-4/6", "w-5/6", "w-full"][
+                  Math.min(Math.max(coreDocsCompleted, 0), 6)
+                ],
+                coreDocsCompleted === coreDocsTotal
+                  ? "bg-emerald-500"
+                  : "bg-indigo-600 dark:bg-indigo-500"
+              )}
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/documents/templates"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <FileText className="size-3.5" />
+            Шаблони
+          </Link>
+          <Link
+            href="/documents/signed"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <ScrollText className="size-3.5" />
+            Подписани
+          </Link>
+        </div>
+      </div>
+
       <DocumentRow
         icon={FileText}
         isCompleted={!!member.hasMembershipApplication}
@@ -1326,14 +1405,14 @@ export const MemberDocumentsTab = ({
           onPrint={() =>
             handlePrintDocumentTemplate(
               tpl,
-              "signedDeclaration",
+              null,
               `/members/${member.id}/${path}`
             )
           }
           onToggle={() =>
             handlePrintDocumentTemplate(
               tpl,
-              "signedDeclaration",
+              null,
               `/members/${member.id}/${path}`
             )
           }
@@ -1350,18 +1429,10 @@ export const MemberDocumentsTab = ({
           statusText={tpl.description || "Официален клубен образец"}
           submitLabel="Печат"
           onPrint={() =>
-            handlePrintDocumentTemplate(
-              tpl,
-              "signedDeclaration",
-              `/members/${member.id}`
-            )
+            handlePrintDocumentTemplate(tpl, null, `/members/${member.id}`)
           }
           onToggle={() =>
-            handlePrintDocumentTemplate(
-              tpl,
-              "signedDeclaration",
-              `/members/${member.id}`
-            )
+            handlePrintDocumentTemplate(tpl, null, `/members/${member.id}`)
           }
         />
       ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Check, User, Users } from "lucide-react";
+import { Activity, User, Users } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 
 import { UniversalMediaUpload } from "@/components/shared/media/UniversalMediaUpload";
@@ -22,37 +22,9 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-// Simple visual checkbox that avoids Radix compose-refs React 19 bug
-function VisualCheckbox({
-  checked,
-  className,
-}: {
-  checked?: boolean;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-sm border border-zinc-300 dark:border-zinc-700",
-        checked
-          ? "border-zinc-950 bg-zinc-950 dark:border-zinc-100 dark:bg-zinc-100"
-          : "bg-white dark:bg-zinc-900",
-        className
-      )}
-    >
-      {checked && (
-        <Check
-          className="text-white dark:text-zinc-950"
-          strokeWidth={3}
-          style={{ width: "70%", height: "70%" }}
-        />
-      )}
-    </div>
-  );
-}
-
 import { DateSelectorField } from "./DateSelectorField";
 import { MemberFormValues } from "./member-form-types";
+import { VisualCheckbox } from "./VisualCheckbox";
 
 interface MemberFormStep1Props {
   form: UseFormReturn<MemberFormValues>;
@@ -91,7 +63,7 @@ export function MemberFormStep1({
                 "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all",
                 isClubMember
                   ? "border-zinc-950 bg-zinc-50 dark:border-white dark:bg-zinc-900"
-                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950"
+                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
               )}
             >
               <div className="absolute top-3 right-3">
@@ -130,7 +102,7 @@ export function MemberFormStep1({
                 "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all",
                 isRecoveryMember
                   ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20"
-                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950"
+                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
               )}
             >
               <div className="absolute top-3 right-3">
@@ -167,7 +139,7 @@ export function MemberFormStep1({
                 "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all",
                 isGuest
                   ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
-                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950"
+                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
               )}
             >
               <div className="absolute top-3 right-3">
@@ -203,7 +175,7 @@ export function MemberFormStep1({
                 "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all",
                 isCoach
                   ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
-                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950"
+                  : "border-zinc-100 bg-white hover:border-zinc-200 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
               )}
             >
               <div className="absolute top-3 right-3">
@@ -416,7 +388,7 @@ export function MemberFormStep1({
               const showOnPublicTeam = form.watch("showOnPublicTeam");
               return (
                 <div
-                  className="flex h-auto min-h-11 cursor-pointer flex-row items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 transition-colors hover:bg-zinc-100/60 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:bg-zinc-850"
+                  className="flex h-auto min-h-11 cursor-pointer flex-row items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 transition-colors hover:bg-zinc-100/60 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:bg-zinc-800"
                   onClick={() =>
                     form.setValue("showOnPublicTeam", !showOnPublicTeam, {
                       shouldValidate: true,

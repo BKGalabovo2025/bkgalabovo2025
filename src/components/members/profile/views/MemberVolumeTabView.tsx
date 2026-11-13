@@ -12,7 +12,7 @@ const MemberTrainingVolumeTab = dynamic(
     ),
   {
     loading: () => (
-      <div className="animate-pulse p-8 text-center text-slate-400">
+      <div className="animate-pulse p-8 text-center text-zinc-500 dark:text-zinc-400">
         Зареждане на тренировъчен обем...
       </div>
     ),

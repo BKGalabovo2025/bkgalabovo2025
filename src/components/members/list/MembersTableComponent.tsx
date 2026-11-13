@@ -9,6 +9,8 @@ import {
   Download,
   Link2,
   Mail,
+  Pencil,
+  Phone,
   Search,
   Trash2,
   UserCheck,
@@ -17,16 +19,33 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -48,10 +67,27 @@ import {
   deleteMemberAction,
 } from "@/lib/actions/members";
 import { exportToCSV } from "@/lib/export-utils";
-import { cn, getAgeGroup, getValidAvatarUrl } from "@/lib/utils";
+import {
+  cn,
+  getAgeGroup,
+  getValidAvatarUrl,
+  resolveMemberAgeGroup,
+} from "@/lib/utils";
 import { Member } from "@/types";
 
 const ITEMS_PER_PAGE = 12;
+const STANDARD_AGE_GROUPS = [
+  "U9",
+  "U11",
+  "U13",
+  "U15",
+  "U17",
+  "U19",
+  "Мъже/Жени",
+] as const;
+
+type StatusFilter = "all" | "active" | "inactive";
+type DocFilter = "all" | "no_medical" | "no_declaration" | "no_license";
 
 interface MembersTableComponentProps {
   initialMembers: Member[];
@@ -69,24 +105,126 @@ export function MembersTableComponent({
   kpiTitle = "Всички профили",
 }: MembersTableComponentProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { idToken } = useAuth();
+
+  const initialStatusParam = searchParams?.get("status");
+  const initialDocParam = searchParams?.get("doc");
+  const initialPageParam = Number.parseInt(
+    searchParams?.get("page") || "1",
+    10
+  );
+
   const [members, setMembers] = useState<Member[]>(initialMembers);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "active" | "inactive"
-  >("all");
+  const [searchTerm, setSearchTerm] = useState(
+    () => searchParams?.get("search") || ""
+  );
+  const [currentPage, setCurrentPage] = useState(() =>
+    Number.isFinite(initialPageParam) && initialPageParam > 0
+      ? initialPageParam
+      : 1
+  );
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() =>
+    initialStatusParam === "active" || initialStatusParam === "inactive"
+      ? initialStatusParam
+      : "all"
+  );
+  const [groupFilter, setGroupFilter] = useState<string>(
+    () => searchParams?.get("group") || "all"
+  );
+  const [docFilter, setDocFilter] = useState<DocFilter>(() =>
+    initialDocParam === "no_medical" ||
+    initialDocParam === "no_declaration" ||
+    initialDocParam === "no_license"
+      ? initialDocParam
+      : "all"
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isDeletingSingle, setIsDeletingSingle] = useState(false);
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     setMembers(initialMembers);
   }, [initialMembers]);
 
-  // Нулиране на страницата при промяна на търсене или статус
+  // Синхронизация на филтрите и страницата с URL
   useEffect(() => {
+    const currentQuery = searchParams?.toString() || "";
+    const nextParams = new URLSearchParams(currentQuery);
+
+    if (searchTerm) nextParams.set("search", searchTerm);
+    else nextParams.delete("search");
+
+    if (statusFilter !== "all") nextParams.set("status", statusFilter);
+    else nextParams.delete("status");
+
+    if (groupFilter !== "all") nextParams.set("group", groupFilter);
+    else nextParams.delete("group");
+
+    if (docFilter !== "all") nextParams.set("doc", docFilter);
+    else nextParams.delete("doc");
+
+    if (currentPage > 1) nextParams.set("page", String(currentPage));
+    else nextParams.delete("page");
+
+    const nextQuery = nextParams.toString();
+    if (nextQuery !== currentQuery) {
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+        scroll: false,
+      });
+    }
+  }, [
+    searchTerm,
+    statusFilter,
+    groupFilter,
+    docFilter,
+    currentPage,
+    pathname,
+    router,
+    searchParams,
+  ]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  };
+
+  const handleStatusFilterChange = (value: StatusFilter) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleGroupFilterChange = (value: string) => {
+    setGroupFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleDocFilterChange = (value: DocFilter) => {
+    setDocFilter(value);
+    setCurrentPage(1);
+  };
+
+  const availableAgeGroups = useMemo(() => {
+    const found = new Set<string>();
+    for (const member of members) {
+      const group = member.ageGroup || resolveMemberAgeGroup(member);
+      if (group && group !== "Неопределена") {
+        found.add(group);
+      }
+    }
+    const ordered = STANDARD_AGE_GROUPS.filter((g) => found.has(g));
+    const extras = Array.from(found)
+      .filter((g) => !(STANDARD_AGE_GROUPS as readonly string[]).includes(g))
+      .sort((a, b) => a.localeCompare(b, "bg"));
+    return [...ordered, ...extras];
+  }, [members]);
 
   // Статистика за интерактивните KPI карти
   const stats = useMemo(() => {
@@ -98,26 +236,63 @@ export function MembersTableComponent({
   }, [members]);
 
   const filteredMembers = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+
     return members
       .filter((member) => {
         const fullName =
           `${member.firstName || ""} ${member.lastName || ""}`.toLowerCase();
         const matchesSearch =
-          fullName.includes(searchTerm.toLowerCase()) ||
-          (member.email &&
-            member.email.toLowerCase().includes(searchTerm.toLowerCase()));
+          !q ||
+          fullName.includes(q) ||
+          (member.email && member.email.toLowerCase().includes(q)) ||
+          (member.phone && member.phone.toLowerCase().includes(q)) ||
+          (member.parentName && member.parentName.toLowerCase().includes(q)) ||
+          (member.fatherName && member.fatherName.toLowerCase().includes(q)) ||
+          (member.motherName && member.motherName.toLowerCase().includes(q)) ||
+          (member.parentPhone &&
+            member.parentPhone.toLowerCase().includes(q)) ||
+          (member.egn && member.egn.toLowerCase().includes(q));
 
         const matchesStatus =
           statusFilter === "all" || member.status === statusFilter;
 
-        return matchesSearch && matchesStatus;
+        const memberAgeGroup =
+          member.ageGroup || resolveMemberAgeGroup(member) || "";
+        const matchesGroup =
+          groupFilter === "all" || memberAgeGroup === groupFilter;
+
+        const matchesDoc =
+          docFilter === "all" ||
+          (docFilter === "no_medical" && !member.hasMedicalCertificate) ||
+          (docFilter === "no_declaration" && !member.hasSignedDeclaration) ||
+          (docFilter === "no_license" && !member.isLicensed);
+
+        return matchesSearch && matchesStatus && matchesGroup && matchesDoc;
       })
       .sort((a, b) => {
         const nameA = `${a.firstName || ""} ${a.lastName || ""}`.toLowerCase();
         const nameB = `${b.firstName || ""} ${b.lastName || ""}`.toLowerCase();
         return nameA.localeCompare(nameB, "bg");
       });
-  }, [members, searchTerm, statusFilter]);
+  }, [members, searchTerm, statusFilter, groupFilter, docFilter]);
+
+  const deepLinkId = searchParams?.get("id");
+  const lastHandledDeepLinkRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!deepLinkId || filteredMembers.length === 0) return;
+    if (lastHandledDeepLinkRef.current === deepLinkId) return;
+
+    const index = filteredMembers.findIndex((m) => m.id === deepLinkId);
+    if (index !== -1) {
+      lastHandledDeepLinkRef.current = deepLinkId;
+      const targetPage = Math.floor(index / ITEMS_PER_PAGE) + 1;
+      if (currentPage !== targetPage) {
+        setCurrentPage(targetPage);
+      }
+    }
+  }, [deepLinkId, filteredMembers, currentPage]);
 
   const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
   const paginatedMembers = useMemo(() => {
@@ -213,7 +388,7 @@ export function MembersTableComponent({
     toast.success("Данните са експортирани успешно");
   };
 
-  const handleDeleteMember = async (
+  const handleRequestDeleteMember = (
     e: React.MouseEvent,
     id: string,
     name: string
@@ -223,21 +398,23 @@ export function MembersTableComponent({
       toast.error("Грешка при оторизация");
       return;
     }
+    setDeleteTarget({ id, name });
+  };
 
-    if (
-      !confirm(
-        `Наистина ли искате да изтриете ${name}? Това действие е необратимо.`
-      )
-    )
-      return;
+  const confirmDeleteMember = async () => {
+    if (!deleteTarget || !idToken) return;
 
+    const { id } = deleteTarget;
     const previousMembers = members;
+    setIsDeletingSingle(true);
     setMembers((prev) => prev.filter((m) => m.id !== id));
 
     try {
       const result = await deleteMemberAction(id, idToken);
       if (result.success) {
         toast.success("Членът е изтрит успешно");
+        setSelectedIds((prev) => prev.filter((itemId) => itemId !== id));
+        setDeleteTarget(null);
         router.refresh();
       } else {
         setMembers(previousMembers);
@@ -247,6 +424,55 @@ export function MembersTableComponent({
       console.error("Delete error:", error);
       setMembers(previousMembers);
       toast.error("Възникна сървърна грешка");
+    } finally {
+      setIsDeletingSingle(false);
+    }
+  };
+
+  const confirmBulkDelete = async () => {
+    if (selectedIds.length === 0 || !idToken) return;
+
+    setIsBulkDeleting(true);
+    const idsToDelete = [...selectedIds];
+    const previousMembers = members;
+    setMembers((prev) => prev.filter((m) => !idsToDelete.includes(m.id)));
+
+    try {
+      const results = await Promise.allSettled(
+        idsToDelete.map((id) => deleteMemberAction(id, idToken))
+      );
+      const failedIds = idsToDelete.filter((_, idx) => {
+        const res = results[idx];
+        return (
+          res.status === "rejected" ||
+          (res.status === "fulfilled" && !res.value.success)
+        );
+      });
+
+      if (failedIds.length === 0) {
+        toast.success(`Успешно изтрити ${idsToDelete.length} профила`);
+        setSelectedIds([]);
+        setIsBulkDeleteOpen(false);
+        router.refresh();
+      } else {
+        setMembers(
+          previousMembers.filter(
+            (m) => !idsToDelete.includes(m.id) || failedIds.includes(m.id)
+          )
+        );
+        setSelectedIds(failedIds);
+        setIsBulkDeleteOpen(false);
+        toast.error(
+          `Неуспешно изтриване на ${failedIds.length} от ${idsToDelete.length} профила`
+        );
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Bulk delete error:", error);
+      setMembers(previousMembers);
+      toast.error("Възникна сървърна грешка при масовото изтриване");
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -291,7 +517,7 @@ export function MembersTableComponent({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={() => setStatusFilter("all")}
+                onClick={() => handleStatusFilterChange("all")}
                 className={cn(
                   "group relative flex items-center gap-2.5 rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all duration-200 outline-none",
                   statusFilter === "all"
@@ -327,7 +553,7 @@ export function MembersTableComponent({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={() => setStatusFilter("active")}
+                onClick={() => handleStatusFilterChange("active")}
                 className={cn(
                   "group relative flex items-center gap-2.5 rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all duration-200 outline-none",
                   statusFilter === "active"
@@ -342,7 +568,7 @@ export function MembersTableComponent({
                   <p className="truncate text-[10px] font-semibold tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
                     Активни
                   </p>
-                  <p className="text-lg font-bold text-emerald-600 sm:text-2xl tabular-nums">
+                  <p className="text-lg font-bold text-emerald-600 sm:text-2xl tabular-nums dark:text-emerald-400">
                     {stats.active}
                   </p>
                 </div>
@@ -363,7 +589,7 @@ export function MembersTableComponent({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={() => setStatusFilter("inactive")}
+                onClick={() => handleStatusFilterChange("inactive")}
                 className={cn(
                   "group relative flex items-center gap-2.5 rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all duration-200 outline-none",
                   statusFilter === "inactive"
@@ -378,7 +604,7 @@ export function MembersTableComponent({
                   <p className="truncate text-[10px] font-semibold tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
                     Неактивни
                   </p>
-                  <p className="text-lg font-bold text-rose-600 sm:text-2xl tabular-nums">
+                  <p className="text-lg font-bold text-rose-600 sm:text-2xl tabular-nums dark:text-rose-400">
                     {stats.inactive}
                   </p>
                 </div>
@@ -401,23 +627,23 @@ export function MembersTableComponent({
           {/* Контролен бар: Търсене, Експорт и Плаващи масови действия */}
           <div className="border-b border-zinc-100 p-3 sm:p-4 dark:border-zinc-900">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-              {/* Поле за търсене с бутон за изчистване */}
-              <div className="flex w-full flex-1 items-center gap-2 sm:w-auto">
-                <div className="relative w-full sm:w-72 lg:w-80">
+              {/* Поле за търсене и компактни филтри */}
+              <div className="flex w-full flex-1 flex-wrap items-center gap-2 sm:w-auto">
+                <div className="relative w-full sm:w-64 lg:w-72">
                   <Search
                     className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400"
                     strokeWidth={1.5}
                   />
                   <Input
-                    placeholder="Търсене по име или имейл..."
+                    placeholder="Име, имейл, тел., родител, ЕГН..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className="h-9 rounded-xl border-zinc-200/80 bg-zinc-50/60 pl-8.5 pr-8 text-xs font-normal shadow-none transition-all focus-visible:bg-white focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/60 dark:focus-visible:bg-zinc-900"
                   />
                   {searchTerm && (
                     <button
                       type="button"
-                      onClick={() => setSearchTerm("")}
+                      onClick={() => handleSearchChange("")}
                       className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded-md p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
                       aria-label="Изчисти търсенето"
                     >
@@ -425,6 +651,50 @@ export function MembersTableComponent({
                     </button>
                   )}
                 </div>
+
+                {/* Филтър по възрастова група */}
+                <Select
+                  value={groupFilter}
+                  onValueChange={handleGroupFilterChange}
+                >
+                  <SelectTrigger
+                    aria-label="Филтър по възрастова група"
+                    className="h-9 w-[145px] rounded-xl border-zinc-200/80 bg-zinc-50/60 text-xs shadow-none dark:border-zinc-800 dark:bg-zinc-900/60"
+                  >
+                    <SelectValue placeholder="Възрастова група" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Всички групи</SelectItem>
+                    {availableAgeGroups.map((group) => (
+                      <SelectItem key={group} value={group}>
+                        {group}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Филтър по документи */}
+                <Select
+                  value={docFilter}
+                  onValueChange={(val) =>
+                    handleDocFilterChange(val as DocFilter)
+                  }
+                >
+                  <SelectTrigger
+                    aria-label="Филтър по документи"
+                    className="h-9 w-[165px] rounded-xl border-zinc-200/80 bg-zinc-50/60 text-xs shadow-none dark:border-zinc-800 dark:bg-zinc-900/60"
+                  >
+                    <SelectValue placeholder="Документи" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Всички документи</SelectItem>
+                    <SelectItem value="no_medical">Без медицинско</SelectItem>
+                    <SelectItem value="no_declaration">
+                      Без декларация
+                    </SelectItem>
+                    <SelectItem value="no_license">Некартотекирани</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Действия вдясно: Бутон за експорт */}
@@ -497,6 +767,23 @@ export function MembersTableComponent({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
+                        size="sm"
+                        disabled={isUpdatingStatus || isBulkDeleting}
+                        onClick={() => setIsBulkDeleteOpen(true)}
+                        className="h-7.5 rounded-lg bg-rose-600 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-white hover:bg-rose-500"
+                      >
+                        <Trash2 className="mr-1 size-3" />
+                        Изтрий избраните
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      Изтрива всички маркирани профили след потвърждение.
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setSelectedIds([])}
@@ -529,7 +816,7 @@ export function MembersTableComponent({
                               paginatedMembers.length > 0
                             }
                             onCheckedChange={toggleSelectAll}
-                            className="rounded-md border-zinc-300"
+                            className="rounded-md border-zinc-300 dark:border-zinc-700"
                             aria-label="Избери всички на текущата страница"
                           />
                         </div>
@@ -543,7 +830,7 @@ export function MembersTableComponent({
                     Член / Име
                   </TableHead>
                   <TableHead className="px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
-                    Контакт (Имейл)
+                    Контакт (Имейл / Тел.)
                   </TableHead>
                   <TableHead className="w-36 px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                     {showCategoryBadge
@@ -556,7 +843,7 @@ export function MembersTableComponent({
                   <TableHead className="w-28 px-4 py-2.5 text-right text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
                     Статус
                   </TableHead>
-                  <TableHead className="w-12 px-2 py-2.5 text-right"></TableHead>
+                  <TableHead className="w-24 px-2 py-2.5 text-right"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -586,7 +873,7 @@ export function MembersTableComponent({
                           <Checkbox
                             checked={selectedIds.includes(member.id)}
                             onCheckedChange={() => toggleSelect(member.id)}
-                            className="rounded-md border-zinc-300"
+                            className="rounded-md border-zinc-300 dark:border-zinc-700"
                             aria-label={`Избери ${member.firstName} ${member.lastName}`}
                           />
                         </TableCell>
@@ -617,14 +904,27 @@ export function MembersTableComponent({
                           </Tooltip>
                         </TableCell>
                         <TableCell className="px-3 py-2">
-                          <div className="flex items-center gap-2 text-zinc-500">
-                            <Mail
-                              className="size-3 shrink-0 text-zinc-400"
-                              strokeWidth={1.5}
-                            />
-                            <span className="max-w-[170px] truncate text-[11px] font-normal">
-                              {member.email || "—"}
-                            </span>
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+                              <Mail
+                                className="size-3 shrink-0 text-zinc-400"
+                                strokeWidth={1.5}
+                              />
+                              <span className="max-w-[170px] truncate text-[11px] font-normal">
+                                {member.email || "—"}
+                              </span>
+                            </div>
+                            {member.phone && (
+                              <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+                                <Phone
+                                  className="size-3 shrink-0 text-zinc-400"
+                                  strokeWidth={1.5}
+                                />
+                                <span className="max-w-[170px] truncate text-[11px] font-normal tabular-nums">
+                                  {member.phone}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="px-3 py-2">
@@ -722,8 +1022,31 @@ export function MembersTableComponent({
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push(`/members/${member.id}/edit`);
+                                  }}
+                                  aria-label={`Редактирай ${member.firstName} ${member.lastName}`}
+                                  className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                                >
+                                  <Pencil
+                                    className="size-3.5"
+                                    strokeWidth={1.5}
+                                  />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="left" className="text-xs">
+                                Редактирай профила
+                              </TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
                                   onClick={(e) =>
-                                    handleDeleteMember(
+                                    handleRequestDeleteMember(
                                       e,
                                       member.id,
                                       `${member.firstName} ${member.lastName}`
@@ -780,7 +1103,8 @@ export function MembersTableComponent({
                   onClick={() => router.push(`/members/${member.id}`)}
                   className={cn(
                     "p-3.5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900",
-                    selectedIds.includes(member.id) && "bg-primary/5"
+                    selectedIds.includes(member.id) &&
+                      "bg-primary/5 dark:bg-primary/10"
                   )}
                 >
                   <div className="mb-2.5 flex items-center justify-between gap-2">
@@ -795,7 +1119,7 @@ export function MembersTableComponent({
                         <Checkbox
                           checked={selectedIds.includes(member.id)}
                           onCheckedChange={() => toggleSelect(member.id)}
-                          className="rounded-md border-zinc-300"
+                          className="rounded-md border-zinc-300 dark:border-zinc-700"
                           aria-label={`Избери ${member.firstName} ${member.lastName}`}
                         />
                       </div>
@@ -814,7 +1138,7 @@ export function MembersTableComponent({
                         <div className="text-xs font-semibold text-zinc-900 truncate dark:text-white">
                           {member.firstName} {member.lastName}
                         </div>
-                        <div className="mt-0.5 flex items-center gap-1.5 text-zinc-500">
+                        <div className="mt-0.5 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
                           <Mail
                             className="size-3 shrink-0 text-zinc-400"
                             strokeWidth={1.5}
@@ -823,9 +1147,20 @@ export function MembersTableComponent({
                             {member.email || "—"}
                           </span>
                         </div>
+                        {member.phone && (
+                          <div className="mt-0.5 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
+                            <Phone
+                              className="size-3 shrink-0 text-zinc-400"
+                              strokeWidth={1.5}
+                            />
+                            <span className="truncate text-[10px] font-normal tabular-nums">
+                              {member.phone}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
+                    <div className="flex shrink-0 items-center gap-1">
                       <Badge
                         className={cn(
                           "rounded-full border-none px-2 py-0.5 text-[9px] font-semibold tracking-wider uppercase shadow-none",
@@ -836,6 +1171,18 @@ export function MembersTableComponent({
                       >
                         {member.status === "active" ? "Активен" : "Неактивен"}
                       </Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/members/${member.id}/edit`);
+                        }}
+                        aria-label={`Редактирай ${member.firstName} ${member.lastName}`}
+                        className="size-7 rounded-lg text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+                      >
+                        <Pencil className="size-3.5" strokeWidth={1.5} />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -856,14 +1203,14 @@ export function MembersTableComponent({
                         variant="ghost"
                         size="icon"
                         onClick={(e) =>
-                          handleDeleteMember(
+                          handleRequestDeleteMember(
                             e,
                             member.id,
                             `${member.firstName} ${member.lastName}`
                           )
                         }
                         aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
-                        className="size-7 rounded-lg text-zinc-400 transition-colors hover:text-rose-500"
+                        className="size-7 rounded-lg text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/40"
                       >
                         <Trash2 className="size-3.5" strokeWidth={1.5} />
                       </Button>
@@ -940,7 +1287,7 @@ export function MembersTableComponent({
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                       aria-label="Предишна страница"
-                      className="size-8.5 rounded-lg border-zinc-200 bg-white p-0 shadow-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800"
+                      className="size-8.5 rounded-lg border-zinc-200 bg-white p-0 shadow-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700"
                     >
                       <ChevronLeft className="size-3.5" />
                     </Button>
@@ -964,7 +1311,7 @@ export function MembersTableComponent({
                       }
                       disabled={currentPage === totalPages}
                       aria-label="Следваща страница"
-                      className="size-8.5 rounded-lg border-zinc-200 bg-white p-0 shadow-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800"
+                      className="size-8.5 rounded-lg border-zinc-200 bg-white p-0 shadow-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700"
                     >
                       <ChevronRight className="size-3.5" />
                     </Button>
@@ -978,6 +1325,75 @@ export function MembersTableComponent({
           )}
         </BentoCard>
       </div>
+
+      {/* Потвърждение за единично изтриване */}
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !isDeletingSingle) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Изтриване на член</AlertDialogTitle>
+            <AlertDialogDescription>
+              Наистина ли искате да изтриете{" "}
+              <strong>{deleteTarget?.name}</strong>? Това действие е необратимо.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingSingle}>
+              Отказ
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDeleteMember();
+              }}
+              disabled={isDeletingSingle}
+              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+            >
+              {isDeletingSingle ? "Изтриване..." : "Изтрий"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Потвърждение за масово изтриване */}
+      <AlertDialog
+        open={isBulkDeleteOpen}
+        onOpenChange={(open) => {
+          if (!open && !isBulkDeleting) setIsBulkDeleteOpen(false);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Масово изтриване на профили</AlertDialogTitle>
+            <AlertDialogDescription>
+              Сигурни ли сте, че искате да изтриете избраните{" "}
+              <strong>{selectedIds.length}</strong> профила? Това действие е
+              необратимо.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>
+              Отказ
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmBulkDelete();
+              }}
+              disabled={isBulkDeleting}
+              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+            >
+              {isBulkDeleting
+                ? "Изтриване..."
+                : `Изтрий (${selectedIds.length})`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </TooltipProvider>
   );
 }

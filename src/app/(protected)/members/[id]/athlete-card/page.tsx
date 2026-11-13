@@ -5,13 +5,25 @@ import { useParams, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/layout/page-header";
+import { ChairpersonSignatureControl } from "@/components/shared/members/ChairpersonSignatureControl";
+import { ClubOfficialDocumentHeader } from "@/components/shared/members/ClubOfficialDocumentHeader";
 import { Button } from "@/components/ui/button";
+import { useChairpersonSignature } from "@/hooks/useChairpersonSignature";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { generatePdfFromElement } from "@/lib/html-to-pdf";
-import { getValidAvatarUrl } from "@/lib/utils";
+import { formatFullName, getValidAvatarUrl } from "@/lib/utils";
 import { Member } from "@/types/member.types";
 
-const AthleteCard = ({ member }: { member: Member }) => {
+const AthleteCard = ({
+  member,
+  chairpersonSignatureUrl,
+  isChairpersonApplied,
+}: {
+  member: Member;
+  chairpersonSignatureUrl?: string | null;
+  isChairpersonApplied?: boolean;
+}) => {
   return (
     <div className="athlete-card-container flex flex-col justify-between border border-slate-400 bg-white p-3 font-serif text-slate-900 leading-snug">
       <div className="w-full">
@@ -62,11 +74,21 @@ const AthleteCard = ({ member }: { member: Member }) => {
               <p className="text-[7pt] text-slate-600 italic">/град/</p>
             </div>
             <div className="pt-0.5">
-              <div className="flex items-end justify-between border-b border-dotted border-slate-800 pb-0.5 min-h-[1.4em]">
+              <div className="relative flex items-end justify-between border-b border-dotted border-slate-800 pb-0.5 min-h-[1.4em]">
                 <span className="text-[8.5pt]">Председател:</span>
-                <span className="font-semibold text-[8.5pt]">
-                  Мира Георгиева
-                </span>
+                <div className="flex items-end gap-1.5">
+                  {isChairpersonApplied && chairpersonSignatureUrl && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={chairpersonSignatureUrl}
+                      alt="Подпис на Председателя"
+                      className="h-6 w-auto object-contain mix-blend-multiply"
+                    />
+                  )}
+                  <span className="font-semibold text-[8.5pt]">
+                    Мира Георгиева
+                  </span>
+                </div>
               </div>
               <p className="text-[7pt] text-slate-600 italic">
                 /Подпис, печат/
@@ -171,18 +193,21 @@ const AthleteCardPage = () => {
   const router = useRouter();
   const memberId = params.id as string;
   const { member, loading } = useMemberProfile(memberId);
+  const chairperson = useChairpersonSignature();
   const printRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
   if (loading)
     return (
-      <div className="animate-pulse p-8 text-center text-slate-400">
+      <div className="min-h-screen animate-pulse bg-zinc-100 p-8 text-center text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
         Зареждане...
       </div>
     );
   if (!member)
     return (
-      <div className="p-8 text-center text-rose-500">Членът не е намерен.</div>
+      <div className="min-h-screen bg-zinc-100 p-8 text-center text-rose-500 dark:bg-zinc-950 dark:text-rose-400">
+        Членът не е намерен.
+      </div>
     );
 
   const handleDownloadPDF = async () => {
@@ -206,17 +231,10 @@ const AthleteCardPage = () => {
     }
   };
 
-  const fullName = `${member.firstName} ${member.lastName}`;
+  const fullName = formatFullName(member);
 
   const handleBack = () => {
-    const hasHistory =
-      typeof window !== "undefined" &&
-      ((window.history.state && window.history.state.idx > 0) ||
-        (window.history.length > 1 &&
-          document.referrer &&
-          document.referrer.includes(window.location.host)));
-
-    if (hasHistory) {
+    if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
     } else {
       router.push(`/members/${memberId}/documents`);
@@ -224,61 +242,85 @@ const AthleteCardPage = () => {
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-[210mm] overflow-hidden bg-white p-0 font-serif print:overflow-visible">
-      {/* Non-printable header */}
-      <div className="flex items-center justify-between border-b bg-slate-50 p-8 print:hidden">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          className="rounded-xl border-slate-200"
-        >
-          <ArrowLeft className="mr-2 size-4" /> Назад
-        </Button>
-        <div className="text-center">
-          <p className="text-sm font-bold tracking-widest text-slate-950 uppercase">
-            {fullName}
-          </p>
-          <p className="text-[10px] text-slate-500 italic">
-            Официален картон на състезателя
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-zinc-100 p-4 md:p-8 dark:bg-zinc-950 print:min-h-0 print:bg-white print:p-0">
+      <div className="mx-auto max-w-[210mm]">
+        {/* Compact PageHeader */}
+        <PageHeader
+          title="Картон на състезателя"
+          breadcrumbs={[
+            { label: "Начало", href: "/dashboard" },
+            { label: "Членове", href: "/members" },
+            { label: fullName, href: `/members/${memberId}` },
+            { label: "Документи", href: `/members/${memberId}/documents` },
+            { label: "Картон на състезателя" },
+          ]}
+          className="print:hidden"
+        />
+
+        {/* Non-printable toolbar */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white/95 p-3 shadow-xs backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/95 print:hidden">
           <Button
             variant="outline"
-            onClick={handleDownloadPDF}
-            disabled={isExporting}
-            className="rounded-xl border-slate-200 hover:border-zinc-950 hover:bg-white"
+            size="sm"
+            onClick={handleBack}
+            className="rounded-xl border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
           >
-            {isExporting ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 size-4" />
-            )}
-            PDF Сваляне
+            <ArrowLeft className="mr-2 size-4" /> Назад
           </Button>
-          <Button
-            onClick={() => window.print()}
-            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
-          >
-            <Printer className="mr-2 size-4" /> Принтирай
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ChairpersonSignatureControl {...chairperson} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadPDF}
+              disabled={isExporting}
+              className="rounded-xl border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+            >
+              {isExporting ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 size-4" />
+              )}
+              PDF Сваляне
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => window.print()}
+              className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              <Printer className="mr-2 size-4" /> Принтирай
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div ref={printRef} className="print-area bg-white p-[8mm]">
-        <AthleteCard member={member} />
+        <div
+          ref={printRef}
+          className="print-area rounded-2xl bg-white p-[8mm] font-serif text-slate-900 shadow-sm print:rounded-none print:shadow-none"
+        >
+          <ClubOfficialDocumentHeader documentKey="athleteCard" />
 
-        <div className="my-2.5 flex items-center justify-center gap-2 text-slate-400 text-[8pt] print:my-2">
-          <span>✂</span>
-          <div className="h-px flex-1 border-t border-dashed border-slate-300" />
-          <span className="uppercase tracking-widest text-[7pt]">
-            Линия за изрязване (2 карти на лист А4)
-          </span>
-          <div className="h-px flex-1 border-t border-dashed border-slate-300" />
-          <span>✂</span>
+          <AthleteCard
+            member={member}
+            chairpersonSignatureUrl={chairperson.signatureUrl}
+            isChairpersonApplied={chairperson.isApplied}
+          />
+
+          <div className="my-2.5 flex items-center justify-center gap-2 text-[8pt] text-slate-400 print:my-2">
+            <span>✂</span>
+            <div className="h-px flex-1 border-t border-dashed border-slate-300" />
+            <span className="text-[7pt] tracking-widest uppercase">
+              Линия за изрязване (2 карти на лист А4)
+            </span>
+            <div className="h-px flex-1 border-t border-dashed border-slate-300" />
+            <span>✂</span>
+          </div>
+
+          <AthleteCard
+            member={member}
+            chairpersonSignatureUrl={chairperson.signatureUrl}
+            isChairpersonApplied={chairperson.isApplied}
+          />
         </div>
-
-        <AthleteCard member={member} />
       </div>
 
       <style

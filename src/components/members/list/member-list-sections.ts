@@ -1,9 +1,18 @@
-import {
-  Activity,
-  Contact as FamilyIcon,
-  UserCog,
-  Users,
-} from "lucide-react";
+import { Activity, Contact as FamilyIcon, UserCog, Users } from "lucide-react";
+
+import { Member } from "@/types";
+
+export function isClubMemberProfile(m: Member): boolean {
+  return m.isClubMember === true || (!m.isGuest && !m.isRecoveryMember);
+}
+
+export function isRecoveryProfile(m: Member): boolean {
+  return Boolean(m.isRecoveryMember);
+}
+
+export function isGuestProfile(m: Member): boolean {
+  return Boolean(m.isGuest);
+}
 
 export type MemberListSectionId = "club" | "guests" | "recovery" | "families";
 

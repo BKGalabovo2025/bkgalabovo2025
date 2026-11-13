@@ -24,7 +24,7 @@ function getFinancialStatusColor(
   hasLastPayment: boolean
 ): string {
   if (isOverdue) return "text-rose-600 dark:text-rose-400";
-  if (!hasLastPayment) return "text-zinc-500";
+  if (!hasLastPayment) return "text-zinc-500 dark:text-zinc-400";
   return "text-emerald-600 dark:text-emerald-400";
 }
 
@@ -254,7 +254,10 @@ export function MemberProfileHeader() {
               <div className="w-full sm:w-auto">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/80 p-4 shadow-2xs sm:p-5 md:justify-start md:gap-5 dark:border-zinc-800 dark:bg-zinc-800/40">
+                    <Link
+                      href={`/members/${member.id}/sales`}
+                      className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/80 p-4 shadow-2xs transition-colors hover:border-zinc-300 hover:bg-zinc-100/80 sm:p-5 md:justify-start md:gap-5 dark:border-zinc-800 dark:bg-zinc-800/40 dark:hover:border-zinc-700 dark:hover:bg-zinc-800/70"
+                    >
                       <div>
                         <p className="mb-1 text-[10px] font-semibold tracking-wider text-zinc-400 uppercase dark:text-zinc-500">
                           Финансов статус
@@ -283,7 +286,7 @@ export function MemberProfileHeader() {
                           </p>
                         )}
                       </div>
-                    </div>
+                    </Link>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>

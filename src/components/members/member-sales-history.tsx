@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, MoreHorizontal } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { mutate } from "swr";
@@ -34,6 +35,7 @@ interface MemberSalesHistoryProps {
   memberIds?: string[];
   familyMembers?: import("@/types").Member[];
   memberName?: string;
+  onDataChanged?: () => void;
 }
 
 const isSubscriptionItem = (name: string): boolean => {
@@ -158,6 +160,7 @@ export const MemberSalesHistory = ({
   memberIds,
   familyMembers,
   memberName,
+  onDataChanged,
 }: MemberSalesHistoryProps) => {
   const router = useRouter();
   const { sales, loading, error, markAsPaid, markAsUnpaid, deleteSale } =
@@ -166,16 +169,19 @@ export const MemberSalesHistory = ({
   const handleMarkAsPaid = async (saleId: string) => {
     await markAsPaid(saleId);
     mutate(memberId);
+    onDataChanged?.();
   };
 
   const handleMarkAsUnpaid = async (saleId: string) => {
     await markAsUnpaid(saleId);
     mutate(memberId);
+    onDataChanged?.();
   };
 
   const handleDeleteSale = async (saleId: string) => {
     await deleteSale(saleId);
     mutate(memberId);
+    onDataChanged?.();
   };
 
   const [collapsedYears, setCollapsedYears] = useState<Record<number, boolean>>(
@@ -416,6 +422,12 @@ export const MemberSalesHistory = ({
             Списък с всички регистрирани плащания и услуги.
           </p>
         </div>
+        <Link
+          href={`/sales/new?memberId=${memberId}`}
+          className="inline-flex h-10 items-center justify-center rounded-xl bg-zinc-950 px-4 text-xs font-semibold tracking-wider text-white uppercase shadow-2xs transition-all hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
+        >
+          + Нова продажба / Такса
+        </Link>
       </div>
 
       {renderContent()}

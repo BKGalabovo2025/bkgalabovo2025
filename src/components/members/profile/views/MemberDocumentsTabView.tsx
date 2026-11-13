@@ -7,7 +7,7 @@ import { MemberDocumentsTab } from "@/components/members/sections/MemberDocument
 import { useMemberProfileContext } from "../MemberProfileContext";
 
 export function MemberDocumentsTabView() {
-  const { member, formatDocDate, updateDocumentStatus } =
+  const { member, formatDocDate, updateDocumentStatus, refetch } =
     useMemberProfileContext();
 
   return (
@@ -15,6 +15,7 @@ export function MemberDocumentsTabView() {
       member={member}
       formatDocDate={formatDocDate}
       updateDocumentStatus={updateDocumentStatus}
+      onRefresh={refetch}
     />
   );
 }

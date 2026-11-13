@@ -4,6 +4,7 @@ import { AlertCircle, ArrowLeft, Loader2, RefreshCw } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/layout/page-header";
 import { MemberForm } from "@/components/members/member-form";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
@@ -101,9 +102,22 @@ const EditMemberPage = () => {
     );
   }
 
+  const memberDisplayName =
+    member.name ||
+    [member.firstName, member.lastName].filter(Boolean).join(" ") ||
+    "Профил";
+
   return (
     <div className="p-4 sm:p-6">
-      <h1 className="mb-4 text-2xl font-bold">Редактиране на член</h1>
+      <PageHeader
+        title="Редактиране на член"
+        breadcrumbs={[
+          { label: "Начало", href: "/dashboard" },
+          { label: "Членове", href: "/members" },
+          { label: memberDisplayName, href: `/members/${memberId}` },
+          { label: "Редакция" },
+        ]}
+      />
       <MemberForm
         initialData={member}
         onSave={handleSave}

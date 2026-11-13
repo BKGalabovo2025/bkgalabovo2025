@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  PlusCircle,
-  RefreshCw,
-  Users,
-} from "lucide-react";
+import { PlusCircle, RefreshCw, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,7 +16,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/context/auth-context";
-import { useFamilies } from "@/hooks/useFamilies";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
 
@@ -46,13 +41,11 @@ export function MembersNavHeader({ counts }: MembersNavHeaderProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { idToken } = useAuth();
-  const { families } = useFamilies();
   const { activeBranch } = useAppStore();
   const isRecoveryBranch = activeBranch === "recoveryzone";
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Динамичен брой семейства от useFamilies, ако не е подаден от сървъра
-  const familiesCount = counts?.families ?? families.length;
+  const familiesCount = counts?.families ?? 0;
 
   const ALL_NAV_TABS = [
     {
@@ -84,20 +77,51 @@ export function MembersNavHeader({ counts }: MembersNavHeaderProps) {
     : ALL_NAV_TABS;
 
   const activeSectionId = getActiveMemberListSectionId(pathname);
+  const activeSection = MEMBER_LIST_SECTIONS.find(
+    (s) => s.id === activeSectionId
+  );
+
+  const preservedQuery = (() => {
+    const params = new URLSearchParams();
+    for (const key of ["search", "status", "group", "doc"]) {
+      const value = searchParams?.get(key);
+      if (value) params.set(key, value);
+    }
+    return params.toString();
+  })();
+
+  const buildSectionHref = (baseHref: string) =>
+    preservedQuery ? `${baseHref}?${preservedQuery}` : baseHref;
+
+  const breadcrumbs = [
+    { label: "Начало", href: "/dashboard" },
+    { label: "Членове", href: "/members" },
+    ...(activeSectionId && activeSectionId !== "all" && activeSection
+      ? [{ label: activeSection.label }]
+      : []),
+  ];
 
   // Backward compatibility: пренасочване от стар URL с ?tab= към съответната подстраница
   useEffect(() => {
     const tab = searchParams?.get("tab");
     if (!tab) return;
 
+    let targetPath: string | null = null;
     if (tab === "guests") {
-      router.replace("/members/guests");
+      targetPath = "/members/guests";
     } else if (tab === "recovery-clients" || tab === "recovery") {
-      router.replace("/members/recovery");
+      targetPath = "/members/recovery";
     } else if (tab === "families") {
-      router.replace("/members/families");
+      targetPath = "/members/families";
     } else if (tab === "members" || tab === "club") {
-      router.replace("/members/club");
+      targetPath = "/members/club";
+    }
+
+    if (targetPath) {
+      const nextParams = new URLSearchParams(searchParams?.toString() || "");
+      nextParams.delete("tab");
+      const qs = nextParams.toString();
+      router.replace(qs ? `${targetPath}?${qs}` : targetPath);
     }
   }, [searchParams, router]);
 
@@ -154,10 +178,7 @@ export function MembersNavHeader({ counts }: MembersNavHeaderProps) {
               ? "Управление на клиентски профили, възстановителни пакети и процедури."
               : "Управление на спортисти, възрастови групи, членски карти и статуси."
           }
-          breadcrumbs={[
-            { label: "Начало", href: "/dashboard" },
-            { label: "Членове", href: "/members" },
-          ]}
+          breadcrumbs={breadcrumbs}
         >
           <div className="flex w-full items-center gap-2 sm:w-auto">
             {/* Бутон за синхронизация с пояснителен Tooltip */}
@@ -221,7 +242,7 @@ export function MembersNavHeader({ counts }: MembersNavHeaderProps) {
                 <Tooltip key={tab.href}>
                   <TooltipTrigger asChild>
                     <Link
-                      href={tab.href}
+                      href={buildSectionHref(tab.href)}
                       className={cn(
                         "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold tracking-wider whitespace-nowrap uppercase transition-all duration-200",
                         isActive

@@ -1,9 +1,11 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/layout/page-header";
 import { GenerateDocumentLinkDialog } from "@/components/members/GenerateDocumentLinkDialog";
 import { MemberForm } from "@/components/members/member-form";
 import { useAuth } from "@/context/auth-context";
@@ -15,7 +17,7 @@ type MemberFormValues = Omit<
   "id" | "name" | "registrationDate" | "updatedAt"
 >;
 
-const NewMemberPage = () => {
+function NewMemberContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const familyId = searchParams.get("familyId");
@@ -80,16 +82,33 @@ const NewMemberPage = () => {
   }
   if (type === "guest") {
     initialData.isGuest = true;
+    initialData.isClubMember = false;
+    initialData.isRecoveryMember = false;
     initialData.memberType = "guest";
+  } else if (type === "recovery") {
+    initialData.isRecoveryMember = true;
+    initialData.isClubMember = false;
+    initialData.isGuest = false;
+    initialData.memberType = "recovery";
   }
+
+  const pageTitle =
+    type === "guest"
+      ? "Добавяне на външен клиент (гост)"
+      : type === "recovery"
+        ? "Добавяне на клиент за възстановяване"
+        : "Добавяне на нов член";
 
   return (
     <div className="p-4 sm:p-6">
-      <h1 className="mb-4 text-2xl font-bold">
-        {type === "guest"
-          ? "Добавяне на външен клиент (гост)"
-          : "Добавяне на нов член"}
-      </h1>
+      <PageHeader
+        title={pageTitle}
+        breadcrumbs={[
+          { label: "Начало", href: "/dashboard" },
+          { label: "Членове", href: "/members" },
+          { label: "Нов член" },
+        ]}
+      />
       <MemberForm
         onSave={handleSave}
         onClose={handleClose}
@@ -105,6 +124,20 @@ const NewMemberPage = () => {
         />
       )}
     </div>
+  );
+}
+
+const NewMemberPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <NewMemberContent />
+    </Suspense>
   );
 };
 

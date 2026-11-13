@@ -28,7 +28,7 @@ export default function MembersListError({
       role="alert"
       className="mx-auto mt-10 flex max-w-md flex-col items-center gap-4 rounded-3xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900/50 dark:bg-red-950/20"
     >
-      <AlertCircle className="size-10 text-red-600" />
+      <AlertCircle className="size-10 text-red-600 dark:text-red-400" />
       <h2 className="text-lg font-semibold">
         Списъкът с членове не можа да се зареди
       </h2>

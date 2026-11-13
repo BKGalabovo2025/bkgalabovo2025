@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 
 import { BentoCard } from "@/components/ui/bento-card";
@@ -21,38 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-
-// Simple visual checkbox that avoids Radix compose-refs React 19 bug
-function VisualCheckbox({
-  checked,
-  className,
-}: {
-  checked?: boolean;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-md border border-zinc-300 dark:border-zinc-700",
-        checked
-          ? "border-zinc-950 bg-zinc-950 dark:border-zinc-100 dark:bg-zinc-100"
-          : "bg-white dark:bg-zinc-900",
-        className
-      )}
-    >
-      {checked && (
-        <Check
-          className="text-white dark:text-zinc-950"
-          strokeWidth={3}
-          style={{ width: "70%", height: "70%" }}
-        />
-      )}
-    </div>
-  );
-}
 
 import { MemberFormValues } from "./member-form-types";
+import { VisualCheckbox } from "./VisualCheckbox";
 
 interface MemberFormStep3Props {
   form: UseFormReturn<MemberFormValues>;
@@ -65,7 +36,8 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
   const isGuest = form.watch("isGuest");
   const isClubMember = form.watch("isClubMember");
   const isRecoveryMember = form.watch("isRecoveryMember");
-  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
+  const isCoach = form.watch("isCoach");
+  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember && !isCoach;
 
   if (isGuestOnly) return null;
 
@@ -132,7 +104,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                   <FormControl>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value || undefined}
+                      value={field.value || ""}
                     >
                       <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900">
                         <SelectValue placeholder="Избери ниво" />
@@ -170,7 +142,7 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value || ""}
                 >
                   <SelectTrigger className="h-11 rounded-xl border-zinc-100 bg-zinc-50/50 text-sm focus:bg-white focus:ring-0 sm:h-12 dark:border-zinc-800 dark:bg-zinc-900/50 dark:focus:bg-zinc-900">
                     <SelectValue />

@@ -27,10 +27,24 @@ import { cn } from "@/lib/utils";
 
 import {
   getActiveMemberSectionId,
+  getMemberSectionHref,
   MEMBER_PROFILE_SECTIONS,
   type MemberProfileSectionId,
 } from "./member-profile-sections";
 import { useMemberProfileContext } from "./MemberProfileContext";
+
+function isMinorMember(dateOfBirth?: string | null): boolean {
+  if (!dateOfBirth) return false;
+  const dob = new Date(dateOfBirth);
+  if (Number.isNaN(dob.getTime())) return false;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age < 18;
+}
 
 const SECTION_ICONS: Record<
   MemberProfileSectionId,
@@ -62,10 +76,46 @@ const ACCENT_CLASSES = {
 
 export function MemberProfileNav() {
   const pathname = usePathname();
-  const { memberId } = useMemberProfileContext();
+  const { memberId, member, isOverdue } = useMemberProfileContext();
 
-  const basePath = `/members/${memberId}`;
   const activeId = getActiveMemberSectionId(pathname, memberId);
+
+  const isClubNonGuest =
+    Boolean(member.isClubMember) &&
+    !member.isGuest &&
+    member.memberType !== "guest";
+  const hasMissingDocs =
+    isClubNonGuest &&
+    (!member.signedDeclarationUrl || !member.medicalCertificateUrl);
+
+  const hasParentContact = Boolean(
+    member.parentName ||
+    member.parentPhone ||
+    member.parentEmail ||
+    member.fatherName ||
+    member.fatherPhone ||
+    member.motherName ||
+    member.motherPhone ||
+    member.secondParentName ||
+    member.secondParentPhone
+  );
+  const needsParentLink =
+    isMinorMember(member.dateOfBirth) && !hasParentContact;
+
+  const getStatusDotClass = (
+    sectionId: MemberProfileSectionId
+  ): string | null => {
+    if (sectionId === "sales" && isOverdue) {
+      return "bg-rose-500";
+    }
+    if (sectionId === "documents" && hasMissingDocs) {
+      return "bg-amber-500";
+    }
+    if (sectionId === "parents" && needsParentLink) {
+      return "bg-amber-500";
+    }
+    return null;
+  };
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -73,14 +123,15 @@ export function MemberProfileNav() {
         aria-label="Подстраници на досието на члена"
         className="sticky top-14 z-20 -mx-3 border-b border-zinc-200/80 bg-white/95 px-3 py-2.5 backdrop-blur-md sm:top-16 sm:-mx-6 sm:px-6 dark:border-zinc-800 dark:bg-zinc-950/95"
       >
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-2">
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 sm:gap-2">
           {MEMBER_PROFILE_SECTIONS.map((section) => {
-            const href = `${basePath}${section.pathSuffix}`;
+            const href = getMemberSectionHref(memberId, section);
             const isActive = section.id === activeId;
             const Icon = SECTION_ICONS[section.id];
             const accent = section.accent
               ? ACCENT_CLASSES[section.accent]
               : null;
+            const statusDotClass = getStatusDotClass(section.id);
 
             return (
               <Tooltip key={section.id}>
@@ -92,7 +143,7 @@ export function MemberProfileNav() {
                       "group flex h-9 w-full items-center gap-2 rounded-xl border px-3 text-xs font-medium transition-all select-none",
                       isActive
                         ? "border-zinc-950 bg-zinc-950 text-white shadow-xs dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950 font-semibold"
-                        : "border-zinc-200/80 bg-zinc-50/80 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-850 dark:hover:text-zinc-100",
+                        : "border-zinc-200/80 bg-zinc-50/80 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
                       !isActive && accent?.link
                     )}
                   >
@@ -106,6 +157,15 @@ export function MemberProfileNav() {
                       )}
                     />
                     <span className="truncate">{section.label}</span>
+                    {statusDotClass && (
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "ml-auto size-1.5 shrink-0 rounded-full",
+                          statusDotClass
+                        )}
+                      />
+                    )}
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>

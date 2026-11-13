@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 
+import { isClubMemberProfile } from "@/components/members/list/member-list-sections";
 import { MembersTableComponent } from "@/components/members/list/MembersTableComponent";
 import { Member } from "@/types";
 
@@ -11,11 +12,7 @@ interface MembersClubViewProps {
 
 export function MembersClubView({ initialMembers }: MembersClubViewProps) {
   const clubMembers = useMemo(() => {
-    return initialMembers.filter(
-      (m) =>
-        m.isClubMember === true ||
-        (!m.isGuest && m.memberType === "regular" && !m.isRecoveryMember)
-    );
+    return initialMembers.filter(isClubMemberProfile);
   }, [initialMembers]);
 
   return (

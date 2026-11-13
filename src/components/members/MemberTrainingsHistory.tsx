@@ -3,6 +3,7 @@
 
 import { format } from "date-fns";
 import { Medal, Zap } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { DeleteTrainingButton } from "@/components/training/DeleteTrainingButton";
@@ -44,7 +45,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
 
   if (loading) {
     return (
-      <div className="animate-pulse p-8 text-center text-slate-400">
+      <div className="animate-pulse p-8 text-center text-zinc-500 dark:text-zinc-400">
         Зареждане на тренировки...
       </div>
     );
@@ -56,7 +57,16 @@ export function MemberTrainingsHistory({ memberId }: Props) {
         {error ? (
           <p className="text-sm text-red-500">Грешка: {error}</p>
         ) : (
-          "Няма записани тренировки за този член."
+          <div className="space-y-4">
+            <p>Няма записани тренировки за този член.</p>
+            <Link
+              href="/training/shadow"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              <Zap className="size-3.5" />
+              Shadow Training
+            </Link>
+          </div>
         )}
       </div>
     );
@@ -82,6 +92,15 @@ export function MemberTrainingsHistory({ memberId }: Props) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Link
+          href="/training/shadow"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        >
+          <Zap className="size-3.5" />
+          Shadow Training
+        </Link>
+      </div>
       {/* Badges Section */}
       {badges.length > 0 && (
         <div className="rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6">
@@ -95,7 +114,9 @@ export function MemberTrainingsHistory({ memberId }: Props) {
                 className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center"
               >
                 <div className="font-bold text-primary">{b.name}</div>
-                <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{b.desc}</div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  {b.desc}
+                </div>
               </div>
             ))}
           </div>

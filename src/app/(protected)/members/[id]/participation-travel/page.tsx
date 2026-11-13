@@ -17,7 +17,7 @@ const ParticipationTravelPage = () => {
         `Подпис за Декларация — Съгласие за участие и пътуване за ${fullName}`
       }
     >
-      {({ member, fullName, existingSignatureUrl }) => (
+      {({ member, fullName, existingSignatureUrl, displayDate }) => (
         <>
           <div className="mb-3 text-center">
             <h1 className="text-xl font-bold tracking-[0.25em] text-slate-950 uppercase">
@@ -195,9 +195,7 @@ const ParticipationTravelPage = () => {
             <div className="space-y-1">
               <p className="font-semibold text-slate-900">гр. Гълъбово</p>
               <div className="w-36 border-b border-slate-700 pb-0.5">
-                <span className="font-medium">
-                  Дата: {new Date().toLocaleDateString("bg-BG")} г.
-                </span>
+                <span className="font-medium">Дата: {displayDate} г.</span>
               </div>
             </div>
 

@@ -103,6 +103,14 @@ export const MEMBER_PROFILE_SECTIONS: readonly MemberProfileSection[] = [
   },
 ];
 
+/** Връща пълния URL път към дадена секция на досието. */
+export function getMemberSectionHref(
+  memberId: string,
+  section: Pick<MemberProfileSection, "pathSuffix">
+): string {
+  return `/members/${memberId}${section.pathSuffix}`;
+}
+
 /** Определя активната секция по текущия път (най-дългото съвпадение печели). */
 export function getActiveMemberSectionId(
   pathname: string,

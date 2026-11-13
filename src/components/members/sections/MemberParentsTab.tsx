@@ -410,25 +410,45 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
   return (
     <div className="space-y-6">
       {/* Top action bar */}
-      <div className="flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+      <div className="flex flex-col gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-900/50">
         <div>
           <h3 className="text-sm font-bold uppercase text-zinc-900 dark:text-white">
             Свързани родители за {member.firstName} {member.lastName}
           </h3>
-          <p className="mt-0.5 text-xs text-zinc-500">
+          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
             Управлявайте кои родители имат достъп и какви данни от картона могат
             да виждат.
           </p>
         </div>
 
-        <Button
-          size="sm"
-          onClick={handleOpenAddModal}
-          className="rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-500"
-        >
-          <UserPlus size={14} className="mr-1.5" />
-          <span>+ Добави родител</span>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/parents/accounts"
+            className="inline-flex items-center rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Акаунти
+          </Link>
+          <Link
+            href="/parents/activity"
+            className="inline-flex items-center rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Активност
+          </Link>
+          <Link
+            href="/parents/communication"
+            className="inline-flex items-center rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Комуникация
+          </Link>
+          <Button
+            size="sm"
+            onClick={handleOpenAddModal}
+            className="rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-500"
+          >
+            <UserPlus size={14} className="mr-1.5" />
+            <span>+ Добави родител</span>
+          </Button>
+        </div>
       </div>
 
       {/* Pending request alert */}

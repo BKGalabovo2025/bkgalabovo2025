@@ -180,10 +180,10 @@ export const SignatureDialog = ({
 
         {/* Canvas Area */}
         <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-2.5 min-h-0">
-          <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 dark:border-zinc-700 dark:bg-zinc-900/40">
+          <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-100">
             {/* Guiding line */}
-            <div className="pointer-events-none absolute inset-x-8 bottom-10 h-px bg-zinc-200 dark:bg-zinc-700" />
-            <p className="pointer-events-none absolute bottom-3 left-8 text-[10px] font-medium tracking-widest text-zinc-400 uppercase select-none">
+            <div className="pointer-events-none absolute inset-x-8 bottom-10 h-px bg-zinc-200 dark:bg-zinc-300" />
+            <p className="pointer-events-none absolute bottom-3 left-8 text-[10px] font-medium tracking-widest text-zinc-400 dark:text-zinc-500 uppercase select-none">
               Подпис
             </p>
 

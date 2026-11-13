@@ -1,6 +1,7 @@
 "use client";
 
 import { Activity, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   CartesianGrid,
@@ -80,6 +81,15 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
           Този състезател все още няма записани присъствия в Универсалния
           Планировчик.
         </p>
+        <div className="mt-6">
+          <Link
+            href="/training/planner"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            <Activity className="size-3.5" />
+            Към Планировчика
+          </Link>
+        </div>
       </div>
     );
   }
@@ -117,6 +127,15 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Link
+          href="/training/planner"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        >
+          <Activity className="size-3.5" />
+          Към Планировчика
+        </Link>
+      </div>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Card className="border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/30">
           <CardContent className="p-4 text-center">
@@ -182,7 +201,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
-                  stroke="#e4e4e7"
+                  className="stroke-zinc-200 dark:stroke-zinc-800"
                 />
                 <XAxis
                   dataKey="date"
@@ -199,12 +218,14 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                 <Tooltip
                   contentStyle={{
                     borderRadius: "8px",
-                    border: "none",
+                    border: "1px solid var(--border, #e4e4e7)",
+                    backgroundColor: "var(--card, #ffffff)",
+                    color: "var(--card-foreground, #18181b)",
                     boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                   }}
                   labelStyle={{
                     fontWeight: "bold",
-                    color: "#18181b",
+                    color: "var(--card-foreground, #18181b)",
                     marginBottom: "4px",
                   }}
                 />
@@ -257,7 +278,9 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                 <div>
                   <div className="mb-1 flex items-center gap-2">
                     <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                      <span className="text-zinc-600 dark:text-zinc-400">Зала: </span>
+                      <span className="text-zinc-600 dark:text-zinc-400">
+                        Зала:{" "}
+                      </span>
                       <span className="font-semibold">
                         {s.location === "court" ? "Да" : "Не"}
                       </span>{" "}
@@ -298,7 +321,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                       Умора
                     </div>
                     <div
-                      className={`text-lg font-black ${att.rpe >= 8 ? "text-red-600" : "text-indigo-600"}`}
+                      className={`text-lg font-black ${att.rpe >= 8 ? "text-red-600 dark:text-red-400" : "text-indigo-600 dark:text-indigo-400"}`}
                     >
                       {att.rpe}/10
                     </div>
@@ -307,7 +330,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                     <div className="mb-0.5 text-xs font-bold tracking-wider text-zinc-400 uppercase">
                       Старание
                     </div>
-                    <div className="text-lg font-black text-emerald-600">
+                    <div className="text-lg font-black text-emerald-600 dark:text-emerald-400">
                       {att.effort}/5
                     </div>
                   </div>

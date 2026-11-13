@@ -5,10 +5,12 @@
  * Encapsulates: back/print toolbar, document wrapper, ОТ: section, footer, print styles.
  */
 
-import { ArrowLeft, Calendar, Printer } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Loader2, PenLine } from "lucide-react";
+import { useParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 
+import { PrintableDocumentShell } from "@/components/members/documents/PrintableDocumentShell";
+import { SignatureDialog } from "@/components/members/signature-dialog";
 import {
   ChairpersonSignatureControl,
   ChairpersonSignatureLine,
@@ -16,9 +18,14 @@ import {
 import { ClubOfficialDocumentHeader } from "@/components/shared/members/ClubOfficialDocumentHeader";
 import { Button } from "@/components/ui/button";
 import { useChairpersonSignature } from "@/hooks/useChairpersonSignature";
-import type { DocumentNumberKey } from "@/types/document-number.types";
+import {
+  DOCUMENT_NUMBER_LABELS,
+  type DocumentNumberKey,
+} from "@/types/document-number.types";
 
 interface MemberDocumentShellProps {
+  /** Member ID for breadcrumbs and fallback back navigation */
+  memberId?: string;
   /** Called when the Back button is clicked */
   onBack?: () => void;
   /** The document title shown below "М О Л Б А" */
@@ -28,7 +35,8 @@ interface MemberDocumentShellProps {
   /** Today's date string (bg-BG format) */
   today: string;
   /** The specific document body between the ОТ: section and the footer */
-  children: React.ReactNode;
+  children:
+    React.ReactNode | ((props: { displayDate: string }) => React.ReactNode);
   /** Optional parent contact info for signed documents */
   parentName?: string | null;
   parentPhone?: string | null;
@@ -38,9 +46,16 @@ interface MemberDocumentShellProps {
   signatureUrl?: string | null;
   /** Document type used for the issued document number */
   documentKey: DocumentNumberKey;
+  /** Extra actions rendered in the toolbar */
+  extraToolbarActions?: React.ReactNode;
+  /** Optional handler to sign the document via SignatureDialog */
+  onSaveSignature?: (file: File) => Promise<void>;
+  signatureDialogTitle?: string;
+  signatureDialogDescription?: string;
 }
 
 export const MemberDocumentShell = ({
+  memberId: memberIdProp,
   onBack,
   documentSubtitle,
   fullName,
@@ -52,9 +67,26 @@ export const MemberDocumentShell = ({
   parentAddress,
   signatureUrl,
   documentKey,
+  extraToolbarActions,
+  onSaveSignature,
+  signatureDialogTitle = "Електронен подпис",
+  signatureDialogDescription,
 }: MemberDocumentShellProps) => {
   const chairperson = useChairpersonSignature();
-  const router = useRouter();
+  const params = useParams();
+  const memberId = memberIdProp ?? (params?.id as string) ?? "";
+  const [signatureOpen, setSignatureOpen] = useState(false);
+  const [isSavingSignature, setIsSavingSignature] = useState(false);
+
+  const handleSaveMemberSignature = async (file: File) => {
+    if (!onSaveSignature) return;
+    setIsSavingSignature(true);
+    try {
+      await onSaveSignature(file);
+    } finally {
+      setIsSavingSignature(false);
+    }
+  };
 
   const [selectedDate, setSelectedDate] = useState<string>(() =>
     new Date().toISOString().slice(0, 10)
@@ -69,63 +101,42 @@ export const MemberDocumentShell = ({
     return today;
   }, [selectedDate, today]);
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-      return;
-    }
-    const hasHistory =
-      typeof window !== "undefined" &&
-      ((window.history.state && window.history.state.idx > 0) ||
-        (window.history.length > 1 &&
-          document.referrer &&
-          document.referrer.includes(window.location.host)));
-
-    if (hasHistory) {
-      router.back();
-    } else {
-      router.push("/documents");
-    }
-  };
-
   return (
-    <div className="mx-auto min-h-screen max-w-4xl bg-white p-4 md:p-12">
-      {/* Non-printable toolbar */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          className="rounded-xl border-slate-200"
-        >
-          <ArrowLeft className="mr-2 size-4" /> Назад
-        </Button>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Editable Document Date */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700 shadow-2xs">
-            <Calendar className="size-3.5 text-slate-500" />
-            <span className="font-semibold text-slate-600">Дата:</span>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent font-medium text-slate-900 outline-none cursor-pointer"
-              title="Редактирай датата на документа"
-            />
-          </div>
-
-          <ChairpersonSignatureControl {...chairperson} />
-          <Button
-            onClick={() => window.print()}
-            className="rounded-xl bg-zinc-950 text-white shadow-lg hover:bg-zinc-800"
-          >
-            <Printer className="mr-2 size-4" /> Принтирай
-          </Button>
-        </div>
-      </div>
-
-      {/* Printable area */}
-      <div className="print-area relative font-serif text-slate-900 leading-snug">
+    <>
+      <PrintableDocumentShell
+        memberId={memberId}
+        memberName={fullName}
+        documentTitle={DOCUMENT_NUMBER_LABELS[documentKey]}
+        onBack={onBack}
+        dateValue={selectedDate}
+        onDateChange={setSelectedDate}
+        printPageMargin="10mm 15mm 10mm 15mm"
+        printFontSize="10.5pt"
+        printLineHeight="1.35"
+        printAreaClassName="font-serif leading-snug"
+        toolbarActions={
+          <>
+            {extraToolbarActions}
+            {onSaveSignature && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSignatureOpen(true)}
+                disabled={isSavingSignature}
+                className="h-9 rounded-xl border-zinc-200 text-[10px] font-medium tracking-widest text-zinc-700 uppercase transition-all hover:border-zinc-950 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
+              >
+                {isSavingSignature ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <PenLine className="mr-2 size-4" strokeWidth={1.5} />
+                )}
+                {signatureUrl ? "Смени подписа" : "Добави електронен подпис"}
+              </Button>
+            )}
+            <ChairpersonSignatureControl {...chairperson} />
+          </>
+        }
+      >
         <ClubOfficialDocumentHeader
           documentKey={documentKey}
           overrideDate={`${displayDate} г.`}
@@ -187,7 +198,11 @@ export const MemberDocumentShell = ({
         </div>
 
         {/* Document-specific body */}
-        <div className="text-xs leading-relaxed text-justify">{children}</div>
+        <div className="text-xs leading-relaxed text-justify">
+          {typeof children === "function"
+            ? children({ displayDate })
+            : children}
+        </div>
 
         {/* Footer with institutional signatures */}
         <div className="mt-8 flex items-end justify-between text-xs font-serif">
@@ -256,7 +271,7 @@ export const MemberDocumentShell = ({
                   : "Одобрявам молбата за отписване / освобождаване от клуба."}
               </p>
               <p className="text-[7.5pt] text-slate-500">
-                гр. Гълъбово | Дата: {today} г.
+                гр. Гълъбово | Дата: {displayDate} г.
               </p>
             </div>
             <div className="flex flex-col items-end text-right min-w-44">
@@ -272,42 +287,19 @@ export const MemberDocumentShell = ({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Print styles */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        @media print {
-          @page {
-            size: A4 portrait;
-            margin: 10mm 15mm 10mm 15mm;
+      </PrintableDocumentShell>
+      {onSaveSignature && (
+        <SignatureDialog
+          open={signatureOpen}
+          onClose={() => setSignatureOpen(false)}
+          onSave={handleSaveMemberSignature}
+          title={signatureDialogTitle}
+          description={
+            signatureDialogDescription ??
+            `Начертайте подпис за ${DOCUMENT_NUMBER_LABELS[documentKey]} на ${fullName}`
           }
-          html, body {
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #fff !important;
-          }
-          body * {
-            visibility: hidden;
-          }
-          .print-area, .print-area * {
-            visibility: visible;
-          }
-          .print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            font-size: 10.5pt !important;
-            line-height: 1.35 !important;
-          }
-        }
-      `,
-        }}
-      />
-    </div>
+        />
+      )}
+    </>
   );
 };

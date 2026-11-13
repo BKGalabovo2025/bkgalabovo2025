@@ -28,7 +28,8 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
   const isGuest = form.watch("isGuest");
   const isClubMember = form.watch("isClubMember");
   const isRecoveryMember = form.watch("isRecoveryMember");
-  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember;
+  const isCoach = form.watch("isCoach");
+  const isGuestOnly = isGuest && !isClubMember && !isRecoveryMember && !isCoach;
 
   const hasEmergencyContact = form.watch("hasEmergencyContact");
   const parentName = form.watch("parentName");
@@ -220,7 +221,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                 name="hasEmergencyContact"
                 control={form.control}
                 render={({ field }) => (
-                  <label className="flex items-center gap-2 cursor-pointer select-none rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs font-semibold text-zinc-800 transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200">
+                  <label className="flex items-center gap-2 cursor-pointer select-none rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs font-semibold text-zinc-800 transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200 dark:hover:bg-zinc-800">
                     <Checkbox
                       checked={Boolean(field.value)}
                       onCheckedChange={(checked) => {
@@ -300,7 +301,7 @@ export function MemberFormStep2({ form, isActive }: MemberFormStep2Props) {
                                 "rounded-xl px-3 py-1.5 text-xs font-bold transition-all",
                                 isSelected
                                   ? "bg-amber-600 text-white shadow-xs"
-                                  : "bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                                  : "bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                               )}
                             >
                               {role.label}
