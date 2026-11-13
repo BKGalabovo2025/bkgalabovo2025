@@ -176,6 +176,7 @@ export function TripManageView() {
       {isManagerOpen && (
         <BusinessTripManagerDialog
           event={effectiveEvent}
+          initialTripId={trip.id}
           open={isManagerOpen}
           onOpenChange={(open) => {
             setIsManagerOpen(open);

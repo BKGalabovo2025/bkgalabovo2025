@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import RecoveryClientPage from "@/app/(protected)/finances/recovery/client-page";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { ClubService } from "@/types";
@@ -69,5 +71,9 @@ export default async function RecoveryCatalogPage() {
     return <div className="container mx-auto py-10 text-red-500">{error}</div>;
   }
 
-  return <RecoveryClientPage data={data} />;
+  return (
+    <Suspense fallback={null}>
+      <RecoveryClientPage data={data} />
+    </Suspense>
+  );
 }

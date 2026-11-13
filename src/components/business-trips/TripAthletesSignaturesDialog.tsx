@@ -490,7 +490,7 @@ export function TripAthletesSignaturesDialog({
             <DialogTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
               Подпис: {previewSig.name}
             </DialogTitle>
-            <div className="mt-3 bg-zinc-50 rounded-xl border border-zinc-200 p-4 flex items-center justify-center min-h-25 dark:bg-zinc-900 dark:border-zinc-800">
+            <div className="mt-3 bg-zinc-50 rounded-xl border border-zinc-200 p-4 flex items-center justify-center min-h-25 dark:bg-white dark:border-zinc-800">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewSig.url}

@@ -15,12 +15,16 @@ export function AccountingNav({ className }: { className?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const active = getActiveAccountingSectionId(pathname) || "all";
-  // Запазваме избрания месец и статус при смяна на секция.
+  // Запазваме избрания месец, статус и филтър за липси при смяна на секция.
   const keep = new URLSearchParams();
   const month = searchParams.get("month");
   const status = searchParams.get("status");
+  const incomplete = searchParams.get("incomplete");
+  const view = searchParams.get("view");
   if (month) keep.set("month", month);
   if (status) keep.set("status", status);
+  if (incomplete) keep.set("incomplete", incomplete);
+  if (view) keep.set("view", view);
   const qs = keep.toString() ? `?${keep.toString()}` : "";
 
   return (

@@ -62,7 +62,7 @@ export function SignaturePadDialog({
         </div>
 
         <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3 min-h-0">
-          <div className="relative touch-none overflow-hidden rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="relative touch-none overflow-hidden rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-white">
             <SignatureCanvas
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               ref={sigCanvas as any}

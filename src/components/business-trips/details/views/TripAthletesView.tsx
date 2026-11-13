@@ -36,8 +36,12 @@ export function TripAthletesView() {
   const participantIds = trip.participantsIds || [];
   useDeepLinkHighlight("athlete", participantIds.length > 0, "memberId");
   const athleteSignatures = trip.signatures?.athletes || {};
+  const athleteIds = participantIds.filter((id) => !membersDict[id]?.isCoach);
+  const signedCount = athleteIds.filter((id) =>
+    Boolean(athleteSignatures[id])
+  ).length;
 
-  const missingAthletesWithStoredSig = participantIds.filter(
+  const missingAthletesWithStoredSig = athleteIds.filter(
     (id) => !athleteSignatures[id] && Boolean(membersDict[id]?.signature)
   );
 
@@ -144,7 +148,7 @@ export function TripAthletesView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
-            Участващи състезатели и подписи ({participantIds.length})
+            Участващи състезатели и подписи ({signedCount}/{athleteIds.length})
           </h2>
           <p className="text-xs text-zinc-500">
             Списък на картотекираните състезатели и статус на електронните им

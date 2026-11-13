@@ -10,7 +10,9 @@ import {
   getActiveTripSectionId,
   getTripSectionHref,
   TRIP_DETAIL_SECTIONS,
+  type TripDetailSectionId,
 } from "./trip-details-sections";
+import { useTripDetails } from "./TripDetailsContext";
 
 interface TripDetailsNavProps {
   tripId: string;
@@ -20,6 +22,42 @@ interface TripDetailsNavProps {
 export function TripDetailsNav({ tripId, className }: TripDetailsNavProps) {
   const pathname = usePathname();
   const activeSection = getActiveTripSectionId(pathname, tripId) || "overview";
+  const { trip, expenses, membersDict } = useTripDetails();
+
+  const getSectionReadiness = (
+    sectionId: TripDetailSectionId
+  ): "ready" | "missing" | null => {
+    if (sectionId === "expenses") {
+      return expenses.length > 0 || trip.transportType === "free"
+        ? "ready"
+        : "missing";
+    }
+    if (sectionId === "order") {
+      return trip.orderNumber ? "ready" : "missing";
+    }
+    if (sectionId === "protocol") {
+      return trip.usDecision || trip.usProtocolNumber ? "ready" : "missing";
+    }
+    if (sectionId === "athletes") {
+      const athletes = (trip.participantsIds || []).filter(
+        (id) => !membersDict[id]?.isCoach
+      );
+      const allAthletesSigned =
+        athletes.length === 0 ||
+        athletes.every((id) => Boolean(trip.signatures?.athletes?.[id]));
+      const ready =
+        Boolean(trip.signatures?.coach) &&
+        Boolean(trip.signatures?.chairman) &&
+        allAthletesSigned;
+      return ready ? "ready" : "missing";
+    }
+    if (sectionId === "report") {
+      return trip.reportText && trip.reportText.trim().length > 0
+        ? "ready"
+        : "missing";
+    }
+    return null;
+  };
 
   return (
     <nav
@@ -33,13 +71,20 @@ export function TripDetailsNav({ tripId, className }: TripDetailsNavProps) {
         const Icon = section.icon;
         const isActive = activeSection === section.id;
         const href = getTripSectionHref(tripId, section.id);
+        const readiness = getSectionReadiness(section.id);
 
         return (
           <Link
             key={section.id}
             href={href}
             aria-current={isActive ? "page" : undefined}
-            title={section.tooltip}
+            title={
+              readiness === "ready"
+                ? `${section.tooltip} (Попълнено)`
+                : readiness === "missing"
+                  ? `${section.tooltip} (Изисква внимание / липсват данни)`
+                  : section.tooltip
+            }
             className={cn(
               "group inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200",
               isActive
@@ -56,6 +101,17 @@ export function TripDetailsNav({ tripId, className }: TripDetailsNavProps) {
               )}
             />
             <span>{section.label}</span>
+            {readiness && (
+              <span
+                aria-label={readiness === "ready" ? "Готово" : "Липсват данни"}
+                className={cn(
+                  "size-1.5 shrink-0 rounded-full",
+                  readiness === "ready"
+                    ? "bg-emerald-500 dark:bg-emerald-400"
+                    : "bg-amber-500 dark:bg-amber-400"
+                )}
+              />
+            )}
           </Link>
         );
       })}

@@ -89,7 +89,7 @@ export function RecoveryClientPackages() {
               description: "Функцията за ръчно добавяне се разработва.",
             })
           }
-          className="h-10 rounded-full bg-zinc-900 px-4 text-sm font-medium text-white shadow-sm transition-all hover:bg-zinc-800"
+          className="h-10 rounded-full bg-zinc-900 px-4 text-sm font-medium text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
         >
           <Plus className="mr-2 size-4" />
           Добави Пакет

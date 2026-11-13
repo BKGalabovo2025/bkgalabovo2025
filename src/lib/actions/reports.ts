@@ -3,12 +3,21 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
+import {
+  calculateTripStatementTotals,
+  calculateTripTransportTotals,
+} from "@/lib/business-trip-calc";
 import { getCachedSalesForBranch } from "@/lib/db/sales";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { getAllMembersServer } from "@/services/member-service.server";
 import { Member, Sale } from "@/types";
+import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 
 export interface FinancialReportData {
   total: number;
+  tripsExpensesTotal: number;
+  tripsCount: number;
+  netBalance: number;
   chartData: { name: string; value: number; color: string }[];
   sales: (Sale & { memberName: string; linkedMemberName?: string | null })[];
 }
@@ -114,8 +123,106 @@ export async function generateFinancialReportAction(
       };
     });
 
+  let tripsExpensesTotal = 0;
+  let tripsCount = 0;
+  try {
+    const adminDb = getAdminDb();
+    const [tripsSnap, expensesSnap] = await Promise.all([
+      adminDb
+        .collection("business_trips")
+        .where("siteId", "==", activeBranch)
+        .get(),
+      adminDb
+        .collection("trip_expenses")
+        .where("siteId", "==", activeBranch)
+        .get(),
+    ]);
+
+    const expensesByTrip: Record<string, TripExpense[]> = {};
+    expensesSnap.docs.forEach((doc) => {
+      const exp = { id: doc.id, ...doc.data() } as TripExpense;
+      if (exp.tripId) {
+        if (!expensesByTrip[exp.tripId]) expensesByTrip[exp.tripId] = [];
+        expensesByTrip[exp.tripId].push(exp);
+      }
+    });
+
+    tripsSnap.docs.forEach((doc) => {
+      const trip = { id: doc.id, ...doc.data() } as BusinessTrip;
+      const tripDate = new Date(trip.startDate);
+      const isInRange =
+        (!startDate || tripDate >= startDate) &&
+        (!endDate || tripDate <= endDate);
+      if (!isInRange) return;
+
+      tripsCount += 1;
+      const tripExps = expensesByTrip[doc.id] || [];
+      const { calcPerDiemEUR: calcPerDiem, calcAccomEUR: calcAccom } =
+        calculateTripStatementTotals(trip);
+      const calcEntry = trip.financials?.entryFeeEUR || 0;
+      const transportCalc = calculateTripTransportTotals(trip);
+      const calcFuel = transportCalc.calcFuelEUR;
+
+      let expPerDiem = 0;
+      let expAccom = 0;
+      let expEntry = 0;
+      let expOther = 0;
+      const fuelExpenses = tripExps.filter((e) => e.expenseType === "fuel");
+      const transportExpenses = tripExps.filter(
+        (e) => e.expenseType === "transport"
+      );
+
+      const avgPricePerLiterEUR =
+        fuelExpenses.length > 0
+          ? fuelExpenses.reduce((sum, e) => sum + e.amountEUR, 0) /
+            fuelExpenses.length
+          : 0;
+      const effectiveDistKm =
+        transportCalc.effectiveDistanceKm > 0
+          ? transportCalc.effectiveDistanceKm
+          : (trip.vehicle?.distanceKm ?? 0);
+      let finalFuelEUR = calcFuel;
+      if (
+        fuelExpenses.length > 0 &&
+        effectiveDistKm > 0 &&
+        trip.vehicle?.fuelNorm
+      ) {
+        const totalLiters = (effectiveDistKm / 100) * trip.vehicle.fuelNorm;
+        const finalFuelBGN =
+          totalLiters * (Math.round(avgPricePerLiterEUR * 1.95583 * 100) / 100);
+        finalFuelEUR = finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
+      }
+      const expTransport = transportExpenses.reduce(
+        (sum, e) => sum + e.amountEUR,
+        0
+      );
+      tripExps.forEach((ex) => {
+        if (ex.expenseType === "accommodation") expAccom += ex.amountEUR;
+        else if (ex.expenseType === "food") expPerDiem += ex.amountEUR;
+        else if (ex.expenseType === "entry_fee") expEntry += ex.amountEUR;
+        else if (ex.expenseType !== "fuel" && ex.expenseType !== "transport") {
+          expOther += ex.amountEUR;
+        }
+      });
+
+      const perDiemTotal = expPerDiem > 0 ? expPerDiem : calcPerDiem;
+      const accomTotal = expAccom > 0 ? expAccom : calcAccom;
+      const entryTotal = expEntry > 0 ? expEntry : calcEntry;
+      const fuelTotal =
+        (fuelExpenses.length > 0 ? finalFuelEUR : calcFuel) + expTransport;
+
+      tripsExpensesTotal +=
+        perDiemTotal + accomTotal + entryTotal + fuelTotal + expOther;
+    });
+  } catch (err) {
+    console.warn("Неуспешно зареждане на разходи по командировки:", err);
+  }
+
   return {
     total: totalRevenue,
+    tripsExpensesTotal,
+    tripsCount,
+    netBalance: totalRevenue - tripsExpensesTotal,
     chartData,
     sales: enrichedSales,
   };

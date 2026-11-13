@@ -151,7 +151,7 @@ const AttendanceReport = ({
             <Button
               onClick={handleGenerateReport}
               disabled={isLoading}
-              className="h-10 flex-1 rounded-xl bg-zinc-950 px-5 text-[10px] sm:text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 md:flex-none"
+              className="h-10 flex-1 rounded-xl bg-zinc-950 px-5 text-[10px] sm:text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 md:flex-none"
             >
               {isLoading ? (
                 <Loader2 className="mr-2 size-3.5 animate-spin" />

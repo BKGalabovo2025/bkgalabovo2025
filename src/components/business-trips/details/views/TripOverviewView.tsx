@@ -545,6 +545,7 @@ export function TripOverviewView() {
       {isManagerDialogOpen && (
         <BusinessTripManagerDialog
           event={effectiveEvent}
+          initialTripId={trip.id}
           open={isManagerDialogOpen}
           onOpenChange={(open) => {
             setIsManagerDialogOpen(open);

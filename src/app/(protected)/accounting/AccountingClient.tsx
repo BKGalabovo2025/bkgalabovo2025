@@ -6,21 +6,26 @@ import { endOfMonth, format, parseISO, startOfMonth } from "date-fns";
 import { bg } from "date-fns/locale";
 import { getDocs } from "firebase/firestore";
 import {
+  AlertTriangle,
+  BarChart3,
   Bed,
   Calculator,
   Calendar,
   CalendarPlus,
   Car,
+  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Eye,
   FileDown,
+  FileSpreadsheet,
   Mail,
   Pizza,
   Plus,
   RotateCcw,
   Search,
+  SlidersHorizontal,
   Ticket,
   X,
 } from "lucide-react";
@@ -89,6 +94,21 @@ import {
 } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
 import { Member } from "@/types/member.types";
+
+function buildFallbackEventForTrip(trip: BusinessTrip): ScheduleEvent {
+  return {
+    id: trip.eventId || trip.id || "event",
+    title: trip.title,
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    type: "competition",
+    siteId: trip.siteId,
+    description: trip.destination,
+    location: trip.destination || "",
+    attendees: [],
+    attendeeMemberIds: [],
+  } as unknown as ScheduleEvent;
+}
 
 async function resolveAttachmentExtension(
   blob: Blob,
@@ -295,26 +315,213 @@ function getTripStatusBadge(status?: string) {
   };
 }
 
+interface TripReadiness {
+  hasOrder: boolean;
+  hasExpenses: boolean;
+  expensesCount: number;
+  signedAthletes: number;
+  totalAthletes: number;
+  hasSignatures: boolean;
+  hasReport: boolean;
+  missingCount: number;
+  isComplete: boolean;
+  missingLabels: string[];
+}
+
+function getTripReadiness(
+  trip: BusinessTrip,
+  tripExps: TripExpense[],
+  membersDict?: Record<string, Member>
+): TripReadiness {
+  const hasOrder = Boolean(trip.orderNumber);
+  const expensesCount = tripExps.length;
+  const hasExpenses = expensesCount > 0 || trip.transportType === "free";
+
+  const participants = (trip.participantsIds || []).filter(
+    (id) => !membersDict?.[id]?.isCoach
+  );
+  const totalAthletes = participants.length;
+  const signedAthletes = participants.filter((id) =>
+    Boolean(trip.signatures?.athletes?.[id])
+  ).length;
+  const hasCoachSig = Boolean(trip.signatures?.coach);
+  const hasChairmanSig = Boolean(trip.signatures?.chairman);
+  const hasSignatures =
+    hasCoachSig &&
+    hasChairmanSig &&
+    (totalAthletes === 0 || signedAthletes >= totalAthletes);
+
+  const hasReport = Boolean(
+    trip.reportText && trip.reportText.trim().length > 0
+  );
+
+  const missingLabels: string[] = [];
+  if (!hasOrder) missingLabels.push("Заповед №");
+  if (!hasSignatures) {
+    const missingSigParts: string[] = [];
+    if (!hasChairmanSig) missingSigParts.push("Председател");
+    if (!hasCoachSig) missingSigParts.push("Треньор");
+    if (totalAthletes > 0 && signedAthletes < totalAthletes) {
+      missingSigParts.push(`Състезатели ${signedAthletes}/${totalAthletes}`);
+    }
+    missingLabels.push(`Подписи (${missingSigParts.join(", ")})`);
+  }
+  if (!hasExpenses) missingLabels.push("Фактури");
+  if (!hasReport) missingLabels.push("Доклад");
+
+  const missingCount = missingLabels.length;
+  return {
+    hasOrder,
+    hasExpenses,
+    expensesCount,
+    signedAthletes,
+    totalAthletes,
+    hasSignatures,
+    hasReport,
+    missingCount,
+    isComplete: missingCount === 0,
+    missingLabels,
+  };
+}
+
+function TripReadinessBadges({ readiness }: { readiness: TripReadiness }) {
+  const pillBase =
+    "inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium border";
+  const okClass =
+    "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300";
+  const warnClass =
+    "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300";
+
+  return (
+    <div
+      className="flex flex-wrap items-center justify-end gap-1"
+      title={
+        readiness.isComplete
+          ? "Всички документи и подписи са попълнени"
+          : `Липсват: ${readiness.missingLabels.join(" • ")}`
+      }
+    >
+      <span
+        className={`${pillBase} ${readiness.hasOrder ? okClass : warnClass}`}
+        title={
+          readiness.hasOrder ? "Издадена заповед" : "Липсва номер на заповед"
+        }
+      >
+        №
+      </span>
+      <span
+        className={`${pillBase} ${readiness.hasSignatures ? okClass : warnClass}`}
+        title={
+          readiness.hasSignatures
+            ? "Всички подписи са събрани"
+            : `Подписи: ${readiness.signedAthletes}/${readiness.totalAthletes} състезатели`
+        }
+      >
+        ✍
+        {readiness.totalAthletes > 0
+          ? ` ${readiness.signedAthletes}/${readiness.totalAthletes}`
+          : ""}
+      </span>
+      <span
+        className={`${pillBase} ${readiness.hasExpenses ? okClass : warnClass}`}
+        title={
+          readiness.expensesCount > 0
+            ? `${readiness.expensesCount} прикачени фактури/разхода`
+            : readiness.hasExpenses
+              ? "Безплатен транспорт (без фактури)"
+              : "Няма въведени фактури/разходи"
+        }
+      >
+        🧾 {readiness.expensesCount}
+      </span>
+      <span
+        className={`${pillBase} ${readiness.hasReport ? okClass : warnClass}`}
+        title={readiness.hasReport ? "Докладът е попълнен" : "Липсва доклад"}
+      >
+        📄
+      </span>
+    </div>
+  );
+}
+
+type TripStatusValue = "draft" | "approved" | "completed";
+
+interface TripStatusDropdownBadgeProps {
+  trip: BusinessTrip;
+  statusBadge: {
+    variant: "default" | "secondary" | "outline";
+    className: string;
+    text: string;
+  };
+  onStatusChange: (trip: BusinessTrip, newStatus: TripStatusValue) => void;
+}
+
+function TripStatusDropdownBadge({
+  trip,
+  statusBadge,
+  onStatusChange,
+}: TripStatusDropdownBadgeProps) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center focus:outline-none"
+          title="Кликнете за бърза смяна на статуса"
+        >
+          <Badge
+            variant={statusBadge.variant}
+            className={`cursor-pointer gap-1 px-1.5 py-0.5 text-[10px] font-medium capitalize transition-opacity hover:opacity-85 ${statusBadge.className}`}
+          >
+            {statusBadge.text}
+            <ChevronDown className="size-2.5 opacity-70" />
+          </Badge>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-36">
+        {(
+          [
+            { value: "draft", label: "Чернова" },
+            { value: "approved", label: "Одобрена" },
+            { value: "completed", label: "Отчетена" },
+          ] as const
+        ).map((opt) => (
+          <DropdownMenuItem
+            key={opt.value}
+            disabled={trip.status === opt.value}
+            onClick={() => onStatusChange(trip, opt.value)}
+            className="cursor-pointer text-xs"
+          >
+            {opt.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 interface TripMobileCardProps {
   trip: BusinessTrip;
   coachName: string;
   total: number;
-  expensesCount: number;
+  readiness: TripReadiness;
   statusBadge: {
     variant: "default" | "secondary" | "outline";
     className: string;
     text: string;
   };
   onManage: (trip: BusinessTrip) => void;
+  onStatusChange: (trip: BusinessTrip, newStatus: TripStatusValue) => void;
 }
 
 function TripMobileCard({
   trip,
   coachName,
   total,
-  expensesCount,
+  readiness,
   statusBadge,
   onManage,
+  onStatusChange,
 }: TripMobileCardProps) {
   return (
     <div
@@ -323,9 +530,17 @@ function TripMobileCard({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
-            📅 {formatDateShort(trip.startDate)}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+              📅 {formatDateShort(trip.startDate)}
+            </span>
+            <Badge
+              variant="outline"
+              className="border-zinc-200 bg-white px-1.5 py-0 font-mono text-[10px] font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+            >
+              {trip.orderNumber ? `№ ${trip.orderNumber}` : "Без №"}
+            </Badge>
+          </div>
           <h4
             className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100"
             title={trip.title}
@@ -346,12 +561,11 @@ function TripMobileCard({
             </p>
           )}
         </div>
-        <Badge
-          variant={statusBadge.variant}
-          className={`shrink-0 px-1.5 py-0.5 text-[10px] font-medium capitalize ${statusBadge.className}`}
-        >
-          {statusBadge.text}
-        </Badge>
+        <TripStatusDropdownBadge
+          trip={trip}
+          statusBadge={statusBadge}
+          onStatusChange={onStatusChange}
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200/60 pt-1.5 text-xs dark:border-zinc-800/60">
@@ -385,27 +599,27 @@ function TripMobileCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-1">
-        <span className="text-[11px] text-zinc-500">
-          {expensesCount > 0 ? `🧾 ${expensesCount} фактури` : "Няма фактури"}
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+        <TripReadinessBadges readiness={readiness} />
         <div className="flex items-center gap-1.5">
           <Button
             asChild
-            variant="outline"
+            variant="default"
             size="sm"
-            className="h-7 border-zinc-200 px-2.5 text-xs font-semibold hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
+            className="h-7 bg-blue-600 px-2.5 text-xs font-semibold text-white shadow-none hover:bg-blue-700"
+            title="Отвори пълната страница на командировката"
           >
             <Link href={`/accounting/trips/${trip.id}`}>Отвори</Link>
           </Button>
           <Button
-            variant="default"
-            size="sm"
-            className="h-7 bg-blue-600 px-2.5 text-xs font-semibold text-white shadow-none hover:bg-blue-700"
+            variant="outline"
+            size="icon"
+            className="size-7 border-zinc-200 text-zinc-600 hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-blue-700"
             onClick={() => onManage(trip)}
-            title="Бързо управление на документи, ведомост и разходи"
+            title="Бърз преглед и редакция в прозорец"
+            aria-label="Бърз преглед и редакция в прозорец"
           >
-            Управление
+            <SlidersHorizontal className="size-3.5" />
           </Button>
         </div>
       </div>
@@ -431,6 +645,10 @@ export default function AccountingClient({
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isZipping, setIsZipping] = useState(false);
+  const [zipProgress, setZipProgress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
   const [isRenumbering, setIsRenumbering] = useState(false);
   const { user } = useAuth();
 
@@ -440,6 +658,7 @@ export default function AccountingClient({
   );
   const [isTripManagerOpen, setIsTripManagerOpen] = useState(false);
   const [isSelectEventOpen, setIsSelectEventOpen] = useState(false);
+  const [isRenumberPreviewOpen, setIsRenumberPreviewOpen] = useState(false);
   const [eventSearchQuery, setEventSearchQuery] = useState("");
 
   // Филтри – живеят в URL (?month=YYYY-MM&status=...), секцията е маршрут.
@@ -477,6 +696,13 @@ export default function AccountingClient({
   );
   const setStatusFilter = (val: string) =>
     updateParams({ status: val === "all" ? null : val });
+  const onlyIncomplete = searchParams.get("incomplete") === "1";
+  const toggleOnlyIncomplete = () =>
+    updateParams({ incomplete: onlyIncomplete ? null : "1" });
+  const periodMode: "month" | "year" =
+    searchParams.get("view") === "year" ? "year" : "month";
+  const setPeriodMode = (mode: "month" | "year") =>
+    updateParams({ view: mode === "year" ? "year" : null });
   const deepLinkHandled = useRef(false);
   const [tripSearchQuery, setTripSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -582,9 +808,11 @@ export default function AccountingClient({
     if (loading || !wantsModal || !effectiveManageId || deepLinkHandled.current)
       return;
     const trip = trips.find((t) => t.id === effectiveManageId);
-    const ev = trip ? events.find((e) => e.id === trip.eventId) : undefined;
     deepLinkHandled.current = true;
-    if (ev) {
+    if (trip) {
+      const ev =
+        events.find((e) => e.id === trip.eventId) ||
+        buildFallbackEventForTrip(trip);
       setSelectedEvent(ev);
       setIsTripManagerOpen(true);
     }
@@ -606,18 +834,7 @@ export default function AccountingClient({
   const handleManageTrip = (trip: BusinessTrip) => {
     const ev =
       events.find((e) => e.id === trip.eventId) ||
-      ({
-        id: trip.eventId || trip.id || "event",
-        title: trip.title,
-        startDate: trip.startDate,
-        endDate: trip.endDate,
-        type: "competition",
-        siteId: trip.siteId,
-        description: trip.destination,
-        location: trip.destination || "",
-        attendees: [],
-        attendeeMemberIds: [],
-      } as unknown as ScheduleEvent);
+      buildFallbackEventForTrip(trip);
     setSelectedEvent(ev);
     setIsTripManagerOpen(true);
     if (trip.id) {
@@ -626,14 +843,14 @@ export default function AccountingClient({
   };
 
   // Derived state (filtered data)
-  const filteredTrips = useMemo(() => {
+  const baseFilteredTrips = useMemo(() => {
     return trips.filter((trip) => {
-      // 1. Month filter
+      // 1. Month / Year filter
       const tripDate = parseISO(trip.startDate);
+      const isSameYear = tripDate.getFullYear() === selectedMonth.getFullYear();
       const isSameMonth =
-        tripDate.getFullYear() === selectedMonth.getFullYear() &&
-        tripDate.getMonth() === selectedMonth.getMonth();
-      if (!isSameMonth) return false;
+        isSameYear && tripDate.getMonth() === selectedMonth.getMonth();
+      if (periodMode === "year" ? !isSameYear : !isSameMonth) return false;
 
       // 2. Activity filter
       if (
@@ -652,7 +869,8 @@ export default function AccountingClient({
 
       // 4. Search query
       if (tripSearchQuery.trim()) {
-        const q = tripSearchQuery.toLowerCase();
+        const q = tripSearchQuery.toLowerCase().trim();
+        const qNum = q.replace(/^№\s*/i, "").trim();
         const coach = membersDict[trip.coachId];
         const coachName = coach
           ? `${coach.firstName} ${coach.lastName}`.toLowerCase()
@@ -660,7 +878,12 @@ export default function AccountingClient({
         const titleMatches = trip.title.toLowerCase().includes(q);
         const destMatches = (trip.destination || "").toLowerCase().includes(q);
         const coachMatches = coachName.includes(q);
-        if (!titleMatches && !destMatches && !coachMatches) return false;
+        const orderMatches =
+          Boolean(trip.orderNumber) &&
+          qNum.length > 0 &&
+          String(trip.orderNumber).includes(qNum);
+        if (!titleMatches && !destMatches && !coachMatches && !orderMatches)
+          return false;
       }
 
       return true;
@@ -668,15 +891,96 @@ export default function AccountingClient({
   }, [
     trips,
     selectedMonth,
+    periodMode,
     activityFilter,
     statusFilter,
     tripSearchQuery,
     membersDict,
   ]);
 
+  const incompleteInMonthCount = useMemo(() => {
+    return baseFilteredTrips.filter(
+      (trip) =>
+        !getTripReadiness(trip, expenses[trip.id!] || [], membersDict)
+          .isComplete
+    ).length;
+  }, [baseFilteredTrips, expenses, membersDict]);
+
+  const filteredTrips = useMemo(() => {
+    if (!onlyIncomplete) return baseFilteredTrips;
+    return baseFilteredTrips.filter(
+      (trip) =>
+        !getTripReadiness(trip, expenses[trip.id!] || [], membersDict)
+          .isComplete
+    );
+  }, [baseFilteredTrips, onlyIncomplete, expenses, membersDict]);
+
+  const chronologicalPreview = useMemo(() => {
+    return [...trips]
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+      .map((trip, index) => ({
+        trip,
+        newNumber: index + 1,
+        changed: trip.orderNumber !== index + 1,
+      }));
+  }, [trips]);
+
+  const numberingIssuesCount = useMemo(() => {
+    if (trips.length === 0) return 0;
+    const orderCounts = new Map<number, number>();
+    trips.forEach((t) => {
+      if (t.orderNumber) {
+        orderCounts.set(
+          t.orderNumber,
+          (orderCounts.get(t.orderNumber) || 0) + 1
+        );
+      }
+    });
+    return trips.filter(
+      (t) => !t.orderNumber || (orderCounts.get(t.orderNumber) || 0) > 1
+    ).length;
+  }, [trips]);
+
+  const handleStatusChange = async (
+    trip: BusinessTrip,
+    newStatus: TripStatusValue
+  ) => {
+    if (!trip.id || trip.status === newStatus) return;
+    const prevStatus = trip.status;
+    setTrips((prev) =>
+      prev.map((t) => (t.id === trip.id ? { ...t, status: newStatus } : t))
+    );
+    try {
+      await businessTripService.updateTrip(trip.id, {
+        status: newStatus,
+        siteId: trip.siteId || siteId,
+      });
+      const label =
+        newStatus === "approved"
+          ? "Одобрена"
+          : newStatus === "completed"
+            ? "Отчетена"
+            : "Чернова";
+      toast.success(`Статусът на „${trip.title}“ е променен на ${label}`);
+    } catch (err) {
+      console.error(err);
+      setTrips((prev) =>
+        prev.map((t) => (t.id === trip.id ? { ...t, status: prevStatus } : t))
+      );
+      toast.error("Грешка при промяна на статуса.");
+    }
+  };
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedMonth, activityFilter, statusFilter, tripSearchQuery]);
+  }, [
+    selectedMonth,
+    periodMode,
+    activityFilter,
+    statusFilter,
+    tripSearchQuery,
+    onlyIncomplete,
+  ]);
 
   // Автоматично преминаване към страницата на командировката в списъка при deep link
   useEffect(() => {
@@ -835,16 +1139,18 @@ export default function AccountingClient({
     };
   }, [filteredTrips, expenses]);
 
-  // Handlers for month navigation
+  // Handlers for month / year navigation
   const prevMonth = () => {
     const d = new Date(selectedMonth);
-    d.setMonth(d.getMonth() - 1);
+    if (periodMode === "year") d.setFullYear(d.getFullYear() - 1);
+    else d.setMonth(d.getMonth() - 1);
     setSelectedMonth(d);
   };
 
   const nextMonth = () => {
     const d = new Date(selectedMonth);
-    d.setMonth(d.getMonth() + 1);
+    if (periodMode === "year") d.setFullYear(d.getFullYear() + 1);
+    else d.setMonth(d.getMonth() + 1);
     setSelectedMonth(d);
   };
 
@@ -911,7 +1217,10 @@ export default function AccountingClient({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Otchet_${format(selectedMonth, "MM_yyyy")}.xlsx`;
+    a.download = `Otchet_${format(
+      selectedMonth,
+      periodMode === "year" ? "yyyy" : "MM_yyyy"
+    )}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -963,6 +1272,7 @@ export default function AccountingClient({
 
       // 2. Loop through all filtered trips to generate their PDFs
       for (let i = 0; i < filteredTrips.length; i++) {
+        setZipProgress({ current: i + 1, total: filteredTrips.length });
         const trip = filteredTrips[i];
         const tId = trip.id;
 
@@ -1133,6 +1443,7 @@ export default function AccountingClient({
       toast.error("Грешка при генерирането на пакета.");
     } finally {
       setIsZipping(false);
+      setZipProgress(null);
     }
   };
 
@@ -1210,12 +1521,14 @@ export default function AccountingClient({
     }, 100);
   };
 
-  const handleRenumberAllChronologically = async () => {
+  const handleRenumberAllChronologically = () => {
     if (isRenumbering) return;
-    const confirmed = window.confirm(
-      "Сигурни ли сте, че искате да преномерирате всички командировки хронологично според тяхната начална дата?\n\nТова ще актуализира номерата на заповедите (№ 1..N), решенията на УС и протоколите във всички документи."
-    );
-    if (!confirmed) return;
+    setIsRenumberPreviewOpen(true);
+  };
+
+  const confirmRenumberAllChronologically = async () => {
+    if (isRenumbering) return;
+    setIsRenumberPreviewOpen(false);
 
     setIsRenumbering(true);
     toast.info("Преномериране на всички командировки...");
@@ -1299,7 +1612,11 @@ export default function AccountingClient({
             className="h-8 justify-center rounded-lg border-indigo-200 bg-indigo-50/60 px-2.5 text-xs text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200"
           >
             <FileDown className="mr-1.5 size-3.5" />
-            {isZipping ? "Генериране..." : "ZIP Пакет"}
+            {isZipping
+              ? zipProgress
+                ? `Генериране (${zipProgress.current}/${zipProgress.total})...`
+                : "Генериране..."
+              : "ZIP Пакет"}
           </Button>
 
           <DropdownMenu>
@@ -1353,31 +1670,102 @@ export default function AccountingClient({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {numberingIssuesCount > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleRenumberAllChronologically}
+              className="col-span-2 h-8 justify-center gap-1.5 rounded-lg border-amber-300 bg-amber-50/80 px-2.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-950/70 sm:col-span-1"
+              title="Има командировки без номер или с дублиран номер на заповед. Кликнете за преглед и преномериране."
+            >
+              <AlertTriangle className="size-3.5 shrink-0" />
+              <span>{numberingIssuesCount} без/дубл. №</span>
+            </Button>
+          )}
         </div>
       </PageHeader>
 
-      <AccountingNav />
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        <AccountingNav />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-xl border-zinc-200/80 bg-white px-2.5 text-xs font-medium text-zinc-700 hover:border-blue-300 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:border-blue-700 dark:hover:text-blue-400"
+          >
+            <Link href="/reports">
+              <BarChart3 className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
+              Приходи и справки
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-xl border-zinc-200/80 bg-white px-2.5 text-xs font-medium text-zinc-700 hover:border-emerald-300 hover:text-emerald-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:border-emerald-700 dark:hover:text-emerald-400"
+          >
+            <Link href="/reports/annual">
+              <FileSpreadsheet className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
+              Годишен отчет
+            </Link>
+          </Button>
+        </div>
+      </div>
 
-      {/* ── Compact Streamlined Toolbar (Month + Search + Filters) ── */}
+      {/* ── Compact Streamlined Toolbar (Month/Year + Search + Filters) ── */}
       <div className="flex flex-col gap-2 rounded-xl border border-zinc-200/80 bg-white p-2 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center justify-between gap-1.5 md:justify-start">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 md:justify-start">
+          <div className="flex items-center rounded-lg border border-zinc-200/80 bg-zinc-100/80 p-0.5 dark:border-zinc-800 dark:bg-zinc-950/60">
+            <button
+              type="button"
+              onClick={() => setPeriodMode("month")}
+              className={`rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
+                periodMode === "month"
+                  ? "bg-white text-zinc-950 shadow-2xs dark:bg-zinc-800 dark:text-white"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+              }`}
+            >
+              Месец
+            </button>
+            <button
+              type="button"
+              onClick={() => setPeriodMode("year")}
+              className={`rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
+                periodMode === "year"
+                  ? "bg-white text-zinc-950 shadow-2xs dark:bg-zinc-800 dark:text-white"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+              }`}
+            >
+              Година
+            </button>
+          </div>
+
           <Button
             variant="outline"
             size="icon"
             onClick={prevMonth}
-            aria-label="Предишен месец"
+            aria-label={
+              periodMode === "year" ? "Предишна година" : "Предишен месец"
+            }
             className="size-7.5 shrink-0 rounded-lg"
           >
             <ChevronLeft className="size-3.5" />
           </Button>
           <div className="min-w-28 text-center text-xs font-semibold capitalize text-zinc-900 dark:text-zinc-100">
-            {format(selectedMonth, "MMMM yyyy", { locale: bg })}
+            {periodMode === "year"
+              ? `${format(selectedMonth, "yyyy")} г.`
+              : format(selectedMonth, "MMMM yyyy", { locale: bg })}
           </div>
           <Button
             variant="outline"
             size="icon"
             onClick={nextMonth}
-            aria-label="Следващ месец"
+            aria-label={
+              periodMode === "year" ? "Следваща година" : "Следващ месец"
+            }
             className="size-7.5 shrink-0 rounded-lg"
           >
             <ChevronRight className="size-3.5" />
@@ -1396,7 +1784,7 @@ export default function AccountingClient({
           <div className="relative min-w-36 flex-1 sm:w-48 sm:flex-none">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Търси събитие, треньор..."
+              placeholder="Търси събитие, треньор, №..."
               value={tripSearchQuery}
               onChange={(e) => setTripSearchQuery(e.target.value)}
               className="h-7.5 w-full pl-7 text-xs"
@@ -1417,6 +1805,33 @@ export default function AccountingClient({
               <SelectItem value="completed">Отчетени</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            type="button"
+            variant={onlyIncomplete ? "default" : "outline"}
+            size="sm"
+            onClick={toggleOnlyIncomplete}
+            className={
+              onlyIncomplete
+                ? "h-7.5 gap-1.5 rounded-lg bg-amber-600 px-2.5 text-xs font-semibold text-white hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500"
+                : "h-7.5 gap-1.5 rounded-lg border-zinc-200 px-2.5 text-xs font-medium text-zinc-700 hover:border-amber-300 hover:bg-amber-50/70 hover:text-amber-700 dark:border-zinc-800 dark:text-zinc-300 dark:hover:border-amber-800 dark:hover:bg-amber-950/30 dark:hover:text-amber-300"
+            }
+            title="Показва само командировки с липсваща заповед, подписи, фактури или доклад"
+          >
+            <AlertTriangle className="size-3.5 shrink-0" />
+            <span>Само с липси</span>
+            {incompleteInMonthCount > 0 && (
+              <span
+                className={
+                  onlyIncomplete
+                    ? "rounded-full bg-white/20 px-1.5 py-0 text-[10px] font-bold"
+                    : "rounded-full bg-amber-100 px-1.5 py-0 text-[10px] font-bold text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+                }
+              >
+                {incompleteInMonthCount}
+              </span>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -1445,7 +1860,7 @@ export default function AccountingClient({
         {/* Транспорт & Гориво */}
         <div className="flex flex-col justify-between rounded-xl border border-orange-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
               Транспорт &amp; Гориво
             </span>
             <div className="rounded-md bg-orange-100 p-1 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
@@ -1466,7 +1881,7 @@ export default function AccountingClient({
         {/* Нощувки / Квартирни */}
         <div className="flex flex-col justify-between rounded-xl border border-purple-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
               Нощувки
             </span>
             <div className="rounded-md bg-purple-100 p-1 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
@@ -1486,7 +1901,7 @@ export default function AccountingClient({
         {/* Дневни & Храна */}
         <div className="flex flex-col justify-between rounded-xl border border-emerald-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
               Дневни &amp; Храна
             </span>
             <div className="rounded-md bg-emerald-100 p-1 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
@@ -1506,7 +1921,7 @@ export default function AccountingClient({
         {/* Такси турнир */}
         <div className="flex flex-col justify-between rounded-xl border border-pink-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500">
+            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
               Такси турнир
             </span>
             <div className="rounded-md bg-pink-100 p-1 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300">
@@ -1539,9 +1954,26 @@ export default function AccountingClient({
         {/* 1. Mobile Cards View (<md) */}
         <div className="space-y-2.5 p-2 md:hidden">
           {filteredTrips.length === 0 ? (
-            <div className="py-8 text-center text-xs text-zinc-500">
-              Няма намерени записи за този период.
-            </div>
+            onlyIncomplete && baseFilteredTrips.length > 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+                <CheckCircle2 className="size-6 text-emerald-600 dark:text-emerald-400" />
+                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                  Всички командировки за периода са напълно окомплектовани!
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleOnlyIncomplete}
+                  className="h-7 rounded-lg text-[11px]"
+                >
+                  Покажи всички
+                </Button>
+              </div>
+            ) : (
+              <div className="py-8 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                Няма намерени записи за този период.
+              </div>
+            )
           ) : (
             paginatedTrips.map((trip) => {
               const coach = membersDict[trip.coachId];
@@ -1550,10 +1982,8 @@ export default function AccountingClient({
                 : "Неизвестен";
 
               const tripExps = expenses[trip.id!] || [];
-              const { total, expensesCount } = computeTripRowTotals(
-                trip,
-                tripExps
-              );
+              const { total } = computeTripRowTotals(trip, tripExps);
+              const readiness = getTripReadiness(trip, tripExps, membersDict);
               const statusBadge = getTripStatusBadge(trip.status);
 
               return (
@@ -1562,9 +1992,10 @@ export default function AccountingClient({
                   trip={trip}
                   coachName={coachName}
                   total={total}
-                  expensesCount={expensesCount}
+                  readiness={readiness}
                   statusBadge={statusBadge}
                   onManage={handleManageTrip}
+                  onStatusChange={handleStatusChange}
                 />
               );
             })
@@ -1588,7 +2019,7 @@ export default function AccountingClient({
                 <TableHead className="w-24 px-2.5 py-2 text-right">
                   Сума (EUR)
                 </TableHead>
-                <TableHead className="w-20 p-2 text-right">Документи</TableHead>
+                <TableHead className="w-36 p-2 text-right">Готовност</TableHead>
                 <TableHead className="w-24 px-2.5 py-2 text-right">
                   Действия
                 </TableHead>
@@ -1599,9 +2030,27 @@ export default function AccountingClient({
                 <TableRow>
                   <TableCell
                     colSpan={8}
-                    className="py-10 text-center text-xs text-zinc-500"
+                    className="py-10 text-center text-xs text-zinc-500 dark:text-zinc-400"
                   >
-                    Няма намерени записи за този период.
+                    {onlyIncomplete && baseFilteredTrips.length > 0 ? (
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <CheckCircle2 className="size-6 text-emerald-600 dark:text-emerald-400" />
+                        <span className="font-medium text-emerald-700 dark:text-emerald-300">
+                          Всички командировки за периода са напълно
+                          окомплектовани!
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={toggleOnlyIncomplete}
+                          className="h-7 rounded-lg text-[11px]"
+                        >
+                          Покажи всички
+                        </Button>
+                      </div>
+                    ) : (
+                      "Няма намерени записи за този период."
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -1612,9 +2061,11 @@ export default function AccountingClient({
                     : "Неизвестен";
 
                   const tripExps = expenses[trip.id!] || [];
-                  const { total, expensesCount } = computeTripRowTotals(
+                  const { total } = computeTripRowTotals(trip, tripExps);
+                  const readiness = getTripReadiness(
                     trip,
-                    tripExps
+                    tripExps,
+                    membersDict
                   );
                   const statusBadge = getTripStatusBadge(trip.status);
 
@@ -1628,13 +2079,26 @@ export default function AccountingClient({
                         {formatDateShort(trip.startDate)}
                       </TableCell>
                       <TableCell className="min-w-40 max-w-60 px-2.5 py-1.5">
-                        <Link
-                          href={`/accounting/trips/${trip.id}`}
-                          className="block truncate font-medium text-zinc-900 hover:text-blue-600 hover:underline dark:text-zinc-100 dark:hover:text-blue-400"
-                          title={trip.title}
-                        >
-                          {trip.title}
-                        </Link>
+                        <div className="flex items-center gap-1.5">
+                          <Badge
+                            variant="outline"
+                            className="shrink-0 border-zinc-200 bg-zinc-50 px-1.5 py-0 font-mono text-[10px] font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                            title={
+                              trip.orderNumber
+                                ? `Заповед № ${trip.orderNumber}`
+                                : "Липсва номер на заповед"
+                            }
+                          >
+                            {trip.orderNumber ? `№ ${trip.orderNumber}` : "—"}
+                          </Badge>
+                          <Link
+                            href={`/accounting/trips/${trip.id}`}
+                            className="block truncate font-medium text-zinc-900 hover:text-blue-600 hover:underline dark:text-zinc-100 dark:hover:text-blue-400"
+                            title={trip.title}
+                          >
+                            {trip.title}
+                          </Link>
+                        </div>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {trip.destination && (
                             <span
@@ -1689,12 +2153,11 @@ export default function AccountingClient({
                         )}
                       </TableCell>
                       <TableCell className="whitespace-nowrap px-2 py-1.5">
-                        <Badge
-                          variant={statusBadge.variant}
-                          className={`px-1.5 py-0.5 text-[10px] font-medium capitalize ${statusBadge.className}`}
-                        >
-                          {statusBadge.text}
-                        </Badge>
+                        <TripStatusDropdownBadge
+                          trip={trip}
+                          statusBadge={statusBadge}
+                          onStatusChange={handleStatusChange}
+                        />
                       </TableCell>
                       <TableCell className="whitespace-nowrap px-2.5 py-1.5 text-right">
                         <span className="font-bold text-zinc-900 dark:text-white">
@@ -1705,21 +2168,15 @@ export default function AccountingClient({
                         </span>
                       </TableCell>
                       <TableCell className="whitespace-nowrap px-2.5 py-1.5 text-right">
-                        {expensesCount > 0 ? (
-                          <span className="text-[11px] text-zinc-500">
-                            {expensesCount} фактури
-                          </span>
-                        ) : (
-                          <span className="text-zinc-400">-</span>
-                        )}
+                        <TripReadinessBadges readiness={readiness} />
                       </TableCell>
                       <TableCell className="whitespace-nowrap px-2.5 py-1.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
                             asChild
-                            variant="outline"
+                            variant="default"
                             size="sm"
-                            className="h-7 border-zinc-200 px-2 text-xs font-semibold hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-700"
+                            className="h-7 bg-blue-600 px-2.5 text-xs font-semibold text-white shadow-none hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
                             title="Отвори пълната страница на командировката"
                           >
                             <Link href={`/accounting/trips/${trip.id}`}>
@@ -1727,13 +2184,14 @@ export default function AccountingClient({
                             </Link>
                           </Button>
                           <Button
-                            variant="default"
-                            size="sm"
-                            className="h-7 bg-blue-600 px-2 text-xs font-semibold text-white shadow-none hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
+                            variant="outline"
+                            size="icon"
+                            className="size-7 border-zinc-200 text-zinc-600 hover:border-blue-300 hover:text-blue-600 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-blue-700"
                             onClick={() => handleManageTrip(trip)}
-                            title="Бързо управление на документи, ведомост и разходи"
+                            title="Бърз преглед и редакция в прозорец"
+                            aria-label="Бърз преглед и редакция в прозорец"
                           >
-                            Управление
+                            <SlidersHorizontal className="size-3.5" />
                           </Button>
                         </div>
                       </TableCell>
@@ -2459,6 +2917,95 @@ export default function AccountingClient({
           }}
         />
       )}
+
+      {/* Chronological Renumber Preview Dialog */}
+      <Dialog
+        open={isRenumberPreviewOpen}
+        onOpenChange={setIsRenumberPreviewOpen}
+      >
+        <DialogContent className="flex max-h-[85vh] max-w-lg flex-col gap-0 overflow-hidden p-0">
+          <div className="shrink-0 border-b border-zinc-100 px-5 py-4 dark:border-zinc-800">
+            <DialogTitle className="flex items-center gap-2 text-base font-bold">
+              <RotateCcw className="size-4 text-amber-600 dark:text-amber-400" />
+              Хронологично преномериране
+            </DialogTitle>
+            <DialogDescription className="mt-1 text-xs">
+              Ще бъдат актуализирани номерата на заповедите (№ 1..
+              {chronologicalPreview.length}), решенията на УС и протоколите
+              според началната дата на всяка командировка.
+            </DialogDescription>
+          </div>
+
+          <div className="flex-1 space-y-1.5 overflow-y-auto px-5 py-3">
+            {chronologicalPreview.length === 0 ? (
+              <p className="py-6 text-center text-xs text-muted-foreground">
+                Няма командировки за преномериране.
+              </p>
+            ) : (
+              chronologicalPreview.map(({ trip, newNumber, changed }) => (
+                <div
+                  key={trip.id || newNumber}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200/80 bg-zinc-50/70 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-900/50"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-semibold text-zinc-900 dark:text-zinc-100">
+                      {trip.title}
+                    </div>
+                    <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      📅 {formatDateShort(trip.startDate)}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5 font-mono text-[11px]">
+                    <span className="text-zinc-400">
+                      {trip.orderNumber ? `№ ${trip.orderNumber}` : "Без №"}
+                    </span>
+                    <span className="text-zinc-400">→</span>
+                    <Badge
+                      variant={changed ? "default" : "secondary"}
+                      className={
+                        changed
+                          ? "bg-amber-600 text-[10px] text-white"
+                          : "text-[10px]"
+                      }
+                    >
+                      № {newNumber}
+                    </Badge>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="flex shrink-0 items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/80 px-5 py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <span className="text-[11px] text-muted-foreground">
+              Промени:{" "}
+              <strong>
+                {chronologicalPreview.filter((x) => x.changed).length}
+              </strong>{" "}
+              от {chronologicalPreview.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsRenumberPreviewOpen(false)}
+                className="h-8 rounded-xl text-xs"
+              >
+                Отказ
+              </Button>
+              <Button
+                size="sm"
+                onClick={confirmRenumberAllChronologically}
+                disabled={isRenumbering || chronologicalPreview.length === 0}
+                className="h-8 rounded-xl bg-amber-600 text-xs font-semibold text-white hover:bg-amber-700"
+              >
+                <CheckCircle2 className="mr-1.5 size-3.5" />
+                Потвърди преномерирането
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Hidden Templates for ZIP Generation */}
       <div

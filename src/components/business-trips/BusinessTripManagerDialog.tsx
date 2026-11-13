@@ -191,10 +191,12 @@ export function BusinessTripManagerDialog({
   open,
   onOpenChange,
   event,
+  initialTripId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   event: ScheduleEvent;
+  initialTripId?: string;
 }) {
   const [businessTrips, setBusinessTrips] = useState<BusinessTrip[]>([]);
   const [membersDict, setMembersDict] = useState<Record<string, Member>>({});
@@ -265,10 +267,20 @@ export function BusinessTripManagerDialog({
       } catch (e) {
         console.warn("Пропускане на присвояване на номера на командировки:", e);
       }
-      const [tripsData, membersData] = await Promise.all([
+      const [tripsByEvent, membersData] = await Promise.all([
         businessTripService.getTripsByEventId(event.id),
         getAllMembers(),
       ]);
+      let tripsData = tripsByEvent;
+      if (tripsData.length === 0) {
+        const fallbackId = initialTripId || event.id;
+        if (fallbackId) {
+          const singleTrip = await businessTripService.getTripById(fallbackId);
+          if (singleTrip) {
+            tripsData = [singleTrip];
+          }
+        }
+      }
       setBusinessTrips(tripsData);
 
       const dict: Record<string, Member> = {};
@@ -298,7 +310,7 @@ export function BusinessTripManagerDialog({
       loadData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, event.id]);
+  }, [open, event.id, initialTripId]);
 
   const handlePrintOrder = (trip: BusinessTrip) => {
     setIsGeneratingPdf(true);
@@ -1896,7 +1908,12 @@ export function BusinessTripManagerDialog({
             setIsExpenseDialogOpen(v);
           }}
           tripId={selectedTripForExpense!}
-          siteId="bkgalabovo" // Hardcoded active branch for now, or fetch from context
+          siteId={
+            businessTrips.find((t) => t.id === selectedTripForExpense)
+              ?.siteId ||
+            (event as { siteId?: string })?.siteId ||
+            "bkgalabovo"
+          }
           trip={
             businessTrips.find((t) => t.id === selectedTripForExpense) || null
           }
@@ -1980,6 +1997,7 @@ export function BusinessTripManagerDialog({
           membersDict={membersDict}
           onRefresh={loadData}
           onOpenDirectSign={(tripId, memberId, memberName) => {
+            setSelectedTripForAthletesSignatures(null);
             setSignatureTripId(tripId);
             setSignatureRole(memberId);
             setSignatureAthleteName(memberName);

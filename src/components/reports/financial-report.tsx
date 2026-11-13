@@ -475,19 +475,60 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
           </CardContent>
         </Card>
 
-        <div className="space-y-8">
+        <div className="space-y-4">
           <Card className="group relative overflow-hidden rounded-4xl border-none bg-zinc-950 text-white shadow-none">
             <div className="absolute top-0 right-0 p-8 opacity-20 transition-opacity group-hover:opacity-30">
               <TrendingUp className="size-24 text-zinc-400" strokeWidth={1} />
             </div>
-            <CardContent className="relative z-10 p-10">
+            <CardContent className="relative z-10 p-8">
               <p className="text-[11px] font-medium tracking-[0.3em] text-zinc-500 uppercase">
                 Общ Приход
               </p>
-              <h3 className="mt-6 mb-8 text-5xl font-light tracking-tighter">
+              <h3 className="mt-4 mb-2 text-4xl font-light tracking-tighter">
                 {isPending ? "—" : formatPrice(data.total)}
               </h3>
-              <div className="space-y-3"></div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-4xl border border-zinc-200/80 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-900/60">
+            <CardContent className="space-y-4 p-7">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-[11px] font-medium tracking-[0.2em] text-zinc-500 uppercase dark:text-zinc-400">
+                    Разходи командировки
+                  </p>
+                  <p className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+                    {isPending ? "—" : formatPrice(data.tripsExpensesTotal)}
+                  </p>
+                  <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                    {data.tripsCount}{" "}
+                    {data.tripsCount === 1 ? "командировка" : "командировки"} за
+                    периода
+                  </p>
+                </div>
+                <Link
+                  href="/accounting"
+                  className="rounded-xl border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-blue-600 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-zinc-700 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:bg-blue-950/30"
+                >
+                  Към Счетоводство →
+                </Link>
+              </div>
+
+              <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                <p className="text-[11px] font-medium tracking-[0.2em] text-zinc-500 uppercase dark:text-zinc-400">
+                  Нетен баланс (Приходи − Командировки)
+                </p>
+                <p
+                  className={cn(
+                    "mt-1 text-2xl font-bold tracking-tight",
+                    data.netBalance >= 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-amber-600 dark:text-amber-400"
+                  )}
+                >
+                  {isPending ? "—" : formatPrice(data.netBalance)}
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>

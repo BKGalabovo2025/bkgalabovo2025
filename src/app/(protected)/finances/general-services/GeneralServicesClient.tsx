@@ -1,6 +1,7 @@
 "use client";
 
 import { History, Plus, ShoppingBag, Wrench } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { AddGeneralServiceDialog } from "@/components/finances/AddGeneralServiceDialog";
@@ -17,12 +18,33 @@ interface GeneralServicesClientProps {
   showPageHeader?: boolean;
 }
 
+const VALID_TABS = ["services", "history", "sales"] as const;
+type TabValue = (typeof VALID_TABS)[number];
+
 export default function GeneralServicesClient({
   showPageHeader = true,
 }: GeneralServicesClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("services");
   const { refetch } = useGeneralServices();
+
+  const tabParam = searchParams.get("tab");
+  const activeTab: TabValue = VALID_TABS.includes(tabParam as TabValue)
+    ? (tabParam as TabValue)
+    : "services";
+
+  const handleTabChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "services") {
+      params.delete("tab");
+    } else {
+      params.set("tab", value);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   const handleServiceAdded = () => {
     setIsAddOpen(false);
@@ -43,14 +65,18 @@ export default function GeneralServicesClient({
         >
           <Button
             onClick={() => setIsAddOpen(true)}
-            className="h-12 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+            className="h-12 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
           >
             <Plus className="mr-3 size-4" strokeWidth={1.5} /> Добави услуга
           </Button>
         </PageHeader>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full"
+      >
         <div className="mb-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-1">
           <TabsList className="mb-0 h-9 grid grid-cols-3 w-full sm:w-fit rounded-xl border border-zinc-100 bg-zinc-100 p-0.5 dark:border-zinc-800 dark:bg-zinc-900">
             <TabsTrigger
@@ -77,7 +103,7 @@ export default function GeneralServicesClient({
           {!showPageHeader && (
             <Button
               onClick={() => setIsAddOpen(true)}
-              className="h-9 w-full sm:w-auto rounded-xl bg-zinc-950 px-4 text-xs font-semibold tracking-wider text-white uppercase shadow-none transition-all hover:bg-zinc-800"
+              className="h-9 w-full sm:w-auto rounded-xl bg-zinc-950 px-4 text-xs font-semibold tracking-wider text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
             >
               <Plus className="mr-1.5 size-3.5" strokeWidth={1.5} /> Добави
               услуга

@@ -7,7 +7,7 @@ import {
   PlusCircle,
   ShoppingBag,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { ServiceMenu } from "@/components/finances/ServiceMenu";
@@ -20,6 +20,7 @@ import { UnifiedSaleWizardDialog } from "@/components/shared/wizard-v2/UnifiedSa
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatPrice } from "@/lib/currency";
 
 import { columns } from "./columns";
 import { DataTableRowActions } from "./DataTableRowActions";
@@ -30,16 +31,36 @@ interface ServicesClientPageProps {
   showPageHeader?: boolean;
 }
 
+const VALID_TABS = ["services", "history", "sales"] as const;
+type TabValue = (typeof VALID_TABS)[number];
+
 export default function ServicesClientPage({
   data,
   showPageHeader = true,
 }: ServicesClientPageProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [view, setView] = useState<"grid" | "table">("grid");
-  const [activeTab, setActiveTab] = useState("services");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [saleService, setSaleService] = useState<Service | null>(null);
+
+  const tabParam = searchParams.get("tab");
+  const activeTab: TabValue = VALID_TABS.includes(tabParam as TabValue)
+    ? (tabParam as TabValue)
+    : "services";
+
+  const handleTabChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "services") {
+      params.delete("tab");
+    } else {
+      params.set("tab", value);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   const handleSuccess = () => {
     router.refresh();
@@ -59,7 +80,7 @@ export default function ServicesClientPage({
         >
           <Button
             onClick={() => setIsAddOpen(true)}
-            className="h-12 w-full sm:w-auto rounded-2xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-200 transition-all hover:bg-zinc-800"
+            className="h-12 w-full sm:w-auto rounded-2xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-xl shadow-zinc-200 transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 dark:shadow-none"
           >
             <PlusCircle className="mr-3 size-4" strokeWidth={1.5} /> Добави
             услуга
@@ -67,7 +88,11 @@ export default function ServicesClientPage({
         </PageHeader>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full"
+      >
         <div className="mb-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-1">
           <TabsList className="mb-0 h-9 grid grid-cols-3 w-full sm:w-fit rounded-xl border border-zinc-100 bg-zinc-100 p-0.5 dark:border-zinc-800 dark:bg-zinc-900">
             <TabsTrigger
@@ -187,7 +212,7 @@ export default function ServicesClientPage({
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:bg-emerald-900/30">
-                          {service.price} лв.
+                          {formatPrice(service.price)}
                         </div>
                         <DataTableRowActions service={service} />
                       </div>

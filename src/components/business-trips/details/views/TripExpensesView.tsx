@@ -31,7 +31,12 @@ export function TripExpensesView() {
   );
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const totalAmount = expenses.reduce((sum, e) => sum + (e.amountEUR || 0), 0);
+  const nonFuelExpenses = expenses.filter((e) => e.expenseType !== "fuel");
+  const hasFuelExpense = expenses.some((e) => e.expenseType === "fuel");
+  const totalAmount = nonFuelExpenses.reduce(
+    (sum, e) => sum + (e.amountEUR || 0),
+    0
+  );
 
   const handleOpenAdd = () => {
     setEditingExpense(null);
@@ -66,6 +71,8 @@ export function TripExpensesView() {
         return "Винетка / Тол такса";
       case "accommodation":
         return "Нощувка";
+      case "food":
+        return "Храна";
       case "per_diem":
         return "Дневни пари";
       case "entry_fee":
@@ -87,6 +94,7 @@ export function TripExpensesView() {
           <p className="text-xs text-zinc-500">
             Обща сума: €{totalAmount.toFixed(2)} (
             {(totalAmount * 1.95583).toFixed(2)} лв.)
+            {hasFuelExpense && " • Горивото се изчислява по пътния лист"}
           </p>
         </div>
 
@@ -149,10 +157,14 @@ export function TripExpensesView() {
                     {exp.documentDate ? formatDateShort(exp.documentDate) : "—"}
                   </TableCell>
                   <TableCell className="text-right font-bold text-zinc-900 dark:text-white">
-                    €{(exp.amountEUR || 0).toFixed(2)}
+                    {exp.expenseType === "fuel"
+                      ? `Цена/л: €${(exp.amountEUR || 0).toFixed(2)}`
+                      : `€${(exp.amountEUR || 0).toFixed(2)}`}
                   </TableCell>
                   <TableCell className="text-right text-zinc-500">
-                    {((exp.amountEUR || 0) * 1.95583).toFixed(2)} лв.
+                    {exp.expenseType === "fuel"
+                      ? `${((exp.amountEUR || 0) * 1.95583).toFixed(2)} лв./л`
+                      : `${((exp.amountEUR || 0) * 1.95583).toFixed(2)} лв.`}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">

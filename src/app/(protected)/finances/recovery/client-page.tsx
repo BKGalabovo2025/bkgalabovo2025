@@ -8,7 +8,7 @@ import {
   PackageSearch,
   ShoppingBag,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useSWRConfig } from "swr";
 
@@ -31,16 +31,42 @@ interface RecoveryClientPageProps {
   showPageHeader?: boolean;
 }
 
+const VALID_TABS = [
+  "services",
+  "packages",
+  "reservations",
+  "history",
+  "sales",
+] as const;
+type TabValue = (typeof VALID_TABS)[number];
+
 export default function RecoveryClientPage({
   data,
   showPageHeader = true,
 }: RecoveryClientPageProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { mutate } = useSWRConfig();
   const [view, setView] = useState<"grid" | "table">("grid");
-  const [activeTab, setActiveTab] = useState("services");
   const [selectedSaleService, setSelectedSaleService] =
     useState<ClubService | null>(null);
+
+  const tabParam = searchParams.get("tab");
+  const activeTab: TabValue = VALID_TABS.includes(tabParam as TabValue)
+    ? (tabParam as TabValue)
+    : "services";
+
+  const handleTabChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "services") {
+      params.delete("tab");
+    } else {
+      params.set("tab", value);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   const columns: ColumnDef<ClubService>[] = [
     {
@@ -181,7 +207,11 @@ export default function RecoveryClientPage({
         </PageHeader>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full"
+      >
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
           <TabsList className="mb-0 h-9 w-fit rounded-xl border border-zinc-100 bg-zinc-100 p-0.5 dark:border-zinc-800 dark:bg-zinc-900">
             <TabsTrigger

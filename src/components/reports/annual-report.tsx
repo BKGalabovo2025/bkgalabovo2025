@@ -21,6 +21,7 @@ import {
   Trash2,
   Trophy,
 } from "lucide-react";
+import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -1060,9 +1061,18 @@ ${report.demonstrations.list.map((d) => `• ${d.title} (${d.date}): ${d.descrip
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                        {t.title}
-                      </span>
+                      {t.tripId ? (
+                        <Link
+                          href={`/accounting/trips/${t.tripId}`}
+                          className="font-semibold text-zinc-900 hover:underline dark:text-zinc-100 truncate"
+                        >
+                          {t.title}
+                        </Link>
+                      ) : (
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                          {t.title}
+                        </span>
+                      )}
                       <Badge
                         variant="outline"
                         className="text-[9px] uppercase border-none bg-zinc-200/70 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"

@@ -1,7 +1,14 @@
 "use client";
 
-import { ArrowLeft, Edit3, Printer, SlidersHorizontal } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Edit3,
+  Printer,
+  SlidersHorizontal,
+} from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React, { useState } from "react";
 
 import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
@@ -14,6 +21,11 @@ import { ScheduleEvent } from "@/types";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { Member } from "@/types/member.types";
 
+import {
+  getActiveTripSectionId,
+  getTripSectionHref,
+  TRIP_DETAIL_SECTIONS,
+} from "./trip-details-sections";
 import { TripDetailsProvider, useTripDetails } from "./TripDetailsContext";
 import { TripDetailsNav } from "./TripDetailsNav";
 
@@ -159,6 +171,7 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
       {isManagerDialogOpen && (
         <BusinessTripManagerDialog
           event={effectiveEvent}
+          initialTripId={trip.id}
           open={isManagerDialogOpen}
           onOpenChange={(open) => {
             setIsManagerDialogOpen(open);
@@ -169,6 +182,57 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
         />
       )}
     </>
+  );
+}
+
+function TripDetailsStepFooter({ tripId }: { tripId: string }) {
+  const pathname = usePathname();
+  const activeSection = getActiveTripSectionId(pathname, tripId) || "overview";
+  const currentIndex = TRIP_DETAIL_SECTIONS.findIndex(
+    (s) => s.id === activeSection
+  );
+  const prevSection =
+    currentIndex > 0 ? TRIP_DETAIL_SECTIONS[currentIndex - 1] : null;
+  const nextSection =
+    currentIndex >= 0 && currentIndex < TRIP_DETAIL_SECTIONS.length - 1
+      ? TRIP_DETAIL_SECTIONS[currentIndex + 1]
+      : null;
+
+  if (!prevSection && !nextSection) return null;
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-zinc-200/80 bg-white/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+      <div>
+        {prevSection && (
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-700"
+          >
+            <Link href={getTripSectionHref(tripId, prevSection.id)}>
+              <ArrowLeft className="mr-1.5 size-3.5" />
+              {prevSection.label}
+            </Link>
+          </Button>
+        )}
+      </div>
+      <div>
+        {nextSection && (
+          <Button
+            asChild
+            variant="default"
+            size="sm"
+            className="h-8 rounded-xl bg-blue-600 text-xs font-semibold text-white hover:bg-blue-700"
+          >
+            <Link href={getTripSectionHref(tripId, nextSection.id)}>
+              Следваща стъпка: {nextSection.label}
+              <ArrowRight className="ml-1.5 size-3.5" />
+            </Link>
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -197,6 +261,7 @@ export function TripDetailsLayoutClient({
       <div className="space-y-6 pb-24 duration-700 animate-in fade-in">
         <TripDetailsHeaderInner tripId={tripId} />
         <main className="space-y-6">{children}</main>
+        <TripDetailsStepFooter tripId={tripId} />
       </div>
     </TripDetailsProvider>
   );

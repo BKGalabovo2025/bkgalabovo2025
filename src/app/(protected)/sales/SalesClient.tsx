@@ -807,7 +807,7 @@ export default function SalesClient({
           >
             <Button
               onClick={() => router.push("/sales/new")}
-              className="h-11 sm:h-12 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 cursor-pointer"
+              className="h-11 sm:h-12 w-full sm:w-auto rounded-xl bg-zinc-950 px-6 sm:px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 cursor-pointer"
             >
               <PlusCircle className="mr-3 size-4" strokeWidth={1.5} /> Нова
               продажба
@@ -914,7 +914,7 @@ export default function SalesClient({
           </div>
           <Button
             onClick={() => router.push("/sales/new")}
-            className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 cursor-pointer"
+            className="h-10 rounded-xl bg-zinc-950 px-6 text-[10px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 cursor-pointer"
           >
             <PlusCircle className="mr-2 size-3.5" strokeWidth={1.5} /> Нова
             продажба

@@ -376,7 +376,7 @@ export function TripProtocolDialog({
                   <Label htmlFor="proto-members" className="text-xs">
                     Присъстващи членове на УС (кворум и подписи)
                   </Label>
-                  <span className="text-[10px] text-slate-500">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
                     Имената се извличат автоматично за подписите под протокола
                   </span>
                 </div>
@@ -386,7 +386,7 @@ export function TripProtocolDialog({
                   value={boardMembers}
                   onChange={(val) => updateFieldsAndSync({ members: val })}
                 />
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   Въведете всеки член на нов ред. Присъстващите членове (без
                   Председателя, който подписва отделно) се извеждат автоматично
                   с поименни редове в колоната „ЧЛЕНОВЕ НА УС“.

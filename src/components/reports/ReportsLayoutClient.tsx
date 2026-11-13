@@ -1,5 +1,7 @@
 "use client";
 
+import { Calculator } from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
@@ -9,6 +11,7 @@ import {
   REPORT_SECTIONS,
 } from "@/components/reports/report-sections";
 import { ReportsNav } from "@/components/reports/ReportsNav";
+import { Button } from "@/components/ui/button";
 
 interface ReportsLayoutClientProps {
   children: React.ReactNode;
@@ -39,7 +42,18 @@ export function ReportsLayoutClient({ children }: ReportsLayoutClientProps) {
         title="Справки и Анализи"
         description="Генериране на подробни отчети за финансовото състояние, посещаемостта и инвентара."
         breadcrumbs={breadcrumbs}
-      />
+      >
+        <Button
+          asChild
+          variant="outline"
+          className="h-10 rounded-xl border-zinc-200 px-4 text-xs font-medium dark:border-zinc-800"
+        >
+          <Link href="/accounting">
+            <Calculator className="mr-2 size-4" strokeWidth={1.5} />
+            Счетоводство
+          </Link>
+        </Button>
+      </PageHeader>
 
       <div className="sticky top-16 z-20 -mx-1 backdrop-blur-md sm:top-20 p-1">
         <ReportsNav />

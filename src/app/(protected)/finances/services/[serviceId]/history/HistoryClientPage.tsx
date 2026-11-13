@@ -14,6 +14,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { getDb } from "@/lib/firebase";
 
@@ -156,15 +157,20 @@ export default function HistoryClientPage({
   }
 
   return (
-    <div className="container mx-auto p-4 text-zinc-900 dark:text-zinc-100">
-      <h1 className="mb-4 text-2xl font-bold">
-        История на промените за &quot;{service?.name || "..."}&quot;
-      </h1>
-      <div className="mb-6">
+    <div className="container mx-auto space-y-6 p-4 text-zinc-900 dark:text-zinc-100">
+      <PageHeader
+        title={`История на промените за "${service?.name || "..."}"`}
+        breadcrumbs={[
+          { label: "Начало", href: "/dashboard" },
+          { label: "Каталози", href: "/catalogs" },
+          { label: "Тренировки", href: "/catalogs/trainings" },
+          { label: "История" },
+        ]}
+      >
         <Link href="/catalogs/trainings">
           <Button variant="outline">Назад към услугите</Button>
         </Link>
-      </div>
+      </PageHeader>
       {history.length > 0 ? (
         <ul className="space-y-4">
           {history.map((entry) => (

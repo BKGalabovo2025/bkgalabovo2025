@@ -199,7 +199,7 @@ export function TripSignerClient({ initialData }: TripSignerClientProps) {
                 <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400" />
                 Вече имате положен подпис за тази ведомост
               </div>
-              <div className="bg-white rounded-xl border border-blue-200/80 p-3 flex items-center justify-center h-28 max-w-xs mx-auto shadow-sm">
+              <div className="bg-white rounded-xl border border-blue-200/80 dark:border-blue-800/70 p-3 flex items-center justify-center h-28 max-w-xs mx-auto shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={data.existingSignature!}
