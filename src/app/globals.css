@@ -546,7 +546,12 @@ html:not(.dark) .public-portal-shell .text-amber-200 {
 }
 
 html:not(.dark) .public-portal-shell .text-emerald-300 {
-  color: #047857 !important;
+  color: #065f46 !important;
+}
+
+/* Active emerald pills: text on bg-emerald-500/20 must stay above 4.5:1 */
+html:not(.dark) .public-portal-shell .bg-emerald-500\/20 {
+  background-color: #d1fae5 !important;
 }
 
 html:not(.dark) .public-portal-shell .text-amber-400 {
