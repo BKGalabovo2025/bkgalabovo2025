@@ -138,7 +138,7 @@ export function ParentPortalKpiRow() {
                         {nextTraining.title}
                       </p>
                       {nextTraining.isToday && (
-                        <span className="rounded-md bg-emerald-600 px-1.5 py-0.2 text-[9px] font-bold text-white uppercase animate-pulse">
+                        <span className="rounded-md bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white uppercase animate-pulse">
                           Днес
                         </span>
                       )}

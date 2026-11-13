@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertCircle,
   CalendarDays,
   Download,
   Pencil,
@@ -37,13 +38,16 @@ export function ParentAdminLayoutClient({
   const activeSectionConfig = PARENT_ADMIN_SECTIONS.find(
     (s) => s.id === activeSection
   );
+  const isIndexPage = pathname === "/parents" || pathname === "/parents/";
   const activeSubpage: { label: string; href?: string }[] = activeSectionConfig
     ? [{ label: activeSectionConfig.label }]
     : [];
 
   const breadcrumbs: { label: string; href?: string }[] = [
     { label: "Начало", href: "/dashboard" },
-    { label: "Родители", href: "/parents" },
+    isIndexPage
+      ? { label: "Родители" }
+      : { label: "Родители", href: "/parents" },
     ...activeSubpage,
   ];
 
@@ -52,6 +56,7 @@ export function ParentAdminLayoutClient({
     parents,
     onlineParentsCount,
     isLoading,
+    error,
     refetch,
     handleExportCsv,
     setManualAddOpen,
@@ -62,8 +67,11 @@ export function ParentAdminLayoutClient({
       {/* Page Header */}
       <PageHeader
         title={
-          <span className="flex items-center gap-2">
-            <span>Родителски достъп</span>
+          <span className="flex flex-wrap items-center gap-2">
+            <span>
+              Родителски достъп
+              {activeSectionConfig ? ` — ${activeSectionConfig.label}` : ""}
+            </span>
             {stats.totalPending > 0 && (
               <Badge className="bg-red-600 text-white font-bold animate-pulse text-xs">
                 {stats.totalPending} чакащи
@@ -71,7 +79,10 @@ export function ParentAdminLayoutClient({
             )}
           </span>
         }
-        description="Управление на родителски профили, заявки за регистрация, уведомления за отсъствия и корекции на данни."
+        description={
+          activeSectionConfig?.tooltip ||
+          "Управление на родителски профили, заявки за регистрация, уведомления за отсъствия и корекции на данни."
+        }
         breadcrumbs={breadcrumbs}
       >
         <div className="flex items-center gap-2">
@@ -110,10 +121,33 @@ export function ParentAdminLayoutClient({
         </div>
       </PageHeader>
 
+      {/* Error Banner */}
+      {error && (
+        <div
+          role="alert"
+          className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-900 sm:flex-row sm:items-center sm:justify-between dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200"
+        >
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="size-5 shrink-0 text-red-600 dark:text-red-400" />
+            <span>{error}</span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="shrink-0 rounded-xl border-red-300 bg-white text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200 dark:hover:bg-red-900/60"
+          >
+            <RefreshCw size={14} className="mr-1.5" />
+            Опитай отново
+          </Button>
+        </div>
+      )}
+
       {/* KPI Stats Cards as Deep Links */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 sm:gap-3">
         <Link
-          href="/parents/requests"
+          href="/parents"
           className={`cursor-pointer rounded-2xl border p-4 transition-all hover:scale-1.02 ${
             activeSection === "requests"
               ? "border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20 shadow-md"

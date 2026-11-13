@@ -36,13 +36,18 @@ export function ParentReceiptDialog({
     window.print();
   };
 
-  const formattedPaymentDate = transaction.date
-    ? new Date(transaction.date).toLocaleDateString("bg-BG", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
-    : transaction.issueDate || "N/A";
+  const formattedPaymentDate = (() => {
+    if (!transaction.date) return transaction.issueDate || "N/A";
+    const parsed = new Date(transaction.date);
+    if (isNaN(parsed.getTime())) {
+      return transaction.issueDate || "N/A";
+    }
+    return parsed.toLocaleDateString("bg-BG", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  })();
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -60,9 +65,7 @@ export function ParentReceiptDialog({
               visibility: visible !important;
             }
             .parent-printable-receipt {
-              position: fixed !important;
-              left: 0 !important;
-              top: 0 !important;
+              position: static !important;
               width: 100% !important;
               max-width: 100% !important;
               margin: 0 !important;
@@ -90,7 +93,7 @@ export function ParentReceiptDialog({
               <DialogTitle className="text-sm font-black uppercase text-zinc-900 dark:text-white">
                 Електронна бележка / Разписка
               </DialogTitle>
-              <p className="text-[11px] text-zinc-500">
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                 Официален клубен документ за плащане • №{" "}
                 {transaction.receiptNumber}
               </p>
@@ -121,7 +124,7 @@ export function ParentReceiptDialog({
                 <h2 className="text-sm font-black tracking-tight text-zinc-900 uppercase dark:text-white">
                   РАЗПИСКА ЗА ПЛАЩАНЕ
                 </h2>
-                <p className="text-[10px] font-bold text-zinc-500 uppercase">
+                <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">
                   № {transaction.receiptNumber} / {transaction.issueDate}
                 </p>
                 <div className="pt-0.5">
@@ -147,7 +150,7 @@ export function ParentReceiptDialog({
             {/* Meta Info Block */}
             <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl border border-zinc-100 bg-zinc-50/80 p-3 text-[10px] dark:border-zinc-800/80 dark:bg-zinc-950/40">
               <div>
-                <span className="block font-bold tracking-wider text-zinc-400 uppercase text-[9px]">
+                <span className="block font-bold tracking-wider text-zinc-500 dark:text-zinc-400 uppercase text-[9px]">
                   Получател на услугата / стоката
                 </span>
                 <span className="mt-0.5 block text-xs font-bold text-zinc-900 uppercase dark:text-white">
@@ -156,23 +159,25 @@ export function ParentReceiptDialog({
               </div>
 
               <div className="text-center">
-                <span className="block font-bold tracking-wider text-zinc-400 uppercase text-[9px]">
+                <span className="block font-bold tracking-wider text-zinc-500 dark:text-zinc-400 uppercase text-[9px]">
                   Статус на плащане
                 </span>
                 <span
                   className={`mt-0.5 block text-xs font-black uppercase ${
-                    transaction.isPaid ? "text-emerald-600" : "text-amber-600"
+                    transaction.isPaid
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-amber-600 dark:text-amber-400"
                   }`}
                 >
                   {transaction.isPaid ? "✓ Платено" : "⏳ Очаква плащане"}
                 </span>
-                <span className="text-[10px] text-zinc-500">
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
                   {formattedPaymentDate}
                 </span>
               </div>
 
               <div className="text-right">
-                <span className="block font-bold tracking-wider text-zinc-400 uppercase text-[9px]">
+                <span className="block font-bold tracking-wider text-zinc-500 dark:text-zinc-400 uppercase text-[9px]">
                   Начин на плащане
                 </span>
                 <span className="mt-0.5 block text-xs font-bold text-zinc-800 uppercase dark:text-zinc-200">
@@ -184,7 +189,7 @@ export function ParentReceiptDialog({
             {/* Note / Target months if available */}
             {transaction.note && (
               <div className="mb-4 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/50 p-2.5 text-[11px] text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950/30 dark:text-zinc-400">
-                <span className="font-bold text-zinc-500 uppercase mr-1 text-[9px]">
+                <span className="font-bold text-zinc-500 dark:text-zinc-400 uppercase mr-1 text-[9px]">
                   Бележка:
                 </span>
                 <span>{transaction.note}</span>
@@ -195,7 +200,7 @@ export function ParentReceiptDialog({
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-zinc-200 text-xs dark:border-zinc-800">
                 <thead>
-                  <tr className="border-b border-zinc-200 bg-zinc-50 text-[10px] font-bold text-zinc-500 uppercase dark:border-zinc-800 dark:bg-zinc-950/60">
+                  <tr className="border-b border-zinc-200 bg-zinc-50 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase dark:border-zinc-800 dark:bg-zinc-950/60">
                     <th className="border-r border-zinc-200 p-2 text-left dark:border-zinc-800">
                       Описание на артикула / таксата
                     </th>
@@ -248,7 +253,7 @@ export function ParentReceiptDialog({
                   <tr className="bg-zinc-50/70 font-bold dark:bg-zinc-950/40">
                     <td
                       colSpan={3}
-                      className="border-r border-zinc-200 p-2.5 text-right text-[10px] font-bold text-zinc-500 uppercase dark:border-zinc-800"
+                      className="border-r border-zinc-200 p-2.5 text-right text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase dark:border-zinc-800"
                     >
                       Обща сума:
                     </td>
@@ -261,7 +266,7 @@ export function ParentReceiptDialog({
             </div>
 
             {/* Signatures */}
-            <div className="mt-8 flex justify-between gap-8 text-zinc-500 text-[10px]">
+            <div className="mt-8 flex justify-between gap-8 text-zinc-500 dark:text-zinc-400 text-[10px]">
               <div className="flex-1">
                 <div className="h-px w-full bg-zinc-300 dark:bg-zinc-700" />
                 <p className="mt-1 text-center font-bold uppercase">
@@ -278,7 +283,7 @@ export function ParentReceiptDialog({
 
             {/* Legal Footnote */}
             <div className="mt-6 text-center">
-              <p className="text-[8px] font-bold tracking-widest text-zinc-400 uppercase">
+              <p className="text-[8px] font-bold tracking-widest text-zinc-500 dark:text-zinc-400 uppercase">
                 ДИГИТАЛНО ГЕНЕРИРАН ДОКУМЕНТ • ВАЛИДЕН БЕЗ МОКЪР ПОДПИС И ПЕЧАТ
               </p>
             </div>
@@ -287,7 +292,7 @@ export function ParentReceiptDialog({
 
         {/* Footer in screen dialog */}
         <DialogFooter className="no-print border-t border-zinc-100 bg-zinc-50/80 px-6 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/60 flex items-center justify-between sm:justify-between">
-          <p className="text-[11px] text-zinc-400">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
             Бележката е достъпна в родителския Ви профил по всяко време.
           </p>
           <Button

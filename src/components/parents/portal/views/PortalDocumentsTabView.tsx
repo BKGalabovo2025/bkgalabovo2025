@@ -35,7 +35,7 @@ export function PortalDocumentsTabView() {
 
   const handleCopyDocLink = (docId: string, docTitle: string) => {
     if (typeof window === "undefined") return;
-    const url = `${window.location.origin}/club/parents?child=${selectedChildId}&tab=documents&doc=${docId}`;
+    const url = `${window.location.origin}/club/parents/documents?child=${selectedChildId}&doc=${docId}`;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard
         .writeText(url)

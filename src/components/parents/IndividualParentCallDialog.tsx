@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy, Loader2, Phone, PhoneCall } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,24 @@ export function IndividualParentCallDialog({
   const [notes, setNotes] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [hasCopied, setHasCopied] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedChildId("all");
+      setOutcome(CALL_OUTCOMES[0]);
+      setNotes("");
+      setHasCopied(false);
+    }
+  }, [isOpen, parent?.id]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (!parent) return null;
 
@@ -64,7 +82,10 @@ export function IndividualParentCallDialog({
       navigator.clipboard.writeText(parent.phone);
       setHasCopied(true);
       toast.success("Телефонният номер е копиран.");
-      setTimeout(() => setHasCopied(false), 2000);
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = setTimeout(() => setHasCopied(false), 2000);
     }
   };
 
@@ -120,7 +141,7 @@ export function IndividualParentCallDialog({
                 Запис на разговор с родител
               </DialogTitle>
             </div>
-            <DialogDescription className="text-xs text-zinc-500 mt-1">
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
               Индивидуален лог за разговор с{" "}
               <strong className="text-zinc-800 dark:text-zinc-200">
                 {parent.name}
@@ -132,7 +153,7 @@ export function IndividualParentCallDialog({
             {/* Contact info bar */}
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/60">
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   Телефон за връзка:
                 </div>
                 <div className="font-mono text-sm font-bold text-zinc-900 dark:text-white mt-0.5">

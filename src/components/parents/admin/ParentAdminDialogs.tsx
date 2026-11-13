@@ -1,11 +1,21 @@
 "use client";
 
 import { Check, CheckCircle2, Copy } from "lucide-react";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { IndividualParentCallDialog } from "@/components/parents/IndividualParentCallDialog";
 import { IndividualParentEmailDialog } from "@/components/parents/IndividualParentEmailDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,6 +33,34 @@ import {
 } from "@/types/parent-portal.types";
 
 import { useParentAdminContext } from "./ParentAdminContext";
+
+const PERMISSION_FIELDS: {
+  key: keyof ParentMemberPermissions;
+  label: string;
+}[] = [
+  { key: "showBirthDate", label: "Дата на раждане" },
+  { key: "showAgeGroup", label: "Възрастова група" },
+  { key: "showPhone", label: "Телефон на детето" },
+  { key: "showAddress", label: "Адрес на живеене" },
+  { key: "showSchool", label: "Учебно заведение" },
+  { key: "showApparelSize", label: "Размер на екип" },
+  { key: "showEmergencyContact", label: "Спешен телефон" },
+  { key: "showHealthNotes", label: "Здравни бележки" },
+  { key: "showAttendance", label: "Присъствия (Календар)" },
+  { key: "showStatusBadge", label: "Клубна значка" },
+  { key: "showNextTrainingCard", label: "Следваща тренировка" },
+  { key: "showFeeStatus", label: "💳 Членски внос и такси" },
+  { key: "showDocumentsStatus", label: "📄 Документи и медицинско" },
+  { key: "showRanking", label: "🏆 Точки и ранглиста" },
+  { key: "showShadowAndQuizzes", label: "⚡ „Сянка“ и куизове" },
+];
+
+function buildAllPermissions(enabled: boolean): ParentMemberPermissions {
+  return PERMISSION_FIELDS.reduce((acc, field) => {
+    acc[field.key] = enabled;
+    return acc;
+  }, {} as ParentMemberPermissions);
+}
 
 export function ParentAdminDialogs() {
   const {
@@ -115,7 +153,39 @@ export function ParentAdminDialogs() {
     setSelectedChildToLink,
     isLinkingChild,
     handleLinkChild,
+
+    // Shared Confirmation AlertDialog
+    confirmDialog,
+    isConfirmingDialog,
+    closeConfirmDialog,
+    handleExecuteConfirmDialog,
   } = useParentAdminContext();
+
+  const [linkChildSearch, setLinkChildSearch] = useState("");
+  const [approveChildSearch, setApproveChildSearch] = useState("");
+  const [manualChildSearch, setManualChildSearch] = useState("");
+
+  const siteOrigin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://bkgalabovo2025.vercel.app";
+  const displaySiteHost = siteOrigin.replace(/^https?:\/\//, "");
+
+  const filteredApproveMembers = useMemo(() => {
+    const q = approveChildSearch.trim().toLowerCase();
+    if (!q) return members;
+    return members.filter((m) =>
+      `${m.fullName} ${m.dateOfBirth || ""}`.toLowerCase().includes(q)
+    );
+  }, [members, approveChildSearch]);
+
+  const filteredManualMembers = useMemo(() => {
+    const q = manualChildSearch.trim().toLowerCase();
+    if (!q) return members;
+    return members.filter((m) =>
+      `${m.fullName} ${m.dateOfBirth || ""}`.toLowerCase().includes(q)
+    );
+  }, [members, manualChildSearch]);
 
   return (
     <>
@@ -144,17 +214,30 @@ export function ParentAdminDialogs() {
           const availableMembers = members.filter(
             (m) => !(linkingParent?.linkedMemberIds || []).includes(m.id)
           );
+          const linkQ = linkChildSearch.trim().toLowerCase();
+          const filteredAvailableMembers = linkQ
+            ? availableMembers.filter((m) =>
+                `${m.fullName} ${m.dateOfBirth || ""}`
+                  .toLowerCase()
+                  .includes(linkQ)
+              )
+            : availableMembers;
           return (
             <Dialog
               open={Boolean(linkingParentId)}
-              onOpenChange={(open) => !open && setLinkingParentId(null)}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setLinkChildSearch("");
+                  setLinkingParentId(null);
+                }
+              }}
             >
               <DialogContent className="max-w-md rounded-3xl">
                 <DialogHeader>
                   <DialogTitle className="text-lg font-black uppercase text-zinc-900 dark:text-white">
                     Свързване на дете към родител
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-zinc-500">
+                  <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                     Изберете състезател от картотеката, за да го свържете към{" "}
                     {linkingParent ? (
                       <strong>{linkingParent.name}</strong>
@@ -172,6 +255,14 @@ export function ParentAdminDialogs() {
                   >
                     Изберете дете:
                   </Label>
+                  <Input
+                    type="search"
+                    value={linkChildSearch}
+                    onChange={(e) => setLinkChildSearch(e.target.value)}
+                    placeholder="Търси дете по име..."
+                    aria-label="Търси дете по име"
+                    className="mt-1 mb-1.5 h-8 rounded-xl text-xs"
+                  />
                   <select
                     id="admin-link-child-select"
                     name="linkChildSelect"
@@ -180,7 +271,7 @@ export function ParentAdminDialogs() {
                     className="mt-1 w-full rounded-xl border border-zinc-300 bg-white p-2.5 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
                   >
                     <option value="">-- Изберете състезател --</option>
-                    {availableMembers.map((m) => (
+                    {filteredAvailableMembers.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.fullName} {m.dateOfBirth ? `(${m.dateOfBirth})` : ""}
                       </option>
@@ -192,7 +283,10 @@ export function ParentAdminDialogs() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setLinkingParentId(null)}
+                    onClick={() => {
+                      setLinkChildSearch("");
+                      setLinkingParentId(null);
+                    }}
                     className="rounded-xl"
                   >
                     Отказ
@@ -215,14 +309,19 @@ export function ParentAdminDialogs() {
       {approveDialogReq && (
         <Dialog
           open={Boolean(approveDialogReq)}
-          onOpenChange={(open) => !open && setApproveDialogReq(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setApproveChildSearch("");
+              setApproveDialogReq(null);
+            }
+          }}
         >
           <DialogContent className="max-w-lg rounded-3xl">
             <DialogHeader>
               <DialogTitle className="text-lg font-black uppercase text-zinc-900 dark:text-white">
                 Одобрение на родителски достъп
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Потвърдете свързването на{" "}
                 <strong>{approveDialogReq.parentName}</strong> към досието на
                 детето.
@@ -237,6 +336,14 @@ export function ParentAdminDialogs() {
                 >
                   Изберете член (дете) от картотеката:
                 </Label>
+                <Input
+                  type="search"
+                  value={approveChildSearch}
+                  onChange={(e) => setApproveChildSearch(e.target.value)}
+                  placeholder="Търси дете по име..."
+                  aria-label="Търси дете по име"
+                  className="mt-1 mb-1.5 h-8 rounded-xl text-xs"
+                />
                 <select
                   id="admin-approve-child-id"
                   name="childId"
@@ -245,7 +352,7 @@ export function ParentAdminDialogs() {
                   className="mt-1 w-full rounded-xl border border-zinc-300 bg-white p-2.5 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
                 >
                   <option value="">-- Изберете дете --</option>
-                  {members.map((m) => (
+                  {filteredApproveMembers.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.fullName} {m.dateOfBirth ? `(${m.dateOfBirth})` : ""}
                     </option>
@@ -271,42 +378,37 @@ export function ParentAdminDialogs() {
               </div>
 
               <div>
-                <Label className="text-xs font-bold uppercase text-zinc-600 dark:text-zinc-400">
-                  Права за видимост на данни за това дете:
-                </Label>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Label className="text-xs font-bold uppercase text-zinc-600 dark:text-zinc-400">
+                    Права за видимост на данни за това дете:
+                  </Label>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setPermissionsState(buildAllPermissions(true))
+                      }
+                      className="h-6 px-2 text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      Избери всички
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setPermissionsState(buildAllPermissions(false))
+                      }
+                      className="h-6 px-2 text-[11px] font-semibold text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    >
+                      Премахни всички
+                    </Button>
+                  </div>
+                </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto rounded-xl border border-zinc-200 p-3 text-xs dark:border-zinc-800">
-                  {[
-                    { key: "showBirthDate", label: "Дата на раждане" },
-                    { key: "showAgeGroup", label: "Възрастова група" },
-                    { key: "showPhone", label: "Телефон на детето" },
-                    { key: "showAddress", label: "Адрес на живеене" },
-                    { key: "showSchool", label: "Учебно заведение" },
-                    { key: "showApparelSize", label: "Размер на екип" },
-                    { key: "showEmergencyContact", label: "Спешен телефон" },
-                    { key: "showHealthNotes", label: "Здравни бележки" },
-                    { key: "showAttendance", label: "Присъствия (Календар)" },
-                    { key: "showStatusBadge", label: "Клубна значка" },
-                    {
-                      key: "showNextTrainingCard",
-                      label: "Следваща тренировка",
-                    },
-                    {
-                      key: "showFeeStatus",
-                      label: "💳 Членски внос и такси",
-                    },
-                    {
-                      key: "showDocumentsStatus",
-                      label: "📄 Документи и медицинско",
-                    },
-                    {
-                      key: "showRanking",
-                      label: "🏆 Точки и ранглиста",
-                    },
-                    {
-                      key: "showShadowAndQuizzes",
-                      label: "⚡ „Сянка“ и куизове",
-                    },
-                  ].map((field) => (
+                  {PERMISSION_FIELDS.map((field) => (
                     <label
                       key={field.key}
                       className="flex items-center gap-2 cursor-pointer select-none text-zinc-700 dark:text-zinc-300"
@@ -315,11 +417,7 @@ export function ParentAdminDialogs() {
                         type="checkbox"
                         id={`perm-${field.key}`}
                         name={`perm_${field.key}`}
-                        checked={Boolean(
-                          permissionsState[
-                            field.key as keyof ParentMemberPermissions
-                          ]
-                        )}
+                        checked={Boolean(permissionsState[field.key])}
                         onChange={(e) =>
                           setPermissionsState((prev) => ({
                             ...prev,
@@ -365,10 +463,10 @@ export function ParentAdminDialogs() {
         >
           <DialogContent className="max-w-md rounded-3xl">
             <DialogHeader>
-              <DialogTitle className="text-lg font-black uppercase text-red-600">
+              <DialogTitle className="text-lg font-black uppercase text-red-600 dark:text-red-400">
                 Отказ на заявка за достъп
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Посочете причина. Тя ще бъде изпратена по имейл на{" "}
                 <strong>{rejectDialogReq.parentEmail}</strong>.
               </DialogDescription>
@@ -403,7 +501,7 @@ export function ParentAdminDialogs() {
               </Button>
               <Button
                 size="sm"
-                disabled={isSubmittingReject}
+                disabled={isSubmittingReject || !rejectReason.trim()}
                 onClick={handleConfirmReject}
                 className="rounded-xl bg-red-600 text-white hover:bg-red-500"
               >
@@ -415,13 +513,19 @@ export function ParentAdminDialogs() {
       )}
 
       {/* DIALOG 3: MANUAL ADD PARENT */}
-      <Dialog open={manualAddOpen} onOpenChange={setManualAddOpen}>
+      <Dialog
+        open={manualAddOpen}
+        onOpenChange={(open) => {
+          if (!open) setManualChildSearch("");
+          setManualAddOpen(open);
+        }}
+      >
         <DialogContent className="max-w-md rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-black uppercase text-zinc-900 dark:text-white">
               Ръчно създаване на родител
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-500">
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
               Въведете контактите на родителя. Системата ще му генерира профил и
               ще му изпрати имейл за достъп.
             </DialogDescription>
@@ -514,6 +618,14 @@ export function ParentAdminDialogs() {
               >
                 Свързано дете (член) *
               </Label>
+              <Input
+                type="search"
+                value={manualChildSearch}
+                onChange={(e) => setManualChildSearch(e.target.value)}
+                placeholder="Търси дете по име..."
+                aria-label="Търси дете по име"
+                className="mt-1 mb-1.5 h-8 rounded-xl text-xs"
+              />
               <select
                 id="admin-manual-member-id"
                 name="memberId"
@@ -523,7 +635,7 @@ export function ParentAdminDialogs() {
                 className="mt-1 w-full rounded-xl border border-zinc-300 bg-white p-2 text-xs text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
               >
                 <option value="">-- Изберете дете --</option>
-                {members.map((m) => (
+                {filteredManualMembers.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.fullName}
                   </option>
@@ -565,7 +677,7 @@ export function ParentAdminDialogs() {
               <DialogTitle className="text-lg font-black uppercase text-zinc-900 dark:text-white">
                 Настройки за видимост на данни
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Изберете кои полета да вижда{" "}
                 <strong>{editPermParent.name}</strong> за избраното дете. Всичко
                 немаркирано остава скрито.
@@ -573,36 +685,28 @@ export function ParentAdminDialogs() {
             </DialogHeader>
 
             <div className="py-2">
+              <div className="mb-2 flex items-center justify-end gap-1.5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditPermValues(buildAllPermissions(true))}
+                  className="h-6 px-2 text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  Избери всички
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditPermValues(buildAllPermissions(false))}
+                  className="h-6 px-2 text-[11px] font-semibold text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                >
+                  Премахни всички
+                </Button>
+              </div>
               <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto rounded-xl border border-zinc-200 p-3 text-xs dark:border-zinc-800">
-                {[
-                  { key: "showBirthDate", label: "Дата на раждане" },
-                  { key: "showAgeGroup", label: "Възрастова група" },
-                  { key: "showPhone", label: "Телефон на детето" },
-                  { key: "showAddress", label: "Адрес на живеене" },
-                  { key: "showSchool", label: "Учебно заведение" },
-                  { key: "showApparelSize", label: "Размер на екип" },
-                  { key: "showEmergencyContact", label: "Спешен телефон" },
-                  { key: "showHealthNotes", label: "Здравни бележки" },
-                  { key: "showAttendance", label: "Присъствия (Календар)" },
-                  { key: "showStatusBadge", label: "Клубна значка" },
-                  { key: "showNextTrainingCard", label: "Следваща тренировка" },
-                  {
-                    key: "showFeeStatus",
-                    label: "💳 Членски внос и такси",
-                  },
-                  {
-                    key: "showDocumentsStatus",
-                    label: "📄 Документи и медицинско",
-                  },
-                  {
-                    key: "showRanking",
-                    label: "🏆 Точки и ранглиста",
-                  },
-                  {
-                    key: "showShadowAndQuizzes",
-                    label: "⚡ „Сянка“ и куизове",
-                  },
-                ].map((field) => (
+                {PERMISSION_FIELDS.map((field) => (
                   <label
                     key={field.key}
                     className="flex items-center gap-2 cursor-pointer select-none text-zinc-700 dark:text-zinc-300"
@@ -611,11 +715,7 @@ export function ParentAdminDialogs() {
                       type="checkbox"
                       id={`edit-perm-${field.key}`}
                       name={`edit_perm_${field.key}`}
-                      checked={Boolean(
-                        editPermValues[
-                          field.key as keyof ParentMemberPermissions
-                        ]
-                      )}
+                      checked={Boolean(editPermValues[field.key])}
                       onChange={(e) =>
                         setEditPermValues((prev) => ({
                           ...prev,
@@ -663,7 +763,7 @@ export function ParentAdminDialogs() {
               <DialogTitle className="text-base font-bold uppercase text-zinc-900 dark:text-white">
                 Преглед на отсъствие
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Можете да въведете кратък окуражаващ отговор, който родителят ще
                 види в портала си.
               </DialogDescription>
@@ -716,10 +816,10 @@ export function ParentAdminDialogs() {
         >
           <DialogContent className="max-w-md rounded-3xl">
             <DialogHeader>
-              <DialogTitle className="text-base font-bold uppercase text-red-600">
+              <DialogTitle className="text-base font-bold uppercase text-red-600 dark:text-red-400">
                 Изтриване на родителски профил
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Сигурни ли сте, че искате да премахнете профила на{" "}
                 <strong>{deleteConfirmUser.name}</strong>? Родителят няма да
                 може да влиза в портала.
@@ -765,7 +865,7 @@ export function ParentAdminDialogs() {
                 {credentialsModal.title}
               </DialogTitle>
             </div>
-            <DialogDescription className="text-xs text-zinc-500 pt-1">
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 pt-1">
               {credentialsModal.emailSent
                 ? `Данните за вход са изпратени автоматично на ${credentialsModal.parentEmail} и bkgalabovo2014@gmail.com.`
                 : `Можете да копирате данните за вход с бутона по-долу и да ги изпратите на родителя.`}
@@ -787,27 +887,35 @@ export function ParentAdminDialogs() {
             <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-900/40 dark:bg-blue-950/20 space-y-3">
               <div className="text-xs space-y-1.5 text-zinc-700 dark:text-zinc-300">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Родител:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Родител:
+                  </span>
                   <span className="font-bold">
                     {credentialsModal.parentName}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Потребител (вход с):</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Потребител (вход с):
+                  </span>
                   <span className="font-mono font-semibold">
                     {credentialsModal.parentPhone}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500">Имейл:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Имейл:
+                  </span>
                   <span className="font-medium">
                     {credentialsModal.parentEmail}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-500">Линк за вход:</span>
-                  <span className="font-medium text-blue-600 dark:text-blue-400">
-                    bkgalabovo2025.vercel.app/club/parents/login
+                <div className="flex justify-between gap-2">
+                  <span className="text-zinc-500 dark:text-zinc-400 shrink-0">
+                    Линк за вход:
+                  </span>
+                  <span className="font-medium text-blue-600 dark:text-blue-400 truncate">
+                    {displaySiteHost}/club/parents/login
                   </span>
                 </div>
               </div>
@@ -861,10 +969,9 @@ export function ParentAdminDialogs() {
               type="button"
               variant="outline"
               onClick={() => {
-                const siteUrl = "https://bkgalabovo2025.vercel.app";
                 const message = `Здравейте, ${credentialsModal.parentName}!
 Вашият профил в Родителския портал на БК „Гълъбово“${credentialsModal.childName ? ` за ${credentialsModal.childName}` : ""} е активен:
-🌐 Вход: ${siteUrl}/club/parents/login
+🌐 Вход: ${siteOrigin}/club/parents/login
 👤 Потребител: ${credentialsModal.parentPhone} (или ${credentialsModal.parentEmail})
 🔑 Временна парола: ${credentialsModal.tempPassword}
 
@@ -923,7 +1030,7 @@ export function ParentAdminDialogs() {
               <DialogTitle className="text-base font-bold uppercase text-zinc-900 dark:text-white">
                 Потвърждение на корекция
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Потвърждавате ли автоматичното обновяване на полето &quot;
                 {approveCorrectionReq.fieldLabel}&quot; за{" "}
                 <strong>{approveCorrectionReq.memberName}</strong> на нова
@@ -966,10 +1073,10 @@ export function ParentAdminDialogs() {
         >
           <DialogContent className="max-w-md rounded-3xl">
             <DialogHeader>
-              <DialogTitle className="text-base font-bold uppercase text-red-600">
+              <DialogTitle className="text-base font-bold uppercase text-red-600 dark:text-red-400">
                 Отказ на корекция
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-500">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Отказване на предложената корекция на &quot;
                 {rejectCorrectionReq.fieldLabel}&quot; за{" "}
                 <strong>{rejectCorrectionReq.memberName}</strong> от{" "}
@@ -1017,6 +1124,56 @@ export function ParentAdminDialogs() {
           </DialogContent>
         </Dialog>
       )}
+      {/* SHARED CONFIRMATION ALERT DIALOG */}
+      <AlertDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => {
+          if (!open && !isConfirmingDialog) {
+            closeConfirmDialog();
+          }
+        }}
+      >
+        <AlertDialogContent className="rounded-3xl border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+          <AlertDialogHeader>
+            <AlertDialogTitle
+              className={
+                confirmDialog.variant === "destructive"
+                  ? "text-base font-bold uppercase text-red-600 dark:text-red-400"
+                  : "text-base font-bold uppercase text-zinc-900 dark:text-white"
+              }
+            >
+              {confirmDialog.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+              {confirmDialog.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel
+              disabled={isConfirmingDialog}
+              className="rounded-xl text-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              Отказ
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isConfirmingDialog}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleExecuteConfirmDialog();
+              }}
+              className={
+                confirmDialog.variant === "destructive"
+                  ? "rounded-xl bg-red-600 text-xs font-semibold text-white hover:bg-red-500 dark:bg-red-600 dark:hover:bg-red-500"
+                  : "rounded-xl bg-blue-600 text-xs font-semibold text-white hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500"
+              }
+            >
+              {isConfirmingDialog
+                ? "Изпълняване..."
+                : confirmDialog.confirmLabel || "Потвърди"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

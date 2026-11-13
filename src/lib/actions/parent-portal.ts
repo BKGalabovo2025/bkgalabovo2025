@@ -7,6 +7,7 @@ import { format, isValid } from "date-fns";
 import { bg } from "date-fns/locale";
 import { revalidatePath } from "next/cache";
 
+import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb, getAdminStorage } from "@/lib/firebase-admin";
 import { getBackupDb } from "@/lib/firebase-admin-backup";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
@@ -516,6 +517,7 @@ export async function approveParentAccessRequestAction(
   }
 ) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const reqRef = adminDb
       .collection(PARENT_REQUESTS_COLLECTION)
@@ -703,8 +705,7 @@ export async function approveParentAccessRequestAction(
 
     revalidatePath("/members");
     revalidatePath(`/members/${targetMemberId}`);
-    invalidateAdminParentPortalCache();
-
+    revalidatePath("/parents");
     invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
@@ -724,6 +725,7 @@ export async function rejectParentAccessRequestAction(
   reason: string
 ) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const reqRef = adminDb
       .collection(PARENT_REQUESTS_COLLECTION)
@@ -778,11 +780,13 @@ export async function createParentUserManuallyAction(data: {
   permissions?: ParentMemberPermissions;
 }) {
   try {
+    await ensureAdmin();
     const parentName = data.parentName.trim();
     const parentPhone = normalizePhoneNumber(data.parentPhone);
     const parentEmail = data.parentEmail.trim().toLowerCase();
     const tempPassword =
-      data.initialPassword?.trim() || Math.random().toString(36).slice(-8);
+      data.initialPassword?.trim() ||
+      crypto.randomBytes(6).toString("base64url").slice(0, 8);
 
     if (!parentName || !parentPhone || !parentEmail) {
       return {
@@ -1001,12 +1005,14 @@ export async function toggleParentUserStatusAction(
   newStatus: "active" | "suspended"
 ) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     await adminDb.collection(PARENT_USERS_COLLECTION).doc(parentUserId).update({
       status: newStatus,
       updatedAt: new Date().toISOString(),
     });
     invalidateAdminParentPortalCache();
+    invalidateParentDashboardCache(parentUserId);
     return { success: true };
   } catch (error) {
     console.error("toggleParentUserStatusAction error:", error);
@@ -1026,6 +1032,7 @@ export async function updateParentMemberPermissionsAction(
   permissions: ParentMemberPermissions
 ) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const parentRef = adminDb
       .collection(PARENT_USERS_COLLECTION)
@@ -1062,6 +1069,7 @@ export async function updateParentMemberPermissionsAction(
  */
 export async function resetParentPasswordByAdminAction(parentUserId: string) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const parentRef = adminDb
       .collection(PARENT_USERS_COLLECTION)
@@ -1072,7 +1080,10 @@ export async function resetParentPasswordByAdminAction(parentUserId: string) {
     }
 
     const data = snap.data() as ParentUser;
-    const tempPassword = Math.random().toString(36).slice(-8);
+    const tempPassword = crypto
+      .randomBytes(6)
+      .toString("base64url")
+      .slice(0, 8);
     const newHash = hashPassword(tempPassword);
 
     await parentRef.update({
@@ -1169,6 +1180,10 @@ export async function sendParentSessionReportAction(
   report: ParentSessionReportData
 ) {
   try {
+    const parent = await getActiveParentUserAction();
+    if (!parent) {
+      return { success: false, error: "UNAUTHORIZED" };
+    }
     if (!report || !report.actions || report.actions.length === 0) {
       return { success: true, skipped: true };
     }
@@ -1317,8 +1332,24 @@ export async function submitParentAbsenceAction(data: {
       };
     }
 
-    // Date validation: must be today or future date
-    const today = new Date().toISOString().slice(0, 10);
+    // Date validation: must be valid YYYY-MM-DD and today or future date in Europe/Sofia
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(data.startDate)) {
+      return {
+        success: false,
+        error: "Невалиден формат на началната дата.",
+      };
+    }
+    if (data.endDate && !dateRegex.test(data.endDate)) {
+      return {
+        success: false,
+        error: "Невалиден формат на крайната дата.",
+      };
+    }
+
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Sofia",
+    }).format(new Date());
     if (data.startDate < today) {
       return {
         success: false,
@@ -1429,6 +1460,7 @@ export async function markAbsenceSeenByAdminAction(
   coachReply?: string
 ) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const absRef = adminDb
       .collection(PARENT_ABSENCES_COLLECTION)
@@ -1549,6 +1581,7 @@ export async function submitDataCorrectionAction(data: {
  */
 export async function approveDataCorrectionAction(correctionId: string) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const corrRef = adminDb
       .collection(PARENT_CORRECTIONS_COLLECTION)
@@ -1674,8 +1707,10 @@ export async function approveDataCorrectionAction(correctionId: string) {
       }
     }
 
+    revalidatePath("/members");
     revalidatePath(`/members/${corr.memberId}`);
-    invalidateParentDashboardCache(corr.parentUserId);
+    serverCache.invalidatePattern("members:");
+    invalidateParentDashboardCache();
     invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
@@ -1692,6 +1727,7 @@ export async function rejectDataCorrectionAction(
   adminComment?: string
 ) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const corrRef = adminDb
       .collection(PARENT_CORRECTIONS_COLLECTION)
@@ -1719,12 +1755,14 @@ export async function rejectDataCorrectionAction(
  */
 export async function deleteParentUserAction(parentUserId: string) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     await adminDb
       .collection(PARENT_USERS_COLLECTION)
       .doc(parentUserId)
       .delete();
     revalidatePath("/parents");
+    invalidateParentDashboardCache(parentUserId);
     invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
@@ -1741,6 +1779,7 @@ export async function deleteParentUserAction(parentUserId: string) {
  */
 export async function getAdminParentPortalDataAction() {
   try {
+    await ensureAdmin();
     const now = Date.now();
     if (
       cachedAdminParentPortalData &&
@@ -3362,6 +3401,7 @@ export async function sendDocumentToParentPortalAction(input: {
   documentType: DocumentType;
 }) {
   try {
+    await ensureAdmin();
     const typeResult = DocumentTypeEnum.safeParse(input.documentType);
     if (!typeResult.success) {
       return { success: false, error: "Невалиден тип документ." };
@@ -3542,6 +3582,12 @@ export async function markDocumentViewedByParentAction(requestId: string) {
     }
 
     const docData = snap.data() || {};
+    if (
+      !docData.memberId ||
+      !parent.linkedMemberIds.includes(docData.memberId)
+    ) {
+      return { success: false, error: "Нямате достъп до този документ." };
+    }
     const nowIso = new Date().toISOString();
     const viewedByParentAt = docData.viewedByParentAt || nowIso;
 
@@ -3597,29 +3643,30 @@ export async function getActiveAbsencesForDateAction(
 
     const targetDate = dateStr.split("T")[0];
 
-    snap.docs.forEach((doc) => {
-      const data = doc.data() as ParentAbsence;
-      if (data.status === "cancelled_by_parent") return;
+    const matchingAbsences = snap.docs
+      .map((doc) => doc.data() as ParentAbsence)
+      .filter((data) => {
+        if (data.status === "cancelled_by_parent") return false;
+        if (
+          memberIds &&
+          memberIds.length > 0 &&
+          !memberIds.includes(data.memberId)
+        ) {
+          return false;
+        }
+        const start = (data.startDate || "").split("T")[0];
+        const end = (data.endDate || data.startDate || "").split("T")[0];
+        return Boolean(start && start <= targetDate && end >= targetDate);
+      })
+      .sort((a, b) => (a.createdAt || "").localeCompare(b.createdAt || ""));
 
-      if (
-        memberIds &&
-        memberIds.length > 0 &&
-        !memberIds.includes(data.memberId)
-      ) {
-        return;
-      }
-
-      const start = (data.startDate || "").split("T")[0];
-      const end = (data.endDate || data.startDate || "").split("T")[0];
-
-      if (start && start <= targetDate && end >= targetDate) {
-        result[data.memberId] = {
-          reason: data.reason || "Извинено отсъствие",
-          note: data.note || "",
-          status: data.status,
-          type: data.type,
-        };
-      }
+    matchingAbsences.forEach((data) => {
+      result[data.memberId] = {
+        reason: data.reason || "Извинено отсъствие",
+        note: data.note || "",
+        status: data.status,
+        type: data.type,
+      };
     });
 
     return { success: true, absences: result };
@@ -3637,6 +3684,7 @@ export async function linkChildToParentAction(
   memberId: string
 ) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const parentRef = adminDb.collection(PARENT_USERS_COLLECTION).doc(parentId);
     const snap = await parentRef.get();
@@ -3684,6 +3732,7 @@ export async function unlinkChildFromParentAction(
   memberId: string
 ) {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const parentRef = adminDb.collection(PARENT_USERS_COLLECTION).doc(parentId);
     const snap = await parentRef.get();
@@ -3730,6 +3779,34 @@ export async function uploadParentMedicalCertificateAction(input: {
     const session = await getParentSession();
     if (!session) {
       return { success: false, error: "Не сте оторизиран родител." };
+    }
+
+    if (
+      !input.certificateDate ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(input.certificateDate) ||
+      Number.isNaN(Date.parse(input.certificateDate))
+    ) {
+      return {
+        success: false,
+        error: "Невалидна дата на медицинското свидетелство.",
+      };
+    }
+
+    const MAX_CERT_BYTES = 10 * 1024 * 1024;
+    if (!input.fileBase64 || input.fileBase64.length > 15 * 1024 * 1024) {
+      return {
+        success: false,
+        error: "Файлът е твърде голям (максимум 10MB).",
+      };
+    }
+    const rawBase64 = input.fileBase64.includes(",")
+      ? input.fileBase64.split(",")[1] || ""
+      : input.fileBase64;
+    if (Buffer.byteLength(rawBase64, "base64") > MAX_CERT_BYTES) {
+      return {
+        success: false,
+        error: "Файлът е твърде голям (максимум 10MB).",
+      };
     }
 
     const adminDb = getAdminDb();
@@ -3823,6 +3900,7 @@ export async function logParentCallAction(input: {
   notes: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const nowIso = new Date().toISOString();
     const docRef = adminDb.collection("parent_communications").doc();
@@ -3873,6 +3951,7 @@ export async function sendIndividualParentEmailAction(input: {
   templateTitle?: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
+    await ensureAdmin();
     const parentEmail = input.parentEmail.trim().toLowerCase();
     if (!parentEmail || !parentEmail.includes("@")) {
       return { success: false, error: "Родителят няма валиден имейл адрес." };
@@ -3949,6 +4028,7 @@ export async function getParentCommunicationsAction(input?: {
   error?: string;
 }> {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     let q = adminDb
       .collection("parent_communications")

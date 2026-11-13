@@ -2,6 +2,8 @@
 
 import {
   Check,
+  ChevronLeft,
+  ChevronRight,
   History,
   Link2,
   Mail,
@@ -10,7 +12,8 @@ import {
   PhoneCall,
   Search,
 } from "lucide-react";
-import React, { useState } from "react";
+import Link from "next/link";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +23,26 @@ import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { formatPhoneDisplay } from "@/lib/phone-utils";
 
 import { useParentAdminContext } from "../ParentAdminContext";
+
+type CommPeriodFilter = "all" | "7d" | "30d";
+type CommSortOption = "newest" | "oldest";
+
+const ITEMS_PER_PAGE = 10;
+
+function formatCommDateSafe(value?: string | null): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return (
+    d.toLocaleDateString("bg-BG", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }) + " ч."
+  );
+}
 
 export function ParentMessagesSectionView() {
   const {
@@ -35,40 +58,117 @@ export function ParentMessagesSectionView() {
     setEmailingParent,
   } = useParentAdminContext();
 
-  const filteredComms = communications.filter((comm) => {
-    if (
-      selectedCommParentId !== "all" &&
-      comm.parentId !== selectedCommParentId
-    ) {
-      return false;
+  const [selectedChildKey, setSelectedChildKey] = useState("all");
+  const [periodFilter, setPeriodFilter] = useState<CommPeriodFilter>("all");
+  const [sortBy, setSortBy] = useState<CommSortOption>("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const childOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const comm of communications) {
+      if (!comm.memberName) continue;
+      const key = comm.memberId || comm.memberName;
+      if (!map.has(key)) {
+        map.set(key, comm.memberName);
+      }
     }
-    if (commChannelFilter !== "all" && comm.channel !== commChannelFilter) {
-      return false;
-    }
-    if (commSearchQuery.trim()) {
-      const q = commSearchQuery.toLowerCase();
-      const matchParent = (comm.parentName || "").toLowerCase().includes(q);
-      const matchMember = (comm.memberName || "").toLowerCase().includes(q);
-      const matchPhone = (comm.parentPhone || "").includes(q);
-      const matchEmail = (comm.parentEmail || "").toLowerCase().includes(q);
-      const matchText = (comm.messageText || "").toLowerCase().includes(q);
-      const matchSubject = (comm.subject || "").toLowerCase().includes(q);
-      const matchOutcome = (comm.outcome || "").toLowerCase().includes(q);
-      return (
-        matchParent ||
-        matchMember ||
-        matchPhone ||
-        matchEmail ||
-        matchText ||
-        matchSubject ||
-        matchOutcome
-      );
-    }
-    return true;
-  });
+    return Array.from(map.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "bg"));
+  }, [communications]);
+
+  const [referenceNow] = useState(() => Date.now());
+
+  const filteredComms = useMemo(() => {
+    const now = referenceNow;
+    const maxAgeMs =
+      periodFilter === "7d"
+        ? 7 * 86_400_000
+        : periodFilter === "30d"
+          ? 30 * 86_400_000
+          : null;
+
+    const filtered = communications.filter((comm) => {
+      if (
+        selectedCommParentId !== "all" &&
+        comm.parentId !== selectedCommParentId
+      ) {
+        return false;
+      }
+      if (commChannelFilter !== "all" && comm.channel !== commChannelFilter) {
+        return false;
+      }
+      if (selectedChildKey !== "all") {
+        const commChildKey = comm.memberId || comm.memberName || "";
+        if (commChildKey !== selectedChildKey) {
+          return false;
+        }
+      }
+      if (maxAgeMs !== null) {
+        const ts = comm.createdAt ? new Date(comm.createdAt).getTime() : NaN;
+        if (Number.isNaN(ts) || now - ts > maxAgeMs) {
+          return false;
+        }
+      }
+      if (commSearchQuery.trim()) {
+        const q = commSearchQuery.toLowerCase();
+        const matchParent = (comm.parentName || "").toLowerCase().includes(q);
+        const matchMember = (comm.memberName || "").toLowerCase().includes(q);
+        const matchPhone = (comm.parentPhone || "").includes(q);
+        const matchEmail = (comm.parentEmail || "").toLowerCase().includes(q);
+        const matchText = (comm.messageText || "").toLowerCase().includes(q);
+        const matchSubject = (comm.subject || "").toLowerCase().includes(q);
+        const matchOutcome = (comm.outcome || "").toLowerCase().includes(q);
+        return (
+          matchParent ||
+          matchMember ||
+          matchPhone ||
+          matchEmail ||
+          matchText ||
+          matchSubject ||
+          matchOutcome
+        );
+      }
+      return true;
+    });
+
+    return filtered.slice().sort((a, b) => {
+      const cmp = (a.createdAt || "").localeCompare(b.createdAt || "");
+      return sortBy === "oldest" ? cmp : -cmp;
+    });
+  }, [
+    communications,
+    selectedCommParentId,
+    commChannelFilter,
+    selectedChildKey,
+    periodFilter,
+    referenceNow,
+    commSearchQuery,
+    sortBy,
+  ]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredComms.length / ITEMS_PER_PAGE)
+  );
+  const safePage = Math.min(currentPage, totalPages);
+
+  const paginatedComms = useMemo(() => {
+    const start = (safePage - 1) * ITEMS_PER_PAGE;
+    return filteredComms.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredComms, safePage]);
 
   useDeepLinkHighlight("message", filteredComms.length > 0);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopyLink = (id: string) => {
     if (typeof window === "undefined") return;
@@ -78,7 +178,10 @@ export function ParentMessagesSectionView() {
       .then(() => {
         setCopiedId(id);
         toast.success("Директният линк към записа е копиран!");
-        setTimeout(() => setCopiedId(null), 2000);
+        if (copyTimeoutRef.current) {
+          clearTimeout(copyTimeoutRef.current);
+        }
+        copyTimeoutRef.current = setTimeout(() => setCopiedId(null), 2000);
       })
       .catch(() => toast.info(`Линк: ${url}`));
   };
@@ -115,12 +218,24 @@ export function ParentMessagesSectionView() {
               name="parentCommSelect"
               aria-label="Изберете родител за контакт"
               value={selectedCommParentId}
-              onChange={(e) => setSelectedCommParentId(e.target.value)}
+              onChange={(e) => {
+                setSelectedCommParentId(e.target.value);
+                setCurrentPage(1);
+              }}
               className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 w-full sm:min-w-50"
             >
-              <option value="all">-- Всички регистрирани родители --</option>
+              <option
+                value="all"
+                className="dark:bg-zinc-900 dark:text-zinc-100"
+              >
+                -- Всички регистрирани родители --
+              </option>
               {parents.map((p) => (
-                <option key={p.id} value={p.id}>
+                <option
+                  key={p.id}
+                  value={p.id}
+                  className="dark:bg-zinc-900 dark:text-zinc-100"
+                >
                   👤 {p.name} ({p.phone})
                 </option>
               ))}
@@ -158,26 +273,31 @@ export function ParentMessagesSectionView() {
       </div>
 
       {/* Communication History Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <h4 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-            <History size={15} className="text-zinc-500" />
-            <span>Дневник на проведени разговори и изпратени съобщения</span>
-          </h4>
-          <Badge variant="outline" className="text-[11px] font-bold">
-            {communications.length} записа
-          </Badge>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+              <History size={15} className="text-zinc-500 dark:text-zinc-400" />
+              <span>Дневник на проведени разговори и изпратени съобщения</span>
+            </h4>
+            <Badge variant="outline" className="text-[11px] font-bold">
+              {filteredComms.length} / {communications.length} записа
+            </Badge>
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400 dark:text-zinc-500" />
             <Input
               id="comm-search-query"
               name="commSearchQuery"
               placeholder="Търси по име на родител, дете или бележка..."
               value={commSearchQuery}
-              onChange={(e) => setCommSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setCommSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="h-8 pl-8 text-xs rounded-xl w-full"
             />
           </div>
@@ -187,14 +307,99 @@ export function ParentMessagesSectionView() {
             name="commChannelFilter"
             aria-label="Филтър по канал"
             value={commChannelFilter}
-            onChange={(e) =>
-              setCommChannelFilter(e.target.value as "all" | "phone" | "email")
-            }
+            onChange={(e) => {
+              setCommChannelFilter(e.target.value as "all" | "phone" | "email");
+              setCurrentPage(1);
+            }}
             className="h-8 rounded-xl border border-zinc-200 bg-white px-2.5 text-xs font-medium text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 w-full sm:w-auto"
           >
-            <option value="all">Всички канали</option>
-            <option value="phone">📞 Само телефонни разговори</option>
-            <option value="email">✉️ Само изпратени имейли</option>
+            <option value="all" className="dark:bg-zinc-900 dark:text-zinc-100">
+              Всички канали
+            </option>
+            <option
+              value="phone"
+              className="dark:bg-zinc-900 dark:text-zinc-100"
+            >
+              📞 Само телефонни разговори
+            </option>
+            <option
+              value="email"
+              className="dark:bg-zinc-900 dark:text-zinc-100"
+            >
+              ✉️ Само изпратени имейли
+            </option>
+          </select>
+
+          <select
+            id="comm-child-filter"
+            name="commChildFilter"
+            aria-label="Филтър по дете"
+            value={selectedChildKey}
+            onChange={(e) => {
+              setSelectedChildKey(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="h-8 rounded-xl border border-zinc-200 bg-white px-2.5 text-xs font-medium text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 w-full sm:w-auto"
+          >
+            <option value="all" className="dark:bg-zinc-900 dark:text-zinc-100">
+              Всички деца
+            </option>
+            {childOptions.map((child) => (
+              <option
+                key={child.value}
+                value={child.value}
+                className="dark:bg-zinc-900 dark:text-zinc-100"
+              >
+                {child.label}
+              </option>
+            ))}
+          </select>
+
+          <select
+            id="comm-period-filter"
+            name="commPeriodFilter"
+            aria-label="Филтър по период"
+            value={periodFilter}
+            onChange={(e) => {
+              setPeriodFilter(e.target.value as CommPeriodFilter);
+              setCurrentPage(1);
+            }}
+            className="h-8 rounded-xl border border-zinc-200 bg-white px-2.5 text-xs font-medium text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 w-full sm:w-auto"
+          >
+            <option value="all" className="dark:bg-zinc-900 dark:text-zinc-100">
+              Всички периоди
+            </option>
+            <option value="7d" className="dark:bg-zinc-900 dark:text-zinc-100">
+              Последните 7 дни
+            </option>
+            <option value="30d" className="dark:bg-zinc-900 dark:text-zinc-100">
+              Последните 30 дни
+            </option>
+          </select>
+
+          <select
+            id="comm-sort"
+            name="commSort"
+            aria-label="Сортиране на комуникация"
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value as CommSortOption);
+              setCurrentPage(1);
+            }}
+            className="h-8 rounded-xl border border-zinc-200 bg-white px-2.5 text-xs font-medium text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 w-full sm:w-auto"
+          >
+            <option
+              value="newest"
+              className="dark:bg-zinc-900 dark:text-zinc-100"
+            >
+              Най-нови
+            </option>
+            <option
+              value="oldest"
+              className="dark:bg-zinc-900 dark:text-zinc-100"
+            >
+              Най-стари
+            </option>
           </select>
         </div>
       </div>
@@ -204,12 +409,12 @@ export function ParentMessagesSectionView() {
         <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-12 text-center dark:border-zinc-800 dark:bg-zinc-900/30">
           <MessageSquareText
             size={36}
-            className="mx-auto text-zinc-300 dark:text-zinc-600"
+            className="mx-auto text-zinc-400 dark:text-zinc-600"
           />
           <h4 className="mt-3 text-sm font-bold text-zinc-700 dark:text-zinc-300">
             Няма намерени записи в комуникационния дневник
           </h4>
-          <p className="mt-1 text-xs text-zinc-400 max-w-md mx-auto">
+          <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
             Когато запишете проведен разговор или изпратите лично съобщение до
             родител от бутоните по-горе или от списък „Родители“, записът ще се
             визуализира тук с точна дата и час.
@@ -217,7 +422,7 @@ export function ParentMessagesSectionView() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredComms.map((comm) => {
+          {paginatedComms.map((comm) => {
             const isPhone = comm.channel === "phone";
             return (
               <div
@@ -256,14 +461,24 @@ export function ParentMessagesSectionView() {
                         </Badge>
                       </div>
 
-                      <p className="text-xs text-zinc-500 mt-0.5 flex flex-wrap items-center gap-x-2">
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 flex flex-wrap items-center gap-x-2">
                         {comm.parentPhone && (
                           <span>{formatPhoneDisplay(comm.parentPhone)}</span>
                         )}
                         {comm.parentEmail && <span>• {comm.parentEmail}</span>}
                         {comm.memberName && (
                           <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                            • Състезател: {comm.memberName}
+                            • Състезател:{" "}
+                            {comm.memberId ? (
+                              <Link
+                                href={`/members/${comm.memberId}`}
+                                className="text-blue-600 hover:underline dark:text-blue-400"
+                              >
+                                {comm.memberName}
+                              </Link>
+                            ) : (
+                              comm.memberName
+                            )}
                           </span>
                         )}
                       </p>
@@ -271,23 +486,10 @@ export function ParentMessagesSectionView() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className="text-right text-[11px] text-zinc-400">
-                      <div>
-                        {comm.createdAt
-                          ? new Date(comm.createdAt).toLocaleDateString(
-                              "bg-BG",
-                              {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            ) + " ч."
-                          : "—"}
-                      </div>
+                    <div className="text-right text-[11px] text-zinc-500 dark:text-zinc-400">
+                      <div>{formatCommDateSafe(comm.createdAt)}</div>
                       {comm.createdBy && (
-                        <div className="text-[10px] text-zinc-400 font-medium">
+                        <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
                           от: {comm.createdBy}
                         </div>
                       )}
@@ -299,10 +501,13 @@ export function ParentMessagesSectionView() {
                       size="icon"
                       onClick={() => handleCopyLink(comm.id)}
                       title="Копирай директен линк към този запис"
-                      className="size-8 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                      className="size-8 rounded-xl text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                     >
                       {copiedId === comm.id ? (
-                        <Check size={14} className="text-emerald-600" />
+                        <Check
+                          size={14}
+                          className="text-emerald-600 dark:text-emerald-400"
+                        />
                       ) : (
                         <Link2 size={14} />
                       )}
@@ -329,6 +534,40 @@ export function ParentMessagesSectionView() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 text-xs text-zinc-600 dark:text-zinc-400">
+          <span>
+            Страница {safePage} от {totalPages} (общо {filteredComms.length})
+          </span>
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={safePage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              aria-label="Предишна страница"
+              className="h-8 rounded-xl px-2.5 text-xs"
+            >
+              <ChevronLeft size={14} className="mr-1" />
+              Предишна
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={safePage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              aria-label="Следваща страница"
+              className="h-8 rounded-xl px-2.5 text-xs"
+            >
+              Следваща
+              <ChevronRight size={14} className="ml-1" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

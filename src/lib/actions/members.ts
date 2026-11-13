@@ -249,7 +249,9 @@ export async function updateMemberAction(
 
     revalidatePath("/members");
     revalidatePath(`/members/${id}`);
+    revalidatePath("/club/parents");
     serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("parent-dashboard:");
 
     return {
       success: true,
@@ -331,7 +333,9 @@ export async function deleteMemberAction(
     await memberRef.delete();
 
     revalidatePath("/members");
+    revalidatePath("/club/parents");
     serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("parent-dashboard:");
 
     return {
       success: true,
@@ -381,7 +385,9 @@ export async function bulkUpdateMemberStatusAction(
     });
 
     revalidatePath("/members");
+    revalidatePath("/club/parents");
     serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("parent-dashboard:");
 
     return {
       success: true,
@@ -778,6 +784,7 @@ export async function uploadAdminMedicalCertificateAction(input: {
     });
 
     serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("parent-dashboard:");
     revalidatePath(`/members/${input.memberId}`);
     revalidatePath("/members");
     revalidatePath("/club/parents");

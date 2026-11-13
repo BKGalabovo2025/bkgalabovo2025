@@ -9,6 +9,7 @@ import { logAuditEvent } from "@/lib/audit-logger";
 import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
+import { serverCache } from "@/lib/server-cache";
 import type {
   DocumentRequest,
   DocumentType,
@@ -772,9 +773,6 @@ export async function submitSignedDocumentAction(input: {
           lastActionAt: signedAt,
           updatedAt: signedAt,
         };
-        if (parentData.parentName) pUpdates.name = parentData.parentName;
-        if (parentData.parentPhone) pUpdates.phone = parentData.parentPhone;
-        if (parentData.parentEmail) pUpdates.email = parentData.parentEmail;
 
         await targetParentDoc.ref.update(pUpdates);
       }
@@ -801,9 +799,12 @@ export async function submitSignedDocumentAction(input: {
       },
     });
 
-    // Revalidate relevant pages
+    // Revalidate relevant pages & invalidate parent dashboard cache
+    serverCache.invalidatePattern("parent-dashboard:");
     revalidatePath("/members");
     revalidatePath(`/members/${docData.memberId}`);
+    revalidatePath("/club/parents");
+    revalidatePath("/parents");
 
     return {
       success: true,

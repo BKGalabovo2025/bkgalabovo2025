@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2, Mail, Send, Sparkles } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -101,36 +101,42 @@ export function IndividualParentEmailDialog({
   const [messageText, setMessageText] = useState<string>("");
   const [isSending, setIsSending] = useState<boolean>(false);
 
-  // Set default child if only 1 child exists
-  useEffect(() => {
-    if (childrenList.length > 0) {
-      setSelectedChildId(childrenList[0].id);
-    } else {
-      setSelectedChildId("");
-    }
-  }, [childrenList]);
-
   // Apply template with replaced dynamic variables
-  const applyTemplate = (templateId: string, childId: string) => {
-    const tmpl = INDIVIDUAL_TEMPLATES.find((t) => t.id === templateId);
-    if (!tmpl || !parent) return;
+  const applyTemplate = useCallback(
+    (templateId: string, childId: string) => {
+      const tmpl = INDIVIDUAL_TEMPLATES.find((t) => t.id === templateId);
+      if (!tmpl || !parent) return;
 
-    const childObj = childrenList.find((c) => c.id === childId);
-    const childName = childObj ? childObj.name : "Вашето дете";
+      const childObj = childrenList.find((c) => c.id === childId);
+      const childName = childObj ? childObj.name : "Вашето дете";
 
-    setSubject(tmpl.subject);
-    const populated = tmpl.bodyTemplate
-      .replace(/{ИМЕ_РОДИТЕЛ}/g, parent.name)
-      .replace(/{ИМЕ_ДЕТЕ}/g, childName);
-    setMessageText(populated);
-  };
+      setSubject(tmpl.subject);
+      const populated = tmpl.bodyTemplate
+        .replace(/{ИМЕ_РОДИТЕЛ}/g, parent.name)
+        .replace(/{ИМЕ_ДЕТЕ}/g, childName);
+      setMessageText(populated);
+    },
+    [parent, childrenList]
+  );
 
+  const lastInitKeyRef = useRef<string | null>(null);
+
+  // Initialize child, template and populated content synchronously on open or parent change
   useEffect(() => {
-    if (isOpen && parent) {
-      applyTemplate(selectedTemplateId, selectedChildId);
+    if (!isOpen || !parent) {
+      lastInitKeyRef.current = null;
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, parent]);
+
+    if (lastInitKeyRef.current === parent.id) return;
+    lastInitKeyRef.current = parent.id;
+
+    const initialChildId = childrenList.length > 0 ? childrenList[0].id : "";
+    const defaultTemplateId = "feeReminder";
+    setSelectedChildId(initialChildId);
+    setSelectedTemplateId(defaultTemplateId);
+    applyTemplate(defaultTemplateId, initialChildId);
+  }, [isOpen, parent, childrenList, applyTemplate]);
 
   const handleTemplateChange = (newTmplId: string) => {
     setSelectedTemplateId(newTmplId);
@@ -213,7 +219,7 @@ export function IndividualParentEmailDialog({
                 🎯 1 Получател
               </Badge>
             </div>
-            <DialogDescription className="text-xs text-zinc-500 mt-1">
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
               Изпращане на официален клубен имейл до{" "}
               <strong className="text-zinc-800 dark:text-zinc-200">
                 {parent.name}
@@ -307,7 +313,7 @@ export function IndividualParentEmailDialog({
                 >
                   Съдържание на съобщението:
                 </Label>
-                <span className="text-[10px] text-zinc-400">
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
                   Можете да редактирате
                 </span>
               </div>

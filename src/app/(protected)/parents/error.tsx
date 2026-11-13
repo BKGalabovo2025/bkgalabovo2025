@@ -28,8 +28,8 @@ export default function ParentsAdminError({
       role="alert"
       className="mx-auto mt-10 flex max-w-md flex-col items-center gap-4 rounded-3xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900/50 dark:bg-red-950/20"
     >
-      <AlertCircle className="size-10 text-red-600" />
-      <h2 className="text-lg font-semibold">
+      <AlertCircle className="size-10 text-red-600 dark:text-red-400" />
+      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
         Модулът „Родителски достъп“ не можа да се зареди
       </h2>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -37,11 +37,18 @@ export default function ParentsAdminError({
         началното табло.
       </p>
       <div className="flex w-full flex-col gap-2 sm:flex-row">
-        <Button onClick={() => reset()} className="flex-1 gap-2">
+        <Button
+          onClick={() => reset()}
+          className="flex-1 gap-2 dark:bg-red-600 dark:text-white dark:hover:bg-red-500"
+        >
           <RotateCcw className="size-4" />
           Опитай отново
         </Button>
-        <Button asChild variant="outline" className="flex-1 gap-2">
+        <Button
+          asChild
+          variant="outline"
+          className="flex-1 gap-2 dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-100 dark:hover:bg-zinc-800"
+        >
           <Link href="/dashboard">
             <Shield className="size-4" />
             Към таблото

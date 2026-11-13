@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +47,10 @@ const OFFICIAL_DOC_OPTIONS: { value: DocumentType; label: string }[] = [
   { value: "licenseApplication", label: DOCUMENT_TITLES.licenseApplication },
   { value: "terminationRequest", label: DOCUMENT_TITLES.terminationRequest },
 ];
+
+const ITEMS_PER_PAGE = 12;
+
+type ParentSortBy = "name_asc" | "last_active" | "children_count";
 
 export function ParentAccountsSectionView() {
   const router = useRouter();
@@ -81,41 +85,87 @@ export function ParentAccountsSectionView() {
 
   const parentParam = searchParams.get("parent");
   const [copiedParentId, setCopiedParentId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<ParentSortBy>("name_asc");
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (parentParam) {
-      const el = document.getElementById(`parent-${parentParam}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
+  const sortedParents = useMemo(() => {
+    const list = [...filteredParents];
+    list.sort((a, b) => {
+      if (sortBy === "last_active") {
+        const aTime = new Date(
+          a.lastActiveAt || a.lastLoginAt || a.createdAt || 0
+        ).getTime();
+        const bTime = new Date(
+          b.lastActiveAt || b.lastLoginAt || b.createdAt || 0
+        ).getTime();
+        return bTime - aTime;
       }
+      if (sortBy === "children_count") {
+        const diff =
+          (b.linkedMemberIds?.length ?? 0) - (a.linkedMemberIds?.length ?? 0);
+        if (diff !== 0) return diff;
+      }
+      return (a.name || "").localeCompare(b.name || "", "bg");
+    });
+    return list;
+  }, [filteredParents, sortBy]);
+
+  const visibleParents = useMemo(
+    () => sortedParents.slice(0, visibleCount),
+    [sortedParents, visibleCount]
+  );
+
+  useEffect(() => {
+    if (!parentParam) return;
+    const targetIndex = sortedParents.findIndex((p) => p.id === parentParam);
+    if (targetIndex !== -1 && targetIndex >= visibleCount) {
+      setVisibleCount(
+        Math.ceil((targetIndex + 1) / ITEMS_PER_PAGE) * ITEMS_PER_PAGE
+      );
+      return;
     }
-  }, [parentParam]);
+    const el = document.getElementById(`parent-${parentParam}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [parentParam, filteredParents, sortedParents, visibleCount]);
 
   const handleCopyParentLink = (parentId: string, parentName: string) => {
     if (typeof window === "undefined") return;
     const url = `${window.location.origin}/parents/accounts?parent=${parentId}`;
+    const triggerCopied = () => {
+      setCopiedParentId(parentId);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopiedParentId(null), 2500);
+    };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard
         .writeText(url)
         .then(() => {
-          setCopiedParentId(parentId);
+          triggerCopied();
           toast.success(
             `Директният линк за ${parentName} е копиран в клипборда!`
           );
-          setTimeout(() => setCopiedParentId(null), 2500);
         })
         .catch(() => {
           toast.error("Неуспешно копиране на линк.");
         });
     } else {
-      setCopiedParentId(parentId);
+      triggerCopied();
       toast.success(`Линк: ${url}`);
-      setTimeout(() => setCopiedParentId(null), 2500);
     }
   };
 
   const handleFilterChange = (status: "all" | "active" | "suspended") => {
     setParentFilter(status);
+    setVisibleCount(ITEMS_PER_PAGE);
     const params = new URLSearchParams(searchParams.toString());
     if (status !== "all") params.set("status", status);
     else params.delete("status");
@@ -125,11 +175,17 @@ export function ParentAccountsSectionView() {
 
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
+    setVisibleCount(ITEMS_PER_PAGE);
     const params = new URLSearchParams(searchParams.toString());
     if (val.trim()) params.set("q", val);
     else params.delete("q");
     const q = params.toString() ? `?${params.toString()}` : "";
     router.replace(`${pathname}${q}`, { scroll: false });
+  };
+
+  const handleSortChange = (nextSort: ParentSortBy) => {
+    setSortBy(nextSort);
+    setVisibleCount(ITEMS_PER_PAGE);
   };
 
   return (
@@ -139,7 +195,7 @@ export function ParentAccountsSectionView() {
         <div className="relative flex-1 max-w-md">
           <Search
             size={16}
-            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-400"
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-500 dark:text-zinc-400"
           />
           <Input
             id="parent-accounts-search"
@@ -151,30 +207,61 @@ export function ParentAccountsSectionView() {
           />
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {(
-            [
-              { id: "all", label: "Всички" },
-              { id: "active", label: "Активни" },
-              { id: "suspended", label: "Спрени" },
-            ] as const
-          ).map((f) => (
-            <Button
-              key={f.id}
-              variant={parentFilter === f.id ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleFilterChange(f.id)}
-              className="rounded-xl text-xs font-semibold"
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {(
+              [
+                { id: "all", label: "Всички" },
+                { id: "active", label: "Активни" },
+                { id: "suspended", label: "Спрени" },
+              ] as const
+            ).map((f) => (
+              <Button
+                key={f.id}
+                variant={parentFilter === f.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleFilterChange(f.id)}
+                className="rounded-xl text-xs font-semibold"
+              >
+                {f.label}
+              </Button>
+            ))}
+          </div>
+
+          <select
+            aria-label="Сортиране на родителски профили"
+            value={sortBy}
+            onChange={(e) => handleSortChange(e.target.value as ParentSortBy)}
+            className="h-8 rounded-xl border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+          >
+            <option
+              value="name_asc"
+              className="dark:bg-zinc-900 dark:text-zinc-100"
             >
-              {f.label}
-            </Button>
-          ))}
+              Име А–Я
+            </option>
+            <option
+              value="last_active"
+              className="dark:bg-zinc-900 dark:text-zinc-100"
+            >
+              Последна активност
+            </option>
+            <option
+              value="children_count"
+              className="dark:bg-zinc-900 dark:text-zinc-100"
+            >
+              Брой деца
+            </option>
+          </select>
         </div>
       </div>
 
-      {filteredParents.length === 0 ? (
+      {sortedParents.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-800">
-          <Users size={40} className="mx-auto text-zinc-400" />
+          <Users
+            size={40}
+            className="mx-auto text-zinc-500 dark:text-zinc-400"
+          />
           <h3 className="mt-3 text-base font-bold text-zinc-900 dark:text-white">
             Няма намерени родители
           </h3>
@@ -183,446 +270,478 @@ export function ParentAccountsSectionView() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {filteredParents.map((parent) => {
-            const roleLabel =
-              parent.parentRole === "mother"
-                ? "Майка"
-                : parent.parentRole === "father"
-                  ? "Баща"
-                  : "Настойник";
-            const isSelectedParent = parentParam === parent.id;
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {visibleParents.map((parent) => {
+              const roleLabel =
+                parent.parentRole === "mother"
+                  ? "Майка"
+                  : parent.parentRole === "father"
+                    ? "Баща"
+                    : "Настойник";
+              const isSelectedParent = parentParam === parent.id;
 
-            return (
-              <div
-                id={`parent-${parent.id}`}
-                key={parent.id}
-                className={cn(
-                  "flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all duration-300 dark:bg-zinc-900/80 overflow-hidden min-w-0",
-                  isSelectedParent
-                    ? "border-blue-500 ring-2 ring-blue-500/80 shadow-lg dark:border-blue-400 dark:ring-blue-400/80 bg-blue-50/15 dark:bg-blue-950/20"
-                    : "border-zinc-200 hover:shadow-md dark:border-zinc-800"
-                )}
-              >
-                <div>
-                  {/* Top Bar */}
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      {isParentOnline(parent) ? (
-                        <span
-                          className="relative flex size-3"
-                          title="На линия в момента"
+              return (
+                <div
+                  id={`parent-${parent.id}`}
+                  key={parent.id}
+                  className={cn(
+                    "flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all duration-300 dark:bg-zinc-900/80 overflow-hidden min-w-0",
+                    isSelectedParent
+                      ? "border-blue-500 ring-2 ring-blue-500/80 shadow-lg dark:border-blue-400 dark:ring-blue-400/80 bg-blue-50/15 dark:bg-blue-950/20"
+                      : "border-zinc-200 hover:shadow-md dark:border-zinc-800"
+                  )}
+                >
+                  <div>
+                    {/* Top Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        {isParentOnline(parent) ? (
+                          <span
+                            className="relative flex size-3"
+                            title="На линия в момента"
+                          >
+                            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex size-3 rounded-full bg-emerald-500" />
+                          </span>
+                        ) : (
+                          <span
+                            className={`size-2.5 rounded-full ${
+                              parent.status === "active"
+                                ? "bg-zinc-300 dark:bg-zinc-600"
+                                : "bg-zinc-400"
+                            }`}
+                          />
+                        )}
+
+                        <Badge
+                          variant={
+                            parent.status === "active" ? "default" : "secondary"
+                          }
+                          className="text-[11px] font-bold"
                         >
-                          <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                          <span className="relative inline-flex size-3 rounded-full bg-emerald-500" />
-                        </span>
-                      ) : (
-                        <span
-                          className={`size-2.5 rounded-full ${
-                            parent.status === "active"
-                              ? "bg-zinc-300 dark:bg-zinc-600"
-                              : "bg-zinc-400"
-                          }`}
-                        />
-                      )}
-
-                      <Badge
-                        variant={
-                          parent.status === "active" ? "default" : "secondary"
-                        }
-                        className="text-[11px] font-bold"
-                      >
-                        {parent.status === "active"
-                          ? "Активен профил"
-                          : "Временно спрян"}
-                      </Badge>
-                      <span className="text-xs font-semibold text-zinc-500">
-                        • {roleLabel}
-                      </span>
-
-                      {isParentOnline(parent) && (
-                        <Badge className="bg-emerald-500 text-white text-[10px] font-extrabold animate-pulse">
-                          🟢 На линия
+                          {parent.status === "active"
+                            ? "Активен профил"
+                            : "Временно спрян"}
                         </Badge>
-                      )}
-                    </div>
-
-                    <div className="text-right text-[11px] text-zinc-400">
-                      {isParentOnline(parent) ? (
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                          Последно: {parent.lastAction || "В портала"}
+                        <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                          • {roleLabel}
                         </span>
-                      ) : parent.lastLoginAt ? (
-                        `Последен вход: ${new Date(
-                          parent.lastLoginAt
-                        ).toLocaleDateString("bg-BG", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })} ч.`
-                      ) : (
-                        "Все още не е влизал"
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Parent Name & Contacts */}
-                  <div className="mt-3 flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="text-base font-black text-zinc-900 dark:text-white">
-                          {parent.name}
-                        </h4>
+                        {isParentOnline(parent) && (
+                          <Badge className="bg-emerald-500 text-white text-[10px] font-extrabold animate-pulse">
+                            🟢 На линия
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="text-right text-[11px] text-zinc-500 dark:text-zinc-400">
+                        {isParentOnline(parent) ? (
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                            Последно: {parent.lastAction || "В портала"}
+                          </span>
+                        ) : parent.lastLoginAt ? (
+                          `Последен вход: ${new Date(
+                            parent.lastLoginAt
+                          ).toLocaleDateString("bg-BG", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })} ч.`
+                        ) : (
+                          "Все още не е влизал"
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Parent Name & Contacts */}
+                    <div className="mt-3 flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="text-base font-black text-zinc-900 dark:text-white">
+                            {parent.name}
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleCopyParentLink(parent.id, parent.name)
+                            }
+                            className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-semibold text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-400 dark:hover:border-blue-700 dark:hover:text-blue-300 transition-all cursor-pointer shadow-2xs"
+                            title={`Копирай директен линк към профила на ${parent.name}`}
+                            aria-label={`Копирай директен линк към профила на ${parent.name}`}
+                          >
+                            {copiedParentId === parent.id ? (
+                              <>
+                                <Check
+                                  size={12}
+                                  className="text-emerald-600 dark:text-emerald-400"
+                                />
+                                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                                  Копирано!
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Link2 size={12} />
+                                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                  Копирай линк
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300">
+                          <a
+                            href={`tel:${parent.phone}`}
+                            className="flex items-center gap-1 font-medium hover:underline text-blue-600 dark:text-blue-400"
+                          >
+                            <Phone size={13} />
+                            {formatPhoneDisplay(parent.phone)}
+                          </a>
+                          <a
+                            href={`mailto:${parent.email}`}
+                            className="flex items-center gap-1 font-medium hover:underline text-zinc-500 dark:text-zinc-400"
+                          >
+                            <Mail size={13} />
+                            {parent.email}
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Individual Communication Quick Buttons */}
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setCallingParent(parent)}
+                          className="h-7 rounded-lg border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 text-[11px] font-semibold cursor-pointer"
+                          title="Запис на проведен разговор с този родител"
+                        >
+                          <Phone
+                            size={11}
+                            className="mr-1 text-emerald-600 dark:text-emerald-400"
+                          />
+                          <span>Обаждане</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEmailingParent(parent)}
+                          className="h-7 rounded-lg border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 text-[11px] font-semibold cursor-pointer"
+                          title="Лично съобщение / имейл до родителя (без спам)"
+                        >
+                          <Mail
+                            size={11}
+                            className="mr-1 text-blue-600 dark:text-blue-400"
+                          />
+                          <span>Съобщение</span>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Linked Children & Document Sending */}
+                    <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50/80 p-3 dark:border-zinc-800/60 dark:bg-zinc-950/40 space-y-3 min-w-0">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                        <span>Свързани деца &amp; Документи:</span>
                         <button
                           type="button"
-                          onClick={() =>
-                            handleCopyParentLink(parent.id, parent.name)
-                          }
-                          className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-semibold text-zinc-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-400 dark:hover:border-blue-700 dark:hover:text-blue-300 transition-all cursor-pointer shadow-2xs"
-                          title={`Копирай директен линк към профила на ${parent.name}`}
-                          aria-label={`Копирай директен линк към профила на ${parent.name}`}
+                          onClick={() => setLinkingParentId(parent.id)}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                          title="Свържи още едно дете към този профил"
                         >
-                          {copiedParentId === parent.id ? (
-                            <>
-                              <Check
-                                size={12}
-                                className="text-emerald-600 dark:text-emerald-400"
-                              />
-                              <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                                Копирано!
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <Link2 size={12} />
-                              <span className="text-[10px] text-zinc-500 font-medium">
-                                Копирай линк
-                              </span>
-                            </>
-                          )}
+                          <UserPlus size={12} />
+                          <span>+ Свържи дете</span>
                         </button>
                       </div>
-                      <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300">
-                        <a
-                          href={`tel:${parent.phone}`}
-                          className="flex items-center gap-1 font-medium hover:underline text-blue-600 dark:text-blue-400"
-                        >
-                          <Phone size={13} />
-                          {formatPhoneDisplay(parent.phone)}
-                        </a>
-                        <a
-                          href={`mailto:${parent.email}`}
-                          className="flex items-center gap-1 font-medium hover:underline text-zinc-500 dark:text-zinc-400"
-                        >
-                          <Mail size={13} />
-                          {parent.email}
-                        </a>
-                      </div>
-                    </div>
 
-                    {/* Individual Communication Quick Buttons */}
-                    <div className="flex items-center gap-1.5">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setCallingParent(parent)}
-                        className="h-7 rounded-lg border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 text-[11px] font-semibold cursor-pointer"
-                        title="Запис на проведен разговор с този родител"
-                      >
-                        <Phone size={11} className="mr-1 text-emerald-600" />
-                        <span>Обаждане</span>
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setEmailingParent(parent)}
-                        className="h-7 rounded-lg border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 text-[11px] font-semibold cursor-pointer"
-                        title="Лично съобщение / имейл до родителя (без спам)"
-                      >
-                        <Mail size={11} className="mr-1 text-blue-600" />
-                        <span>Съобщение</span>
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Linked Children & Document Sending */}
-                  <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50/80 p-3 dark:border-zinc-800/60 dark:bg-zinc-950/40 space-y-3 min-w-0">
-                    <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                      <span>Свързани деца &amp; Документи:</span>
-                      <button
-                        type="button"
-                        onClick={() => setLinkingParentId(parent.id)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline cursor-pointer shrink-0"
-                        title="Свържи още едно дете към този профил"
-                      >
-                        <UserPlus size={12} />
-                        <span>+ Свържи дете</span>
-                      </button>
-                    </div>
-
-                    <div className="space-y-2.5">
-                      {(parent.linkedMemberIds || []).map((mId) => {
-                        const child = members.find((m) => m.id === mId);
-                        const childName = child?.fullName || `Член ${mId}`;
-                        const sendKey = `${parent.id}_${mId}`;
-                        const childDocs = documentRequests.filter(
-                          (dr) =>
-                            dr.memberId === mId && dr.status !== "cancelled"
-                        );
-                        return (
-                          <div
-                            key={mId}
-                            className="rounded-xl border border-blue-200/70 bg-white p-2.5 text-xs shadow-2xs dark:border-blue-900/40 dark:bg-zinc-900 space-y-2 min-w-0 overflow-hidden"
-                          >
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <Link
-                                href={`/members/${mId}`}
-                                className="font-bold text-zinc-900 dark:text-white hover:underline flex items-center gap-1 min-w-0 truncate"
-                                target="_blank"
-                              >
-                                <span className="truncate">{childName}</span>
-                                <ArrowRight
-                                  size={11}
-                                  className="text-zinc-400 shrink-0"
-                                />
-                              </Link>
-
-                              <div className="flex items-center gap-2.5 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleOpenEditPerms(parent, mId)
-                                  }
-                                  className="text-[11px] text-blue-600 hover:text-blue-700 underline font-semibold dark:text-blue-400 cursor-pointer"
-                                  title="Настройка на права за видимост"
+                      <div className="space-y-2.5">
+                        {(parent.linkedMemberIds || []).map((mId) => {
+                          const child = members.find((m) => m.id === mId);
+                          const childName = child?.fullName || `Член ${mId}`;
+                          const sendKey = `${parent.id}_${mId}`;
+                          const childDocs = documentRequests.filter(
+                            (dr) =>
+                              dr.memberId === mId && dr.status !== "cancelled"
+                          );
+                          return (
+                            <div
+                              key={mId}
+                              className="rounded-xl border border-blue-200/70 bg-white p-2.5 text-xs shadow-2xs dark:border-blue-900/40 dark:bg-zinc-900 space-y-2 min-w-0 overflow-hidden"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <Link
+                                  href={`/members/${mId}`}
+                                  className="font-bold text-zinc-900 dark:text-white hover:underline flex items-center gap-1 min-w-0 truncate"
+                                  target="_blank"
                                 >
-                                  ⚙️ Права за видимост
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={
-                                    isUnlinkingChild === `${parent.id}_${mId}`
+                                  <span className="truncate">{childName}</span>
+                                  <ArrowRight
+                                    size={11}
+                                    className="text-zinc-500 dark:text-zinc-400 shrink-0"
+                                  />
+                                </Link>
+
+                                <div className="flex items-center gap-2.5 shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleOpenEditPerms(parent, mId)
+                                    }
+                                    className="text-[11px] text-blue-600 hover:text-blue-700 underline font-semibold dark:text-blue-400 cursor-pointer"
+                                    title="Настройка на права за видимост"
+                                  >
+                                    ⚙️ Права за видимост
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={
+                                      isUnlinkingChild === `${parent.id}_${mId}`
+                                    }
+                                    onClick={() =>
+                                      handleUnlinkChild(
+                                        parent.id,
+                                        mId,
+                                        childName
+                                      )
+                                    }
+                                    className="inline-flex items-center gap-1 text-[11px] text-rose-600 hover:text-rose-700 hover:underline font-semibold dark:text-rose-400 cursor-pointer"
+                                    title="Разкачване на това дете от профила"
+                                  >
+                                    {isUnlinkingChild ===
+                                    `${parent.id}_${mId}` ? (
+                                      <Loader2
+                                        size={11}
+                                        className="animate-spin"
+                                      />
+                                    ) : (
+                                      <>
+                                        <Trash2 size={11} />
+                                        <span>Разкачи</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Send official document to parent portal */}
+                              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 min-w-0">
+                                <select
+                                  id={`doc-type-select-${sendKey}`}
+                                  name={`docType_${sendKey}`}
+                                  aria-label={`Избор на документ за ${childName}`}
+                                  value={
+                                    selectedDocTypePerChild[sendKey] ||
+                                    "membershipApplication"
                                   }
-                                  onClick={() =>
-                                    handleUnlinkChild(parent.id, mId, childName)
+                                  onChange={(e) =>
+                                    setSelectedDocTypePerChild((prev) => ({
+                                      ...prev,
+                                      [sendKey]: e.target.value as DocumentType,
+                                    }))
                                   }
-                                  className="inline-flex items-center gap-1 text-[11px] text-rose-600 hover:text-rose-700 hover:underline font-semibold dark:text-rose-400 cursor-pointer"
-                                  title="Разкачване на това дете от профила"
+                                  className="w-full min-w-0 flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-[11px] font-medium text-zinc-800 truncate dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
                                 >
-                                  {isUnlinkingChild ===
-                                  `${parent.id}_${mId}` ? (
+                                  {OFFICIAL_DOC_OPTIONS.map((opt) => (
+                                    <option
+                                      key={opt.value}
+                                      value={opt.value}
+                                      title={opt.label}
+                                      className="dark:bg-zinc-900 dark:text-zinc-100"
+                                    >
+                                      📄 {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <Button
+                                  size="sm"
+                                  disabled={isSendingDocPerChild[sendKey]}
+                                  onClick={() =>
+                                    handleSendDocFromAdmin(parent.id, mId)
+                                  }
+                                  className="h-7 rounded-lg bg-indigo-600 px-2.5 text-[11px] font-semibold text-white hover:bg-indigo-500 shrink-0 whitespace-nowrap cursor-pointer shadow-xs"
+                                >
+                                  {isSendingDocPerChild[sendKey] ? (
                                     <Loader2
-                                      size={11}
+                                      size={12}
                                       className="animate-spin"
                                     />
                                   ) : (
                                     <>
-                                      <Trash2 size={11} />
-                                      <span>Разкачи</span>
+                                      <Send size={11} className="mr-1" />
+                                      <span>Изпрати за подпис</span>
                                     </>
                                   )}
-                                </button>
+                                </Button>
                               </div>
-                            </div>
 
-                            {/* Send official document to parent portal */}
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 min-w-0">
-                              <select
-                                id={`doc-type-select-${sendKey}`}
-                                name={`docType_${sendKey}`}
-                                aria-label={`Избор на документ за ${childName}`}
-                                value={
-                                  selectedDocTypePerChild[sendKey] ||
-                                  "membershipApplication"
-                                }
-                                onChange={(e) =>
-                                  setSelectedDocTypePerChild((prev) => ({
-                                    ...prev,
-                                    [sendKey]: e.target.value as DocumentType,
-                                  }))
-                                }
-                                className="w-full min-w-0 flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-[11px] font-medium text-zinc-800 truncate dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
-                              >
-                                {OFFICIAL_DOC_OPTIONS.map((opt) => (
-                                  <option
-                                    key={opt.value}
-                                    value={opt.value}
-                                    title={opt.label}
-                                  >
-                                    📄 {opt.label}
-                                  </option>
-                                ))}
-                              </select>
-                              <Button
-                                size="sm"
-                                disabled={isSendingDocPerChild[sendKey]}
-                                onClick={() =>
-                                  handleSendDocFromAdmin(parent.id, mId)
-                                }
-                                className="h-7 rounded-lg bg-indigo-600 px-2.5 text-[11px] font-semibold text-white hover:bg-indigo-500 shrink-0 whitespace-nowrap cursor-pointer shadow-xs"
-                              >
-                                {isSendingDocPerChild[sendKey] ? (
-                                  <Loader2 size={12} className="animate-spin" />
-                                ) : (
-                                  <>
-                                    <Send size={11} className="mr-1" />
-                                    <span>Изпрати за подпис</span>
-                                  </>
-                                )}
-                              </Button>
-                            </div>
+                              {/* Sent documents status for this child */}
+                              {childDocs.length > 0 && (
+                                <div className="space-y-1.5 pt-1">
+                                  <div className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider flex items-center justify-between">
+                                    <span>
+                                      Изпратени документи ({childDocs.length}):
+                                    </span>
+                                  </div>
+                                  <div className="space-y-1">
+                                    {childDocs.map((docReq) => {
+                                      const isSigned =
+                                        docReq.status === "completed";
+                                      const isViewed = Boolean(
+                                        docReq.viewedByParentAt
+                                      );
+                                      const isDeletingThis =
+                                        isDeletingDocReq === docReq.id;
 
-                            {/* Sent documents status for this child */}
-                            {childDocs.length > 0 && (
-                              <div className="space-y-1.5 pt-1">
-                                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider flex items-center justify-between">
-                                  <span>
-                                    Изпратени документи ({childDocs.length}):
-                                  </span>
-                                </div>
-                                <div className="space-y-1">
-                                  {childDocs.map((docReq) => {
-                                    const isSigned =
-                                      docReq.status === "completed";
-                                    const isViewed = Boolean(
-                                      docReq.viewedByParentAt
-                                    );
-                                    const isDeletingThis =
-                                      isDeletingDocReq === docReq.id;
-
-                                    return (
-                                      <div
-                                        key={docReq.id}
-                                        className="flex flex-wrap items-center justify-between gap-1.5 rounded-lg bg-zinc-50 px-2 py-1.5 text-[11px] border border-zinc-100 dark:border-zinc-800/60 dark:bg-zinc-950/60"
-                                      >
-                                        <span
-                                          className="font-medium text-zinc-700 dark:text-zinc-300 truncate flex items-center gap-1.5 max-w-50 sm:max-w-70"
-                                          title={docReq.documentTitle}
+                                      return (
+                                        <div
+                                          key={docReq.id}
+                                          className="flex flex-wrap items-center justify-between gap-1.5 rounded-lg bg-zinc-50 px-2 py-1.5 text-[11px] border border-zinc-100 dark:border-zinc-800/60 dark:bg-zinc-950/60"
                                         >
-                                          <FileSignature
-                                            size={12}
-                                            className="text-indigo-500 shrink-0"
-                                          />
-                                          <span className="truncate">
-                                            {docReq.documentTitle}
+                                          <span
+                                            className="font-medium text-zinc-700 dark:text-zinc-300 truncate flex items-center gap-1.5 max-w-50 sm:max-w-70"
+                                            title={docReq.documentTitle}
+                                          >
+                                            <FileSignature
+                                              size={12}
+                                              className="text-indigo-500 shrink-0"
+                                            />
+                                            <span className="truncate">
+                                              {docReq.documentTitle}
+                                            </span>
                                           </span>
-                                        </span>
-                                        <div className="flex items-center gap-1.5">
-                                          {isSigned ? (
-                                            <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                                              ✍️ Подписан
-                                              {docReq.signedAt
-                                                ? ` (${new Date(
-                                                    docReq.signedAt
-                                                  ).toLocaleDateString(
-                                                    "bg-BG"
-                                                  )})`
-                                                : ""}
-                                            </span>
-                                          ) : isViewed ? (
-                                            <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-bold text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
-                                              👁️ Прегледан
-                                            </span>
-                                          ) : (
-                                            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                                              ⏳ Изпратен
-                                            </span>
-                                          )}
-                                          <Link
-                                            href={`/sign/${docReq.token}`}
-                                            target="_blank"
-                                            className="text-[10px] font-bold text-blue-600 hover:underline dark:text-blue-400 px-1 py-0.5"
-                                          >
-                                            {isSigned ? "Преглед ↗" : "Линк ↗"}
-                                          </Link>
-
-                                          <button
-                                            type="button"
-                                            disabled={isDeletingThis}
-                                            onClick={() =>
-                                              handleDeleteDocRequest(
-                                                docReq.id,
-                                                docReq.documentTitle
-                                              )
-                                            }
-                                            title="Премахни документа от родителския профил (ако е изпратен по грешка)"
-                                            className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/50 transition-colors disabled:opacity-50 cursor-pointer"
-                                          >
-                                            {isDeletingThis ? (
-                                              <Loader2
-                                                size={11}
-                                                className="animate-spin"
-                                              />
+                                          <div className="flex items-center gap-1.5">
+                                            {isSigned ? (
+                                              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                ✍️ Подписан
+                                                {docReq.signedAt
+                                                  ? ` (${new Date(
+                                                      docReq.signedAt
+                                                    ).toLocaleDateString(
+                                                      "bg-BG"
+                                                    )})`
+                                                  : ""}
+                                              </span>
+                                            ) : isViewed ? (
+                                              <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-bold text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+                                                👁️ Прегледан
+                                              </span>
                                             ) : (
-                                              <Trash2 size={11} />
+                                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                                                ⏳ Изпратен
+                                              </span>
                                             )}
-                                            <span>Премахни</span>
-                                          </button>
+                                            <Link
+                                              href={`/sign/${docReq.token}`}
+                                              target="_blank"
+                                              className="text-[10px] font-bold text-blue-600 hover:underline dark:text-blue-400 px-1 py-0.5"
+                                            >
+                                              {isSigned
+                                                ? "Преглед ↗"
+                                                : "Линк ↗"}
+                                            </Link>
+
+                                            <button
+                                              type="button"
+                                              disabled={isDeletingThis}
+                                              onClick={() =>
+                                                handleDeleteDocRequest(
+                                                  docReq.id,
+                                                  docReq.documentTitle
+                                                )
+                                              }
+                                              title="Премахни документа от родителския профил (ако е изпратен по грешка)"
+                                              className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/50 transition-colors disabled:opacity-50 cursor-pointer"
+                                            >
+                                              {isDeletingThis ? (
+                                                <Loader2
+                                                  size={11}
+                                                  className="animate-spin"
+                                                />
+                                              ) : (
+                                                <Trash2 size={11} />
+                                              )}
+                                              <span>Премахни</span>
+                                            </button>
+                                          </div>
                                         </div>
-                                      </div>
-                                    );
-                                  })}
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Bottom Actions - Account Administration */}
-                <div className="mt-5 flex items-center justify-between gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
-                  <div className="flex flex-wrap items-center gap-2">
+                  {/* Bottom Actions - Account Administration */}
+                  <div className="mt-5 flex items-center justify-between gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleToggleStatus(parent)}
+                        className="rounded-xl text-xs font-semibold cursor-pointer"
+                      >
+                        {parent.status === "active" ? (
+                          <>
+                            <Pause size={13} className="mr-1 text-amber-500" />
+                            <span>Спри достъп</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play size={13} className="mr-1 text-emerald-500" />
+                            <span>Активирай</span>
+                          </>
+                        )}
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleResetPassword(parent)}
+                        className="rounded-xl text-xs font-semibold cursor-pointer"
+                        title="Генерирай нова временна парола"
+                      >
+                        <KeyRound size={13} className="mr-1 text-blue-500" />
+                        <span>Нова парола</span>
+                      </Button>
+                    </div>
+
                     <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => handleToggleStatus(parent)}
-                      className="rounded-xl text-xs font-semibold cursor-pointer"
+                      variant="ghost"
+                      onClick={() => setDeleteConfirmUser(parent)}
+                      className="rounded-xl text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/20 shrink-0 cursor-pointer"
+                      title={`Изтрий профила на ${parent.name}`}
+                      aria-label={`Изтрий профила на ${parent.name}`}
                     >
-                      {parent.status === "active" ? (
-                        <>
-                          <Pause size={13} className="mr-1 text-amber-500" />
-                          <span>Спри достъп</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play size={13} className="mr-1 text-emerald-500" />
-                          <span>Активирай</span>
-                        </>
-                      )}
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleResetPassword(parent)}
-                      className="rounded-xl text-xs font-semibold cursor-pointer"
-                      title="Генерирай нова временна парола"
-                    >
-                      <KeyRound size={13} className="mr-1 text-blue-500" />
-                      <span>Нова парола</span>
+                      <Trash2 size={14} />
                     </Button>
                   </div>
-
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setDeleteConfirmUser(parent)}
-                    className="rounded-xl text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/20 shrink-0 cursor-pointer"
-                    title={`Изтрий профила на ${parent.name}`}
-                    aria-label={`Изтрий профила на ${parent.name}`}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {visibleCount < sortedParents.length && (
+            <div className="flex justify-center pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setVisibleCount((c) => c + ITEMS_PER_PAGE)}
+                className="rounded-xl text-xs font-semibold"
+              >
+                Покажи още ({sortedParents.length - visibleCount} остават)
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

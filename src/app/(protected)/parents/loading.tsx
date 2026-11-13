@@ -17,8 +17,8 @@ export default function ParentsAdminLoading() {
       </div>
 
       {/* KPI Cards Skeleton */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {Array.from({ length: 6 }, (_, i) => (
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 sm:gap-3">
+        {Array.from({ length: 5 }, (_, i) => (
           <Skeleton key={i} className="h-24 w-full rounded-2xl" />
         ))}
       </div>

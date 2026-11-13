@@ -2,6 +2,7 @@
 
 import { Users } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import React from "react";
 
 import { ParentPortalSectionId } from "./parent-portal-sections";
@@ -62,6 +63,20 @@ export function ParentPortalViewCoordinator({
 }) {
   const { portal } = useParentPortalContext();
   const { parent, children, isLoading } = portal;
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab") as ParentPortalSectionId | null;
+  const validSections: ParentPortalSectionId[] = [
+    "attendance",
+    "documents",
+    "finances",
+    "profile",
+    "development",
+    "absences",
+  ];
+  const resolvedSection =
+    section === "attendance" && tabParam && validSections.includes(tabParam)
+      ? tabParam
+      : section;
 
   if (isLoading && !parent) {
     return <ParentPortalSkeleton />;
@@ -108,12 +123,12 @@ export function ParentPortalViewCoordinator({
 
       {/* ── 4. Tab Views ─────────────────────────────────────────────────── */}
       <main className="min-w-0">
-        {section === "attendance" && <PortalAttendanceTabView />}
-        {section === "documents" && <PortalDocumentsTabView />}
-        {section === "finances" && <PortalFinancesTabView />}
-        {section === "profile" && <PortalProfileTabView />}
-        {section === "development" && <PortalDevelopmentTabView />}
-        {section === "absences" && <PortalAbsencesTabView />}
+        {resolvedSection === "attendance" && <PortalAttendanceTabView />}
+        {resolvedSection === "documents" && <PortalDocumentsTabView />}
+        {resolvedSection === "finances" && <PortalFinancesTabView />}
+        {resolvedSection === "profile" && <PortalProfileTabView />}
+        {resolvedSection === "development" && <PortalDevelopmentTabView />}
+        {resolvedSection === "absences" && <PortalAbsencesTabView />}
       </main>
 
       {/* ── 5. Clean Modal Dialogs ───────────────────────────────────────── */}

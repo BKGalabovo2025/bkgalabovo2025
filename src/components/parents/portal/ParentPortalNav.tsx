@@ -120,7 +120,7 @@ export function ParentPortalNav() {
               {tab.badge !== null && tab.badge !== undefined && (
                 <span
                   className={cn(
-                    "ml-0.5 rounded-full px-1.5 py-0.2 text-[9px] font-black",
+                    "ml-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-black",
                     tab.badgeVariant === "danger"
                       ? "bg-indigo-600 text-white"
                       : tab.badgeVariant === "warning"

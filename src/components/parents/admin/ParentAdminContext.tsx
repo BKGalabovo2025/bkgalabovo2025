@@ -7,6 +7,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
@@ -71,6 +72,15 @@ export interface CredentialsModalState {
   copiedMessage?: boolean;
 }
 
+export interface ConfirmDialogState {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  variant?: "default" | "destructive";
+  onConfirm: () => Promise<void> | void;
+}
+
 interface ParentAdminContextType {
   // Data from hook
   requests: ReturnType<typeof useParentPortalAdmin>["requests"];
@@ -85,7 +95,8 @@ interface ParentAdminContextType {
   communications: ReturnType<typeof useParentPortalAdmin>["communications"];
   stats: ReturnType<typeof useParentPortalAdmin>["stats"];
   isLoading: boolean;
-  refetch: () => void;
+  error: string | null;
+  refetch: () => Promise<unknown> | void;
 
   // Search & Filters for Parents Tab
   searchQuery: string;
@@ -205,8 +216,16 @@ interface ParentAdminContextType {
   handleConfirmDelete: () => Promise<void>;
 
   // Toggle status & password reset
+  isTogglingStatusId: string | null;
+  isResettingPasswordId: string | null;
   handleToggleStatus: (parent: ParentUser) => Promise<void>;
   handleResetPassword: (parent: ParentUser) => Promise<void>;
+
+  // Shared confirmation AlertDialog
+  confirmDialog: ConfirmDialogState;
+  isConfirmingDialog: boolean;
+  closeConfirmDialog: () => void;
+  handleExecuteConfirmDialog: () => Promise<void>;
 
   // Data corrections
   handleApproveCorrection: (
@@ -254,12 +273,36 @@ export function ParentAdminProvider({
     communications,
     stats,
     isLoading,
+    error,
     refetch,
   } = useParentPortalAdmin();
 
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const tabParam = searchParams.get("tab");
+  useEffect(() => {
+    if (!tabParam) return;
+    const TAB_ROUTES: Record<string, string> = {
+      requests: "/parents",
+      pending: "/parents",
+      accounts: "/parents/accounts",
+      parents: "/parents/accounts",
+      corrections: "/parents/corrections",
+      absences: "/parents/absences",
+      messages: "/parents/messages",
+      communication: "/parents/messages",
+      activity: "/parents/activity",
+    };
+    const targetPath = TAB_ROUTES[tabParam];
+    if (targetPath && (pathname === "/parents" || pathname === "/parents/")) {
+      const nextParams = new URLSearchParams(searchParams.toString());
+      nextParams.delete("tab");
+      const q = nextParams.toString() ? `?${nextParams.toString()}` : "";
+      router.replace(`${targetPath}${q}`, { scroll: false });
+    }
+  }, [tabParam, pathname, searchParams, router]);
 
   // Individual communication states
   const [callingParent, setCallingParentInternal] = useState<ParentUser | null>(
@@ -351,7 +394,7 @@ export function ParentAdminProvider({
         toast.success(
           `Документът „${res.documentTitle}“ е изпратен в профила на родителя!`
         );
-        refetch();
+        await refetch();
       }
     } catch {
       toast.error("Системна грешка при изпращане.");
@@ -360,6 +403,30 @@ export function ParentAdminProvider({
     }
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({
+    open: false,
+    title: "",
+    description: "",
+    confirmLabel: "Потвърди",
+    variant: "default",
+    onConfirm: () => {},
+  });
+  const [isConfirmingDialog, setIsConfirmingDialog] = useState(false);
+
+  const closeConfirmDialog = useCallback(() => {
+    setConfirmDialog((prev) => ({ ...prev, open: false }));
+  }, []);
+
+  const handleExecuteConfirmDialog = useCallback(async () => {
+    setIsConfirmingDialog(true);
+    try {
+      await confirmDialog.onConfirm();
+      setConfirmDialog((prev) => ({ ...prev, open: false }));
+    } finally {
+      setIsConfirmingDialog(false);
+    }
+  }, [confirmDialog]);
+
   const [isDeletingDocReq, setIsDeletingDocReq] = useState<string | null>(null);
 
   const handleDeleteDocRequest = async (
@@ -367,35 +434,86 @@ export function ParentAdminProvider({
     docTitle?: string
   ): Promise<boolean> => {
     const label = docTitle ? `„${docTitle}“` : "този документ";
-    const confirmed = window.confirm(
-      `Сигурни ли сте, че искате да премахнете ${label}?\nТой ще бъде заличен от системата и повече няма да се показва в профила на родителя.`
-    );
-    if (!confirmed) return false;
-
-    setIsDeletingDocReq(requestId);
-    try {
-      const res = await deleteDocumentRequestAction({ requestId });
-      if (!res.success) {
-        toast.error(res.error || "Грешка при премахване на документа.");
-        return false;
-      }
-      toast.success(
-        `Документът ${docTitle ? `„${docTitle}“ ` : ""}беше успешно премахнат.`
-      );
-      refetch();
-      return true;
-    } catch {
-      toast.error("Възникна системна грешка при премахване на документа.");
-      return false;
-    } finally {
-      setIsDeletingDocReq(null);
-    }
+    setConfirmDialog({
+      open: true,
+      title: "Премахване на документ",
+      description: `Сигурни ли сте, че искате да премахнете ${label}? Той ще бъде заличен от системата и повече няма да се показва в профила на родителя.`,
+      confirmLabel: "Да, премахни",
+      variant: "destructive",
+      onConfirm: async () => {
+        setIsDeletingDocReq(requestId);
+        try {
+          const res = await deleteDocumentRequestAction({ requestId });
+          if (!res.success) {
+            toast.error(res.error || "Грешка при премахване на документа.");
+            return;
+          }
+          toast.success(
+            `Документът ${docTitle ? `„${docTitle}“ ` : ""}беше успешно премахнат.`
+          );
+          await refetch();
+        } catch {
+          toast.error("Възникна системна грешка при премахване на документа.");
+        } finally {
+          setIsDeletingDocReq(null);
+        }
+      },
+    });
+    return true;
   };
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [parentFilter, setParentFilter] = useState<
+  const [searchQuery, setSearchQueryInternal] = useState("");
+  const searchQueryRef = useRef(searchQuery);
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
+  const searchUrlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [parentFilter, setParentFilterInternal] = useState<
     "all" | "active" | "suspended"
   >("all");
+
+  const setSearchQuery = useCallback(
+    (qVal: string) => {
+      setSearchQueryInternal(qVal);
+      if (searchUrlTimerRef.current) {
+        clearTimeout(searchUrlTimerRef.current);
+      }
+      searchUrlTimerRef.current = setTimeout(() => {
+        const currentSearch =
+          typeof window !== "undefined"
+            ? window.location.search
+            : searchParams.toString();
+        const params = new URLSearchParams(currentSearch);
+        const trimmed = qVal.trim();
+        if (trimmed) params.set("q", qVal);
+        else params.delete("q");
+        const q = params.toString() ? `?${params.toString()}` : "";
+        router.replace(`${pathname}${q}`, { scroll: false });
+      }, 200);
+    },
+    [pathname, router, searchParams]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (searchUrlTimerRef.current) {
+        clearTimeout(searchUrlTimerRef.current);
+      }
+    };
+  }, []);
+
+  const setParentFilter = useCallback(
+    (f: ParentFilterStatus) => {
+      setParentFilterInternal(f);
+      const params = new URLSearchParams(searchParams.toString());
+      if (f !== "all") params.set("status", f);
+      else params.delete("status");
+      const q = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${q}`, { scroll: false });
+    },
+    [pathname, searchParams, router]
+  );
 
   // Child Link / Unlink States
   const [linkingParentId, setLinkingParentIdInternal] = useState<string | null>(
@@ -417,7 +535,7 @@ export function ParentAdminProvider({
         toast.success("Детето беше успешно свързано към профила!");
         setLinkingParentId(null);
         setSelectedChildToLink("");
-        refetch();
+        await refetch();
       } else {
         toast.error(res.error || "Грешка при свързване.");
       }
@@ -433,28 +551,30 @@ export function ParentAdminProvider({
     memberId: string,
     memberName: string
   ) => {
-    if (
-      !confirm(
-        `Сигурни ли сте, че искате да разкачите ${memberName} от този родителски профил?`
-      )
-    ) {
-      return;
-    }
-    const key = `${parentId}_${memberId}`;
-    setIsUnlinkingChild(key);
-    try {
-      const res = await unlinkChildFromParentAction(parentId, memberId);
-      if (res.success) {
-        toast.success(`${memberName} беше разкачен(а) от профила.`);
-        refetch();
-      } else {
-        toast.error(res.error || "Грешка при разкачане.");
-      }
-    } catch {
-      toast.error("Възникна системна грешка.");
-    } finally {
-      setIsUnlinkingChild(null);
-    }
+    setConfirmDialog({
+      open: true,
+      title: "Разкачане на дете",
+      description: `Сигурни ли сте, че искате да разкачите ${memberName} от този родителски профил?`,
+      confirmLabel: "Да, разкачи",
+      variant: "destructive",
+      onConfirm: async () => {
+        const key = `${parentId}_${memberId}`;
+        setIsUnlinkingChild(key);
+        try {
+          const res = await unlinkChildFromParentAction(parentId, memberId);
+          if (res.success) {
+            toast.success(`${memberName} беше разкачен(а) от профила.`);
+            await refetch();
+          } else {
+            toast.error(res.error || "Грешка при разкачане.");
+          }
+        } catch {
+          toast.error("Възникна системна грешка.");
+        } finally {
+          setIsUnlinkingChild(null);
+        }
+      },
+    });
   };
 
   // Dialog States (with URL deep-linking)
@@ -527,7 +647,9 @@ export function ParentAdminProvider({
 
   useEffect(() => {
     if (statusParam && ["all", "active", "suspended"].includes(statusParam)) {
-      setParentFilter(statusParam);
+      setParentFilterInternal(statusParam);
+    } else if (!statusParam) {
+      setParentFilterInternal("all");
     }
   }, [statusParam]);
 
@@ -538,11 +660,12 @@ export function ParentAdminProvider({
         setParentFilter("all");
       }
     }
-  }, [parentParam, parents, parentFilter]);
+  }, [parentParam, parents, parentFilter, setParentFilter]);
 
   useEffect(() => {
-    if (qParam !== null && qParam !== undefined) {
-      setSearchQuery(qParam);
+    const nextQ = qParam ?? "";
+    if (nextQ !== searchQueryRef.current) {
+      setSearchQueryInternal(nextQ);
     }
   }, [qParam]);
 
@@ -606,6 +729,7 @@ export function ParentAdminProvider({
     } else {
       setAbsenceReplyIdInternal(null);
     }
+    setAbsenceReplyText("");
   }, [absenceParam]);
 
   useEffect(() => {
@@ -654,6 +778,10 @@ export function ParentAdminProvider({
       setApproveCorrectionReqInternal(null);
     }
   }, [approveCorrParam, corrections]);
+
+  useEffect(() => {
+    setRejectCorrectionComment("");
+  }, [rejectCorrParam]);
 
   useEffect(() => {
     if (rejectCorrParam && corrections.length > 0) {
@@ -730,13 +858,14 @@ export function ParentAdminProvider({
   const setAbsenceReplyId = useCallback(
     (id: string | null) => {
       setAbsenceReplyIdInternal(id);
+      setAbsenceReplyText("");
       const params = new URLSearchParams(searchParams.toString());
       if (id) params.set("replyAbsence", id);
       else params.delete("replyAbsence");
       const q = params.toString() ? `?${params.toString()}` : "";
       router.replace(`${pathname}${q}`, { scroll: false });
     },
-    [pathname, searchParams, router]
+    [pathname, searchParams, router, setAbsenceReplyText]
   );
 
   const setLinkingParentId = useCallback(
@@ -797,6 +926,7 @@ export function ParentAdminProvider({
 
   const setRejectCorrectionReq = (corr: DataCorrectionRequest | null) => {
     setRejectCorrectionReqInternal(corr);
+    setRejectCorrectionComment("");
     const params = new URLSearchParams(searchParams.toString());
     if (corr?.id) params.set("rejectCorrection", corr.id);
     else params.delete("rejectCorrection");
@@ -814,30 +944,54 @@ export function ParentAdminProvider({
       tempPassword: "",
       title: "",
     });
+  const credentialsModalRef = useRef(credentialsModal);
+  useEffect(() => {
+    credentialsModalRef.current = credentialsModal;
+  }, [credentialsModal]);
 
   const credentialsParam = searchParams.get("credentials");
 
   useEffect(() => {
     if (!credentialsParam && credentialsModal.open) {
-      setCredentialsModalInternal((prev) => ({ ...prev, open: false }));
+      setCredentialsModalInternal((prev) => ({
+        ...prev,
+        open: false,
+        tempPassword: "",
+        copiedPassword: false,
+        copiedMessage: false,
+      }));
     }
   }, [credentialsParam, credentialsModal.open]);
 
-  const setCredentialsModal = (
-    value:
-      | CredentialsModalState
-      | ((prev: CredentialsModalState) => CredentialsModalState)
-  ) => {
-    setCredentialsModalInternal((prev) => {
-      const next = typeof value === "function" ? value(prev) : value;
-      const params = new URLSearchParams(searchParams.toString());
-      if (next.open) params.set("credentials", "true");
-      else params.delete("credentials");
-      const q = params.toString() ? `?${params.toString()}` : "";
-      router.replace(`${pathname}${q}`, { scroll: false });
-      return next;
-    });
-  };
+  const setCredentialsModal = useCallback(
+    (
+      value:
+        | CredentialsModalState
+        | ((prev: CredentialsModalState) => CredentialsModalState)
+    ) => {
+      const prev = credentialsModalRef.current;
+      const rawNext = typeof value === "function" ? value(prev) : value;
+      const next: CredentialsModalState = rawNext.open
+        ? rawNext
+        : {
+            ...rawNext,
+            tempPassword: "",
+            copiedPassword: false,
+            copiedMessage: false,
+          };
+      credentialsModalRef.current = next;
+      setCredentialsModalInternal(next);
+
+      if (next.open !== prev.open) {
+        const params = new URLSearchParams(searchParams.toString());
+        if (next.open) params.set("credentials", "true");
+        else params.delete("credentials");
+        const q = params.toString() ? `?${params.toString()}` : "";
+        router.replace(`${pathname}${q}`, { scroll: false });
+      }
+    },
+    [pathname, searchParams, router]
+  );
 
   // Filtered Parents
   const filteredParents = useMemo(() => {
@@ -948,7 +1102,7 @@ export function ParentAdminProvider({
           `Заявката за ${approveDialogReq.parentName} беше одобрена успешно! Данните са вписани в досието на детето и е изпратен потвърдителен имейл.`
         );
         setApproveDialogReq(null);
-        refetch();
+        await refetch();
       }
     } catch {
       toast.error("Възникна системна грешка.");
@@ -977,7 +1131,7 @@ export function ParentAdminProvider({
         toast.success("Заявката е отказана и на родителя е изпратен имейл.");
         setRejectDialogReq(null);
         setRejectReason("");
-        refetch();
+        await refetch();
       }
     } catch {
       toast.error("Възникна системна грешка.");
@@ -986,62 +1140,87 @@ export function ParentAdminProvider({
     }
   };
 
+  const [isTogglingStatusId, setIsTogglingStatusId] = useState<string | null>(
+    null
+  );
+  const [isResettingPasswordId, setIsResettingPasswordId] = useState<
+    string | null
+  >(null);
+
   // Toggle parent status
   const handleToggleStatus = async (parent: ParentUser) => {
-    const newStatus = parent.status === "active" ? "suspended" : "active";
-    const res = await toggleParentUserStatusAction(parent.id, newStatus);
-    if (!res.success) {
-      toast.error(res.error || "Грешка при промяна на статуса.");
-    } else {
-      toast.success(
-        newStatus === "active"
-          ? `Профилът на ${parent.name} е активиран.`
-          : `Профилът на ${parent.name} е временно спрян.`
-      );
-      refetch();
+    if (isTogglingStatusId === parent.id) return;
+    setIsTogglingStatusId(parent.id);
+    try {
+      const newStatus = parent.status === "active" ? "suspended" : "active";
+      const res = await toggleParentUserStatusAction(parent.id, newStatus);
+      if (!res.success) {
+        toast.error(res.error || "Грешка при промяна на статуса.");
+      } else {
+        toast.success(
+          newStatus === "active"
+            ? `Профилът на ${parent.name} е активиран.`
+            : `Профилът на ${parent.name} е временно спрян.`
+        );
+        await refetch();
+      }
+    } catch {
+      toast.error("Възникна системна грешка при промяна на статуса.");
+    } finally {
+      setIsTogglingStatusId(null);
     }
   };
 
   // Reset password by admin
   const handleResetPassword = async (parent: ParentUser) => {
-    if (
-      !confirm(
-        `Сигурни ли сте, че искате да генерирате нова временна парола за ${parent.name}? На имейла му ще бъде изпратен линк за вход.`
-      )
-    ) {
-      return;
-    }
+    if (isResettingPasswordId === parent.id) return;
+    setConfirmDialog({
+      open: true,
+      title: "Нова временна парола",
+      description: `Сигурни ли сте, че искате да генерирате нова временна парола за ${parent.name}? На имейла му ще бъде изпратен линк за вход.`,
+      confirmLabel: "Генерирай парола",
+      variant: "default",
+      onConfirm: async () => {
+        if (isResettingPasswordId === parent.id) return;
+        setIsResettingPasswordId(parent.id);
+        try {
+          const res = await resetParentPasswordByAdminAction(parent.id);
+          if (!res.success) {
+            toast.error(res.error || "Грешка при рестартиране на парола.");
+          } else {
+            const childNames = (parent.linkedMemberIds || [])
+              .map((mId) => members.find((m) => m.id === mId)?.fullName || mId)
+              .join(", ");
 
-    const res = await resetParentPasswordByAdminAction(parent.id);
-    if (!res.success) {
-      toast.error(res.error || "Грешка при рестартиране на парола.");
-    } else {
-      const childNames = (parent.linkedMemberIds || [])
-        .map((mId) => members.find((m) => m.id === mId)?.fullName || mId)
-        .join(", ");
+            setCredentialsModal({
+              open: true,
+              parentName: parent.name,
+              parentPhone: parent.phone,
+              parentEmail: parent.email,
+              tempPassword: res.tempPassword || "",
+              childName: childNames,
+              title: "Генерирана е нова парола за родителя!",
+              emailSent: res.emailSent,
+            });
 
-      setCredentialsModal({
-        open: true,
-        parentName: parent.name,
-        parentPhone: parent.phone,
-        parentEmail: parent.email,
-        tempPassword: res.tempPassword || "",
-        childName: childNames,
-        title: "Генерирана е нова парола за родителя!",
-        emailSent: res.emailSent,
-      });
-
-      if (res.emailSent) {
-        toast.success(
-          `Генерирана нова парола! На ${parent.email} е изпратен имейл.`
-        );
-      } else {
-        toast.warning(
-          `Генерирана нова парола, но имейлът не можа да бъде доставен автоматично.`
-        );
-      }
-      refetch();
-    }
+            if (res.emailSent) {
+              toast.success(
+                `Генерирана нова парола! На ${parent.email} е изпратен имейл.`
+              );
+            } else {
+              toast.warning(
+                `Генерирана нова парола, но имейлът не можа да бъде доставен автоматично.`
+              );
+            }
+            await refetch();
+          }
+        } catch {
+          toast.error("Възникна системна грешка при рестартиране на паролата.");
+        } finally {
+          setIsResettingPasswordId(null);
+        }
+      },
+    });
   };
 
   // Delete parent
@@ -1055,7 +1234,7 @@ export function ParentAdminProvider({
       } else {
         toast.success(`Профилът на ${deleteConfirmUser.name} беше премахнат.`);
         setDeleteConfirmUser(null);
-        refetch();
+        await refetch();
       }
     } catch {
       toast.error("Грешка при изтриване.");
@@ -1067,17 +1246,32 @@ export function ParentAdminProvider({
   // Manual Add submit
   const handleManualAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualName || !manualPhone || !manualEmail || !manualMemberId) {
+    const trimmedName = manualName.trim();
+    const trimmedPhone = manualPhone.trim();
+    const trimmedEmail = manualEmail.trim();
+
+    if (!trimmedName || !trimmedPhone || !trimmedEmail || !manualMemberId) {
       toast.error("Моля, попълнете всички задължителни полета.");
+      return;
+    }
+
+    if (trimmedName.length < 2) {
+      toast.error("Моля, въведете валидно име и фамилия (поне 2 символа).");
+      return;
+    }
+
+    const phoneDigits = trimmedPhone.replace(/\D/g, "");
+    if (phoneDigits.length < 6) {
+      toast.error("Моля, въведете валиден телефонен номер.");
       return;
     }
 
     setIsSubmittingManual(true);
     try {
       const res = await createParentUserManuallyAction({
-        parentName: manualName,
-        parentPhone: manualPhone,
-        parentEmail: manualEmail,
+        parentName: trimmedName,
+        parentPhone: trimmedPhone,
+        parentEmail: trimmedEmail,
         parentRole: manualRole,
         memberId: manualMemberId,
       });
@@ -1088,9 +1282,9 @@ export function ParentAdminProvider({
         const matchedMember = members.find((m) => m.id === manualMemberId);
         setCredentialsModal({
           open: true,
-          parentName: manualName,
-          parentPhone: manualPhone,
-          parentEmail: manualEmail,
+          parentName: trimmedName,
+          parentPhone: trimmedPhone,
+          parentEmail: trimmedEmail,
           tempPassword: res.tempPassword || "",
           childName: matchedMember?.fullName || "",
           title: "Родителският профил е създаден успешно!",
@@ -1105,7 +1299,7 @@ export function ParentAdminProvider({
         setManualPhone("");
         setManualEmail("");
         setManualMemberId("");
-        refetch();
+        await refetch();
       }
     } catch {
       toast.error("Системна грешка.");
@@ -1128,7 +1322,7 @@ export function ParentAdminProvider({
       } else {
         toast.success("Правата за видимост са обновени успешно!");
         setEditPermParent(null);
-        refetch();
+        await refetch();
       }
     } catch {
       toast.error("Системна грешка.");
@@ -1151,7 +1345,7 @@ export function ParentAdminProvider({
         toast.success("Отсъствието е отбелязано като прегледано.");
         setAbsenceReplyId(null);
         setAbsenceReplyText("");
-        refetch();
+        await refetch();
       }
     } catch {
       toast.error("Системна грешка.");
@@ -1177,7 +1371,7 @@ export function ParentAdminProvider({
           `Корекцията е приета! Картонът на ${approveCorrectionReq.memberName} беше автоматично обновен в базата данни и е изпратен потвърдителен имейл.`
         );
         setApproveCorrectionReq(null);
-        refetch();
+        await refetch();
       }
     } catch {
       toast.error("Възникна системна грешка.");
@@ -1205,7 +1399,7 @@ export function ParentAdminProvider({
         toast.success("Заявката за корекция беше отказана.");
         setRejectCorrectionReq(null);
         setRejectCorrectionComment("");
-        refetch();
+        await refetch();
       }
     } catch {
       toast.error("Възникна системна грешка.");
@@ -1229,6 +1423,7 @@ export function ParentAdminProvider({
         communications,
         stats,
         isLoading,
+        error,
         refetch,
 
         searchQuery,
@@ -1322,8 +1517,15 @@ export function ParentAdminProvider({
         isDeletingUser,
         handleConfirmDelete,
 
+        isTogglingStatusId,
+        isResettingPasswordId,
         handleToggleStatus,
         handleResetPassword,
+
+        confirmDialog,
+        isConfirmingDialog,
+        closeConfirmDialog,
+        handleExecuteConfirmDialog,
 
         handleApproveCorrection,
         handleRejectCorrection,

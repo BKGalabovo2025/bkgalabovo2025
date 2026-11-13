@@ -1,8 +1,10 @@
 import { Metadata } from "next";
-import React from "react";
+import React, { Suspense } from "react";
 
 import { ParentAdminProvider } from "@/components/parents/admin/ParentAdminContext";
 import { ParentAdminLayoutClient } from "@/components/parents/admin/ParentAdminLayoutClient";
+
+import ParentsAdminLoading from "./loading";
 
 export const metadata: Metadata = {
   title: "Родителски достъп | БК Гълъбово",
@@ -16,8 +18,10 @@ export default function ParentsAdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ParentAdminProvider>
-      <ParentAdminLayoutClient>{children}</ParentAdminLayoutClient>
-    </ParentAdminProvider>
+    <Suspense fallback={<ParentsAdminLoading />}>
+      <ParentAdminProvider>
+        <ParentAdminLayoutClient>{children}</ParentAdminLayoutClient>
+      </ParentAdminProvider>
+    </Suspense>
   );
 }

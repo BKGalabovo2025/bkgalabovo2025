@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Eye,
   FileSignature,
+  RefreshCw,
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
@@ -55,6 +56,10 @@ function playChime() {
     osc2.connect(gainNode);
     gainNode.connect(ctx.destination);
 
+    osc2.onended = () => {
+      void ctx.close().catch(() => {});
+    };
+
     osc1.start(now);
     osc1.stop(now + 0.2);
     osc2.start(now + 0.1);
@@ -67,6 +72,7 @@ function playChime() {
 export function ParentNotificationsBell() {
   const { counts, documentRequests, refetch } = useParentPortalAdmin();
   const [isOpen, setIsOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const prevTotalRef = useRef<number | null>(null);
 
   const handleOpenChange = (open: boolean) => {
@@ -76,8 +82,27 @@ export function ParentNotificationsBell() {
     }
   };
 
-  const recentSignedOrViewedDocs = documentRequests
+  const handleManualRefresh = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const recentSignedOrViewedDocs = [...documentRequests]
     .filter((d) => d.status === "completed" || Boolean(d.viewedByParentAt))
+    .sort((a, b) => {
+      const aDate = a.signedAt || a.viewedByParentAt || "";
+      const bDate = b.signedAt || b.viewedByParentAt || "";
+      const aTime = aDate ? new Date(aDate).getTime() : 0;
+      const bTime = bDate ? new Date(bDate).getTime() : 0;
+      return (isNaN(bTime) ? 0 : bTime) - (isNaN(aTime) ? 0 : aTime);
+    })
     .slice(0, 4);
 
   useEffect(() => {
@@ -126,23 +151,39 @@ export function ParentNotificationsBell() {
       >
         <DropdownMenuLabel className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center gap-2">
-            <Bell className="size-4 text-zinc-500" />
+            <Bell className="size-4 text-zinc-500 dark:text-zinc-400" />
             <span className="text-xs font-semibold text-zinc-900 dark:text-white">
               Родителски портал
             </span>
           </div>
-          {hasPending ? (
-            <Badge className="bg-amber-100 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
-              {counts.totalPending} чакащи
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="text-[10px] text-zinc-400 border-zinc-200 dark:border-zinc-700"
+          <div className="flex items-center gap-1.5">
+            {hasPending ? (
+              <Badge className="bg-amber-100 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                {counts.totalPending} чакащи
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="text-[10px] text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700"
+              >
+                Всичко е прегледано
+              </Badge>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              aria-label="Опресни известията"
+              title="Опресни"
+              className="size-6 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white cursor-pointer"
             >
-              Всичко е прегледано
-            </Badge>
-          )}
+              <RefreshCw
+                className={cn("size-3.5", isRefreshing && "animate-spin")}
+              />
+            </Button>
+          </div>
         </DropdownMenuLabel>
 
         <DropdownMenuSeparator className="my-1 bg-zinc-100 dark:bg-zinc-800" />
@@ -162,7 +203,7 @@ export function ParentNotificationsBell() {
                     </div>
                     <div>
                       <p className="font-medium">Заявки за достъп</p>
-                      <p className="text-[10px] text-zinc-400">
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
                         Чакат одобрение
                       </p>
                     </div>
@@ -187,7 +228,7 @@ export function ParentNotificationsBell() {
                     </div>
                     <div>
                       <p className="font-medium">Отсъствия</p>
-                      <p className="text-[10px] text-zinc-400">
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
                         Нови съобщения
                       </p>
                     </div>
@@ -212,7 +253,7 @@ export function ParentNotificationsBell() {
                     </div>
                     <div>
                       <p className="font-medium">Корекции на данни</p>
-                      <p className="text-[10px] text-zinc-400">
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
                         Предложени от родител
                       </p>
                     </div>
@@ -225,12 +266,12 @@ export function ParentNotificationsBell() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-4 text-center text-zinc-400">
+          <div className="flex flex-col items-center justify-center py-4 text-center text-zinc-500 dark:text-zinc-400">
             <CheckCircle2 className="size-7 text-emerald-500/80 mb-1.5 stroke-1.5" />
             <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
               Няма чакащи известия
             </p>
-            <p className="text-[10px] text-zinc-400 mt-0.5">
+            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">
               Всички заявки и отсъствия са обработени
             </p>
           </div>
@@ -239,7 +280,7 @@ export function ParentNotificationsBell() {
         {recentSignedOrViewedDocs.length > 0 && (
           <>
             <DropdownMenuSeparator className="my-1 bg-zinc-100 dark:bg-zinc-800" />
-            <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Документи (Прегледани / Подписани)
             </div>
             <div className="space-y-1 p-1">
@@ -271,7 +312,7 @@ export function ParentNotificationsBell() {
                           <p className="truncate font-semibold text-[11px]">
                             {doc.documentTitle}
                           </p>
-                          <p className="truncate text-[10px] text-zinc-400">
+                          <p className="truncate text-[10px] text-zinc-500 dark:text-zinc-400">
                             {doc.memberName} •{" "}
                             {isSigned ? "✍️ Подписан" : "👁️ Прегледан"}
                           </p>

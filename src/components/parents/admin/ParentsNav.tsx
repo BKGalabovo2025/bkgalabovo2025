@@ -36,7 +36,7 @@ export function ParentsNav() {
   const activeSection = getActiveParentAdminSectionId(pathname) || "requests";
 
   const {
-    pendingRequests,
+    stats,
     parents,
     absences,
     corrections,
@@ -44,27 +44,23 @@ export function ParentsNav() {
     communications,
   } = useParentAdminContext();
 
-  const unseenAbsencesCount = absences.filter(
-    (a) => a.status === "submitted"
-  ).length;
-  const pendingCorrectionsCount = corrections.filter(
-    (c) => c.status === "pending"
-  ).length;
+  const pendingRequestsCount = stats.pendingRequestsCount;
+  const pendingAbsencesCount = stats.pendingAbsencesCount;
+  const pendingCorrectionsCount = stats.pendingCorrectionsCount;
 
   const getBadgeValue = (id: ParentAdminSectionId) => {
     switch (id) {
       case "requests":
-        return pendingRequests.length > 0 ? pendingRequests.length : null;
+        return pendingRequestsCount > 0 ? pendingRequestsCount : null;
       case "accounts":
         return parents.length;
       case "absences":
-        return unseenAbsencesCount > 0
-          ? `${unseenAbsencesCount} нови`
-          : absences.length;
+        if (pendingAbsencesCount > 0) return `${pendingAbsencesCount} нови`;
+        return absences.length > 0 ? absences.length : null;
       case "corrections":
-        return pendingCorrectionsCount > 0
-          ? `${pendingCorrectionsCount} нови`
-          : corrections.length;
+        if (pendingCorrectionsCount > 0)
+          return `${pendingCorrectionsCount} нови`;
+        return corrections.length > 0 ? corrections.length : null;
       case "activity":
         return onlineParentsCount > 0 ? `${onlineParentsCount} на живо` : null;
       case "messages":
@@ -75,65 +71,74 @@ export function ParentsNav() {
   };
 
   const getBadgeVariant = (id: ParentAdminSectionId, isActive: boolean) => {
-    if (isActive) {
-      return "bg-zinc-200 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100 font-bold";
-    }
+    const neutralClasses = isActive
+      ? "bg-zinc-200 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100 font-bold"
+      : "bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300";
+
     switch (id) {
       case "requests":
-        return "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200";
+        return pendingRequestsCount > 0
+          ? "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200"
+          : neutralClasses;
       case "absences":
-        return unseenAbsencesCount > 0
-          ? "bg-orange-600 text-white animate-pulse"
-          : "bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300";
+        return pendingAbsencesCount > 0
+          ? "bg-orange-600 text-white animate-pulse motion-reduce:animate-none"
+          : neutralClasses;
       case "corrections":
         return pendingCorrectionsCount > 0
-          ? "bg-indigo-600 text-white animate-pulse"
-          : "bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300";
+          ? "bg-indigo-600 text-white animate-pulse motion-reduce:animate-none"
+          : neutralClasses;
       case "activity":
         return onlineParentsCount > 0
           ? "bg-emerald-600 text-white font-bold"
-          : "bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300";
+          : neutralClasses;
       default:
-        return "bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300";
+        return neutralClasses;
     }
   };
 
   return (
-    <nav
-      aria-label="Секции на родителския портал"
-      className="no-scrollbar flex w-full items-center gap-1 sm:gap-1.5 overflow-x-auto rounded-2xl border border-zinc-200 bg-zinc-100 p-1.5 dark:border-zinc-800 dark:bg-zinc-900"
-    >
-      {PARENT_ADMIN_SECTIONS.map((section) => {
-        const Icon = SECTION_ICONS[section.id];
-        const isActive = activeSection === section.id;
-        const targetHref = `/parents${section.pathSuffix}`;
-        const badgeValue = getBadgeValue(section.id);
-        const badgeClasses = getBadgeVariant(section.id, isActive);
+    <div className="relative w-full">
+      <nav
+        aria-label="Секции на родителския портал"
+        className="no-scrollbar flex w-full items-center gap-1 sm:gap-1.5 overflow-x-auto rounded-2xl border border-zinc-200 bg-zinc-100 p-1.5 pr-7 sm:pr-1.5 dark:border-zinc-800 dark:bg-zinc-900"
+      >
+        {PARENT_ADMIN_SECTIONS.map((section) => {
+          const Icon = SECTION_ICONS[section.id];
+          const isActive = activeSection === section.id;
+          const targetHref = `/parents${section.pathSuffix}`;
+          const badgeValue = getBadgeValue(section.id);
+          const badgeClasses = getBadgeVariant(section.id, isActive);
 
-        return (
-          <Link
-            key={section.id}
-            href={targetHref}
-            aria-current={isActive ? "page" : undefined}
-            title={section.tooltip}
-            className={`flex shrink-0 items-center gap-1.5 sm:gap-2 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold uppercase tracking-wide transition-all ${
-              isActive
-                ? "bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white"
-                : "text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
-            }`}
-          >
-            <Icon className="size-4 shrink-0" />
-            <span className="whitespace-nowrap">{section.label}</span>
-            {badgeValue !== null && (
-              <span
-                className={`rounded-full px-1.5 sm:px-2 py-0.5 text-[10px] font-bold ${badgeClasses}`}
-              >
-                {badgeValue}
-              </span>
-            )}
-          </Link>
-        );
-      })}
-    </nav>
+          return (
+            <Link
+              key={section.id}
+              href={targetHref}
+              aria-current={isActive ? "page" : undefined}
+              title={section.tooltip}
+              className={`flex shrink-0 items-center gap-1.5 sm:gap-2 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold uppercase tracking-wide transition-all outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                isActive
+                  ? "bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white"
+                  : "text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+              }`}
+            >
+              <Icon className="size-4 shrink-0" />
+              <span className="whitespace-nowrap">{section.label}</span>
+              {badgeValue !== null && (
+                <span
+                  className={`rounded-full px-1.5 sm:px-2 py-0.5 text-[10px] font-bold ${badgeClasses}`}
+                >
+                  {badgeValue}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-1 right-1 w-8 rounded-r-xl bg-linear-to-l from-zinc-100 via-zinc-100/80 to-transparent dark:from-zinc-900 dark:via-zinc-900/80 sm:hidden"
+      />
+    </div>
   );
 }

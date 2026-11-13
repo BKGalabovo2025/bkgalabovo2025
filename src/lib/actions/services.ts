@@ -826,7 +826,7 @@ export async function executeTrainingSaleAction(
 
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("member:");
-    serverCache.invalidatePattern("parent-portal:");
+    serverCache.invalidatePattern("parent-dashboard:");
     revalidatePath("/catalogs");
     revalidatePath("/reports");
     revalidatePath("/club/parents");

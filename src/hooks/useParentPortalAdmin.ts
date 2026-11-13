@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import { getAdminParentPortalDataAction } from "@/lib/actions/parent-portal";
@@ -73,13 +74,25 @@ const DEFAULT_STATS: AdminParentPortalStats = {
   totalPending: 0,
 };
 
-export function isParentOnline(parent: ParentUser | null | undefined): boolean {
+export function isParentOnline(
+  parent: ParentUser | null | undefined,
+  referenceMs: number = Date.now()
+): boolean {
   if (!parent || !parent.lastActiveAt) return false;
-  const diffMs = Date.now() - new Date(parent.lastActiveAt).getTime();
+  const diffMs = referenceMs - new Date(parent.lastActiveAt).getTime();
   return diffMs >= 0 && diffMs < 4 * 60 * 1000; // Active within last 4 minutes
 }
 
 export function useParentPortalAdmin() {
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setNowMs(Date.now());
+    }, 60_000);
+    return () => clearInterval(intervalId);
+  }, []);
+
   const { data, error, isLoading, mutate } = useSWR(
     "admin-parent-portal-data",
     fetcher,
@@ -113,8 +126,16 @@ export function useParentPortalAdmin() {
     totalPending: stats.totalPending,
   };
 
-  const onlineParents = parents.filter((p) => isParentOnline(p));
+  const onlineParents = useMemo(
+    () => parents.filter((p) => isParentOnline(p, nowMs)),
+    [parents, nowMs]
+  );
   const onlineParentsCount = onlineParents.length;
+
+  const checkParentOnline = useCallback(
+    (parent: ParentUser | null | undefined) => isParentOnline(parent, nowMs),
+    [nowMs]
+  );
 
   return {
     requests,
@@ -126,7 +147,7 @@ export function useParentPortalAdmin() {
     communications,
     onlineParents,
     onlineParentsCount,
-    isParentOnline,
+    isParentOnline: checkParentOnline,
     members,
     stats,
     counts,

@@ -144,8 +144,10 @@ export async function createSaleAction(
     revalidatePath("/sales");
     revalidatePath("/inventory");
     revalidatePath("/dashboard");
+    revalidatePath("/club/parents");
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
+    serverCache.invalidatePattern("parent-dashboard:");
 
     return {
       success: true,
@@ -339,8 +341,10 @@ export async function updateSaleAction(
 
     revalidatePath("/sales");
     revalidatePath(`/sales/${id}`);
+    revalidatePath("/club/parents");
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
+    serverCache.invalidatePattern("parent-dashboard:");
 
     return {
       success: true,
@@ -575,8 +579,10 @@ export async function deleteSaleAction(
     revalidatePath("/sales");
     revalidatePath("/inventory");
     revalidatePath("/dashboard");
+    revalidatePath("/club/parents");
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
+    serverCache.invalidatePattern("parent-dashboard:");
 
     return {
       success: true,
@@ -879,7 +885,9 @@ export async function createCampFeeSaleAction(
     revalidatePath("/sales");
     revalidatePath("/club/team");
     revalidatePath("/members");
+    revalidatePath("/club/parents");
     serverCache.invalidatePattern("sales:");
+    serverCache.invalidatePattern("parent-dashboard:");
 
     return { success: true, saleId: saleRef.id };
   } catch (error: unknown) {
