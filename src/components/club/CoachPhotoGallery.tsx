@@ -224,7 +224,11 @@ export function CoachPhotoGallery({
             <div
               role="button"
               tabIndex={0}
-              aria-label={`Отвори галерията на ${coach.name}`}
+              aria-label={
+                allPhotos.length > 1
+                  ? `Отвори галерията на ${coach.name} - ${allPhotos.length} снимки`
+                  : `Отвори галерията на ${coach.name}`
+              }
               onClick={() => handleOpenLightbox(0)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {

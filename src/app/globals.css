@@ -509,7 +509,40 @@ html:not(.dark) .public-portal-shell .text-blue-300 {
 }
 
 html:not(.dark) .public-portal-shell .text-emerald-400 {
-  color: #059669 !important;
+  color: #047857 !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(.text-amber-300, .text-yellow-300, .text-orange-300) {
+  color: #b45309 !important;
+}
+
+html:not(.dark) .public-portal-shell .text-cyan-300,
+html:not(.dark) .public-portal-shell .text-cyan-400 {
+  color: #0e7490 !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(.text-indigo-200, .text-indigo-300, .text-indigo-400) {
+  color: #4338ca !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(
+    .text-rose-300,
+    .text-rose-400,
+    .text-red-300,
+    .text-red-400,
+    .text-rose-200
+  ) {
+  color: #be123c !important;
+}
+
+html:not(.dark) .public-portal-shell .text-amber-200 {
+  color: #92400e !important;
 }
 
 html:not(.dark) .public-portal-shell .text-emerald-300 {
@@ -517,9 +550,134 @@ html:not(.dark) .public-portal-shell .text-emerald-300 {
 }
 
 html:not(.dark) .public-portal-shell .text-amber-400 {
-  color: #d97706 !important;
+  color: #b45309 !important;
 }
 
 html:not(.dark) .public-portal-shell .bg-white\/15:not(.keep-dark) {
   background-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+/* Fix: emerald icon containers in light mode — text-emerald-400 on bg-emerald-500/10 fails contrast */
+html:not(.dark) .public-portal-shell .bg-emerald-500\/10 {
+  background-color: #f0fdf4 !important;
+}
+
+html:not(.dark) .public-portal-shell .bg-emerald-500\/10 .text-emerald-400,
+html:not(.dark) .public-portal-shell .bg-emerald-500\/10.text-emerald-400 {
+  color: #065f46 !important;
+}
+
+/* Fix: emerald badge pills (border + bg-emerald-500/10 + text-emerald-400) in light mode */
+html:not(.dark)
+  .public-portal-shell
+  [class*="border-emerald"][class*="bg-emerald-500\/10"] {
+  background-color: #d1fae5 !important;
+  border-color: #6ee7b7 !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  [class*="border-emerald"][class*="bg-emerald-500\/10"]
+  .text-emerald-400,
+html:not(.dark)
+  .public-portal-shell
+  [class*="border-emerald"][class*="bg-emerald-500\/10"].text-emerald-400,
+html:not(.dark)
+  .public-portal-shell
+  [class*="border-emerald"][class*="bg-emerald-500\/10"]
+  [class*="fill-emerald-400"] {
+  color: #065f46 !important;
+  fill: #065f46 !important;
+}
+
+/* Fix: small tracking badge text "text-emerald-400 uppercase" in light mode */
+html:not(.dark) .public-portal-shell p.text-emerald-400,
+html:not(.dark) .public-portal-shell span.text-emerald-400 {
+  color: #047857 !important;
+}
+
+/* Fix: inline links with text-emerald-400 in contacts section */
+html:not(.dark) .public-portal-shell a.text-emerald-400 {
+  color: #047857 !important;
+}
+
+/* Fix: breadcrumb text-zinc-400 links */
+html:not(.dark) .public-portal-shell nav[aria-label] .text-zinc-400 {
+  color: #374151 !important;
+}
+
+/* Fix: "Почивен ден" span bg-white/5 on light background */
+html:not(.dark)
+  .public-portal-shell
+  .bg-white\/5:not(.keep-dark, .keep-dark *) {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Fix: schedule open/close time row in light mode */
+html:not(.dark) .public-portal-shell .bg-emerald-50\/80 {
+  background-color: #d1fae5 !important;
+  border-color: #6ee7b7 !important;
+}
+
+/* Fix: gradient text (text-transparent + bg-clip-text) in light mode — Lighthouse sees color:transparent → fails contrast */
+html:not(.dark) .public-portal-shell .bg-clip-text.text-transparent {
+  -webkit-text-fill-color: initial !important;
+  background-clip: unset !important;
+  background-image: none !important;
+  color: #047857 !important;
+}
+
+/* Fix: blue badge pills (bg-blue-500/10 text-blue-400) in light mode — blue-400 (#60a5fa) on blue-50 bg fails contrast */
+html:not(.dark) .public-portal-shell .bg-blue-500\/10 {
+  background-color: #eff6ff !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  [class*="border-blue"][class*="bg-blue-500\/10"] {
+  background-color: #dbeafe !important;
+  border-color: #93c5fd !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  [class*="border-blue"][class*="bg-blue-500\/10"]
+  .text-blue-400,
+html:not(.dark)
+  .public-portal-shell
+  [class*="border-blue"][class*="bg-blue-500\/10"].text-blue-400,
+html:not(.dark) .public-portal-shell .bg-blue-500\/10 .text-blue-400,
+html:not(.dark) .public-portal-shell .bg-blue-500\/10.text-blue-400 {
+  color: #1e40af !important;
+}
+
+html:not(.dark) .public-portal-shell .bg-blue-500\/10 svg.text-blue-400 {
+  color: #1e40af !important;
+}
+
+/* Fix: blue gradient text — text-transparent with blue gradient fails Lighthouse contrast */
+html:not(.dark)
+  .public-portal-shell
+  .bg-clip-text.text-transparent[class*="from-blue"] {
+  color: #1e3a8a !important;
+}
+
+/* Fix: text-blue-400 on any explicit blue bg container */
+html:not(.dark) .public-portal-shell p.text-blue-400,
+html:not(.dark) .public-portal-shell span.text-blue-400,
+html:not(.dark) .public-portal-shell div.text-blue-400 {
+  color: #1d4ed8 !important;
+}
+
+/* Fix: drop-shadow on text-emerald-400 prevents globals.css override — force color */
+html:not(.dark) .public-portal-shell .text-emerald-400[class*="drop-shadow"] {
+  color: #047857 !important;
+  filter: none !important;
+}
+
+/* Fix: text-zinc-300 on any near-white/light background */
+html:not(.dark)
+  .public-portal-shell
+  .text-zinc-300:not(.keep-dark, .keep-dark *) {
+  color: #374151 !important;
 }

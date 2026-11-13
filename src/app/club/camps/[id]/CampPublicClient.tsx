@@ -240,7 +240,7 @@ export default function CampPublicClient({
         <div className="relative overflow-hidden rounded-xl border border-rose-500/50 bg-linear-to-r from-rose-950/80 via-zinc-900/95 to-zinc-900/95 p-3.5 shadow-lg shadow-rose-950/20 backdrop-blur-xs transition-all">
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-rose-500 text-white shadow-md">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-rose-700 text-white shadow-md">
                 <BellRing size={16} className="animate-bounce" />
               </div>
               <div>
@@ -280,7 +280,7 @@ export default function CampPublicClient({
                     setSelectedDateStr(firstTarget);
                   }
                 }}
-                className="cursor-pointer rounded-lg bg-rose-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-rose-600 active:scale-95"
+                className="cursor-pointer rounded-lg bg-rose-700 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-rose-600 active:scale-95"
               >
                 Прегледай
               </button>
@@ -351,7 +351,7 @@ export default function CampPublicClient({
                 )}
                 {showNewIndicator && (
                   <span
-                    className="inline-flex animate-pulse items-center rounded-xs bg-rose-500 px-1 py-0.5 text-[8px] font-black text-white uppercase shadow-xs"
+                    className="inline-flex animate-pulse items-center rounded-xs bg-rose-700 px-1 py-0.5 text-[8px] font-black text-white uppercase shadow-xs"
                     title="Има ново добавено събитие"
                   >
                     ✨ Ново
@@ -579,7 +579,7 @@ export default function CampPublicClient({
                       </span>
                       {!seenSessionIds.has(session.id) &&
                         !session.isCancelled && (
-                          <span className="flex animate-pulse items-center gap-1 rounded-md border border-rose-400 bg-rose-500 px-2 py-0.5 text-[10px] font-black tracking-wide text-white uppercase shadow-sm">
+                          <span className="flex animate-pulse items-center gap-1 rounded-md border border-rose-400 bg-rose-700 px-2 py-0.5 text-[10px] font-black tracking-wide text-white uppercase shadow-sm">
                             ✨ Ново
                           </span>
                         )}

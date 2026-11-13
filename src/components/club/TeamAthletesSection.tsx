@@ -366,7 +366,7 @@ function TeamAthletesContent({
                       <div
                         role="button"
                         tabIndex={0}
-                        aria-label={`Отвори профила и снимката на ${athleteName}`}
+                        aria-label={`${athleteName} ${levelText} ${member.ageGroupDisplay} - отвори профила и снимката`}
                         onClick={() => {
                           setActiveProfileAthlete(member);
                           setHighlightedAthleteId(member.id);
