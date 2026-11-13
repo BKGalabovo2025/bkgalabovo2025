@@ -36,6 +36,7 @@ const ServiceSchema = z.object({
   maxMembers: z.coerce.number().optional().nullable(),
   minMembers: z.coerce.number().optional().nullable(),
   imageUrl: z.string().optional().nullable(),
+  siteId: z.string().optional().nullable(),
 });
 
 // --- Type for Server Action State ---
@@ -85,6 +86,7 @@ function parseFormData(formData: FormData) {
     maxMembers: getNum("maxMembers"),
     minMembers: getNum("minMembers"),
     imageUrl: getStr("imageUrl"),
+    siteId: getStr("siteId"),
   };
 }
 
@@ -152,6 +154,7 @@ export async function createClubService(
       .doc(serviceId)
       .set({
         ...data,
+        siteId: (data.siteId as string) || "bkgalabovo",
         id: serviceId,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
@@ -825,8 +828,11 @@ export async function executeTrainingSaleAction(
     await updateMembersLastPaymentDate(adminDb, saleData, targetMemberIds);
 
     serverCache.invalidatePattern("sales:");
-    serverCache.invalidatePattern("member:");
+    serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("dashboard:");
     serverCache.invalidatePattern("parent-dashboard:");
+    revalidatePath("/sales");
+    revalidatePath("/dashboard");
     revalidatePath("/catalogs");
     revalidatePath("/reports");
     revalidatePath("/club/parents");

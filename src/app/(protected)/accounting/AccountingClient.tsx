@@ -737,7 +737,8 @@ export default function AccountingClient({
         for (const trip of fetchedTrips) {
           if (trip.id) {
             expensesMap[trip.id] = await businessTripService.getExpensesByTrip(
-              trip.id
+              trip.id,
+              trip.siteId || siteId
             );
           }
         }
@@ -762,7 +763,8 @@ export default function AccountingClient({
       for (const trip of fetchedTrips) {
         if (trip.id) {
           expensesMap[trip.id] = await businessTripService.getExpensesByTrip(
-            trip.id
+            trip.id,
+            trip.siteId || siteId
           );
         }
       }

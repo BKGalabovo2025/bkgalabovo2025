@@ -2,12 +2,14 @@
 import "server-only";
 
 import * as admin from "firebase-admin";
+import { revalidatePath } from "next/cache";
 
 import {
   ensureAdminFromSession,
   getAuthUserFromSessionCookie,
 } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
 import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
 
 function snapToData<T>(
@@ -283,6 +285,14 @@ export async function executeGeneralServiceSaleAction(
 
     await batch.commit();
 
+    serverCache.invalidatePattern("sales:");
+    serverCache.invalidatePattern("dashboard:");
+    serverCache.invalidatePattern("parent-dashboard:");
+    revalidatePath("/sales");
+    revalidatePath("/dashboard");
+    revalidatePath("/club/parents");
+    revalidatePath("/accounting");
+
     return { success: true, saleId: saleRef.id };
   } catch (error: unknown) {
     console.error("Error executeGeneralServiceSaleAction:", error);
@@ -295,8 +305,7 @@ export async function executeGeneralServiceSaleAction(
 
 export async function deleteGeneralServiceSaleAction(saleId: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     const batch = adminDb.batch();
@@ -316,6 +325,14 @@ export async function deleteGeneralServiceSaleAction(saleId: string) {
     });
 
     await batch.commit();
+
+    serverCache.invalidatePattern("sales:");
+    serverCache.invalidatePattern("dashboard:");
+    serverCache.invalidatePattern("parent-dashboard:");
+    revalidatePath("/sales");
+    revalidatePath("/dashboard");
+    revalidatePath("/club/parents");
+    revalidatePath("/accounting");
 
     return { success: true };
   } catch (error: unknown) {

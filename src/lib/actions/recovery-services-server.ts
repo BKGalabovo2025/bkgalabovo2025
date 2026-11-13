@@ -3,7 +3,10 @@ import "server-only";
 
 import * as admin from "firebase-admin";
 
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import {
+  ensureAdminFromSession,
+  getAuthUserFromSessionCookie,
+} from "@/lib/auth-utils";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getAdminDb } from "@/lib/firebase-admin";
 
@@ -182,8 +185,7 @@ export async function deleteRecoveryPackageAction(
   packageId: string
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    await ensureAdminFromSession();
     const adminDb = getAdminDb();
     await adminDb.collection("client_packages").doc(packageId).delete();
     return { success: true };
@@ -205,8 +207,7 @@ export async function updateRecoveryClientCommunicationAction(
   }
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Неоторизиран достъп.");
+    await ensureAdminFromSession();
     const adminDb = getAdminDb();
     await adminDb
       .collection("clients")

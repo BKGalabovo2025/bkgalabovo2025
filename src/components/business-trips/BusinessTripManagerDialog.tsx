@@ -294,7 +294,8 @@ export function BusinessTripManagerDialog({
         tripsData.map(async (trip) => {
           if (trip.id) {
             expMap[trip.id] = await businessTripService.getExpensesByTrip(
-              trip.id
+              trip.id,
+              trip.siteId
             );
           }
         })

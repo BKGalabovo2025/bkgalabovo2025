@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 
 import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serializeFirestoreData } from "@/lib/serialize-utils";
+import { serverCache } from "@/lib/server-cache";
 
 export async function addMemberToFamilyAction(
   familyId: string,
@@ -31,6 +33,8 @@ export async function addMemberToFamilyAction(
       updatedAt: FieldValue.serverTimestamp(),
     });
 
+    serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("parent-dashboard:");
     revalidatePath(`/families/${familyId}`);
     revalidatePath(`/members/${memberId}`);
     revalidatePath("/members");
@@ -83,6 +87,8 @@ export async function removeMemberFromFamilyAction(
       updatedAt: FieldValue.serverTimestamp(),
     });
 
+    serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("parent-dashboard:");
     revalidatePath(`/families/${familyId}`);
     revalidatePath(`/members/${memberId}`);
     revalidatePath("/members");
@@ -163,14 +169,43 @@ export async function updateFamilyNameAction(
   }
 }
 
-export async function getFamiliesFeedAction() {
+export async function getFamiliesFeedAction(siteId?: string) {
   try {
+    const user = await ensureAdmin();
+    const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+    if (
+      siteId &&
+      allowedSites &&
+      allowedSites.length > 0 &&
+      !allowedSites.includes(siteId)
+    ) {
+      return { success: false, families: [] };
+    }
+
     const adminDb = getAdminDb();
     const snap = await adminDb.collection("families").get();
-    const families = snap.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-    }));
+    const families = snap.docs
+      .filter((d) => {
+        const docSiteId = d.data()?.siteId as string | undefined;
+        if (
+          docSiteId &&
+          allowedSites &&
+          allowedSites.length > 0 &&
+          !allowedSites.includes(docSiteId)
+        ) {
+          return false;
+        }
+        if (siteId && docSiteId && docSiteId !== siteId) {
+          return false;
+        }
+        return true;
+      })
+      .map((d) =>
+        serializeFirestoreData({
+          id: d.id,
+          ...d.data(),
+        })
+      );
     return { success: true, families };
   } catch (error) {
     console.error("getFamiliesFeedAction Error:", error);

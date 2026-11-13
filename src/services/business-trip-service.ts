@@ -328,10 +328,17 @@ export const businessTripService = {
     return docRef.id;
   },
 
-  async getExpensesByTrip(tripId: string): Promise<TripExpense[]> {
+  async getExpensesByTrip(
+    tripId: string,
+    siteId?: string
+  ): Promise<TripExpense[]> {
+    const constraints = [where("tripId", "==", tripId)];
+    if (siteId) {
+      constraints.push(where("siteId", "==", siteId));
+    }
     const q = query(
       collection(db, EXPENSES_COLLECTION),
-      where("tripId", "==", tripId),
+      ...constraints,
       orderBy("createdAt", "desc")
     );
 

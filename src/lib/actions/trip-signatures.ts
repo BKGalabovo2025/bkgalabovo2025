@@ -3,9 +3,11 @@ import "server-only";
 
 import crypto from "crypto";
 import { FieldValue } from "firebase-admin/firestore";
+import { revalidatePath } from "next/cache";
 
 import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
 import type { PublicTripSignDataDTO } from "@/types/business-trip.types";
 
 interface ActionResponse<T = unknown> {
@@ -350,6 +352,10 @@ export async function submitPublicTripSignatureAction(input: {
         ? `Подписът беше записан успешно във ведомостта и автоматично приложен към още ${propagatedCount} ваши участия!`
         : "Подписът беше записан успешно във ведомостта!";
 
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members");
+    revalidatePath("/accounting/trips");
+
     return {
       success: true,
       message,
@@ -438,6 +444,10 @@ export async function saveDirectAthleteSignatureAction(input: {
         ? `Подписът беше записан успешно и приложен към общо ${totalSigned} ведомости!`
         : "Подписът беше записан успешно!";
 
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members");
+    revalidatePath("/accounting/trips");
+
     return {
       success: true,
       message: msg,
@@ -499,6 +509,10 @@ export async function batchApplyAthleteSignatureToTripsAction(input: {
         ? `Съхраненият подпис беше успешно приложен към ${res.updatedTripsCount} ведомости!`
         : "Всички ведомости за този състезател вече са подписани.";
 
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members");
+    revalidatePath("/accounting/trips");
+
     return {
       success: true,
       message: msg,
@@ -551,6 +565,10 @@ export async function saveMemberStoredSignatureAction(input: {
         ? `Подписът беше съхранен в профила и автоматично приложен към ${res.updatedTripsCount} ведомости!`
         : "Подписът беше съхранен успешно в профила на състезателя!";
 
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members");
+    revalidatePath("/accounting/trips");
+
     return {
       success: true,
       message: msg,
@@ -586,6 +604,10 @@ export async function clearMemberStoredSignatureAction(input: {
       updatedAt: new Date().toISOString(),
     });
 
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members");
+    revalidatePath("/accounting/trips");
+
     return {
       success: true,
       message: "Съхраненият подпис беше премахнат от профила на състезателя.",
@@ -615,6 +637,10 @@ export async function clearTripAthleteSignatureAction(input: {
       [`signatures.athletes.${input.memberId}`]: FieldValue.delete(),
       updatedAt: new Date().toISOString(),
     });
+
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members");
+    revalidatePath("/accounting/trips");
 
     return { success: true, message: "Подписът беше премахнат." };
   } catch (error) {
@@ -779,6 +805,10 @@ export async function syncMemberSignatureFromTripsAction(input: {
       res.updatedTripsCount > 0
         ? `Подписът от „${foundTripTitle}“ беше успешно запазен в профила и приложен към ${res.updatedTripsCount} командировки!`
         : `Подписът от „${foundTripTitle}“ беше успешно запазен в профила на състезателя!`;
+
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members");
+    revalidatePath("/accounting/trips");
 
     return {
       success: true,

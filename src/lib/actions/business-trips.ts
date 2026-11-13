@@ -1,6 +1,7 @@
 "use server";
 import "server-only";
 
+import { ensureAdmin } from "@/lib/auth-utils";
 import { isAutoDecision } from "@/lib/business-trip-numbers";
 import { getAdminDb } from "@/lib/firebase-admin";
 import type { BusinessTrip } from "@/types/business-trip.types";
@@ -14,6 +15,7 @@ export async function assignMissingBusinessTripNumbersAction(
   siteId: string = "bkgalabovo"
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const tripsSnap = await adminDb.collection("business_trips").get();
 
@@ -123,6 +125,7 @@ export async function renumberAllBusinessTripsChronologicallyAction(
   siteId: string = "bkgalabovo"
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const tripsSnap = await adminDb.collection("business_trips").get();
 

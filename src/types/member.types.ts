@@ -94,10 +94,14 @@ export const MemberSchema = z.object({
   showOnPublicTeam: z.boolean().optional(),
 
   // --- Administrative & Documents ---
+  participationType: z.string().nullable().optional(),
   hasSignedDeclaration: z.boolean().optional(),
   signedDeclarationPrintedAt: z.string().nullable().optional(),
   signedDeclarationHandedAt: z.string().nullable().optional(),
   signedDeclarationUrl: z.string().nullable().optional(),
+  signedDeclarationSignatureUrl: z.string().nullable().optional(),
+  signedDeclarationSecondParentSignatureUrl: z.string().nullable().optional(),
+  signedDeclarationMemberSignatureUrl: z.string().nullable().optional(),
 
   hasMedicalCertificate: z.boolean().optional(),
   medicalCertificateDate: z.string().nullable().optional(), // This is the date ON the certificate
@@ -119,42 +123,63 @@ export const MemberSchema = z.object({
   travelDeclarationPrintedAt: z.string().nullable().optional(),
   travelDeclarationHandedAt: z.string().nullable().optional(),
   travelDeclarationUrl: z.string().nullable().optional(),
+  travelDeclarationSignatureUrl: z.string().nullable().optional(),
+  travelDeclarationSecondParentSignatureUrl: z.string().nullable().optional(),
+  travelDeclarationMemberSignatureUrl: z.string().nullable().optional(),
 
   hasSafetyInstruction: z.boolean().optional(),
   safetyInstructionPrintedAt: z.string().nullable().optional(),
   safetyInstructionHandedAt: z.string().nullable().optional(),
   safetyInstructionUrl: z.string().nullable().optional(),
+  safetyInstructionSignatureUrl: z.string().nullable().optional(),
+  safetyInstructionSecondParentSignatureUrl: z.string().nullable().optional(),
+  safetyInstructionMemberSignatureUrl: z.string().nullable().optional(),
 
   hasInternalRules: z.boolean().optional(),
   internalRulesPrintedAt: z.string().nullable().optional(),
   internalRulesHandedAt: z.string().nullable().optional(),
   internalRulesUrl: z.string().nullable().optional(),
   internalRulesSignatureUrl: z.string().nullable().optional(),
+  internalRulesSecondParentSignatureUrl: z.string().nullable().optional(),
+  internalRulesMemberSignatureUrl: z.string().nullable().optional(),
 
   membershipApplicationPrintedAt: z.string().nullable().optional(),
   membershipApplicationHandedAt: z.string().nullable().optional(),
   hasMembershipApplication: z.boolean().optional(),
   membershipApplicationUrl: z.string().nullable().optional(),
   membershipApplicationSignatureUrl: z.string().nullable().optional(),
+  membershipApplicationSecondParentSignatureUrl: z
+    .string()
+    .nullable()
+    .optional(),
+  membershipApplicationMemberSignatureUrl: z.string().nullable().optional(),
 
   terminationRequestPrintedAt: z.string().nullable().optional(),
   terminationRequestHandedAt: z.string().nullable().optional(),
   hasTerminationRequest: z.boolean().optional(),
   terminationRequestUrl: z.string().nullable().optional(),
   terminationRequestSignatureUrl: z.string().nullable().optional(),
+  terminationRequestSecondParentSignatureUrl: z.string().nullable().optional(),
+  terminationRequestMemberSignatureUrl: z.string().nullable().optional(),
 
   amateurContractPrintedAt: z.string().nullable().optional(),
   amateurContractHandedAt: z.string().nullable().optional(),
   hasAmateurContract: z.boolean().optional(),
   amateurContractUrl: z.string().nullable().optional(),
   amateurContractSignatureUrl: z.string().nullable().optional(),
+  amateurContractSecondParentSignatureUrl: z.string().nullable().optional(),
+  amateurContractMemberSignatureUrl: z.string().nullable().optional(),
 
   licenseApplicationPrintedAt: z.string().nullable().optional(),
   licenseApplicationHandedAt: z.string().nullable().optional(),
   hasLicenseApplication: z.boolean().optional(),
   licenseApplicationUrl: z.string().nullable().optional(),
   licenseApplicationSignatureUrl: z.string().nullable().optional(),
+  licenseApplicationSecondParentSignatureUrl: z.string().nullable().optional(),
+  licenseApplicationMemberSignatureUrl: z.string().nullable().optional(),
 
+  hasSafetyDeclaration: z.boolean().optional(),
+  safetyDeclarationHandedAt: z.string().nullable().optional(),
   safetyDeclarationSignatureUrl: z.string().nullable().optional(),
 
   // --- Official Stored Athlete Signature (Used across business trips & documents) ---

@@ -361,6 +361,28 @@ export async function bulkUpdateMemberStatusAction(
   try {
     const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
+
+    const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
+    if (allowedSites && allowedSites.length > 0 && memberIds.length > 0) {
+      const memberRefs = memberIds.map((id) =>
+        adminDb.collection("members").doc(id)
+      );
+      const memberSnaps = await adminDb.getAll(...memberRefs);
+      for (const snap of memberSnaps) {
+        if (!snap.exists) continue;
+        let targetSiteId = snap.data()?.siteId as string | undefined;
+        if (targetSiteId === "Зала Гълъбово") {
+          targetSiteId = "bkgalabovo";
+        }
+        if (targetSiteId && !allowedSites.includes(targetSiteId)) {
+          return {
+            success: false,
+            message: "Нямате достъп до този клон.",
+          };
+        }
+      }
+    }
+
     const batch = adminDb.batch();
 
     memberIds.forEach((id) => {

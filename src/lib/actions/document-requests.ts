@@ -800,6 +800,7 @@ export async function submitSignedDocumentAction(input: {
     });
 
     // Revalidate relevant pages & invalidate parent dashboard cache
+    serverCache.invalidatePattern("members:");
     serverCache.invalidatePattern("parent-dashboard:");
     revalidatePath("/members");
     revalidatePath(`/members/${docData.memberId}`);
@@ -1036,6 +1037,8 @@ export async function deleteDocumentRequestAction(input: {
     });
 
     // 4. Revalidate cache
+    serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("parent-dashboard:");
     revalidatePath("/documents");
     revalidatePath("/members");
     if (docData.memberId) {
@@ -1152,11 +1155,15 @@ export async function signAsPresidentAction(input: {
       action: "sign_document_request",
       targetCollection: "document_requests",
       targetId: input.requestId,
-      siteId: "bkgalabovo",
+      siteId: docSnap.data()?.siteId || "bkgalabovo",
       details: `Председателят подписа електронно документ: ${docSnap.data()?.documentTitle || input.requestId}`,
       userId: adminUser.uid,
       userEmail: adminUser.email || undefined,
     });
+
+    serverCache.invalidatePattern("parent-dashboard:");
+    revalidatePath("/club/parents");
+    revalidatePath("/parents");
 
     return {
       success: true,

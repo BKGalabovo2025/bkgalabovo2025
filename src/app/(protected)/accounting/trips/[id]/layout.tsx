@@ -65,7 +65,7 @@ async function getInitialTripData(id: string) {
           serializeFirestoreData({ id: d.id, ...d.data() })
         ) as TripExpense[];
       } catch {
-        expenses = await businessTripService.getExpensesByTrip(id);
+        expenses = await businessTripService.getExpensesByTrip(id, trip.siteId);
       }
 
       // Members

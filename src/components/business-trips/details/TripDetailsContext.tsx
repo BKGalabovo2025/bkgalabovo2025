@@ -49,7 +49,7 @@ export function TripDetailsProvider({
         await import("@/services/business-trip-service");
       const [freshTrip, freshExpenses] = await Promise.all([
         businessTripService.getTripById(trip.id),
-        businessTripService.getExpensesByTrip(trip.id),
+        businessTripService.getExpensesByTrip(trip.id, trip.siteId),
       ]);
       if (freshTrip) setTrip(freshTrip);
       setExpenses(freshExpenses);

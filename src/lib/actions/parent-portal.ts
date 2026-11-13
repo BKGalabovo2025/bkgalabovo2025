@@ -706,6 +706,8 @@ export async function approveParentAccessRequestAction(
     revalidatePath("/members");
     revalidatePath(`/members/${targetMemberId}`);
     revalidatePath("/parents");
+    serverCache.invalidatePattern("members:");
+    invalidateParentDashboardCache();
     invalidateAdminParentPortalCache();
     return { success: true };
   } catch (error) {
@@ -1148,6 +1150,7 @@ export async function resetParentPasswordByAdminAction(parentUserId: string) {
       data.linkedMemberIds.forEach((mId) => revalidatePath(`/members/${mId}`));
     }
     revalidatePath("/parents");
+    invalidateParentDashboardCache(parentUserId);
     invalidateAdminParentPortalCache();
 
     return {
@@ -2902,17 +2905,40 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
 
               if (selectedChildRaw.familyId) {
                 try {
-                  const famSalesSnap = await adminDb
-                    .collection("sales")
+                  const familyMemberIds = new Set<string>();
+                  for (const [mId, mData] of memberDocsMap.entries()) {
+                    if (
+                      mId !== activeChildId &&
+                      mData.familyId === selectedChildRaw.familyId
+                    ) {
+                      familyMemberIds.add(mId);
+                    }
+                  }
+                  const famMembersSnap = await adminDb
+                    .collection(MEMBERS_COLLECTION)
                     .where("familyId", "==", selectedChildRaw.familyId)
                     .get();
-                  for (const fd of famSalesSnap.docs) {
-                    if (!childSales.some((cs) => cs.id === fd.id)) {
-                      childSales.push({
-                        id: fd.id,
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        ...(fd.data() as Record<string, any>),
-                      });
+                  for (const fmDoc of famMembersSnap.docs) {
+                    if (fmDoc.id !== activeChildId) {
+                      familyMemberIds.add(fmDoc.id);
+                    }
+                  }
+
+                  const otherFamilyMemberIds = Array.from(familyMemberIds);
+                  for (let i = 0; i < otherFamilyMemberIds.length; i += 10) {
+                    const chunk = otherFamilyMemberIds.slice(i, i + 10);
+                    const famSalesSnap = await adminDb
+                      .collection("sales")
+                      .where("memberId", "in", chunk)
+                      .get();
+                    for (const fd of famSalesSnap.docs) {
+                      if (!childSales.some((cs) => cs.id === fd.id)) {
+                        childSales.push({
+                          id: fd.id,
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          ...(fd.data() as Record<string, any>),
+                        });
+                      }
                     }
                   }
                 } catch {
