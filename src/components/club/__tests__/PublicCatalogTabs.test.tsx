@@ -36,9 +36,9 @@ describe("PublicCatalogTabs", () => {
     expect(recoveryTab).toBeInTheDocument();
     expect(recoveryTab).toHaveAttribute("aria-current", "page");
     expect(recoveryTab).toHaveClass(
-      "bg-emerald-600",
+      "bg-emerald-700",
       "text-white",
-      "shadow-emerald-600/30"
+      "shadow-emerald-700/30"
     );
 
     expect(
@@ -52,7 +52,7 @@ describe("PublicCatalogTabs", () => {
     ).not.toBeInTheDocument();
 
     const ctaButton = screen.getByRole("button", { name: /Заяви час/i });
-    expect(ctaButton).toHaveClass("bg-emerald-600");
+    expect(ctaButton).toHaveClass("bg-emerald-700");
   });
 
   it("formats price suffixes for subscription billing periods and service units", () => {

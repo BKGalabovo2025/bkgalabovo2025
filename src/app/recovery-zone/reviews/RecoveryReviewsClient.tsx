@@ -129,7 +129,7 @@ function RecoveryReviewCardItem({ rev, index }: ReviewCardProps) {
 
             <Badge
               variant="outline"
-              className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+              className="border-emerald-500/30 bg-emerald-900/60 text-emerald-300 dark:bg-emerald-500/10 dark:text-emerald-400"
             >
               {rev.eventType === "recovery" ? (
                 <span className="flex items-center gap-1">

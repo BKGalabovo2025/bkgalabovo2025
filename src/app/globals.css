@@ -686,3 +686,14 @@ html:not(.dark)
   .text-zinc-300:not(.keep-dark, .keep-dark *) {
   color: #374151 !important;
 }
+
+/* Fix: avatar initials div — text-emerald-400 inside bg-emerald-500/10 circle */
+html:not(.dark) .public-portal-shell div.text-emerald-400 {
+  color: #065f46 !important;
+}
+
+/* Fix: active filter pills text-emerald-300 on bg-emerald-500/20 */
+html:not(.dark) .public-portal-shell .bg-emerald-500\/20.text-emerald-300,
+html:not(.dark) .public-portal-shell .bg-emerald-500\/20 .text-emerald-300 {
+  color: #064e3b !important;
+}
