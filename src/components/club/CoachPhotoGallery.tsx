@@ -23,6 +23,7 @@ import { Therapist } from "@/types/site.types";
 
 interface CoachPhotoGalleryProps {
   coach: Therapist;
+  galleryId?: string;
   className?: string;
   children?: React.ReactNode;
   priority?: boolean;
@@ -36,6 +37,7 @@ interface PhotoItem {
 
 export function CoachPhotoGallery({
   coach,
+  galleryId = "coach",
   className = "",
   children,
   priority = true,
@@ -99,28 +101,80 @@ export function CoachPhotoGallery({
   const visibleThumbs = additionalPhotos.slice(0, MAX_PREVIEW_THUMBS);
   const remainingCount = additionalPhotos.length - (MAX_PREVIEW_THUMBS - 1);
 
+  const syncLightboxUrl = useCallback(
+    (index: number | null) => {
+      if (typeof window === "undefined") return;
+      const url = new URL(window.location.href);
+      if (index === null) {
+        url.searchParams.delete("gallery");
+        url.searchParams.delete("photo");
+      } else {
+        url.searchParams.set("gallery", galleryId);
+        url.searchParams.set("photo", String(index));
+      }
+      window.history.replaceState(
+        window.history.state,
+        "",
+        url.pathname + (url.search ? url.search : "") + url.hash
+      );
+    },
+    [galleryId]
+  );
+
+  // Sync lightbox state from URL (?gallery=<galleryId>&photo=<index>) on mount & popstate
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlGallery = params.get("gallery");
+      const urlPhoto = params.get("photo");
+      if (urlGallery === galleryId && urlPhoto !== null) {
+        const parsed = Number.parseInt(urlPhoto, 10);
+        if (!Number.isNaN(parsed) && parsed >= 0 && parsed < allPhotos.length) {
+          setLightboxIndex(parsed);
+          return;
+        }
+      }
+      setLightboxIndex(null);
+    };
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, [galleryId, allPhotos.length]);
+
   // Keyboard navigation inside lightbox
   const isOpen = lightboxIndex !== null;
   const activeIndex = lightboxIndex ?? 0;
   const activePhoto = allPhotos[activeIndex] || allPhotos[0];
 
+  const handleOpenLightbox = useCallback(
+    (index: number) => {
+      setLightboxIndex(index);
+      syncLightboxUrl(index);
+    },
+    [syncLightboxUrl]
+  );
+
   const handlePrev = useCallback(() => {
-    setLightboxIndex((prev) => {
-      if (prev === null) return 0;
-      return prev === 0 ? allPhotos.length - 1 : prev - 1;
-    });
-  }, [allPhotos.length]);
+    if (allPhotos.length === 0) return;
+    const current = lightboxIndex ?? 0;
+    const nextIndex = current === 0 ? allPhotos.length - 1 : current - 1;
+    setLightboxIndex(nextIndex);
+    syncLightboxUrl(nextIndex);
+  }, [allPhotos.length, lightboxIndex, syncLightboxUrl]);
 
   const handleNext = useCallback(() => {
-    setLightboxIndex((prev) => {
-      if (prev === null) return 0;
-      return prev === allPhotos.length - 1 ? 0 : prev + 1;
-    });
-  }, [allPhotos.length]);
+    if (allPhotos.length === 0) return;
+    const current = lightboxIndex ?? 0;
+    const nextIndex = current === allPhotos.length - 1 ? 0 : current + 1;
+    setLightboxIndex(nextIndex);
+    syncLightboxUrl(nextIndex);
+  }, [allPhotos.length, lightboxIndex, syncLightboxUrl]);
 
   const handleClose = useCallback(() => {
     setLightboxIndex(null);
-  }, []);
+    syncLightboxUrl(null);
+  }, [syncLightboxUrl]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -148,10 +202,6 @@ export function CoachPhotoGallery({
     }
   }, [isOpen, activeIndex]);
 
-  const handleOpenLightbox = (index: number) => {
-    setLightboxIndex(index);
-  };
-
   return (
     <>
       <div
@@ -161,9 +211,18 @@ export function CoachPhotoGallery({
         <div className="relative mb-3 sm:mb-4">
           {primaryUrl ? (
             <div
+              role="button"
+              tabIndex={0}
+              aria-label={`Отвори галерията на ${coach.name}`}
               onClick={() => handleOpenLightbox(0)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleOpenLightbox(0);
+                }
+              }}
               title="Кликнете за преглед на цял екран"
-              className="group/avatar relative size-28 cursor-pointer overflow-hidden rounded-full border-2 border-zinc-800 bg-zinc-900 shadow-xl transition-all duration-300 hover:scale-105 hover:border-blue-500/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] sm:size-32"
+              className="group/avatar relative size-28 cursor-pointer overflow-hidden rounded-full border-2 border-zinc-800 bg-zinc-900 shadow-xl transition-all duration-300 hover:scale-105 hover:border-blue-500/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:size-32"
             >
               <Image
                 src={primaryUrl}
@@ -217,6 +276,11 @@ export function CoachPhotoGallery({
                     key={idx}
                     type="button"
                     onClick={() => handleOpenLightbox(targetIndex)}
+                    aria-label={
+                      isLastWithMore
+                        ? `Виж още ${remainingCount} снимки`
+                        : photo.caption || `Снимка ${targetIndex}`
+                    }
                     title={
                       isLastWithMore
                         ? `Виж още ${remainingCount} снимки`
@@ -321,6 +385,7 @@ export function CoachPhotoGallery({
               <button
                 type="button"
                 onClick={handleClose}
+                aria-label="Затвори галерията"
                 title="Затвори (Esc)"
                 className="flex size-9 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-all hover:scale-105 hover:bg-rose-600"
               >
@@ -382,7 +447,8 @@ export function CoachPhotoGallery({
                     <button
                       key={idx}
                       type="button"
-                      onClick={() => setLightboxIndex(idx)}
+                      onClick={() => handleOpenLightbox(idx)}
+                      aria-label={`Преглед на снимка ${idx + 1}`}
                       className={`relative size-14 shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 transition-all sm:size-16 ${
                         isActive
                           ? "scale-105 border-blue-500 opacity-100 shadow-[0_0_15px_rgba(59,130,246,0.6)] ring-2 ring-blue-500/50"

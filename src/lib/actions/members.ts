@@ -104,6 +104,7 @@ export async function createMemberAction(
 
     revalidatePath("/members");
     revalidatePath("/dashboard");
+    revalidatePath("/club/team");
     serverCache.invalidatePattern("members:");
 
     return {
@@ -250,6 +251,7 @@ export async function updateMemberAction(
     revalidatePath("/members");
     revalidatePath(`/members/${id}`);
     revalidatePath("/club/parents");
+    revalidatePath("/club/team");
     serverCache.invalidatePattern("members:");
     serverCache.invalidatePattern("parent-dashboard:");
 
@@ -334,6 +336,7 @@ export async function deleteMemberAction(
 
     revalidatePath("/members");
     revalidatePath("/club/parents");
+    revalidatePath("/club/team");
     serverCache.invalidatePattern("members:");
     serverCache.invalidatePattern("parent-dashboard:");
 
@@ -408,6 +411,7 @@ export async function bulkUpdateMemberStatusAction(
 
     revalidatePath("/members");
     revalidatePath("/club/parents");
+    revalidatePath("/club/team");
     serverCache.invalidatePattern("members:");
     serverCache.invalidatePattern("parent-dashboard:");
 
@@ -810,6 +814,7 @@ export async function uploadAdminMedicalCertificateAction(input: {
     revalidatePath(`/members/${input.memberId}`);
     revalidatePath("/members");
     revalidatePath("/club/parents");
+    revalidatePath("/club/team");
 
     return { success: true, fileUrl };
   } catch (error) {

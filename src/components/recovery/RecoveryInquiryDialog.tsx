@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import type { SiteSchedule } from "@/types/site.types";
 
 export interface RecoveryProcedureInfo {
   title: string;
@@ -51,6 +52,9 @@ interface RecoveryInquiryDialogProps {
   procedure?: RecoveryProcedureInfo | null;
   phone?: string;
   contraindications?: string[];
+  procedures?: Record<string, unknown>[];
+  schedule?: string | SiteSchedule | null;
+  eventLocation?: string;
 }
 
 export const recoveryCatalogGroups = [
@@ -93,25 +97,96 @@ const timeSlots = [
   "Вечер (18:00 - 21:00 ч.)",
 ];
 
+function formatScheduleLabel(schedule?: string | SiteSchedule | null): string {
+  if (typeof schedule === "string" && schedule.trim()) {
+    return schedule.trim();
+  }
+  if (schedule && typeof schedule === "object") {
+    const days = [
+      schedule.monday,
+      schedule.tuesday,
+      schedule.wednesday,
+      schedule.thursday,
+      schedule.friday,
+      schedule.saturday,
+      schedule.sunday,
+    ].filter((d) => d?.isOpen && d.open && d.close);
+    if (days.length > 0) {
+      const first = days[0];
+      const allSame = days.every(
+        (d) => d.open === first.open && d.close === first.close
+      );
+      if (allSame && days.length === 7) {
+        return `Понеделник - Неделя: ${first.open} - ${first.close} ч.`;
+      }
+      if (allSame) {
+        return `${first.open} - ${first.close} ч. (с предварително записване)`;
+      }
+    }
+  }
+  return "Понеделник - Неделя (с предварително записване)";
+}
+
 export function RecoveryInquiryDialog({
   isOpen,
   onClose,
   procedure,
   phone = "+359 899 82 99 23",
   contraindications,
+  procedures,
+  schedule,
+  eventLocation,
 }: RecoveryInquiryDialogProps) {
   // Use admin-configured contraindications if provided and non-empty, otherwise fall back to defaults
   const resolvedContraindications =
     contraindications && contraindications.length > 0
       ? contraindications
       : DEFAULT_CONTRAINDICATIONS;
+
+  const resolvedCatalogGroups = React.useMemo(() => {
+    if (!procedures || procedures.length === 0) {
+      return recoveryCatalogGroups;
+    }
+    const grouped = new Map<string, string[]>();
+    for (const item of procedures) {
+      const name =
+        typeof item.name === "string" && item.name.trim()
+          ? item.name.trim()
+          : typeof item.title === "string" && item.title.trim()
+            ? item.title.trim()
+            : "";
+      if (!name) continue;
+      const groupName =
+        typeof item.category === "string" && item.category.trim()
+          ? item.category.trim().toUpperCase()
+          : "ВЪЗСТАНОВИТЕЛНИ СЕСИИ";
+      const list = grouped.get(groupName) || [];
+      if (!list.includes(name)) {
+        list.push(name);
+      }
+      grouped.set(groupName, list);
+    }
+    if (grouped.size === 0) {
+      return recoveryCatalogGroups;
+    }
+    return Array.from(grouped.entries()).map(([group, items]) => ({
+      group,
+      items,
+    }));
+  }, [procedures]);
+
+  const resolvedProceduresList = React.useMemo(
+    () => resolvedCatalogGroups.flatMap((g) => g.items),
+    [resolvedCatalogGroups]
+  );
+
   const [mode, setMode] = useState<"form" | "phone">("form");
 
   // Form fields
   const [name, setName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [selectedProcedure, setSelectedProcedure] = useState(
-    procedure?.title || proceduresList[0]
+    procedure?.title || resolvedProceduresList[0] || proceduresList[0]
   );
   const [selectedGoal, setSelectedGoal] = useState(goalsList[0].label);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(timeSlots[2]);
@@ -127,12 +202,12 @@ export function RecoveryInquiryDialog({
   // Sync procedure when dialog opens with a specific procedure
   React.useEffect(() => {
     if (procedure?.title) {
-      const exactMatch = proceduresList.find(
+      const exactMatch = resolvedProceduresList.find(
         (p) => p.toLowerCase() === procedure.title.toLowerCase()
       );
       setSelectedProcedure(exactMatch || procedure.title);
     }
-  }, [procedure]);
+  }, [procedure, resolvedProceduresList]);
 
   const rawPhone = phone.replace(/\s+/g, "");
 
@@ -189,7 +264,8 @@ export function RecoveryInquiryDialog({
         preferredTimeSlot: selectedTimeSlot,
         notes: notes.trim() || null,
         siteId: "recoveryzone",
-        eventLocation: "Спортна зала „Енергетик“ - Recovery Zone by ZM",
+        eventLocation:
+          eventLocation || "Спортна зала „Енергетик“ - Recovery Zone by ZM",
       };
 
       const res = await fetch("/api/inquiries", {
@@ -220,7 +296,7 @@ export function RecoveryInquiryDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-emerald-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
+      <DialogContent className="public-portal-shell flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-emerald-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
         {/* Header decoration */}
         <div className="shrink-0 border-b border-zinc-800/80 bg-linear-to-br from-emerald-950/80 via-zinc-950 to-zinc-950 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 text-left">
           <div className="flex items-center gap-2">
@@ -237,6 +313,23 @@ export function RecoveryInquiryDialog({
             <DialogDescription className="mt-0.5 text-xs text-zinc-400">
               Изберете удобен начин за запазване на час и информация.
             </DialogDescription>
+            {procedure && (procedure.price || procedure.duration) && (
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                {procedure.price && (
+                  <span className="inline-flex items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-semibold text-emerald-300">
+                    Цена: {procedure.price}
+                  </span>
+                )}
+                {procedure.duration && (
+                  <span className="inline-flex items-center rounded-lg border border-zinc-700 bg-zinc-900/80 px-2.5 py-0.5 font-medium text-zinc-300">
+                    Продължителност:{" "}
+                    {/мин/i.test(procedure.duration)
+                      ? procedure.duration
+                      : `${procedure.duration} мин.`}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Mode Switcher */}
@@ -335,8 +428,7 @@ export function RecoveryInquiryDialog({
                     {phone}
                   </a>
                   <div className="mt-2 text-[11px] text-zinc-500">
-                    Работно време: Понеделник - Неделя (с предварително
-                    записване)
+                    Работно време: {formatScheduleLabel(schedule)}
                   </div>
                 </div>
 
@@ -373,16 +465,20 @@ export function RecoveryInquiryDialog({
 
                 {/* Procedure Selection */}
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300">
+                  <label
+                    htmlFor="recovery-inquiry-procedure"
+                    className="block text-xs font-semibold text-zinc-300"
+                  >
                     Изберете сесия / зона
                   </label>
                   <select
+                    id="recovery-inquiry-procedure"
                     value={selectedProcedure}
                     onChange={(e) => setSelectedProcedure(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
                   >
                     {selectedProcedure &&
-                      !proceduresList.includes(selectedProcedure) && (
+                      !resolvedProceduresList.includes(selectedProcedure) && (
                         <option
                           value={selectedProcedure}
                           className="bg-zinc-900 font-semibold text-emerald-300"
@@ -390,7 +486,7 @@ export function RecoveryInquiryDialog({
                           {selectedProcedure}
                         </option>
                       )}
-                    {recoveryCatalogGroups.map((group) => (
+                    {resolvedCatalogGroups.map((group) => (
                       <optgroup
                         key={group.group}
                         label={group.group}
@@ -414,7 +510,10 @@ export function RecoveryInquiryDialog({
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {/* Name */}
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-300">
+                    <label
+                      htmlFor="recovery-inquiry-name"
+                      className="block text-xs font-semibold text-zinc-300"
+                    >
                       Име и Фамилия <span className="text-rose-400">*</span>
                     </label>
                     <div className="relative mt-1">
@@ -423,6 +522,7 @@ export function RecoveryInquiryDialog({
                         className="absolute top-1/2 left-3.5 -translate-y-1/2 text-zinc-500"
                       />
                       <Input
+                        id="recovery-inquiry-name"
                         type="text"
                         required
                         placeholder="напр. Иван Иванов"
@@ -435,7 +535,10 @@ export function RecoveryInquiryDialog({
 
                   {/* Phone */}
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-300">
+                    <label
+                      htmlFor="recovery-inquiry-phone"
+                      className="block text-xs font-semibold text-zinc-300"
+                    >
                       Телефон за връзка <span className="text-rose-400">*</span>
                     </label>
                     <div className="relative mt-1">
@@ -444,6 +547,7 @@ export function RecoveryInquiryDialog({
                         className="absolute top-1/2 left-3.5 -translate-y-1/2 text-zinc-500"
                       />
                       <Input
+                        id="recovery-inquiry-phone"
                         type="tel"
                         required
                         placeholder="напр. 0899 123 456"
@@ -586,10 +690,14 @@ export function RecoveryInquiryDialog({
                 {/* Notes */}
                 {contraindicationsAcknowledged && (
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-300">
+                    <label
+                      htmlFor="recovery-inquiry-notes"
+                      className="block text-xs font-semibold text-zinc-300"
+                    >
                       Допълнителен въпрос или бележка (по желание)
                     </label>
                     <Textarea
+                      id="recovery-inquiry-notes"
                       placeholder="Ако имате специфични въпроси, предпочитана дата или здравословни особености..."
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}

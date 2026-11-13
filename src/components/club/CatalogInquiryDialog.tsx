@@ -8,7 +8,7 @@ import {
   Send,
   User,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,29 @@ export function CatalogInquiryDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const prevItemKeyRef = useRef<string | null>(null);
+
+  const resetForm = () => {
+    setName("");
+    setPhone("");
+    setTarget("self");
+    setChildAge("");
+    setNotes("");
+    setIsSuccess(false);
+    setErrorMessage(null);
+  };
+
+  useEffect(() => {
+    const currentKey = item ? `${item.id ?? ""}:${item.name}` : null;
+    if (
+      prevItemKeyRef.current !== null &&
+      currentKey !== null &&
+      prevItemKeyRef.current !== currentKey
+    ) {
+      resetForm();
+    }
+    prevItemKeyRef.current = currentKey;
+  }, [item]);
 
   if (!item) return null;
 
@@ -71,19 +94,18 @@ export function CatalogInquiryDialog({
       ? "Preferred date or additional questions..."
       : "Желани дни, часове или допълнителни въпроси...";
 
-  const resetForm = () => {
-    setName("");
-    setPhone("");
-    setTarget("self");
-    setChildAge("");
-    setNotes("");
-    setIsSuccess(false);
-    setErrorMessage(null);
-  };
-
-  const handleClose = () => {
+  const handleExplicitClose = () => {
     resetForm();
     onClose();
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      if (isSuccess) {
+        resetForm();
+      }
+      onClose();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,6 +172,11 @@ export function CatalogInquiryDialog({
         );
       }
 
+      setName("");
+      setPhone("");
+      setTarget("self");
+      setChildAge("");
+      setNotes("");
       setIsSuccess(true);
       toast.success(
         lang === "en"
@@ -170,8 +197,8 @@ export function CatalogInquiryDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-blue-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="public-portal-shell flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-lg md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-blue-500/30 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
         {/* Header */}
         <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 px-4 py-3 sm:px-5 sm:py-3.5 pr-10">
           <div className="flex items-center gap-2">
@@ -219,9 +246,10 @@ export function CatalogInquiryDialog({
               </p>
               <div className="mt-6 flex justify-center">
                 <Button
+                  type="button"
                   id="catalog-inquiry-success-close-btn"
                   name="catalog-inquiry-success-close-btn"
-                  onClick={handleClose}
+                  onClick={handleExplicitClose}
                   className="rounded-xl bg-blue-600 px-8 font-semibold text-white hover:bg-blue-500"
                 >
                   {lang === "en" ? "Close" : "Затвори"}
@@ -256,7 +284,7 @@ export function CatalogInquiryDialog({
                   placeholder={
                     lang === "en" ? "e.g. John Doe" : "напр. Иван Иванов"
                   }
-                  className="rounded-xl border-zinc-800 bg-zinc-900/60 text-sm text-white placeholder:text-zinc-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="rounded-xl border-zinc-800 bg-zinc-900/60 text-sm text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
 
@@ -279,7 +307,7 @@ export function CatalogInquiryDialog({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="0899 123 456"
-                  className="rounded-xl border-zinc-800 bg-zinc-900/60 text-sm text-white placeholder:text-zinc-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="rounded-xl border-zinc-800 bg-zinc-900/60 text-sm text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
 
@@ -335,7 +363,7 @@ export function CatalogInquiryDialog({
                         placeholder={
                           lang === "en" ? "e.g. 10 y.o." : "напр. 9 г."
                         }
-                        className="rounded-xl border-zinc-800 bg-zinc-900/60 text-sm text-white placeholder:text-zinc-600 focus:border-blue-500"
+                        className="rounded-xl border-zinc-800 bg-zinc-900/60 text-sm text-white placeholder:text-zinc-500 focus:border-blue-500"
                       />
                     </div>
                   )}
@@ -366,7 +394,7 @@ export function CatalogInquiryDialog({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder={defaultNotePlaceholder}
-                  className="resize-none rounded-xl border-zinc-800 bg-zinc-900/60 text-sm text-white placeholder:text-zinc-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="resize-none rounded-xl border-zinc-800 bg-zinc-900/60 text-sm text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
 

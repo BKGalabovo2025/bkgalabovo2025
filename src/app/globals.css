@@ -382,3 +382,143 @@ html.translated-ltr .lang-bg {
 html.translated-ltr .lang-en {
   display: inline-block !important;
 }
+
+/* --- Public Portals Light Mode Support --- */
+html:not(.dark) .public-portal-shell {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) .public-portal-shell nav.fixed,
+html:not(.dark) .public-portal-shell header.sticky {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(
+    .bg-zinc-950,
+    .bg-black,
+    .bg-black\/40,
+    .bg-black\/60,
+    .bg-black\/70,
+    .bg-black\/80,
+    .bg-black\/90,
+    .bg-black\/95,
+    .bg-zinc-950\/50,
+    .bg-zinc-950\/60,
+    .bg-zinc-950\/70,
+    .bg-zinc-950\/80,
+    .bg-zinc-950\/90
+  ):not(.keep-dark, .keep-dark *) {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(
+    .bg-zinc-900,
+    .bg-zinc-900\/95,
+    .bg-zinc-900\/90,
+    .bg-zinc-900\/80,
+    .bg-zinc-900\/70,
+    .bg-zinc-900\/60,
+    .bg-zinc-900\/50,
+    .bg-zinc-900\/40,
+    .bg-zinc-900\/30,
+    .bg-zinc-800,
+    .bg-zinc-800\/80,
+    .bg-zinc-800\/50
+  ):not(.keep-dark, .keep-dark *) {
+  background-color: #fff !important;
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06);
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(
+    [class*="via-zinc-900"],
+    [class*="via-black"],
+    [class*="to-zinc-950"]
+  ):not(.keep-dark, .keep-dark *) {
+  background-image: none !important;
+  background-color: #fff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06);
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(.bg-white\/5, .bg-white\/10):not(.keep-dark, .keep-dark *) {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(
+    .border-zinc-900,
+    .border-zinc-800,
+    .border-zinc-800\/80,
+    .border-zinc-800\/60,
+    .border-zinc-700,
+    .border-white\/10,
+    .border-white\/15,
+    .border-white\/20
+  ):not(.keep-dark, .keep-dark *) {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(.text-white, .text-zinc-100, .text-zinc-200):not(
+    .keep-dark,
+    .keep-dark *,
+    [class*="bg-blue-600"],
+    [class*="bg-blue-700"],
+    [class*="bg-emerald-600"],
+    [class*="bg-emerald-700"],
+    [class*="bg-emerald-500"],
+    [class*="bg-purple-600"],
+    [class*="bg-rose-500"],
+    [class*="from-blue-600"]
+  ) {
+  color: #0f172a !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  :is(.text-zinc-300, .text-zinc-400):not(.keep-dark, .keep-dark *) {
+  color: #475569 !important;
+}
+
+html:not(.dark)
+  .public-portal-shell
+  .text-zinc-500:not(.keep-dark, .keep-dark *) {
+  color: #64748b !important;
+}
+
+html:not(.dark) .public-portal-shell .text-blue-400 {
+  color: #2563eb !important;
+}
+
+html:not(.dark) .public-portal-shell .text-blue-300 {
+  color: #1d4ed8 !important;
+}
+
+html:not(.dark) .public-portal-shell .text-emerald-400 {
+  color: #059669 !important;
+}
+
+html:not(.dark) .public-portal-shell .text-emerald-300 {
+  color: #047857 !important;
+}
+
+html:not(.dark) .public-portal-shell .text-amber-400 {
+  color: #d97706 !important;
+}
+
+html:not(.dark) .public-portal-shell .bg-white\/15:not(.keep-dark) {
+  background-color: rgba(15, 23, 42, 0.15) !important;
+}

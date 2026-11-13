@@ -3,10 +3,19 @@ import "server-only";
 
 import { format, getYear } from "date-fns";
 import { bg } from "date-fns/locale";
+import { revalidatePath } from "next/cache";
 
-import { getAuthUser } from "@/lib/auth-utils";
+import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
 import { Attendee } from "@/types";
+
+function invalidateClubScheduleCaches() {
+  serverCache.invalidate("club:public-data");
+  revalidatePath("/club");
+  revalidatePath("/club/schedule");
+  revalidatePath("/club/team");
+}
 
 async function findMatchingSaleForAttendee(
   db: import("firebase-admin/firestore").Firestore,
@@ -74,7 +83,7 @@ export async function updateAttendeesAction(
   attendees: Attendee[]
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
 
     // Fetch the event to get its date
@@ -163,6 +172,7 @@ export async function updateAttendeesAction(
       attendeeMemberIds,
     });
 
+    invalidateClubScheduleCaches();
     return { success: true, updatedAttendees };
   } catch (error) {
     console.error("Error in updateAttendeesAction:", error);
@@ -226,12 +236,13 @@ export async function createEventAction(
   eventData: Record<string, unknown>
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
     const ref = await db.collection("events").add({
       ...eventData,
       createdAt: new Date().toISOString(),
     });
+    invalidateClubScheduleCaches();
     return {
       success: true,
       id: ref.id,
@@ -252,7 +263,7 @@ export async function updateEventAction(
   eventData: Record<string, unknown>
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
     await db
       .collection("events")
@@ -261,6 +272,7 @@ export async function updateEventAction(
         ...eventData,
         updatedAt: new Date().toISOString(),
       });
+    invalidateClubScheduleCaches();
     return { success: true, message: "Събитието е обновено успешно." };
   } catch (err) {
     console.error("updateEventAction Error:", err);
@@ -270,9 +282,10 @@ export async function updateEventAction(
 
 export async function deleteEventAction(idToken: string, eventId: string) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
     await db.collection("events").doc(eventId).delete();
+    invalidateClubScheduleCaches();
     return { success: true, message: "Събитието е изтрито успешно." };
   } catch (err) {
     console.error("deleteEventAction Error:", err);

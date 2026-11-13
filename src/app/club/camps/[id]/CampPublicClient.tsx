@@ -173,14 +173,16 @@ export default function CampPublicClient({
   const days: PublicCampDay[] = [];
   let current = start;
   let dayIndex = 1;
-  while ((current <= end || isSameDay(current, end)) && dayIndex < 30) {
-    days.push({
-      date: current,
-      dateStr: format(current, "yyyy-MM-dd"),
-      label: `Ден ${dayIndex}`,
-    });
-    current = addDays(current, 1);
-    dayIndex++;
+  if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+    while (current <= end || isSameDay(current, end)) {
+      days.push({
+        date: current,
+        dateStr: format(current, "yyyy-MM-dd"),
+        label: `Ден ${dayIndex}`,
+      });
+      current = addDays(current, 1);
+      dayIndex++;
+    }
   }
 
   const todayDate = startOfDay(new Date());
@@ -313,6 +315,7 @@ export default function CampPublicClient({
 
           return (
             <button
+              type="button"
               key={day.dateStr}
               onClick={() => setSelectedDateStr(day.dateStr)}
               className={cn(
@@ -340,7 +343,7 @@ export default function CampPublicClient({
                 )}
                 {isCurrentDay && !showNewIndicator && (
                   <span
-                    className="inline-flex items-center rounded-xs bg-amber-500 px-1 py-0.5 text-[8px] font-black text-white uppercase"
+                    className="inline-flex items-center rounded-xs bg-amber-500 px-1 py-0.5 text-[8px] font-black text-zinc-950 uppercase"
                     title="Текущ ден (Днес)"
                   >
                     Днес
@@ -488,7 +491,7 @@ export default function CampPublicClient({
             </p>
           </div>
         ) : (
-          <div className="relative space-y-3.5 before:absolute before:inset-y-3 before:left-[47px] before:w-0.5 before:bg-zinc-800 sm:before:left-[51px]">
+          <div className="relative space-y-3.5 before:absolute before:inset-y-3 before:left-[62px] before:w-0.5 before:-translate-x-1/2 before:bg-zinc-800 sm:before:left-18">
             {currentSessions.map((session) => {
               const Icon = sessionTypeIcons[session.type] || Map;
               const colors =

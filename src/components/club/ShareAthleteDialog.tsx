@@ -4,16 +4,17 @@ import {
   Check,
   Copy,
   Download,
+  ExternalLink,
   GraduationCap,
   Loader2,
   Medal,
   MessageCircle,
-  QrCode,
   Share2,
   Trophy,
   User as UserIcon,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -46,8 +48,9 @@ export function getValidImageSrc(src: string | undefined | null) {
     cleanSrc.startsWith("http://") ||
     cleanSrc.startsWith("https://") ||
     cleanSrc.startsWith("/")
-  )
+  ) {
     return cleanSrc;
+  }
   return `/${cleanSrc}`;
 }
 
@@ -61,14 +64,13 @@ export function ShareAthleteDialog({
   const [isGeneratingPost, setIsGeneratingPost] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
 
-  const memberQuery = member ? `?athlete=${member.id}` : "";
+  const profilePath = member ? `/club/team?athlete=${member.id}` : "/club/team";
   const baseUrl =
     typeof window !== "undefined"
       ? window.location.origin
       : "https://bkgalabovo2025.vercel.app";
-  const shareUrl = `${baseUrl}/club/team${memberQuery}`;
+  const shareUrl = `${baseUrl}${profilePath}`;
 
-  // Generate QR code when member changes
   useEffect(() => {
     if (!member) {
       setQrCodeDataUrl("");
@@ -78,9 +80,9 @@ export function ShareAthleteDialog({
     let isMounted = true;
     QRCode.toDataURL(shareUrl, {
       margin: 1,
-      width: 180,
+      width: 160,
       color: {
-        dark: "#090d16",
+        dark: "#0f172a",
         light: "#ffffff",
       },
     })
@@ -109,22 +111,40 @@ export function ShareAthleteDialog({
     [member.firstName, member.lastName].filter(Boolean).join(" ") ||
     "Състезател";
 
-  const shareTitle = `Дигитална карта на ${athleteName} | Бадминтон клуб Гълъбово`;
-  const shareText = `Вижте профила и турнирните участия на ${athleteName} (${levelText}, ${ageGroup}) в СНЦ Бадминтон Клуб Гълъбово! 🏸🏆`;
+  const shareTitle = `${athleteName} | Бадминтон клуб Гълъбово`;
+  const shareText = `Профил и турнирни участия на ${athleteName} (${levelText}, ${ageGroup}) в БК Гълъбово`;
 
-  // 1. Copy Link
-  const handleCopyLink = async () => {
+  const copyToClipboard = async (silent = false) => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = shareUrl;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+        const success = document.execCommand("copy");
+        document.body.removeChild(textArea);
+        if (!success) {
+          throw new Error("Copy command failed");
+        }
+      }
       setCopied(true);
-      toast.success("Връзката към профила е копирана!");
+      if (!silent) {
+        toast.success("Връзката към профила е копирана!");
+      }
       setTimeout(() => setCopied(false), 2500);
+      return true;
     } catch {
-      toast.error("Неуспешно копиране на връзката");
+      if (!silent) {
+        toast.error("Неуспешно копиране на връзката.");
+      }
+      return false;
     }
   };
 
-  // 2. Facebook Share
   const handleShareFacebook = () => {
     const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
       shareUrl
@@ -132,19 +152,6 @@ export function ShareAthleteDialog({
     window.open(fbUrl, "_blank", "width=600,height=500,noopener,noreferrer");
   };
 
-  // 3. Viber Share
-  const handleShareViber = () => {
-    const viberUrl = `viber://forward?text=${encodeURIComponent(
-      `${shareText}\n${shareUrl}`
-    )}`;
-    try {
-      window.location.href = viberUrl;
-    } catch {
-      handleCopyLink();
-    }
-  };
-
-  // 4. WhatsApp Share
   const handleShareWhatsApp = () => {
     const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
       `${shareText} ${shareUrl}`
@@ -152,7 +159,33 @@ export function ShareAthleteDialog({
     window.open(waUrl, "_blank", "noopener,noreferrer");
   };
 
-  // 5. Download Branded Card for Instagram (Story / Post)
+  const handleShareViber = async () => {
+    await copyToClipboard(true);
+    const viberUrl = `viber://forward?text=${encodeURIComponent(
+      `${shareText}\n${shareUrl}`
+    )}`;
+    window.open(viberUrl, "_blank", "noopener,noreferrer");
+    toast.success("Връзката е копирана и готова за Viber.");
+  };
+
+  const handleNativeShare = async () => {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        if ((err as Error)?.name !== "AbortError") {
+          await copyToClipboard();
+        }
+      }
+    } else {
+      await copyToClipboard();
+    }
+  };
+
   const handleDownloadCard = async (format: CardFormat) => {
     const isStory = format === "story";
     if (isStory) setIsGeneratingStory(true);
@@ -166,7 +199,6 @@ export function ShareAthleteDialog({
         .toLowerCase()
         .replace(/\s+/g, "-");
 
-      // Check if mobile device supports native file share directly into Instagram/apps
       const file = new File([blob], filename, { type: "image/png" });
       if (
         typeof navigator !== "undefined" &&
@@ -182,14 +214,12 @@ export function ShareAthleteDialog({
           toast.success("Картичката е готова за споделяне!");
           return;
         } catch (shareErr) {
-          // If user cancelled or failed, fall back to file download
           if ((shareErr as Error)?.name !== "AbortError") {
             console.warn("Native file share fallback to download:", shareErr);
           }
         }
       }
 
-      // Download file to device
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = downloadUrl;
@@ -201,299 +231,228 @@ export function ShareAthleteDialog({
 
       toast.success(
         isStory
-          ? "Картичката за Instagram Story е свалена с Ultra-HD качество!"
-          : "Картичката за Instagram Post е свалена с Ultra-HD качество!"
+          ? "Картичката за IG Story (9:16) е изтеглена!"
+          : "Картичката за IG Пост (1:1) е изтеглена!"
       );
     } catch (err) {
       console.error("Error generating athlete card:", err);
-      toast.error("Възникна грешка при генерирането на картичката.");
+      toast.error("Грешка при генерирането на картичката.");
     } finally {
       setIsGeneratingStory(false);
       setIsGeneratingPost(false);
     }
   };
 
-  // 6. Generic Mobile Share
-  const handleNativeShare = async () => {
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({
-          title: shareTitle,
-          text: shareText,
-          url: shareUrl,
-        });
-      } catch (err) {
-        if ((err as Error)?.name !== "AbortError") {
-          toast.error("Неуспешно споделяне");
-        }
-      }
-    } else {
-      handleCopyLink();
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-blue-500/20 bg-zinc-950 p-0 text-white shadow-2xl backdrop-blur-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
-        <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 text-left space-y-0.5">
-          <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-blue-400 uppercase">
+      <DialogContent className="flex max-h-[90dvh] w-[calc(100%-1.5rem)] flex-col gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 text-slate-900 shadow-2xl sm:max-w-lg dark:border-zinc-800 dark:bg-zinc-950 dark:text-white [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:rounded-full [&>button:last-child]:p-1.5 [&>button:last-child]:text-slate-500 [&>button:last-child]:hover:bg-slate-100 [&>button:last-child]:hover:text-slate-900 dark:[&>button:last-child]:text-zinc-400 dark:[&>button:last-child]:hover:bg-zinc-800 dark:[&>button:last-child]:hover:text-white">
+        {/* Header */}
+        <DialogHeader className="shrink-0 border-b border-slate-200 bg-slate-50/80 px-5 py-4 pr-12 text-left dark:border-zinc-800 dark:bg-zinc-900/60">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-blue-600 uppercase dark:text-blue-400">
             <Share2 className="size-3.5" />
-            <span>Официална карта за споделяне</span>
+            <span>Споделяне на профил</span>
           </div>
-          <DialogTitle className="text-base sm:text-lg font-bold text-white">
-            Сподели{" "}
-            <span className="font-semibold text-blue-400">{athleteName}</span>
+          <DialogTitle className="mt-1 text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+            {athleteName}
           </DialogTitle>
-          <DialogDescription className="text-xs text-zinc-400">
-            Изтеглете или споделете профила на състезателя във Facebook,
-            Instagram, Viber или WhatsApp.
+          <DialogDescription className="text-xs text-slate-500 dark:text-zinc-400">
+            Директен публичен URL и брандирана картичка на състезателя
           </DialogDescription>
-        </div>
+        </DialogHeader>
 
-        <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3.5 min-h-0">
-          {/* 🏸 Digital Card Preview */}
-          <div className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-linear-to-b from-blue-950/40 via-zinc-900/60 to-black p-4 sm:p-5 shadow-[0_0_40px_rgba(30,58,138,0.2)]">
-            <div className="pointer-events-none absolute -top-12 -right-12 size-48 rounded-full bg-blue-500/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-12 -left-12 size-48 rounded-full bg-blue-600/10 blur-3xl" />
-
-            {/* Card Top Brand */}
-            <div className="relative mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="relative size-10 overflow-hidden rounded-xl border border-blue-500/30 bg-blue-950/60 p-1">
-                  <Image
-                    src="/icons/badge-option-3-light-squircle.png"
-                    alt="Бадминтон клуб Гълъбово"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-                <div>
-                  <p className="text-xs font-bold tracking-wider text-white uppercase">
-                    Бадминтон клуб Гълъбово
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-[11px] font-semibold text-blue-300">
-                {ageGroup}
-              </div>
-            </div>
-
-            {/* Athlete Avatar & Main Details */}
-            <div className="relative flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
-              <div className="relative size-28 shrink-0 overflow-hidden rounded-2xl border-2 border-blue-500/40 bg-zinc-900 shadow-xl shadow-blue-950/50 sm:size-32">
-                {member.avatarUrl ? (
-                  <Image
-                    src={getValidImageSrc(member.avatarUrl)}
-                    alt={member.name}
-                    fill
-                    unoptimized
-                    priority
-                    loading="eager"
-                    sizes="128px"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center bg-zinc-900 text-zinc-700">
-                    <UserIcon className="size-14" />
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 space-y-2">
-                <h3 className="text-2xl font-bold tracking-tight text-white">
-                  {member.name}
-                </h3>
-
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
-                      isCompetitor
-                        ? "border border-blue-500/30 bg-blue-500/20 text-blue-300"
-                        : "border border-emerald-500/30 bg-emerald-500/20 text-emerald-300"
-                    }`}
-                  >
-                    <Medal className="size-3.5" />
-                    {levelText}
-                  </span>
-
-                  <span className="inline-flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/80 px-2.5 py-1 text-xs text-zinc-300">
-                    Група: {ageGroup}
-                  </span>
-                </div>
-
-                {/* School / Kindergarten */}
-                {member.educationInstitution && (
-                  <div className="flex items-start justify-center gap-1.5 text-xs text-zinc-400 sm:justify-start">
-                    <GraduationCap className="mt-0.5 size-4 shrink-0 text-blue-400" />
-                    <span className="font-medium text-zinc-300 leading-snug wrap-break-word">
-                      {member.educationInstitution}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Tournaments List Section */}
-            <div className="mt-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="flex items-center gap-1.5 text-xs font-bold tracking-wider text-blue-400 uppercase">
-                  <Trophy className="size-3.5" />
-                  Участия в Турнири ({tournaments.length})
-                </p>
-                {tournaments.length > 0 && (
-                  <span className="text-[11px] text-zinc-500">
-                    Пълен списък
-                  </span>
-                )}
-              </div>
-
-              {tournaments.length === 0 ? (
-                <p className="py-2 text-center text-xs text-zinc-500 italic">
-                  В момента състезателят се подготвя за предстоящи турнири.
-                </p>
+        {/* Body */}
+        <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-5">
+          {/* 1. Compact Profile Summary + QR */}
+          <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+            <div className="relative size-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800">
+              {member.avatarUrl ? (
+                <Image
+                  src={getValidImageSrc(member.avatarUrl)}
+                  alt={athleteName}
+                  fill
+                  unoptimized
+                  sizes="64px"
+                  className="object-cover"
+                />
               ) : (
-                <div className="max-h-48 space-y-1.5 overflow-y-auto pr-1">
-                  {tournaments.map((t, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-2 rounded-lg bg-zinc-900/50 px-2.5 py-1.5 text-xs text-zinc-300"
-                    >
-                      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-blue-500" />
-                      <span className="leading-snug wrap-break-word">{t}</span>
-                    </div>
-                  ))}
+                <div className="flex size-full items-center justify-center text-slate-400 dark:text-zinc-500">
+                  <UserIcon className="size-7" />
                 </div>
               )}
             </div>
 
-            {/* Live QR Code preview */}
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+                    isCompetitor
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
+                      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                  }`}
+                >
+                  <Medal className="size-3" />
+                  {levelText}
+                </span>
+                <span className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                  {ageGroup}
+                </span>
+              </div>
+
+              {member.educationInstitution && (
+                <p className="flex items-center gap-1.5 truncate text-xs text-slate-600 dark:text-zinc-400">
+                  <GraduationCap className="size-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
+                  <span className="truncate">
+                    {member.educationInstitution}
+                  </span>
+                </p>
+              )}
+            </div>
+
             {qrCodeDataUrl && (
-              <div className="mt-4 flex items-center justify-between rounded-2xl border border-blue-500/20 bg-blue-950/20 p-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-white dark:bg-zinc-100 p-1">
-                    <Image
-                      src={qrCodeDataUrl}
-                      alt="QR Код"
-                      fill
-                      unoptimized
-                      className="object-contain"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-white">
-                      Директен достъп до профила
-                    </p>
-                    <p className="text-[11px] text-zinc-400">
-                      Сканирайте с телефон за пълни данни
-                    </p>
-                  </div>
-                </div>
-                <QrCode className="size-5 text-blue-400" />
+              <div
+                className="relative size-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-xs dark:border-zinc-700"
+                title="QR код към профила"
+              >
+                <Image
+                  src={qrCodeDataUrl}
+                  alt="QR код"
+                  fill
+                  unoptimized
+                  className="object-contain"
+                />
               </div>
             )}
           </div>
 
-          {/* 📲 Social Share Actions */}
-          <div className="space-y-4 pt-2">
-            <p className="text-xs font-bold tracking-widest text-zinc-400 uppercase">
-              Изберете платформа за споделяне
+          {/* 2. Tournaments Summary */}
+          <div className="rounded-xl border border-slate-200 bg-white p-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="flex items-center gap-1.5 text-xs font-bold tracking-wider text-blue-600 uppercase dark:text-blue-400">
+                <Trophy className="size-3.5" />
+                <span>Участия в Турнири ({tournaments.length})</span>
+              </p>
+            </div>
+            {tournaments.length === 0 ? (
+              <p className="text-xs text-slate-500 italic dark:text-zinc-500">
+                Предстоящи участия в турнири.
+              </p>
+            ) : (
+              <div className="max-h-32 space-y-1 overflow-y-auto pr-1">
+                {tournaments.map((t, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs text-slate-700 dark:bg-zinc-900 dark:text-zinc-300"
+                  >
+                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-blue-500" />
+                    <span className="leading-snug wrap-break-word">{t}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 3. Direct URL Bar */}
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-bold tracking-wider text-slate-500 uppercase dark:text-zinc-400">
+              Директен URL адрес
             </p>
-
-            {/* Main 1-Click Platforms */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {/* Facebook */}
+            <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1 truncate rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                {profilePath}
+              </div>
               <button
+                type="button"
+                onClick={() => copyToClipboard(false)}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                {copied ? (
+                  <Check className="size-3.5" />
+                ) : (
+                  <Copy className="size-3.5" />
+                )}
+                <span>{copied ? "Копирано" : "Копирай директен линк"}</span>
+              </button>
+              <Link
+                href={profilePath}
+                onClick={() => onOpenChange(false)}
+                title="Отвори URL страницата"
+                className="inline-flex size-8.5 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                <ExternalLink className="size-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* 4. Share & Download Actions */}
+          <div className="space-y-2.5 border-t border-slate-200 pt-3 dark:border-zinc-800">
+            <div className="grid grid-cols-4 gap-2">
+              <button
+                type="button"
                 onClick={handleShareFacebook}
-                className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-blue-600/30 bg-blue-600/10 p-3.5 text-blue-400 transition-all hover:bg-blue-600/20 hover:text-white"
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 text-slate-700 transition-colors hover:border-blue-500/40 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:bg-blue-950/40 dark:hover:text-blue-300"
               >
-                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/30">
-                  <FacebookIcon size={20} />
-                </div>
-                <span className="text-xs font-semibold">Facebook</span>
+                <FacebookIcon size={18} />
+                <span className="text-[11px] font-semibold">Facebook</span>
               </button>
 
-              {/* Instagram Story HD */}
               <button
-                onClick={() => handleDownloadCard("story")}
-                disabled={isGeneratingStory}
-                className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-pink-500/30 bg-pink-500/10 p-3.5 text-pink-400 transition-all hover:bg-pink-500/20 hover:text-white disabled:opacity-50"
-              >
-                <div className="flex size-10 items-center justify-center rounded-xl bg-linear-to-tr from-amber-500 via-pink-600 to-purple-600 text-white shadow-lg shadow-pink-600/30">
-                  {isGeneratingStory ? (
-                    <Loader2 className="size-5 animate-spin" />
-                  ) : (
-                    <InstagramIcon size={20} />
-                  )}
-                </div>
-                <span className="text-xs font-semibold">IG Story</span>
-              </button>
-
-              {/* Viber */}
-              <button
-                onClick={handleShareViber}
-                className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-purple-600/30 bg-purple-600/10 p-3.5 text-purple-400 transition-all hover:bg-purple-600/20 hover:text-white"
-              >
-                <div className="flex size-10 items-center justify-center rounded-xl bg-purple-600 text-white shadow-lg shadow-purple-600/30">
-                  <MessageCircle className="size-5" />
-                </div>
-                <span className="text-xs font-semibold">Viber</span>
-              </button>
-
-              {/* WhatsApp */}
-              <button
+                type="button"
                 onClick={handleShareWhatsApp}
-                className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-emerald-600/30 bg-emerald-600/10 p-3.5 text-emerald-400 transition-all hover:bg-emerald-600/20 hover:text-white"
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 text-slate-700 transition-colors hover:border-emerald-500/40 hover:bg-emerald-50 hover:text-emerald-700 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300"
               >
-                <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-                  <MessageCircle className="size-5" />
-                </div>
-                <span className="text-xs font-semibold">WhatsApp</span>
+                <MessageCircle className="size-4.5" />
+                <span className="text-[11px] font-semibold">WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleShareViber}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 text-slate-700 transition-colors hover:border-purple-500/40 hover:bg-purple-50 hover:text-purple-700 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:bg-purple-950/40 dark:hover:text-purple-300"
+              >
+                <MessageCircle className="size-4.5" />
+                <span className="text-[11px] font-semibold">Viber</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNativeShare}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                <Share2 className="size-4.5" />
+                <span className="text-[11px] font-semibold">Още</span>
               </button>
             </div>
 
-            {/* Secondary Actions: Instagram Post & Copy Link */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => handleDownloadCard("square")}
-                disabled={isGeneratingPost}
-                className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3 text-xs font-medium text-zinc-200 transition-all hover:border-zinc-700 hover:bg-zinc-800 disabled:opacity-50"
+                type="button"
+                onClick={() => handleDownloadCard("story")}
+                disabled={isGeneratingStory}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
-                {isGeneratingPost ? (
-                  <Loader2 className="size-4 animate-spin text-pink-400" />
+                {isGeneratingStory ? (
+                  <Loader2 className="size-3.5 animate-spin text-pink-500" />
                 ) : (
-                  <Download className="size-4 text-pink-400" />
+                  <InstagramIcon size={14} />
                 )}
-                <span>Свали за IG Пост (1:1 HD)</span>
+                <span>IG Story (9:16)</span>
               </button>
 
               <button
-                onClick={handleCopyLink}
-                className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3 text-xs font-medium text-zinc-200 transition-all hover:border-zinc-700 hover:bg-zinc-800"
+                type="button"
+                onClick={() => handleDownloadCard("square")}
+                disabled={isGeneratingPost}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
-                {copied ? (
-                  <Check className="size-4 text-emerald-400" />
+                {isGeneratingPost ? (
+                  <Loader2 className="size-3.5 animate-spin text-pink-500" />
                 ) : (
-                  <Copy className="size-4 text-blue-400" />
+                  <Download className="size-3.5 text-pink-500" />
                 )}
-                <span>
-                  {copied ? "Копирано в клипборда!" : "Копирай директен линк"}
-                </span>
+                <span>IG Пост (1:1)</span>
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Native Mobile Share Sticky Footer */}
-        <div className="shrink-0 border-t border-zinc-800/80 bg-zinc-900/60 px-4 py-2.5 sm:px-5 sm:py-3">
-          <button
-            onClick={handleNativeShare}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-500 py-2.5 text-xs font-semibold text-white shadow-lg shadow-blue-600/30 transition-all hover:from-blue-500 hover:to-blue-400 active:scale-95 cursor-pointer"
-          >
-            <Share2 className="size-4" />
-            <span>Сподели през мобилно устройство</span>
-          </button>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,16 +1,46 @@
-import { ArrowLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
 
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
-import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
+import { PublicFooter } from "@/components/layout/public-footer";
+import { PublicNav } from "@/components/layout/public-nav";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
+import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 
 export const metadata: Metadata = {
   title: "Каталог | БК Гълъбово",
-  description: "Разгледайте нашите тренировки, услуги и продукти.",
+  description:
+    "Разгледайте нашите тренировки, клубни услуги, възстановяване и спортна екипировка.",
+  alternates: {
+    canonical: "/club/catalog",
+  },
+  openGraph: {
+    title: "Каталог | БК Гълъбово",
+    description:
+      "Разгледайте нашите тренировки, клубни услуги, възстановяване и спортна екипировка.",
+    url: "https://bkgalabovo2025.vercel.app/club/catalog",
+    siteName: "БК Гълъбово",
+    images: [
+      {
+        url: "https://bkgalabovo2025.vercel.app/bk-hero.webp",
+        width: 1200,
+        height: 630,
+        alt: "Каталог на БК Гълъбово",
+      },
+    ],
+    locale: "bg_BG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Каталог | БК Гълъбово",
+    description:
+      "Разгледайте нашите тренировки, клубни услуги, възстановяване и спортна екипировка.",
+    images: ["https://bkgalabovo2025.vercel.app/bk-hero.webp"],
+  },
 };
 
 export const revalidate = 60;
@@ -76,14 +106,18 @@ const getCachedCollection = unstable_cache(
 );
 
 export default async function CatalogPage() {
-  const [servicesRaw, generalRaw, productsRaw, recoveryRaw] = await Promise.all(
-    [
+  const [servicesRaw, generalRaw, productsRaw, recoveryRaw, clubSite] =
+    await Promise.all([
       getCachedCollection("clubServices"),
       getCachedCollection("clubGeneralServices"),
       getCachedCollection("products"),
       getCachedCollection("sessions"),
-    ]
-  );
+      serverCache.get(
+        "site:bkgalabovo",
+        () => getSiteByIdAdmin("bkgalabovo"),
+        300_000
+      ),
+    ]);
 
   const services = servicesRaw.filter(
     (item) => !item.siteId || item.siteId === "bkgalabovo"
@@ -97,64 +131,73 @@ export default async function CatalogPage() {
     (item) => !item.siteId || item.siteId === "bkgalabovo"
   );
 
-  const recoveryServices = recoveryRaw.map((item) => ({
-    ...item,
-    price:
-      typeof item.price === "number" ? item.price : Number(item.price) || 0,
-    durationMinutes: item.durationMinutes ?? item.duration ?? 0,
-  }));
+  const recoveryServices = recoveryRaw
+    .filter((item) => item.isActive !== false)
+    .map((item) => ({
+      ...item,
+      price:
+        typeof item.price === "number" ? item.price : Number(item.price) || 0,
+      durationMinutes: item.durationMinutes ?? item.duration ?? 0,
+    }));
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Nav */}
-      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-400/30 bg-black/85 px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 backdrop-blur-md">
-        <Link
-          href="/club"
-          className="flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-blue-400 hover:drop-shadow-[0_0_8px_rgba(30,58,138,0.8)]"
-        >
-          <ArrowLeft size={16} />
-          Назад към клуба
-        </Link>
-        <span className="text-sm font-medium tracking-widest text-blue-400 uppercase drop-shadow-[0_0_8px_rgba(30,58,138,0.3)]">
-          Каталог
-        </span>
-        <div className="flex items-center gap-4">
-          <GoogleTranslateWidget />
-        </div>
-      </nav>
+    <div className="public-portal-shell min-h-screen overflow-x-hidden bg-zinc-950 text-white">
+      <PublicNav clubSite={clubSite} />
 
-      {/* Hero / Header */}
-      <div className="relative overflow-hidden px-4 pt-20 pb-6 sm:px-6 sm:pt-28 sm:pb-10">
-        <div className="pointer-events-none absolute top-0 left-1/2 h-72 w-full max-w-2xl -translate-x-1/2 rounded-full bg-blue-500/10 blur-lg" />
-        <div className="relative z-10 m-auto max-w-6xl text-center">
-          <h1 className="mb-2 text-2xl font-light tracking-tight sm:text-4xl">
-            Клубни{" "}
-            <span className="bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text font-bold text-transparent drop-shadow-[0_0_12px_rgba(59,130,246,0.4)]">
-              Каталози
-            </span>
-          </h1>
-          <p className="m-auto max-w-2xl text-xs text-zinc-400 sm:text-sm">
-            Каталог на тренировъчни програми, клубни услуги, възстановяване и
-            магазин.
-          </p>
-        </div>
-      </div>
+      <main id="main-content" className="relative z-10 pb-8 sm:pb-12">
+        {/* Hero / Header */}
+        <div className="relative overflow-hidden px-4 pt-20 pb-6 sm:px-6 sm:pt-28 sm:pb-10">
+          <div className="pointer-events-none absolute top-0 left-1/2 h-72 w-full max-w-2xl -translate-x-1/2 rounded-full bg-blue-500/10 blur-lg" />
+          <div className="relative z-10 m-auto max-w-6xl text-center">
+            <nav
+              aria-label="Навигационна пътека"
+              className="mb-3 flex flex-wrap items-center justify-center gap-1.5 text-xs text-zinc-400"
+            >
+              <Link href="/" className="transition-colors hover:text-white">
+                Портал
+              </Link>
+              <ChevronRight size={12} aria-hidden="true" />
+              <Link
+                href="/club"
+                className="transition-colors hover:text-blue-400"
+              >
+                БК Гълъбово
+              </Link>
+              <ChevronRight size={12} aria-hidden="true" />
+              <span className="font-medium text-blue-400">Каталог</span>
+            </nav>
 
-      {/* Main Content */}
-      <main className="relative z-10 px-3 pb-8 sm:px-6 sm:pb-12">
-        <div className="m-auto max-w-6xl">
-          <div className="glassmorphism rounded-2xl border border-blue-400/20 bg-black/80 p-3 sm:rounded-3xl sm:p-5">
-            <PublicCatalogTabs
-              trainings={services}
-              clubServices={generalServices}
-              generalServices={generalServices}
-              products={products}
-              shop={products}
-              recoveryServices={recoveryServices}
-            />
+            <h1 className="mb-2 text-2xl font-light tracking-tight sm:text-4xl">
+              Клубни{" "}
+              <span className="bg-linear-to-r from-blue-400 to-indigo-500 bg-clip-text font-bold text-transparent drop-shadow-[0_0_12px_rgba(59,130,246,0.4)]">
+                Каталози
+              </span>
+            </h1>
+            <p className="m-auto max-w-2xl text-xs text-zinc-400 sm:text-sm">
+              Каталог на тренировъчни програми, клубни услуги, възстановяване и
+              магазин.
+            </p>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="px-3 sm:px-6">
+          <div className="m-auto max-w-6xl">
+            <div className="glassmorphism rounded-2xl border border-blue-400/20 bg-black/80 p-3 sm:rounded-3xl sm:p-5">
+              <PublicCatalogTabs
+                trainings={services}
+                clubServices={generalServices}
+                generalServices={generalServices}
+                products={products}
+                shop={products}
+                recoveryServices={recoveryServices}
+              />
+            </div>
           </div>
         </div>
       </main>
+
+      <PublicFooter clubSite={clubSite} />
     </div>
   );
 }

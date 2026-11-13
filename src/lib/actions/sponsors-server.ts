@@ -1,6 +1,9 @@
 "use server";
 import "server-only";
 
+import { revalidatePath } from "next/cache";
+
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 import { readWithFallback, writeWithFallback } from "@/lib/db-failover";
 import {
   DEFAULT_INITIAL_SPONSORS,
@@ -36,6 +39,12 @@ function setMemoryCache(siteId: string, data: SponsorPartner[]): void {
 /** Изчиства сървърния кеш (при промяна на спонсор) */
 export async function invalidateSponsorsCache(siteId: string): Promise<void> {
   sponsorsMemoryCache.delete(siteId);
+}
+
+function revalidateSponsorPaths() {
+  revalidatePath("/");
+  revalidatePath("/club");
+  revalidatePath("/recovery-zone");
 }
 
 export async function getSponsorsAction(
@@ -117,6 +126,7 @@ export async function createSponsorAction(
   data: SponsorPartnerCreateInput
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
+    await ensureAdminFromSession();
     const cleanData = JSON.parse(
       JSON.stringify({
         ...data,
@@ -128,7 +138,8 @@ export async function createSponsorAction(
       (db) => db.collection(SPONSORS_COLLECTION).add(cleanData),
       "createSponsor"
     );
-    invalidateSponsorsCache(siteId); // Изчисти кеша след запис
+    await invalidateSponsorsCache(siteId); // Изчисти кеша след запис
+    revalidateSponsorPaths();
     return { success: true, id: docRef.id };
   } catch (error) {
     console.error("Грешка при createSponsorAction:", error);
@@ -148,6 +159,7 @@ export async function updateSponsorAction(
   siteId: "bkgalabovo" | "recoveryzone" = "bkgalabovo"
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    await ensureAdminFromSession();
     const cleanData = JSON.parse(
       JSON.stringify({
         ...data,
@@ -163,7 +175,8 @@ export async function updateSponsorAction(
           .set(cleanData, { merge: true }),
       "updateSponsor"
     );
-    invalidateSponsorsCache(siteId); // Изчисти кеша след обновяване
+    await invalidateSponsorsCache(siteId); // Изчисти кеша след обновяване
+    revalidateSponsorPaths();
     return { success: true };
   } catch (error) {
     console.error("Грешка при updateSponsorAction:", error);
@@ -183,6 +196,7 @@ export async function toggleSponsorActiveAction(
   siteId: "bkgalabovo" | "recoveryzone" = "bkgalabovo"
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    await ensureAdminFromSession();
     await writeWithFallback(
       (db) =>
         db.collection(SPONSORS_COLLECTION).doc(id).set(
@@ -195,7 +209,8 @@ export async function toggleSponsorActiveAction(
         ),
       "toggleSponsorActive"
     );
-    invalidateSponsorsCache(siteId); // Изчисти кеша
+    await invalidateSponsorsCache(siteId); // Изчисти кеша
+    revalidateSponsorPaths();
     return { success: true };
   } catch (error) {
     console.error("Грешка при toggleSponsorActiveAction:", error);
@@ -217,6 +232,7 @@ export async function deleteSponsorAction(
   siteId: "bkgalabovo" | "recoveryzone" = "bkgalabovo"
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    await ensureAdminFromSession();
     if (id.includes("_sponsor_default_")) {
       return { success: true };
     }
@@ -225,7 +241,8 @@ export async function deleteSponsorAction(
       (db) => db.collection(SPONSORS_COLLECTION).doc(id).delete(),
       "deleteSponsor"
     );
-    invalidateSponsorsCache(siteId); // Изчисти кеша след изтриване
+    await invalidateSponsorsCache(siteId); // Изчисти кеша след изтриване
+    revalidateSponsorPaths();
     return { success: true };
   } catch (error) {
     console.error("Грешка при deleteSponsorAction:", error);
@@ -243,6 +260,7 @@ export async function seedInitialSponsorsAction(
   siteId: "bkgalabovo" | "recoveryzone"
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   try {
+    await ensureAdminFromSession();
     const list = DEFAULT_INITIAL_SPONSORS.filter((s) => s.siteId === siteId);
     const now = new Date().toISOString();
 
@@ -258,6 +276,8 @@ export async function seedInitialSponsorsAction(
       );
     }
 
+    await invalidateSponsorsCache(siteId);
+    revalidateSponsorPaths();
     return { success: true, count: list.length };
   } catch (error) {
     console.error("Грешка при seedInitialSponsorsAction:", error);

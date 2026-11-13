@@ -11,13 +11,11 @@ import {
   Clock,
   Mail,
   MapPin,
-  Menu,
   Phone,
   Sparkles,
   Star,
   Trophy,
   Users,
-  X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -30,10 +28,10 @@ import {
   YoutubeIcon,
 } from "@/components/icons/social-icons";
 import { AttachmentCard } from "@/components/recovery/AttachmentCard";
+import { RecoveryFooter } from "@/components/recovery/RecoveryFooter";
 import type { RecoveryProcedureInfo } from "@/components/recovery/RecoveryInquiryDialog";
+import { RecoveryNav } from "@/components/recovery/RecoveryNav";
 import { TeamSection } from "@/components/recovery/TeamSection";
-import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { FeedbackSubmission } from "@/types/feedback.types";
 import { DEFAULT_RECOVERY_ATTACHMENTS, Site } from "@/types/site.types";
 
@@ -58,14 +56,15 @@ export default function RecoveryZoneClient({
   hallImages = [],
   initialReviews,
   initialStandingSurveyId = null,
+  procedures,
 }: {
   site: Site;
   hallImages?: string[];
   initialReviews?: FeedbackSubmission[];
   initialStandingSurveyId?: string | null;
+  procedures?: Record<string, unknown>[];
 }) {
   const [activeImage, setActiveImage] = useState(0);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isHeroExpanded, setIsHeroExpanded] = useState(false);
   const [lang, setLang] = useState("bg");
@@ -78,6 +77,57 @@ export default function RecoveryZoneClient({
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
   const [selectedProcedureForInquiry, setSelectedProcedureForInquiry] =
     useState<RecoveryProcedureInfo | null>(null);
+
+  const openBookingModal = (info: RecoveryProcedureInfo) => {
+    setSelectedProcedureForInquiry(info);
+    setIsInquiryOpen(true);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set(
+        "book",
+        info.preferredZone || info.title || "general"
+      );
+      window.history.replaceState(
+        {},
+        "",
+        `${url.pathname}${url.search}${url.hash}`
+      );
+    }
+  };
+
+  const closeBookingModal = () => {
+    setIsInquiryOpen(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("book")) {
+        url.searchParams.delete("book");
+        window.history.replaceState(
+          {},
+          "",
+          `${url.pathname}${url.search}${url.hash}`
+        );
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncFromUrl = () => {
+      const bookParam = new URLSearchParams(window.location.search).get("book");
+      if (bookParam) {
+        setSelectedProcedureForInquiry({
+          title: bookParam === "general" ? "Зона „Крака“" : bookParam,
+          preferredZone: bookParam === "general" ? undefined : bookParam,
+        });
+        setIsInquiryOpen(true);
+      } else {
+        setIsInquiryOpen(false);
+      }
+    };
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, []);
 
   const nextImage = () => {
     setActiveImage((prev) => (prev + 1) % hallImages.length);
@@ -124,206 +174,10 @@ export default function RecoveryZoneClient({
       : DEFAULT_RECOVERY_ATTACHMENTS;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-zinc-950 font-sans text-white selection:bg-emerald-500 selection:text-white">
-      {/* Nav */}
-      <nav className="fixed inset-x-0 top-0 z-50 border-b border-emerald-500/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
-        <div className="flex items-center justify-between">
-          <Link
-            href="/recovery-zone"
-            className="group flex items-center gap-2.5 transition-opacity hover:opacity-95"
-          >
-            <div className="relative size-9 overflow-hidden rounded-xl border border-emerald-500/50 bg-emerald-950/40 p-1.5 shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all group-hover:border-emerald-400 group-hover:shadow-[0_0_16px_rgba(16,185,129,0.5)]">
-              <Image
-                src="/recovery-zone/rz-icon-square.png"
-                alt="Recovery Zone Logo"
-                width={28}
-                height={28}
-                className="size-full object-contain"
-                priority
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-wider text-white">
-                RECOVERY ZONE
-              </span>
-              <span className="-mt-1 text-[10px] font-semibold tracking-widest text-emerald-400">
-                by ZM
-              </span>
-            </div>
-          </Link>
-
-          <div className="hidden items-center gap-8 text-[11px] font-bold tracking-widest text-zinc-400 uppercase md:flex">
-            <a
-              href="#about"
-              className="transition-colors hover:text-emerald-400"
-            >
-              За Зоната
-            </a>
-            <a
-              href="#attachments"
-              className="transition-colors hover:text-emerald-400"
-            >
-              Приставки
-            </a>
-            <Link
-              href="/recovery-zone/catalog"
-              className="transition-colors hover:text-emerald-400"
-            >
-              Услуги
-            </Link>
-            <a
-              href="#working-hours"
-              className="transition-colors hover:text-emerald-400"
-            >
-              Работно време
-            </a>
-            <a
-              href="#info"
-              className="transition-colors hover:text-emerald-400"
-            >
-              Информация
-            </a>
-            <a
-              href="#team"
-              className="transition-colors hover:text-emerald-400"
-            >
-              Екип
-            </a>
-            <a
-              href="#reviews"
-              className="transition-colors hover:text-emerald-400"
-            >
-              Отзиви
-            </a>
-            <a
-              href="#contacts"
-              className="transition-colors hover:text-emerald-400"
-            >
-              Контакти
-            </a>
-          </div>
-
-          <div className="hidden items-center gap-4 md:flex">
-            <Link
-              href="/"
-              className="text-xs font-medium tracking-widest text-zinc-400 uppercase transition-colors hover:text-white"
-            >
-              Портал
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <ThemeToggle className="border-white/20 bg-white/10 text-white shadow-none hover:bg-white/20 active:scale-95 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20" />
-            <GoogleTranslateWidget />
-            {/* Mobile Menu Toggle */}
-            <button
-              type="button"
-              className="flex size-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95 md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? "Затвори менюто" : "Отвори менюто"}
-              aria-expanded={mobileMenuOpen}
-            >
-              {mobileMenuOpen ? (
-                <X size={20} strokeWidth={2} />
-              ) : (
-                <Menu size={20} strokeWidth={2} />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Dropdown */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="-mx-6 mt-4 overflow-hidden border-t border-emerald-900/30 bg-black/95 px-6 backdrop-blur-xl md:hidden"
-            >
-              <div className="flex flex-col gap-6 py-6 text-sm font-bold tracking-widest text-zinc-300 uppercase">
-                <a
-                  href="#about"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  За Зоната
-                </a>
-                <a
-                  href="#attachments"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  Приставки
-                </a>
-                <Link
-                  href="/recovery-zone/catalog"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  Услуги
-                </Link>
-                <a
-                  href="#working-hours"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  Работно време
-                </a>
-                <a
-                  href="#info"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  Информация
-                </a>
-                <a
-                  href="#team"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  Екип
-                </a>
-                <a
-                  href="#reviews"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  Отзиви
-                </a>
-                <a
-                  href="#contacts"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:text-emerald-400"
-                >
-                  Контакти
-                </a>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setSelectedProcedureForInquiry({
-                      title: "Зона „Крака“",
-                    });
-                    setIsInquiryOpen(true);
-                  }}
-                  className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-xs font-bold tracking-wider text-black uppercase shadow-[0_0_15px_rgba(16,185,129,0.5)]"
-                >
-                  <CalendarCheck size={14} />
-                  Изпрати запитване за час
-                </button>
-                <Link
-                  href="/"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="border-t border-emerald-900/30 pt-4 text-zinc-400 hover:text-white"
-                >
-                  Обратно към Портала
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
+    <div className="public-portal-shell min-h-screen overflow-x-hidden bg-zinc-950 font-sans text-white selection:bg-emerald-500 selection:text-white">
+      <RecoveryNav
+        onBookClick={() => openBookingModal({ title: "Зона „Крака“" })}
+      />
 
       <main id="main-content">
         {/* Hero Section */}
@@ -332,20 +186,20 @@ export default function RecoveryZoneClient({
           className="relative flex min-h-screen items-center justify-center pt-16"
         >
           <div className="absolute inset-0">
-            {/* Dark gradient overlay */}
-            <div className="absolute inset-0 bg-linear-to-b from-black/60 via-zinc-950/80 to-zinc-950" />
+            {/* Theme-aware gradient overlay */}
+            <div className="absolute inset-0 bg-linear-to-b from-emerald-50/80 via-slate-50 to-slate-50 dark:from-black/60 dark:via-zinc-950/80 dark:to-zinc-950" />
           </div>
 
           <div className="relative z-10 mx-auto mt-20 max-w-6xl px-6 text-center">
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-emerald-500/50 bg-black/80 px-4 py-2 text-xs font-medium tracking-widest text-emerald-400 uppercase shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-4 py-2 text-xs font-semibold tracking-widest text-emerald-700 uppercase shadow-xs dark:border-emerald-500/50 dark:bg-black/80 dark:text-emerald-400 dark:shadow-[0_0_15px_rgba(16,185,129,0.3)]">
               <Trophy size={14} className="animate-pulse" />
               Професионално Възстановяване
             </div>
-            <h1 className="leading-1.05 mx-auto mb-6 max-w-4xl text-5xl font-black tracking-tighter uppercase md:text-8xl">
+            <h1 className="mx-auto mb-6 max-w-4xl text-5xl leading-1.05 font-black tracking-tighter uppercase md:text-8xl">
               Възстанови
               <br />
               своите{" "}
-              <span className="text-emerald-400 drop-shadow-[0_0_12px_rgba(16,185,129,0.6)]">
+              <span className="text-emerald-600 dark:text-emerald-400 dark:drop-shadow-[0_0_12px_rgba(16,185,129,0.6)]">
                 Сили
               </span>
             </h1>
@@ -353,12 +207,16 @@ export default function RecoveryZoneClient({
               <h2 className="mb-4 text-2xl font-medium text-white">
                 Новото ниво на възстановяване в Гълъбово
               </h2>
-              <p className="mb-4">
-                Recovery Zone by ZM е създаден с една основна цел - да
-                предостави достъп до професионални възстановителни процедури.
-                Независимо дали сте активен спортист, или търсите релакс след
-                тежък работен ден, ние сме тук за вас.
-              </p>
+              {site.description?.trim() ? (
+                <p className="mb-4 whitespace-pre-line">{site.description}</p>
+              ) : (
+                <p className="mb-4">
+                  Recovery Zone by ZM е създаден с една основна цел - да
+                  предостави достъп до професионални възстановителни процедури.
+                  Независимо дали сте активен спортист, или търсите релакс след
+                  тежък работен ден, ние сме тук за вас.
+                </p>
+              )}
               <AnimatePresence>
                 {isHeroExpanded && (
                   <motion.div
@@ -381,29 +239,37 @@ export default function RecoveryZoneClient({
                       на тялото да се изчисти от токсините значително по-бързо
                       от обикновения престой. Основни ползи:
                     </p>
-                    <ul className="mx-auto mb-4 inline-block max-w-2xl list-disc space-y-2 pl-6 text-left">
-                      <li>
-                        <strong className="text-white">
-                          Ускорен лимфен дренаж:
-                        </strong>{" "}
-                        Подпомага естествения процес на тялото за изхвърляне на
-                        метаболитни отпадъци и токсини.
-                      </li>
-                      <li>
-                        <strong className="text-white">
-                          Подобрена циркулация:
-                        </strong>{" "}
-                        Стимулира кръвния поток, което доставя повече кислород и
-                        хранителни вещества до мускулите.
-                      </li>
-                      <li>
-                        <strong className="text-white">
-                          Превенция на контузии:
-                        </strong>{" "}
-                        Поддържа еластичността на меките тъкани и намалява
-                        сковаността.
-                      </li>
-                    </ul>
+                    {site.benefits && site.benefits.length > 0 ? (
+                      <ul className="mx-auto mb-4 inline-block max-w-2xl list-disc space-y-2 pl-6 text-left">
+                        {site.benefits.map((benefit, idx) => (
+                          <li key={idx}>{benefit}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <ul className="mx-auto mb-4 inline-block max-w-2xl list-disc space-y-2 pl-6 text-left">
+                        <li>
+                          <strong className="text-white">
+                            Ускорен лимфен дренаж:
+                          </strong>{" "}
+                          Подпомага естествения процес на тялото за изхвърляне
+                          на метаболитни отпадъци и токсини.
+                        </li>
+                        <li>
+                          <strong className="text-white">
+                            Подобрена циркулация:
+                          </strong>{" "}
+                          Стимулира кръвния поток, което доставя повече кислород
+                          и хранителни вещества до мускулите.
+                        </li>
+                        <li>
+                          <strong className="text-white">
+                            Превенция на контузии:
+                          </strong>{" "}
+                          Поддържа еластичността на меките тъкани и намалява
+                          сковаността.
+                        </li>
+                      </ul>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -423,12 +289,7 @@ export default function RecoveryZoneClient({
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedProcedureForInquiry({
-                    title: "Зона „Крака“",
-                  });
-                  setIsInquiryOpen(true);
-                }}
+                onClick={() => openBookingModal({ title: "Зона „Крака“" })}
                 className="group flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-4 text-sm font-bold tracking-widest text-black uppercase shadow-[0_0_20px_rgba(16,185,129,0.6)] transition-all hover:-translate-y-1 hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.9)]"
               >
                 <CalendarCheck size={18} />
@@ -479,10 +340,7 @@ export default function RecoveryZoneClient({
                   attachment={att}
                   index={idx}
                   lang={lang}
-                  onSelectInquiry={(procedure) => {
-                    setSelectedProcedureForInquiry(procedure);
-                    setIsInquiryOpen(true);
-                  }}
+                  onSelectInquiry={(procedure) => openBookingModal(procedure)}
                 />
               ))}
             </div>
@@ -599,51 +457,63 @@ export default function RecoveryZoneClient({
                 Recovery Zone by ZM предлага:
               </h2>
               <ul className="mb-8 space-y-6">
-                {[
-                  {
-                    title: "Световен лидер в технологиите за възстановяване",
-                    desc: "Зоната ни е оборудвана със системата Normatec 3 от Hyperice – признат лидер в динамичната въздушна компресия с патентована технология Pulse.",
-                  },
-                  {
-                    title: "Безупречна и максимална хигиена",
-                    desc: "За всяка сесия в нашата зона осигуряваме индивидуални еднократни хигиенни подложки за крака, ръце и таз. Това предотвратява директния контакт с маншетите и гарантира 100% защита и безопасност за всеки посетител.",
-                  },
-                  {
-                    title: "Пълно покритие на зоните за възстановяване",
-                    desc: "Разполагаме с пълен комплект специализирани приставки (за крака, таз и ръце), което позволява цялостно възстановяване – от стъпалата, през ядрото на тялото (долна част на гърба и хълбоци), до раменете.",
-                  },
-                  {
-                    title: "Персонализиран контрол и комфорт",
-                    desc: "Системата в зоната ни предлага приятен масаж, при който интензивността на въздушната компресия е напълно контролируема според Вашите нужди.",
-                  },
-                  {
-                    title: "Гъвкавост и бързина на процедурите",
-                    desc: "Зоната предлага възможност както за кратки 15-минутни сесии тип „Загрявка“ за незабавна мускулна активация преди тренировка, така и за следтренировъчни сесии за ускорено изчистване на токсините.",
-                  },
-                  {
-                    title: "Среда с фокус върху Вашата безопасност",
-                    desc: "Преди всяка сесия предоставяме детайлна информация за безопасност и противопоказания (като ДВТ, сърдечни състояния, бременност и др.), като поставяме Вашето здраве на първо място.",
-                  },
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-4">
-                    <div className="mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-emerald-500/50 bg-emerald-500/20">
-                      <div className="size-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                    </div>
-                    <div>
-                      <span className="mb-1 block font-bold text-white">
-                        {item.title}:
-                      </span>
-                      <span className="text-sm leading-relaxed text-zinc-400">
-                        {item.desc}
-                      </span>
-                    </div>
-                  </li>
-                ))}
+                {site.benefits && site.benefits.length > 0
+                  ? site.benefits.map((benefit, i) => (
+                      <li key={i} className="flex items-start gap-4">
+                        <div className="mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-emerald-500/50 bg-emerald-500/20">
+                          <div className="size-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                        </div>
+                        <span className="text-sm leading-relaxed text-zinc-300">
+                          {benefit}
+                        </span>
+                      </li>
+                    ))
+                  : [
+                      {
+                        title:
+                          "Световен лидер в технологиите за възстановяване",
+                        desc: "Зоната ни е оборудвана със системата Normatec 3 от Hyperice – признат лидер в динамичната въздушна компресия с патентована технология Pulse.",
+                      },
+                      {
+                        title: "Безупречна и максимална хигиена",
+                        desc: "За всяка сесия в нашата зона осигуряваме индивидуални еднократни хигиенни подложки за крака, ръце и таз. Това предотвратява директния контакт с маншетите и гарантира 100% защита и безопасност за всеки посетител.",
+                      },
+                      {
+                        title: "Пълно покритие на зоните за възстановяване",
+                        desc: "Разполагаме с пълен комплект специализирани приставки (за крака, таз и ръце), което позволява цялостно възстановяване – от стъпалата, през ядрото на тялото (долна част на гърба и хълбоци), до раменете.",
+                      },
+                      {
+                        title: "Персонализиран контрол и комфорт",
+                        desc: "Системата в зоната ни предлага приятен масаж, при който интензивността на въздушната компресия е напълно контролируема според Вашите нужди.",
+                      },
+                      {
+                        title: "Гъвкавост и бързина на процедурите",
+                        desc: "Зоната предлага възможност както за кратки 15-минутни сесии тип „Загрявка“ за незабавна мускулна активация преди тренировка, така и за следтренировъчни сесии за ускорено изчистване на токсините.",
+                      },
+                      {
+                        title: "Среда с фокус върху Вашата безопасност",
+                        desc: "Преди всяка сесия предоставяме детайлна информация за безопасност и противопоказания (като ДВТ, сърдечни състояния, бременност и др.), като поставяме Вашето здраве на първо място.",
+                      },
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-start gap-4">
+                        <div className="mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-emerald-500/50 bg-emerald-500/20">
+                          <div className="size-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                        </div>
+                        <div>
+                          <span className="mb-1 block font-bold text-white">
+                            {item.title}:
+                          </span>
+                          <span className="text-sm leading-relaxed text-zinc-400">
+                            {item.desc}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
               </ul>
             </div>
 
             {/* Carousel */}
-            <div className="group relative aspect-video overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl">
+            <div className="group/carousel relative aspect-video overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeImage}
@@ -665,7 +535,7 @@ export default function RecoveryZoneClient({
               </AnimatePresence>
 
               {/* Controls */}
-              <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              <div className="absolute inset-0 flex items-center justify-between p-4 opacity-90 transition-opacity duration-300 sm:opacity-0 sm:group-hover/carousel:opacity-100">
                 <button
                   type="button"
                   onClick={prevImage}
@@ -705,7 +575,7 @@ export default function RecoveryZoneClient({
         </section>
 
         {/* Services Call to Action */}
-        <section className="relative my-12 overflow-hidden border-y border-emerald-900/40 bg-linear-to-b from-blue-950/20 to-zinc-950 px-6 py-32">
+        <section className="relative my-12 overflow-hidden border-y border-emerald-900/40 bg-linear-to-b from-emerald-950/20 to-zinc-950 px-6 py-32">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1),transparent_70%)]" />
           <div className="relative z-10 mx-auto max-w-4xl rounded-4xl border border-emerald-500/20 bg-black/60 p-12 text-center shadow-2xl backdrop-blur-xl md:p-16">
             <p className="mb-4 inline-block rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-bold tracking-[0.4em] text-emerald-400 uppercase">
@@ -1005,7 +875,7 @@ export default function RecoveryZoneClient({
                       <p className="mb-1 font-medium text-white">Имейл</p>
                       <a
                         href={`mailto:${site.email || "recoveryzonebyzm@gmail.com"}`}
-                        className="text-sm text-zinc-400 transition-colors hover:text-emerald-400"
+                        className="break-all text-sm text-zinc-400 transition-colors hover:text-emerald-400"
                       >
                         {site.email || "recoveryzonebyzm@gmail.com"}
                       </a>
@@ -1096,46 +966,19 @@ export default function RecoveryZoneClient({
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="flex flex-col items-center justify-between gap-4 border-t border-zinc-900 bg-black p-8 md:flex-row">
-        <Link
-          href="/recovery-zone"
-          className="group flex items-center gap-2.5 transition-opacity hover:opacity-90"
-        >
-          <div className="relative size-7 overflow-hidden rounded-lg border border-emerald-500/40 bg-zinc-950 p-1 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
-            <Image
-              src="/recovery-zone/rz-icon-square.png"
-              alt="Recovery Zone Logo"
-              width={22}
-              height={22}
-              className="aspect-square size-full object-contain"
-              style={{ aspectRatio: "1 / 1" }}
-            />
-          </div>
-          <span className="text-sm font-bold tracking-wider text-white">
-            RECOVERY ZONE <span className="text-emerald-400">by ZM</span>
-          </span>
-        </Link>
-        <div className="text-center md:text-right">
-          <p className="text-[11px] text-zinc-400">
-            Спортна зала „Енергетик“, град Гълъбово • Мобилна зона: Турнирите на
-            НВ Бадминтон
-          </p>
-          <span className="mt-1 block text-[10px] font-bold tracking-widest text-zinc-400 uppercase">
-            © {new Date().getFullYear()} Recovery Zone by ZM. Всички права
-            запазени
-          </span>
-        </div>
-      </footer>
+      <RecoveryFooter site={site} />
 
       {/* Recovery Zone Inquiry Modal */}
       {isInquiryOpen && (
         <RecoveryInquiryDialog
           isOpen={isInquiryOpen}
-          onClose={() => setIsInquiryOpen(false)}
+          onClose={closeBookingModal}
           procedure={selectedProcedureForInquiry}
+          procedures={procedures}
           phone={site?.phone || "+359 899 82 99 23"}
           contraindications={site?.contraindications}
+          schedule={site?.schedule}
+          eventLocation={site?.address || site?.hallName}
         />
       )}
     </div>

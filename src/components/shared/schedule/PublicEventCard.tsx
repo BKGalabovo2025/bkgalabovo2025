@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   DocumentAttachmentType,
@@ -142,7 +142,7 @@ const renderPublicTextWithLinks = (text: string) => {
           onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 font-medium text-blue-400 underline underline-offset-2 hover:text-blue-300"
         >
-          <span>{part}</span>
+          <span className="break-all">{part}</span>
           <ExternalLink className="inline size-3 shrink-0 text-blue-300" />
         </a>
       );
@@ -155,7 +155,7 @@ const renderPublicTextWithLinks = (text: string) => {
           onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 font-medium text-amber-400 underline underline-offset-2 hover:text-amber-300"
         >
-          <span>{part}</span>
+          <span className="break-all">{part}</span>
           <ExternalLink className="inline size-3 shrink-0 text-amber-300" />
         </a>
       );
@@ -174,6 +174,24 @@ interface PublicEventCardProps {
   showAdminLinks?: boolean;
 }
 
+function updateEventUrlParam(
+  key: "doc" | "eventInquire",
+  value: string | null
+) {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (value === null) {
+    url.searchParams.delete(key);
+  } else {
+    url.searchParams.set(key, value);
+  }
+  window.history.replaceState(
+    window.history.state,
+    "",
+    url.pathname + (url.search ? url.search : "") + url.hash
+  );
+}
+
 export function PublicEventCard({
   event,
   showAdminLinks = false,
@@ -181,6 +199,22 @@ export function PublicEventCard({
   const [expanded, setExpanded] = useState(false);
   const [isDocViewerOpen, setIsDocViewerOpen] = useState(false);
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !event.id) return;
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setIsDocViewerOpen(
+        Boolean(event.attachmentUrl) && params.get("doc") === event.id
+      );
+      setIsInquiryOpen(
+        !event.isCancelled && params.get("eventInquire") === event.id
+      );
+    };
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, [event.id, event.attachmentUrl, event.isCancelled]);
 
   const displayTime = formatEventDateRange(event.startTime, event.endTime);
 
@@ -276,7 +310,10 @@ export function PublicEventCard({
               <div className="mt-2.5 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsDocViewerOpen(true)}
+                  onClick={() => {
+                    setIsDocViewerOpen(true);
+                    if (event.id) updateEventUrlParam("doc", event.id);
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300 transition-colors hover:bg-blue-500/20"
                 >
                   {getDocumentIcon(event.attachmentType, "size-3.5")}
@@ -343,7 +380,10 @@ export function PublicEventCard({
           {!event.isCancelled && (
             <button
               type="button"
-              onClick={() => setIsInquiryOpen(true)}
+              onClick={() => {
+                setIsInquiryOpen(true);
+                if (event.id) updateEventUrlParam("eventInquire", event.id);
+              }}
               className="ml-2 inline-flex items-center gap-1.5 rounded-xl border border-blue-500/40 bg-blue-600/20 px-3.5 py-1.5 text-xs font-bold text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)] transition-all hover:border-blue-400 hover:bg-blue-600/30 hover:text-white"
             >
               <span>Запиши се</span>
@@ -378,7 +418,10 @@ export function PublicEventCard({
       {event.attachmentUrl && (
         <DocumentViewerDialog
           isOpen={isDocViewerOpen}
-          onClose={() => setIsDocViewerOpen(false)}
+          onClose={() => {
+            setIsDocViewerOpen(false);
+            updateEventUrlParam("doc", null);
+          }}
           documentUrl={event.attachmentUrl}
           documentName={event.attachmentName || "Наредба за състезанието"}
           documentType={event.attachmentType}
@@ -387,7 +430,10 @@ export function PublicEventCard({
 
       <EventInquiryDialog
         isOpen={isInquiryOpen}
-        onClose={() => setIsInquiryOpen(false)}
+        onClose={() => {
+          setIsInquiryOpen(false);
+          updateEventUrlParam("eventInquire", null);
+        }}
         event={event}
       />
     </div>

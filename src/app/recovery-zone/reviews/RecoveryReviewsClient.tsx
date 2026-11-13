@@ -3,24 +3,28 @@
 import { motion } from "framer-motion";
 import {
   Activity,
-  ArrowLeft,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   Heart,
   Loader2,
   MessageSquare,
+  Search,
   Sparkles,
   Star,
+  X,
   Zap,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { RecoveryFooter } from "@/components/recovery/RecoveryFooter";
+import { RecoveryNav } from "@/components/recovery/RecoveryNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FeedbackCampaign, FeedbackSubmission } from "@/types/feedback.types";
+import { Site } from "@/types/site.types";
 
 const QUESTION_LABELS_FALLBACK: Record<string, string> = {
   q_recovery_zone: "Третирана зона",
@@ -196,6 +200,7 @@ function RecoveryReviewCardItem({ rev, index }: ReviewCardProps) {
 
           {textItems.length > 1 && (
             <button
+              type="button"
               onClick={() => setIsExpanded(!isExpanded)}
               className="flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300"
             >
@@ -235,11 +240,13 @@ function RecoveryReviewCardItem({ rev, index }: ReviewCardProps) {
 interface RecoveryReviewsClientProps {
   initialReviews?: FeedbackSubmission[];
   initialCampaigns?: FeedbackCampaign[];
+  site?: Site | null;
 }
 
 export default function RecoveryReviewsClient({
   initialReviews,
   initialCampaigns,
+  site,
 }: RecoveryReviewsClientProps = {}) {
   const [reviews, setReviews] = useState<FeedbackSubmission[]>(
     initialReviews ?? []
@@ -249,6 +256,8 @@ export default function RecoveryReviewsClient({
   >(initialCampaigns ?? []);
   const [isLoading, setIsLoading] = useState(initialReviews === undefined);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "highest">("newest");
 
   useEffect(() => {
     if (initialReviews !== undefined) return;
@@ -272,12 +281,60 @@ export default function RecoveryReviewsClient({
   }, [initialReviews]);
 
   const filteredReviews = useMemo(() => {
-    if (selectedCategory === "all") return reviews;
-    if (selectedCategory === "general") {
-      return reviews.filter((r) => r.eventType === "general" || !r.eventType);
-    }
-    return reviews.filter((r) => r.eventType === selectedCategory);
-  }, [reviews, selectedCategory]);
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    const matches = reviews.filter((r) => {
+      if (selectedCategory === "general") {
+        if (r.eventType !== "general" && r.eventType) return false;
+      } else if (selectedCategory !== "all") {
+        if (r.eventType !== selectedCategory) return false;
+      }
+
+      if (normalizedQuery) {
+        const nameMatch = (r.respondentName || "")
+          .toLowerCase()
+          .includes(normalizedQuery);
+        const quoteMatch = (r.highlightQuote || "")
+          .toLowerCase()
+          .includes(normalizedQuery);
+        const textMatch = (r.reviewText || "")
+          .toLowerCase()
+          .includes(normalizedQuery);
+        const breakdownMatch = (r.questionBreakdown || []).some((q) =>
+          String(q.answer ?? "")
+            .toLowerCase()
+            .includes(normalizedQuery)
+        );
+        const answersMatch = r.answers
+          ? Object.values(r.answers).some((v) =>
+              String(v ?? "")
+                .toLowerCase()
+                .includes(normalizedQuery)
+            )
+          : false;
+
+        if (
+          !nameMatch &&
+          !quoteMatch &&
+          !textMatch &&
+          !breakdownMatch &&
+          !answersMatch
+        ) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    return [...matches].sort((a, b) => {
+      if (sortBy === "highest") {
+        const ratingDiff = (b.overallRating || 0) - (a.overallRating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [reviews, selectedCategory, searchQuery, sortBy]);
 
   const stats = useMemo(() => {
     if (reviews.length === 0)
@@ -298,61 +355,31 @@ export default function RecoveryReviewsClient({
       : null;
 
   return (
-    <div className="min-h-screen bg-zinc-950 font-sans text-white selection:bg-emerald-500 selection:text-white">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-50 border-b border-emerald-500/20 bg-black/80 px-6 py-4 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/recovery-zone"
-              className="group flex items-center gap-2 text-xs font-semibold text-zinc-400 transition-colors hover:text-emerald-400"
-            >
-              <ArrowLeft
-                size={16}
-                className="transition-transform group-hover:-translate-x-1"
-              />
-              <span>Към Recovery Zone</span>
-            </Link>
-          </div>
+    <div className="public-portal-shell min-h-screen overflow-x-hidden bg-zinc-950 font-sans text-white selection:bg-emerald-500 selection:text-white">
+      <RecoveryNav site={site} />
 
+      <main id="main-content" className="pt-16">
+        {/* Compact Breadcrumbs */}
+        <nav
+          aria-label="Навигационна пътека"
+          className="mx-auto flex max-w-7xl flex-wrap items-center gap-1.5 px-6 pt-6 text-xs text-zinc-400"
+        >
+          <Link href="/" className="transition-colors hover:text-white">
+            Портал
+          </Link>
+          <ChevronRight size={14} className="text-zinc-600" />
           <Link
             href="/recovery-zone"
-            className="group flex items-center gap-2.5 transition-opacity hover:opacity-95"
+            className="transition-colors hover:text-emerald-400"
           >
-            <div className="relative size-9 overflow-hidden rounded-xl border border-emerald-500/50 bg-emerald-950/40 p-1.5 shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all group-hover:border-emerald-400 group-hover:shadow-[0_0_16px_rgba(16,185,129,0.5)]">
-              <Image
-                src="/recovery-zone/rz-icon-square.png"
-                alt="Recovery Zone Logo"
-                width={28}
-                height={28}
-                className="size-full object-contain"
-                priority
-              />
-            </div>
-            <span className="text-sm font-bold tracking-wider text-white">
-              RECOVERY ZONE <span className="text-emerald-400">by ZM</span>
-            </span>
+            Recovery Zone
           </Link>
+          <ChevronRight size={14} className="text-zinc-600" />
+          <span className="font-medium text-emerald-400">Отзиви</span>
+        </nav>
 
-          <div className="flex items-center gap-3">
-            {primarySurveyLink && (
-              <Button
-                asChild
-                className="h-9 rounded-xl border border-emerald-500/40 bg-emerald-500 px-4 text-xs font-bold text-black shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-400"
-              >
-                <Link href={primarySurveyLink}>
-                  <Sparkles size={14} className="mr-1.5" />
-                  Дайте отзив
-                </Link>
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main id="main-content">
         {/* Hero Section */}
-        <section className="relative overflow-hidden px-6 pt-16 pb-12 sm:pt-24 sm:pb-16">
+        <section className="relative overflow-hidden px-6 pt-10 pb-12 sm:pt-14 sm:pb-16">
           <div className="pointer-events-none absolute -top-40 left-1/2 size-96 -translate-x-1/2 rounded-full bg-emerald-500/15 blur-[120px]" />
 
           <div className="relative mx-auto max-w-4xl text-center">
@@ -418,6 +445,7 @@ export default function RecoveryReviewsClient({
               },
             ].map((cat) => (
               <button
+                type="button"
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
@@ -434,6 +462,46 @@ export default function RecoveryReviewsClient({
             ))}
           </div>
 
+          {/* Search & Sort Controls */}
+          <div className="mx-auto mb-8 flex max-w-2xl flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search
+                className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-500"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Търси отзив по име или коментар..."
+                aria-label="Търси отзив по име или коментар"
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/80 py-2.5 px-10 text-sm text-white placeholder:text-zinc-500 focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Изчисти търсенето"
+                  className="absolute top-1/2 right-2.5 flex size-6 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </div>
+
+            <select
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(e.target.value === "highest" ? "highest" : "newest")
+              }
+              aria-label="Подреди отзивите"
+              className="rounded-xl border border-zinc-800 bg-zinc-900/80 px-3.5 py-2.5 text-sm text-white focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none sm:w-52"
+            >
+              <option value="newest">Най-нови</option>
+              <option value="highest">Най-висока оценка</option>
+            </select>
+          </div>
+
           {/* Content */}
           {isLoading ? (
             <div className="flex h-64 items-center justify-center">
@@ -443,19 +511,32 @@ export default function RecoveryReviewsClient({
             <div className="rounded-3xl border border-zinc-800 bg-zinc-900/40 p-12 text-center">
               <MessageSquare className="mx-auto size-12 text-zinc-600" />
               <h2 className="mt-4 text-lg font-bold text-white">
-                Все още няма публикувани отзиви в тази категория
+                {searchQuery.trim()
+                  ? "Няма намерени отзиви по зададеното търсене"
+                  : "Все още няма публикувани отзиви в тази категория"}
               </h2>
               <p className="mt-2 text-sm text-zinc-400">
-                Бъдете първите, които споделят своето мнение за
-                възстановяването!
+                {searchQuery.trim()
+                  ? "Опитайте с друга ключова дума или изчистете търсенето."
+                  : "Бъдете първите, които споделят своето мнение за възстановяването!"}
               </p>
-              {primarySurveyLink && (
-                <Button
-                  asChild
-                  className="mt-6 rounded-xl bg-emerald-500 font-bold text-black hover:bg-emerald-400"
+              {searchQuery.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="mt-6 inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-emerald-300 transition-colors hover:bg-emerald-500/20 hover:text-white"
                 >
-                  <Link href={primarySurveyLink}>Попълнете отзив</Link>
-                </Button>
+                  Изчисти търсенето
+                </button>
+              ) : (
+                primarySurveyLink && (
+                  <Button
+                    asChild
+                    className="mt-6 rounded-xl bg-emerald-500 font-bold text-black hover:bg-emerald-400"
+                  >
+                    <Link href={primarySurveyLink}>Попълнете отзив</Link>
+                  </Button>
+                )
               )}
             </div>
           ) : (
@@ -498,37 +579,7 @@ export default function RecoveryReviewsClient({
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-zinc-900 bg-black/60 px-6 py-8 text-center text-xs text-zinc-400">
-        <div className="mb-4 flex items-center justify-center">
-          <Link
-            href="/recovery-zone"
-            className="group inline-flex items-center gap-2.5 transition-opacity hover:opacity-90"
-          >
-            <div className="relative size-7 overflow-hidden rounded-lg border border-emerald-500/40 bg-zinc-950 p-1 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
-              <Image
-                src="/recovery-zone/rz-icon-square.png"
-                alt="Recovery Zone Logo"
-                width={22}
-                height={22}
-                className="aspect-square size-full object-contain"
-                style={{ aspectRatio: "1 / 1" }}
-              />
-            </div>
-            <span className="text-sm font-bold tracking-wider text-white">
-              RECOVERY ZONE <span className="text-emerald-400">by ZM</span>
-            </span>
-          </Link>
-        </div>
-        <p className="text-[11px] text-zinc-400">
-          Спортна зала „Енергетик“, град Гълъбово • Мобилна зона: Турнирите на
-          НВ Бадминтон
-        </p>
-        <p className="mt-1.5 text-zinc-400">
-          © {new Date().getFullYear()} Recovery Zone by ZM. Всички права
-          запазени
-        </p>
-      </footer>
+      <RecoveryFooter site={site} />
     </div>
   );
 }

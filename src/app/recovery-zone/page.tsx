@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import path from "path";
 
+import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import {
   getActiveStandingCampaignsAdmin,
@@ -19,6 +20,9 @@ export const metadata: Metadata = {
   title: "Recovery Zone by ZM | Професионално Възстановяване",
   description:
     "Възстановете се по-бързо с най-съвременната технология Hyperice Normatec 3. Професионално решение за спортисти и активни хора.",
+  alternates: {
+    canonical: "/recovery-zone",
+  },
   openGraph: {
     title: "Recovery Zone by ZM | Професионално Възстановяване",
     description:
@@ -27,10 +31,10 @@ export const metadata: Metadata = {
     siteName: "Recovery Zone",
     images: [
       {
-        url: "https://bkgalabovo2025.vercel.app/1.png",
-        width: 800,
-        height: 800,
-        alt: "Recovery Zone Logo",
+        url: "https://bkgalabovo2025.vercel.app/recovery-zone/rz-logo-horizontal.png",
+        width: 1200,
+        height: 630,
+        alt: "Recovery Zone by ZM Logo",
       },
     ],
     locale: "bg_BG",
@@ -40,9 +44,40 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Recovery Zone by ZM",
     description: "Професионално решение за спортисти и активни хора.",
-    images: ["https://bkgalabovo2025.vercel.app/1.png"],
+    images: [
+      "https://bkgalabovo2025.vercel.app/recovery-zone/rz-logo-horizontal.png",
+    ],
   },
 };
+
+function serializeDoc(data: unknown): unknown {
+  if (!data) return data;
+  if (Array.isArray(data)) {
+    return data.map(serializeDoc);
+  }
+  if (typeof data === "object") {
+    const copy = { ...data } as Record<string, unknown>;
+    for (const key of Object.keys(copy)) {
+      const val = copy[key];
+      if (
+        val &&
+        typeof val === "object" &&
+        "toDate" in val &&
+        typeof (val as { toDate?: () => Date }).toDate === "function"
+      ) {
+        copy[key] = (val as { toDate: () => Date }).toDate().toISOString();
+      } else if (val && typeof val === "object" && "_seconds" in val) {
+        copy[key] = new Date(
+          (val as { _seconds: number })._seconds * 1000
+        ).toISOString();
+      } else {
+        copy[key] = serializeDoc(val);
+      }
+    }
+    return copy;
+  }
+  return data;
+}
 
 export default async function RecoveryZonePage(props: {
   searchParams?: Promise<{ verify?: string }>;
@@ -52,15 +87,48 @@ export default async function RecoveryZonePage(props: {
     redirect(`/cert/${encodeURIComponent(searchParams.verify)}`);
   }
 
-  const [site, initialReviews, campaigns] = await Promise.all([
-    serverCache.get(
-      "site:recoveryzone",
-      () => getSiteByIdAdmin("recoveryzone"),
-      300_000
-    ),
-    getPublicReviewsAdmin("recoveryzone"),
-    getActiveStandingCampaignsAdmin("recoveryzone"),
-  ]);
+  const [site, initialReviews, campaigns, recoveryServices] = await Promise.all(
+    [
+      serverCache.get(
+        "site:recoveryzone",
+        () => getSiteByIdAdmin("recoveryzone"),
+        300_000
+      ),
+      getPublicReviewsAdmin("recoveryzone"),
+      getActiveStandingCampaignsAdmin("recoveryzone"),
+      serverCache.get(
+        "recovery:sessions",
+        async () => {
+          try {
+            const adminDb = getAdminDb();
+            const snap = await adminDb.collection("sessions").get();
+            return snap.docs
+              .filter((doc) => {
+                const data = doc.data();
+                return (
+                  data.isActive !== false &&
+                  (!data.siteId || data.siteId === "recoveryzone")
+                );
+              })
+              .map(
+                (doc) =>
+                  serializeDoc({ id: doc.id, ...doc.data() }) as Record<
+                    string,
+                    unknown
+                  >
+              );
+          } catch (error) {
+            console.error(
+              "Failed to fetch sessions for recovery zone page:",
+              error
+            );
+            return [];
+          }
+        },
+        300_000
+      ),
+    ]
+  );
 
   const standingSurveyId =
     campaigns.length > 0
@@ -71,7 +139,8 @@ export default async function RecoveryZonePage(props: {
     "@context": "https://schema.org",
     "@type": "HealthAndBeautyBusiness",
     name: site?.name || "Recovery Zone by ZM",
-    image: "https://bkgalabovo2025.vercel.app/1.png",
+    image:
+      "https://bkgalabovo2025.vercel.app/recovery-zone/rz-logo-horizontal.png",
     "@id": "https://bkgalabovo2025.vercel.app/recovery-zone",
     url: "https://bkgalabovo2025.vercel.app/recovery-zone",
     telephone: site?.phone || "+359899829923",
@@ -90,8 +159,18 @@ export default async function RecoveryZonePage(props: {
     const dirPath = path.join(process.cwd(), "public", "recovery-zone");
     if (fs.existsSync(dirPath)) {
       const files = fs.readdirSync(dirPath);
+      const excludedLogos = new Set([
+        "1.png",
+        "rz-badge.png",
+        "rz-icon-square.png",
+        "rz-logo-horizontal.png",
+      ]);
       hallImages = files
-        .filter((f: string) => f.match(/\.(jpg|jpeg|png|webp|gif)$/i))
+        .filter(
+          (f: string) =>
+            f.match(/\.(jpg|jpeg|png|webp|gif)$/i) &&
+            !excludedLogos.has(f.toLowerCase())
+        )
         .map((f: string) => `/recovery-zone/${f}`);
     }
   } catch (error) {
@@ -127,6 +206,7 @@ export default async function RecoveryZonePage(props: {
         hallImages={hallImages}
         initialReviews={initialReviews}
         initialStandingSurveyId={standingSurveyId}
+        procedures={recoveryServices}
       />
     </>
   );

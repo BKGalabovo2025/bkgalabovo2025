@@ -1,12 +1,40 @@
 import type { Metadata } from "next";
 
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
+import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 
 import ScheduleClient from "./ScheduleClient";
 
 export const metadata: Metadata = {
   title: "Пълен Календар | БК Гълъбово",
   description: "Разширен месечен график на Бадминтон клуб Гълъбово.",
+  alternates: {
+    canonical: "/club/schedule",
+  },
+  openGraph: {
+    title: "Пълен Календар | БК Гълъбово",
+    description:
+      "Разширен месечен график на тренировките, лагерите и турнирите на Бадминтон клуб Гълъбово.",
+    url: "https://bkgalabovo2025.vercel.app/club/schedule",
+    siteName: "БК Гълъбово",
+    images: [
+      {
+        url: "https://bkgalabovo2025.vercel.app/bk-hero.webp",
+        width: 1200,
+        height: 630,
+        alt: "Календар на БК Гълъбово",
+      },
+    ],
+    locale: "bg_BG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Пълен Календар | БК Гълъбово",
+    description: "Разширен месечен график на Бадминтон клуб Гълъбово.",
+    images: ["https://bkgalabovo2025.vercel.app/bk-hero.webp"],
+  },
 };
 
 export const dynamic = "force-dynamic";
@@ -83,5 +111,11 @@ export default async function SchedulePage() {
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     );
 
-  return <ScheduleClient schedule={schedule} />;
+  const clubSite = await serverCache.get(
+    "site:bkgalabovo",
+    () => getSiteByIdAdmin("bkgalabovo"),
+    300_000
+  );
+
+  return <ScheduleClient schedule={schedule} clubSite={clubSite} />;
 }

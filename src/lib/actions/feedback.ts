@@ -2,9 +2,14 @@
 import "server-only";
 
 import * as admin from "firebase-admin";
+import { revalidatePath } from "next/cache";
 
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import {
+  ensureAdminFromSession,
+  getAuthUserFromSessionCookie,
+} from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
 import {
   DEFAULT_FEEDBACK_TEMPLATES,
   DEFAULT_RECOVERY_FEEDBACK_TEMPLATES,
@@ -20,6 +25,18 @@ import {
 const CAMPAIGNS_COLLECTION = "feedback_campaigns";
 const TEMPLATES_COLLECTION = "feedback_templates";
 const SUBMISSIONS_COLLECTION = "feedback_submissions";
+
+function invalidateFeedbackCaches() {
+  serverCache.invalidate("feedback:public-reviews:bkgalabovo");
+  serverCache.invalidate("feedback:public-reviews:recoveryzone");
+  serverCache.invalidate("feedback:standing-campaigns:bkgalabovo");
+  serverCache.invalidate("feedback:standing-campaigns:recoveryzone");
+  serverCache.invalidatePattern("feedback:campaign:");
+  revalidatePath("/club/reviews");
+  revalidatePath("/recovery-zone/reviews");
+  revalidatePath("/recovery-zone");
+  revalidatePath("/club");
+}
 
 function snapToDoc<T>(doc: admin.firestore.QueryDocumentSnapshot): T {
   const data = doc.data();
@@ -188,10 +205,7 @@ export async function updateCampaignStatusServerAction(
   newStatus: "active" | "closed"
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      return { success: false, error: "Нямате активна сесия." };
-    }
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     await adminDb.collection(CAMPAIGNS_COLLECTION).doc(campaignId).update({
@@ -199,6 +213,7 @@ export async function updateCampaignStatusServerAction(
       updatedAt: new Date().toISOString(),
     });
 
+    invalidateFeedbackCaches();
     return { success: true };
   } catch (error) {
     console.error("updateCampaignStatusServerAction error:", error);
@@ -217,10 +232,7 @@ export async function updateSubmissionStatusServerAction(
   highlightQuote?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      return { success: false, error: "Нямате активна сесия." };
-    }
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     const now = new Date().toISOString();
@@ -239,6 +251,7 @@ export async function updateSubmissionStatusServerAction(
       .doc(submissionId)
       .update(payload);
 
+    invalidateFeedbackCaches();
     return { success: true };
   } catch (error) {
     console.error("updateSubmissionStatusServerAction error:", error);
@@ -253,13 +266,11 @@ export async function deleteSubmissionServerAction(
   submissionId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      return { success: false, error: "Нямате активна сесия." };
-    }
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     await adminDb.collection(SUBMISSIONS_COLLECTION).doc(submissionId).delete();
+    invalidateFeedbackCaches();
     return { success: true };
   } catch (error) {
     console.error("deleteSubmissionServerAction error:", error);
@@ -274,13 +285,11 @@ export async function deleteCampaignServerAction(
   campaignId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      return { success: false, error: "Нямате активна сесия." };
-    }
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     await adminDb.collection(CAMPAIGNS_COLLECTION).doc(campaignId).delete();
+    invalidateFeedbackCaches();
     return { success: true };
   } catch (error) {
     console.error("deleteCampaignServerAction error:", error);

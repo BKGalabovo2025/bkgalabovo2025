@@ -1,13 +1,26 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+
+import { ensureAdminFromSession } from "@/lib/auth-utils";
+import { serverCache } from "@/lib/server-cache";
 
 export async function revalidateSiteAction(targetPath?: string) {
   try {
+    await ensureAdminFromSession();
+
+    serverCache.invalidate("site:recoveryzone");
+    serverCache.invalidate("club:public-data");
+    revalidateTag("sites", "max");
+
+    revalidatePath("/club");
+    revalidatePath("/club/team");
+    revalidatePath("/recovery-zone");
+    revalidatePath("/recovery-zone/catalog");
+
     if (targetPath) {
       revalidatePath(targetPath);
     } else {
-      revalidatePath("/recovery-zone");
       revalidatePath("/");
       revalidatePath("/settings");
     }

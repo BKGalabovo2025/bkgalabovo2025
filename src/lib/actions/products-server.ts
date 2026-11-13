@@ -2,6 +2,7 @@
 import "server-only";
 
 import * as admin from "firebase-admin";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { logAuditEvent } from "@/lib/audit-logger";
 import {
@@ -66,9 +67,10 @@ export async function getProductsServerAction(activeBranch?: string): Promise<{
       .filter((p): p is Product => Boolean(p));
 
     if (activeBranch && activeBranch !== "all") {
-      items = items.filter(
-        (p) =>
-          !p.siteId || p.siteId === activeBranch || p.siteId === "bkgalabovo"
+      items = items.filter((p) =>
+        activeBranch === "bkgalabovo"
+          ? !p.siteId || p.siteId === "bkgalabovo"
+          : p.siteId === activeBranch
       );
     }
 
@@ -141,6 +143,8 @@ export async function createProductAction(data: {
 
     serverCache.invalidate("catalog:products");
     serverCache.invalidate("products");
+    revalidatePath("/club/catalog");
+    revalidateTag("catalog", "max");
 
     await logAuditEvent({
       action: "create_product",
@@ -263,6 +267,8 @@ export async function updateProductAction(
 
     serverCache.invalidate("catalog:products");
     serverCache.invalidate("products");
+    revalidatePath("/club/catalog");
+    revalidateTag("catalog", "max");
 
     await logAuditEvent({
       action: "update_product",
@@ -313,6 +319,8 @@ export async function deleteProductAction(id: string) {
 
     serverCache.invalidate("catalog:products");
     serverCache.invalidate("products");
+    revalidatePath("/club/catalog");
+    revalidateTag("catalog", "max");
 
     await logAuditEvent({
       action: "delete_product",

@@ -7,7 +7,7 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
   >
     <nav
       aria-label="Навигация в клубни каталози"
-      class="no-scrollbar flex w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-zinc-800/80 bg-zinc-900/70 p-1.5 backdrop-blur-md"
+      class="no-scrollbar flex w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-100/80 p-1.5 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-900/70"
     >
       <button
         aria-current="page"
@@ -48,13 +48,13 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
           Тренировки & Абонаменти
         </span>
         <span
-          class="ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-semibold bg-white/20 text-white"
+          class="ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-white/20 text-white"
         >
           0
         </span>
       </button>
       <button
-        class="group inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 sm:shrink text-zinc-400 hover:bg-zinc-800/70 hover:text-zinc-200"
+        class="group inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 sm:shrink text-zinc-400 hover:bg-slate-200/70 hover:text-slate-900 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-200"
         title="Наем на шкафчета, ракети, наплитане на кордаж и други допълнителни услуги"
         type="button"
       >
@@ -79,13 +79,13 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
           Клубни услуги & Наеми
         </span>
         <span
-          class="ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-semibold bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-300"
+          class="ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-300"
         >
           0
         </span>
       </button>
       <button
-        class="group inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 sm:shrink text-zinc-400 hover:bg-zinc-800/70 hover:text-zinc-200"
+        class="group inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 sm:shrink text-zinc-400 hover:bg-slate-200/70 hover:text-slate-900 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-200"
         title="Сауна, криотерапия, масажи и специализирани пакети в Recovery Zone"
         type="button"
       >
@@ -110,13 +110,13 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
           Възстановяване (Recovery)
         </span>
         <span
-          class="ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-semibold bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-300"
+          class="ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-300"
         >
           0
         </span>
       </button>
       <button
-        class="group inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 sm:shrink text-zinc-400 hover:bg-zinc-800/70 hover:text-zinc-200"
+        class="group inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 sm:shrink text-zinc-400 hover:bg-slate-200/70 hover:text-slate-900 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-200"
         title="Ракети, пера, грипове, облекло, добавки и консумативи с наличности"
         type="button"
       >
@@ -150,7 +150,7 @@ exports[`PublicCatalogTabs > matches DOM snapshot 1`] = `
           Клубен магазин & Стоки
         </span>
         <span
-          class="ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-semibold bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-300"
+          class="ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-300"
         >
           0
         </span>

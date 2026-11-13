@@ -1,11 +1,10 @@
-import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
-import Link from "next/link";
 
-import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
+import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
+import { Site } from "@/types/site.types";
 
 import { RecoveryCatalogClient } from "./RecoveryCatalogClient";
 
@@ -13,9 +12,38 @@ export const metadata: Metadata = {
   title: "Каталог | Recovery Zone by ZM",
   description:
     "Разгледайте нашите възстановителни процедури, услуги и продукти.",
+  alternates: {
+    canonical: "/recovery-zone/catalog",
+  },
+  openGraph: {
+    title: "Каталог | Recovery Zone by ZM",
+    description:
+      "Разгледайте нашите възстановителни процедури, услуги и продукти с Hyperice Normatec 3.",
+    url: "https://bkgalabovo2025.vercel.app/recovery-zone/catalog",
+    siteName: "Recovery Zone",
+    images: [
+      {
+        url: "https://bkgalabovo2025.vercel.app/recovery-zone/rz-logo-horizontal.png",
+        width: 1200,
+        height: 630,
+        alt: "Recovery Zone by ZM Каталог",
+      },
+    ],
+    locale: "bg_BG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Каталог | Recovery Zone by ZM",
+    description:
+      "Разгледайте нашите възстановителни процедури, услуги и продукти.",
+    images: [
+      "https://bkgalabovo2025.vercel.app/recovery-zone/rz-logo-horizontal.png",
+    ],
+  },
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 function serializeDoc(data: unknown): unknown {
   if (!data) return data;
@@ -54,13 +82,21 @@ const getCachedSessions = unstable_cache(
         try {
           const adminDb = getAdminDb();
           const snap = await adminDb.collection("sessions").get();
-          return snap.docs.map(
-            (doc) =>
-              serializeDoc({ id: doc.id, ...doc.data() }) as Record<
-                string,
-                unknown
-              >
-          );
+          return snap.docs
+            .filter((doc) => {
+              const data = doc.data();
+              return (
+                data.isActive !== false &&
+                (!data.siteId || data.siteId === "recoveryzone")
+              );
+            })
+            .map(
+              (doc) =>
+                serializeDoc({ id: doc.id, ...doc.data() }) as Record<
+                  string,
+                  unknown
+                >
+            );
         } catch (error) {
           console.error(
             "Failed to fetch sessions for recovery catalog page:",
@@ -77,21 +113,10 @@ const getCachedSessions = unstable_cache(
 );
 
 const getCachedSite = unstable_cache(
-  async (): Promise<{ phone?: string; contraindications?: string[] }> => {
-    try {
-      const adminDb = getAdminDb();
-      const doc = await adminDb.collection("sites").doc("recoveryzone").get();
-      if (!doc.exists) return {};
-      const data = doc.data() || {};
-      return {
-        phone: data.phone as string | undefined,
-        contraindications: data.contraindications as string[] | undefined,
-      };
-    } catch {
-      return {};
-    }
+  async (): Promise<Site | null> => {
+    return getSiteByIdAdmin("recoveryzone");
   },
-  ["recovery-site"],
+  ["recovery-site-full"],
   { revalidate: 300, tags: ["sites"] }
 );
 
@@ -102,48 +127,11 @@ export default async function RecoveryCatalogPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Nav */}
-      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-emerald-400/30 bg-black/80 px-6 py-4 backdrop-blur-xl">
-        <Link
-          href="/recovery-zone"
-          className="flex items-center gap-2 text-sm text-zinc-400 transition-all hover:text-emerald-400 hover:drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]"
-        >
-          <ArrowLeft size={16} />
-          Назад към Recovery Zone
-        </Link>
-        <span className="text-sm font-medium tracking-widest text-emerald-400 uppercase drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
-          Каталог
-        </span>
-        <div className="flex items-center gap-4">
-          <GoogleTranslateWidget />
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="px-6 pt-24 pb-32">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-12">
-            <h1 className="mb-4 text-4xl font-light tracking-tight">
-              Recovery Zone{" "}
-              <span className="text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
-                Каталог
-              </span>
-            </h1>
-            <p className="text-zinc-400">
-              Разгледайте пълния списък с нашите възстановителни процедури.
-            </p>
-          </div>
-
-          <div className="glassmorphism rounded-3xl border border-emerald-400/20 bg-black/80 p-6 md:p-10">
-            <RecoveryCatalogClient
-              recoveryServices={recoveryServices}
-              phone={site.phone}
-              contraindications={site.contraindications}
-            />
-          </div>
-        </div>
-      </main>
-    </div>
+    <RecoveryCatalogClient
+      recoveryServices={recoveryServices}
+      site={site}
+      phone={site?.phone}
+      contraindications={site?.contraindications}
+    />
   );
 }

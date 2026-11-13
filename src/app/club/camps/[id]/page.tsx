@@ -1,12 +1,14 @@
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
-import { ArrowLeft, MapPin, Tent } from "lucide-react";
+import { ArrowLeft, ChevronRight, MapPin, Tent } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { GoogleTranslateWidget } from "@/components/shared/GoogleTranslateWidget";
-import { getAdminDb } from "@/lib/firebase-admin";
-import { getSiteIdForCamp } from "@/lib/firebase-admin";
+import { PublicFooter } from "@/components/layout/public-footer";
+import { PublicNav } from "@/components/layout/public-nav";
+import { getAdminDb, getSiteIdForCamp } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
+import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 import { CampSession } from "@/types";
 
 import CampPublicClient from "./CampPublicClient";
@@ -56,6 +58,9 @@ export async function generateMetadata({
     return {
       title: `${title} | Програма | БК Гълъбово`,
       description: `Дневна програма на лагер "${title}"${locationSuffix}. БК Гълъбово.`,
+      alternates: {
+        canonical: `/club/camps/${id}`,
+      },
       openGraph: {
         title: `${title} | Дневна програма`,
         description: `Разгледайте програмата на лагер "${title}" на БК Гълъбово.`,
@@ -63,7 +68,7 @@ export async function generateMetadata({
         siteName: "БК Гълъбово",
         images: [
           {
-            url: "https://bkgalabovo2025.vercel.app/bk-hero.png",
+            url: "https://bkgalabovo2025.vercel.app/bk-hero.webp",
             width: 1200,
             height: 630,
             alt: "БК Гълъбово",
@@ -71,6 +76,12 @@ export async function generateMetadata({
         ],
         locale: "bg_BG",
         type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${title} | Дневна програма`,
+        description: `Разгледайте програмата на лагер "${title}" на БК Гълъбово.`,
+        images: ["https://bkgalabovo2025.vercel.app/bk-hero.webp"],
       },
     };
   } catch {
@@ -90,6 +101,12 @@ export default async function CampPublicPage({
 }: PageProps) {
   const { id } = await params;
   const { date } = await searchParams;
+
+  const clubSite = await serverCache.get(
+    "site:bkgalabovo",
+    () => getSiteByIdAdmin("bkgalabovo"),
+    300_000
+  );
 
   let campData: {
     id: string;
@@ -118,7 +135,15 @@ export default async function CampPublicPage({
       // Normalize date to yyyy-MM-dd format for consistent filtering
       const normalizeDate = (val: unknown): string => {
         if (!val) return "";
-        if (typeof val === "string") return val;
+        if (typeof val === "string") {
+          const trimmed = val.trim();
+          if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+          const parsed = new Date(trimmed);
+          if (!Number.isNaN(parsed.getTime())) {
+            return format(parsed, "yyyy-MM-dd");
+          }
+          return trimmed.slice(0, 10);
+        }
         if (typeof val === "object" && val !== null) {
           if (
             "toDate" in (val as object) &&
@@ -305,26 +330,32 @@ export default async function CampPublicPage({
 
   if (!campData) {
     return (
-      <main
-        id="main-content"
-        className="dark flex min-h-screen flex-col items-center justify-center bg-zinc-950 p-6 text-center text-zinc-100"
-      >
-        <div className="max-w-md space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
-          <Tent className="mx-auto size-12 text-blue-400" />
-          <h1 className="text-xl font-bold text-white">Лагерът не е намерен</h1>
-          <p className="text-sm text-zinc-400">
-            Възможно е програмата на лагера да е архивирана или линкът да е
-            невалиден.
-          </p>
-          <Link
-            href="/club"
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
-          >
-            <ArrowLeft size={16} />
-            Към БК Гълъбово
-          </Link>
-        </div>
-      </main>
+      <div className="public-portal-shell min-h-screen overflow-x-hidden bg-zinc-950 text-zinc-100">
+        <PublicNav clubSite={clubSite} />
+        <main
+          id="main-content"
+          className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center p-6 pt-24 text-center"
+        >
+          <div className="max-w-md space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
+            <Tent className="mx-auto size-12 text-blue-400" />
+            <h1 className="text-xl font-bold text-white">
+              Лагерът не е намерен
+            </h1>
+            <p className="text-sm text-zinc-400">
+              Възможно е програмата на лагера да е архивирана или линкът да е
+              невалиден.
+            </p>
+            <Link
+              href="/club"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
+            >
+              <ArrowLeft size={16} />
+              Към БК Гълъбово
+            </Link>
+          </div>
+        </main>
+        <PublicFooter clubSite={clubSite} />
+      </div>
     );
   }
 
@@ -338,68 +369,77 @@ export default async function CampPublicPage({
   });
 
   return (
-    <div className="dark min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Nav */}
-      <nav className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-blue-400/20 bg-zinc-950/90 px-6 py-4 backdrop-blur-xl">
-        <Link
-          href="/club"
-          className="flex items-center gap-2 text-sm font-medium text-zinc-300 transition-all hover:text-blue-400"
-        >
-          <ArrowLeft size={16} />
-          БК Гълъбово
-        </Link>
-        <span className="text-sm font-bold tracking-widest text-blue-400 uppercase">
-          Програма на лагер
-        </span>
-        <div className="flex items-center gap-4">
-          <GoogleTranslateWidget />
-        </div>
-      </nav>
+    <div className="public-portal-shell min-h-screen overflow-x-hidden bg-zinc-950 text-zinc-100">
+      <PublicNav clubSite={clubSite} />
 
-      {/* Hero */}
-      <div className="relative overflow-hidden px-6 pt-28 pb-10">
-        <div className="pointer-events-none absolute top-0 left-1/2 h-72 w-full max-w-2xl -translate-x-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
-        <div className="relative z-10 mx-auto max-w-3xl">
-          {/* Camp badge */}
-          <div className="mb-3 flex items-center gap-2">
-            <span className="flex items-center gap-1.5 rounded-full border border-blue-400/30 bg-blue-500/20 px-3 py-1 text-xs font-bold tracking-widest text-blue-300 uppercase">
-              <Tent size={12} />
-              Лагер
-            </span>
-          </div>
-
-          <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
-            {campData.title}
-          </h1>
-
-          <div className="mt-3 flex flex-wrap items-center gap-4 text-sm font-medium text-zinc-300">
-            {campData.location && (
-              <span className="flex items-center gap-1.5 text-zinc-200">
-                <MapPin size={14} className="text-blue-400" />
-                {campData.location}
+      <main id="main-content" className="relative z-10 pb-20">
+        {/* Hero */}
+        <div className="relative overflow-hidden px-6 pt-24 pb-8 sm:pt-28 sm:pb-10">
+          <div className="pointer-events-none absolute top-0 left-1/2 h-72 w-full max-w-2xl -translate-x-1/2 rounded-full bg-blue-500/10 blur-[100px]" />
+          <div className="relative z-10 mx-auto max-w-3xl">
+            {/* Breadcrumbs */}
+            <nav
+              aria-label="Навигационна пътека"
+              className="mb-4 flex flex-wrap items-center gap-1.5 text-xs text-zinc-400"
+            >
+              <Link href="/" className="transition-colors hover:text-white">
+                Портал
+              </Link>
+              <ChevronRight size={12} aria-hidden="true" />
+              <Link
+                href="/club"
+                className="transition-colors hover:text-blue-400"
+              >
+                БК Гълъбово
+              </Link>
+              <ChevronRight size={12} aria-hidden="true" />
+              <Link
+                href="/club/schedule"
+                className="transition-colors hover:text-blue-400"
+              >
+                График
+              </Link>
+              <ChevronRight size={12} aria-hidden="true" />
+              <span className="truncate font-medium text-blue-400">
+                {campData.title}
               </span>
-            )}
-            <span className="flex items-center gap-1.5 text-zinc-300">
-              {startDateFormatted} — {endDateFormatted}
-            </span>
+            </nav>
+
+            {/* Camp badge */}
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex items-center gap-1.5 rounded-full border border-blue-400/30 bg-blue-500/20 px-3 py-1 text-xs font-bold tracking-widest text-blue-300 uppercase">
+                <Tent size={12} />
+                Лагер
+              </span>
+            </div>
+
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+              {campData.title}
+            </h1>
+
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm font-medium text-zinc-300">
+              {campData.location && (
+                <span className="flex items-center gap-1.5 text-zinc-200">
+                  <MapPin size={14} className="text-blue-400" />
+                  {campData.location}
+                </span>
+              )}
+              <span className="flex items-center gap-1.5 text-zinc-300">
+                {startDateFormatted} — {endDateFormatted}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main content */}
-      <main id="main-content" className="relative z-10 px-4 pb-24 sm:px-6">
-        <div className="mx-auto max-w-3xl">
-          <CampPublicClient camp={campData} initialDate={date} />
+        {/* Main content */}
+        <div className="px-4 sm:px-6">
+          <div className="mx-auto max-w-3xl">
+            <CampPublicClient camp={campData} initialDate={date} />
+          </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-zinc-800/50 py-8 text-center text-xs text-zinc-400">
-        <Link href="/club" className="transition-colors hover:text-zinc-200">
-          БК Гълъбово
-        </Link>{" "}
-        · Бадминтон клуб Гълъбово
-      </footer>
+      <PublicFooter clubSite={clubSite} />
     </div>
   );
 }

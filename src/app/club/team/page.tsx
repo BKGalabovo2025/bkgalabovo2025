@@ -1,6 +1,7 @@
-import { Medal, Trophy } from "lucide-react";
+import { ChevronRight, Medal, Trophy } from "lucide-react";
 import { Metadata } from "next";
 import { unstable_cache } from "next/cache";
+import Link from "next/link";
 
 import { CoachPhotoGallery } from "@/components/club/CoachPhotoGallery";
 import { TeamAthletesSection } from "@/components/club/TeamAthletesSection";
@@ -15,11 +16,106 @@ import { Member } from "@/types/member.types";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
+const DEFAULT_TEAM_METADATA: Metadata = {
   title: "Отбор и Треньори | СНЦ Бадминтон Клуб Гълъбово",
   description:
     "Запознайте се с ръководството, треньорите и най-добрите състезатели на Бадминтон Клуб Гълъбово.",
+  alternates: {
+    canonical: "/club/team",
+  },
+  openGraph: {
+    title: "Отбор и Треньори | СНЦ Бадминтон Клуб Гълъбово",
+    description:
+      "Запознайте се с ръководството, треньорите и най-добрите състезатели на Бадминтон Клуб Гълъбово.",
+    url: "https://bkgalabovo2025.vercel.app/club/team",
+    siteName: "БК Гълъбово",
+    images: [
+      {
+        url: "https://bkgalabovo2025.vercel.app/bk-hero.webp",
+        width: 1200,
+        height: 630,
+        alt: "Отбор и Треньори на БК Гълъбово",
+      },
+    ],
+    locale: "bg_BG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Отбор и Треньори | БК Гълъбово",
+    description:
+      "Запознайте се с ръководството, треньорите и състезатели на Бадминтон Клуб Гълъбово.",
+    images: ["https://bkgalabovo2025.vercel.app/bk-hero.webp"],
+  },
 };
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ athlete?: string }>;
+}): Promise<Metadata> {
+  const { athlete } = await searchParams;
+  if (!athlete) {
+    return DEFAULT_TEAM_METADATA;
+  }
+
+  try {
+    const adminDb = getAdminDb();
+    const doc = await adminDb.collection("members").doc(athlete).get();
+    if (!doc.exists) {
+      return DEFAULT_TEAM_METADATA;
+    }
+
+    const data = doc.data() as Partial<Member> | undefined;
+    if (!data || data.siteId !== "bkgalabovo" || !data.showOnPublicTeam) {
+      return DEFAULT_TEAM_METADATA;
+    }
+
+    const athleteName =
+      data.name?.trim() ||
+      [data.firstName, data.middleName, data.lastName]
+        .filter(Boolean)
+        .join(" ") ||
+      "Състезател";
+    const ageGroup =
+      data.ageGroup || calculateAgeGroup(data.dateOfBirth) || "Мъже/Жени";
+    const title = `${athleteName} | Отбор | БК Гълъбово`;
+    const description = `Профил и турнирни участия на ${athleteName} (${ageGroup}) в СНЦ Бадминтон Клуб Гълъбово.`;
+    const canonical = `/club/team?athlete=${encodeURIComponent(athlete)}`;
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical,
+      },
+      openGraph: {
+        title,
+        description,
+        url: `https://bkgalabovo2025.vercel.app${canonical}`,
+        siteName: "БК Гълъбово",
+        images: [
+          {
+            url: "https://bkgalabovo2025.vercel.app/bk-hero.webp",
+            width: 1200,
+            height: 630,
+            alt: athleteName,
+          },
+        ],
+        locale: "bg_BG",
+        type: "profile",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: ["https://bkgalabovo2025.vercel.app/bk-hero.webp"],
+      },
+    };
+  } catch {
+    return DEFAULT_TEAM_METADATA;
+  }
+}
 
 // --- Helper type for Member with Tournaments ---
 type TeamMember = TeamMemberForCard;
@@ -290,19 +386,37 @@ export default async function TeamPage() {
   });
 
   return (
-    <div className="min-h-screen bg-black font-sans text-white selection:bg-blue-500/30">
+    <div className="public-portal-shell min-h-screen overflow-x-hidden bg-black font-sans text-white selection:bg-blue-500/30">
       <PublicNav clubSite={clubSite} />
 
       <main id="main-content">
         {/* Hero Section */}
-        <section className="relative flex items-center overflow-hidden px-4 pt-14 pb-2 sm:px-6 sm:pt-16 sm:pb-3">
+        <section className="relative flex items-center overflow-hidden px-4 pt-24 pb-4 sm:px-6 sm:pt-24 sm:pb-6">
           <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 z-10 bg-linear-to-b from-blue-900/20 via-black/80 to-black" />
-            <div className="pointer-events-none absolute top-1/2 left-1/2 size-[1000px] -translate-1/2 rounded-full bg-blue-500/20 blur-[120px]" />
+            <div className="absolute inset-0 z-10 bg-linear-to-b from-blue-50 via-slate-50 to-slate-50 dark:from-blue-900/20 dark:via-black/80 dark:to-black" />
+            <div className="pointer-events-none absolute top-1/2 left-1/2 size-[1000px] -translate-1/2 rounded-full bg-blue-500/10 blur-[120px] dark:bg-blue-500/20" />
           </div>
 
           <div className="relative z-10 m-auto max-w-7xl text-center">
-            <span className="mb-1 block text-[10px] font-bold tracking-[0.4em] text-blue-400 uppercase drop-shadow-[0_0_8px_rgba(59,130,246,0.8)] sm:text-[11px]">
+            <nav
+              aria-label="Навигационна пътека"
+              className="mb-3 flex flex-wrap items-center justify-center gap-1.5 text-xs text-zinc-400"
+            >
+              <Link href="/" className="transition-colors hover:text-white">
+                Портал
+              </Link>
+              <ChevronRight size={12} aria-hidden="true" />
+              <Link
+                href="/club"
+                className="transition-colors hover:text-blue-400"
+              >
+                БК Гълъбово
+              </Link>
+              <ChevronRight size={12} aria-hidden="true" />
+              <span className="font-medium text-blue-400">Отбор</span>
+            </nav>
+
+            <span className="mb-1 block text-[10px] font-bold tracking-[0.4em] text-blue-600 uppercase sm:text-[11px] dark:text-blue-400 dark:drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">
               Лицата на клуба
             </span>
             <h1 className="mb-2 text-2xl font-light tracking-tight sm:text-3xl md:text-4xl">
@@ -377,7 +491,7 @@ export default async function TeamPage() {
         )}
 
         {/* Athletes Section */}
-        <section className="relative border-t border-zinc-900/50 px-4 py-8 sm:px-6 sm:py-10 md:py-12">
+        <section className="relative overflow-hidden border-t border-zinc-900/50 px-4 py-8 sm:px-6 sm:py-10 md:py-12">
           <div className="pointer-events-none absolute top-0 right-0 size-[800px] rounded-full bg-blue-500/5 blur-[150px]" />
 
           <div className="relative z-10 m-auto max-w-7xl">

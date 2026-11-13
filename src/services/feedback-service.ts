@@ -584,6 +584,9 @@ export const feedbackService = {
     if (!campaign) {
       throw new Error("Анкетата не е намерена или е невалидна.");
     }
+    if (campaign.status !== "active") {
+      throw new Error("Тази анкета е затворена и вече не приема отговори.");
+    }
 
     const docRef = doc(collection(db, SUBMISSIONS_COLLECTION));
     const now = new Date().toISOString();

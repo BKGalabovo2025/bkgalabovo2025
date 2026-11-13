@@ -83,6 +83,7 @@ describe("feedbackService", () => {
           title: "Camp 2026",
           siteId: "bkgalabovo",
           eventType: "camp",
+          status: "active",
         }),
       };
       vi.mocked(firestore.getDoc).mockResolvedValue(

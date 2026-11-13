@@ -4,7 +4,7 @@ import "server-only";
 import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { logAuditEvent } from "@/lib/audit-logger";
 import {
@@ -145,6 +145,9 @@ export async function createSaleAction(
     revalidatePath("/inventory");
     revalidatePath("/dashboard");
     revalidatePath("/club/parents");
+    revalidatePath("/club/catalog");
+    revalidateTag("catalog", "max");
+    serverCache.invalidate("catalog:products");
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
     serverCache.invalidatePattern("parent-dashboard:");
@@ -580,6 +583,9 @@ export async function deleteSaleAction(
     revalidatePath("/inventory");
     revalidatePath("/dashboard");
     revalidatePath("/club/parents");
+    revalidatePath("/club/catalog");
+    revalidateTag("catalog", "max");
+    serverCache.invalidate("catalog:products");
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
     serverCache.invalidatePattern("parent-dashboard:");

@@ -118,7 +118,7 @@ export function AttachmentCard({
                 preferredZone: zoneName,
               })
             }
-            className="active:scale-0.98 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3.5 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_20px_rgba(16,185,129,0.35)]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3.5 text-xs font-bold tracking-wider text-emerald-400 uppercase transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-500 hover:text-white hover:shadow-[0_0_20px_rgba(16,185,129,0.35)] active:scale-0.98"
           >
             <CalendarCheck size={16} />
             <span>{buttonLabel}</span>

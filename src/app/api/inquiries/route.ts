@@ -42,12 +42,79 @@ const levelTranslations: Record<string, string> = {
   advanced: "Напреднал",
 };
 
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 5;
+const inquiryRateLimitMap = new Map<
+  string,
+  { count: number; resetAt: number }
+>();
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  return request.headers.get("x-real-ip")?.trim() || "unknown";
+}
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  // Prune expired entries occasionally to keep memory bounded
+  if (inquiryRateLimitMap.size > 500) {
+    for (const [key, entry] of inquiryRateLimitMap.entries()) {
+      if (now >= entry.resetAt) {
+        inquiryRateLimitMap.delete(key);
+      }
+    }
+  }
+
+  const existing = inquiryRateLimitMap.get(ip);
+  if (!existing || now >= existing.resetAt) {
+    inquiryRateLimitMap.set(ip, {
+      count: 1,
+      resetAt: now + RATE_LIMIT_WINDOW_MS,
+    });
+    return false;
+  }
+
+  if (existing.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+
+  existing.count += 1;
+  return false;
+}
+
 /**
  * Public endpoint: Submit new inquiry
  */
 export async function POST(request: Request) {
   try {
+    const clientIp = getClientIp(request);
+    if (isRateLimited(clientIp)) {
+      return NextResponse.json(
+        {
+          error:
+            "Твърде много заявки. Моля, изчакайте една минута и опитайте отново.",
+        },
+        { status: 429 }
+      );
+    }
+
     const json = await request.json();
+
+    // Honeypot check: bots filling hidden website/_hp fields get a silent 200
+    const honeypotWebsite =
+      typeof json?.website === "string" ? json.website.trim() : "";
+    const honeypotHp = typeof json?._hp === "string" ? json._hp.trim() : "";
+    if (honeypotWebsite.length > 0 || honeypotHp.length > 0) {
+      return NextResponse.json({
+        success: true,
+        message: "Запитването е прието успешно.",
+      });
+    }
+
     const parsed = InquiryInputSchema.safeParse(json);
 
     if (!parsed.success) {

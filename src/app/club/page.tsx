@@ -5,6 +5,7 @@ import path from "path";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
+import { getPublicReviewsAdmin } from "@/services/admin/feedback-service.admin";
 import { getSiteByIdAdmin } from "@/services/admin/site-service.admin";
 
 import ClubClient from "./ClubClient";
@@ -26,6 +27,9 @@ export const metadata: Metadata = {
   title: "БК Гълъбово | Бадминтон клуб Гълъбово",
   description:
     "Официален сайт на Бадминтон клуб Гълъбово — турнири, ранглиста, тренировки и членство. Град Гълъбово.",
+  alternates: {
+    canonical: "/club",
+  },
   openGraph: {
     title: "БК Гълъбово | Бадминтон клуб Гълъбово",
     description:
@@ -34,7 +38,7 @@ export const metadata: Metadata = {
     siteName: "БК Гълъбово",
     images: [
       {
-        url: "https://bkgalabovo2025.vercel.app/bk-hero.png",
+        url: "https://bkgalabovo2025.vercel.app/bk-hero.webp",
         width: 1200,
         height: 630,
         alt: "БК Гълъбово",
@@ -47,7 +51,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "БК Гълъбово",
     description: "Официален сайт на Бадминтон клуб Гълъбово.",
-    images: ["https://bkgalabovo2025.vercel.app/bk-hero.png"],
+    images: ["https://bkgalabovo2025.vercel.app/bk-hero.webp"],
   },
 };
 
@@ -58,22 +62,6 @@ export default async function ClubMainPage(props: {
   if (searchParams?.verify) {
     redirect(`/cert/${encodeURIComponent(searchParams.verify)}`);
   }
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SportsClub",
-    name: "Бадминтон Клуб Гълъбово",
-    image: "https://bkgalabovo2025.vercel.app/icons/LOGO.jpg",
-    "@id": "https://bkgalabovo2025.vercel.app/club",
-    url: "https://bkgalabovo2025.vercel.app/club",
-    telephone: "+359899388338",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Спортна зала „Енергетик“",
-      addressLocality: "Гълъбово",
-      postalCode: "6280",
-      addressCountry: "BG",
-    },
-  };
   const now = new Date();
   const startOfDay = new Date(now);
   startOfDay.setHours(0, 0, 0, 0);
@@ -81,11 +69,11 @@ export default async function ClubMainPage(props: {
   endOf7Days.setDate(now.getDate() + 7);
   endOf7Days.setHours(23, 59, 59, 999);
 
-  // Fetch site info and schedule in parallel with serverCache and timeout protection
-  const { clubSite, scheduleRaw } = await serverCache.get(
+  // Fetch site info, schedule and public reviews in parallel with serverCache and timeout protection
+  const { clubSite, scheduleRaw, reviewStats } = await serverCache.get(
     "club:public-data",
     async () => {
-      const [site, snap] = await Promise.all([
+      const [site, snap, reviews] = await Promise.all([
         withTimeout(
           getSiteByIdAdmin("bkgalabovo").catch(() => null),
           3500,
@@ -106,6 +94,11 @@ export default async function ClubMainPage(props: {
           })(),
           3500,
           { docs: [] }
+        ),
+        withTimeout(
+          getPublicReviewsAdmin("bkgalabovo").catch(() => []),
+          3500,
+          []
         ),
       ]);
 
@@ -152,7 +145,24 @@ export default async function ClubMainPage(props: {
         };
       });
 
-      return { clubSite: site, scheduleRaw: raw };
+      const reviewCount = reviews.length;
+      const averageRating =
+        reviewCount > 0
+          ? Number(
+              (
+                reviews.reduce(
+                  (sum, r) => sum + (Number(r.overallRating) || 0),
+                  0
+                ) / reviewCount
+              ).toFixed(1)
+            )
+          : 0;
+
+      return {
+        clubSite: site,
+        scheduleRaw: raw,
+        reviewStats: { averageRating, count: reviewCount },
+      };
     },
     300_000 // 5 minutes in-memory cache
   );
@@ -183,6 +193,23 @@ export default async function ClubMainPage(props: {
     hallImages = ["/hall/zala1.webp"];
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsClub",
+    name: clubSite?.name || "Бадминтон Клуб Гълъбово",
+    image: "https://bkgalabovo2025.vercel.app/bk-hero.webp",
+    "@id": "https://bkgalabovo2025.vercel.app/club",
+    url: "https://bkgalabovo2025.vercel.app/club",
+    telephone: clubSite?.phone || "+359899829923",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: clubSite?.address || "Спортна зала „Енергетик“",
+      addressLocality: "Гълъбово",
+      postalCode: "6280",
+      addressCountry: "BG",
+    },
+  };
+
   return (
     <>
       <script
@@ -193,6 +220,7 @@ export default async function ClubMainPage(props: {
         schedule={schedule}
         hallImages={hallImages}
         clubSite={clubSite}
+        reviewStats={reviewStats}
       />
     </>
   );

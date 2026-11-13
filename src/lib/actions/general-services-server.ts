@@ -2,7 +2,7 @@
 import "server-only";
 
 import * as admin from "firebase-admin";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import {
   ensureAdminFromSession,
@@ -63,13 +63,18 @@ export async function getGeneralServicesServerAction(activeBranch: string) {
     }
 
     const snapshot = await query.get();
-    const services = snapshot.docs
+    let services = snapshot.docs
       .map((doc) => snapToData<GeneralService>(doc))
-      .filter((s): s is GeneralService => s !== null)
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      .filter((s): s is GeneralService => s !== null);
+
+    if (activeBranch === "bkgalabovo") {
+      services = services.filter((s) => !s.siteId || s.siteId === "bkgalabovo");
+    }
+
+    services.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
     return { success: true, data: services };
   } catch (error: unknown) {
@@ -111,6 +116,10 @@ export async function createGeneralServiceAction(
       userName: user.email || "Unknown",
     };
     await adminDb.collection("generalServiceHistory").add(event);
+
+    serverCache.invalidate("catalog:clubGeneralServices");
+    revalidatePath("/club/catalog");
+    revalidateTag("catalog", "max");
 
     return { success: true, data: { id: docRef.id, ...serviceData } };
   } catch (error: unknown) {
@@ -163,6 +172,10 @@ export async function updateGeneralServiceAction(
     };
     await adminDb.collection("generalServiceHistory").add(event);
 
+    serverCache.invalidate("catalog:clubGeneralServices");
+    revalidatePath("/club/catalog");
+    revalidateTag("catalog", "max");
+
     return { success: true };
   } catch (error: unknown) {
     console.error("Error updateGeneralServiceAction:", error);
@@ -202,6 +215,10 @@ export async function deleteGeneralServiceAction(id: string) {
     };
     await adminDb.collection("generalServiceHistory").add(event);
 
+    serverCache.invalidate("catalog:clubGeneralServices");
+    revalidatePath("/club/catalog");
+    revalidateTag("catalog", "max");
+
     return { success: true };
   } catch (error: unknown) {
     console.error("Error deleteGeneralServiceAction:", error);
@@ -227,9 +244,15 @@ export async function getGeneralServiceHistoryAction(activeBranch: string) {
     }
 
     const snapshot = await query.orderBy("createdAt", "desc").get();
-    const history = snapshot.docs.map((doc) =>
-      snapToData<GeneralServiceEvent>(doc)
-    );
+    let history = snapshot.docs
+      .map((doc) => snapToData<GeneralServiceEvent>(doc))
+      .filter((item): item is GeneralServiceEvent => item !== null);
+
+    if (activeBranch === "bkgalabovo") {
+      history = history.filter(
+        (item) => !item.siteId || item.siteId === "bkgalabovo"
+      );
+    }
 
     return { success: true, data: history };
   } catch (error: unknown) {

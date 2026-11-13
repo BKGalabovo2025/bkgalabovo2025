@@ -1,6 +1,6 @@
 "use client";
 
-import { Phone } from "lucide-react";
+import { Phone, User } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
@@ -26,7 +26,7 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
   return (
     <section
       id="team"
-      className="relative overflow-hidden bg-zinc-950 px-6 py-32"
+      className="relative scroll-mt-20 overflow-hidden bg-zinc-950 px-6 py-32"
     >
       <div className="pointer-events-none absolute top-1/2 left-1/2 size-[800px] -translate-1/2 rounded-full bg-emerald-500/5 blur-[120px]" />
 
@@ -36,7 +36,7 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
             <p className="mb-6 bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-[10px] font-bold tracking-[0.4em] text-transparent uppercase">
               Нашият Екип
             </p>
-            <h2 className="leading-0.95 mb-10 text-5xl font-light tracking-tight md:text-7xl">
+            <h2 className="mb-10 text-5xl leading-0.95 font-light tracking-tight md:text-7xl">
               Хора със <br />
               <span className="bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-transparent">
                 споделена мисия
@@ -53,7 +53,7 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
               >
                 {displayIntro}
                 {!isExpanded && shouldTruncate && (
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-zinc-950 to-transparent" />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-slate-50 to-transparent dark:from-zinc-950" />
                 )}
               </div>
               {shouldTruncate && (
@@ -71,46 +71,50 @@ export function TeamSection({ therapists, teamIntro }: TeamSectionProps) {
           </div>
 
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-            {therapists.map((member, idx) => (
-              <div
-                key={member.id || idx}
-                className="group relative rounded-4xl border border-white/5 bg-zinc-900/40 p-8 transition-all duration-500 hover:bg-zinc-900"
-              >
-                <div className="relative mb-6 size-24 overflow-hidden rounded-3xl border border-white/10 transition-colors group-hover:border-emerald-500/30">
-                  <Image
-                    src={
-                      getValidImageSrc(member.image) ||
-                      "/team/mira georgieva.jpg"
-                    }
-                    alt={member.name}
-                    fill
-                    sizes="96px"
-                    className="object-cover"
-                  />
-                </div>
-                <h3 className="mb-2 text-2xl font-medium text-zinc-100">
-                  {member.name}
-                </h3>
-                <p className="mb-6 bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-xs font-bold tracking-widest text-transparent uppercase">
-                  {member.role || "Терапевт"}
-                </p>
-                <p className="mb-8 text-sm leading-relaxed font-light text-zinc-300">
-                  {member.bio}
-                </p>
+            {therapists.map((member, idx) => {
+              const validImage = getValidImageSrc(member.image);
+              return (
+                <div
+                  key={member.id || idx}
+                  className="group relative rounded-4xl border border-white/5 bg-zinc-900/40 p-8 transition-all duration-500 hover:bg-zinc-900"
+                >
+                  <div className="relative mb-6 flex size-24 items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-zinc-900/60 transition-colors group-hover:border-emerald-500/30">
+                    {validImage ? (
+                      <Image
+                        src={validImage}
+                        alt={member.name}
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <User className="size-10 text-emerald-400/70" />
+                    )}
+                  </div>
+                  <h3 className="mb-2 text-2xl font-medium text-zinc-100">
+                    {member.name}
+                  </h3>
+                  <p className="mb-6 bg-linear-to-r from-purple-400 to-emerald-400 bg-clip-text text-xs font-bold tracking-widest text-transparent uppercase">
+                    {member.role || "Терапевт"}
+                  </p>
+                  <p className="mb-8 text-sm leading-relaxed font-light text-zinc-300">
+                    {member.bio}
+                  </p>
 
-                <div className="flex items-center gap-4">
-                  {member.phone && (
-                    <a
-                      href={`tel:${member.phone}`}
-                      aria-label={`Обади се на ${member.name}`}
-                      className="flex size-10 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition-all hover:bg-linear-to-r hover:from-purple-500 hover:to-emerald-500 hover:text-white"
-                    >
-                      <Phone size={16} />
-                    </a>
-                  )}
+                  <div className="flex items-center gap-4">
+                    {member.phone && (
+                      <a
+                        href={`tel:${member.phone}`}
+                        aria-label={`Обади се на ${member.name}`}
+                        className="flex size-10 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition-all hover:bg-linear-to-r hover:from-purple-500 hover:to-emerald-500 hover:text-white"
+                      >
+                        <Phone size={16} />
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

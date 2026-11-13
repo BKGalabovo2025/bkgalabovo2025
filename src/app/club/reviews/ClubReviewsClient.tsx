@@ -3,14 +3,17 @@
 import {
   CheckCircle2,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   Loader2,
   MessageCircle,
   MessageSquare,
   PenLine,
+  Search,
   Sparkles,
   Star,
   Tag,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -27,6 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FeedbackCampaign, FeedbackSubmission } from "@/types/feedback.types";
+import { Site } from "@/types/site.types";
 
 const QUESTION_LABELS_FALLBACK: Record<string, string> = {
   q_org: "Организация и комуникация",
@@ -62,7 +66,8 @@ interface ReviewCardProps {
 function ReviewCardItem({ rev }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const initial = rev.respondentName?.trim()?.charAt(0)?.toUpperCase() || "К";
+  const trimmedName = rev.respondentName?.trim() || "";
+  const initial = trimmedName ? trimmedName.charAt(0).toUpperCase() : "А";
   const formattedDate = new Date(rev.createdAt).toLocaleDateString("bg-BG", {
     month: "long",
     year: "numeric",
@@ -111,8 +116,9 @@ function ReviewCardItem({ rev }: ReviewCardProps) {
   }
 
   // Capitalize respondent name properly
-  const cleanName =
-    rev.respondentName?.charAt(0).toUpperCase() + rev.respondentName?.slice(1);
+  const cleanName = trimmedName
+    ? trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1)
+    : "Анонимен";
 
   // Capitalize child name properly
   const cleanChild = rev.childName
@@ -174,7 +180,7 @@ function ReviewCardItem({ rev }: ReviewCardProps) {
               <div className="text-[10px] font-extrabold tracking-wider text-zinc-400 uppercase">
                 Оценки по елементи:
               </div>
-              <div className="divide-zinc-850 space-y-2.5 divide-y">
+              <div className="space-y-2.5 divide-y divide-zinc-800">
                 {ratingItems.map((item, rIdx) => (
                   <div
                     key={rIdx}
@@ -285,11 +291,13 @@ function ReviewCardItem({ rev }: ReviewCardProps) {
 interface ClubReviewsClientProps {
   initialReviews?: FeedbackSubmission[];
   initialCampaigns?: FeedbackCampaign[];
+  clubSite?: Site | null;
 }
 
 export default function ClubReviewsClient({
   initialReviews,
   initialCampaigns,
+  clubSite,
 }: ClubReviewsClientProps = {}) {
   const [reviews, setReviews] = useState<FeedbackSubmission[]>(
     initialReviews ?? []
@@ -298,8 +306,45 @@ export default function ClubReviewsClient({
     FeedbackCampaign[]
   >(initialCampaigns ?? []);
   const [isSurveyPickerOpen, setIsSurveyPickerOpen] = useState(false);
+
+  const updateSurveyUrlParam = (open: boolean) => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (open) {
+      url.searchParams.set("survey", "select");
+    } else {
+      url.searchParams.delete("survey");
+    }
+    window.history.replaceState(
+      window.history.state,
+      "",
+      url.pathname + (url.search ? url.search : "") + url.hash
+    );
+  };
+
+  const handleSurveyPickerOpenChange = (open: boolean) => {
+    setIsSurveyPickerOpen(open);
+    updateSurveyUrlParam(open);
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncFromUrl = () => {
+      const surveyParam = new URLSearchParams(window.location.search).get(
+        "survey"
+      );
+      setIsSurveyPickerOpen(
+        surveyParam === "select" && standingCampaigns.length > 1
+      );
+    };
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, [standingCampaigns.length]);
   const [isLoading, setIsLoading] = useState(initialReviews === undefined);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "highest">("newest");
 
   const categoryCounts = useMemo(() => {
     return {
@@ -334,12 +379,60 @@ export default function ClubReviewsClient({
   }, [initialReviews]);
 
   const filteredReviews = useMemo(() => {
-    if (selectedCategory === "all") return reviews;
-    if (selectedCategory === "general") {
-      return reviews.filter((r) => r.eventType === "general" || !r.eventType);
-    }
-    return reviews.filter((r) => r.eventType === selectedCategory);
-  }, [reviews, selectedCategory]);
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    const matches = reviews.filter((r) => {
+      if (selectedCategory === "general") {
+        if (r.eventType !== "general" && r.eventType) return false;
+      } else if (selectedCategory !== "all") {
+        if (r.eventType !== selectedCategory) return false;
+      }
+
+      if (normalizedQuery) {
+        const nameMatch = (r.respondentName || "")
+          .toLowerCase()
+          .includes(normalizedQuery);
+        const quoteMatch = (r.highlightQuote || "")
+          .toLowerCase()
+          .includes(normalizedQuery);
+        const textMatch = (r.reviewText || "")
+          .toLowerCase()
+          .includes(normalizedQuery);
+        const breakdownMatch = (r.questionBreakdown || []).some((q) =>
+          String(q.answer ?? "")
+            .toLowerCase()
+            .includes(normalizedQuery)
+        );
+        const answersMatch = r.answers
+          ? Object.values(r.answers).some((v) =>
+              String(v ?? "")
+                .toLowerCase()
+                .includes(normalizedQuery)
+            )
+          : false;
+
+        if (
+          !nameMatch &&
+          !quoteMatch &&
+          !textMatch &&
+          !breakdownMatch &&
+          !answersMatch
+        ) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    return [...matches].sort((a, b) => {
+      if (sortBy === "highest") {
+        const ratingDiff = (b.overallRating || 0) - (a.overallRating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [reviews, selectedCategory, searchQuery, sortBy]);
 
   const stats = useMemo(() => {
     if (reviews.length === 0)
@@ -356,10 +449,29 @@ export default function ClubReviewsClient({
   }, [reviews]);
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-blue-500 selection:text-white">
-      <PublicNav />
+    <div className="public-portal-shell min-h-screen overflow-x-hidden bg-black text-white selection:bg-blue-500 selection:text-white">
+      <PublicNav clubSite={clubSite} />
 
-      <main className="relative m-auto max-w-7xl space-y-4 px-4 pt-14 pb-8 sm:space-y-5 sm:px-6 sm:pt-16 sm:pb-12">
+      <main
+        id="main-content"
+        className="relative m-auto max-w-7xl space-y-4 px-4 pt-20 pb-8 sm:space-y-5 sm:px-6 sm:pt-24 sm:pb-12"
+      >
+        {/* Breadcrumbs */}
+        <nav
+          aria-label="Навигационна пътека"
+          className="relative z-10 flex flex-wrap items-center justify-center gap-1.5 text-xs text-zinc-400"
+        >
+          <Link href="/" className="transition-colors hover:text-white">
+            Портал
+          </Link>
+          <ChevronRight size={12} aria-hidden="true" />
+          <Link href="/club" className="transition-colors hover:text-blue-400">
+            БК Гълъбово
+          </Link>
+          <ChevronRight size={12} aria-hidden="true" />
+          <span className="font-medium text-blue-400">Отзиви</span>
+        </nav>
+
         {/* Glow Effects */}
         <div className="pointer-events-none absolute top-16 left-1/2 size-72 -translate-x-1/2 rounded-full bg-blue-600/20 blur-[100px]" />
 
@@ -397,7 +509,8 @@ export default function ClubReviewsClient({
                 </Button>
               ) : (
                 <Button
-                  onClick={() => setIsSurveyPickerOpen(true)}
+                  type="button"
+                  onClick={() => handleSurveyPickerOpenChange(true)}
                   className="h-auto rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:from-blue-500 hover:to-indigo-500 sm:rounded-2xl sm:px-5 sm:py-2.5 sm:text-sm"
                 >
                   <PenLine className="mr-1.5 size-4" />
@@ -491,6 +604,7 @@ export default function ClubReviewsClient({
             },
           ].map((cat) => (
             <button
+              type="button"
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
               className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold tracking-wider uppercase transition-all sm:gap-2 sm:rounded-2xl sm:px-4 sm:py-2 ${
@@ -513,6 +627,46 @@ export default function ClubReviewsClient({
           ))}
         </div>
 
+        {/* Search & Sort Controls */}
+        <div className="relative z-10 mx-auto flex max-w-2xl flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search
+              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-zinc-500"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Търси отзив по име или коментар..."
+              aria-label="Търси отзив по име или коментар"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-900/80 py-2.5 px-10 text-sm text-white placeholder:text-zinc-500 focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Изчисти търсенето"
+                className="absolute top-1/2 right-2.5 flex size-6 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+
+          <select
+            value={sortBy}
+            onChange={(e) =>
+              setSortBy(e.target.value === "highest" ? "highest" : "newest")
+            }
+            aria-label="Подреди отзивите"
+            className="rounded-xl border border-zinc-800 bg-zinc-900/80 px-3.5 py-2.5 text-sm text-white focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20 focus:outline-none sm:w-52"
+          >
+            <option value="newest">Най-нови</option>
+            <option value="highest">Най-висока оценка</option>
+          </select>
+        </div>
+
         {/* Reviews Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center p-20">
@@ -522,12 +676,24 @@ export default function ClubReviewsClient({
           <div className="relative z-10 rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/40 py-20 text-center">
             <MessageSquare className="mx-auto mb-3 size-12 text-zinc-700" />
             <h2 className="text-lg font-bold text-zinc-300">
-              Все още няма публикувани отзиви в тази категория
+              {searchQuery.trim()
+                ? "Няма намерени отзиви по зададеното търсене"
+                : "Все още няма публикувани отзиви в тази категория"}
             </h2>
             <p className="mx-auto mt-1 max-w-sm text-xs text-zinc-400">
-              След провеждане на предстоящите събития и лагери тук ще се появят
-              първите отзиви от родителите.
+              {searchQuery.trim()
+                ? "Опитайте с друга ключова дума или изчистете търсенето."
+                : "След провеждане на предстоящите събития и лагери тук ще се появят първите отзиви от родителите."}
             </p>
+            {searchQuery.trim() && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-xs font-semibold text-blue-300 transition-colors hover:bg-blue-500/20 hover:text-white"
+              >
+                Изчисти търсенето
+              </button>
+            )}
           </div>
         ) : (
           <div className="relative z-10 grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -539,8 +705,11 @@ export default function ClubReviewsClient({
       </main>
 
       {/* Survey Picker Dialog for Multiple Standing Surveys */}
-      <Dialog open={isSurveyPickerOpen} onOpenChange={setIsSurveyPickerOpen}>
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
+      <Dialog
+        open={isSurveyPickerOpen}
+        onOpenChange={handleSurveyPickerOpenChange}
+      >
+        <DialogContent className="public-portal-shell flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
           <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 px-4 py-3 sm:px-5 sm:py-3.5 pr-10">
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-black text-white">
               <PenLine className="size-4.5 text-blue-400" />
@@ -557,7 +726,7 @@ export default function ClubReviewsClient({
               <Link
                 key={sc.id}
                 href={`/feedback/${sc.id}`}
-                onClick={() => setIsSurveyPickerOpen(false)}
+                onClick={() => handleSurveyPickerOpenChange(false)}
                 className="group flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 p-3 sm:p-3.5 transition-all hover:border-blue-500/50 hover:bg-blue-950/30"
               >
                 <div className="space-y-1">
@@ -574,9 +743,9 @@ export default function ClubReviewsClient({
                             ? "⚡ Тренировки"
                             : "🌟 Обща"}
                     </Badge>
-                    <h4 className="text-sm font-black text-white transition-colors group-hover:text-blue-300">
+                    <h3 className="text-sm font-black text-white transition-colors group-hover:text-blue-300">
                       {sc.title}
-                    </h4>
+                    </h3>
                   </div>
                   {sc.description && (
                     <p className="line-clamp-1 text-xs text-zinc-400">
@@ -594,7 +763,7 @@ export default function ClubReviewsClient({
         </DialogContent>
       </Dialog>
 
-      <PublicFooter />
+      <PublicFooter clubSite={clubSite} />
     </div>
   );
 }
