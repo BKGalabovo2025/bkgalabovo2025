@@ -581,6 +581,24 @@
       ]
     },
     {
+      "collectionGroup": "trip_expenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "siteId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "tripId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "generalServiceHistory",
       "queryScope": "COLLECTION",
       "fields": [
