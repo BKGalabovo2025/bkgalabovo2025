@@ -16,9 +16,17 @@ import {
 import { businessTripService } from "@/services/business-trip-service";
 
 export function TripProtocolView() {
-  const { trip, event, expenses, membersDict, refreshData } = useTripDetails();
+  const {
+    trip,
+    event,
+    expenses,
+    membersDict,
+    refreshData,
+    activeDialog,
+    openDialog,
+    closeDialog,
+  } = useTripDetails();
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
-  const [isProtocolDialogOpen, setIsProtocolDialogOpen] = useState(false);
 
   const protocolNum = getTripProtocolNumber(trip);
   const decisionNum = getTripDecisionNumber(trip);
@@ -87,7 +95,7 @@ export function TripProtocolView() {
           <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
             Решение и Протокол на Управителния съвет № {protocolNum}
           </h2>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Официален протокол за гласуване и одобрение на командировъчните
             разходи
           </p>
@@ -97,7 +105,7 @@ export function TripProtocolView() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsProtocolDialogOpen(true)}
+            onClick={() => openDialog("protocol")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             title="Редактирай протокола и решението (дата, членове, място, мотиви)"
           >
@@ -151,25 +159,33 @@ export function TripProtocolView() {
         <div className="mx-auto max-w-2xl space-y-4 text-xs">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <span className="text-zinc-500">Решение на УС №:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Решение на УС №:
+              </span>
               <p className="font-bold text-zinc-900 dark:text-white">
                 {trip.usDecision || "—"}
               </p>
             </div>
             <div>
-              <span className="text-zinc-500">Дата на заседанието:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Дата на заседанието:
+              </span>
               <p className="font-bold text-zinc-900 dark:text-white">
                 {trip.usDecisionDate || "—"}
               </p>
             </div>
             <div>
-              <span className="text-zinc-500">Място на провеждане:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Място на провеждане:
+              </span>
               <p className="font-bold text-zinc-900 dark:text-white">
                 {trip.usMeetingLocation || "гр. Гълъбово, зала по бадминтон"}
               </p>
             </div>
             <div>
-              <span className="text-zinc-500">Присъстващи членове на УС:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Присъстващи членове на УС:
+              </span>
               <p className="font-bold text-zinc-900 dark:text-white">
                 {trip.usBoardMembers || "Всички членове на Управителния съвет"}
               </p>
@@ -177,7 +193,7 @@ export function TripProtocolView() {
           </div>
 
           <div className="rounded-xl border border-zinc-100 bg-zinc-50/60 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-            <span className="text-zinc-500">
+            <span className="text-zinc-500 dark:text-zinc-400">
               Допълнителни решения и бележки:
             </span>
             <p className="mt-1 leading-relaxed text-zinc-800 dark:text-zinc-200">
@@ -195,14 +211,16 @@ export function TripProtocolView() {
         expenses={expenses}
       />
 
-      {isProtocolDialogOpen && (
+      {activeDialog === "protocol" && (
         <TripProtocolDialog
-          open={isProtocolDialogOpen}
-          onOpenChange={setIsProtocolDialogOpen}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) closeDialog();
+          }}
           trip={trip}
           membersDict={membersDict}
           onSuccess={() => {
-            setIsProtocolDialogOpen(false);
+            closeDialog();
             refreshData();
           }}
         />

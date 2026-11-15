@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { useTripDetails } from "@/components/business-trips/details/TripDetailsContext";
 import { SignaturePadDialog } from "@/components/business-trips/SignaturePadDialog";
 import { TripAthletesSignaturesDialog } from "@/components/business-trips/TripAthletesSignaturesDialog";
-import { TripStatementEditDialog } from "@/components/business-trips/TripStatementEditDialog";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
@@ -24,9 +23,14 @@ import { saveDirectAthleteSignatureAction } from "@/lib/actions/trip-signatures"
 import { businessTripService } from "@/services/business-trip-service";
 
 export function TripAthletesView() {
-  const { trip, membersDict, refreshData } = useTripDetails();
-  const [isSignaturesDialogOpen, setIsSignaturesDialogOpen] = useState(false);
-  const [isStatementDialogOpen, setIsStatementDialogOpen] = useState(false);
+  const {
+    trip,
+    membersDict,
+    refreshData,
+    activeDialog,
+    openDialog,
+    closeDialog,
+  } = useTripDetails();
   const [isApplyingStored, setIsApplyingStored] = useState(false);
   const [directSignMember, setDirectSignMember] = useState<{
     id: string;
@@ -150,7 +154,7 @@ export function TripAthletesView() {
           <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
             Участващи състезатели и подписи ({signedCount}/{athleteIds.length})
           </h2>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Списък на картотекираните състезатели и статус на електронните им
             подписи за пътуването
           </p>
@@ -178,7 +182,7 @@ export function TripAthletesView() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setIsStatementDialogOpen(true)}
+            onClick={() => openDialog("statement")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             title="Корекция на присъствени дни или отпадане на състезатели от ведомостта"
           >
@@ -187,7 +191,7 @@ export function TripAthletesView() {
           </Button>
 
           <Button
-            onClick={() => setIsSignaturesDialogOpen(true)}
+            onClick={() => openDialog("signatures")}
             className="rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
           >
             <PenTool className="mr-1.5 size-3.5" />
@@ -234,12 +238,12 @@ export function TripAthletesView() {
                     <Link
                       href={`/accounting/trips/${trip.id}/athletes?id=${id}`}
                       title="Директен линк към картата на състезателя"
-                      className="text-[11px] font-mono text-zinc-300 hover:text-blue-500 dark:text-zinc-600 dark:hover:text-blue-400"
+                      className="text-[11px] font-mono text-zinc-400 hover:text-blue-500 dark:text-zinc-500 dark:hover:text-blue-400"
                     >
                       #
                     </Link>
                   </div>
-                  <p className="text-[11px] text-zinc-400">
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                     {member?.ageGroup
                       ? `Възраст: ${member.ageGroup}`
                       : "Състезател"}
@@ -291,28 +295,18 @@ export function TripAthletesView() {
         )}
       </div>
 
-      {isSignaturesDialogOpen && (
+      {activeDialog === "signatures" && (
         <TripAthletesSignaturesDialog
-          open={isSignaturesDialogOpen}
-          onOpenChange={setIsSignaturesDialogOpen}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) closeDialog();
+          }}
           trip={trip}
           membersDict={membersDict}
           onRefresh={refreshData}
           onOpenDirectSign={(_tripId, memberId, memberName) => {
-            setIsSignaturesDialogOpen(false);
+            closeDialog();
             setDirectSignMember({ id: memberId, name: memberName });
-          }}
-        />
-      )}
-
-      {isStatementDialogOpen && (
-        <TripStatementEditDialog
-          open={isStatementDialogOpen}
-          onOpenChange={setIsStatementDialogOpen}
-          trip={trip}
-          onSuccess={() => {
-            setIsStatementDialogOpen(false);
-            refreshData();
           }}
         />
       )}

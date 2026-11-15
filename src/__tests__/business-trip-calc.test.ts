@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { SiteConfig } from "../config/sites";
 import {
+  calculateTripExpensesSummary,
   calculateTripStatementTotals,
   calculateTripTransportTotals,
   getEffectiveTripRates,
   isTripCoverageWithoutAccom,
+  resolvePersonRate,
 } from "../lib/business-trip-calc";
 import {
   getTripAttendanceNumber,
@@ -60,6 +62,141 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(isTripCoverageWithoutAccom("transport_and_food")).toBe(true);
       expect(isTripCoverageWithoutAccom("food_and_sleep")).toBe(false);
       expect(isTripCoverageWithoutAccom("transport_food_sleep")).toBe(false);
+    });
+  });
+
+  describe("resolvePersonRate", () => {
+    it("heals only the legacy halved rate (5.50 when no-stay rate is 11)", () => {
+      expect(resolvePersonRate(5.5, true, 11, 22)).toBe(11);
+      expect(resolvePersonRate(5.5, false, 11, 22)).toBe(22);
+    });
+
+    it("keeps legitimate manual overrides, including small values and zero", () => {
+      expect(resolvePersonRate(5, true, 11, 22)).toBe(5);
+      expect(resolvePersonRate(0, true, 11, 22)).toBe(0);
+      expect(resolvePersonRate(15, false, 11, 22)).toBe(15);
+    });
+
+    it("falls back to the standard rates when there is no override", () => {
+      expect(resolvePersonRate(undefined, true, 11, 22)).toBe(11);
+      expect(resolvePersonRate(undefined, false, 11, 22)).toBe(22);
+    });
+  });
+
+  describe("excluded participants and overrides", () => {
+    const baseTrip: BusinessTrip = {
+      id: "trip-excl",
+      siteId: "bkgalabovo",
+      title: "Турнир",
+      destination: "Хасково",
+      startDate: "2026-05-16T08:00:00.000Z",
+      endDate: "2026-05-17T18:00:00.000Z",
+      coachId: "coach-1",
+      participantsIds: ["ath-1", "ath-2", "ath-3"],
+      transportType: "club_paid",
+      expensesCoverage: "food_only",
+      financials: {
+        perDiemRateEUR: 11,
+        accommodationRateEUR: 0,
+        isCommercialActivity: false,
+      },
+      status: "approved",
+    };
+
+    it("does not count excluded participants in the statement", () => {
+      const trip: BusinessTrip = {
+        ...baseTrip,
+        participantOverrides: { "ath-3": { excluded: true } },
+      };
+      const result = calculateTripStatementTotals(trip);
+      expect(result.activePeopleCount).toBe(3); // coach + 2
+      expect(result.calcPerDiemEUR).toBe(66); // 3 * 2 days * 11
+    });
+
+    it("supports a manual per diem override of 0 for one person", () => {
+      const trip: BusinessTrip = {
+        ...baseTrip,
+        participantOverrides: { "ath-1": { perDiemRateEUR: 0 } },
+      };
+      const result = calculateTripStatementTotals(trip);
+      const ath1 = result.personTotals.find((p) => p.id === "ath-1");
+      expect(ath1?.diemTotalEUR).toBe(0);
+      expect(result.calcPerDiemEUR).toBe(66); // coach + 2 athletes * 22
+    });
+
+    it("treats perDiemOverrideEUR of 0 as no per diem", () => {
+      const trip: BusinessTrip = {
+        ...baseTrip,
+        financials: { ...baseTrip.financials, perDiemOverrideEUR: 0 },
+      };
+      expect(calculateTripStatementTotals(trip).calcPerDiemEUR).toBe(0);
+    });
+  });
+
+  describe("calculateTripTransportTotals - public transport and days", () => {
+    const publicTrip: BusinessTrip = {
+      id: "trip-public",
+      siteId: "bkgalabovo",
+      title: "Турнир",
+      destination: "София",
+      startDate: "2026-05-16T08:00:00.000Z",
+      endDate: "2026-05-17T18:00:00.000Z",
+      coachId: "coach-1",
+      participantsIds: ["ath-1", "ath-2"],
+      transportType: "public",
+      publicTransportDailyFareEUR: 10,
+      expensesCoverage: "transport_and_food",
+      financials: {
+        perDiemRateEUR: 11,
+        accommodationRateEUR: 0,
+        isCommercialActivity: false,
+      },
+      status: "approved",
+    };
+
+    it("charges all people for every planned day by default", () => {
+      expect(
+        calculateTripTransportTotals(publicTrip).calcPublicTransportEUR
+      ).toBe(
+        60 // 3 people * 2 days * 10
+      );
+    });
+
+    it("does not charge excluded participants", () => {
+      const trip: BusinessTrip = {
+        ...publicTrip,
+        participantOverrides: { "ath-2": { excluded: true } },
+      };
+      expect(calculateTripTransportTotals(trip).calcPublicTransportEUR).toBe(
+        40 // 2 people * 2 days * 10
+      );
+    });
+
+    it("uses per-person days when no explicit public transport days are set", () => {
+      const trip: BusinessTrip = {
+        ...publicTrip,
+        participantOverrides: { "ath-2": { actualDays: 1 } },
+      };
+      expect(calculateTripTransportTotals(trip).calcPublicTransportEUR).toBe(
+        50 // (2 + 2 + 1) * 10
+      );
+    });
+
+    it("daily commute trips follow the longest-attending active person, not only the coach", () => {
+      const trip: BusinessTrip = {
+        ...publicTrip,
+        transportType: "fuel_only",
+        vehicle: {
+          commuteMode: "daily_commute",
+          singleRoundTripKm: 100,
+          distanceKm: 200,
+          plannedTripsCount: 2,
+        },
+        participantOverrides: { coach: { actualDays: 1 } },
+      };
+      // athletes still attended 2 days -> vehicle made 2 trips
+      expect(calculateTripTransportTotals(trip).actualTripsCount).toBe(2);
+      expect(calculateTripTransportTotals(trip).effectiveDistanceKm).toBe(200);
     });
   });
 
@@ -740,6 +877,68 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(fullReport).toContain(
         "Приложени: Класиране -Държавно отборно първенство за момчета и момичета под 13 г..pdf"
       );
+    });
+  });
+
+  describe("calculateTripExpensesSummary", () => {
+    it("should compute fuel cost from liters * unit price and not sum unit price as flat EUR", () => {
+      const trip: BusinessTrip = {
+        id: "trip-summary-1",
+        siteId: "bkgalabovo",
+        title: "ДЛОП",
+        destination: "Пловдив",
+        startDate: "2026-04-10T08:00:00.000Z",
+        endDate: "2026-04-10T18:00:00.000Z",
+        coachId: "coach-1",
+        participantsIds: ["ath-1"],
+        transportType: "fuel_only",
+        expensesCoverage: "transport_and_food",
+        vehicle: {
+          commuteMode: "daily_commute",
+          singleRoundTripKm: 200,
+          distanceKm: 200,
+          plannedTripsCount: 1,
+          fuelNorm: 10, // 20 liters
+        },
+        financials: {
+          perDiemRateEUR: 11,
+          accommodationRateEUR: 0,
+          isCommercialActivity: false,
+        },
+        status: "approved",
+      };
+
+      const summary = calculateTripExpensesSummary(trip, [
+        {
+          id: "exp-fuel",
+          tripId: "trip-summary-1",
+          siteId: "bkgalabovo",
+          expenseType: "fuel",
+          amountEUR: 1.5, // €1.50 per liter (NOT flat invoice total)
+          documentNumber: "0001",
+          documentDate: "2026-04-10",
+          createdAt: "2026-04-10T10:00:00.000Z",
+        },
+        {
+          id: "exp-toll",
+          tripId: "trip-summary-1",
+          siteId: "bkgalabovo",
+          expenseType: "other",
+          amountEUR: 5,
+          documentNumber: "0002",
+          documentDate: "2026-04-10",
+          createdAt: "2026-04-10T10:05:00.000Z",
+        },
+      ]);
+
+      expect(summary.nonFuelExpensesEUR).toBe(5);
+      expect(summary.calcFuelLiters).toBe(20);
+      expect(summary.calcFuelEUR).toBeGreaterThan(29);
+      expect(summary.invoicedPlusFuelEUR).toBeCloseTo(
+        5 + summary.calcFuelEUR,
+        2
+      );
+      expect(summary.calcPerDiemEUR).toBe(22); // coach + 1 athlete * 11 EUR
     });
   });
 });

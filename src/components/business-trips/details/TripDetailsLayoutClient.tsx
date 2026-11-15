@@ -9,10 +9,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import React, { Suspense } from "react";
 
 import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
 import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
+import { TripStatementEditDialog } from "@/components/business-trips/TripStatementEditDialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,9 +31,16 @@ import { TripDetailsProvider, useTripDetails } from "./TripDetailsContext";
 import { TripDetailsNav } from "./TripDetailsNav";
 
 function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
-  const { trip, event, membersDict, refreshData } = useTripDetails();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isManagerDialogOpen, setIsManagerDialogOpen] = useState(false);
+  const {
+    trip,
+    event,
+    expenses,
+    membersDict,
+    refreshData,
+    activeDialog,
+    openDialog,
+    closeDialog,
+  } = useTripDetails();
 
   const effectiveEvent: ScheduleEvent =
     event ||
@@ -120,7 +128,7 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsEditDialogOpen(true)}
+            onClick={() => openDialog("edit")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             title="Редактирай параметри на командировката (дати, дестинация, покритие на разходи, МПС)"
           >
@@ -131,7 +139,7 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsManagerDialogOpen(true)}
+            onClick={() => openDialog("manager")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             title="Отвори пълния мениджър с всички бланки, ведомост и подписи"
           >
@@ -154,30 +162,49 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
 
       <TripDetailsNav tripId={tripId} />
 
-      {isEditDialogOpen && (
+      {activeDialog === "edit" && (
         <CreateBusinessTripDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) closeDialog();
+          }}
           event={effectiveEvent}
           initialData={trip}
           membersDict={membersDict}
           onSuccess={() => {
-            setIsEditDialogOpen(false);
+            closeDialog();
             refreshData();
           }}
         />
       )}
 
-      {isManagerDialogOpen && (
+      {activeDialog === "manager" && (
         <BusinessTripManagerDialog
           event={effectiveEvent}
           initialTripId={trip.id}
-          open={isManagerDialogOpen}
+          initialTrip={trip}
+          initialMembersDict={membersDict}
+          initialExpenses={expenses}
+          open={true}
           onOpenChange={(open) => {
-            setIsManagerDialogOpen(open);
             if (!open) {
+              closeDialog();
               refreshData();
             }
+          }}
+        />
+      )}
+
+      {activeDialog === "statement" && (
+        <TripStatementEditDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) closeDialog();
+          }}
+          trip={trip}
+          onSuccess={() => {
+            closeDialog();
+            refreshData();
           }}
         />
       )}
@@ -252,17 +279,19 @@ export function TripDetailsLayoutClient({
   children: React.ReactNode;
 }) {
   return (
-    <TripDetailsProvider
-      initialTrip={initialTrip}
-      initialEvent={initialEvent}
-      initialExpenses={initialExpenses}
-      initialMembersDict={initialMembersDict}
-    >
-      <div className="space-y-6 pb-24 duration-700 animate-in fade-in">
-        <TripDetailsHeaderInner tripId={tripId} />
-        <main className="space-y-6">{children}</main>
-        <TripDetailsStepFooter tripId={tripId} />
-      </div>
-    </TripDetailsProvider>
+    <Suspense fallback={null}>
+      <TripDetailsProvider
+        initialTrip={initialTrip}
+        initialEvent={initialEvent}
+        initialExpenses={initialExpenses}
+        initialMembersDict={initialMembersDict}
+      >
+        <div className="space-y-6 pb-24 duration-700 animate-in fade-in">
+          <TripDetailsHeaderInner tripId={tripId} />
+          <div className="space-y-6">{children}</div>
+          <TripDetailsStepFooter tripId={tripId} />
+        </div>
+      </TripDetailsProvider>
+    </Suspense>
   );
 }

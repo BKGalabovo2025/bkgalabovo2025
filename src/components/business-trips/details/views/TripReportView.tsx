@@ -10,14 +10,23 @@ import { useTripDetails } from "@/components/business-trips/details/TripDetailsC
 import { TripReportDialog } from "@/components/business-trips/TripReportDialog";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import { calculateTripExpensesSummary } from "@/lib/business-trip-calc";
 import { formatDateShort } from "@/lib/date-utils";
 
 export function TripReportView() {
-  const { trip, event, expenses, membersDict, refreshData } = useTripDetails();
+  const {
+    trip,
+    event,
+    expenses,
+    membersDict,
+    refreshData,
+    activeDialog,
+    openDialog,
+    closeDialog,
+  } = useTripDetails();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
-  const total = expenses.reduce((sum, e) => sum + (e.amountEUR || 0), 0);
+  const summary = calculateTripExpensesSummary(trip, expenses);
 
   const handlePrintOrDownload = (
     action: "download" | "preview" = "download"
@@ -64,7 +73,7 @@ export function TripReportView() {
           <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
             Финансов & спортно-технически доклад
           </h2>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Обобщен отчет за постигнати резултати и разходвани средства
           </p>
         </div>
@@ -73,7 +82,7 @@ export function TripReportView() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsReportDialogOpen(true)}
+            onClick={() => openDialog("report")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             title="Редактирай текста на доклада, резултати и класирания"
           >
@@ -116,19 +125,35 @@ export function TripReportView() {
 
           <div className="space-y-2 text-xs">
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
-              <span className="text-zinc-500">Общо разходи:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Фактурирани разходи (+ гориво):
+              </span>
               <span className="font-bold text-zinc-900 dark:text-white">
                 <Link
                   href={`/accounting/trips/${trip.id}/expenses`}
                   title="Към детайлните разходи"
                   className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
                 >
-                  €{total.toFixed(2)} ({(total * 1.95583).toFixed(2)} лв.)
+                  €{summary.invoicedPlusFuelEUR.toFixed(2)} (
+                  {summary.invoicedPlusFuelBGN.toFixed(2)} лв.)
                 </Link>
               </span>
             </div>
+            {summary.calcPerDiemEUR > 0 && (
+              <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  Ведомост дневни пари:
+                </span>
+                <span className="font-bold text-zinc-900 dark:text-white">
+                  €{summary.calcPerDiemEUR.toFixed(2)} (
+                  {summary.calcPerDiemBGN.toFixed(2)} лв.)
+                </span>
+              </div>
+            )}
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
-              <span className="text-zinc-500">Брой фактури:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Брой фактури:
+              </span>
               <span className="font-medium text-zinc-900 dark:text-white">
                 <Link
                   href={`/accounting/trips/${trip.id}/expenses`}
@@ -140,7 +165,9 @@ export function TripReportView() {
               </span>
             </div>
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
-              <span className="text-zinc-500">Статус на отчитане:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Статус на отчитане:
+              </span>
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                 {trip.status === "completed"
                   ? "Окончателно отчетена"
@@ -157,20 +184,22 @@ export function TripReportView() {
 
           <div className="space-y-2 text-xs">
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
-              <span className="text-zinc-500">Място:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">Място:</span>
               <span className="font-semibold text-zinc-900 dark:text-white">
                 {trip.destination}
               </span>
             </div>
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
-              <span className="text-zinc-500">Период:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">Период:</span>
               <span className="text-zinc-700 dark:text-zinc-300">
                 {formatDateShort(trip.startDate)} –{" "}
                 {formatDateShort(trip.endDate)}
               </span>
             </div>
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
-              <span className="text-zinc-500">Участници:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Участници:
+              </span>
               <span className="text-zinc-700 dark:text-zinc-300">
                 <Link
                   href={`/accounting/trips/${trip.id}/athletes`}
@@ -193,16 +222,18 @@ export function TripReportView() {
         expenses={expenses}
       />
 
-      {isReportDialogOpen && (
+      {activeDialog === "report" && (
         <TripReportDialog
-          open={isReportDialogOpen}
-          onOpenChange={setIsReportDialogOpen}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) closeDialog();
+          }}
           trip={trip}
           event={event}
           expenses={expenses}
           membersDict={membersDict}
           onSuccess={() => {
-            setIsReportDialogOpen(false);
+            closeDialog();
             refreshData();
           }}
         />

@@ -9,10 +9,8 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
 
-import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
-import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,29 +19,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ScheduleEvent } from "@/types";
 
 import { useTripDetails } from "../TripDetailsContext";
 
 export function TripManageView() {
-  const { trip, event, membersDict, refreshData } = useTripDetails();
-  const [isManagerOpen, setIsManagerOpen] = useState(true);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-
-  const effectiveEvent: ScheduleEvent =
-    event ||
-    ({
-      id: trip.eventId || trip.id || "event",
-      title: trip.title,
-      startDate: trip.startDate,
-      endDate: trip.endDate,
-      type: "competition",
-      siteId: trip.siteId,
-      description: trip.destination,
-      location: trip.destination || "",
-      attendees: [],
-      attendeeMemberIds: [],
-    } as unknown as ScheduleEvent);
+  const { trip, openDialog } = useTripDetails();
 
   return (
     <div className="space-y-4">
@@ -66,14 +46,14 @@ export function TripManageView() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setIsEditOpen(true)}
+                onClick={() => openDialog("edit")}
                 className="h-8 rounded-xl text-xs font-semibold"
               >
                 Редактирай параметри
               </Button>
               <Button
                 size="sm"
-                onClick={() => setIsManagerOpen(true)}
+                onClick={() => openDialog("manager")}
                 className="h-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white"
               >
                 <SlidersHorizontal className="mr-1.5 size-3.5" />
@@ -172,34 +152,6 @@ export function TripManageView() {
           </div>
         </CardContent>
       </Card>
-
-      {isManagerOpen && (
-        <BusinessTripManagerDialog
-          event={effectiveEvent}
-          initialTripId={trip.id}
-          open={isManagerOpen}
-          onOpenChange={(open) => {
-            setIsManagerOpen(open);
-            if (!open) {
-              refreshData();
-            }
-          }}
-        />
-      )}
-
-      {isEditOpen && (
-        <CreateBusinessTripDialog
-          open={isEditOpen}
-          onOpenChange={setIsEditOpen}
-          event={effectiveEvent}
-          initialData={trip}
-          membersDict={membersDict}
-          onSuccess={() => {
-            setIsEditOpen(false);
-            refreshData();
-          }}
-        />
-      )}
     </div>
   );
 }

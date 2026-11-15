@@ -16,51 +16,45 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
 
-import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
-import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
 import { useTripDetails } from "@/components/business-trips/details/TripDetailsContext";
-import { TripStatementEditDialog } from "@/components/business-trips/TripStatementEditDialog";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
+import {
+  calculateTripExpensesSummary,
+  calculateTripTransportTotals,
+  EUR_TO_BGN_RATE,
+  getEffectiveTripRates,
+} from "@/lib/business-trip-calc";
 import { formatDateShort } from "@/lib/date-utils";
-import { ScheduleEvent } from "@/types";
 
 export function TripOverviewView() {
-  const { trip, event, expenses, membersDict, refreshData } = useTripDetails();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isStatementEditDialogOpen, setIsStatementEditDialogOpen] =
-    useState(false);
-  const [isManagerDialogOpen, setIsManagerDialogOpen] = useState(false);
-
-  const effectiveEvent: ScheduleEvent =
-    event ||
-    ({
-      id: trip.eventId || trip.id || "event",
-      title: trip.title,
-      startDate: trip.startDate,
-      endDate: trip.endDate,
-      type: "competition",
-      siteId: trip.siteId,
-      description: trip.destination,
-      location: trip.destination || "",
-      attendees: [],
-      attendeeMemberIds: [],
-    } as unknown as ScheduleEvent);
+  const { trip, event, expenses, membersDict, openDialog } = useTripDetails();
 
   const coach = trip.coachId ? membersDict[trip.coachId] : null;
   const coachName = coach
     ? `${coach.firstName} ${coach.lastName}`
     : trip.coachName || "Не е избран";
 
-  const totalExpenses = expenses.reduce(
-    (sum, exp) => sum + (exp.amountEUR || 0),
-    0
-  );
+  const expenseSummary = calculateTripExpensesSummary(trip, expenses);
+  const transportCalc = calculateTripTransportTotals(trip);
+
+  const coverage = trip.expensesCoverage || "transport_food_sleep";
+  const hasFoodCoverage = coverage !== "transport_only";
+  const basePerDiemEUR = hasFoodCoverage
+    ? (trip.financials.perDiemOverrideEUR ??
+      trip.financials.perDiemRateEUR ??
+      0)
+    : 0;
+  const effectiveRates = getEffectiveTripRates(basePerDiemEUR);
 
   const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
+  const displayPerDiemEUR = isDailyCommute
+    ? effectiveRates.noStayRate
+    : effectiveRates.fullRate;
+  const displayPerDiemBGN = displayPerDiemEUR * EUR_TO_BGN_RATE;
 
   const getCoverageInfo = (cov?: string) => {
     switch (cov) {
@@ -106,7 +100,7 @@ export function TripOverviewView() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
               Общо разходи
             </span>
             <div className="rounded-xl bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
@@ -120,19 +114,22 @@ export function TripOverviewView() {
                 title="Към финансовите разходи"
                 className="hover:text-blue-600 dark:hover:text-blue-400"
               >
-                €{totalExpenses.toFixed(2)}
+                €{expenseSummary.invoicedPlusFuelEUR.toFixed(2)}
               </Link>
             </p>
-            <p className="text-[11px] text-zinc-400">
-              {(totalExpenses * 1.95583).toFixed(2)} лв. • {expenses.length}{" "}
-              фактури
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              {expenseSummary.invoicedPlusFuelBGN.toFixed(2)} лв. •{" "}
+              {expenses.length} фактури
+              {expenseSummary.calcPerDiemEUR > 0
+                ? ` • Дневни: €${expenseSummary.calcPerDiemEUR.toFixed(2)}`
+                : ""}
             </p>
           </div>
         </BentoCard>
 
         <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
               Ръководител
             </span>
             <div className="rounded-xl bg-purple-50 p-2 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400">
@@ -153,7 +150,7 @@ export function TripOverviewView() {
                 coachName
               )}
             </p>
-            <p className="text-[11px] text-zinc-400">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
               {coach?.phone || "Няма телефон"}
             </p>
           </div>
@@ -161,7 +158,7 @@ export function TripOverviewView() {
 
         <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
               Състезатели
             </span>
             <div className="rounded-xl bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
@@ -178,7 +175,7 @@ export function TripOverviewView() {
                 {trip.participantsIds?.length || 0}
               </Link>
             </p>
-            <p className="text-[11px] text-zinc-400">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
               {Object.keys(trip.signatures?.athletes || {}).length} подписани
             </p>
           </div>
@@ -186,7 +183,9 @@ export function TripOverviewView() {
 
         <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500">Заповед №</span>
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Заповед №
+            </span>
             <div className="rounded-xl bg-amber-50 p-2 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
               <FileText className="size-4" />
             </div>
@@ -201,7 +200,7 @@ export function TripOverviewView() {
                 № {trip.orderNumber || "—"}
               </Link>
             </p>
-            <p className="text-[11px] text-zinc-400">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
               Решение УС:{" "}
               {trip.usDecision ? (
                 <Link
@@ -227,7 +226,7 @@ export function TripOverviewView() {
               <Sparkles className="size-4 text-blue-600 dark:text-blue-400" />
               Параметри на пътуването & Покритие на разходи от клуба
             </h3>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Точният режим на пътуване, видовете поети разходи и финансовите
               ставки за състезанието
             </p>
@@ -238,7 +237,7 @@ export function TripOverviewView() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setIsStatementEditDialogOpen(true)}
+              onClick={() => openDialog("statement")}
               className="h-8 rounded-xl border-blue-300 bg-white text-xs font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-300 dark:hover:bg-blue-950/50"
               title="Корекция на присъствени дни, курсове на пътуване или отпадане на състезатели"
             >
@@ -250,7 +249,7 @@ export function TripOverviewView() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setIsEditDialogOpen(true)}
+              onClick={() => openDialog("edit")}
               className="h-8 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
               title="Редактирай покритие на разходи, автомобил или ставки"
             >
@@ -263,7 +262,7 @@ export function TripOverviewView() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 text-xs">
           {/* Режим на пътуване */}
           <div className="rounded-xl border border-zinc-100 bg-white/80 p-3.5 space-y-1.5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <span className="text-[11px] font-semibold text-zinc-500 flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
               <Repeat className="size-3.5 text-indigo-500" />
               Режим на пътуване:
             </span>
@@ -276,21 +275,22 @@ export function TripOverviewView() {
                     : "border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
                 }
               >
+                <span aria-hidden="true">{isDailyCommute ? "🔄 " : "🏨 "}</span>
                 {isDailyCommute
-                  ? "🔄 Ежедневно пътуване (без нощувка)"
-                  : "🏨 Еднократно пътуване с престой"}
+                  ? "Ежедневно пътуване (без нощувка)"
+                  : "Еднократно пътуване с престой"}
               </Badge>
             </div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
               {isDailyCommute
-                ? `Отборът пътува всеки състезателен ден и се прибира в гр. Гълъбово без преспиване. Курсове: ${trip.vehicle?.plannedTripsCount || 1} план. (${trip.vehicle?.actualTripsCount ?? trip.actualDays ?? 1} реализирани) • ${trip.vehicle?.distanceKm || 0} км.`
+                ? `Отборът пътува всеки състезателен ден и се прибира в гр. Гълъбово без преспиване. Курсове: ${transportCalc.plannedTripsCount} план. (${transportCalc.actualTripsCount} реализирани) • ${transportCalc.effectiveDistanceKm} км.`
                 : `Отборът пътува еднократно и преспива на място (${trip.actualNights ?? 0} нощувки).`}
             </p>
           </div>
 
           {/* Покритие на разходи */}
           <div className="rounded-xl border border-zinc-100 bg-white/80 p-3.5 space-y-1.5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <span className="text-[11px] font-semibold text-zinc-500 flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
               <Shield className="size-3.5 text-emerald-500" />
               Какво поема клубът като разход:
             </span>
@@ -299,7 +299,8 @@ export function TripOverviewView() {
                 variant="outline"
                 className="border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 font-bold"
               >
-                {covInfo.icon} {covInfo.badge}
+                <span aria-hidden="true">{covInfo.icon} </span>
+                {covInfo.badge}
               </Badge>
             </div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
@@ -309,33 +310,32 @@ export function TripOverviewView() {
 
           {/* Ставки & Финанси */}
           <div className="rounded-xl border border-zinc-100 bg-white/80 p-3.5 space-y-1.5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <span className="text-[11px] font-semibold text-zinc-500 flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
               <Euro className="size-3.5 text-blue-500" />
               Ставки и лимити (на лице):
             </span>
             <div className="space-y-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300">
               <p>
-                🍽️ Дневни пари:{" "}
+                <span aria-hidden="true">🍽️ </span>Дневни пари:{" "}
                 <strong>
-                  €{trip.financials.perDiemRateEUR || 22} / ден (
-                  {((trip.financials.perDiemRateEUR || 22) * 1.95583).toFixed(
-                    2
-                  )}{" "}
-                  лв.)
+                  €{displayPerDiemEUR.toFixed(2)} / ден (
+                  {displayPerDiemBGN.toFixed(2)} лв.)
                 </strong>
               </p>
               <p>
-                🛏️ Квартирни пари:{" "}
+                <span aria-hidden="true">🛏️ </span>Квартирни пари:{" "}
                 <strong>
-                  €{trip.financials.accommodationRateEUR || 0} / нощувка (
+                  €{(trip.financials.accommodationRateEUR ?? 0).toFixed(2)} /
+                  нощувка (
                   {(
-                    (trip.financials.accommodationRateEUR || 0) * 1.95583
+                    (trip.financials.accommodationRateEUR ?? 0) *
+                    EUR_TO_BGN_RATE
                   ).toFixed(2)}{" "}
                   лв.)
                 </strong>
               </p>
               <p>
-                🎟️ Такса участие:{" "}
+                <span aria-hidden="true">🎟️ </span>Такса участие:{" "}
                 <strong>
                   {trip.financials.entryFeeEUR
                     ? `€${trip.financials.entryFeeEUR}`
@@ -356,9 +356,11 @@ export function TripOverviewView() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-xs">
             <div className="flex items-start gap-2.5">
-              <MapPin className="mt-0.5 size-4 text-zinc-400" />
+              <MapPin className="mt-0.5 size-4 text-zinc-500 dark:text-zinc-400" />
               <div>
-                <span className="font-semibold text-zinc-500">Дестинация:</span>
+                <span className="font-semibold text-zinc-500 dark:text-zinc-400">
+                  Дестинация:
+                </span>
                 <p className="text-sm font-bold text-zinc-900 dark:text-white">
                   {trip.destination}
                 </p>
@@ -366,9 +368,11 @@ export function TripOverviewView() {
             </div>
 
             <div className="flex items-start gap-2.5">
-              <Calendar className="mt-0.5 size-4 text-zinc-400" />
+              <Calendar className="mt-0.5 size-4 text-zinc-500 dark:text-zinc-400" />
               <div>
-                <span className="font-semibold text-zinc-500">Период:</span>
+                <span className="font-semibold text-zinc-500 dark:text-zinc-400">
+                  Период:
+                </span>
                 <p className="text-sm font-bold text-zinc-900 dark:text-white">
                   {formatDateShort(trip.startDate)} –{" "}
                   {formatDateShort(trip.endDate)}
@@ -377,9 +381,11 @@ export function TripOverviewView() {
             </div>
 
             <div className="flex items-start gap-2.5">
-              <Car className="mt-0.5 size-4 text-zinc-400" />
+              <Car className="mt-0.5 size-4 text-zinc-500 dark:text-zinc-400" />
               <div>
-                <span className="font-semibold text-zinc-500">Транспорт:</span>
+                <span className="font-semibold text-zinc-500 dark:text-zinc-400">
+                  Транспорт:
+                </span>
                 <p className="text-sm font-bold text-zinc-900 dark:text-white">
                   {trip.transportType === "fuel_only"
                     ? `Личен автомобил (${trip.vehicle?.brand || "—"}, ${trip.vehicle?.regNumber || "—"})`
@@ -388,7 +394,7 @@ export function TripOverviewView() {
                       : "Обществен транспорт"}
                 </p>
                 {trip.vehicle?.fuelType && (
-                  <p className="text-[11px] text-zinc-400">
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                     Гориво: {trip.vehicle.fuelType} • Норма:{" "}
                     {trip.vehicle.fuelNorm || "—"} л/100км
                   </p>
@@ -397,9 +403,11 @@ export function TripOverviewView() {
             </div>
 
             <div className="flex items-start gap-2.5">
-              <Shield className="mt-0.5 size-4 text-zinc-400" />
+              <Shield className="mt-0.5 size-4 text-zinc-500 dark:text-zinc-400" />
               <div>
-                <span className="font-semibold text-zinc-500">Дейност:</span>
+                <span className="font-semibold text-zinc-500 dark:text-zinc-400">
+                  Дейност:
+                </span>
                 <p className="text-sm font-bold text-zinc-900 dark:text-white">
                   {trip.financials.isCommercialActivity
                     ? "Стопанска дейност"
@@ -411,7 +419,7 @@ export function TripOverviewView() {
 
           {event && (
             <div className="rounded-xl border border-zinc-100 bg-zinc-50/70 p-3.5 text-xs dark:border-zinc-800 dark:bg-zinc-900/40">
-              <span className="font-semibold text-zinc-500">
+              <span className="font-semibold text-zinc-500 dark:text-zinc-400">
                 Свързано събитие:
               </span>
               <div className="mt-1 flex items-center justify-between">
@@ -439,7 +447,7 @@ export function TripOverviewView() {
             <h3 className="text-sm font-bold tracking-wider text-zinc-900 uppercase dark:text-white">
               Бързи действия
             </h3>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Всички документи, корекции и мениджъри на един клик разстояние:
             </p>
 
@@ -447,7 +455,7 @@ export function TripOverviewView() {
               <Button
                 variant="outline"
                 className="w-full justify-start text-xs rounded-xl border-blue-200 bg-blue-50/50 text-blue-800 hover:bg-blue-100 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-300 font-semibold"
-                onClick={() => setIsManagerDialogOpen(true)}
+                onClick={() => openDialog("manager")}
               >
                 <SlidersHorizontal className="mr-2 size-3.5 text-blue-600" />
                 Пълен мениджър (всички бланки)
@@ -455,7 +463,7 @@ export function TripOverviewView() {
               <Button
                 variant="outline"
                 className="w-full justify-start text-xs rounded-xl"
-                onClick={() => setIsStatementEditDialogOpen(true)}
+                onClick={() => openDialog("statement")}
               >
                 <Pencil className="mr-2 size-3.5 text-amber-600" />
                 Корекция дни / курсове / ведомост
@@ -514,47 +522,6 @@ export function TripOverviewView() {
           </div>
         </BentoCard>
       </div>
-
-      {/* Dialogs */}
-      {isEditDialogOpen && (
-        <CreateBusinessTripDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          event={effectiveEvent}
-          initialData={trip}
-          membersDict={membersDict}
-          onSuccess={() => {
-            setIsEditDialogOpen(false);
-            refreshData();
-          }}
-        />
-      )}
-
-      {isStatementEditDialogOpen && (
-        <TripStatementEditDialog
-          open={isStatementEditDialogOpen}
-          onOpenChange={setIsStatementEditDialogOpen}
-          trip={trip}
-          onSuccess={() => {
-            setIsStatementEditDialogOpen(false);
-            refreshData();
-          }}
-        />
-      )}
-
-      {isManagerDialogOpen && (
-        <BusinessTripManagerDialog
-          event={effectiveEvent}
-          initialTripId={trip.id}
-          open={isManagerDialogOpen}
-          onOpenChange={(open) => {
-            setIsManagerDialogOpen(open);
-            if (!open) {
-              refreshData();
-            }
-          }}
-        />
-      )}
     </div>
   );
 }

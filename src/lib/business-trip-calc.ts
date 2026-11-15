@@ -1,6 +1,8 @@
 import { differenceInCalendarDays } from "date-fns";
 
-import { BusinessTrip } from "@/types/business-trip.types";
+import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
+
+export const EUR_TO_BGN_RATE = 1.95583;
 
 /**
  * Определя валидните ставки за командировка (в EUR):
@@ -108,15 +110,24 @@ function resolvePersonNights(
   return defNights;
 }
 
-function resolvePersonRate(
+/**
+ * Определя дневната ставка на човек.
+ * Ръчно зададена ставка (включително 0) се зачита, освен ако не е
+ * позната повредена стойност от старо двойно делене на 2
+ * (т.е. точно половината от ставката „без нощувка", напр. 5.50 при 11 €).
+ */
+export function resolvePersonRate(
   ovRate: number | undefined,
   isNoStay: boolean,
   noStayRate: number,
   fullRate: number
 ): number {
-  // Санитизация: ако е запазено старо грешно 5.50 (<= 6 при нормална ставка >= 11), го коригираме
-  if (ovRate != null && ovRate > 6) {
-    return ovRate;
+  if (ovRate != null) {
+    const isLegacyHalved =
+      noStayRate > 0 && Math.abs(ovRate - noStayRate / 2) < 0.005;
+    if (!isLegacyHalved) {
+      return ovRate;
+    }
   }
   return isNoStay ? noStayRate : fullRate;
 }
@@ -268,11 +279,28 @@ export interface TripTransportCalculation {
  * - При режим "single" (еднократно отиване и връщане с престой на място):
  *     Курсът е 1 (общо в двете посоки), независимо колко дни е продължил престоят.
  */
+function getActivePersonDays(
+  trip: BusinessTrip,
+  plannedDays: number
+): number[] {
+  const overrides = trip.participantOverrides ?? {};
+  const teamDays = trip.actualDays != null ? trip.actualDays : plannedDays;
+  const ids = ["coach", ...(trip.participantsIds || [])];
+  return ids
+    .filter((id) => !overrides[id]?.excluded)
+    .map((id) => overrides[id]?.actualDays ?? teamDays);
+}
+
+/**
+ * Дни на пътуване на МПС: ако няма изрично зададени курсове, превозното
+ * средство пътува толкова дни, колкото е присъствал най-дълго участвалият
+ * (неизключен) човек. Така резултатът не зависи само от отметката на треньора
+ * и съвпада с Ведомостта.
+ */
 function resolveTripDays(trip: BusinessTrip, plannedDays: number): number {
-  const coachOverride = trip.participantOverrides?.["coach"];
-  if (coachOverride?.actualDays != null) return coachOverride.actualDays;
-  if (trip.actualDays != null) return trip.actualDays;
-  return plannedDays;
+  const days = getActivePersonDays(trip, plannedDays);
+  if (days.length > 0) return Math.max(...days);
+  return trip.actualDays != null ? trip.actualDays : plannedDays;
 }
 
 function resolveSingleRoundTripKm(
@@ -349,10 +377,13 @@ export function calculateTripTransportTotals(
   let calcPublicTransportEUR = 0;
   if (trip.transportType === "public" && trip.publicTransportDailyFareEUR) {
     const dailyFare = trip.publicTransportDailyFareEUR;
-    const peopleCount = 1 + (trip.participantsIds?.length || 0);
-    const travelDays = trip.publicTransportDaysCount ?? defDays;
+    const personDays = getActivePersonDays(trip, plannedDays);
+    const totalPersonDays =
+      trip.publicTransportDaysCount != null
+        ? personDays.length * trip.publicTransportDaysCount
+        : personDays.reduce((sum, d) => sum + d, 0);
     calcPublicTransportEUR =
-      Math.round(dailyFare * peopleCount * travelDays * 100) / 100;
+      Math.round(dailyFare * totalPersonDays * 100) / 100;
   }
 
   return {
@@ -364,5 +395,115 @@ export function calculateTripTransportTotals(
     calcFuelLiters,
     calcFuelEUR,
     calcPublicTransportEUR,
+  };
+}
+
+export interface TripExpensesSummary {
+  nonFuelExpensesEUR: number;
+  nonFuelExpensesBGN: number;
+  hasFuelReceipts: boolean;
+  avgFuelPricePerLiterEUR: number;
+  calcFuelLiters: number;
+  calcFuelEUR: number;
+  calcFuelBGN: number;
+  invoicedPlusFuelEUR: number;
+  invoicedPlusFuelBGN: number;
+  calcPerDiemEUR: number;
+  calcPerDiemBGN: number;
+  calcAccomEUR: number;
+  totalEstimatedCostEUR: number;
+  totalEstimatedCostBGN: number;
+}
+
+/**
+ * Единна функция за обобщаване на разходите (фактури + гориво по пътен лист + ведомост),
+ * така че картичките (Обзор, Разходи, Доклад) и PDF документите да показват идентични суми.
+ * Важно: разходите от тип "fuel" съдържат единична цена на литър (€/л), а не обща сума!
+ */
+export function calculateTripExpensesSummary(
+  trip: BusinessTrip,
+  expenses: TripExpense[] = []
+): TripExpensesSummary {
+  const nonFuelExpenses = expenses.filter((e) => e.expenseType !== "fuel");
+  const fuelExpenses = expenses.filter((e) => e.expenseType === "fuel");
+
+  const nonFuelExpensesEUR =
+    Math.round(
+      nonFuelExpenses.reduce((sum, e) => sum + (e.amountEUR || 0), 0) * 100
+    ) / 100;
+  const nonFuelExpensesBGN =
+    Math.round(nonFuelExpensesEUR * EUR_TO_BGN_RATE * 100) / 100;
+
+  const avgFuelPricePerLiterEUR =
+    fuelExpenses.length > 0
+      ? fuelExpenses.reduce((sum, e) => sum + (e.amountEUR || 0), 0) /
+        fuelExpenses.length
+      : 0;
+
+  const transportCalc = calculateTripTransportTotals(
+    trip,
+    avgFuelPricePerLiterEUR > 0 ? avgFuelPricePerLiterEUR : 1.35
+  );
+
+  // Същата формула за гориво като в Пътния лист и Ведомостта (PDF)
+  const distKm =
+    transportCalc.effectiveDistanceKm > 0
+      ? transportCalc.effectiveDistanceKm
+      : (trip.vehicle?.distanceKm ?? 0);
+  const fuelNorm = trip.vehicle?.fuelNorm ?? 0;
+  const totalLiters =
+    distKm > 0 && fuelNorm > 0 ? (distKm / 100) * fuelNorm : 0;
+
+  const roundedPricePerLiterBGN =
+    Math.round(avgFuelPricePerLiterEUR * EUR_TO_BGN_RATE * 100) / 100;
+  const calcFuelBGN =
+    Math.round(totalLiters * roundedPricePerLiterBGN * 100) / 100;
+  const calcFuelEUR =
+    calcFuelBGN > 0
+      ? Math.round((calcFuelBGN / EUR_TO_BGN_RATE) * 100) / 100
+      : 0;
+
+  const invoicedPlusFuelEUR =
+    Math.round((nonFuelExpensesEUR + calcFuelEUR) * 100) / 100;
+  const invoicedPlusFuelBGN =
+    Math.round(invoicedPlusFuelEUR * EUR_TO_BGN_RATE * 100) / 100;
+
+  const statementTotals = calculateTripStatementTotals(trip);
+
+  const accomExpensesEUR = expenses
+    .filter((e) => e.expenseType === "accommodation")
+    .reduce((sum, e) => sum + (e.amountEUR || 0), 0);
+
+  // Ако има фактура за нощувка, тя вече е в nonFuelExpensesEUR; иначе взимаме calcAccomEUR
+  const effectiveAccomEUR =
+    accomExpensesEUR > 0 ? 0 : statementTotals.calcAccomEUR;
+
+  const totalEstimatedCostEUR =
+    Math.round(
+      (invoicedPlusFuelEUR +
+        statementTotals.calcPerDiemEUR +
+        effectiveAccomEUR +
+        transportCalc.calcPublicTransportEUR) *
+        100
+    ) / 100;
+  const totalEstimatedCostBGN =
+    Math.round(totalEstimatedCostEUR * EUR_TO_BGN_RATE * 100) / 100;
+
+  return {
+    nonFuelExpensesEUR,
+    nonFuelExpensesBGN,
+    hasFuelReceipts: fuelExpenses.length > 0,
+    avgFuelPricePerLiterEUR,
+    calcFuelLiters: Math.round(totalLiters * 100) / 100,
+    calcFuelEUR,
+    calcFuelBGN,
+    invoicedPlusFuelEUR,
+    invoicedPlusFuelBGN,
+    calcPerDiemEUR: statementTotals.calcPerDiemEUR,
+    calcPerDiemBGN:
+      Math.round(statementTotals.calcPerDiemEUR * EUR_TO_BGN_RATE * 100) / 100,
+    calcAccomEUR: statementTotals.calcAccomEUR,
+    totalEstimatedCostEUR,
+    totalEstimatedCostBGN,
   };
 }

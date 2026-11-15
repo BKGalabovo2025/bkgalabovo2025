@@ -11,6 +11,8 @@ import { getSiteConfig } from "@/config/sites";
 import {
   calculateTripTransportTotals,
   getEffectiveTripRates,
+  isTripCoverageWithoutAccom,
+  resolvePersonRate,
 } from "@/lib/business-trip-calc";
 import {
   getTripAttendanceNumber,
@@ -293,10 +295,14 @@ export function BusinessTripPdfTemplates({
   const coverage = trip.expensesCoverage;
   const coverageHasAccom =
     coverage === "food_and_sleep" || coverage === "transport_food_sleep";
-  const coverageExcludesAccom =
-    coverage === "food_only" ||
-    coverage === "transport_only" ||
-    coverage === "transport_and_food";
+  // Същите правила като calculateTripStatementTotals (business-trip-calc.ts)
+  const basePerDiemEUR =
+    trip.financials.perDiemOverrideEUR ?? trip.financials.perDiemRateEUR ?? 0;
+  const coverageExcludesAccom = isTripCoverageWithoutAccom(
+    coverage,
+    trip.financials.accommodationRateEUR ?? 0,
+    basePerDiemEUR
+  );
   const transportCalc = calculateTripTransportTotals(trip);
   const isDailyCommute = transportCalc.isDailyCommute;
   const hasNoAccom = isDailyCommute || coverageExcludesAccom;
@@ -307,19 +313,14 @@ export function BusinessTripPdfTemplates({
     ? 0
     : Math.max(0, differenceInCalendarDays(endD, startD));
   // Действително реализирани дни/нощи на отбора (използват се САМО във Ведомостта)
-  const numDays =
-    trip.actualDays != null && trip.actualDays >= 0
-      ? trip.actualDays
-      : plannedDays;
+  const numDays = trip.actualDays != null ? trip.actualDays : plannedDays;
   const numNights = hasNoAccom
     ? 0
-    : trip.actualNights != null && trip.actualNights >= 0
+    : trip.actualNights != null
       ? trip.actualNights
       : plannedNights;
 
-  const perDiemEUR = roundEUR(
-    trip.financials.perDiemOverrideEUR || trip.financials.perDiemRateEUR
-  );
+  const perDiemEUR = roundEUR(basePerDiemEUR);
   const perDiemBGN = eurToBgn(perDiemEUR);
   const hasPerDiem = perDiemEUR > 0;
   const accomEUR = trip.financials.accommodationRateEUR ?? 0;
@@ -445,14 +446,12 @@ export function BusinessTripPdfTemplates({
     // Когато командированият не нощува, дневните пари са ставката за без нощувка (11 € или 50% от пълната)
     const { fullRate, noStayRate } = getEffectiveTripRates(perDiemEUR);
     const isNoStay = pNights === 0 || pOv?.stayedOvernight === false;
-    let pPerDiemRateEUR: number;
-    if (pOv?.perDiemRateEUR != null && pOv.perDiemRateEUR > 6) {
-      pPerDiemRateEUR = pOv.perDiemRateEUR;
-    } else if (isNoStay) {
-      pPerDiemRateEUR = noStayRate;
-    } else {
-      pPerDiemRateEUR = fullRate;
-    }
+    const pPerDiemRateEUR = resolvePersonRate(
+      pOv?.perDiemRateEUR,
+      isNoStay,
+      noStayRate,
+      fullRate
+    );
     const pPerDiemRateBGN = eurToBgn(pPerDiemRateEUR);
 
     const pDiemEURpp = hasPerDiem ? roundEUR(pPerDiemRateEUR * pDays) : 0;

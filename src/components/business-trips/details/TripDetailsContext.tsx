@@ -1,10 +1,28 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import { ScheduleEvent } from "@/types";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { Member } from "@/types/member.types";
+
+export type TripDialogAction =
+  | "edit"
+  | "manager"
+  | "statement"
+  | "protocol"
+  | "report"
+  | "signatures"
+  | "add-expense"
+  | "edit-expense"
+  | null;
 
 interface TripDetailsContextType {
   trip: BusinessTrip;
@@ -14,7 +32,25 @@ interface TripDetailsContextType {
   setTrip: React.Dispatch<React.SetStateAction<BusinessTrip>>;
   setExpenses: React.Dispatch<React.SetStateAction<TripExpense[]>>;
   refreshData: () => Promise<void>;
+  activeDialog: TripDialogAction;
+  activeExpenseId: string | null;
+  openDialog: (
+    action: Exclude<TripDialogAction, null>,
+    extraParams?: Record<string, string>
+  ) => void;
+  closeDialog: () => void;
 }
+
+const VALID_DIALOG_ACTIONS = new Set<string>([
+  "edit",
+  "manager",
+  "statement",
+  "protocol",
+  "report",
+  "signatures",
+  "add-expense",
+  "edit-expense",
+]);
 
 const TripDetailsContext = createContext<TripDetailsContextType | null>(null);
 
@@ -42,6 +78,56 @@ export function TripDetailsProvider({
   const [trip, setTrip] = useState<BusinessTrip>(initialTrip);
   const [expenses, setExpenses] = useState<TripExpense[]>(initialExpenses);
 
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    setTrip(initialTrip);
+  }, [initialTrip]);
+
+  useEffect(() => {
+    setExpenses(initialExpenses);
+  }, [initialExpenses]);
+
+  const rawAction = searchParams.get("action");
+  const activeDialog: TripDialogAction =
+    rawAction && VALID_DIALOG_ACTIONS.has(rawAction)
+      ? (rawAction as Exclude<TripDialogAction, null>)
+      : null;
+  const activeExpenseId = searchParams.get("expenseId");
+
+  const openDialog = useCallback(
+    (
+      action: Exclude<TripDialogAction, null>,
+      extraParams?: Record<string, string>
+    ) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("action", action);
+      params.delete("expenseId");
+      if (extraParams) {
+        Object.entries(extraParams).forEach(([k, v]) => {
+          params.set(k, v);
+        });
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams]
+  );
+
+  const closeDialog = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("action");
+    params.delete("expenseId");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }, [pathname, router, searchParams]);
+
   const refreshData = async () => {
     try {
       if (!trip.id) return;
@@ -68,6 +154,10 @@ export function TripDetailsProvider({
         setTrip,
         setExpenses,
         refreshData,
+        activeDialog,
+        activeExpenseId,
+        openDialog,
+        closeDialog,
       }}
     >
       {children}

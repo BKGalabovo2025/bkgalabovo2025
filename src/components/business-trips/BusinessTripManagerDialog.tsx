@@ -192,14 +192,25 @@ export function BusinessTripManagerDialog({
   onOpenChange,
   event,
   initialTripId,
+  initialTrip,
+  initialMembersDict,
+  initialExpenses,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   event: ScheduleEvent;
   initialTripId?: string;
+  initialTrip?: BusinessTrip;
+  initialMembersDict?: Record<string, Member>;
+  initialExpenses?: TripExpense[];
 }) {
-  const [businessTrips, setBusinessTrips] = useState<BusinessTrip[]>([]);
-  const [membersDict, setMembersDict] = useState<Record<string, Member>>({});
+  const [businessTrips, setBusinessTrips] = useState<BusinessTrip[]>(() =>
+    initialTrip ? [initialTrip] : []
+  );
+  const [membersDict, setMembersDict] = useState<Record<string, Member>>(
+    () => initialMembersDict || {}
+  );
+  const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [showBgnInPdf] = useState(false);
@@ -232,7 +243,10 @@ export function BusinessTripManagerDialog({
     string | null
   >(null);
   const [expensesMap, setExpensesMap] = useState<Record<string, TripExpense[]>>(
-    {}
+    () =>
+      initialTrip?.id && initialExpenses
+        ? { [initialTrip.id]: initialExpenses }
+        : {}
   );
   const [expenseToEdit, setExpenseToEdit] = useState<TripExpense | null>(null);
 
@@ -259,6 +273,7 @@ export function BusinessTripManagerDialog({
   ] = useState<BusinessTrip | null>(null);
 
   const loadData = async () => {
+    setIsLoading(true);
     try {
       // Автоматично присвояване на поредни номера на заповедите (за всички документи)
       try {
@@ -273,7 +288,7 @@ export function BusinessTripManagerDialog({
       ]);
       let tripsData = tripsByEvent;
       if (tripsData.length === 0) {
-        const fallbackId = initialTripId || event.id;
+        const fallbackId = initialTripId || initialTrip?.id || event.id;
         if (fallbackId) {
           const singleTrip = await businessTripService.getTripById(fallbackId);
           if (singleTrip) {
@@ -281,9 +296,12 @@ export function BusinessTripManagerDialog({
           }
         }
       }
+      if (tripsData.length === 0 && initialTrip) {
+        tripsData = [initialTrip];
+      }
       setBusinessTrips(tripsData);
 
-      const dict: Record<string, Member> = {};
+      const dict: Record<string, Member> = { ...(initialMembersDict || {}) };
       membersData.forEach((m) => {
         if (m.id) dict[m.id] = m;
       });
@@ -303,8 +321,16 @@ export function BusinessTripManagerDialog({
       setExpensesMap(expMap);
     } catch {
       toast.error("Грешка при зареждане на данните");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (initialTrip) {
+      setBusinessTrips((prev) => (prev.length === 0 ? [initialTrip] : prev));
+    }
+  }, [initialTrip]);
 
   useEffect(() => {
     if (open) {
@@ -768,7 +794,13 @@ export function BusinessTripManagerDialog({
             </div>
 
             <div className="mt-4">
-              {businessTrips.length === 0 ? (
+              {businessTrips.length === 0 && isLoading ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  <p className="text-sm font-medium animate-pulse">
+                    Зареждане на данни за командировката...
+                  </p>
+                </div>
+              ) : businessTrips.length === 0 ? (
                 <div className="py-12 text-center text-muted-foreground">
                   <ShieldAlert className="mx-auto mb-3 size-8 opacity-50" />
                   <p>

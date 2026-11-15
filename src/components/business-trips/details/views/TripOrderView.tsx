@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import { toast } from "sonner";
 
 import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
-import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
 import { useTripDetails } from "@/components/business-trips/details/TripDetailsContext";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
@@ -13,27 +12,11 @@ import { Button } from "@/components/ui/button";
 import { getTripOrderNumber } from "@/lib/business-trip-numbers";
 import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
-import { ScheduleEvent } from "@/types";
 
 export function TripOrderView() {
-  const { trip, event, expenses, membersDict, refreshData } = useTripDetails();
+  const { trip, event, expenses, membersDict, refreshData, openDialog } =
+    useTripDetails();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
-  const effectiveEvent: ScheduleEvent =
-    event ||
-    ({
-      id: trip.eventId || trip.id || "event",
-      title: trip.title,
-      startDate: trip.startDate,
-      endDate: trip.endDate,
-      type: "competition",
-      siteId: trip.siteId,
-      description: trip.destination,
-      location: trip.destination || "",
-      attendees: [],
-      attendeeMemberIds: [],
-    } as unknown as ScheduleEvent);
 
   const num = getTripOrderNumber(trip);
   const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
@@ -91,7 +74,7 @@ export function TripOrderView() {
           <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
             Заповед за командировка № {num}
           </h2>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Официален документ, издаден от Председателя на Бадминтон клуб
             Гълъбово
           </p>
@@ -101,7 +84,7 @@ export function TripOrderView() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsEditDialogOpen(true)}
+            onClick={() => openDialog("edit")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             title="Редактирай параметри на нареждането"
           >
@@ -138,9 +121,9 @@ export function TripOrderView() {
 
       <BentoCard className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mx-auto max-w-2xl space-y-4 text-xs">
-          <div className="border-b border-zinc-100 pb-4 dark:border-zinc-800 flex items-center justify-between">
+          <div className="border-b border-zinc-100 pb-4 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span className="font-semibold text-zinc-400 uppercase tracking-wider text-[10px]">
+              <span className="font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-[10px]">
                 Клубен издател:
               </span>
               <p className="font-bold text-zinc-900 dark:text-white">
@@ -155,40 +138,49 @@ export function TripOrderView() {
                   : "border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
               }
             >
+              <span aria-hidden="true">{isDailyCommute ? "🔄 " : "🏨 "}</span>
               {isDailyCommute
-                ? "🔄 Ежедневно пътуване (без нощувка)"
-                : "🏨 Еднократно пътуване (с престой)"}
+                ? "Ежедневно пътуване (без нощувка)"
+                : "Еднократно пътуване (с престой)"}
             </Badge>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <span className="text-zinc-500">Командировано лице:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Командировано лице:
+              </span>
               <p className="font-bold text-zinc-900 dark:text-white">
                 {trip.coachName || "—"}
               </p>
             </div>
             <div>
-              <span className="text-zinc-500">Длъжност:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Длъжност:
+              </span>
               <p className="font-bold text-zinc-900 dark:text-white">
                 {trip.coachRole || "Треньор / Ръководител"}
               </p>
             </div>
             <div>
-              <span className="text-zinc-500">Дестинация:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Дестинация:
+              </span>
               <p className="font-bold text-zinc-900 dark:text-white">
                 {trip.destination}
               </p>
             </div>
             <div>
-              <span className="text-zinc-500">Период:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">Период:</span>
               <p className="font-bold text-zinc-900 dark:text-white">
                 {formatDateShort(trip.startDate)} –{" "}
                 {formatDateShort(trip.endDate)}
               </p>
             </div>
             <div>
-              <span className="text-zinc-500">Транспорт:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Транспорт:
+              </span>
               <p className="font-semibold text-zinc-900 dark:text-white">
                 {trip.transportType === "fuel_only"
                   ? `Личен автомобил (${trip.vehicle?.brand || "—"}, ${trip.vehicle?.regNumber || "—"})`
@@ -198,7 +190,9 @@ export function TripOrderView() {
               </p>
             </div>
             <div>
-              <span className="text-zinc-500">Покрити разходи:</span>
+              <span className="text-zinc-500 dark:text-zinc-400">
+                Покрити разходи:
+              </span>
               <p className="font-semibold text-zinc-900 dark:text-white">
                 {trip.expensesCoverage === "transport_only" &&
                   "Само транспорт (гориво)"}
@@ -215,7 +209,9 @@ export function TripOrderView() {
           </div>
 
           <div className="rounded-xl border border-zinc-100 bg-zinc-50/60 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-            <span className="text-zinc-500">Основание / Събитие:</span>
+            <span className="text-zinc-500 dark:text-zinc-400">
+              Основание / Събитие:
+            </span>
             <p className="font-semibold text-zinc-900 dark:text-white">
               {trip.title}
             </p>
@@ -236,20 +232,6 @@ export function TripOrderView() {
         membersDict={membersDict}
         expenses={expenses}
       />
-
-      {isEditDialogOpen && (
-        <CreateBusinessTripDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          event={effectiveEvent}
-          initialData={trip}
-          membersDict={membersDict}
-          onSuccess={() => {
-            setIsEditDialogOpen(false);
-            refreshData();
-          }}
-        />
-      )}
     </div>
   );
 }

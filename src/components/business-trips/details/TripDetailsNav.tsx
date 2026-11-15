@@ -86,7 +86,7 @@ export function TripDetailsNav({ tripId, className }: TripDetailsNavProps) {
                   : section.tooltip
             }
             className={cn(
-              "group inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200",
+              "group inline-flex min-h-9 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200",
               isActive
                 ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-800 dark:text-white"
                 : "text-zinc-600 hover:bg-white/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"
@@ -103,6 +103,7 @@ export function TripDetailsNav({ tripId, className }: TripDetailsNavProps) {
             <span>{section.label}</span>
             {readiness && (
               <span
+                role="status"
                 aria-label={readiness === "ready" ? "Готово" : "Липсват данни"}
                 className={cn(
                   "size-1.5 shrink-0 rounded-full",
