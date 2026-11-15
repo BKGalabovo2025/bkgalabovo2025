@@ -135,8 +135,37 @@ function getDocTime(data) {
   return 0;
 }
 
-async function syncBidirectionalCollection(primaryDb, backupDb, collectionName) {
+async function syncBidirectionalCollection(
+  primaryDb,
+  backupDb,
+  collectionName,
+  isFullSync = false
+) {
   process.stdout.write(`\n🔄 Синхронизиране: ${collectionName.padEnd(23)} `);
+
+  // Оптимизация за пестене на квота: проверяваме първо броя документи (count),
+  // освен ако не е подаден флаг --full
+  if (!isFullSync) {
+    try {
+      const [pCountSnap, bCountSnap] = await Promise.all([
+        primaryDb.collection(collectionName).count().get(),
+        backupDb.collection(collectionName).count().get(),
+      ]);
+      const pCount = pCountSnap.data().count;
+      const bCount = bCountSnap.data().count;
+
+      if (pCount === bCount) {
+        process.stdout.write(`⏭️  Пропусната (${pCount} док. — еднакъв брой)`);
+        return { pToB: 0, bToP: 0, skipped: true };
+      }
+    } catch (err) {
+      if (err.message && err.message.includes("RESOURCE_EXHAUSTED")) {
+        console.log(`\n❌ Quota exhausted при count() на ${collectionName}`);
+        throw err;
+      }
+      // Ако count() не успее по друга причина, преминаваме към стандартно четене
+    }
+  }
 
   let primarySnap;
   let backupSnap;
@@ -244,9 +273,18 @@ async function syncBidirectionalCollection(primaryDb, backupDb, collectionName) 
   };
 }
 
-async function runBidirectionalSync() {
+async function runBidirectionalSync(options = {}) {
+  const isFullSync =
+    typeof options.full === "boolean"
+      ? options.full
+      : process.argv.includes("--full");
+
   console.log("===============================================================");
-  console.log("🚀 ПЪЛНА ДВУПОСОЧНА СИНХРОНИЗАЦИЯ НА БАЗИТЕ ДАННИ");
+  console.log(
+    isFullSync
+      ? "🚀 ПЪЛНА ДВУПОСОЧНА СИНХРОНИЗАЦИЯ (--full)"
+      : "🚀 ИКОНОМИЧНА ДВУПОСОЧНА СИНХРОНИЗАЦИЯ (count-check)"
+  );
   console.log("   Основна (Primary)  <=====>  Резервна (Backup)");
   console.log("===============================================================");
 
@@ -256,12 +294,19 @@ async function runBidirectionalSync() {
 
   let totalToBackup = 0;
   let totalToPrimary = 0;
+  let skippedCount = 0;
 
   for (const col of COLLECTIONS_TO_SYNC) {
     try {
-      const res = await syncBidirectionalCollection(primaryDb, backupDb, col);
+      const res = await syncBidirectionalCollection(
+        primaryDb,
+        backupDb,
+        col,
+        isFullSync
+      );
       totalToBackup += res.pToB;
       totalToPrimary += res.bToP;
+      if (res.skipped) skippedCount++;
     } catch (err) {
       if (err.message && err.message.includes("RESOURCE_EXHAUSTED")) {
         console.log("\n⚠️ Квотата на основната база е изчерпана. Спираме процеса.");
@@ -273,6 +318,7 @@ async function runBidirectionalSync() {
 
   console.log("\n\n===============================================================");
   console.log("🏁 ОБОБЩЕНИЕ НА ДВУПОСОЧНАТА СИНХРОНИЗАЦИЯ:");
+  console.log(`   ⏭️  Пропуснати колекции (без промяна): ${skippedCount}`);
   console.log(`   ➡️  Прехвърлени/обновени към Резервната: ${totalToBackup}`);
   console.log(`   ⬅️  Прехвърлени/обновени към Основната:   ${totalToPrimary}`);
   console.log("   ✅ Двете бази данни са в 100% огледален синхрон!");

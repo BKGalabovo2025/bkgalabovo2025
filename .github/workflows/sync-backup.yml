@@ -5,6 +5,12 @@ on:
     # Всеки ден в 07:00 UTC (09:00 ч. зимно / 10:00 ч. лятно време в България)
     - cron: "0 7 * * *"
   workflow_dispatch:
+    inputs:
+      full_sync:
+        description: "Пълно сканиране на всички документи (--full)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -37,4 +43,8 @@ jobs:
             echo "Добавете ги в Settings -> Secrets and variables -> Actions, за да работи автоматичната синхронизация."
             exit 0
           fi
-          node scripts/sync-bidirectional.cjs
+          if [ "${{ inputs.full_sync }}" = "true" ]; then
+            node scripts/sync-bidirectional.cjs --full
+          else
+            node scripts/sync-bidirectional.cjs
+          fi
