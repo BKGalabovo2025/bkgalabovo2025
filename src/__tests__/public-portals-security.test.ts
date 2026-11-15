@@ -85,6 +85,7 @@ describe("Public Portals Security", () => {
 
   describe("feedback.ts admin actions (ensureAdminFromSession)", () => {
     beforeEach(() => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
       mockEnsureAdminFromSession.mockRejectedValue(
         new Error("Unauthorized: Admin only")
       );
