@@ -112,7 +112,9 @@ export function TripSignerClient({ initialData }: TripSignerClientProps) {
             />
           </div>
           <span className="inline-block px-3 py-0.5 mb-2 rounded-full bg-blue-500/20 border border-blue-400/30 text-[11px] font-semibold uppercase tracking-wider text-blue-200">
-            Финансова Ведомост за Командировка
+            {data.isProfileWide
+              ? "Профилен подпис за командировки"
+              : "Финансова Ведомост за Командировка"}
           </span>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
             {data.tripTitle}
@@ -142,7 +144,7 @@ export function TripSignerClient({ initialData }: TripSignerClientProps) {
               <MapPin className="size-4 text-emerald-600 shrink-0 dark:text-emerald-400" />
               <div>
                 <span className="text-[10px] uppercase font-semibold text-zinc-400 block">
-                  Дестинация
+                  {data.isProfileWide ? "Обхват" : "Дестинация"}
                 </span>
                 <span className="font-semibold text-zinc-800 dark:text-zinc-200">
                   {data.destination || "По заповед"}
@@ -150,17 +152,19 @@ export function TripSignerClient({ initialData }: TripSignerClientProps) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 text-zinc-700 dark:text-zinc-300">
-              <Calendar className="size-4 text-amber-600 shrink-0 dark:text-amber-400" />
-              <div>
-                <span className="text-[10px] uppercase font-semibold text-zinc-400 block">
-                  Период
-                </span>
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                  {formatDate(data.startDate)} – {formatDate(data.endDate)}
-                </span>
+            {!data.isProfileWide && (
+              <div className="flex items-center gap-2.5 text-zinc-700 dark:text-zinc-300">
+                <Calendar className="size-4 text-amber-600 shrink-0 dark:text-amber-400" />
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-zinc-400 block">
+                    Период
+                  </span>
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                    {formatDate(data.startDate)} – {formatDate(data.endDate)}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
 
             {data.coachName && (
               <div className="flex items-center gap-2.5 text-zinc-700 dark:text-zinc-300">
@@ -185,9 +189,9 @@ export function TripSignerClient({ initialData }: TripSignerClientProps) {
                 Подписът е положен успешно!
               </h2>
               <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
-                Вашият подпис се отразява автоматично в графа
-                &bdquo;Подпис&ldquo; на ред {data.memberName} във финансовата
-                ведомост на състезанието.
+                {data.isProfileWide
+                  ? `Подписът на ${data.memberName} е съхранен в профила и се прилага автоматично към всички минали и бъдещи ведомости за командировки.`
+                  : `Вашият подпис се отразява автоматично в графа „Подпис“ на ред ${data.memberName} във финансовата ведомост на състезанието.`}
               </p>
             </div>
           )}
@@ -197,7 +201,9 @@ export function TripSignerClient({ initialData }: TripSignerClientProps) {
             <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-4 text-center space-y-3 dark:border-blue-800 dark:bg-blue-950/30">
               <div className="flex items-center justify-center gap-2 text-xs font-semibold text-blue-900 dark:text-blue-200">
                 <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400" />
-                Вече имате положен подпис за тази ведомост
+                {data.isProfileWide
+                  ? "Вече имате съхранен подпис за командировки и ведомости"
+                  : "Вече имате положен подпис за тази ведомост"}
               </div>
               <div className="bg-white rounded-xl border border-blue-200/80 dark:border-blue-800/70 p-3 flex items-center justify-center h-28 max-w-xs mx-auto shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

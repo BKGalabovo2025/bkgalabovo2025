@@ -105,6 +105,91 @@ export async function getOrCreateTripSigningTokenAction(input: {
 }
 
 /**
+ * Gets or creates a profile-wide signing token for a member so they can sign once
+ * via a public link and automatically apply their signature to all past & future trips.
+ */
+export async function getOrCreateMemberTripSigningTokenAction(input: {
+  memberId: string;
+  memberName?: string;
+  siteId?: string;
+}): Promise<ActionResponse<{ token: string }>> {
+  try {
+    await ensureAdmin();
+    if (!input.memberId) {
+      return {
+        success: false,
+        error: "Липсва идентификатор на състезателя.",
+      };
+    }
+
+    const adminDb = getAdminDb();
+    const memberRef = adminDb.collection("members").doc(input.memberId);
+    const memberSnap = await memberRef.get();
+
+    if (!memberSnap.exists) {
+      return { success: false, error: "Профилът не беше намерен." };
+    }
+
+    const memberData = memberSnap.data() || {};
+    const existingToken = memberData.tripSigningToken as string | undefined;
+
+    if (existingToken) {
+      const existingTokenDoc = await adminDb
+        .collection("trip_signing_tokens")
+        .doc(existingToken)
+        .get();
+
+      if (existingTokenDoc.exists) {
+        return {
+          success: true,
+          data: { token: existingToken },
+        };
+      }
+    }
+
+    const token = crypto.randomUUID();
+    const now = new Date().toISOString();
+    const siteId = input.siteId || memberData.siteId || "bkgalabovo";
+    const resolvedName =
+      input.memberName ||
+      [memberData.firstName, memberData.middleName, memberData.lastName]
+        .filter(Boolean)
+        .join(" ") ||
+      "Състезател";
+
+    await adminDb.collection("trip_signing_tokens").doc(token).set({
+      token,
+      mode: "profile",
+      tripId: "",
+      memberId: input.memberId,
+      memberName: resolvedName,
+      role: "Състезател / Участник",
+      siteId,
+      createdAt: now,
+    });
+
+    await memberRef.set(
+      {
+        tripSigningToken: token,
+        updatedAt: now,
+      },
+      { merge: true }
+    );
+
+    return {
+      success: true,
+      data: { token },
+    };
+  } catch (error) {
+    console.error("Error in getOrCreateMemberTripSigningTokenAction:", error);
+    return {
+      success: false,
+      error: "Грешка при генериране на линк за подписване.",
+    };
+  }
+}
+
+/**
  * Public action: retrieves safe trip and participant metadata for signing page.
  */
 export async function getPublicTripSignDataAction(
@@ -129,6 +214,51 @@ export async function getPublicTripSignDataAction(
     }
 
     const tokenData = tokenSnap.data()!;
+
+    // Profile-wide signing token (saves signature to member profile and all trips)
+    if (tokenData.mode === "profile" || !tokenData.tripId) {
+      const memberSnap = await adminDb
+        .collection("members")
+        .doc(tokenData.memberId)
+        .get();
+
+      if (!memberSnap.exists) {
+        return {
+          success: false,
+          error: "Профилът към този линк за подпис не беше намерен.",
+        };
+      }
+
+      const memberData = memberSnap.data()!;
+      const resolvedName =
+        tokenData.memberName ||
+        [memberData.firstName, memberData.middleName, memberData.lastName]
+          .filter(Boolean)
+          .join(" ") ||
+        "Състезател";
+
+      const dto: PublicTripSignDataDTO = {
+        token,
+        isProfileWide: true,
+        tripId: "profile",
+        memberId: tokenData.memberId,
+        memberName: resolvedName,
+        role: tokenData.role || "Състезател / Участник",
+        tripTitle: "Електронен подпис за командировки и ведомости",
+        destination: "Всички минали и бъдещи командировки",
+        startDate: "",
+        endDate: "",
+        siteId: tokenData.siteId || memberData.siteId || "bkgalabovo",
+        existingSignature: memberData.signature || null,
+        signedAt: memberData.signatureUpdatedAt || null,
+      };
+
+      return {
+        success: true,
+        data: dto,
+      };
+    }
+
     const tripSnap = await adminDb
       .collection("business_trips")
       .doc(tokenData.tripId)
@@ -319,6 +449,31 @@ export async function submitPublicTripSignatureAction(input: {
     }
 
     const tokenData = tokenSnap.data()!;
+
+    // Profile-wide signing token: save to member profile & apply to all trips
+    if (tokenData.mode === "profile" || !tokenData.tripId) {
+      const res = await propagateAthleteSignatureInternal(adminDb, {
+        memberId: tokenData.memberId,
+        signatureBase64,
+        siteId: tokenData.siteId,
+      });
+
+      const message =
+        res.updatedTripsCount > 0
+          ? `Подписът беше съхранен в профила и автоматично приложен към ${res.updatedTripsCount} ведомости!`
+          : "Подписът беше съхранен в профила и ще се прилага автоматично за всички бъдещи командировки!";
+
+      serverCache.invalidatePattern("members:");
+      revalidatePath("/members");
+      revalidatePath("/accounting/trips");
+
+      return {
+        success: true,
+        message,
+        data: { updatedTripsCount: res.updatedTripsCount },
+      };
+    }
+
     const tripRef = adminDb.collection("business_trips").doc(tokenData.tripId);
     const tripSnap = await tripRef.get();
 

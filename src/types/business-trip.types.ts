@@ -230,6 +230,7 @@ export type TripProtocolAttachment = z.infer<
 
 export interface PublicTripSignDataDTO {
   token: string;
+  isProfileWide?: boolean;
   tripId: string;
   memberId: string;
   memberName: string;

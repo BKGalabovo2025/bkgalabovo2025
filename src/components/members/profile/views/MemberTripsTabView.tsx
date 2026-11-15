@@ -5,8 +5,10 @@ import {
   Calendar,
   Check,
   CheckCircle2,
+  Copy,
   ExternalLink,
   FileText,
+  Link2,
   MapPin,
   PenTool,
   Repeat,
@@ -26,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import {
   batchApplyAthleteSignatureToTripsAction,
   clearMemberStoredSignatureAction,
+  getOrCreateMemberTripSigningTokenAction,
   saveDirectAthleteSignatureAction,
   saveMemberStoredSignatureAction,
   syncMemberSignatureFromTripsAction,
@@ -49,6 +52,9 @@ export function MemberTripsTabView() {
   const [isBatchApplying, setIsBatchApplying] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isSyncingFromTrip, setIsSyncingFromTrip] = useState(false);
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [signingLinkUrl, setSigningLinkUrl] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
   const hasAutoSyncedRef = useRef(false);
 
   const loadTrips = useCallback(async () => {
@@ -184,6 +190,48 @@ export function MemberTripsTabView() {
       toast.error("Грешка при изчистване на подписа.");
     } finally {
       setIsClearing(false);
+    }
+  };
+
+  const handleGenerateSigningLink = async () => {
+    try {
+      setIsGeneratingLink(true);
+      const res = await getOrCreateMemberTripSigningTokenAction({
+        memberId,
+        memberName: fullName,
+        siteId: member.siteId,
+      });
+      if (!res.success || !res.data?.token) {
+        toast.error(res.error || "Неуспешно генериране на линк за подпис.");
+        return;
+      }
+      const url = `${window.location.origin}/sign-trip/${res.data.token}`;
+      setSigningLinkUrl(url);
+      try {
+        await navigator.clipboard.writeText(url);
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 3000);
+        toast.success(`Линкът за подпис на ${fullName} е копиран в клипборда!`);
+      } catch {
+        toast.success("Линкът за подпис е генериран успешно.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Грешка при генериране на линка за подпис.");
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  };
+
+  const handleCopySigningLink = async () => {
+    if (!signingLinkUrl) return;
+    try {
+      await navigator.clipboard.writeText(signingLinkUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 3000);
+      toast.success("Линкът е копиран в клипборда!");
+    } catch {
+      toast.error("Неуспешно копиране в клипборда.");
     }
   };
 
@@ -387,6 +435,26 @@ export function MemberTripsTabView() {
 
                 <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isGeneratingLink}
+                  onClick={handleGenerateSigningLink}
+                  className="rounded-xl text-xs font-semibold"
+                >
+                  {linkCopied ? (
+                    <Check className="mr-1.5 size-3.5 text-emerald-600" />
+                  ) : (
+                    <Link2 className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
+                  )}
+                  {isGeneratingLink
+                    ? "Генериране..."
+                    : linkCopied
+                      ? "Линкът е копиран"
+                      : "Изпрати линк за подпис"}
+                </Button>
+
+                <Button
+                  type="button"
                   variant="ghost"
                   size="sm"
                   disabled={isClearing}
@@ -435,10 +503,74 @@ export function MemberTripsTabView() {
                     ? "Положи нов подпис"
                     : "Положи подпис за всички командировки"}
                 </Button>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={isGeneratingLink}
+                  onClick={handleGenerateSigningLink}
+                  className="rounded-xl border-blue-200 bg-blue-50/70 text-xs font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-950/70"
+                >
+                  {linkCopied ? (
+                    <Check className="mr-1.5 size-3.5 text-emerald-600" />
+                  ) : (
+                    <Link2 className="mr-1.5 size-3.5" />
+                  )}
+                  {isGeneratingLink
+                    ? "Генериране..."
+                    : linkCopied
+                      ? "Линкът е копиран"
+                      : "Изпрати линк за подпис"}
+                </Button>
               </div>
             )}
           </div>
         </div>
+
+        {signingLinkUrl && (
+          <div className="mt-4 flex flex-col gap-2 rounded-xl border border-blue-200/80 bg-blue-50/60 p-3 sm:flex-row sm:items-center sm:justify-between dark:border-blue-800/70 dark:bg-blue-950/30">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-semibold text-blue-900 dark:text-blue-200">
+                Персонален линк за еднократно подписване ({fullName}):
+              </p>
+              <p className="truncate font-mono text-[11px] text-blue-700 dark:text-blue-300">
+                {signingLinkUrl}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleCopySigningLink}
+                className="h-8 rounded-lg border-blue-300 bg-white text-xs font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:bg-zinc-900 dark:text-blue-300"
+              >
+                {linkCopied ? (
+                  <Check className="mr-1.5 size-3.5 text-emerald-600" />
+                ) : (
+                  <Copy className="mr-1.5 size-3.5" />
+                )}
+                {linkCopied ? "Копиран" : "Копирай"}
+              </Button>
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="h-8 rounded-lg border-blue-300 bg-white text-xs font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:bg-zinc-900 dark:text-blue-300"
+              >
+                <a
+                  href={signingLinkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="mr-1.5 size-3.5" />
+                  Отвори
+                </a>
+              </Button>
+            </div>
+          </div>
+        )}
       </BentoCard>
 
       {/* Trips List */}
