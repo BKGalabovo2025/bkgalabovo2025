@@ -406,6 +406,8 @@ export interface TripExpensesSummary {
   calcFuelLiters: number;
   calcFuelEUR: number;
   calcFuelBGN: number;
+  effectiveFuelEUR: number;
+  effectiveFuelBGN: number;
   invoicedPlusFuelEUR: number;
   invoicedPlusFuelBGN: number;
   calcPerDiemEUR: number;
@@ -489,6 +491,8 @@ export function calculateTripExpensesSummary(
     entryExpensesEUR > 0 ? 0 : trip.financials.entryFeeEUR || 0;
   const effectiveFuelEUR =
     fuelExpenses.length > 0 ? calcFuelEUR : transportCalc.calcFuelEUR;
+  const effectiveFuelBGN =
+    Math.round(effectiveFuelEUR * EUR_TO_BGN_RATE * 100) / 100;
 
   const totalEstimatedCostEUR =
     Math.round(
@@ -511,6 +515,8 @@ export function calculateTripExpensesSummary(
     calcFuelLiters: Math.round(totalLiters * 100) / 100,
     calcFuelEUR,
     calcFuelBGN,
+    effectiveFuelEUR,
+    effectiveFuelBGN,
     invoicedPlusFuelEUR,
     invoicedPlusFuelBGN,
     calcPerDiemEUR: statementTotals.calcPerDiemEUR,

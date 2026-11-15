@@ -150,6 +150,17 @@ export function TripReportView() {
                 </span>
               </div>
             )}
+            {!summary.hasFuelReceipts && summary.effectiveFuelEUR > 0 && (
+              <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  В т.ч. гориво по норма:
+                </span>
+                <span className="font-bold text-zinc-900 dark:text-white">
+                  €{summary.effectiveFuelEUR.toFixed(2)} (
+                  {summary.effectiveFuelBGN.toFixed(2)} лв.)
+                </span>
+              </div>
+            )}
             {summary.invoicedPlusFuelEUR > 0 && (
               <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
                 <span className="text-zinc-500 dark:text-zinc-400">

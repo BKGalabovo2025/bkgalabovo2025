@@ -124,6 +124,9 @@ export function TripExpensesView() {
             {summary.totalEstimatedCostBGN.toFixed(2)} лв.)
             {summary.calcPerDiemEUR > 0 &&
               ` • Дневни по ведомост: €${summary.calcPerDiemEUR.toFixed(2)}`}
+            {!summary.hasFuelReceipts &&
+              summary.effectiveFuelEUR > 0 &&
+              ` • Гориво по норма: €${summary.effectiveFuelEUR.toFixed(2)}`}
             {summary.invoicedPlusFuelEUR > 0 &&
               ` • Фактурирани: €${summary.invoicedPlusFuelEUR.toFixed(2)}`}
             {hasFuelExpense &&

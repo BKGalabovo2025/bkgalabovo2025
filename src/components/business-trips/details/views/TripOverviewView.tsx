@@ -118,10 +118,15 @@ export function TripOverviewView() {
               </Link>
             </p>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              {expenseSummary.totalEstimatedCostBGN.toFixed(2)} лв. •{" "}
+              {expenseSummary.totalEstimatedCostBGN.toFixed(2)} лв.
               {expenseSummary.calcPerDiemEUR > 0
-                ? `Дневни: €${expenseSummary.calcPerDiemEUR.toFixed(2)} • `
+                ? ` • Дневни: €${expenseSummary.calcPerDiemEUR.toFixed(2)}`
                 : ""}
+              {!expenseSummary.hasFuelReceipts &&
+              expenseSummary.effectiveFuelEUR > 0
+                ? ` • Гориво: €${expenseSummary.effectiveFuelEUR.toFixed(2)}`
+                : ""}
+              {" • "}
               {expenses.length} фактури
               {expenseSummary.invoicedPlusFuelEUR > 0
                 ? ` (€${expenseSummary.invoicedPlusFuelEUR.toFixed(2)})`
