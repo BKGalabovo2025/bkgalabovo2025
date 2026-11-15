@@ -1,4 +1,10 @@
-import { fireEvent, render, renderHook, screen } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+} from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -173,7 +179,7 @@ describe("PrintableDocumentShell", () => {
     expect(onDateChange).toHaveBeenCalledWith("2026-05-10");
   });
 
-  it("рендерира опционален PDF бутон при подадени pdfElementRef и pdfFileName", () => {
+  it("рендерира опционален PDF бутон при подадени pdfElementRef и pdfFileName", async () => {
     const ref = React.createRef<HTMLDivElement>();
 
     const { rerender } = render(
@@ -204,7 +210,9 @@ describe("PrintableDocumentShell", () => {
 
     const pdfButton = screen.getByRole("button", { name: /Изтегли PDF/i });
     expect(pdfButton).toBeInTheDocument();
-    fireEvent.click(pdfButton);
+    await act(async () => {
+      fireEvent.click(pdfButton);
+    });
 
     expect(mockGeneratePdf).toHaveBeenCalledWith(
       ref.current,

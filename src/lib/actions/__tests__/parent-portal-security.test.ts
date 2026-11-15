@@ -96,6 +96,7 @@ describe("parent-portal security", () => {
 
   describe("Админ действия отхвърлят не-админ потребители", () => {
     beforeEach(() => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
       mockEnsureAdmin.mockRejectedValue(new Error("Unauthorized: Admin only"));
     });
 
