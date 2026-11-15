@@ -120,8 +120,12 @@ export function TripExpensesView() {
             Финансови разходи и фактури ({expenses.length})
           </h2>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Обща сума: €{summary.invoicedPlusFuelEUR.toFixed(2)} (
-            {summary.invoicedPlusFuelBGN.toFixed(2)} лв.)
+            Общо разходи: €{summary.totalEstimatedCostEUR.toFixed(2)} (
+            {summary.totalEstimatedCostBGN.toFixed(2)} лв.)
+            {summary.calcPerDiemEUR > 0 &&
+              ` • Дневни по ведомост: €${summary.calcPerDiemEUR.toFixed(2)}`}
+            {summary.invoicedPlusFuelEUR > 0 &&
+              ` • Фактурирани: €${summary.invoicedPlusFuelEUR.toFixed(2)}`}
             {hasFuelExpense &&
               ` • Гориво по пътен лист (${summary.calcFuelLiters} л.): €${summary.calcFuelEUR.toFixed(2)}`}
           </p>

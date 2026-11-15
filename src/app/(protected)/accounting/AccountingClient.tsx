@@ -335,7 +335,10 @@ function getTripReadiness(
 ): TripReadiness {
   const hasOrder = Boolean(trip.orderNumber);
   const expensesCount = tripExps.length;
-  const hasExpenses = expensesCount > 0 || trip.transportType === "free";
+  const hasExpenses =
+    expensesCount > 0 ||
+    trip.transportType === "free" ||
+    trip.expensesCoverage === "food_only";
 
   const participants = (trip.participantsIds || []).filter(
     (id) => !membersDict?.[id]?.isCoach
@@ -2005,9 +2008,9 @@ export default function AccountingClient({
         </div>
 
         {/* 2. Desktop Table View (>=md) */}
-        <div className="hidden max-h-[calc(100vh-360px)] min-h-50 overflow-auto md:block">
+        <div className="hidden md:block">
           <Table className="w-full text-xs">
-            <TableHeader className="sticky top-0 z-10 bg-zinc-50/95 backdrop-blur-xs dark:bg-zinc-900/95">
+            <TableHeader className="bg-zinc-50/95 dark:bg-zinc-900/95">
               <TableRow className="border-b text-[11px]">
                 <TableHead className="w-20 px-2.5 py-2">Дата</TableHead>
                 <TableHead className="min-w-40 max-w-60 px-2.5 py-2">

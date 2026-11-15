@@ -28,9 +28,9 @@ export function TripDetailsNav({ tripId, className }: TripDetailsNavProps) {
     sectionId: TripDetailSectionId
   ): "ready" | "missing" | null => {
     if (sectionId === "expenses") {
-      return expenses.length > 0 || trip.transportType === "free"
-        ? "ready"
-        : "missing";
+      const noInvoicesRequired =
+        trip.transportType === "free" || trip.expensesCoverage === "food_only";
+      return expenses.length > 0 || noInvoicesRequired ? "ready" : "missing";
     }
     if (sectionId === "order") {
       return trip.orderNumber ? "ready" : "missing";
@@ -63,7 +63,7 @@ export function TripDetailsNav({ tripId, className }: TripDetailsNavProps) {
     <nav
       aria-label="Навигация в командировка"
       className={cn(
-        "no-scrollbar flex w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-zinc-200/80 bg-zinc-100/90 p-1.5 backdrop-blur-xs sm:w-fit dark:border-zinc-800 dark:bg-zinc-900/60",
+        "no-scrollbar flex w-full items-center gap-1 overflow-x-auto sm:flex-wrap sm:overflow-visible rounded-2xl border border-zinc-200/80 bg-zinc-100/90 p-1.5 backdrop-blur-xs dark:border-zinc-800 dark:bg-zinc-900/60",
         className
       )}
     >
@@ -86,7 +86,7 @@ export function TripDetailsNav({ tripId, className }: TripDetailsNavProps) {
                   : section.tooltip
             }
             className={cn(
-              "group inline-flex min-h-9 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200",
+              "group inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-2.5 lg:px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all duration-200",
               isActive
                 ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-800 dark:text-white"
                 : "text-zinc-600 hover:bg-white/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-200"

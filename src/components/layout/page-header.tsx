@@ -54,19 +54,19 @@ export function PageHeader({
           ))}
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex flex-col justify-between gap-2 sm:gap-3 md:flex-row md:items-end">
-        <div className="space-y-0.5 sm:space-y-1">
+      <div className="flex flex-col justify-between gap-2.5 sm:gap-3 xl:flex-row xl:items-end">
+        <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
             {title}
           </h1>
           {description && (
-            <p className="max-w-2xl text-[11px] sm:text-xs leading-relaxed font-light text-zinc-500 dark:text-zinc-400">
+            <p className="max-w-3xl text-[11px] sm:text-xs leading-relaxed font-light text-zinc-500 dark:text-zinc-400">
               {description}
             </p>
           )}
         </div>
         {children && (
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
+          <div className="flex w-full shrink-0 flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
             {children}
           </div>
         )}

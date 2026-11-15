@@ -126,7 +126,7 @@ export function TripReportView() {
           <div className="space-y-2 text-xs">
             <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
               <span className="text-zinc-500 dark:text-zinc-400">
-                Фактурирани разходи (+ гориво):
+                Общо разходи за командировката:
               </span>
               <span className="font-bold text-zinc-900 dark:text-white">
                 <Link
@@ -134,19 +134,30 @@ export function TripReportView() {
                   title="Към детайлните разходи"
                   className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
                 >
-                  €{summary.invoicedPlusFuelEUR.toFixed(2)} (
-                  {summary.invoicedPlusFuelBGN.toFixed(2)} лв.)
+                  €{summary.totalEstimatedCostEUR.toFixed(2)} (
+                  {summary.totalEstimatedCostBGN.toFixed(2)} лв.)
                 </Link>
               </span>
             </div>
             {summary.calcPerDiemEUR > 0 && (
               <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
                 <span className="text-zinc-500 dark:text-zinc-400">
-                  Ведомост дневни пари:
+                  В т.ч. ведомост дневни пари:
                 </span>
                 <span className="font-bold text-zinc-900 dark:text-white">
                   €{summary.calcPerDiemEUR.toFixed(2)} (
                   {summary.calcPerDiemBGN.toFixed(2)} лв.)
+                </span>
+              </div>
+            )}
+            {summary.invoicedPlusFuelEUR > 0 && (
+              <div className="flex justify-between border-b border-zinc-100 py-1.5 dark:border-zinc-800">
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  В т.ч. фактурирани разходи (+ гориво):
+                </span>
+                <span className="font-bold text-zinc-900 dark:text-white">
+                  €{summary.invoicedPlusFuelEUR.toFixed(2)} (
+                  {summary.invoicedPlusFuelBGN.toFixed(2)} лв.)
                 </span>
               </div>
             )}

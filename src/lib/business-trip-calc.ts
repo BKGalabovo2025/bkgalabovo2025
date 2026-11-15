@@ -470,19 +470,33 @@ export function calculateTripExpensesSummary(
 
   const statementTotals = calculateTripStatementTotals(trip);
 
+  const foodExpensesEUR = expenses
+    .filter((e) => e.expenseType === "food")
+    .reduce((sum, e) => sum + (e.amountEUR || 0), 0);
   const accomExpensesEUR = expenses
     .filter((e) => e.expenseType === "accommodation")
     .reduce((sum, e) => sum + (e.amountEUR || 0), 0);
+  const entryExpensesEUR = expenses
+    .filter((e) => e.expenseType === "entry_fee")
+    .reduce((sum, e) => sum + (e.amountEUR || 0), 0);
 
-  // Ако има фактура за нощувка, тя вече е в nonFuelExpensesEUR; иначе взимаме calcAccomEUR
+  // Ако има фактура за храна/нощувка/такса, тя вече е в nonFuelExpensesEUR; иначе взимаме изчислените по ведомост/заповед
+  const effectivePerDiemEUR =
+    foodExpensesEUR > 0 ? 0 : statementTotals.calcPerDiemEUR;
   const effectiveAccomEUR =
     accomExpensesEUR > 0 ? 0 : statementTotals.calcAccomEUR;
+  const effectiveEntryEUR =
+    entryExpensesEUR > 0 ? 0 : trip.financials.entryFeeEUR || 0;
+  const effectiveFuelEUR =
+    fuelExpenses.length > 0 ? calcFuelEUR : transportCalc.calcFuelEUR;
 
   const totalEstimatedCostEUR =
     Math.round(
-      (invoicedPlusFuelEUR +
-        statementTotals.calcPerDiemEUR +
+      (nonFuelExpensesEUR +
+        effectiveFuelEUR +
+        effectivePerDiemEUR +
         effectiveAccomEUR +
+        effectiveEntryEUR +
         transportCalc.calcPublicTransportEUR) *
         100
     ) / 100;

@@ -114,14 +114,17 @@ export function TripOverviewView() {
                 title="Към финансовите разходи"
                 className="hover:text-blue-600 dark:hover:text-blue-400"
               >
-                €{expenseSummary.invoicedPlusFuelEUR.toFixed(2)}
+                €{expenseSummary.totalEstimatedCostEUR.toFixed(2)}
               </Link>
             </p>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              {expenseSummary.invoicedPlusFuelBGN.toFixed(2)} лв. •{" "}
-              {expenses.length} фактури
+              {expenseSummary.totalEstimatedCostBGN.toFixed(2)} лв. •{" "}
               {expenseSummary.calcPerDiemEUR > 0
-                ? ` • Дневни: €${expenseSummary.calcPerDiemEUR.toFixed(2)}`
+                ? `Дневни: €${expenseSummary.calcPerDiemEUR.toFixed(2)} • `
+                : ""}
+              {expenses.length} фактури
+              {expenseSummary.invoicedPlusFuelEUR > 0
+                ? ` (€${expenseSummary.invoicedPlusFuelEUR.toFixed(2)})`
                 : ""}
             </p>
           </div>
