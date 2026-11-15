@@ -336,7 +336,7 @@ function resolveActualTripsCount(
  */
 export function calculateTripTransportTotals(
   trip: BusinessTrip,
-  fuelPricePerLiterEUR = 1.35
+  fuelPricePerLiterEUR = 0
 ): TripTransportCalculation {
   const sDate = new Date(trip.startDate);
   const eDate = new Date(trip.endDate);
@@ -444,7 +444,7 @@ export function calculateTripExpensesSummary(
 
   const transportCalc = calculateTripTransportTotals(
     trip,
-    avgFuelPricePerLiterEUR > 0 ? avgFuelPricePerLiterEUR : 1.35
+    avgFuelPricePerLiterEUR
   );
 
   // Същата формула за гориво като в Пътния лист и Ведомостта (PDF)
