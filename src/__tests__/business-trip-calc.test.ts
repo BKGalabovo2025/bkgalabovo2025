@@ -683,5 +683,63 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       );
       expect(fullReport).not.toContain("2 нощувки на място");
     });
+
+    it("should format single-day commute and protocol file name accurately", () => {
+      const trip: BusinessTrip = {
+        id: "trip-single-day",
+        siteId: "bkgalabovo",
+        title: "Държавно отборно първенство за момчета и момичета под 13 г.",
+        destination: "Хасково",
+        startDate: "2026-03-14T08:00:00.000Z",
+        endDate: "2026-03-15T18:00:00.000Z",
+        actualDays: 1,
+        coachId: "coach-1",
+        coachName: "Мира Георгиева",
+        coachRole: "Треньор",
+        participantsIds: ["ath-1", "ath-2"],
+        participantOverrides: {
+          coach: { actualDays: 1 },
+          "ath-1": { actualDays: 1 },
+          "ath-2": {
+            actualDays: 1,
+            stayedOvernight: false,
+            note: "индивидуална промяна",
+          },
+        },
+        transportType: "free",
+        expensesCoverage: "food_only",
+        vehicle: {
+          commuteMode: "daily_commute",
+          distanceKm: 105,
+          plannedTripsCount: 1,
+        },
+        financials: {
+          perDiemRateEUR: 11,
+          accommodationRateEUR: 0,
+          isCommercialActivity: false,
+        },
+        matchProtocols: [
+          {
+            id: "proto-1",
+            name: "Класиране -Държавно отборно първенство за момчета и момичета под 13 г..pdf",
+            url: "https://example.com/proto.pdf",
+            size: 1024,
+            contentType: "application/pdf",
+            createdAt: "2026-03-14T18:00:00.000Z",
+          },
+        ],
+        attachMatchProtocols: true,
+        status: "approved",
+      };
+
+      const fullReport = generateDefaultReportText(trip, membersDict);
+
+      expect(fullReport).toContain(
+        "Пътуването и участието се осъществиха в режим на еднодневно пътуване (отиване и връщане без нощувка), с индивидуална промяна за част от отбора"
+      );
+      expect(fullReport).toContain(
+        "Приложени: Класиране -Държавно отборно първенство за момчета и момичета под 13 г..pdf"
+      );
+    });
   });
 });

@@ -106,7 +106,11 @@ export function TripReportDialog({
 
   const handleToggleProtocols = (checked: boolean) => {
     setAttachMatchProtocols(checked);
-    const protocolItem = "• Официално класиране от съответното състезание;";
+    const filesListStr =
+      protocols.length > 0 ? protocols.map((p) => p.name).join("; ") : "";
+    const protocolItem = filesListStr
+      ? `• Приложени: ${filesListStr};`
+      : "• Официално класиране от съответното състезание;";
 
     if (checked) {
       if (!reportText.includes(protocolItem)) {
@@ -121,20 +125,25 @@ export function TripReportDialog({
           setReportText((prev) =>
             prev.replace("прилагат:", `прилагат:\n${protocolItem}`)
           );
+        } else if (reportText.includes("Приложения:")) {
+          setReportText((prev) =>
+            prev.replace("Приложения:", `Приложения:\n${protocolItem}`)
+          );
         } else if (reportText.includes("4. ЗАКЛЮЧЕНИЕ")) {
           setReportText((prev) =>
             prev.replace(
               "4. ЗАКЛЮЧЕНИЕ",
-              `4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ\n(Приложени: ${protocolItem})\n`
+              `4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ\n(Приложени: ${filesListStr || "Официално класиране от съответното състезание"})\n`
             )
           );
         } else {
-          setReportText((prev) => `${prev}\n\nПриложение:\n${protocolItem}`);
+          setReportText((prev) => `${prev}\n\nПриложения:\n${protocolItem}`);
         }
       }
     } else {
       setReportText((prev) =>
         prev
+          .replace(new RegExp(`\\n?•?\\s*Приложени:[^\\n\\)]+;?`, "g"), "")
           .replace(`\n${protocolItem}`, "")
           .replace(`${protocolItem}\n`, "")
           .replace(protocolItem, "")
@@ -170,6 +179,45 @@ export function TripReportDialog({
 
       const updated = [...protocols, ...newProtocols];
       setProtocols(updated);
+      setAttachMatchProtocols(true);
+
+      const filesListStr = updated.map((p) => p.name).join("; ");
+      const newProtocolItem = `• Приложени: ${filesListStr};`;
+
+      // Актуализираме текста на приложенията в отчета
+      setReportText((prev) => {
+        if (!prev) return prev;
+        const oldPatterns = [
+          /•\s*Официални съдийски протоколи от изиграните срещи на състезателите;?/g,
+          /•\s*Официално класиране от съответното състезание:?[^;\n]*;?/g,
+          /•\s*Официално класиране от съответното състезание;?/g,
+          /\(Приложени:[^)\n]*\)/g,
+          /•\s*Приложени:[^;\n]*;?/g,
+        ];
+        let next = prev;
+        let replaced = false;
+        for (const pat of oldPatterns) {
+          if (pat.test(next)) {
+            next = next.replace(pat, newProtocolItem);
+            replaced = true;
+            break;
+          }
+        }
+        if (!replaced && !next.includes(filesListStr)) {
+          if (next.includes("Приложения:")) {
+            next = next.replace(
+              "Приложения:",
+              `Приложения:\n${newProtocolItem}`
+            );
+          } else if (next.includes("4. ЗАКЛЮЧЕНИЕ")) {
+            next = next.replace(
+              "4. ЗАКЛЮЧЕНИЕ",
+              `4. ЗАКЛЮЧЕНИЕ И ПРИЛОЖЕНИЯ\n(Приложени: ${filesListStr})\n`
+            );
+          }
+        }
+        return next;
+      });
 
       // Запазваме веднага в базата данни, за да не се загубят качените файлове
       await businessTripService.updateTrip(trip.id, {
@@ -263,7 +311,7 @@ export function TripReportDialog({
     if (!trip) return;
     setReportText(
       generateDefaultReportText(
-        trip,
+        { ...trip, matchProtocols: protocols, attachMatchProtocols },
         membersDict,
         attachMatchProtocols,
         expenses,
