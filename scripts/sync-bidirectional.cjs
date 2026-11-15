@@ -3,19 +3,27 @@ const fs = require("fs");
 const path = require("path");
 
 function getEnv() {
-  const envContent = fs.readFileSync(path.join(__dirname, "..", ".env.local"), "utf8");
-  const env = {};
-  for (const line of envContent.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eqIdx = trimmed.indexOf("=");
-    if (eqIdx !== -1) {
-      let key = trimmed.slice(0, eqIdx).trim();
-      let val = trimmed.slice(eqIdx + 1).trim();
-      if ((val.startsWith("'") && val.endsWith("'")) || (val.startsWith('"') && val.endsWith('"'))) {
-        val = val.slice(1, -1);
+  const env = { ...process.env };
+  const envPath = path.join(__dirname, "..", ".env.local");
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, "utf8");
+    for (const line of envContent.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eqIdx = trimmed.indexOf("=");
+      if (eqIdx !== -1) {
+        const key = trimmed.slice(0, eqIdx).trim();
+        let val = trimmed.slice(eqIdx + 1).trim();
+        if (
+          (val.startsWith("'") && val.endsWith("'")) ||
+          (val.startsWith('"') && val.endsWith('"'))
+        ) {
+          val = val.slice(1, -1);
+        }
+        if (!env[key]) {
+          env[key] = val;
+        }
       }
-      env[key] = val;
     }
   }
   return env;
@@ -84,8 +92,26 @@ const COLLECTIONS_TO_SYNC = [
   "sponsors",
   "inventory",
   "trainings",
+  "training_attendance",
   "reservations",
+  "blockedSlots",
   "sessions",
+  "tournaments",
+  "tournament_entries",
+  "tournament_matches",
+  "business_trips",
+  "trip_expenses",
+  "trip_signing_tokens",
+  "document_requests",
+  "document_templates",
+  "feedback_submissions",
+  "feedback_campaigns",
+  "quizzes",
+  "theory_results",
+  "beep_test_results",
+  "member_assessments",
+  "member_declarations",
+  "inquiries",
 ];
 
 function getDocTime(data) {

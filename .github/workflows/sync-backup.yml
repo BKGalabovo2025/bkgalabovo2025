@@ -1,0 +1,40 @@
+name: Sync Firestore Backup DB
+
+on:
+  schedule:
+    # Всеки ден в 07:00 UTC (09:00 ч. зимно / 10:00 ч. лятно време в България)
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-backup:
+    name: Bidirectional Firestore Backup Sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install firebase-admin
+        run: npm install --no-save firebase-admin
+
+      - name: Run bidirectional Firestore sync
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ] || [ -z "$FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON" ]; then
+            echo "⚠️ Липсват GitHub Secrets: FIREBASE_SERVICE_ACCOUNT_JSON или FIREBASE_BACKUP_SERVICE_ACCOUNT_JSON."
+            echo "Добавете ги в Settings -> Secrets and variables -> Actions, за да работи автоматичната синхронизация."
+            exit 0
+          fi
+          node scripts/sync-bidirectional.cjs
