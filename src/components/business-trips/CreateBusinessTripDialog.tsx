@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { differenceInCalendarDays } from "date-fns";
 import { AlertTriangle, FileText, Save } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -79,6 +79,8 @@ export function CreateBusinessTripDialog({
 }: CreateBusinessTripDialogProps) {
   const { user } = useAuth();
   const isEditMode = !!initialData;
+  const submitLockRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Намираме всички деца/състезатели, които участват (изключваме треньорите)
   const participantIds = event.attendees
@@ -224,6 +226,9 @@ export function CreateBusinessTripDialog({
   };
 
   const onSubmit = async (values: FormValues) => {
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+    setIsSubmitting(true);
     try {
       const selectedCoach = coachOptions.find(
         (c: Member) => c.id === values.coachId
@@ -313,6 +318,9 @@ export function CreateBusinessTripDialog({
     } catch (error) {
       console.error(error);
       toast.error("Възникна грешка при запазването.");
+    } finally {
+      submitLockRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -1543,10 +1551,15 @@ export function CreateBusinessTripDialog({
               </Button>
               <Button
                 type="submit"
-                className="h-9 rounded-xl bg-zinc-900 px-5 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+                disabled={isSubmitting}
+                className="h-9 rounded-xl bg-zinc-900 px-5 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
               >
                 <Save className="mr-1.5 size-3.5" />
-                {isEditMode ? "Запази промените" : "Създай Чернова"}
+                {isSubmitting
+                  ? "Запазване..."
+                  : isEditMode
+                    ? "Запази промените"
+                    : "Създай Чернова"}
               </Button>
             </div>
           </form>
