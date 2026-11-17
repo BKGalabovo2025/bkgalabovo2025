@@ -932,7 +932,7 @@ function PublicCatalogCard({
                 {item.targetGroups.map((group: string) => (
                   <span
                     key={group}
-                    className="rounded-md border border-zinc-800 bg-zinc-800/60 px-1.5 py-0.5 text-[9px] font-medium tracking-wide text-zinc-400 uppercase"
+                    className="rounded-md border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-[9px] font-medium tracking-wide text-zinc-800 uppercase dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300"
                   >
                     {group}
                   </span>

@@ -318,7 +318,7 @@ export function CoachPhotoGallery({
                       onClick={() => handleOpenLightbox(targetIndex)}
                       aria-label={
                         isLastWithMore
-                          ? `Виж още ${remainingCount} снимки`
+                          ? undefined
                           : photo.caption || `Снимка ${targetIndex}`
                       }
                       title={
@@ -366,7 +366,7 @@ export function CoachPhotoGallery({
                 <button
                   type="button"
                   onClick={() => handleOpenLightbox(0)}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-600 transition-all duration-300 hover:scale-103 hover:border-blue-500/60 hover:bg-blue-500/20 hover:text-blue-700 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] active:scale-95 dark:text-blue-400 dark:hover:text-white"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-700 transition-all duration-300 hover:scale-103 hover:border-blue-500/60 hover:bg-blue-500/20 hover:text-blue-800 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] active:scale-95 dark:text-blue-400 dark:hover:text-white"
                 >
                   <Camera className="size-3.5" />
                   <span>Разгледай галерия ({allPhotos.length} снимки)</span>

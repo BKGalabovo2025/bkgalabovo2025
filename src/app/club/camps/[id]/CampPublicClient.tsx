@@ -366,7 +366,9 @@ export default function CampPublicClient({
                 <span
                   className={cn(
                     "text-[8px] font-black uppercase",
-                    isCurrentDay ? "text-amber-400" : "text-blue-400"
+                    isCurrentDay
+                      ? "text-amber-800 dark:text-amber-400"
+                      : "text-blue-800 dark:text-blue-400"
                   )}
                 >
                   {format(day.date, "EEE", { locale: bg })}
@@ -445,7 +447,7 @@ export default function CampPublicClient({
                 {dayWeather.waterTemp !== undefined && (
                   <span
                     title="Морска вода"
-                    className="inline-flex items-center gap-1 text-cyan-300"
+                    className="inline-flex items-center gap-1 text-cyan-800 dark:text-cyan-300"
                   >
                     <span>🌊</span>
                     <span>{dayWeather.waterTemp}°C</span>
@@ -466,7 +468,7 @@ export default function CampPublicClient({
                 {dayWeather.waveHeight !== undefined && (
                   <span
                     title={dayWeather.seaStateLabel}
-                    className="inline-flex items-center gap-1 text-teal-300"
+                    className="inline-flex items-center gap-1 text-teal-800 dark:text-teal-300"
                   >
                     <span>{dayWeather.seaStateFlag || "🌊"}</span>
                     <span>
