@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, Save, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FieldErrors, useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -161,6 +161,7 @@ export const MemberForm = ({
     watch,
     reset,
   } = form;
+  const submitLockRef = useRef(false);
 
   // Re-sync form if initialData loads asynchronously
   useEffect(() => {
@@ -274,23 +275,29 @@ export const MemberForm = ({
   };
 
   const onSubmit = async (data: MemberFormValues) => {
-    // If emergency contact is not checked, clear its values
-    if (!data.hasEmergencyContact) {
-      data.emergencyContactName = "";
-      data.emergencyContactPhone = "";
-      data.emergencyContactRole = null;
-    }
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+    try {
+      // If emergency contact is not checked, clear its values
+      if (!data.hasEmergencyContact) {
+        data.emergencyContactName = "";
+        data.emergencyContactPhone = "";
+        data.emergencyContactRole = null;
+      }
 
-    // Determine primary memberType for backward compatibility
-    if (data.isClubMember) {
-      data.memberType = "regular";
-    } else if (data.isRecoveryMember) {
-      data.memberType = "recovery";
-    } else if (data.isGuest) {
-      data.memberType = "guest";
-    }
+      // Determine primary memberType for backward compatibility
+      if (data.isClubMember) {
+        data.memberType = "regular";
+      } else if (data.isRecoveryMember) {
+        data.memberType = "recovery";
+      } else if (data.isGuest) {
+        data.memberType = "guest";
+      }
 
-    await onSave(data);
+      await onSave(data);
+    } finally {
+      submitLockRef.current = false;
+    }
   };
 
   const onInvalid = (errors: FieldErrors<MemberFormValues>) => {
