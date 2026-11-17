@@ -818,6 +818,9 @@ function PublicCatalogCard({
             src={images[activeImageIndex]}
             alt={`${item.name} - ${activeImageIndex + 1}`}
             priority={index === 0 && activeImageIndex === 0}
+            fetchPriority={
+              index === 0 && activeImageIndex === 0 ? "high" : undefined
+            }
             decoding={index === 0 ? "sync" : "async"}
             fill
             unoptimized={
@@ -985,7 +988,7 @@ function PublicCatalogCard({
               ).map((zone: string, zoneIdx: number) => (
                 <span
                   key={`${zone}-${zoneIdx}`}
-                  className="rounded-full border border-cyan-800/50 bg-cyan-950/40 px-2.5 py-0.5 text-[9px] font-semibold tracking-wider text-cyan-300 uppercase"
+                  className="rounded-full border border-cyan-300 bg-cyan-50 px-2.5 py-0.5 text-[9px] font-semibold tracking-wider text-cyan-900 uppercase dark:border-cyan-800/50 dark:bg-cyan-950/40 dark:text-cyan-300"
                 >
                   {zone}
                 </span>
