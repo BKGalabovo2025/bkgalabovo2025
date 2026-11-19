@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
-import { ZoneId } from "@/lib/shadow-training/audio-map";
+import { ZONE_NAMES, ZoneId } from "@/lib/shadow-training/audio-map";
 import { TrainingSession } from "@/types/training.types";
 
 import { CourtVisualizer } from "../CourtVisualizer";
@@ -134,6 +134,8 @@ export function ShadowHistoryClient({
     setInspectSession(null);
     const sp = new URLSearchParams(searchParams?.toString() || "");
     sp.delete("session");
+    sp.delete("id");
+    sp.delete("sessionId");
     const q = sp.toString();
     router.replace(q ? `?${q}` : window.location.pathname, { scroll: false });
   };
@@ -144,7 +146,11 @@ export function ShadowHistoryClient({
       // 1. Mode filter
       if (selectedMode !== "all") {
         const mode = s.shadowDetails?.mode || "standard";
-        if (mode !== selectedMode) return false;
+        if (selectedMode === "standard") {
+          if (mode !== "standard" && mode !== "ghost_match") return false;
+        } else if (mode !== selectedMode) {
+          return false;
+        }
       }
 
       // 2. Period filter
@@ -158,7 +164,7 @@ export function ShadowHistoryClient({
       // 3. Search query (matches player names or notes)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const hasMatchingPlayer = s.memberIds.some((id) => {
+        const hasMatchingPlayer = (s.memberIds || []).some((id) => {
           const name = (memberNameMap[id] || "").toLowerCase();
           return name.includes(q);
         });
@@ -184,6 +190,24 @@ export function ShadowHistoryClient({
 
   useDeepLinkHighlight("session", filteredSessions.length > 0, "session");
 
+  // Best Agility Test time (PB) across all agility_test sessions
+  const bestAgilityTimeSec = useMemo(() => {
+    let best: number | null = null;
+    sessions.forEach((s) => {
+      if (s.shadowDetails?.mode === "agility_test") {
+        const t =
+          s.shadowDetails.agilityTestTimeSec ??
+          (s.durationMs ? s.durationMs / 1000 : null);
+        if (typeof t === "number" && t > 0) {
+          if (best === null || t < best) {
+            best = t;
+          }
+        }
+      }
+    });
+    return best;
+  }, [sessions]);
+
   // Overall Statistics
   const totalStats = useMemo(() => {
     let totalMinutes = 0;
@@ -193,9 +217,16 @@ export function ShadowHistoryClient({
 
     sessions.forEach((s) => {
       totalMinutes += (s.durationMs || 0) / 60000;
-      s.memberIds.forEach((id) => uniqueMembers.add(id));
+      (s.memberIds || []).forEach((id) => uniqueMembers.add(id));
 
-      const scores = s.shadowDetails?.rpeScores || s.rpeScores;
+      const scores =
+        (
+          s.shadowDetails as TrainingSession["shadowDetails"] & {
+            individualRpe?: Record<string, number>;
+          }
+        )?.individualRpe ||
+        s.shadowDetails?.rpeScores ||
+        s.rpeScores;
       if (scores) {
         Object.values(scores).forEach((val) => {
           if (typeof val === "number" && val > 0) {
@@ -211,7 +242,7 @@ export function ShadowHistoryClient({
 
     return {
       totalSessions: sessions.length,
-      totalMinutes: Math.round(totalMinutes),
+      totalMinutes: Math.floor(totalMinutes),
       uniqueMembersCount: uniqueMembers.size,
       avgRpe,
     };
@@ -236,24 +267,25 @@ export function ShadowHistoryClient({
   }, [inspectSession]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-8">
+    <div className="w-full space-y-8">
       {/* Header & Back Button */}
       <div className="flex flex-col gap-3">
-        <Link href="/training/shadow" className="self-start">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mb-1 -ml-3 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-          >
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="mb-1 -ml-3 self-start text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+        >
+          <Link href="/training/shadow">
             <ChevronLeft className="mr-1 size-4" />
             Назад към Настройчика на тренировки
-          </Button>
-        </Link>
+          </Link>
+        </Button>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
+            <h2 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
               <Zap className="size-7 text-blue-600" /> История на Тренировките
-            </h1>
+            </h2>
             <p className="text-sm font-medium text-zinc-500">
               Архив на всички проведени сесии по движения на корта (Shadow
               Footwork)
@@ -384,7 +416,7 @@ export function ShadowHistoryClient({
                       </div>
                       <div className="text-right">
                         <span className="text-xs font-black text-blue-600 dark:text-blue-400">
-                          {Math.round(lb.min)} мин
+                          {Math.floor(lb.min)} мин
                         </span>
                       </div>
                     </Link>
@@ -415,8 +447,7 @@ export function ShadowHistoryClient({
                   {[
                     { id: "all", label: "Всички" },
                     { id: "standard", label: "Стандартни" },
-                    { id: "ghost_match", label: "Мач" },
-                    { id: "agility_test", label: "Спринт" },
+                    { id: "agility_test", label: "Тест за бързина" },
                   ].map((m) => (
                     <button
                       key={m.id}
@@ -464,9 +495,9 @@ export function ShadowHistoryClient({
             {filteredSessions.length === 0 ? (
               <Card className="rounded-3xl border-dashed border-zinc-200 bg-white p-12 text-center dark:border-zinc-800 dark:bg-zinc-900">
                 <Info className="mx-auto size-8 text-zinc-400" />
-                <h3 className="mt-2 text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                <h2 className="mt-2 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   Няма намерени тренировки
-                </h3>
+                </h2>
                 <p className="mt-1 text-xs text-zinc-500">
                   Опитайте да промените зададените филтри или проведете нова
                   сесия от треньора.
@@ -476,15 +507,22 @@ export function ShadowHistoryClient({
               filteredSessions.map((session) => {
                 const modeInfo = getModeBadge(session.shadowDetails?.mode);
                 const ModeIcon = modeInfo.icon;
-                const minutes = Math.round((session.durationMs || 0) / 60000);
-                const seconds = Math.round(
+                const minutes = Math.floor((session.durationMs || 0) / 60000);
+                const seconds = Math.floor(
                   ((session.durationMs || 0) % 60000) / 1000
                 );
-                const durationLabel =
-                  minutes > 0
-                    ? `${minutes} мин ${seconds} сек`
-                    : `${seconds} сек`;
+                const durationLabel = `${minutes} мин ${seconds} сек`;
                 const isHighlighted = sessionParam === session.id;
+                const memberIdsList = session.memberIds || [];
+                const agilityTime =
+                  session.shadowDetails?.mode === "agility_test"
+                    ? (session.shadowDetails?.agilityTestTimeSec ??
+                      (session.durationMs ? session.durationMs / 1000 : null))
+                    : null;
+                const isPb =
+                  agilityTime !== null &&
+                  bestAgilityTimeSec !== null &&
+                  Math.abs(agilityTime - bestAgilityTimeSec) < 0.01;
 
                 return (
                   <Card
@@ -504,6 +542,11 @@ export function ShadowHistoryClient({
                             <ModeIcon size={12} />
                             {modeInfo.label}
                           </span>
+                          {isPb && (
+                            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[10px] font-bold">
+                              🏆 Личен рекорд (PB)
+                            </Badge>
+                          )}
                           {session.shadowDetails?.preset && (
                             <Badge variant="outline" className="text-[10px]">
                               {session.shadowDetails.preset}
@@ -523,9 +566,9 @@ export function ShadowHistoryClient({
                         {/* Players */}
                         <div className="flex flex-wrap items-center gap-1.5 pt-1">
                           <span className="text-xs font-bold text-zinc-500">
-                            Участници ({session.memberIds.length}):
+                            Участници ({memberIdsList.length}):
                           </span>
-                          {session.memberIds.slice(0, 4).map((id) => (
+                          {memberIdsList.slice(0, 4).map((id) => (
                             <span
                               key={id}
                               className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
@@ -533,9 +576,9 @@ export function ShadowHistoryClient({
                               {memberNameMap[id] || `#${id.slice(0, 6)}`}
                             </span>
                           ))}
-                          {session.memberIds.length > 4 && (
+                          {memberIdsList.length > 4 && (
                             <span className="text-xs font-bold text-zinc-400">
-                              +{session.memberIds.length - 4} още
+                              +{memberIdsList.length - 4} още
                             </span>
                           )}
                         </div>
@@ -645,7 +688,7 @@ export function ShadowHistoryClient({
                     Времетраене
                   </span>
                   <p className="text-xs font-black text-zinc-900 dark:text-white">
-                    {Math.round((inspectSession.durationMs || 0) / 1000)} сек
+                    {`${Math.floor((inspectSession.durationMs || 0) / 60000)} мин ${Math.floor(((inspectSession.durationMs || 0) % 60000) / 1000)} сек`}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-900">
@@ -667,6 +710,37 @@ export function ShadowHistoryClient({
                 </div>
               </div>
 
+              {/* Agility Test Result & Personal Best */}
+              {inspectSession.shadowDetails?.mode === "agility_test" &&
+                (() => {
+                  const agilitySec =
+                    inspectSession.shadowDetails?.agilityTestTimeSec ??
+                    (inspectSession.durationMs
+                      ? Math.floor(inspectSession.durationMs / 1000)
+                      : null);
+                  const isPb =
+                    agilitySec !== null &&
+                    bestAgilityTimeSec !== null &&
+                    Math.abs(agilitySec - bestAgilityTimeSec) < 0.01;
+                  return (
+                    <div className="flex items-center justify-between rounded-2xl border border-red-200/80 bg-red-50/50 p-3.5 dark:border-red-900/50 dark:bg-red-950/30">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-red-600 dark:text-red-400">
+                          Постигнато време (Тест за бързина)
+                        </span>
+                        <p className="text-sm font-black text-zinc-900 dark:text-white">
+                          {agilitySec !== null ? `${agilitySec} сек` : "—"}
+                        </p>
+                      </div>
+                      {isPb && (
+                        <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-xs font-bold">
+                          🏆 Личен рекорд (PB)
+                        </Badge>
+                      )}
+                    </div>
+                  );
+                })()}
+
               {/* Court visualization preview */}
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <span className="mb-2 text-[11px] font-bold uppercase text-zinc-400">
@@ -681,16 +755,67 @@ export function ShadowHistoryClient({
                 </div>
               </div>
 
+              {/* Real Heatmap breakdown if present */}
+              {inspectSession.shadowDetails?.heatmap &&
+                (() => {
+                  const heatmap = inspectSession.shadowDetails.heatmap;
+                  const entries = Object.entries(heatmap).filter(
+                    ([, count]) => typeof count === "number" && count > 0
+                  );
+                  const totalHits = entries.reduce(
+                    (acc, [, count]) => acc + count,
+                    0
+                  );
+                  if (totalHits === 0) return null;
+                  return (
+                    <div className="space-y-2 rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                          Разпределение по зони (Heatmap)
+                        </h4>
+                        <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                          Общо: {totalHits} извиквания
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {entries.map(([zoneKey, count]) => {
+                          const pct = Math.round((count / totalHits) * 100);
+                          const label =
+                            ZONE_NAMES[zoneKey as ZoneId] || zoneKey;
+                          return (
+                            <div
+                              key={zoneKey}
+                              className="flex items-center justify-between rounded-xl border border-zinc-200/80 bg-white px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-900"
+                            >
+                              <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                                {label}
+                              </span>
+                              <span className="font-black text-blue-600 dark:text-blue-400">
+                                {count} ({pct}%)
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
               {/* Players and RPE Ratings */}
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
                   Участници и индивидуално RPE натоварване (1 - 10)
                 </h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {inspectSession.memberIds.map((id) => {
+                  {(inspectSession.memberIds || []).map((id) => {
+                    const detailsWithIndiv =
+                      inspectSession.shadowDetails as TrainingSession["shadowDetails"] & {
+                        individualRpe?: Record<string, number>;
+                      };
                     const rpe =
-                      inspectSession.shadowDetails?.rpeScores?.[id] ||
-                      inspectSession.rpeScores?.[id] ||
+                      detailsWithIndiv?.individualRpe?.[id] ??
+                      inspectSession.shadowDetails?.rpeScores?.[id] ??
+                      inspectSession.rpeScores?.[id] ??
                       5;
                     return (
                       <div
@@ -733,7 +858,7 @@ export function ShadowHistoryClient({
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setInspectSession(null)}
+              onClick={handleCloseInspect}
               className="h-9 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
             >
               Затвори

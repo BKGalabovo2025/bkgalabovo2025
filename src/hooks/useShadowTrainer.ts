@@ -56,43 +56,124 @@ function getZonePools(cornersMode: CornersMode) {
   };
 }
 
+export function getAvailableZonesForMode(
+  modeType: string = "all",
+  cornersMode: CornersMode = "6-corners"
+): ZoneId[] {
+  let pool: ZoneId[] = [
+    "frontForehand",
+    "midForehand",
+    "backForehand",
+    "frontBackhand",
+    "midBackhand",
+    "backBackhand",
+    "overhead",
+  ];
+
+  if (cornersMode === "2-corners") {
+    if (modeType === "back_only") {
+      pool = ["backForehand", "backBackhand"];
+    } else if (modeType === "forehand_only") {
+      pool = ["frontForehand", "backForehand"];
+    } else if (modeType === "backhand_only") {
+      pool = ["frontBackhand", "backBackhand"];
+    } else {
+      pool = ["frontForehand", "frontBackhand"];
+    }
+  } else if (cornersMode === "4-corners") {
+    pool = ["frontForehand", "frontBackhand", "backForehand", "backBackhand"];
+  }
+
+  if (modeType === "front_only") {
+    pool = pool.filter((z) => z.startsWith("front"));
+  } else if (modeType === "back_only") {
+    pool = pool.filter((z) => z.startsWith("back") || z === "overhead");
+  } else if (modeType === "forehand_only") {
+    pool = pool.filter((z) => z.toLowerCase().includes("forehand"));
+  } else if (modeType === "backhand_only") {
+    pool = pool.filter(
+      (z) => z.toLowerCase().includes("backhand") || z === "overhead"
+    );
+  } else if (modeType === "front_back") {
+    pool = pool.filter((z) => !z.startsWith("mid"));
+  }
+
+  if (pool.length === 0) pool = ["frontForehand"];
+  return pool;
+}
+
+function filterByAvailable(
+  candidates: ZoneId[],
+  availableZones?: ZoneId[]
+): ZoneId[] {
+  if (!availableZones || availableZones.length === 0) return candidates;
+  const filtered = candidates.filter((z) => availableZones.includes(z));
+  return filtered.length > 0 ? filtered : availableZones;
+}
+
 export function applyNetBack(
   lastZone: ZoneId,
-  cornersMode: CornersMode
+  cornersMode: CornersMode,
+  availableZones?: ZoneId[]
 ): ZoneId {
   const { back, net } = getZonePools(cornersMode);
-  return lastZone.startsWith("front") ? pick(back) : pick(net);
+  const rawPool = lastZone.startsWith("front") ? back : net;
+  const validPool = filterByAvailable(rawPool, availableZones);
+  const distinct = validPool.filter((z) => z !== lastZone);
+  return pick(distinct.length > 0 ? distinct : validPool);
 }
 
 export function applyTriangle(
   lastZone: ZoneId | null,
-  cornersMode: CornersMode
+  cornersMode: CornersMode,
+  availableZones?: ZoneId[]
 ): ZoneId {
   const { back, net, mid } = getZonePools(cornersMode);
-  if (!lastZone || lastZone.startsWith("front")) return pick(back);
-  if (lastZone.startsWith("back") || lastZone === "overhead") {
-    return Math.random() < 0.5 && cornersMode === "6-corners"
-      ? pick(mid)
-      : pick(net);
+  let rawPool: ZoneId[];
+  if (!lastZone || lastZone.startsWith("front")) {
+    rawPool = back;
+  } else if (lastZone.startsWith("back") || lastZone === "overhead") {
+    const canUseMid =
+      cornersMode === "6-corners" &&
+      (!availableZones || availableZones.some((z) => mid.includes(z)));
+    rawPool = canUseMid && Math.random() < 0.5 ? mid : net;
+  } else {
+    rawPool = net;
   }
-  return pick(net);
+  const validPool = filterByAvailable(rawPool, availableZones);
+  const distinct = lastZone
+    ? validPool.filter((z) => z !== lastZone)
+    : validPool;
+  return pick(distinct.length > 0 ? distinct : validPool);
 }
 
 export function applyMixed(
   lastZone: ZoneId,
   cornersMode: CornersMode,
-  fallback: ZoneId
+  fallback: ZoneId,
+  availableZones?: ZoneId[]
 ): ZoneId {
-  if (Math.random() < 0.33) return fallback;
+  const safeFallback =
+    availableZones &&
+    availableZones.length > 0 &&
+    !availableZones.includes(fallback)
+      ? pick(availableZones)
+      : fallback;
+  if (Math.random() < 0.33) return safeFallback;
   const { back, net } = getZonePools(cornersMode);
-  if (lastZone.startsWith("front")) return pick(back);
-  if (lastZone.startsWith("back") || lastZone === "overhead") return pick(net);
-  return fallback;
+  if (lastZone.startsWith("front")) {
+    return pick(filterByAvailable(back, availableZones));
+  }
+  if (lastZone.startsWith("back") || lastZone === "overhead") {
+    return pick(filterByAvailable(net, availableZones));
+  }
+  return safeFallback;
 }
 
 export function applyForehandOnly(
   lastZone: ZoneId | null,
-  cornersMode: CornersMode
+  cornersMode: CornersMode,
+  availableZones?: ZoneId[]
 ): ZoneId {
   const { back, net, mid } = getZonePools(cornersMode);
   const forehandZones: ZoneId[] = [
@@ -103,18 +184,20 @@ export function applyForehandOnly(
     ...back.filter((z) => z.toLowerCase().includes("forehand")),
   ];
 
-  if (forehandZones.length === 0) return "frontForehand";
-  if (forehandZones.length === 1) return forehandZones[0];
+  const validZones = filterByAvailable(forehandZones, availableZones);
+  if (validZones.length === 0) return "frontForehand";
+  if (validZones.length === 1) return validZones[0];
 
   const candidates = lastZone
-    ? forehandZones.filter((z) => z !== lastZone)
-    : forehandZones;
-  return pick(candidates.length > 0 ? candidates : forehandZones);
+    ? validZones.filter((z) => z !== lastZone)
+    : validZones;
+  return pick(candidates.length > 0 ? candidates : validZones);
 }
 
 export function applyBackhandOnly(
   lastZone: ZoneId | null,
-  cornersMode: CornersMode
+  cornersMode: CornersMode,
+  availableZones?: ZoneId[]
 ): ZoneId {
   const { back, net, mid } = getZonePools(cornersMode);
   const backhandZones: ZoneId[] = [
@@ -127,32 +210,46 @@ export function applyBackhandOnly(
     ),
   ];
 
-  if (backhandZones.length === 0) return "frontBackhand";
-  if (backhandZones.length === 1) return backhandZones[0];
+  const validZones = filterByAvailable(backhandZones, availableZones);
+  if (validZones.length === 0) return "frontBackhand";
+  if (validZones.length === 1) return validZones[0];
 
   const candidates = lastZone
-    ? backhandZones.filter((z) => z !== lastZone)
-    : backhandZones;
-  return pick(candidates.length > 0 ? candidates : backhandZones);
+    ? validZones.filter((z) => z !== lastZone)
+    : validZones;
+  return pick(candidates.length > 0 ? candidates : validZones);
 }
 
 export function applyDrillPattern(
   drillPattern: string,
   lastZone: ZoneId | null,
   cornersMode: CornersMode,
-  randomZone: ZoneId
+  randomZone: ZoneId,
+  availableZones?: ZoneId[]
 ): ZoneId {
-  if (drillPattern === "forehand-only")
-    return applyForehandOnly(lastZone, cornersMode);
-  if (drillPattern === "backhand-only")
-    return applyBackhandOnly(lastZone, cornersMode);
-  if (drillPattern === "fixed-net-back" && lastZone)
-    return applyNetBack(lastZone, cornersMode);
-  if (drillPattern === "fixed-triangle")
-    return applyTriangle(lastZone, cornersMode);
-  if (drillPattern === "mixed" && lastZone)
-    return applyMixed(lastZone, cornersMode, randomZone);
-  return randomZone;
+  let chosen: ZoneId;
+  if (drillPattern === "forehand-only") {
+    chosen = applyForehandOnly(lastZone, cornersMode, availableZones);
+  } else if (drillPattern === "backhand-only") {
+    chosen = applyBackhandOnly(lastZone, cornersMode, availableZones);
+  } else if (drillPattern === "fixed-net-back" && lastZone) {
+    chosen = applyNetBack(lastZone, cornersMode, availableZones);
+  } else if (drillPattern === "fixed-triangle") {
+    chosen = applyTriangle(lastZone, cornersMode, availableZones);
+  } else if (drillPattern === "mixed" && lastZone) {
+    chosen = applyMixed(lastZone, cornersMode, randomZone, availableZones);
+  } else {
+    chosen = randomZone;
+  }
+
+  if (
+    availableZones &&
+    availableZones.length > 0 &&
+    !availableZones.includes(chosen)
+  ) {
+    return pick(availableZones);
+  }
+  return chosen;
 }
 
 export function resolveAudioPathsAndZone(
@@ -163,22 +260,22 @@ export function resolveAudioPathsAndZone(
   lastZone: ZoneId | null = null,
   _pace: number = 3.0
 ) {
-  const randomZone: ZoneId = getRandomZoneForMode(
-    drillMode as
-      | "all"
-      | "front_only"
-      | "back_only"
-      | "forehand_only"
-      | "backhand_only"
-      | "front_back",
-    cornersMode
-  );
+  const typedMode = drillMode as
+    | "all"
+    | "front_only"
+    | "back_only"
+    | "forehand_only"
+    | "backhand_only"
+    | "front_back";
+  const availableZones = getAvailableZonesForMode(typedMode, cornersMode);
+  const randomZone: ZoneId = getRandomZoneForMode(typedMode, cornersMode);
 
   const zone = applyDrillPattern(
     drillPattern,
     lastZone,
     cornersMode,
-    randomZone
+    randomZone,
+    availableZones
   );
 
   let audioPath = AUDIO_PATHS.zones[zone] || AUDIO_PATHS.zones.frontForehand;
@@ -299,7 +396,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const [state, setState] = useState<TrainerState>("idle");
   const [currentSet, setCurrentSet] = useState(1);
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
+  const [activeShot, setActiveShot] = useState<string | null>(null);
   const [visualPhase, setVisualPhase] = useState<VisualPhase>("idle");
+  const [zoneCounts, setZoneCounts] = useState<Record<string, number>>({});
 
   const [currentPlayersState, setCurrentPlayersState] = useState<
     ShadowPlayer[]
@@ -309,6 +408,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const [nextActionDelay, setNextActionDelay] = useState<number | null>(null);
 
   const playCountsRef = useRef<Record<string, number>>({});
+  const zoneCountsRef = useRef<Record<string, number>>({});
   const consecutiveFastShotsRef = useRef(0);
   const currentPlayersRef = useRef<ShadowPlayer[]>([]);
   const currentWaveRef = useRef(1);
@@ -318,9 +418,16 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const actionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const deceptionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const centerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const visualOnlyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const endOfSetWaitIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null
+  );
+  const isWaitingForEndAudioRef = useRef(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const isFirstActionRef = useRef(false);
   const activeZoneRef = useRef<ZoneId | null>(null);
+  const lastShotZoneRef = useRef<ZoneId | null>(null);
   const triggerNextActionRef = useRef<() => void>(() => {});
   const lastActionTimestampRef = useRef<number>(0);
   const expectedPaceRef = useRef<number>(3.0);
@@ -354,7 +461,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     agilityActionsDoneRef.current = agilityActionsDone;
   }, [agilityActionsDone]);
 
-  const audio = useShadowAudio();
+  const audio = useShadowAudio(settings?.voiceSpeed);
 
   useEffect(() => {
     if (settings) {
@@ -411,12 +518,35 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   };
 
   const cleanupActions = useCallback(() => {
-    if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current);
-    if (deceptionTimeoutRef.current) clearTimeout(deceptionTimeoutRef.current);
-    if (centerTimeoutRef.current) clearTimeout(centerTimeoutRef.current);
-    audio.stop();
+    if (actionTimeoutRef.current) {
+      clearTimeout(actionTimeoutRef.current);
+      actionTimeoutRef.current = null;
+    }
+    if (deceptionTimeoutRef.current) {
+      clearTimeout(deceptionTimeoutRef.current);
+      deceptionTimeoutRef.current = null;
+    }
+    if (centerTimeoutRef.current) {
+      clearTimeout(centerTimeoutRef.current);
+      centerTimeoutRef.current = null;
+    }
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+    if (visualOnlyTimerRef.current) {
+      clearTimeout(visualOnlyTimerRef.current);
+      visualOnlyTimerRef.current = null;
+    }
+    if (endOfSetWaitIntervalRef.current) {
+      clearInterval(endOfSetWaitIntervalRef.current);
+      endOfSetWaitIntervalRef.current = null;
+    }
+    isWaitingForEndAudioRef.current = false;
+    audio.stopAudio();
     setActiveZone(null);
     activeZoneRef.current = null;
+    setActiveShot(null);
     lastActionTimestampRef.current = 0;
     tempoWaitStartRef.current = 0;
     setVisualPhase("idle");
@@ -469,6 +599,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         }
         if (nextCount >= currentSettings.workSec) {
           setState("finished");
+          stateRef.current = "finished";
           timerRef.current.syncState("finished");
           cleanupActions();
           if (!currentSettings.visualOnly)
@@ -535,11 +666,18 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         currentSettings.calloutMode,
         currentSettings.cornersMode,
         currentSettings.drillPattern,
-        activeZoneRef.current,
+        lastShotZoneRef.current,
         pace
       );
 
       activeZoneRef.current = zone;
+      lastShotZoneRef.current = zone;
+      setActiveShot(
+        secondAudioPath ||
+          (currentSettings.calloutMode === "shots" ? audioPath : null)
+      );
+      zoneCountsRef.current[zone] = (zoneCountsRef.current[zone] || 0) + 1;
+      setZoneCounts({ ...zoneCountsRef.current });
 
       // Biomechanical Phase Timing
       const ageGroup = currentSettings.ageGroup;
@@ -562,8 +700,12 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       }
       const recoveryDelay = splitStepDelay + strokeDuration;
 
-      // Adapt speech playback speed (natural 1.0x)
-      setPlaybackPace(pace, currentSettings.calloutMode);
+      // Adapt speech playback speed
+      setPlaybackPace(
+        pace,
+        currentSettings.calloutMode,
+        currentSettings.voiceSpeed
+      );
 
       const realSeq = [audioPath];
       if (secondAudioPath) realSeq.push(secondAudioPath);
@@ -600,23 +742,40 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         timeoutMs = paths.length * 4000 + 3000
       ) => {
         let isDone = false;
-        let fallbackTimer: NodeJS.Timeout | null = null;
+        if (fallbackTimerRef.current) {
+          clearTimeout(fallbackTimerRef.current);
+          fallbackTimerRef.current = null;
+        }
+        if (visualOnlyTimerRef.current) {
+          clearTimeout(visualOnlyTimerRef.current);
+          visualOnlyTimerRef.current = null;
+        }
 
         const handleDone = () => {
           if (isDone) return;
           isDone = true;
-          if (fallbackTimer) clearTimeout(fallbackTimer);
+          if (fallbackTimerRef.current) {
+            clearTimeout(fallbackTimerRef.current);
+            fallbackTimerRef.current = null;
+          }
+          if (visualOnlyTimerRef.current) {
+            clearTimeout(visualOnlyTimerRef.current);
+            visualOnlyTimerRef.current = null;
+          }
           if (stateRef.current === "working") {
             onDone();
           }
         };
 
-        fallbackTimer = setTimeout(handleDone, timeoutMs);
+        fallbackTimerRef.current = setTimeout(handleDone, timeoutMs);
 
         if (!currentSettings.visualOnly) {
           audio.playSequence(paths, handleDone);
         } else {
-          setTimeout(handleDone, Math.min(800, timeoutMs));
+          visualOnlyTimerRef.current = setTimeout(
+            handleDone,
+            Math.min(800, timeoutMs)
+          );
         }
       };
 
@@ -736,7 +895,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const handleMotivationTick = useCallback(() => {
     audio.triggerMotivation(
       currentPlayersRef.current,
-      !!settings?.motivationEnabled
+      !!settings?.motivationEnabled,
+      settings?.voiceSpeed
     );
   }, [audio, settings]);
 
@@ -748,6 +908,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
 
     if (phase === "countdown") {
       setState("working");
+      stateRef.current = "working";
       timerRef.current.syncState("working");
       isFirstActionRef.current = true;
       if (currentSettings.mode === "agility_test") {
@@ -773,11 +934,18 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       shadowLogger.court(
         "🟢 [КОРТ АКТИВЕН] Кортът преминава в боен режим (WORK PHASE). Очаква се първият сплит-степ."
       );
-      actionTimeoutRef.current = setTimeout(() => {
-        triggerNextActionRef.current();
-      }, 0);
+      triggerNextActionRef.current();
     } else if (phase === "working") {
+      if (isWaitingForEndAudioRef.current) return;
+
       const proceedToNextPhase = () => {
+        isWaitingForEndAudioRef.current = false;
+        if (endOfSetWaitIntervalRef.current) {
+          clearInterval(endOfSetWaitIntervalRef.current);
+          endOfSetWaitIntervalRef.current = null;
+        }
+        if (stateRef.current !== "working") return;
+
         setActiveZone(null);
         cleanupActions();
 
@@ -808,9 +976,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
           );
 
           setState("countdown");
+          stateRef.current = "countdown";
           timerRef.current.syncState("countdown");
           timerRef.current.updateTimeRemaining(10);
-          audio.stop();
+          audio.stopAudio();
           if (!currentSettings.visualOnly) {
             audio.play(AUDIO_PATHS.common.startSet);
           }
@@ -825,6 +994,8 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
               `🏆 Training session finished successfully! Completed sets: ${currentSetRef.current}`
             );
             setState("finished");
+            stateRef.current = "finished";
+            timerRef.current.syncState("finished");
             if (!currentSettings.visualOnly)
               audio.play(AUDIO_PATHS.common.endSet);
           } else {
@@ -835,8 +1006,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
               `⏸️ [КОРТ ПОЧИВКА] Край на Серия ${currentSetRef.current} за всички състезатели. Кортът е в режим на почивка (${currentSettings.restSec}s).`
             );
             setState("resting");
+            stateRef.current = "resting";
             timerRef.current.syncState("resting");
-            audio.stop();
+            audio.stopAudio();
             timerRef.current.updateTimeRemaining(currentSettings.restSec);
             if (!currentSettings.visualOnly)
               audio.play(AUDIO_PATHS.common.rest);
@@ -848,12 +1020,21 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         shadowLogger.trainer(
           "⏳ [ИЗЧАКВАНЕ НА ГЛАСА] Таймерът за фазата изтече, но гласовата команда завършва последните си думи. Плавният преход ще изчака края на изговора."
         );
+        isWaitingForEndAudioRef.current = true;
+        timerRef.current.cleanupTimer();
+        if (endOfSetWaitIntervalRef.current) {
+          clearInterval(endOfSetWaitIntervalRef.current);
+          endOfSetWaitIntervalRef.current = null;
+        }
         let waitedMs = 0;
         const maxWaitMs = 2500;
-        const checkInterval = setInterval(() => {
+        endOfSetWaitIntervalRef.current = setInterval(() => {
           waitedMs += 100;
           if (!audio.isPlaying() || waitedMs >= maxWaitMs) {
-            clearInterval(checkInterval);
+            if (endOfSetWaitIntervalRef.current) {
+              clearInterval(endOfSetWaitIntervalRef.current);
+              endOfSetWaitIntervalRef.current = null;
+            }
             proceedToNextPhase();
           }
         }, 100);
@@ -882,6 +1063,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         `🔔 Rest period ended. Starting countdown for Set ${nextSet}/${currentSettings.sets} (Част 1)`
       );
       setState("countdown");
+      stateRef.current = "countdown";
       timerRef.current.syncState("countdown");
       timerRef.current.updateTimeRemaining(10);
       if (!currentSettings.visualOnly) {
@@ -905,6 +1087,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     setActualElapsedMs,
     cleanupTimer,
     getTimeRemaining,
+    pause,
+    stop,
+    reset,
   } = useShadowTimer({
     state,
     settings,
@@ -919,6 +1104,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     setActualElapsedMs,
     cleanupTimer,
     getTimeRemaining,
+    pause,
+    stop,
+    reset,
   });
   useEffect(() => {
     timerRef.current = {
@@ -927,6 +1115,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       setActualElapsedMs,
       cleanupTimer,
       getTimeRemaining,
+      pause,
+      stop,
+      reset,
     };
   }, [
     syncState,
@@ -934,14 +1125,47 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     setActualElapsedMs,
     cleanupTimer,
     getTimeRemaining,
+    pause,
+    stop,
+    reset,
   ]);
+
+  const resetTraining = useCallback(() => {
+    shadowLogger.trainer("🔄 Training Reset to Idle");
+    cleanupActions();
+    timerRef.current.stop();
+    timerRef.current.reset();
+    audio.stopAudio();
+    setState("idle");
+    stateRef.current = "idle";
+    previousStateRef.current = "idle";
+    setCurrentSet(1);
+    currentSetRef.current = 1;
+    setCurrentWave(1);
+    currentWaveRef.current = 1;
+    setAgilityActionsDone(0);
+    agilityActionsDoneRef.current = 0;
+    setActiveZone(null);
+    activeZoneRef.current = null;
+    setActiveShot(null);
+    setVisualPhase("idle");
+    lastShotZoneRef.current = null;
+    consecutiveFastShotsRef.current = 0;
+    zoneCountsRef.current = {};
+    setZoneCounts({});
+  }, [audio, cleanupActions]);
 
   const startTraining = useCallback(() => {
     if (!settings) return;
+    if (stateRef.current === "finished") {
+      resetTraining();
+    }
+    cleanupActions();
     audio.unlock();
-    audio.stop();
+    audio.stopAudio();
     requestWakeLock();
     setState("countdown");
+    stateRef.current = "countdown";
     timerRef.current.syncState("countdown");
     setCurrentSet(1);
     currentSetRef.current = 1;
@@ -957,6 +1181,13 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     setAgilityActionsDone(0);
     agilityActionsDoneRef.current = 0;
     consecutiveFastShotsRef.current = 0;
+    lastShotZoneRef.current = null;
+    zoneCountsRef.current = {};
+    setZoneCounts({});
+    setActiveZone(null);
+    activeZoneRef.current = null;
+    setActiveShot(null);
+    setVisualPhase("idle");
     timerRef.current.setActualElapsedMs(0);
 
     shadowLogger.trainer("🚀 Training Launched from Coach Interface", {
@@ -978,7 +1209,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     if (!settings.visualOnly) {
       audio.play(AUDIO_PATHS.common.startSet);
     }
-  }, [settings, audio]);
+  }, [settings, audio, cleanupActions, resetTraining]);
 
   const pauseTraining = useCallback(() => {
     if (
@@ -992,8 +1223,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
       fromState: stateRef.current,
     });
     setState("paused");
+    stateRef.current = "paused";
     timerRef.current.syncState("paused");
-    audio.stop();
+    timerRef.current.pause();
+    audio.stopAudio();
     cleanupActions();
   }, [audio, cleanupActions]);
 
@@ -1004,6 +1237,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         resumingState: targetState,
       });
       setState(targetState);
+      stateRef.current = targetState;
       timerRef.current.syncState(targetState);
       requestWakeLock();
       if (targetState === "working") {
@@ -1015,8 +1249,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const stopTraining = useCallback(() => {
     shadowLogger.trainer("⏹️ Training Stopped by Coach");
     setState("finished");
+    stateRef.current = "finished";
     timerRef.current.syncState("finished");
-    audio.stop();
+    timerRef.current.stop();
+    audio.stopAudio();
     cleanupActions();
   }, [audio, cleanupActions]);
 
@@ -1040,7 +1276,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
   const skipCountdown = useCallback(() => {
     if (stateRef.current === "countdown") {
       shadowLogger.trainer("⏩ Countdown skipped — Starting work immediately");
-      audio.stop();
+      audio.stopAudio();
       advanceState();
     }
   }, [advanceState, audio]);
@@ -1061,7 +1297,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     currentWave,
     totalWaves,
     activeZone,
+    activeShot,
     visualPhase,
+    zoneCounts,
     timeRemaining,
     actualElapsedMs,
     currentRotationPlayers: currentPlayersState,
@@ -1072,6 +1310,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     pauseTraining,
     resumeTraining,
     stopTraining,
+    resetTraining,
     skipCountdown,
   };
 }

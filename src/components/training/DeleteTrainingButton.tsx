@@ -11,22 +11,28 @@ import { deleteTrainingSessionAction } from "@/lib/actions/trainings";
 
 interface Props {
   trainingId: string;
+  onDeleted?: () => void;
 }
 
-export function DeleteTrainingButton({ trainingId }: Props) {
-  const { idToken } = useAuth();
+export function DeleteTrainingButton({ trainingId, onDeleted }: Props) {
+  const { user, idToken } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
   const handleDelete = async () => {
-    if (!idToken) return;
+    const freshToken = user ? await user.getIdToken() : idToken;
+    if (!freshToken && !user) return;
     if (!confirm("Сигурни ли сте, че искате да изтриете този запис?")) return;
 
     setIsDeleting(true);
     try {
-      const res = await deleteTrainingSessionAction(idToken, trainingId);
+      const res = await deleteTrainingSessionAction(
+        freshToken || "",
+        trainingId
+      );
       if (res.success) {
         toast.success(res.message);
+        onDeleted?.();
         router.refresh();
       } else {
         toast.error(res.message);

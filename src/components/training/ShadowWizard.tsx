@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/context/auth-context";
@@ -15,19 +15,39 @@ import type { TrainingSession } from "@/types/training.types";
 
 import { ShadowActiveScreen } from "./shadow/ShadowActiveScreen";
 import { ShadowReportForm } from "./shadow/ShadowReportForm";
-// Import the new split components
 import { ShadowSetupForm } from "./shadow/ShadowSetupForm";
 
 interface Props {
   initialMembers?: ShadowPlayer[];
+  preselectedMemberId?: string | null;
 }
 
-export function ShadowWizard({ initialMembers = [] }: Props) {
-  const { user } = useAuth();
+function scrollToTopSmooth() {
+  try {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.scrollTo === "function"
+    ) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  } catch {
+    // Ignore in jsdom environments where window.scrollTo is not implemented
+  }
+}
+
+export function ShadowWizard({
+  initialMembers = [],
+  preselectedMemberId = null,
+}: Props) {
+  const { user, idToken: token } = useAuth();
 
   const [screen, setScreen] = useState<"setup" | "training" | "analytics">(
     "setup"
   );
+  const [urlMemberId, setUrlMemberId] = useState<string | null>(
+    preselectedMemberId
+  );
+
   const [settings, setSettings] = useState<ShadowSettings>({
     mode: "standard",
     preset: "custom",
@@ -38,7 +58,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     sets: 3,
     workSec: 45,
     restSec: 30,
-    paceSec: 3,
+    paceSec: 2.5,
     deceptionEnabled: false,
     motivationEnabled: false,
     visualOnly: false,
@@ -47,35 +67,92 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     activePlayers: [],
     courtsAvailable: 6,
     courtAllocationStrategy: "two_per_court",
+    leftHanded: false,
+    voiceSpeed: 1.0,
   });
 
   const [rpeScore, setRpeScore] = useState<number>(5);
   const [rpeNotes, setRpeNotes] = useState("");
 
+  useEffect(() => {
+    if (preselectedMemberId) {
+      setUrlMemberId(preselectedMemberId);
+      return;
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const mId = params.get("memberId");
+        if (mId) setUrlMemberId(mId);
+      } catch {
+        // Ignore URL errors
+      }
+    }
+  }, [preselectedMemberId]);
+
   const trainer = useShadowTrainer(screen === "training" ? settings : null);
+  const trainerWithExtras = trainer as typeof trainer & {
+    resetTraining?: () => void;
+    zoneCounts?: Record<string, number>;
+  };
+
+  const changeScreen = useCallback(
+    (nextScreen: "setup" | "training" | "analytics") => {
+      setScreen(nextScreen);
+      scrollToTopSmooth();
+    },
+    []
+  );
+
+  const prevTrainerStateRef = useRef(trainer.state);
 
   useEffect(() => {
-    if (screen === "training" && trainer.state === "finished") {
-      setScreen("analytics");
+    const prevState = prevTrainerStateRef.current;
+    prevTrainerStateRef.current = trainer.state;
+    if (
+      screen === "training" &&
+      trainer.state === "finished" &&
+      prevState !== "finished"
+    ) {
+      changeScreen("analytics");
     }
-  }, [trainer.state, screen]);
+  }, [trainer.state, screen, changeScreen]);
 
   useEffect(() => {
-    if (screen === "setup" && settings.activePlayers.length > 0) {
-      preloadAudioForSettings(settings);
-    }
-  }, [screen, settings]);
+    if (!settings) return;
+    preloadAudioForSettings(settings);
+    // Only primitive audio-relevant dependencies so selecting players or courts does not reload audio
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    settings?.drillMode,
+    settings?.cornersMode,
+    settings?.calloutMode,
+    settings?.centerCommandEnabled,
+  ]);
 
   const handleStartTraining = () => {
     if (settings.activePlayers.length === 0) {
       toast.error("Моля, изберете поне един играч!");
       return;
     }
-    setScreen("training");
+    trainerWithExtras.resetTraining?.();
+    prevTrainerStateRef.current = "idle";
+    changeScreen("training");
   };
 
-  const handleSave = async () => {
-    if (!user) return;
+  const handleBackToSetup = () => {
+    trainer.stopTraining();
+    trainerWithExtras.resetTraining?.();
+    prevTrainerStateRef.current = "idle";
+    changeScreen("setup");
+  };
+
+  const handleSave = async (
+    customRpe?: number,
+    customNotes?: string,
+    individualRpe?: Record<string, number>
+  ) => {
+    if (!user && !token) return;
 
     const elapsedSeconds = (trainer.actualElapsedMs || 0) / 1000;
     if (elapsedSeconds < 10) {
@@ -86,14 +163,25 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     }
 
     try {
-      const token = await user.getIdToken();
-      const rpeScores = settings.activePlayers.reduce(
-        (acc, p) => {
-          acc[p.id] = rpeScore;
-          return acc;
-        },
-        {} as Record<string, number>
-      );
+      const freshToken = user ? await user.getIdToken() : token || "";
+      const finalRpe = typeof customRpe === "number" ? customRpe : rpeScore;
+      const finalNotes =
+        typeof customNotes === "string" ? customNotes : rpeNotes;
+
+      const rpeScores =
+        individualRpe && Object.keys(individualRpe).length > 0
+          ? individualRpe
+          : settings.activePlayers.reduce(
+              (acc, p) => {
+                acc[p.id] = finalRpe;
+                return acc;
+              },
+              {} as Record<string, number>
+            );
+
+      const zoneCounts = trainerWithExtras.zoneCounts || {};
+      const heatmap =
+        Object.keys(zoneCounts).length > 0 ? zoneCounts : undefined;
 
       const payload = {
         siteId: "bkgalabovo",
@@ -101,7 +189,8 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
         date: new Date().toISOString(),
         memberIds: settings.activePlayers.map((p) => p.id),
         durationMs: trainer.actualElapsedMs || 0,
-        notes: rpeNotes,
+        notes: finalNotes,
+        rpeScores,
         shadowDetails: {
           mode: settings.mode,
           preset: settings.preset,
@@ -115,32 +204,45 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
               ? Math.round(trainer.actualElapsedMs / 1000)
               : settings.workSec,
           restTimeSec: settings.restSec,
+          paceSec: settings.paceSec,
+          calloutMode: settings.calloutMode,
           deceptionEnabled: settings.deceptionEnabled,
+          leftHanded: settings.leftHanded,
+          heatmap,
+          agilityActionsDone: trainer.agilityActionsDone,
+          agilityTestTimeSec:
+            settings.mode === "agility_test"
+              ? Math.round((trainer.actualElapsedMs / 1000) * 10) / 10
+              : undefined,
           rpeScores,
+          individualRpe: rpeScores,
         },
       } as unknown as Omit<TrainingSession, "id" | "createdAt" | "createdBy">;
 
-      // 1. Оптимистичен UI - Светкавично нулиране и обратна връзка!
+      const res = (await createTrainingSessionAction(freshToken, payload)) as {
+        success?: boolean;
+        error?: string;
+        message?: string;
+      };
+
+      if (res && res.success === false) {
+        toast.error(
+          res.error || res.message || "Грешка при запис на тренировката."
+        );
+        return;
+      }
+
       toast.success("Тренировката е записана успешно!");
 
-      // Нулираме данните от последната сесия за всеки случай
       setRpeNotes("");
       setRpeScore(5);
-
-      // Нулираме състоянието на таймера и ротацията в хука
       trainer.stopTraining();
-
-      // Връщаме потребителя веднага на екрана с настройки
-      setScreen("setup");
-
-      // 2. Асинхронно запазване (background task) - без await
-      createTrainingSessionAction(token, payload).catch((e) => {
-        console.error("Save training background error:", e);
-        toast.error("Възникна грешка при запазване в базата данни.");
-      });
+      trainerWithExtras.resetTraining?.();
+      prevTrainerStateRef.current = "idle";
+      changeScreen("setup");
     } catch (e: unknown) {
-      console.error("Preparation error:", e);
-      toast.error("Възникна грешка при подготовката на данните.");
+      console.error("Save training error:", e);
+      toast.error("Възникна грешка при запазване в базата данни.");
     }
   };
 
@@ -148,7 +250,9 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
     setRpeNotes("");
     setRpeScore(5);
     trainer.stopTraining();
-    setScreen("setup");
+    trainerWithExtras.resetTraining?.();
+    prevTrainerStateRef.current = "idle";
+    changeScreen("setup");
     toast.info("Сесията беше приключена без запазване.");
   };
 
@@ -170,7 +274,13 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
   }
 
   if (screen === "training") {
-    return <ShadowActiveScreen trainer={trainer} settings={settings} />;
+    return (
+      <ShadowActiveScreen
+        trainer={trainer}
+        settings={settings}
+        onBackToSetup={handleBackToSetup}
+      />
+    );
   }
 
   return (
@@ -179,6 +289,7 @@ export function ShadowWizard({ initialMembers = [] }: Props) {
       settings={settings}
       setSettings={setSettings}
       onStartTraining={handleStartTraining}
+      preselectedMemberId={urlMemberId}
     />
   );
 }

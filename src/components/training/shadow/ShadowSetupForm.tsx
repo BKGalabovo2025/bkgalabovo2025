@@ -1,18 +1,22 @@
 "use client";
 
 import {
+  ChevronDown,
+  ChevronUp,
   Mic,
   Play,
   RotateCcw,
   Search,
   Settings2,
+  Sliders,
   Star,
   Target,
   UserPlus,
   Users,
+  Volume2,
   Zap,
 } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +41,7 @@ interface ShadowSetupFormProps {
   settings: ShadowSettings;
   setSettings: React.Dispatch<React.SetStateAction<ShadowSettings>>;
   onStartTraining: () => void;
+  preselectedMemberId?: string | null;
 }
 
 export function ShadowSetupForm({
@@ -44,6 +49,7 @@ export function ShadowSetupForm({
   settings,
   setSettings,
   onStartTraining,
+  preselectedMemberId,
 }: ShadowSetupFormProps) {
   const [playerSearchQuery, setPlayerSearchQuery] = useState("");
   const [playerFilterCategory, setPlayerFilterCategory] = useState<
@@ -55,10 +61,53 @@ export function ShadowSetupForm({
   const [courtPreviewMode, setCourtPreviewMode] = useState<"half" | "full">(
     "half"
   );
+  const [isModifiersOpen, setIsModifiersOpen] = useState(true);
+  const autoSelectedMemberRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setMembersList(initialMembers);
+    setMembersList((prev) => {
+      if (prev.length === 0) return initialMembers;
+      const existingIds = new Set(initialMembers.map((m) => m.id));
+      const newlyAdded = prev.filter((p) => !existingIds.has(p.id));
+      return [...newlyAdded, ...initialMembers];
+    });
   }, [initialMembers]);
+
+  // Auto-select player from URL ?memberId=... or preselectedMemberId prop
+  useEffect(() => {
+    let targetId = preselectedMemberId || null;
+    if (!targetId && typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        targetId = params.get("memberId");
+      } catch {
+        // Ignore URL parsing errors
+      }
+    }
+    if (!targetId || autoSelectedMemberRef.current === targetId) return;
+    const found = membersList.find((m) => m.id === targetId);
+    if (found) {
+      autoSelectedMemberRef.current = targetId;
+      const pName =
+        found.displayName ||
+        `${found.firstName || ""} ${found.lastName || ""}`.trim() ||
+        "Играч";
+      setSettings((prev) => {
+        if (prev.activePlayers.some((p) => p.id === found.id)) return prev;
+        return {
+          ...prev,
+          activePlayers: [
+            ...prev.activePlayers,
+            {
+              id: found.id,
+              displayName: pName,
+              ageGroup: found.ageGroup || resolveMemberAgeGroup(found),
+            },
+          ],
+        };
+      });
+    }
+  }, [membersList, preselectedMemberId, setSettings]);
 
   // Calculate preview zones for live court visualization in the configurator
   const previewZones = useMemo<ZoneId[]>(() => {
@@ -139,12 +188,30 @@ export function ShadowSetupForm({
     settings.courtAllocationStrategy,
   ]);
 
+  const handleSoundCheck = () => {
+    try {
+      const audio = new Audio("/shadow/common/podgotvi_se.mp3");
+      if (settings.voiceSpeed) {
+        audio.playbackRate = settings.voiceSpeed;
+      }
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {});
+      }
+    } catch {
+      // Ignore audio errors in headless/test environments
+    }
+  };
+
   const handleStart = () => {
     setSettings((prev) => ({
       ...prev,
-      centerCommandEnabled: true,
-      deceptionEnabled: false,
-      visualOnly: false,
+      centerCommandEnabled: prev.centerCommandEnabled ?? true,
+      deceptionEnabled: Boolean(prev.deceptionEnabled),
+      motivationEnabled: Boolean(prev.motivationEnabled),
+      visualOnly: Boolean(prev.visualOnly),
+      leftHanded: Boolean(prev.leftHanded),
+      voiceSpeed: prev.voiceSpeed ?? 1.0,
     }));
     shadowLogger.setup(
       "Coach confirmed configuration, proceeding to Active Training Screen",
@@ -157,6 +224,11 @@ export function ShadowSetupForm({
         workSec: settings.workSec,
         restSec: settings.restSec,
         paceSec: settings.paceSec,
+        deceptionEnabled: settings.deceptionEnabled,
+        motivationEnabled: settings.motivationEnabled,
+        visualOnly: settings.visualOnly,
+        leftHanded: settings.leftHanded,
+        voiceSpeed: settings.voiceSpeed,
         playersCount: settings.activePlayers.length,
         activePlayers: settings.activePlayers.map((p) => p.displayName),
       }
@@ -205,30 +277,28 @@ export function ShadowSetupForm({
     });
   }, [membersList, playerFilterCategory, playerSearchQuery]);
 
-  const handleMemberAdded = (newPlayer: ShadowPlayer, isClub: boolean) => {
-    if (isClub) {
-      setMembersList((prev) => {
-        if (prev.some((p) => p.id === newPlayer.id)) return prev;
-        return [newPlayer, ...prev];
-      });
-      setSettings((prev) => {
-        if (prev.activePlayers.some((p) => p.id === newPlayer.id)) return prev;
-        return {
-          ...prev,
-          activePlayers: [
-            ...prev.activePlayers,
-            {
-              id: newPlayer.id,
-              displayName:
-                newPlayer.displayName ||
-                `${newPlayer.firstName || ""} ${newPlayer.lastName || ""}`.trim() ||
-                "Играч",
-              ageGroup: newPlayer.ageGroup,
-            },
-          ],
-        };
-      });
-    }
+  const handleMemberAdded = (newPlayer: ShadowPlayer, _isClub: boolean) => {
+    setMembersList((prev) => {
+      if (prev.some((p) => p.id === newPlayer.id)) return prev;
+      return [newPlayer, ...prev];
+    });
+    setSettings((prev) => {
+      if (prev.activePlayers.some((p) => p.id === newPlayer.id)) return prev;
+      return {
+        ...prev,
+        activePlayers: [
+          ...prev.activePlayers,
+          {
+            id: newPlayer.id,
+            displayName:
+              newPlayer.displayName ||
+              `${newPlayer.firstName || ""} ${newPlayer.lastName || ""}`.trim() ||
+              "Играч",
+            ageGroup: newPlayer.ageGroup,
+          },
+        ],
+      };
+    });
   };
 
   const handleSelectAllFiltered = () => {
@@ -264,9 +334,9 @@ export function ShadowSetupForm({
               <Settings2 size={24} />
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
+              <h2 className="text-2xl font-black tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
                 Интелигентен Настройчик
-              </h1>
+              </h2>
               <p className="text-sm font-medium text-zinc-500">
                 Конфигурирайте параметрите, кортовете и състезателите за
                 тренировката
@@ -380,14 +450,16 @@ export function ShadowSetupForm({
                       setSettings((prev) => ({
                         ...prev,
                         ageGroup: a.id as ShadowSettings["ageGroup"],
-                        sets: a.defaults.sets,
-                        workSec: a.defaults.workSec,
-                        restSec: a.defaults.restSec,
+                        sets:
+                          prev.mode === "agility_test" ? 1 : a.defaults.sets,
+                        workSec:
+                          prev.mode === "agility_test"
+                            ? 20
+                            : a.defaults.workSec,
+                        restSec:
+                          prev.mode === "agility_test" ? 0 : a.defaults.restSec,
                         paceSec: a.defaults.paceSec,
                         cornersMode: a.defaults.cornersMode,
-                        centerCommandEnabled: true,
-                        deceptionEnabled: false,
-                        visualOnly: false,
                       }));
                     }}
                     className={`group relative flex cursor-pointer flex-col justify-between rounded-2xl border-2 p-3.5 text-left transition-all ${
@@ -466,16 +538,23 @@ export function ShadowSetupForm({
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div className="space-y-1">
-                <Label className="text-xs font-bold uppercase text-zinc-500">
+              <div className="flex flex-col justify-between gap-1.5">
+                <Label
+                  htmlFor="shadow-sets-input"
+                  className="text-xs font-bold uppercase text-zinc-500"
+                >
                   Серии
                 </Label>
                 {settings.mode === "agility_test" ? (
-                  <div className="flex h-12 items-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm font-bold text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                  <div
+                    id="shadow-sets-input"
+                    className="flex h-12 items-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm font-bold text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                  >
                     1 серия (Контролен тест)
                   </div>
                 ) : (
                   <Input
+                    id="shadow-sets-input"
                     type="number"
                     min="1"
                     max="10"
@@ -490,9 +569,12 @@ export function ShadowSetupForm({
                   />
                 )}
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold uppercase text-zinc-500">
+              <div className="flex flex-col justify-between gap-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-1">
+                  <Label
+                    htmlFor="shadow-work-input"
+                    className="text-xs font-bold uppercase text-zinc-500"
+                  >
                     {settings.mode === "agility_test"
                       ? "Целеви движения"
                       : "Работа (сек)"}
@@ -504,6 +586,7 @@ export function ShadowSetupForm({
                   )}
                 </div>
                 <Input
+                  id="shadow-work-input"
                   type="number"
                   min={settings.mode === "agility_test" ? 5 : 10}
                   max={settings.mode === "agility_test" ? 100 : 300}
@@ -519,16 +602,23 @@ export function ShadowSetupForm({
                   }
                 />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-bold uppercase text-zinc-500">
+              <div className="flex flex-col justify-between gap-1.5">
+                <Label
+                  htmlFor="shadow-rest-input"
+                  className="text-xs font-bold uppercase text-zinc-500"
+                >
                   Почивка (сек)
                 </Label>
                 {settings.mode === "agility_test" ? (
-                  <div className="flex h-12 items-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm font-bold text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500">
+                  <div
+                    id="shadow-rest-input"
+                    className="flex h-12 items-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm font-bold text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500"
+                  >
                     — (Спринт тест)
                   </div>
                 ) : (
                   <Input
+                    id="shadow-rest-input"
                     type="number"
                     min="5"
                     max="180"
@@ -543,9 +633,12 @@ export function ShadowSetupForm({
                   />
                 )}
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold uppercase text-zinc-500">
+              <div className="flex flex-col justify-between gap-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-1">
+                  <Label
+                    htmlFor="shadow-pace-input"
+                    className="text-xs font-bold uppercase text-zinc-500"
+                  >
                     {settings.mode === "agility_test"
                       ? "Реакция / Пауза (сек)"
                       : "Пауза / Темпо (сек)"}
@@ -555,18 +648,25 @@ export function ShadowSetupForm({
                   </span>
                 </div>
                 <Input
+                  id="shadow-pace-input"
                   type="number"
-                  step="0.5"
+                  step="0.1"
                   min="0.5"
                   max="10"
                   className="h-12 rounded-xl text-lg font-bold"
                   value={settings.paceSec}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
                     setSettings((prev) => ({
                       ...prev,
-                      paceSec: parseFloat(e.target.value) || 2,
-                    }))
-                  }
+                      paceSec: Number.isNaN(val)
+                        ? 2.5
+                        : Math.min(
+                            10,
+                            Math.max(0.5, Math.round(val * 10) / 10)
+                          ),
+                    }));
+                  }}
                 />
               </div>
             </div>
@@ -799,21 +899,33 @@ export function ShadowSetupForm({
                             mode: "agility_test",
                             sets: 1,
                             workSec:
-                              prev.workSec > 50 || prev.workSec < 5
+                              prev.workSec >= 30 || prev.workSec < 5
                                 ? 20
                                 : prev.workSec,
                             restSec: 0,
                             paceSec: prev.paceSec > 2.5 ? 1.5 : prev.paceSec,
                           }));
                         } else {
-                          setSettings((prev) => ({
-                            ...prev,
-                            mode: "standard",
-                            sets: prev.sets === 1 ? 3 : prev.sets,
-                            workSec: prev.workSec === 20 ? 45 : prev.workSec,
-                            restSec: prev.restSec === 0 ? 30 : prev.restSec,
-                            paceSec: prev.paceSec === 1.5 ? 2.5 : prev.paceSec,
-                          }));
+                          setSettings((prev) => {
+                            const presetPace: Record<string, number> = {
+                              "U9-U11": 4.0,
+                              "U11-U13": 3.0,
+                              "U13-U15": 2.5,
+                              "U15-U17": 2.0,
+                              "U17+": 1.8,
+                            };
+                            return {
+                              ...prev,
+                              mode: "standard",
+                              sets: prev.sets === 1 ? 3 : prev.sets,
+                              workSec: prev.workSec === 20 ? 45 : prev.workSec,
+                              restSec: prev.restSec === 0 ? 30 : prev.restSec,
+                              paceSec:
+                                prev.paceSec === 1.5
+                                  ? presetPace[prev.ageGroup] || 2.5
+                                  : prev.paceSec,
+                            };
+                          });
                         }
                       }}
                       className={`flex w-full cursor-pointer flex-col gap-0.5 rounded-xl border-2 px-4 py-3 text-left transition-all ${
@@ -909,6 +1021,132 @@ export function ShadowSetupForm({
                       изчакване след като всички команди приключат.
                     </div>
                   </div>
+                </div>
+
+                {/* Collapsible / Compact Panel: Треньорски модификатори & Звук */}
+                <div className="space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsModifiersOpen((prev) => !prev)}
+                      className="flex items-center gap-1.5 text-xs font-bold uppercase text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
+                    >
+                      <Sliders size={14} className="text-blue-600" />
+                      <span>Треньорски модификатори & Звук</span>
+                      {isModifiersOpen ? (
+                        <ChevronUp size={14} />
+                      ) : (
+                        <ChevronDown size={14} />
+                      )}
+                    </button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSoundCheck}
+                      className="h-8 rounded-xl border-blue-300 bg-blue-50/70 px-2.5 text-xs font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/60"
+                    >
+                      <Volume2 size={14} className="mr-1" />
+                      🔊 Тест на звука
+                    </Button>
+                  </div>
+
+                  {isModifiersOpen && (
+                    <div className="space-y-3 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-zinc-200 bg-white p-2.5 text-xs font-semibold transition-colors hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950">
+                          <Checkbox
+                            checked={Boolean(settings.deceptionEnabled)}
+                            onCheckedChange={(checked) =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                deceptionEnabled: Boolean(checked),
+                              }))
+                            }
+                          />
+                          <span className="leading-tight">
+                            Децепция (фалшиво движение)
+                          </span>
+                        </label>
+
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-zinc-200 bg-white p-2.5 text-xs font-semibold transition-colors hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950">
+                          <Checkbox
+                            checked={Boolean(settings.motivationEnabled)}
+                            onCheckedChange={(checked) =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                motivationEnabled: Boolean(checked),
+                              }))
+                            }
+                          />
+                          <span className="leading-tight">
+                            Мотивационни команди
+                          </span>
+                        </label>
+
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-zinc-200 bg-white p-2.5 text-xs font-semibold transition-colors hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950">
+                          <Checkbox
+                            checked={Boolean(settings.visualOnly)}
+                            onCheckedChange={(checked) =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                visualOnly: Boolean(checked),
+                              }))
+                            }
+                          />
+                          <span className="leading-tight">
+                            Визуален режим (без звук)
+                          </span>
+                        </label>
+
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-zinc-200 bg-white p-2.5 text-xs font-semibold transition-colors hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950">
+                          <Checkbox
+                            checked={Boolean(settings.leftHanded)}
+                            onCheckedChange={(checked) =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                leftHanded: Boolean(checked),
+                              }))
+                            }
+                          />
+                          <span className="leading-tight">
+                            Режим за левичар (огледален Overhead)
+                          </span>
+                        </label>
+                      </div>
+
+                      <div className="space-y-1.5 pt-1">
+                        <span className="block text-[11px] font-bold uppercase text-zinc-500">
+                          Скорост на гласа
+                        </span>
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[0.9, 1.0, 1.15, 1.3].map((spd) => {
+                            const activeSpd = settings.voiceSpeed ?? 1.0;
+                            const isSelected = Math.abs(activeSpd - spd) < 0.01;
+                            return (
+                              <button
+                                key={spd}
+                                type="button"
+                                onClick={() =>
+                                  setSettings((prev) => ({
+                                    ...prev,
+                                    voiceSpeed: spd,
+                                  }))
+                                }
+                                className={`rounded-xl border py-1.5 text-xs font-bold transition-all ${
+                                  isSelected
+                                    ? "border-blue-600 bg-blue-600 text-white shadow-2xs"
+                                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300"
+                                }`}
+                              >
+                                {spd}x
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1162,6 +1400,7 @@ export function ShadowSetupForm({
                     <CourtVisualizer
                       previewZones={previewZones}
                       viewMode={courtPreviewMode}
+                      leftHanded={settings.leftHanded}
                       allowToggleView={false}
                       className={
                         courtPreviewMode === "full"
@@ -1232,8 +1471,13 @@ export function ShadowSetupForm({
             {/* Search & Category Tabs */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="relative w-full sm:max-w-xs">
+                <Label htmlFor="shadow-player-search" className="sr-only">
+                  Търсене на играч по име
+                </Label>
                 <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
                 <Input
+                  id="shadow-player-search"
+                  aria-label="Търсене на играч по име"
                   value={playerSearchQuery}
                   onChange={(e) => setPlayerSearchQuery(e.target.value)}
                   placeholder="Търсене на играч по име..."
@@ -1271,84 +1515,86 @@ export function ShadowSetupForm({
               </div>
             </div>
 
-            {/* Players Grid */}
+            {/* Players Grid (Scrollable container max-h-80) */}
             {filteredPlayers.length === 0 ? (
               <p className="p-8 text-center text-sm text-zinc-500">
                 Няма намерени играчи за избрания критерий.
               </p>
             ) : (
-              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredPlayers.map((m) => {
-                  const isChecked = settings.activePlayers.some(
-                    (p) => p.id === m.id
-                  );
-                  return (
-                    <label
-                      key={m.id}
-                      className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-3 transition-all ${
-                        isChecked
-                          ? "border-blue-600 bg-blue-50/70 shadow-xs dark:border-blue-500 dark:bg-blue-950/40"
-                          : "border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
-                      }`}
-                    >
-                      <Checkbox
-                        checked={isChecked}
-                        onCheckedChange={(checked) => {
-                          const pName =
-                            m.displayName ||
-                            `${m.firstName || ""} ${m.lastName || ""}`.trim();
-                          if (!checked) {
-                            shadowLogger.setup(
-                              `Player removed from drill: ${pName}`
+              <div className="max-h-80 overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+                  {filteredPlayers.map((m) => {
+                    const isChecked = settings.activePlayers.some(
+                      (p) => p.id === m.id
+                    );
+                    return (
+                      <label
+                        key={m.id}
+                        className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-3 transition-all ${
+                          isChecked
+                            ? "border-blue-600 bg-blue-50/70 shadow-xs dark:border-blue-500 dark:bg-blue-950/40"
+                            : "border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
+                        }`}
+                      >
+                        <Checkbox
+                          checked={isChecked}
+                          onCheckedChange={(checked) => {
+                            const pName =
+                              m.displayName ||
+                              `${m.firstName || ""} ${m.lastName || ""}`.trim();
+                            if (!checked) {
+                              shadowLogger.setup(
+                                `Player removed from drill: ${pName}`
+                              );
+                              setSettings((prev) => ({
+                                ...prev,
+                                activePlayers: prev.activePlayers.filter(
+                                  (p) => p.id !== m.id
+                                ),
+                              }));
+                            } else {
+                              shadowLogger.setup(
+                                `Player added to drill: ${pName}`
+                              );
+                              setSettings((prev) => ({
+                                ...prev,
+                                activePlayers: [
+                                  ...prev.activePlayers,
+                                  {
+                                    id: m.id,
+                                    displayName: pName,
+                                    ageGroup:
+                                      m.ageGroup || resolveMemberAgeGroup(m),
+                                  },
+                                ],
+                              }));
+                            }
+                          }}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <span
+                            className={`block text-xs font-bold leading-snug ${
+                              isChecked
+                                ? "text-blue-700 dark:text-blue-300"
+                                : "text-zinc-800 dark:text-zinc-200"
+                            }`}
+                          >
+                            {m.displayName || `${m.firstName} ${m.lastName}`}
+                          </span>
+                          {(() => {
+                            const ag = m.ageGroup || resolveMemberAgeGroup(m);
+                            if (!ag) return null;
+                            return (
+                              <span className="mt-0.5 inline-block rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                {ag}
+                              </span>
                             );
-                            setSettings((prev) => ({
-                              ...prev,
-                              activePlayers: prev.activePlayers.filter(
-                                (p) => p.id !== m.id
-                              ),
-                            }));
-                          } else {
-                            shadowLogger.setup(
-                              `Player added to drill: ${pName}`
-                            );
-                            setSettings((prev) => ({
-                              ...prev,
-                              activePlayers: [
-                                ...prev.activePlayers,
-                                {
-                                  id: m.id,
-                                  displayName: pName,
-                                  ageGroup:
-                                    m.ageGroup || resolveMemberAgeGroup(m),
-                                },
-                              ],
-                            }));
-                          }
-                        }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <span
-                          className={`block text-xs font-bold leading-snug ${
-                            isChecked
-                              ? "text-blue-700 dark:text-blue-300"
-                              : "text-zinc-800 dark:text-zinc-200"
-                          }`}
-                        >
-                          {m.displayName || `${m.firstName} ${m.lastName}`}
-                        </span>
-                        {(() => {
-                          const ag = m.ageGroup || resolveMemberAgeGroup(m);
-                          if (!ag) return null;
-                          return (
-                            <span className="mt-0.5 inline-block rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                              {ag}
-                            </span>
-                          );
-                        })()}
-                      </div>
-                    </label>
-                  );
-                })}
+                          })()}
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </CardContent>

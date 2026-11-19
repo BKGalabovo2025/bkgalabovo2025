@@ -2,6 +2,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { bg } from "date-fns/locale";
 import { Medal, Zap } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -17,30 +18,38 @@ interface Props {
 }
 
 export function MemberTrainingsHistory({ memberId }: Props) {
-  const { idToken } = useAuth();
+  const { user, idToken, loading: authLoading } = useAuth();
   const [trainings, setTrainings] = useState<TrainingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // We should also handle re-fetching if a training is deleted. But router.refresh() from DeleteTrainingButton
-  // won't re-trigger this client-side fetch unless we pass a callback.
-  // Let's create a fetch function to be called after deletion.
-
-  const fetchTrainings = useCallback(() => {
-    if (!idToken) return;
+  const fetchTrainings = useCallback(async () => {
+    if (authLoading) return;
+    if (!idToken && !user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    getTrainingSessionsForMemberAction(idToken, memberId).then((res) => {
+    try {
+      const freshToken = (await user?.getIdToken()) || idToken || "";
+      const res = await getTrainingSessionsForMemberAction(
+        freshToken,
+        memberId
+      );
       if (res.success && res.data) {
         setTrainings(res.data as TrainingSession[]);
       } else {
         setError((res as any).error || "Неизвестна грешка");
       }
+    } catch (err: any) {
+      setError(err?.message || "Неизвестна грешка");
+    } finally {
       setLoading(false);
-    });
-  }, [idToken, memberId]);
+    }
+  }, [authLoading, user, idToken, memberId]);
 
   useEffect(() => {
-    fetchTrainings();
+    void fetchTrainings();
   }, [fetchTrainings]);
 
   if (loading) {
@@ -73,7 +82,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
   }
 
   // Calculate Badges based on total duration
-  const totalMinutes = Math.round(
+  const totalMinutes = Math.floor(
     trainings.reduce((sum, t) => sum + (t.durationMs || 0), 0) / 60000
   );
   const badges = [];
@@ -131,49 +140,57 @@ export function MemberTrainingsHistory({ memberId }: Props) {
         </h3>
 
         <div className="space-y-4">
-          {trainings.map((session) => (
-            <Card
-              key={session.id}
-              className="border-zinc-100 dark:border-zinc-800 shadow-none transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
-            >
-              <CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center">
-                <div>
-                  <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {session.shadowDetails?.mode === "ghost_match"
-                      ? "Ghost Match"
-                      : session.shadowDetails?.mode === "agility_test"
-                        ? "Скоростен Тест"
-                        : "Shadow Training"}
+          {trainings.map((session) => {
+            const durationMs = session.durationMs || 0;
+            const mins = Math.floor(durationMs / 60000);
+            const secs = Math.floor((durationMs % 60000) / 1000);
+            return (
+              <Card
+                key={session.id}
+                className="border-zinc-100 dark:border-zinc-800 shadow-none transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+              >
+                <CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center">
+                  <div>
+                    <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      {session.shadowDetails?.mode === "ghost_match"
+                        ? "Ghost Match"
+                        : session.shadowDetails?.mode === "agility_test"
+                          ? "Скоростен Тест"
+                          : "Shadow Training"}
+                    </div>
+                    <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      {format(new Date(session.date), "dd MMMM yyyy, HH:mm", {
+                        locale: bg,
+                      })}
+                    </div>
                   </div>
-                  <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    {format(new Date(session.date), "dd MMMM yyyy, HH:mm")}
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-6 text-sm text-zinc-600 dark:text-zinc-300">
-                  <div className="text-center">
-                    <div className="font-bold">
-                      {Math.round((session.durationMs || 0) / 60000)}
+                  <div className="flex items-center gap-6 text-sm text-zinc-600 dark:text-zinc-300">
+                    <div className="text-center">
+                      <div className="font-bold">
+                        {`${mins} мин ${secs} сек`}
+                      </div>
+                      <div className="text-[10px] text-zinc-400 uppercase">
+                        Време
+                      </div>
                     </div>
-                    <div className="text-[10px] text-zinc-400 uppercase">
-                      Мин
+                    <div className="text-center">
+                      <div className="font-bold">
+                        {`${session.shadowDetails?.setsCompleted ?? session.shadowDetails?.totalSets ?? 1} / ${session.shadowDetails?.totalSets || 1}`}
+                      </div>
+                      <div className="text-[10px] text-zinc-400 uppercase">
+                        Серии
+                      </div>
                     </div>
+                    <DeleteTrainingButton
+                      trainingId={session.id || ""}
+                      onDeleted={fetchTrainings}
+                    />
                   </div>
-                  <div className="text-center">
-                    <div className="font-bold">
-                      {session.shadowDetails?.totalSets || 0}
-                    </div>
-                    <div className="text-[10px] text-zinc-400 uppercase">
-                      Серии
-                    </div>
-                  </div>
-                  <div onClick={() => setTimeout(fetchTrainings, 500)}>
-                    <DeleteTrainingButton trainingId={session.id || ""} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </div>

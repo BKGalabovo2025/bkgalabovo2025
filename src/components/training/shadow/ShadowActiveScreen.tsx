@@ -2,6 +2,7 @@
 
 import {
   Activity,
+  ArrowLeft,
   Check,
   Copy,
   Maximize2,
@@ -34,6 +35,7 @@ import { MultiCourtGrid } from "./MultiCourtGrid";
 interface ShadowActiveScreenProps {
   trainer: ReturnType<typeof useShadowTrainer>;
   settings: ShadowSettings;
+  onBackToSetup?: () => void;
 }
 
 function getStateLabel(state: string) {
@@ -61,14 +63,12 @@ function getModeLabel(mode: string) {
 function getSubLabel(
   mode: string,
   state: string,
-  agilityActionsDone: number,
-  workSec: number,
+  _agilityActionsDone: number,
+  _workSec: number,
   currentSet: number,
   sets: number
 ) {
   if (mode === "agility_test") {
-    if (state === "working")
-      return `Движение ${agilityActionsDone} от ${workSec}`;
     if (state === "countdown") return "Подготовка за спринт...";
     return "";
   }
@@ -78,8 +78,14 @@ function getSubLabel(
 export function ShadowActiveScreen({
   trainer,
   settings,
+  onBackToSetup,
 }: ShadowActiveScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const trainerRef = useRef(trainer);
+  useEffect(() => {
+    trainerRef.current = trainer;
+  }, [trainer]);
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hallViewMode, setHallViewMode] = useState<"hall" | "focus">(
     trainer.courtSlots && trainer.courtSlots.length > 1 ? "hall" : "focus"
@@ -120,26 +126,32 @@ export function ShadowActiveScreen({
     }
   };
 
-  // Keyboard hotkeys for coaches during live training
+  // Keyboard hotkeys for coaches during live training (stable via trainerRef)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName))
         return;
 
+      const currentTrainer = trainerRef.current;
+
       if (e.code === "Space") {
         e.preventDefault();
         shadowLogger.trainer("Coach hotkey: [Space] pressed");
-        if (trainer.state === "working") {
-          trainer.pauseTraining();
-        } else if (trainer.state === "paused") {
-          trainer.resumeTraining();
-        } else if (trainer.state === "idle") {
-          trainer.startTraining();
+        if (currentTrainer.state === "working") {
+          currentTrainer.pauseTraining();
+        } else if (currentTrainer.state === "paused") {
+          currentTrainer.resumeTraining();
+        } else if (currentTrainer.state === "idle") {
+          currentTrainer.startTraining();
         }
       } else if (e.code === "Escape") {
+        if (typeof document !== "undefined" && document.fullscreenElement) {
+          // Let browser exit fullscreen without stopping training
+          return;
+        }
         e.preventDefault();
         shadowLogger.trainer("Coach hotkey: [Esc] pressed");
-        trainer.stopTraining();
+        currentTrainer.stopTraining();
       } else if (
         e.key === "f" ||
         e.key === "F" ||
@@ -154,7 +166,7 @@ export function ShadowActiveScreen({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [trainer]);
+  }, []);
 
   const activeIds = trainer.currentRotationPlayers.map(
     (p: ShadowPlayer) => p.id
@@ -167,6 +179,11 @@ export function ShadowActiveScreen({
     ? ZONE_NAMES[trainer.activeZone] || trainer.activeZone
     : null;
 
+  const canGoBackToSetup =
+    trainer.state === "idle" ||
+    trainer.state === "paused" ||
+    trainer.state === "finished";
+
   return (
     <div
       ref={containerRef}
@@ -178,9 +195,20 @@ export function ShadowActiveScreen({
     >
       <Card className="relative flex w-full flex-col overflow-hidden rounded-3xl border-none bg-zinc-950 text-white shadow-2xl">
         {/* ─── ГОЛЯМ ЕКРАН ХЕДЪР & РОТАЦИЯ НА ИГРАЧИТЕ ─── */}
-        <div className="flex shrink-0 flex-col items-center justify-between gap-4 border-b border-zinc-850 bg-zinc-900/90 px-6 py-4 md:flex-row">
+        <div className="flex shrink-0 flex-col items-center justify-between gap-4 border-b border-zinc-800 bg-zinc-900/90 p-4 sm:px-6 md:flex-row">
           {/* Active players on court */}
           <div className="flex flex-wrap items-center gap-3">
+            {canGoBackToSetup && onBackToSetup && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onBackToSetup}
+                className="h-9 cursor-pointer rounded-xl border-zinc-700 bg-zinc-800/90 px-3 text-xs font-bold text-zinc-200 hover:border-zinc-600 hover:bg-zinc-700 hover:text-white"
+              >
+                <ArrowLeft size={14} className="mr-1.5" /> Назад към настройки
+              </Button>
+            )}
             <span className="flex items-center gap-2 text-xs font-black tracking-wider text-zinc-400 uppercase">
               <Activity size={16} className="text-emerald-400" />{" "}
               {trainer.totalWaves > 1
@@ -238,27 +266,29 @@ export function ShadowActiveScreen({
               </div>
             )}
 
-            {/* Copy Diagnostics Log */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleCopyDiagnosticsLog}
-              className="h-9 cursor-pointer rounded-xl border-zinc-800 bg-zinc-900 text-xs font-bold text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
-              title="Копирай конзолния лог за диагностика"
-            >
-              {hasCopiedLog ? (
-                <>
-                  <Check size={14} className="mr-1.5 text-emerald-400" />{" "}
-                  Копиран!
-                </>
-              ) : (
-                <>
-                  <Copy size={14} className="mr-1.5 text-blue-400" /> Копирай
-                  лог
-                </>
-              )}
-            </Button>
+            {/* Copy Diagnostics Log (dev only) */}
+            {process.env.NODE_ENV !== "production" && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyDiagnosticsLog}
+                className="h-9 cursor-pointer rounded-xl border-zinc-800 bg-zinc-900 text-xs font-bold text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
+                title="Копирай конзолния лог за диагностика"
+              >
+                {hasCopiedLog ? (
+                  <>
+                    <Check size={14} className="mr-1.5 text-emerald-400" />{" "}
+                    Копиран!
+                  </>
+                ) : (
+                  <>
+                    <Copy size={14} className="mr-1.5 text-blue-400" /> Копирай
+                    лог
+                  </>
+                )}
+              </Button>
+            )}
 
             {/* Fullscreen Toggle */}
             <Button
@@ -379,6 +409,7 @@ export function ShadowActiveScreen({
                       playerTop={activeSlot?.halfB}
                       viewMode={activeSlot?.isFullCourt ? "full" : "half"}
                       dualActive={activeSlot?.isFullCourt}
+                      leftHanded={settings.leftHanded}
                       allowToggleView
                       className="w-full origin-center scale-100 transition-transform duration-300 md:scale-105"
                     />
@@ -411,7 +442,9 @@ export function ShadowActiveScreen({
                     variant="outline"
                     className="border-zinc-800 text-[11px] font-semibold text-zinc-400"
                   >
-                    {settings.preset}
+                    {settings.preset === "custom"
+                      ? "Персонализиран"
+                      : settings.preset}
                   </Badge>
                 )}
 
@@ -537,7 +570,7 @@ export function ShadowActiveScreen({
 
             {/* ACTION BUTTONS */}
             <div className="grid w-full max-w-md grid-cols-2 gap-3 md:gap-4">
-              {trainer.state === "idle" ? (
+              {trainer.state === "idle" || trainer.state === "finished" ? (
                 <Button
                   size="lg"
                   className="col-span-2 h-20 cursor-pointer rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 text-2xl font-black text-white shadow-xl shadow-blue-500/25 transition-transform hover:scale-1.02 md:h-24 md:text-3xl"
@@ -550,37 +583,37 @@ export function ShadowActiveScreen({
                   {trainer.state === "paused" ? (
                     <Button
                       size="lg"
-                      className="h-20 cursor-pointer rounded-2xl bg-emerald-600 text-xl font-black text-white hover:bg-emerald-700 md:h-24 md:text-2xl"
+                      className="h-16 min-w-0 cursor-pointer rounded-2xl bg-emerald-600 px-3 text-xs font-black text-white hover:bg-emerald-700 sm:h-20 sm:px-6 sm:text-base md:h-24 md:text-xl"
                       onClick={trainer.resumeTraining}
                     >
-                      <Play className="mr-2 size-6 fill-current md:size-8" />{" "}
-                      ПРОДЪЛЖИ
+                      <Play className="mr-1.5 size-4 shrink-0 fill-current sm:mr-2 sm:size-6 md:size-7" />
+                      <span className="truncate">ПРОДЪЛЖИ</span>
                     </Button>
                   ) : (
                     <Button
                       size="lg"
-                      className="h-20 cursor-pointer rounded-2xl bg-amber-500 text-xl font-black text-amber-950 hover:bg-amber-600 md:h-24 md:text-2xl"
+                      className="h-16 min-w-0 cursor-pointer rounded-2xl bg-amber-500 px-3 text-xs font-black text-amber-950 hover:bg-amber-600 sm:h-20 sm:px-6 sm:text-base md:h-24 md:text-xl"
                       onClick={trainer.pauseTraining}
                     >
-                      <Pause className="mr-2 size-6 fill-current md:size-8" />{" "}
-                      ПАУЗА
+                      <Pause className="mr-1.5 size-4 shrink-0 fill-current sm:mr-2 sm:size-6 md:size-7" />
+                      <span className="truncate">ПАУЗА</span>
                     </Button>
                   )}
                   <Button
                     size="lg"
                     variant="destructive"
-                    className="h-20 cursor-pointer rounded-2xl text-xl font-black md:h-24 md:text-2xl"
+                    className="h-16 min-w-0 cursor-pointer rounded-2xl px-3 text-xs font-black sm:h-20 sm:px-6 sm:text-base md:h-24 md:text-xl"
                     onClick={() => trainer.stopTraining()}
                   >
-                    <Square className="mr-2 size-6 fill-current md:size-8" />{" "}
-                    СТОП
+                    <Square className="mr-1.5 size-4 shrink-0 fill-current sm:mr-2 sm:size-6 md:size-7" />
+                    <span className="truncate">СТОП</span>
                   </Button>
                 </>
               )}
             </div>
 
             {/* Keyboard Shortcuts Hint Bar */}
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2 text-[11px] font-semibold text-zinc-500 md:justify-start">
+            <div className="hidden flex-wrap items-center justify-center gap-3 pt-2 text-[11px] font-semibold text-zinc-500 sm:flex md:justify-start">
               <span>
                 <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
                   Space

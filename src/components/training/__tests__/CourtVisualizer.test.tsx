@@ -36,4 +36,39 @@ describe("CourtVisualizer Component", () => {
       expect(textNode?.textContent).toContain(expectedText);
     }
   );
+
+  it.each([
+    ["frontForehand", "МРЕЖА Л"],
+    ["backBackhand", "ЗАДНА Д"],
+    ["overhead", "ЗАДНА Д"],
+  ])(
+    "mirrors %s zone correctly when leftHanded is true",
+    (zone, expectedText) => {
+      const { container } = render(
+        <CourtVisualizer
+          activeZone={
+            zone as React.ComponentProps<typeof CourtVisualizer>["activeZone"]
+          }
+          visualPhase="shot"
+          leftHanded
+        />
+      );
+      const activeZones = container.querySelectorAll(".fill-red-500\\/30");
+      expect(activeZones).toHaveLength(1);
+      const textNode = activeZones[0].nextElementSibling;
+      expect(textNode?.textContent).toContain(expectedText);
+    }
+  );
+
+  it("generates unique SVG defs IDs across multiple instances", () => {
+    const { container } = render(
+      <div>
+        <CourtVisualizer activeZone="frontForehand" visualPhase="shot" />
+        <CourtVisualizer activeZone="backBackhand" visualPhase="shot" />
+      </div>
+    );
+    const markers = container.querySelectorAll("marker");
+    expect(markers).toHaveLength(2);
+    expect(markers[0].id).not.toBe(markers[1].id);
+  });
 });

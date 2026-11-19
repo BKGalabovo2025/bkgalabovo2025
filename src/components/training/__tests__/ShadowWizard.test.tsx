@@ -97,9 +97,11 @@ describe("ShadowWizard Component Flow", () => {
   };
 
   beforeEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
     vi.stubGlobal("alert", vi.fn());
     vi.stubGlobal("confirm", vi.fn().mockReturnValue(true));
+    vi.stubGlobal("scrollTo", vi.fn());
   });
 
   it("guides user through setup, live training, and analytics", async () => {
@@ -219,5 +221,41 @@ describe("ShadowWizard Component Flow", () => {
     expect(toast.info).toHaveBeenCalledWith(
       "Сесията беше приключена без запазване."
     );
+  });
+
+  it("allows starting a second training session after completing and saving the first one", async () => {
+    render(<ShadowWizard initialMembers={mockMembers} />);
+
+    // Session 1: Select player and start
+    fireEvent.click(screen.getByText("Иван Петров"));
+    fireEvent.click(screen.getByText(/ГОТОВНОСТ ЗА СТАРТ/i));
+
+    expect(screen.getByText("ГОТОВНОСТ")).toBeDefined();
+    fireEvent.click(screen.getByText("СТАРТ"));
+    expect(screen.getByText("Приготви се...")).toBeDefined();
+
+    // Stop Session 1 -> transitions to Analytics
+    fireEvent.click(screen.getByText("СТОП"));
+    expect(screen.getByText("Тренировъчен Отчет")).toBeDefined();
+
+    // Save Session 1 -> awaits createTrainingSessionAction and returns to Setup
+    fireEvent.click(screen.getByText(/ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ/i));
+
+    await waitFor(() => {
+      expect(
+        trainingsActions.createTrainingSessionAction
+      ).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(/ГОТОВНОСТ ЗА СТАРТ/i)).toBeDefined();
+    });
+
+    // Session 2: Click start training again from Setup
+    fireEvent.click(screen.getByText(/ГОТОВНОСТ ЗА СТАРТ/i));
+
+    // Must land on Active Training screen in ГОТОВНОСТ state (not auto-skip to Analytics!)
+    expect(screen.getByText("ГОТОВНОСТ")).toBeDefined();
+    expect(screen.getByText("СТАРТ")).toBeDefined();
+
+    fireEvent.click(screen.getByText("СТАРТ"));
+    expect(screen.getByText("Приготви се...")).toBeDefined();
   });
 });

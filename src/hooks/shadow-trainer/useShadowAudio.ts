@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 import {
   isAudioPlaying,
@@ -6,19 +6,49 @@ import {
   playAudioSequence,
   queueRecoveryAudio,
   shadowAudioManager,
-  stopAudio,
+  stopAudio as stopAudioEngine,
   stopVoiceAudio,
 } from "@/lib/shadow-training/audio-map";
 
 import { ShadowPlayer } from "./types";
 
-export function useShadowAudio() {
+export function useShadowAudio(voiceSpeed?: number) {
+  useEffect(() => {
+    if (
+      voiceSpeed !== undefined &&
+      typeof shadowAudioManager.setVoiceSpeed === "function"
+    ) {
+      shadowAudioManager.setVoiceSpeed(voiceSpeed);
+    }
+  }, [voiceSpeed]);
+
   const unlock = useCallback(() => {
     shadowAudioManager.unlock();
   }, []);
 
+  const stop = useCallback(() => {
+    stopAudioEngine();
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  const setVoiceSpeed = useCallback((speed?: number) => {
+    if (typeof shadowAudioManager.setVoiceSpeed === "function") {
+      shadowAudioManager.setVoiceSpeed(speed);
+    }
+  }, []);
+
   const triggerMotivation = useCallback(
-    (currentPlayers: ShadowPlayer[], motivationEnabled: boolean) => {
+    (
+      currentPlayers: ShadowPlayer[],
+      motivationEnabled: boolean,
+      customVoiceSpeed?: number
+    ) => {
       if (!motivationEnabled) return;
       if (typeof window === "undefined" || !("speechSynthesis" in window))
         return;
@@ -39,10 +69,14 @@ export function useShadowAudio() {
 
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = "bg-BG";
+        const rate = customVoiceSpeed ?? voiceSpeed;
+        if (typeof rate === "number" && Number.isFinite(rate) && rate > 0) {
+          msg.rate = Math.max(0.5, Math.min(2.0, rate));
+        }
         window.speechSynthesis.speak(msg);
       }
     },
-    []
+    [voiceSpeed]
   );
 
   return useMemo(
@@ -52,12 +86,14 @@ export function useShadowAudio() {
       queueRecovery: queueRecoveryAudio,
       playSyntheticBeep: (freq = 800, dur = 0.08) =>
         shadowAudioManager.playSyntheticBeep(freq, dur),
-      stop: stopAudio,
+      stop,
+      stopAudio: stop,
       stopVoiceOnly: stopVoiceAudio,
       isPlaying: isAudioPlaying,
       unlock,
       triggerMotivation,
+      setVoiceSpeed,
     }),
-    [unlock, triggerMotivation]
+    [unlock, stop, triggerMotivation, setVoiceSpeed]
   );
 }

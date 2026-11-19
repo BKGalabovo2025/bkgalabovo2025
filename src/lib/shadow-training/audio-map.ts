@@ -6,11 +6,13 @@ import { shadowLogger } from "./shadow-logger";
 export const AUDIO_PATHS = {
   common: {
     startSet: "/shadow/common/podgotvi_se.mp3",
+    podgotvi_se: "/shadow/common/podgotvi_se.mp3",
     beep: "/shadow/common/lek_podskok.mp3",
     splitStep: "/shadow/common/split_step.mp3",
     endSet: "/shadow/common/krai.mp3",
     rest: "/shadow/common/pochivka.mp3",
     endRest: "/shadow/common/krai_pochivka.mp3",
+    krai_pochivka: "/shadow/common/krai_pochivka.mp3",
     center: "/shadow/common/tsentar.mp3",
   },
   zones: {
@@ -202,9 +204,25 @@ class AudioManager {
   }
 
   private sequenceCompleteCallback: (() => void) | null = null;
+  private currentVoiceSpeed = 1.0;
 
   public getPlaybackRateForPath(_path: string): number {
-    return 1.0;
+    return this.currentVoiceSpeed;
+  }
+
+  public setVoiceSpeed(speed?: number) {
+    const rate =
+      typeof speed === "number" && Number.isFinite(speed) && speed > 0
+        ? Math.max(0.5, Math.min(2.0, speed))
+        : 1.0;
+    this.currentVoiceSpeed = rate;
+    if (!this.voiceAudio) return;
+    try {
+      this.voiceAudio.defaultPlaybackRate = rate;
+      this.voiceAudio.playbackRate = rate;
+    } catch {
+      // ignore
+    }
   }
 
   private setVoiceSource(path: string) {
@@ -219,11 +237,19 @@ class AudioManager {
     }
   }
 
-  public setSpeed(paceSec: number, calloutMode?: string) {
+  public setSpeed(paceSec: number, calloutMode?: string, voiceSpeed?: number) {
     this.currentPaceSec = paceSec;
     if (calloutMode) this.currentCalloutMode = calloutMode;
+    if (voiceSpeed !== undefined) {
+      this.setVoiceSpeed(voiceSpeed);
+      return;
+    }
     if (!this.voiceAudio) return;
-    this.voiceAudio.playbackRate = 1.0;
+    try {
+      this.voiceAudio.playbackRate = this.currentVoiceSpeed;
+    } catch {
+      // ignore
+    }
   }
 
   public stopVoiceOnly() {
@@ -261,6 +287,13 @@ class AudioManager {
     if (this.overlayAudio) {
       this.overlayAudio.pause();
       this.overlayAudio.currentTime = 0;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // ignore
+      }
     }
     shadowLogger.audio("All audio playback stopped");
   }
@@ -524,6 +557,26 @@ export function playAudio(path: string) {
   }
 }
 
+export const playSingleAudio = playAudio;
+
+export async function playSoundCheck(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  try {
+    shadowAudioManager.unlock?.();
+    if (typeof shadowAudioManager.playVoice === "function") {
+      shadowAudioManager.playVoice(AUDIO_PATHS.common.podgotvi_se);
+    } else if (typeof (shadowAudioManager as any).play === "function") {
+      (shadowAudioManager as any).play(AUDIO_PATHS.common.podgotvi_se);
+    } else {
+      playAudio(AUDIO_PATHS.common.podgotvi_se);
+    }
+    return true;
+  } catch (err) {
+    shadowLogger.warn("Sound check failed", err);
+    return false;
+  }
+}
+
 export function queueRecoveryAudio(paths: string | string[]) {
   shadowAudioManager.queueAfterSequence(paths);
 }
@@ -552,8 +605,12 @@ export function isCenterAudioPlaying(): boolean {
   return shadowAudioManager.isCenterPlaying();
 }
 
-export function setPlaybackPace(paceSec: number, calloutMode?: string) {
-  shadowAudioManager.setSpeed(paceSec, calloutMode);
+export function setPlaybackPace(
+  paceSec: number,
+  calloutMode?: string,
+  voiceSpeed?: number
+) {
+  shadowAudioManager.setSpeed(paceSec, calloutMode, voiceSpeed);
 }
 
 const SHOTS_BY_ZONE_GROUP = {
@@ -592,8 +649,14 @@ export function getRandomShotForZone(zone: ZoneId): string {
   return AUDIO_PATHS.shots[randomShotId];
 }
 
+const preloadedUrlsCache = new Set<string>();
+
+export function clearPreloadedAudioCache() {
+  preloadedUrlsCache.clear();
+}
+
 export function preloadAudioForSettings(settings: any) {
-  if (typeof window === "undefined" || settings.visualOnly) return;
+  if (typeof window === "undefined" || !settings || settings.visualOnly) return;
 
   const urlsToFetch = new Set<string>();
 
@@ -614,7 +677,10 @@ export function preloadAudioForSettings(settings: any) {
       if (settings.drillMode === "all") return true;
       if (settings.drillMode === "front_only" && z.startsWith("front"))
         return true;
-      if (settings.drillMode === "back_only" && z.startsWith("back"))
+      if (
+        settings.drillMode === "back_only" &&
+        (z.startsWith("back") || z === "overhead")
+      )
         return true;
       if (
         settings.drillMode === "forehand_only" &&
@@ -639,7 +705,7 @@ export function preloadAudioForSettings(settings: any) {
     if (settings.calloutMode !== "zones") {
       let zoneGroup: "front" | "mid" | "back" = "front";
       if (z.startsWith("mid")) zoneGroup = "mid";
-      if (z.startsWith("back")) zoneGroup = "back";
+      if (z.startsWith("back") || z === "overhead") zoneGroup = "back";
 
       SHOTS_BY_ZONE_GROUP[zoneGroup].forEach((shot) => {
         urlsToFetch.add(AUDIO_PATHS.shots[shot]);
@@ -647,16 +713,23 @@ export function preloadAudioForSettings(settings: any) {
     }
   });
 
+  const newUrlsToFetch = Array.from(urlsToFetch).filter(
+    (url) => !preloadedUrlsCache.has(url)
+  );
+
+  if (newUrlsToFetch.length === 0) return;
+
   shadowLogger.audio(
-    `Preloading ${urlsToFetch.size} audio files for drill configuration`,
+    `Preloading ${newUrlsToFetch.length} audio files for drill configuration`,
     {
       calloutMode: settings.calloutMode,
       drillMode: settings.drillMode,
-      sampleUrls: Array.from(urlsToFetch).slice(0, 5),
+      sampleUrls: newUrlsToFetch.slice(0, 5),
     }
   );
 
-  urlsToFetch.forEach((url) => {
+  newUrlsToFetch.forEach((url) => {
+    preloadedUrlsCache.add(url);
     fetch(url).catch(() => {});
   });
 }

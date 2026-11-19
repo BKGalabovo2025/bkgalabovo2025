@@ -14,7 +14,9 @@ export default async function GlobalShadowHistoryPage() {
     getGlobalTrainingSessionsAction(100),
     getAllMembersServer().catch(() => []),
   ]);
-  const sessions = (res.success ? res.data : []) as TrainingSession[];
+  const sessions = (res.success
+    ? res.data
+    : []) as unknown as TrainingSession[];
 
   // Build a quick id -> name lookup map
   const memberNameMap: Record<string, string> = {};
@@ -25,7 +27,7 @@ export default async function GlobalShadowHistoryPage() {
   // Group by member to calculate leaderboard
   const memberMinutes: Record<string, number> = {};
   sessions.forEach((s: TrainingSession) => {
-    s.memberIds.forEach((id: string) => {
+    (s.memberIds || []).forEach((id: string) => {
       if (!memberMinutes[id]) memberMinutes[id] = 0;
       memberMinutes[id] += (s.durationMs || 0) / 60000;
     });

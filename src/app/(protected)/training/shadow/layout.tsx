@@ -29,9 +29,9 @@ export default function ShadowLayout({
       <Suspense fallback={null}>
         <ShadowNav />
       </Suspense>
-      <main className="space-y-6">
+      <div className="space-y-6">
         <Suspense fallback={null}>{children}</Suspense>
-      </main>
+      </div>
     </div>
   );
 }

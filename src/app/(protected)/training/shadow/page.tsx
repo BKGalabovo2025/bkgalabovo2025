@@ -12,7 +12,7 @@ export default async function ShadowTrainingPage() {
     ageGroup?: string;
   }[] = [];
   try {
-    const raw = await getAllMembersServer();
+    const raw = (await getAllMembersServer()) || [];
     const clubMembersRaw = raw.filter((m: any) => {
       return (
         m.isClubMember === true || (!m.isGuest && m.memberType === "regular")

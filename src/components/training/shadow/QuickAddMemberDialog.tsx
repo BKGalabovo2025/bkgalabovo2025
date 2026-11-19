@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Check, Loader2, Sparkles, UserPlus } from "lucide-react";
@@ -18,7 +17,6 @@ import { useAuth } from "@/context/auth-context";
 import { ShadowPlayer } from "@/hooks/useShadowTrainer";
 import { createMemberAction } from "@/lib/actions/members";
 import { getAgeGroup } from "@/lib/utils";
-import { addMember } from "@/services/member-service";
 
 interface QuickAddMemberDialogProps {
   open: boolean;
@@ -31,7 +29,7 @@ export function QuickAddMemberDialog({
   onOpenChange,
   onMemberAdded,
 }: QuickAddMemberDialogProps) {
-  const { idToken } = useAuth();
+  const { user, idToken } = useAuth();
   const formUid = useId();
 
   const [firstName, setFirstName] = useState("");
@@ -40,7 +38,7 @@ export function QuickAddMemberDialog({
   const [gender, setGender] = useState<"male" | "female">("male");
   const [phone, setPhone] = useState("");
   const [membershipType, setMembershipType] = useState<"club" | "guest">(
-    "guest"
+    "club"
   );
   const [isSaving, setIsSaving] = useState(false);
 
@@ -77,28 +75,21 @@ export function QuickAddMemberDialog({
     };
 
     try {
-      let createdId: string | null = null;
-
-      // Try server action first
-      if (idToken) {
-        try {
-          const res = await createMemberAction(idToken, payload);
-          if (res.success && res.data?.id) {
-            createdId = res.data.id;
-          }
-        } catch (serverErr) {
-          console.warn("Server action fallback to client service:", serverErr);
-        }
+      const freshToken = (await user?.getIdToken()) || idToken;
+      if (!freshToken) {
+        toast.error("Липсва активна сесия. Моля, влезте отново в профила си.");
+        return;
       }
 
-      // Fallback to client service if needed
-      if (!createdId) {
-        createdId = await addMember(payload as any);
+      const res = await createMemberAction(freshToken, payload);
+      if (!res.success || !res.data?.id) {
+        toast.error(
+          res.message || "Неуспешно създаване на запис в базата данни."
+        );
+        return;
       }
 
-      if (!createdId) {
-        throw new Error("Неуспешно създаване на запис.");
-      }
+      const createdId = res.data.id;
 
       const newPlayer: ShadowPlayer = {
         id: createdId,
@@ -116,7 +107,7 @@ export function QuickAddMemberDialog({
         );
       } else {
         toast.success(
-          `Външният член ${newPlayer.displayName} беше записан в базата данни (модул Членове)!`
+          `Външният член ${newPlayer.displayName} беше записан и включен в тренировката!`
         );
       }
 
@@ -128,7 +119,7 @@ export function QuickAddMemberDialog({
       setLastName("");
       setDateOfBirth("");
       setPhone("");
-      setMembershipType("guest");
+      setMembershipType("club");
     } catch (err: unknown) {
       console.error("Error creating member:", err);
       toast.error("Възникна грешка при запазване в базата данни.");

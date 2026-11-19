@@ -439,5 +439,140 @@ describe("useShadowTrainer Comprehensive Variations", () => {
       });
       expect(result.current.state).toBe("idle"); // stays idle since settings are null
     });
+
+    it("resetTraining() resets state to idle, clears timers/zoneCounts, and allows starting a 2nd session without F5", () => {
+      const settings = createSettings({
+        sets: 1,
+        workSec: 10,
+        paceSec: 2,
+        visualOnly: true,
+      });
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      act(() => {
+        result.current.startTraining();
+      });
+      advanceSeconds(10); // end countdown -> working
+
+      expect(result.current.state).toBe("working");
+      expect(
+        Object.values(result.current.zoneCounts).reduce((a, b) => a + b, 0)
+      ).toBeGreaterThanOrEqual(1);
+
+      // Finish session
+      act(() => {
+        result.current.stopTraining();
+      });
+      expect(result.current.state).toBe("finished");
+
+      // Call resetTraining()
+      act(() => {
+        result.current.resetTraining();
+      });
+      expect(result.current.state).toBe("idle");
+      expect(result.current.currentSet).toBe(1);
+      expect(result.current.currentWave).toBe(1);
+      expect(result.current.actualElapsedMs).toBe(0);
+      expect(result.current.agilityActionsDone).toBe(0);
+      expect(result.current.activeZone).toBeNull();
+      expect(result.current.activeShot).toBeNull();
+      expect(result.current.visualPhase).toBe("idle");
+      expect(result.current.zoneCounts).toEqual({});
+
+      // Also verify calling startTraining() directly while in 'finished' state automatically resets and starts 2nd session
+      act(() => {
+        result.current.startTraining();
+      });
+      advanceSeconds(10);
+      act(() => {
+        result.current.stopTraining();
+      });
+      expect(result.current.state).toBe("finished");
+
+      act(() => {
+        result.current.startTraining();
+      });
+      expect(result.current.state).toBe("countdown");
+      expect(result.current.currentSet).toBe(1);
+      expect(result.current.zoneCounts).toEqual({});
+    });
+
+    it("accumulates real zoneCounts heatmap across actions", () => {
+      const settings = createSettings({
+        workSec: 20,
+        paceSec: 2,
+        visualOnly: true,
+        drillMode: "front_only",
+      });
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      act(() => {
+        result.current.startTraining();
+      });
+      advanceSeconds(10); // countdown -> working (1st action fires)
+
+      const firstTotal = Object.values(result.current.zoneCounts).reduce(
+        (a, b) => a + b,
+        0
+      );
+      expect(firstTotal).toBe(1);
+
+      // Advance past visualOnly (800ms) + center (300ms) + pace (2000ms) -> 2nd action fires
+      act(() => {
+        vi.advanceTimersByTime(3200);
+      });
+
+      const secondTotal = Object.values(result.current.zoneCounts).reduce(
+        (a, b) => a + b,
+        0
+      );
+      expect(secondTotal).toBeGreaterThanOrEqual(2);
+      for (const zone of Object.keys(result.current.zoneCounts)) {
+        expect(["frontForehand", "frontBackhand"]).toContain(zone);
+      }
+    });
+
+    it("preserves lastShotZoneRef across center recovery phase for fixed-net-back and fixed-triangle patterns", () => {
+      const settings = createSettings({
+        workSec: 30,
+        paceSec: 2,
+        visualOnly: true,
+        drillPattern: "fixed-net-back",
+        cornersMode: "6-corners",
+      });
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      act(() => {
+        result.current.startTraining();
+      });
+      advanceSeconds(10); // countdown -> working, 1st shot triggered
+
+      // Advance splitStepDelay (~200ms) so activeZone is set to the 1st shot zone
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      const firstZone = result.current.activeZone;
+      expect(firstZone).not.toBeNull();
+
+      // Advance through visualOnly (800ms) + center recovery timeout (300ms)
+      act(() => {
+        vi.advanceTimersByTime(950);
+      });
+      // During center phase, activeZone is null
+      expect(result.current.visualPhase).toBe("center");
+      expect(result.current.activeZone).toBeNull();
+
+      // Advance paceSec (2000ms) + splitStepDelay (250ms) to trigger and display 2nd shot
+      act(() => {
+        vi.advanceTimersByTime(2250);
+      });
+      const secondZone = result.current.activeZone;
+      expect(secondZone).not.toBeNull();
+
+      // Verify fixed-net-back alternated between front and back despite going through center!
+      const wasFirstFront = firstZone!.startsWith("front");
+      const isSecondFront = secondZone!.startsWith("front");
+      expect(wasFirstFront).not.toBe(isSecondFront);
+    });
   });
 });

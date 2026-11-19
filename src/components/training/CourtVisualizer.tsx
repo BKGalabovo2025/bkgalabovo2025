@@ -27,6 +27,7 @@ export interface CourtVisualizerProps {
   playerBottom?: CourtPlayerInfo | string | null;
   playerTop?: CourtPlayerInfo | string | null;
   dualActive?: boolean;
+  leftHanded?: boolean;
 }
 
 const ZONE_COORDINATES: Record<
@@ -42,6 +43,19 @@ const ZONE_COORDINATES: Record<
   backForehand: { x: 457, y: 1222, label: "ЗАДНА Д" },
 };
 
+const LEFT_HANDED_ZONE_COORDINATES: Record<
+  string,
+  { x: number; y: number; label: string }
+> = {
+  frontForehand: { x: 152, y: 769, label: "МРЕЖА Л" },
+  frontBackhand: { x: 457, y: 769, label: "МРЕЖА Д" },
+  midForehand: { x: 152, y: 986, label: "СРЕДА Л" },
+  midBackhand: { x: 457, y: 986, label: "СРЕДА Д" },
+  backForehand: { x: 152, y: 1222, label: "ЗАДНА Л" },
+  backBackhand: { x: 457, y: 1222, label: "ЗАДНА Д" },
+  overhead: { x: 457, y: 1222, label: "ЗАДНА Д (Овърхед)" },
+};
+
 // Symmetrical coordinates for Player B in top half (facing net downwards)
 const TOP_ZONE_COORDINATES: Record<
   string,
@@ -54,6 +68,19 @@ const TOP_ZONE_COORDINATES: Record<
   backForehand: { x: 152, y: 118, label: "ЗАДНА Д" },
   backBackhand: { x: 457, y: 118, label: "ЗАДНА Л" },
   overhead: { x: 457, y: 118, label: "ЗАДНА Л" },
+};
+
+const LEFT_HANDED_TOP_ZONE_COORDINATES: Record<
+  string,
+  { x: number; y: number; label: string }
+> = {
+  frontBackhand: { x: 152, y: 571, label: "МРЕЖА Д" },
+  frontForehand: { x: 457, y: 571, label: "МРЕЖА Л" },
+  midBackhand: { x: 152, y: 354, label: "СРЕДА Д" },
+  midForehand: { x: 457, y: 354, label: "СРЕДА Л" },
+  backBackhand: { x: 152, y: 118, label: "ЗАДНА Д" },
+  overhead: { x: 152, y: 118, label: "ЗАДНА Д (Овърхед)" },
+  backForehand: { x: 457, y: 118, label: "ЗАДНА Л" },
 };
 
 function formatPlayerLabel(p?: CourtPlayerInfo | string | null): string | null {
@@ -74,7 +101,14 @@ export function CourtVisualizer({
   playerBottom,
   playerTop,
   dualActive = false,
+  leftHanded = false,
 }: CourtVisualizerProps) {
+  const rawId = React.useId().replace(/:/g, "");
+  const arrowHeadId = `courtArrowHead-${rawId}`;
+  const movementVectorId = `courtMovementVector-${rawId}`;
+  const movementVectorTopId = `courtMovementVectorTop-${rawId}`;
+  const pulseShotGlowId = `pulseShotGlow-${rawId}`;
+
   const [internalViewMode, setInternalViewMode] = React.useState<
     "half" | "full"
   >(playerTop ? "full" : viewMode);
@@ -95,13 +129,46 @@ export function CourtVisualizer({
   const isHalfCourt = activeViewMode === "half";
   const hasTopPlayer = Boolean(playerTop) || dualActive;
 
-  // Логика за активната зона
-  const isFrontLeft = activeZone === "frontBackhand";
-  const isFrontRight = activeZone === "frontForehand";
-  const isMidLeft = activeZone === "midBackhand";
-  const isMidRight = activeZone === "midForehand";
-  const isBackLeft = activeZone === "backBackhand" || activeZone === "overhead";
-  const isBackRight = activeZone === "backForehand";
+  // Логика за активната зона (при leftHanded: true разменяме ляво/дясно за Бекхенд/Овърхед и Форхенд)
+  const isFrontLeft = leftHanded
+    ? activeZone === "frontForehand"
+    : activeZone === "frontBackhand";
+  const isFrontRight = leftHanded
+    ? activeZone === "frontBackhand"
+    : activeZone === "frontForehand";
+  const isMidLeft = leftHanded
+    ? activeZone === "midForehand"
+    : activeZone === "midBackhand";
+  const isMidRight = leftHanded
+    ? activeZone === "midBackhand"
+    : activeZone === "midForehand";
+  const isBackLeft = leftHanded
+    ? activeZone === "backForehand"
+    : activeZone === "backBackhand" || activeZone === "overhead";
+  const isBackRight = leftHanded
+    ? activeZone === "backBackhand" || activeZone === "overhead"
+    : activeZone === "backForehand";
+
+  const previewFrontLeft = leftHanded
+    ? previewZones?.includes("frontForehand")
+    : previewZones?.includes("frontBackhand");
+  const previewFrontRight = leftHanded
+    ? previewZones?.includes("frontBackhand")
+    : previewZones?.includes("frontForehand");
+  const previewMidLeft = leftHanded
+    ? previewZones?.includes("midForehand")
+    : previewZones?.includes("midBackhand");
+  const previewMidRight = leftHanded
+    ? previewZones?.includes("midBackhand")
+    : previewZones?.includes("midForehand");
+  const previewBackLeft = leftHanded
+    ? previewZones?.includes("backForehand")
+    : previewZones?.includes("backBackhand") ||
+      previewZones?.includes("overhead");
+  const previewBackRight = leftHanded
+    ? previewZones?.includes("backBackhand") ||
+      previewZones?.includes("overhead")
+    : previewZones?.includes("backForehand");
 
   // Логика за играча (централната точка)
   const isSplitStep = visualPhase === "split_step";
@@ -119,8 +186,15 @@ export function CourtVisualizer({
     playerColor = "fill-blue-500/70";
   }
 
-  const targetCoords = activeZone ? ZONE_COORDINATES[activeZone] : null;
-  const topTargetCoords = activeZone ? TOP_ZONE_COORDINATES[activeZone] : null;
+  const coordsMap = leftHanded
+    ? LEFT_HANDED_ZONE_COORDINATES
+    : ZONE_COORDINATES;
+  const topCoordsMap = leftHanded
+    ? LEFT_HANDED_TOP_ZONE_COORDINATES
+    : TOP_ZONE_COORDINATES;
+
+  const targetCoords = activeZone ? coordsMap[activeZone] : null;
+  const topTargetCoords = activeZone ? topCoordsMap[activeZone] : null;
 
   const bottomName = formatPlayerLabel(playerBottom);
   const topName = formatPlayerLabel(playerTop);
@@ -141,9 +215,9 @@ export function CourtVisualizer({
         </div>
       )}
 
-      {/* Top Player Badge (Поле 2 / Горе) */}
+      {/* Top Player Badge (Поле 2 / Горе) - Positioned near the net in Field 2 to avoid overlapping ЗАДНА Д / ЗАДНА Л */}
       {!isHalfCourt && topName && (
-        <div className="absolute top-9 left-2.5 z-20 flex max-w-[80%] items-center gap-1.5 truncate rounded-lg border border-blue-500/40 bg-zinc-950/85 px-2 py-0.5 text-[11px] font-bold text-blue-300 backdrop-blur-md">
+        <div className="absolute top-[42%] left-2.5 z-20 flex max-w-[80%] items-center gap-1.5 truncate rounded-lg border border-blue-500/40 bg-zinc-950/90 px-2 py-0.5 text-[11px] font-bold text-blue-300 shadow-md backdrop-blur-md">
           <User size={12} className="text-blue-400 shrink-0" />
           <span className="text-[10px] text-blue-400 font-extrabold uppercase">
             Поле 2:
@@ -198,7 +272,7 @@ export function CourtVisualizer({
         <defs>
           {/* Arrow marker for movement vector */}
           <marker
-            id="courtArrowHead"
+            id={arrowHeadId}
             viewBox="0 0 10 10"
             refX="6"
             refY="5"
@@ -209,7 +283,7 @@ export function CourtVisualizer({
             <path d="M 0 1 L 10 5 L 0 9 z" fill="#EF4444" />
           </marker>
           <linearGradient
-            id="courtMovementVector"
+            id={movementVectorId}
             x1="305"
             y1="960"
             x2={targetCoords?.x || 305}
@@ -220,7 +294,7 @@ export function CourtVisualizer({
             <stop offset="100%" stopColor="#EF4444" stopOpacity="1" />
           </linearGradient>
           <linearGradient
-            id="courtMovementVectorTop"
+            id={movementVectorTopId}
             x1="305"
             y1="380"
             x2={topTargetCoords?.x || 305}
@@ -230,7 +304,7 @@ export function CourtVisualizer({
             <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#EF4444" stopOpacity="1" />
           </linearGradient>
-          <radialGradient id="pulseShotGlow" cx="50%" cy="50%" r="50%">
+          <radialGradient id={pulseShotGlowId} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#EF4444" stopOpacity="0.8" />
             <stop offset="100%" stopColor="#EF4444" stopOpacity="0" />
           </radialGradient>
@@ -256,7 +330,7 @@ export function CourtVisualizer({
           w={305}
           h={198}
           active={isFrontLeft && isShot}
-          inPreview={previewZones?.includes("frontBackhand")}
+          inPreview={previewFrontLeft}
           label="МРЕЖА Л"
           labelX={175}
           labelY={769}
@@ -268,7 +342,7 @@ export function CourtVisualizer({
           w={305}
           h={198}
           active={isFrontRight && isShot}
-          inPreview={previewZones?.includes("frontForehand")}
+          inPreview={previewFrontRight}
           label="МРЕЖА Д"
           labelX={435}
           labelY={769}
@@ -280,7 +354,7 @@ export function CourtVisualizer({
           w={305}
           h={236}
           active={isMidLeft && isShot}
-          inPreview={previewZones?.includes("midBackhand")}
+          inPreview={previewMidLeft}
           label="СРЕДА Л"
           labelX={175}
           labelY={986}
@@ -292,7 +366,7 @@ export function CourtVisualizer({
           w={305}
           h={236}
           active={isMidRight && isShot}
-          inPreview={previewZones?.includes("midForehand")}
+          inPreview={previewMidRight}
           label="СРЕДА Д"
           labelX={435}
           labelY={986}
@@ -304,10 +378,7 @@ export function CourtVisualizer({
           w={305}
           h={236}
           active={isBackLeft && isShot}
-          inPreview={
-            previewZones?.includes("backBackhand") ||
-            previewZones?.includes("overhead")
-          }
+          inPreview={previewBackLeft}
           label="ЗАДНА Л"
           labelX={175}
           labelY={1308}
@@ -319,7 +390,7 @@ export function CourtVisualizer({
           w={305}
           h={236}
           active={isBackRight && isShot}
-          inPreview={previewZones?.includes("backForehand")}
+          inPreview={previewBackRight}
           label="ЗАДНА Д"
           labelX={435}
           labelY={1308}
@@ -335,7 +406,7 @@ export function CourtVisualizer({
               w={305}
               h={198}
               active={hasTopPlayer && isFrontRight && isShot}
-              inPreview={previewZones?.includes("frontForehand")}
+              inPreview={previewFrontRight}
               label="МРЕЖА Д"
               labelX={175}
               labelY={571}
@@ -347,7 +418,7 @@ export function CourtVisualizer({
               w={305}
               h={198}
               active={hasTopPlayer && isFrontLeft && isShot}
-              inPreview={previewZones?.includes("frontBackhand")}
+              inPreview={previewFrontLeft}
               label="МРЕЖА Л"
               labelX={435}
               labelY={571}
@@ -359,7 +430,7 @@ export function CourtVisualizer({
               w={305}
               h={236}
               active={hasTopPlayer && isMidRight && isShot}
-              inPreview={previewZones?.includes("midForehand")}
+              inPreview={previewMidRight}
               label="СРЕДА Д"
               labelX={175}
               labelY={354}
@@ -371,7 +442,7 @@ export function CourtVisualizer({
               w={305}
               h={236}
               active={hasTopPlayer && isMidLeft && isShot}
-              inPreview={previewZones?.includes("midBackhand")}
+              inPreview={previewMidLeft}
               label="СРЕДА Л"
               labelX={435}
               labelY={354}
@@ -383,7 +454,7 @@ export function CourtVisualizer({
               w={305}
               h={236}
               active={hasTopPlayer && isBackRight && isShot}
-              inPreview={previewZones?.includes("backForehand")}
+              inPreview={previewBackRight}
               label="ЗАДНА Д"
               labelX={175}
               labelY={38}
@@ -395,10 +466,7 @@ export function CourtVisualizer({
               w={305}
               h={236}
               active={hasTopPlayer && isBackLeft && isShot}
-              inPreview={
-                previewZones?.includes("backBackhand") ||
-                previewZones?.includes("overhead")
-              }
+              inPreview={previewBackLeft}
               label="ЗАДНА Л"
               labelX={435}
               labelY={38}
@@ -480,14 +548,24 @@ export function CourtVisualizer({
               stroke="#334155"
               strokeWidth="2"
             />
+            <rect
+              x="265"
+              y="653"
+              width="80"
+              height="18"
+              rx="9"
+              fill="#0b0e14"
+              stroke="#334155"
+              strokeWidth="1.5"
+            />
             <text
               x="305"
-              y="663"
-              fill="#94a3b8"
+              y="666"
+              fill="#e2e8f0"
               fontSize="11"
               fontWeight="900"
               textAnchor="middle"
-              className="select-none font-sans tracking-widest uppercase opacity-85"
+              className="select-none font-sans tracking-widest uppercase"
             >
               МРЕЖА
             </text>
@@ -527,14 +605,24 @@ export function CourtVisualizer({
               stroke="#334155"
               strokeWidth="2"
             />
+            <rect
+              x="265"
+              y="658"
+              width="80"
+              height="22"
+              rx="11"
+              fill="#0b0e14"
+              stroke="#334155"
+              strokeWidth="1.5"
+            />
             <text
               x="305"
-              y="666"
-              fill="#94a3b8"
+              y="673"
+              fill="#e2e8f0"
               fontSize="10"
               fontWeight="900"
               textAnchor="middle"
-              className="select-none font-sans tracking-widest uppercase opacity-85"
+              className="select-none font-sans tracking-widest uppercase"
             >
               МРЕЖА
             </text>
@@ -549,17 +637,17 @@ export function CourtVisualizer({
               y1="960"
               x2={targetCoords.x}
               y2={targetCoords.y}
-              stroke="url(#courtMovementVector)"
+              stroke={`url(#${movementVectorId})`}
               strokeWidth="6"
               strokeDasharray="10 6"
-              markerEnd="url(#courtArrowHead)"
+              markerEnd={`url(#${arrowHeadId})`}
               className="animate-pulse"
             />
             <circle
               cx={targetCoords.x}
               cy={targetCoords.y}
               r="34"
-              fill="url(#pulseShotGlow)"
+              fill={`url(#${pulseShotGlowId})`}
             />
             <circle
               cx={targetCoords.x}
@@ -569,7 +657,7 @@ export function CourtVisualizer({
               stroke="#EF4444"
               strokeWidth="3"
               strokeDasharray="4 4"
-              className="animate-spin"
+              className="animate-spin origin-center transform-fill"
             />
             <g
               transform={`translate(${targetCoords.x - 12}, ${targetCoords.y - 12}) scale(0.8)`}
@@ -592,17 +680,17 @@ export function CourtVisualizer({
               y1="380"
               x2={topTargetCoords.x}
               y2={topTargetCoords.y}
-              stroke="url(#courtMovementVectorTop)"
+              stroke={`url(#${movementVectorTopId})`}
               strokeWidth="6"
               strokeDasharray="10 6"
-              markerEnd="url(#courtArrowHead)"
+              markerEnd={`url(#${arrowHeadId})`}
               className="animate-pulse"
             />
             <circle
               cx={topTargetCoords.x}
               cy={topTargetCoords.y}
               r="34"
-              fill="url(#pulseShotGlow)"
+              fill={`url(#${pulseShotGlowId})`}
             />
             <circle
               cx={topTargetCoords.x}
@@ -612,7 +700,7 @@ export function CourtVisualizer({
               stroke="#EF4444"
               strokeWidth="3"
               strokeDasharray="4 4"
-              className="animate-spin"
+              className="animate-spin origin-center transform-fill"
             />
             <g
               transform={`translate(${topTargetCoords.x - 12}, ${topTargetCoords.y - 12}) scale(0.8)`}
@@ -637,7 +725,7 @@ export function CourtVisualizer({
             stroke="#FACC15"
             strokeWidth="3"
             strokeDasharray="6 4"
-            className="animate-spin"
+            className="animate-spin origin-center transform-fill"
           />
         )}
         <circle
@@ -687,7 +775,7 @@ export function CourtVisualizer({
                 stroke="#FACC15"
                 strokeWidth="3"
                 strokeDasharray="6 4"
-                className="animate-spin"
+                className="animate-spin origin-center transform-fill"
               />
             )}
             <circle

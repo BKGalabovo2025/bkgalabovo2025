@@ -9,6 +9,7 @@ export const BACKUP_COLLECTIONS = [
   "members",
   "events",
   "trainings",
+  "member_shadow_analytics",
   "training_attendance",
   "tournaments",
   "tournament_entries",

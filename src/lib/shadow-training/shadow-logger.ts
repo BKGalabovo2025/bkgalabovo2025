@@ -34,6 +34,18 @@ function getTimestamp(): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
 }
 
+function safeSerializeData(data: unknown): unknown {
+  if (data === undefined) return undefined;
+  if (data instanceof Error) {
+    return { name: data.name, message: data.message };
+  }
+  try {
+    return JSON.parse(JSON.stringify(data));
+  } catch {
+    return String(data);
+  }
+}
+
 function recordLog(
   category: ShadowLogEntry["category"],
   event: string,
@@ -43,7 +55,7 @@ function recordLog(
     timestamp: getTimestamp(),
     category,
     event,
-    data: data ? JSON.parse(JSON.stringify(data)) : undefined,
+    data: safeSerializeData(data),
   };
 
   logHistory.push(entry);
@@ -128,14 +140,20 @@ const TEXT_STYLES = {
 
 const TIME_STYLE = "color: #94a3b8; font-weight: normal; font-size: 10px;";
 
-const isTest =
-  typeof process !== "undefined" && process.env.NODE_ENV === "test";
+function shouldLogToConsole(): boolean {
+  if (typeof window === "undefined") return false;
+  if (typeof process !== "undefined") {
+    const env = process.env.NODE_ENV;
+    if (env === "test" || env === "production") return false;
+  }
+  return true;
+}
 
 export const shadowLogger = {
   setup(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("SETUP", event, data);
-    if (typeof window === "undefined" || isTest) return;
+    if (!shouldLogToConsole()) return;
     if (data !== undefined) {
       console.log(
         "%c[🏸 SETUP %c%s]%c %s",
@@ -161,7 +179,7 @@ export const shadowLogger = {
   trainer(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("TRAINER", event, data);
-    if (typeof window === "undefined" || isTest) return;
+    if (!shouldLogToConsole()) return;
     if (data !== undefined) {
       console.log(
         "%c[⚡ TRAINER %c%s]%c %s",
@@ -187,7 +205,7 @@ export const shadowLogger = {
   timer(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("TIMER", event, data);
-    if (typeof window === "undefined" || isTest) return;
+    if (!shouldLogToConsole()) return;
     if (data !== undefined) {
       console.log(
         "%c[⏱️ TIMER %c%s]%c %s",
@@ -213,7 +231,7 @@ export const shadowLogger = {
   audio(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("AUDIO", event, data);
-    if (typeof window === "undefined" || isTest) return;
+    if (!shouldLogToConsole()) return;
     if (data !== undefined) {
       console.log(
         "%c[🔊 AUDIO %c%s]%c %s",
@@ -239,7 +257,7 @@ export const shadowLogger = {
   court(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("COURT", event, data);
-    if (typeof window === "undefined" || isTest) return;
+    if (!shouldLogToConsole()) return;
     if (data !== undefined) {
       console.log(
         "%c[🏟️ COURT %c%s]%c %s",
@@ -265,7 +283,7 @@ export const shadowLogger = {
   diagnostic(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("DIAG", event, data);
-    if (typeof window === "undefined" || isTest) return;
+    if (!shouldLogToConsole()) return;
     if (data !== undefined) {
       console.log(
         "%c[🛠️ ДИАГНОСТИКА %c%s]%c %s",
@@ -291,7 +309,7 @@ export const shadowLogger = {
   warn(event: string, data?: unknown) {
     const ts = getTimestamp();
     recordLog("WARN", event, data);
-    if (typeof window === "undefined" || isTest) return;
+    if (!shouldLogToConsole()) return;
     console.warn(
       "%c[⚠️ WARN %c%s]%c %s",
       BADGE_STYLES.WARN,
@@ -305,8 +323,12 @@ export const shadowLogger = {
 
   error(event: string, error?: unknown, data?: unknown) {
     const ts = getTimestamp();
-    recordLog("ERROR", event, { error: String(error), details: data });
-    if (typeof window === "undefined" || isTest) return;
+    const errPayload =
+      error instanceof Error
+        ? { name: error.name, message: error.message }
+        : String(error);
+    recordLog("ERROR", event, { error: errPayload, details: data });
+    if (!shouldLogToConsole()) return;
     console.error(
       "%c[❌ ERROR %c%s]%c %s",
       BADGE_STYLES.ERROR,

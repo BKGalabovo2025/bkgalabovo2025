@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  AUDIO_PATHS,
+  playAudio as playSingleAudio,
+} from "@/lib/shadow-training/audio-map";
 import { shadowLogger } from "@/lib/shadow-training/shadow-logger";
 
 import { ShadowSettings, TrainerState } from "./types";
@@ -20,9 +24,10 @@ export function useShadowTimer({
   onCountdownReady,
 }: TimerOptions) {
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [actualElapsedMs, setActualElapsedMs] = useState(0);
+  const [actualElapsedMs, setActualElapsedMsState] = useState(0);
 
   const expectedTimeRemainingRef = useRef(0);
+  const actualElapsedMsRef = useRef(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const stateRef = useRef(state);
@@ -36,13 +41,14 @@ export function useShadowTimer({
     settingsRef.current = settings;
   }, [settings]);
 
+  const setActualElapsedMs = useCallback((val: number) => {
+    actualElapsedMsRef.current = val;
+    setActualElapsedMsState(val);
+  }, []);
+
   const updateTimeRemaining = useCallback((val: number) => {
     expectedTimeRemainingRef.current = val;
     setTimeRemaining(val);
-  }, []);
-
-  const syncState = useCallback((newState: TrainerState) => {
-    stateRef.current = newState;
   }, []);
 
   const cleanupTimer = useCallback(() => {
@@ -51,6 +57,32 @@ export function useShadowTimer({
       timerRef.current = null;
     }
   }, []);
+
+  const syncState = useCallback((newState: TrainerState) => {
+    stateRef.current = newState;
+    if (newState === "finished" || newState === "paused") {
+      setActualElapsedMsState(actualElapsedMsRef.current);
+    }
+  }, []);
+
+  const pause = useCallback(() => {
+    cleanupTimer();
+    setActualElapsedMsState(actualElapsedMsRef.current);
+  }, [cleanupTimer]);
+
+  const stop = useCallback(() => {
+    cleanupTimer();
+    setActualElapsedMsState(actualElapsedMsRef.current);
+  }, [cleanupTimer]);
+
+  const reset = useCallback(() => {
+    cleanupTimer();
+    stateRef.current = "idle";
+    expectedTimeRemainingRef.current = 0;
+    setTimeRemaining(0);
+    actualElapsedMsRef.current = 0;
+    setActualElapsedMsState(0);
+  }, [cleanupTimer]);
 
   const getTimeRemaining = useCallback(() => {
     return expectedTimeRemainingRef.current;
@@ -74,6 +106,9 @@ export function useShadowTimer({
   useEffect(() => {
     if (state === "idle" || state === "finished" || state === "paused") {
       cleanupTimer();
+      if (state === "finished" || state === "paused") {
+        setActualElapsedMsState(actualElapsedMsRef.current);
+      }
       return;
     }
 
@@ -86,12 +121,16 @@ export function useShadowTimer({
       lastTick = now;
 
       if (stateRef.current === "working" || stateRef.current === "resting") {
-        setActualElapsedMs((prev) => prev + deltaMs);
+        actualElapsedMsRef.current += deltaMs;
       }
 
       accumulatedMsRef.current += deltaMs;
       if (accumulatedMsRef.current >= 1000) {
         accumulatedMsRef.current -= 1000;
+
+        if (stateRef.current === "working" || stateRef.current === "resting") {
+          setActualElapsedMsState(actualElapsedMsRef.current);
+        }
 
         const currentPrev = expectedTimeRemainingRef.current;
         const currentSettings = settingsRef.current;
@@ -116,10 +155,19 @@ export function useShadowTimer({
               if (nextVal === 2 && onCountdownReadyRef.current) {
                 onCountdownReadyRef.current();
               }
-            } else if (nextVal % 5 === 0 || nextVal <= 3) {
-              shadowLogger.timer(
-                `Phase [${stateRef.current}]: ${nextVal}s remaining`
-              );
+            } else {
+              if (
+                stateRef.current === "resting" &&
+                nextVal === 5 &&
+                !currentSettings?.visualOnly
+              ) {
+                playSingleAudio(AUDIO_PATHS.common.krai_pochivka);
+              }
+              if (nextVal % 5 === 0 || nextVal <= 3) {
+                shadowLogger.timer(
+                  `Phase [${stateRef.current}]: ${nextVal}s remaining`
+                );
+              }
             }
           }
         }
@@ -155,5 +203,8 @@ export function useShadowTimer({
     setActualElapsedMs,
     cleanupTimer,
     getTimeRemaining,
+    pause,
+    stop,
+    reset,
   };
 }

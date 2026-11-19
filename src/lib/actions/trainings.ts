@@ -5,7 +5,12 @@ import { FieldValue } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import {
+  ensureAdmin,
+  ensureAdminFromSession,
+  getAuthUser,
+  getAuthUserFromSessionCookie,
+} from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import {
@@ -22,14 +27,37 @@ const ShadowDetailsSchema = z
     totalSets: z.number().min(1, "Total sets must be at least 1"),
     workTimeSec: z.number().min(0, "Work time cannot be negative"),
     restTimeSec: z.number().min(0, "Rest time cannot be negative"),
+    paceSec: z.number().optional(),
+    calloutMode: z.string().optional(),
+    heatmap: z.record(z.string(), z.number()).optional(),
+    agilityActionsDone: z.number().optional(),
+    agilityTestTimeSec: z.number().optional(),
+    individualRpe: z.record(z.string(), z.number()).optional(),
+    leftHanded: z.boolean().optional(),
   })
   .passthrough();
 
 export async function createTrainingSessionAction(
   idToken: string,
-  data: Omit<TrainingSession, "id" | "createdAt" | "createdBy">
+  data: Omit<TrainingSession, "id" | "createdAt" | "createdBy"> & {
+    rpeScore?: number;
+    shadowDetails?: TrainingSession["shadowDetails"] & {
+      calloutMode?: string;
+      agilityActionsDone?: number;
+      individualRpe?: Record<string, number>;
+      leftHanded?: boolean;
+    };
+  }
 ) {
   try {
+    const memberIds = Array.isArray(data.memberIds) ? data.memberIds : [];
+    if (memberIds.length > 200) {
+      return {
+        success: false,
+        error: "Невалидни данни: максимум 200 участници.",
+      };
+    }
+
     if (data.type === "shadow" && data.shadowDetails) {
       const parsed = ShadowDetailsSchema.safeParse(data.shadowDetails);
       if (!parsed.success) {
@@ -42,11 +70,12 @@ export async function createTrainingSessionAction(
       }
     }
 
-    const user = await getAuthUser(idToken);
+    const user = await ensureAdmin(idToken);
     const db = getAdminDb();
 
     const docData = {
       ...data,
+      memberIds,
       createdAt: FieldValue.serverTimestamp(),
       createdBy: {
         uid: user.uid,
@@ -61,12 +90,16 @@ export async function createTrainingSessionAction(
     if (data.type === "shadow" && data.shadowDetails) {
       const batch = db.batch();
 
-      data.memberIds.forEach((memberId) => {
+      memberIds.forEach((mId) => {
         const analyticsRef = db.collection("member_shadow_analytics").doc();
-        const rpeScore = data.shadowDetails?.rpeScores?.[memberId] || null;
+        const rpeScore =
+          data.shadowDetails?.individualRpe?.[mId] ??
+          data.shadowDetails?.rpeScores?.[mId] ??
+          data.rpeScore ??
+          null;
 
         batch.set(analyticsRef, {
-          memberId,
+          memberId: mId,
           siteId: data.siteId,
           trainingId: docRef.id,
           date: data.date,
@@ -77,7 +110,9 @@ export async function createTrainingSessionAction(
           totalSets: data.shadowDetails?.totalSets || 0,
           workTimeSec: data.shadowDetails?.workTimeSec || 0,
           restTimeSec: data.shadowDetails?.restTimeSec || 0,
-          paceSec: data.shadowDetails?.paceSec || null,
+          paceSec: data.shadowDetails?.paceSec ?? null,
+          heatmap: data.shadowDetails?.heatmap ?? null,
+          agilityTestTimeSec: data.shadowDetails?.agilityTestTimeSec ?? null,
           rpeScore: rpeScore,
           createdAt: FieldValue.serverTimestamp(),
         });
@@ -86,8 +121,8 @@ export async function createTrainingSessionAction(
       await batch.commit();
     }
 
-    revalidatePath("/members");
-    revalidatePath("/training");
+    revalidatePath("/training", "layout");
+    revalidatePath("/members", "layout");
     serverCache.invalidatePattern("dashboard:");
 
     return {
@@ -106,10 +141,12 @@ export async function createTrainingSessionAction(
   }
 }
 
-export async function getGlobalTrainingSessionsAction(limitCount = 50) {
+export async function getGlobalTrainingSessionsAction(
+  limitCount = 100,
+  siteId?: string
+) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Unauthorized");
+    await ensureAdminFromSession();
 
     const db = getAdminDb();
 
@@ -119,16 +156,23 @@ export async function getGlobalTrainingSessionsAction(limitCount = 50) {
       .limit(limitCount)
       .get();
 
-    const trainings = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toDate
-          ? data.createdAt.toDate().toISOString()
-          : data.createdAt,
-      };
-    });
+    const trainings = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          memberIds: Array.isArray(data.memberIds) ? data.memberIds : [],
+          createdAt: data.createdAt?.toDate
+            ? data.createdAt.toDate().toISOString()
+            : data.createdAt,
+        } as Record<string, unknown>;
+      })
+      .filter((t) => {
+        if (t.type && t.type !== "shadow") return false;
+        if (siteId && t.siteId && t.siteId !== siteId) return false;
+        return true;
+      });
 
     return { success: true, data: trainings };
   } catch (error: unknown) {
@@ -138,12 +182,11 @@ export async function getGlobalTrainingSessionsAction(limitCount = 50) {
 }
 
 export async function getTrainingSessionsForMemberAction(
-  _idToken: string,
+  idToken: string,
   memberId: string
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Unauthorized");
+    await ensureAdmin(idToken);
     const db = getAdminDb();
 
     // memberIds is an array, we can use array-contains
@@ -158,6 +201,7 @@ export async function getTrainingSessionsForMemberAction(
       return {
         id: doc.id,
         ...data,
+        memberIds: Array.isArray(data.memberIds) ? data.memberIds : [],
         createdAt: data.createdAt?.toDate
           ? data.createdAt.toDate().toISOString()
           : data.createdAt,
@@ -174,13 +218,12 @@ export async function getTrainingSessionsForMemberAction(
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function updateRpeScoresAction(
-  _idToken: string,
+  idToken: string,
   trainingId: string,
   scores: Record<string, number>
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Unauthorized");
+    await ensureAdmin(idToken);
     const db = getAdminDb();
 
     await db.collection("trainings").doc(trainingId).set(
@@ -190,8 +233,8 @@ async function updateRpeScoresAction(
       { merge: true }
     );
 
-    revalidatePath("/members");
-    revalidatePath("/training");
+    revalidatePath("/training", "layout");
+    revalidatePath("/members", "layout");
 
     return { success: true };
   } catch (error: unknown) {
@@ -203,18 +246,29 @@ async function updateRpeScoresAction(
 }
 
 export async function deleteTrainingSessionAction(
-  _idToken: string,
+  idToken: string,
   trainingId: string
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) throw new Error("Unauthorized");
+    await ensureAdmin(idToken);
     const db = getAdminDb();
 
-    await db.collection("trainings").doc(trainingId).delete();
+    const batch = db.batch();
+    batch.delete(db.collection("trainings").doc(trainingId));
 
-    revalidatePath("/members");
-    revalidatePath("/training");
+    const analyticsSnap = await db
+      .collection("member_shadow_analytics")
+      .where("trainingId", "==", trainingId)
+      .get();
+
+    analyticsSnap.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+
+    revalidatePath("/training", "layout");
+    revalidatePath("/members", "layout");
     serverCache.invalidatePattern("dashboard:");
 
     return {
@@ -411,13 +465,20 @@ export interface ActiveWorkoutScheduleDay {
 export async function getMemberActiveWorkoutForDateAction(
   memberId: string,
   targetDateStr: string,
-  _idToken?: string
+  idToken?: string
 ): Promise<{
   success: boolean;
   data?: ActiveWorkoutScheduleDay | null;
   message?: string;
 }> {
   try {
+    const user = idToken
+      ? await getAuthUser(idToken).catch(() => null)
+      : await getAuthUserFromSessionCookie();
+    if (!user && !(await getAuthUserFromSessionCookie())) {
+      throw new Error("Невалидна оторизация. Моля, влезте отново.");
+    }
+
     const db = getAdminDb();
     const dateClean = targetDateStr.split("T")[0];
 
@@ -656,13 +717,20 @@ export async function updateWorkoutProgramProgressAction(
     notes?: string;
     completedExercises?: number[];
   },
-  _idToken?: string
+  idToken?: string
 ): Promise<{
   success: boolean;
   message: string;
   overallProgressPercent?: number;
 }> {
   try {
+    const user = idToken
+      ? await getAuthUser(idToken).catch(() => null)
+      : await getAuthUserFromSessionCookie();
+    if (!user && !(await getAuthUserFromSessionCookie())) {
+      throw new Error("Невалидна оторизация. Моля, влезте отново.");
+    }
+
     const db = getAdminDb();
     const docRef = db
       .collection("members")

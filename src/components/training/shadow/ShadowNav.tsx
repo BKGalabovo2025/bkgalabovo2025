@@ -17,7 +17,11 @@ export function ShadowNav({ className }: ShadowNavProps) {
   const searchParams = useSearchParams();
   const activeSection = getActiveShadowSection(pathname);
 
-  const queryString = searchParams?.toString();
+  const sp = new URLSearchParams(searchParams?.toString() || "");
+  sp.delete("session");
+  sp.delete("id");
+  sp.delete("sessionId");
+  const queryString = sp.toString();
   const preservedQuery = queryString ? `?${queryString}` : "";
 
   return (

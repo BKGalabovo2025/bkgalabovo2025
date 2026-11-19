@@ -41,6 +41,7 @@ const COLLECTIONS_TO_SYNC = [
   "sponsors",
   "inventory",
   "trainings",
+  "member_shadow_analytics",
   "training_attendance",
   "reservations",
   "blockedSlots",

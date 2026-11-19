@@ -52,6 +52,8 @@ export interface ShadowSettings {
   activePlayers: ShadowPlayer[];
   courtsAvailable: number;
   courtAllocationStrategy?: CourtAllocationStrategy;
+  leftHanded?: boolean;
+  voiceSpeed?: number;
 }
 
 export interface WakeLockSentinel {
