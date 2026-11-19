@@ -35,15 +35,32 @@ function scrollToTopSmooth() {
   }
 }
 
+type ShadowScreen = "setup" | "training" | "analytics";
+
+function syncViewInUrl(nextScreen: ShadowScreen) {
+  if (typeof window === "undefined") return;
+  try {
+    const url = new URL(window.location.href);
+    if (nextScreen === "training") {
+      url.searchParams.set("view", "live");
+    } else if (nextScreen === "analytics") {
+      url.searchParams.set("view", "report");
+    } else {
+      url.searchParams.delete("view");
+    }
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  } catch {
+    // Ignore history/URL errors in test environments
+  }
+}
+
 export function ShadowWizard({
   initialMembers = [],
   preselectedMemberId = null,
 }: Props) {
   const { user, idToken: token } = useAuth();
 
-  const [screen, setScreen] = useState<"setup" | "training" | "analytics">(
-    "setup"
-  );
+  const [screen, setScreen] = useState<ShadowScreen>("setup");
   const [urlMemberId, setUrlMemberId] = useState<string | null>(
     preselectedMemberId
   );
@@ -77,13 +94,19 @@ export function ShadowWizard({
   useEffect(() => {
     if (preselectedMemberId) {
       setUrlMemberId(preselectedMemberId);
-      return;
     }
     if (typeof window !== "undefined") {
       try {
         const params = new URLSearchParams(window.location.search);
         const mId = params.get("memberId");
-        if (mId) setUrlMemberId(mId);
+        if (mId && !preselectedMemberId) setUrlMemberId(mId);
+
+        const view = params.get("view");
+        if (view === "live" || view === "training") {
+          setScreen("training");
+        } else if (view === "report" || view === "analytics") {
+          setScreen("analytics");
+        }
       } catch {
         // Ignore URL errors
       }
@@ -96,13 +119,11 @@ export function ShadowWizard({
     zoneCounts?: Record<string, number>;
   };
 
-  const changeScreen = useCallback(
-    (nextScreen: "setup" | "training" | "analytics") => {
-      setScreen(nextScreen);
-      scrollToTopSmooth();
-    },
-    []
-  );
+  const changeScreen = useCallback((nextScreen: ShadowScreen) => {
+    setScreen(nextScreen);
+    syncViewInUrl(nextScreen);
+    scrollToTopSmooth();
+  }, []);
 
   const prevTrainerStateRef = useRef(trainer.state);
 

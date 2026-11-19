@@ -2,21 +2,27 @@ export interface ShadowSection {
   id: string;
   label: string;
   href: string;
-  badge?: string;
+  tooltip?: string;
 }
 
-export const SHADOW_SECTIONS: readonly ShadowSection[] = [
-  { id: "setup", label: "Интерактивна зала", href: "/training/shadow" },
+export const SHADOW_SECTIONS: ShadowSection[] = [
+  {
+    id: "setup",
+    label: "Настройки & Треньор",
+    href: "/training/shadow",
+    tooltip:
+      "Конфигуратор на възрастови групи, кортове, състезатели и жива тренировка",
+  },
   {
     id: "history",
-    label: "История и статистика",
+    label: "История на сесиите",
     href: "/training/shadow/history",
+    tooltip:
+      "Архив на проведените тренировки, индивидуално RPE, Heatmap и лидерборд",
   },
-] as const;
+];
 
 export function getActiveShadowSection(pathname: string): string {
-  if (pathname.startsWith("/training/shadow/history")) {
-    return "history";
-  }
+  if (pathname.startsWith("/training/shadow/history")) return "history";
   return "setup";
 }

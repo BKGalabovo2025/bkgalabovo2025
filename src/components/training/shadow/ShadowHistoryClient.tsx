@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import {
+  Check,
   ChevronLeft,
   Clock,
   Eye,
@@ -14,11 +15,12 @@ import {
   Target,
   Trophy,
   Users,
+  X,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +41,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { ZONE_NAMES, ZoneId } from "@/lib/shadow-training/audio-map";
+import { cn } from "@/lib/utils";
 import { TrainingSession } from "@/types/training.types";
 
 import { CourtVisualizer } from "../CourtVisualizer";
@@ -85,6 +88,8 @@ function getRpeColorBadge(score: number) {
   return "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300";
 }
 
+type HistoryPeriod = "all" | "7d" | "30d";
+
 export function ShadowHistoryClient({
   sessions,
   memberNameMap,
@@ -96,16 +101,85 @@ export function ShadowHistoryClient({
     searchParams.get("id") ||
     searchParams.get("session") ||
     searchParams.get("sessionId");
+  const cardParam = searchParams.get("card");
+  const playerParam = searchParams.get("player");
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMode, setSelectedMode] = useState<string>("all");
-  const [selectedPeriod, setSelectedPeriod] = useState<"all" | "7d" | "30d">(
-    "all"
+  const [searchQuery, setSearchQuery] = useState(
+    () => searchParams.get("q") || ""
+  );
+  const [selectedMode, setSelectedMode] = useState<string>(() => {
+    const m = searchParams.get("mode");
+    return m && ["all", "standard", "agility_test"].includes(m) ? m : "all";
+  });
+  const [selectedPeriod, setSelectedPeriod] = useState<HistoryPeriod>(() => {
+    const p = searchParams.get("period");
+    return p === "7d" || p === "30d" ? p : "all";
+  });
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(
+    () => playerParam || null
   );
   const [inspectSession, setInspectSession] = useState<TrainingSession | null>(
     null
   );
+  const [copiedCardId, setCopiedCardId] = useState<string | null>(null);
+  const [highlightedCard, setHighlightedCard] = useState<string | null>(
+    () => cardParam || null
+  );
   const [referenceTimestamp] = useState(() => Date.now());
+
+  const syncQueryParams = useCallback(
+    (mutator: (sp: URLSearchParams) => void, hash?: string) => {
+      if (typeof window === "undefined") return;
+      try {
+        const sp = new URLSearchParams(window.location.search);
+        mutator(sp);
+        const q = sp.toString();
+        const hashStr =
+          hash !== undefined ? (hash ? `#${hash}` : "") : window.location.hash;
+        window.history.replaceState(
+          {},
+          "",
+          `${window.location.pathname}${q ? `?${q}` : ""}${hashStr}`
+        );
+      } catch {
+        // Ignore URL errors
+      }
+    },
+    []
+  );
+
+  const handleCopyCardUrl = useCallback(
+    (cardId: string, label: string) => {
+      if (typeof window === "undefined") return;
+      try {
+        syncQueryParams((sp) => {
+          sp.set("card", cardId);
+        }, `card-${cardId}`);
+        void navigator.clipboard.writeText(window.location.href);
+        setCopiedCardId(cardId);
+        setHighlightedCard(cardId);
+        toast.success(`Линкът към „${label}“ е копиран!`);
+        setTimeout(() => setCopiedCardId(null), 2000);
+        setTimeout(() => setHighlightedCard(null), 3000);
+      } catch {
+        // Ignore clipboard errors
+      }
+    },
+    [syncQueryParams]
+  );
+
+  useEffect(() => {
+    if (cardParam) {
+      setHighlightedCard(cardParam);
+      setTimeout(() => {
+        const el = document.getElementById(`card-${cardParam}`);
+        if (el && typeof el.scrollIntoView === "function") {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 150);
+      setTimeout(() => setHighlightedCard(null), 3500);
+    }
+  }, [cardParam]);
 
   useEffect(() => {
     if (!sessionParam) return;
@@ -114,7 +188,7 @@ export function ShadowHistoryClient({
       setInspectSession(match);
       setTimeout(() => {
         const el = document.getElementById(`session-${match.id}`);
-        if (el) {
+        if (el && typeof el.scrollIntoView === "function") {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 150);
@@ -140,9 +214,46 @@ export function ShadowHistoryClient({
     router.replace(q ? `?${q}` : window.location.pathname, { scroll: false });
   };
 
+  const handleModeChange = (modeId: string) => {
+    setSelectedMode(modeId);
+    syncQueryParams((sp) => {
+      if (modeId === "all") sp.delete("mode");
+      else sp.set("mode", modeId);
+    });
+  };
+
+  const handlePeriodChange = (periodId: HistoryPeriod) => {
+    setSelectedPeriod(periodId);
+    syncQueryParams((sp) => {
+      if (periodId === "all") sp.delete("period");
+      else sp.set("period", periodId);
+    });
+  };
+
+  const handlePlayerFilterChange = (playerId: string | null) => {
+    setSelectedPlayerId(playerId);
+    syncQueryParams((sp) => {
+      if (!playerId) sp.delete("player");
+      else sp.set("player", playerId);
+    });
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    syncQueryParams((sp) => {
+      if (!val.trim()) sp.delete("q");
+      else sp.set("q", val.trim());
+    });
+  };
+
   // Filtered Sessions
   const filteredSessions = useMemo(() => {
     return sessions.filter((s) => {
+      // 0. Player filter (?player=...)
+      if (selectedPlayerId) {
+        if (!(s.memberIds || []).includes(selectedPlayerId)) return false;
+      }
+
       // 1. Mode filter
       if (selectedMode !== "all") {
         const mode = s.shadowDetails?.mode || "standard";
@@ -181,6 +292,7 @@ export function ShadowHistoryClient({
     });
   }, [
     sessions,
+    selectedPlayerId,
     selectedMode,
     selectedPeriod,
     searchQuery,
@@ -266,161 +378,225 @@ export function ShadowHistoryClient({
     ];
   }, [inspectSession]);
 
+  const renderCardLinkBtn = (cardId: string, label: string) => {
+    const isCopied = copiedCardId === cardId;
+    return (
+      <button
+        type="button"
+        onClick={() => handleCopyCardUrl(cardId, label)}
+        className="flex size-7 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+        title={`Копирай директен URL за ${label}`}
+        aria-label={`Копирай директен URL за ${label}`}
+      >
+        {isCopied ? (
+          <Check className="size-3.5 text-emerald-500" />
+        ) : (
+          <Link2 className="size-3.5" />
+        )}
+      </button>
+    );
+  };
+
   return (
-    <div className="w-full space-y-8">
-      {/* Header & Back Button */}
-      <div className="flex flex-col gap-3">
+    <div className="w-full space-y-5">
+      {/* Компактен Хедър & Назад */}
+      <div className="flex flex-col gap-2 rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-xs sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+            <Zap className="size-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-black tracking-tight text-zinc-900 sm:text-lg dark:text-white">
+              История на Тренировките
+            </h2>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Архив на всички проведени сесии по движения на корта (Shadow
+              Footwork)
+            </p>
+          </div>
+        </div>
         <Button
           asChild
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="mb-1 -ml-3 self-start text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          className="h-9 self-start rounded-xl text-xs font-bold sm:self-auto"
         >
           <Link href="/training/shadow">
             <ChevronLeft className="mr-1 size-4" />
             Назад към Настройчика на тренировки
           </Link>
         </Button>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="flex items-center gap-2 text-2xl font-black tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
-              <Zap className="size-7 text-blue-600" /> История на Тренировките
-            </h2>
-            <p className="text-sm font-medium text-zinc-500">
-              Архив на всички проведени сесии по движения на корта (Shadow
-              Footwork)
-            </p>
-          </div>
-        </div>
       </div>
 
-      {/* ─── ОБОБЩЕНИ СТАТИСТИКИ ─── */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Card className="rounded-2xl border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
-              <Clock className="size-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase text-zinc-500">
-                Общо Време
-              </p>
-              <p className="text-xl font-black text-zinc-900 dark:text-white">
-                {totalStats.totalMinutes}{" "}
-                <span className="text-xs font-semibold text-zinc-500">мин</span>
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="rounded-2xl border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
-              <Layers className="size-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase text-zinc-500">
-                Сесии
-              </p>
-              <p className="text-xl font-black text-zinc-900 dark:text-white">
-                {totalStats.totalSessions}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="rounded-2xl border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-              <Users className="size-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase text-zinc-500">
-                Състезатели
-              </p>
-              <p className="text-xl font-black text-zinc-900 dark:text-white">
-                {totalStats.uniqueMembersCount}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="rounded-2xl border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
-              <Flame className="size-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase text-zinc-500">
-                Ср. RPE Натоварване
-              </p>
-              <p className="text-xl font-black text-zinc-900 dark:text-white">
-                {totalStats.avgRpe}{" "}
-                <span className="text-xs font-semibold text-zinc-500">
-                  / 10
-                </span>
-              </p>
-            </div>
-          </div>
-        </Card>
+      {/* ─── ОБОБЩЕНИ СТАТИСТИКИ (4 BENTO КАРТИ СЪС СОБСТВЕН URL) ─── */}
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+        {[
+          {
+            id: "kpi-time",
+            label: "Общо Време",
+            value: totalStats.totalMinutes,
+            unit: "мин",
+            icon: Clock,
+            iconClass:
+              "bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400",
+          },
+          {
+            id: "kpi-sessions",
+            label: "Сесии",
+            value: totalStats.totalSessions,
+            unit: "",
+            icon: Layers,
+            iconClass:
+              "bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400",
+          },
+          {
+            id: "kpi-players",
+            label: "Състезатели",
+            value: totalStats.uniqueMembersCount,
+            unit: "",
+            icon: Users,
+            iconClass:
+              "bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400",
+          },
+          {
+            id: "kpi-rpe",
+            label: "Ср. RPE Натоварване",
+            value: totalStats.avgRpe,
+            unit: "/ 10",
+            icon: Flame,
+            iconClass:
+              "bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
+          },
+        ].map((kpi) => {
+          const KpiIcon = kpi.icon;
+          return (
+            <Card
+              key={kpi.id}
+              id={`card-${kpi.id}`}
+              className={cn(
+                "rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-xs transition-all dark:border-zinc-800 dark:bg-zinc-950",
+                highlightedCard === kpi.id &&
+                  "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-zinc-950"
+              )}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${kpi.iconClass}`}
+                  >
+                    <KpiIcon className="size-4.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-[10px] font-bold tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                      {kpi.label}
+                    </p>
+                    <p className="text-lg font-black text-zinc-900 sm:text-xl dark:text-white">
+                      {kpi.value}{" "}
+                      {kpi.unit && (
+                        <span className="text-xs font-semibold text-zinc-500">
+                          {kpi.unit}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                {renderCardLinkBtn(kpi.id, kpi.label)}
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
       {/* ─── ОСНОВНО СЪДЪРЖАНИЕ: ЛИДЕРБОРД + СПИСЪК СЪС СЕСИИ ─── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         {/* LEFT: Лидерборд Топ 5 (4 cols) */}
         <div className="lg:col-span-4">
-          <Card className="overflow-hidden rounded-3xl border-2 border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <CardHeader className="border-b border-zinc-100 bg-zinc-50/80 p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <CardTitle className="flex items-center gap-2 text-base font-bold">
-                <Trophy className="size-5 text-amber-500" /> Топ Трудолюбиви
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Най-много прекарани минути в крачна работа
-              </CardDescription>
+          <Card
+            id="card-leaderboard"
+            className={cn(
+              "overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs transition-all dark:border-zinc-800 dark:bg-zinc-950",
+              highlightedCard === "leaderboard" &&
+                "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-zinc-950"
+            )}
+          >
+            <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 bg-zinc-50/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-sm font-bold text-zinc-900 dark:text-white">
+                  <Trophy className="size-4 text-amber-500" /> Топ Трудолюбиви
+                </CardTitle>
+                <CardDescription className="text-[11px]">
+                  Кликнете състезател за филтър (?player=...)
+                </CardDescription>
+              </div>
+              {renderCardLinkBtn("leaderboard", "Топ Трудолюбиви")}
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-2">
+            <CardContent className="p-3">
+              <div className="space-y-1.5">
                 {leaderboard.length === 0 ? (
                   <p className="p-4 text-center text-xs text-zinc-500">
                     Няма регистрирани сесии.
                   </p>
                 ) : (
-                  leaderboard.map((lb, idx) => (
-                    <Link
-                      key={lb.id}
-                      href={`/members/${lb.id}`}
-                      className="group flex items-center justify-between rounded-2xl border border-transparent p-3 transition-all hover:border-zinc-200 hover:bg-zinc-50 dark:hover:border-zinc-800 dark:hover:bg-zinc-800/50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`flex size-8 shrink-0 items-center justify-center rounded-xl text-xs font-black ${
-                            idx === 0
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                              : idx === 1
-                                ? "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
-                                : idx === 2
-                                  ? "bg-amber-700/20 text-amber-700 dark:text-amber-400"
-                                  : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-                          }`}
+                  leaderboard.map((lb, idx) => {
+                    const isPlayerSelected = selectedPlayerId === lb.id;
+                    return (
+                      <div
+                        key={lb.id}
+                        className={cn(
+                          "group flex items-center justify-between rounded-xl border p-2.5 transition-all",
+                          isPlayerSelected
+                            ? "border-blue-500 bg-blue-50/60 dark:border-blue-500 dark:bg-blue-950/40"
+                            : "border-transparent hover:border-zinc-200 hover:bg-zinc-50 dark:hover:border-zinc-800 dark:hover:bg-zinc-900"
+                        )}
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handlePlayerFilterChange(
+                              isPlayerSelected ? null : lb.id
+                            )
+                          }
+                          className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
                         >
-                          {idx + 1}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-bold text-zinc-900 group-hover:text-blue-600 dark:text-zinc-100 dark:group-hover:text-blue-400">
-                            {lb.name}
-                          </p>
-                          <p className="text-[10px] text-zinc-400">
-                            Състезател
-                          </p>
+                          <div
+                            className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-black ${
+                              idx === 0
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                : idx === 1
+                                  ? "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+                                  : idx === 2
+                                    ? "bg-amber-700/20 text-amber-700 dark:text-amber-400"
+                                    : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                            }`}
+                          >
+                            {idx + 1}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-bold text-zinc-900 group-hover:text-blue-600 dark:text-zinc-100 dark:group-hover:text-blue-400">
+                              {lb.name}
+                            </p>
+                            <p className="text-[10px] text-zinc-400">
+                              {isPlayerSelected
+                                ? "Активен филтър"
+                                : "Състезател"}
+                            </p>
+                          </div>
+                        </button>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-blue-600 dark:text-blue-400">
+                            {Math.floor(lb.min)} мин
+                          </span>
+                          <Link
+                            href={`/members/${lb.id}`}
+                            className="rounded-lg px-1.5 py-0.5 text-[10px] font-bold text-zinc-400 hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+                            title={`Отвори профила на ${lb.name}`}
+                          >
+                            Профил
+                          </Link>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-xs font-black text-blue-600 dark:text-blue-400">
-                          {Math.floor(lb.min)} мин
-                        </span>
-                      </div>
-                    </Link>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </CardContent>
@@ -428,22 +604,43 @@ export function ShadowHistoryClient({
         </div>
 
         {/* RIGHT: Списък с проведени сесии & Филтри (8 cols) */}
-        <div className="space-y-4 lg:col-span-8">
-          <Card className="rounded-3xl border-2 border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="space-y-3.5 lg:col-span-8">
+          <Card
+            id="card-filters"
+            className={cn(
+              "rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-xs transition-all dark:border-zinc-800 dark:bg-zinc-950",
+              highlightedCard === "filters" &&
+                "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-zinc-950"
+            )}
+          >
             {/* Filter controls */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
               <div className="relative w-full sm:max-w-xs">
                 <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
                 <Input
+                  aria-label="Търсене по играч или бележка"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="Търсене по играч или бележка..."
-                  className="h-10 rounded-xl pl-9 text-xs"
+                  className="h-9 rounded-xl pl-9 text-xs"
                 />
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {selectedPlayerId && (
+                  <button
+                    type="button"
+                    onClick={() => handlePlayerFilterChange(null)}
+                    className="inline-flex items-center gap-1 rounded-xl border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-bold text-blue-600 dark:text-blue-400"
+                  >
+                    <span>
+                      {memberNameMap[selectedPlayerId] || "Избран играч"}
+                    </span>
+                    <X className="size-3" />
+                  </button>
+                )}
+
+                <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
                   {[
                     { id: "all", label: "Всички" },
                     { id: "standard", label: "Стандартни" },
@@ -452,10 +649,10 @@ export function ShadowHistoryClient({
                     <button
                       key={m.id}
                       type="button"
-                      onClick={() => setSelectedMode(m.id)}
+                      onClick={() => handleModeChange(m.id)}
                       className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
                         selectedMode === m.id
-                          ? "bg-white text-blue-600 shadow-xs dark:bg-zinc-900 dark:text-white"
+                          ? "bg-white text-blue-600 shadow-2xs dark:bg-zinc-800 dark:text-white"
                           : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
                       }`}
                     >
@@ -464,7 +661,7 @@ export function ShadowHistoryClient({
                   ))}
                 </div>
 
-                <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
+                <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
                   {[
                     { id: "all", label: "Всички дати" },
                     { id: "7d", label: "7 дни" },
@@ -474,11 +671,11 @@ export function ShadowHistoryClient({
                       key={p.id}
                       type="button"
                       onClick={() =>
-                        setSelectedPeriod(p.id as "all" | "7d" | "30d")
+                        handlePeriodChange(p.id as "all" | "7d" | "30d")
                       }
                       className={`rounded-lg px-2 py-1 text-xs font-bold transition-all ${
                         selectedPeriod === p.id
-                          ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-900 dark:text-white"
+                          ? "bg-white text-zinc-900 shadow-2xs dark:bg-zinc-800 dark:text-white"
                           : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
                       }`}
                     >
@@ -486,6 +683,8 @@ export function ShadowHistoryClient({
                     </button>
                   ))}
                 </div>
+
+                {renderCardLinkBtn("filters", "Филтри на сесиите")}
               </div>
             </div>
           </Card>
@@ -493,8 +692,8 @@ export function ShadowHistoryClient({
           {/* Sessions List */}
           <div className="space-y-3">
             {filteredSessions.length === 0 ? (
-              <Card className="rounded-3xl border-dashed border-zinc-200 bg-white p-12 text-center dark:border-zinc-800 dark:bg-zinc-900">
-                <Info className="mx-auto size-8 text-zinc-400" />
+              <Card className="rounded-2xl border-dashed border-zinc-200 bg-white p-10 text-center dark:border-zinc-800 dark:bg-zinc-950">
+                <Info className="mx-auto size-7 text-zinc-400" />
                 <h2 className="mt-2 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                   Няма намерени тренировки
                 </h2>
@@ -528,11 +727,11 @@ export function ShadowHistoryClient({
                   <Card
                     key={session.id}
                     id={`session-${session.id}`}
-                    className={`overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-xs transition-all hover:border-blue-400 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 ${
+                    className={`overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs transition-all hover:border-blue-400 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 ${
                       isHighlighted ? "ring-2 ring-indigo-500" : ""
                     }`}
                   >
-                    <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-3.5 p-4 sm:flex-row sm:items-center sm:justify-between">
                       {/* Left: Info */}
                       <div className="space-y-1.5">
                         <div className="flex flex-wrap items-center gap-2">
@@ -543,13 +742,15 @@ export function ShadowHistoryClient({
                             {modeInfo.label}
                           </span>
                           {isPb && (
-                            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[10px] font-bold">
+                            <Badge className="bg-amber-100 text-[10px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                               🏆 Личен рекорд (PB)
                             </Badge>
                           )}
                           {session.shadowDetails?.preset && (
                             <Badge variant="outline" className="text-[10px]">
-                              {session.shadowDetails.preset}
+                              {session.shadowDetails.preset === "custom"
+                                ? "Персонализиран"
+                                : session.shadowDetails.preset}
                             </Badge>
                           )}
                           <span className="text-xs text-zinc-400">
@@ -564,7 +765,7 @@ export function ShadowHistoryClient({
                         </div>
 
                         {/* Players */}
-                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                           <span className="text-xs font-bold text-zinc-500">
                             Участници ({memberIdsList.length}):
                           </span>
@@ -592,7 +793,7 @@ export function ShadowHistoryClient({
                       </div>
 
                       {/* Right: Metrics & Actions */}
-                      <div className="flex items-center justify-between gap-4 border-t border-zinc-100 pt-3 sm:border-t-0 sm:pt-0">
+                      <div className="flex items-center justify-between gap-4 border-t border-zinc-100 pt-2.5 sm:border-t-0 sm:pt-0 dark:border-zinc-800">
                         <div className="text-right">
                           <div className="text-sm font-black text-zinc-900 dark:text-white">
                             {durationLabel}
@@ -609,22 +810,22 @@ export function ShadowHistoryClient({
                               variant="ghost"
                               size="icon"
                               onClick={() => {
-                                const url = `${window.location.origin}${window.location.pathname}?id=${session.id}`;
+                                const url = `${window.location.origin}${window.location.pathname}?session=${session.id}`;
                                 void navigator.clipboard.writeText(url);
-                                toast.success("Линкът е копиран!");
+                                toast.success("Линкът към сесията е копиран!");
                               }}
-                              className="size-9 rounded-xl text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                              className="size-8 rounded-xl text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
                               title="Копирай директен линк"
                               aria-label="Копирай директен линк"
                             >
-                              <Link2 className="size-4" />
+                              <Link2 className="size-3.5" />
                             </Button>
                           )}
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleOpenInspect(session)}
-                            className="h-9 rounded-xl text-xs font-bold"
+                            className="h-8 rounded-xl text-xs font-bold"
                           >
                             <Eye className="mr-1.5 size-3.5" /> Детайли
                           </Button>
@@ -642,15 +843,16 @@ export function ShadowHistoryClient({
         </div>
       </div>
 
+      {/* URL-Synced Session Details Modal (?session=<id>) */}
       <Dialog
         open={!!inspectSession}
         onOpenChange={(open) => {
           if (!open) handleCloseInspect();
         }}
       >
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
+        <DialogContent className="flex max-h-[92dvh] w-[calc(100%-1.25rem)] flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl sm:max-h-[85vh] sm:w-full sm:max-w-2xl lg:max-w-3xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
-          <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="flex shrink-0 items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/40">
             <div className="flex items-center gap-3 pr-8">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
                 <Zap className="size-4" />
@@ -672,11 +874,11 @@ export function ShadowHistoryClient({
           </div>
 
           {inspectSession && (
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-4 min-h-0">
+            <div className="custom-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5">
               {/* Parameters Grid */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-900">
-                  <span className="text-[10px] font-bold uppercase text-zinc-400">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase">
                     Режим
                   </span>
                   <p className="text-xs font-black text-zinc-900 dark:text-white">
@@ -684,7 +886,7 @@ export function ShadowHistoryClient({
                   </p>
                 </div>
                 <div className="rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-900">
-                  <span className="text-[10px] font-bold uppercase text-zinc-400">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase">
                     Времетраене
                   </span>
                   <p className="text-xs font-black text-zinc-900 dark:text-white">
@@ -692,7 +894,7 @@ export function ShadowHistoryClient({
                   </p>
                 </div>
                 <div className="rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-900">
-                  <span className="text-[10px] font-bold uppercase text-zinc-400">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase">
                     Серии
                   </span>
                   <p className="text-xs font-black text-zinc-900 dark:text-white">
@@ -701,7 +903,7 @@ export function ShadowHistoryClient({
                   </p>
                 </div>
                 <div className="rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-900">
-                  <span className="text-[10px] font-bold uppercase text-zinc-400">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase">
                     Конфигурация
                   </span>
                   <p className="text-xs font-black text-zinc-900 dark:text-white">
@@ -725,7 +927,7 @@ export function ShadowHistoryClient({
                   return (
                     <div className="flex items-center justify-between rounded-2xl border border-red-200/80 bg-red-50/50 p-3.5 dark:border-red-900/50 dark:bg-red-950/30">
                       <div>
-                        <span className="text-[10px] font-bold uppercase text-red-600 dark:text-red-400">
+                        <span className="text-[10px] font-bold text-red-600 uppercase dark:text-red-400">
                           Постигнато време (Тест за бързина)
                         </span>
                         <p className="text-sm font-black text-zinc-900 dark:text-white">
@@ -733,7 +935,7 @@ export function ShadowHistoryClient({
                         </p>
                       </div>
                       {isPb && (
-                        <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-xs font-bold">
+                        <Badge className="bg-amber-100 text-xs font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                           🏆 Личен рекорд (PB)
                         </Badge>
                       )}
@@ -743,7 +945,7 @@ export function ShadowHistoryClient({
 
               {/* Court visualization preview */}
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
-                <span className="mb-2 text-[11px] font-bold uppercase text-zinc-400">
+                <span className="mb-2 text-[11px] font-bold text-zinc-400 uppercase">
                   Схема на корта за тази сесия
                 </span>
                 <div className="w-full max-w-60">
@@ -770,7 +972,7 @@ export function ShadowHistoryClient({
                   return (
                     <div className="space-y-2 rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                        <h4 className="text-xs font-bold tracking-wider text-zinc-500 uppercase">
                           Разпределение по зони (Heatmap)
                         </h4>
                         <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
@@ -803,7 +1005,7 @@ export function ShadowHistoryClient({
 
               {/* Players and RPE Ratings */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                <h4 className="text-xs font-bold tracking-wider text-zinc-500 uppercase">
                   Участници и индивидуално RPE натоварване (1 - 10)
                 </h4>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -842,7 +1044,7 @@ export function ShadowHistoryClient({
               {/* Coach Notes */}
               {inspectSession.notes && (
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <h4 className="text-xs font-bold uppercase text-zinc-500">
+                  <h4 className="text-xs font-bold text-zinc-500 uppercase">
                     Треньорски бележки
                   </h4>
                   <p className="mt-1 text-xs text-zinc-700 dark:text-zinc-300">
@@ -854,12 +1056,27 @@ export function ShadowHistoryClient({
           )}
 
           {/* Fixed Sticky Footer */}
-          <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <div className="flex shrink-0 items-center justify-between border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+            {inspectSession?.id && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const url = `${window.location.origin}${window.location.pathname}?session=${inspectSession.id}`;
+                  void navigator.clipboard.writeText(url);
+                  toast.success("Директният URL на сесията е копиран!");
+                }}
+                className="h-8 rounded-xl text-xs font-bold"
+              >
+                <Link2 className="mr-1.5 size-3.5" /> Копирай URL на сесията
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"
               onClick={handleCloseInspect}
-              className="h-9 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              className="ml-auto h-9 rounded-xl px-4 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
             >
               Затвори
             </Button>

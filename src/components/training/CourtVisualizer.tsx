@@ -215,9 +215,9 @@ export function CourtVisualizer({
         </div>
       )}
 
-      {/* Top Player Badge (Поле 2 / Горе) - Positioned near the net in Field 2 to avoid overlapping ЗАДНА Д / ЗАДНА Л */}
+      {/* Top Player Badge (Поле 2 / Горе) - Positioned in the upper doubles area of Field 2 to avoid overlapping both ЗАДНА and МРЕЖА */}
       {!isHalfCourt && topName && (
-        <div className="absolute top-[42%] left-2.5 z-20 flex max-w-[80%] items-center gap-1.5 truncate rounded-lg border border-blue-500/40 bg-zinc-950/90 px-2 py-0.5 text-[11px] font-bold text-blue-300 shadow-md backdrop-blur-md">
+        <div className="absolute top-[32%] left-2.5 z-20 flex max-w-[80%] items-center gap-1.5 truncate rounded-lg border border-blue-500/40 bg-zinc-950/90 px-2 py-0.5 text-[11px] font-bold text-blue-300 shadow-md backdrop-blur-md">
           <User size={12} className="text-blue-400 shrink-0" />
           <span className="text-[10px] text-blue-400 font-extrabold uppercase">
             Поле 2:

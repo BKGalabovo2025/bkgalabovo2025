@@ -1,70 +1,71 @@
 "use client";
 
+import { History, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
-import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 import { getActiveShadowSection, SHADOW_SECTIONS } from "./shadow-sections";
 
-interface ShadowNavProps {
-  className?: string;
-}
-
-export function ShadowNav({ className }: ShadowNavProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const activeSection = getActiveShadowSection(pathname);
-
-  const sp = new URLSearchParams(searchParams?.toString() || "");
-  sp.delete("session");
-  sp.delete("id");
-  sp.delete("sessionId");
-  const queryString = sp.toString();
-  const preservedQuery = queryString ? `?${queryString}` : "";
+export function ShadowNav() {
+  const pathname = usePathname() || "/training/shadow";
+  const activeId = getActiveShadowSection(pathname);
 
   return (
-    <nav
-      aria-label="Секции на Shadow Training"
-      className={cn(
-        "flex w-full items-center gap-1.5 overflow-x-auto border-b border-zinc-200/80 bg-zinc-50/50 p-1.5 pb-2 scrollbar-none dark:border-zinc-800/80 dark:bg-zinc-900/40",
-        className
-      )}
-    >
-      {SHADOW_SECTIONS.map((section) => {
-        const isActive = activeSection === section.id;
-        const targetHref = `${section.href}${preservedQuery}`;
+    <TooltipProvider delayDuration={300}>
+      <nav
+        aria-label="Секции за Shadow Training"
+        className="w-full overflow-x-auto pb-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden"
+      >
+        <div className="inline-flex min-w-full items-center gap-1 rounded-2xl border border-zinc-200/80 bg-zinc-100/90 p-1.5 sm:min-w-0 sm:w-fit dark:border-zinc-800 dark:bg-zinc-900/60">
+          {SHADOW_SECTIONS.map((item) => {
+            const isActive = item.id === activeId;
+            const Icon = item.id === "history" ? History : Sparkles;
 
-        return (
-          <Link
-            key={section.id}
-            href={targetHref}
-            prefetch
-            className={cn(
-              "inline-flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold whitespace-nowrap transition-all",
-              isActive
-                ? "bg-zinc-900 text-white shadow-xs dark:bg-white dark:text-zinc-900"
-                : "text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100"
-            )}
-          >
-            <span>{section.label}</span>
-            {section.badge ? (
-              <Badge
-                variant="secondary"
-                className={cn(
-                  "px-1.5 py-0 text-[10px] font-bold uppercase tracking-wider",
-                  isActive
-                    ? "bg-white/20 text-white dark:bg-zinc-900/30 dark:text-zinc-900"
-                    : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+            return (
+              <Tooltip key={item.id}>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={item.href}
+                    aria-current={isActive ? "page" : undefined}
+                    className={cn(
+                      "inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition-all sm:flex-initial",
+                      isActive
+                        ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-800 dark:text-white"
+                        : "text-zinc-600 hover:bg-white/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/40 dark:hover:text-zinc-200"
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "size-3.5 shrink-0",
+                        isActive
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-zinc-400 dark:text-zinc-500"
+                      )}
+                    />
+                    <span>{item.label}</span>
+                  </Link>
+                </TooltipTrigger>
+                {item.tooltip && (
+                  <TooltipContent
+                    side="bottom"
+                    className="max-w-xs text-center text-xs"
+                  >
+                    <p>{item.tooltip}</p>
+                  </TooltipContent>
                 )}
-              >
-                {section.badge}
-              </Badge>
-            ) : null}
-          </Link>
-        );
-      })}
-    </nav>
+              </Tooltip>
+            );
+          })}
+        </div>
+      </nav>
+    </TooltipProvider>
   );
 }
