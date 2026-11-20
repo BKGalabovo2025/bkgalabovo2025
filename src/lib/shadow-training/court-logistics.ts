@@ -92,3 +92,98 @@ export function splitPlayersIntoWaves(
   }
   return waves;
 }
+
+/**
+ * Swaps two players by their IDs in the active players list.
+ */
+export function swapPlayers(
+  allPlayers: ShadowPlayer[],
+  playerId1: string,
+  playerId2: string
+): ShadowPlayer[] {
+  if (playerId1 === playerId2) return allPlayers;
+  const idx1 = allPlayers.findIndex((p) => p.id === playerId1);
+  const idx2 = allPlayers.findIndex((p) => p.id === playerId2);
+  if (idx1 === -1 || idx2 === -1) return allPlayers;
+
+  const copy = [...allPlayers];
+  const temp = copy[idx1];
+  copy[idx1] = copy[idx2];
+  copy[idx2] = temp;
+  return copy;
+}
+
+/**
+ * Moves a player directly to a specific court slot (half A or half B).
+ * If the target slot is occupied, swaps them.
+ * If empty, moves the player to the target slot index.
+ */
+export function movePlayerToCourtSlot(
+  allPlayers: ShadowPlayer[],
+  playerId: string,
+  targetCourtNumber: number,
+  targetHalf: "A" | "B" = "A",
+  strategy: CourtAllocationStrategy = "two_per_court",
+  courtsCount: number = 1
+): ShadowPlayer[] {
+  const safeCourts = Math.max(1, Math.min(6, Math.round(courtsCount || 1)));
+  const courtIdx = Math.max(0, Math.min(safeCourts - 1, targetCourtNumber - 1));
+
+  let targetIndex = 0;
+  if (strategy === "one_per_court") {
+    targetIndex = courtIdx;
+  } else {
+    targetIndex = courtIdx * 2 + (targetHalf === "B" ? 1 : 0);
+  }
+
+  const currentIdx = allPlayers.findIndex((p) => p.id === playerId);
+  if (currentIdx === -1) return allPlayers;
+  if (currentIdx === targetIndex) return allPlayers;
+
+  const copy = [...allPlayers];
+  if (targetIndex < copy.length) {
+    // Target is occupied: swap them
+    const temp = copy[currentIdx];
+    copy[currentIdx] = copy[targetIndex];
+    copy[targetIndex] = temp;
+    return copy;
+  }
+
+  // Target index is beyond current list length: move item to the end
+  const [removed] = copy.splice(currentIdx, 1);
+  copy.push(removed);
+  return copy;
+}
+
+/**
+ * Moves a player from an active court slot to the bench (resting players).
+ * If resting players exist, swaps with the first resting player so court remains occupied.
+ * Otherwise, moves the player to the resting zone (index >= capacity).
+ */
+export function movePlayerToBench(
+  allPlayers: ShadowPlayer[],
+  playerId: string,
+  courtsCount: number,
+  strategy: CourtAllocationStrategy = "two_per_court"
+): ShadowPlayer[] {
+  const safeCourts = Math.max(1, Math.min(6, Math.round(courtsCount || 1)));
+  const capacity = strategy === "two_per_court" ? safeCourts * 2 : safeCourts;
+
+  const currentIdx = allPlayers.findIndex((p) => p.id === playerId);
+  if (currentIdx === -1) return allPlayers;
+  if (currentIdx >= capacity) return allPlayers; // Already on bench
+
+  const copy = [...allPlayers];
+  if (copy.length > capacity) {
+    // Swap with first player on bench
+    const temp = copy[currentIdx];
+    copy[currentIdx] = copy[capacity];
+    copy[capacity] = temp;
+    return copy;
+  }
+
+  // No players on bench: move to end
+  const [removed] = copy.splice(currentIdx, 1);
+  copy.push(removed);
+  return copy;
+}

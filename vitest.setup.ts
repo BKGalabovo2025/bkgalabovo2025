@@ -153,12 +153,21 @@ if (typeof window !== "undefined" && window.HTMLMediaElement) {
   window.HTMLMediaElement.prototype.load = vi.fn().mockImplementation(() => {});
 }
 
-// Mock localStorage to prevent JSDOM warning
+// Functional in-memory Mock for localStorage in JSDOM
+let localStore: Record<string, string> = {};
 global.localStorage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-  length: 0,
-  key: vi.fn(),
+  getItem: vi.fn((key: string) => localStore[key] ?? null),
+  setItem: vi.fn((key: string, value: string) => {
+    localStore[key] = String(value);
+  }),
+  removeItem: vi.fn((key: string) => {
+    delete localStore[key];
+  }),
+  clear: vi.fn(() => {
+    localStore = {};
+  }),
+  get length() {
+    return Object.keys(localStore).length;
+  },
+  key: vi.fn((idx: number) => Object.keys(localStore)[idx] ?? null),
 } as unknown as Storage;

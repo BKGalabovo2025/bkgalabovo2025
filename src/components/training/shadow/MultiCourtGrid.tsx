@@ -1,6 +1,15 @@
 "use client";
 
-import { ArrowLeft, Check, Link2, Maximize2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRightLeft,
+  Check,
+  GripVertical,
+  Link2,
+  Maximize2,
+  Plus,
+  UserMinus,
+} from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -11,7 +20,20 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CourtSlot, VisualPhase } from "@/hooks/shadow-trainer/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  CourtSlot,
+  ShadowPlayer,
+  VisualPhase,
+} from "@/hooks/shadow-trainer/types";
 import { ZoneId } from "@/lib/shadow-training/audio-map";
 
 import { CourtVisualizer } from "../CourtVisualizer";
@@ -26,6 +48,14 @@ interface MultiCourtGridProps {
   leftHanded?: boolean;
   openFocusInModal?: boolean;
   className?: string;
+  editable?: boolean;
+  onSwapPlayers?: (playerAId: string, playerBId: string) => void;
+  onMovePlayerToCourt?: (
+    playerId: string,
+    targetCourtNumber: number,
+    targetHalf: "A" | "B"
+  ) => void;
+  onMovePlayerToBench?: (playerId: string) => void;
 }
 
 export function MultiCourtGrid({
@@ -38,8 +68,16 @@ export function MultiCourtGrid({
   leftHanded = false,
   openFocusInModal = false,
   className = "",
+  editable = false,
+  onSwapPlayers,
+  onMovePlayerToCourt,
+  onMovePlayerToBench,
 }: MultiCourtGridProps) {
   const [copiedCourt, setCopiedCourt] = useState<number | null>(null);
+  const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null);
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
+
+  const allCourtNumbers = slots.map((s) => s.courtNumber);
 
   const handleCopyCourtUrl = (courtNumber: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -56,6 +94,228 @@ export function MultiCourtGrid({
     } catch {
       // Ignore clipboard errors
     }
+  };
+
+  const parseDraggedPlayerId = (e: React.DragEvent): string | null => {
+    try {
+      const jsonData = e.dataTransfer.getData("application/json");
+      if (jsonData) {
+        const parsed = JSON.parse(jsonData);
+        if (parsed?.playerId) return parsed.playerId;
+      }
+    } catch {
+      // fallback
+    }
+    const plain = e.dataTransfer.getData("text/plain");
+    return plain || draggedPlayerId || null;
+  };
+
+  const handleDragStart = (playerId: string, e: React.DragEvent) => {
+    setDraggedPlayerId(playerId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("application/json", JSON.stringify({ playerId }));
+    e.dataTransfer.setData("text/plain", playerId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedPlayerId(null);
+    setDragOverKey(null);
+  };
+
+  const handleDropOnPlayer = (targetPlayerId: string, e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverKey(null);
+    const sourceId = parseDraggedPlayerId(e);
+    if (!sourceId || sourceId === targetPlayerId) return;
+    onSwapPlayers?.(sourceId, targetPlayerId);
+  };
+
+  const handleDropOnSlot = (
+    courtNumber: number,
+    half: "A" | "B",
+    e: React.DragEvent
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverKey(null);
+    const sourceId = parseDraggedPlayerId(e);
+    if (!sourceId) return;
+    onMovePlayerToCourt?.(sourceId, courtNumber, half);
+  };
+
+  const renderPlayerRow = (
+    player: ShadowPlayer | null,
+    half: "A" | "B",
+    courtNumber: number,
+    isFullCourt: boolean
+  ) => {
+    const isHalfB = half === "B";
+    const slotKey = `court-${courtNumber}-half-${half}`;
+    const label = isHalfB ? "Поле 2 (Горе)" : "Поле 1 (Долу)";
+    const labelColor = isHalfB ? "text-blue-400" : "text-emerald-400";
+    const badgeColor = isHalfB ? "text-blue-300" : "text-emerald-300";
+
+    if (!player) {
+      if (!editable) return null;
+      const isOver = dragOverKey === slotKey;
+      return (
+        <div
+          key={slotKey}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            setDragOverKey(slotKey);
+          }}
+          onDragLeave={() => {
+            if (dragOverKey === slotKey) setDragOverKey(null);
+          }}
+          onDrop={(e) => handleDropOnSlot(courtNumber, half, e)}
+          className={`flex items-center justify-center gap-1.5 rounded-lg border border-dashed py-1.5 text-[11px] font-semibold transition-all ${
+            isOver
+              ? "border-blue-400 bg-blue-500/20 text-blue-200 shadow-xs"
+              : "border-zinc-800 bg-zinc-900/30 text-zinc-500 hover:border-zinc-700 hover:text-zinc-400"
+          }`}
+        >
+          <Plus size={11} />
+          <span>Плъзнете играч в {label}</span>
+        </div>
+      );
+    }
+
+    const isDraggingThis = draggedPlayerId === player.id;
+    const isOverThis = dragOverKey === player.id;
+
+    return (
+      <div
+        key={player.id}
+        draggable={editable}
+        onDragStart={(e) => handleDragStart(player.id, e)}
+        onDragEnd={handleDragEnd}
+        onDragOver={(e) => {
+          if (editable) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            setDragOverKey(player.id);
+          }
+        }}
+        onDragLeave={() => {
+          if (dragOverKey === player.id) setDragOverKey(null);
+        }}
+        onDrop={(e) => handleDropOnPlayer(player.id, e)}
+        className={`group/player flex items-center justify-between gap-1.5 rounded-lg border px-2 py-1 text-xs transition-all ${badgeColor} ${
+          isDraggingThis
+            ? "border-dashed border-blue-400 bg-blue-500/10 opacity-40"
+            : isOverThis
+              ? "border-amber-400 bg-amber-500/20 ring-2 ring-amber-400/50"
+              : "border-zinc-800/80 bg-zinc-900/80 hover:border-zinc-700 hover:bg-zinc-850"
+        } ${editable ? "cursor-grab active:cursor-grabbing" : ""}`}
+      >
+        <div className="flex min-w-0 items-center gap-1.5">
+          {editable && (
+            <GripVertical
+              size={12}
+              className="shrink-0 text-zinc-500 transition-colors group-hover/player:text-zinc-300"
+            />
+          )}
+          <span
+            className={`shrink-0 text-[10px] font-black tracking-wider uppercase ${labelColor}`}
+          >
+            {isFullCourt ? label : "Корт"}:
+          </span>
+          <span className="truncate font-semibold text-zinc-200">
+            {player.displayName ||
+              `${player.firstName || ""} ${player.lastName || ""}`.trim() ||
+              "Състезател"}
+          </span>
+        </div>
+
+        {editable && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex size-6 shrink-0 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                title="Премести състезател"
+                aria-label="Премести състезател"
+              >
+                <ArrowRightLeft size={11} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-52 border-zinc-800 bg-zinc-950 text-xs text-zinc-200"
+            >
+              <DropdownMenuLabel className="text-[11px] text-zinc-400">
+                Премести {player.displayName || "играча"}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-zinc-800" />
+              <DropdownMenuGroup>
+                {allCourtNumbers.map((c) => (
+                  <React.Fragment key={c}>
+                    {c !== courtNumber && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            onMovePlayerToCourt?.(player.id, c, "A")
+                          }
+                          className="cursor-pointer gap-2 hover:bg-zinc-800 hover:text-white"
+                        >
+                          <ArrowRightLeft
+                            size={12}
+                            className="text-emerald-400"
+                          />
+                          <span>Корт {c} (Поле 1 - Долу)</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            onMovePlayerToCourt?.(player.id, c, "B")
+                          }
+                          className="cursor-pointer gap-2 hover:bg-zinc-800 hover:text-white"
+                        >
+                          <ArrowRightLeft size={12} className="text-blue-400" />
+                          <span>Корт {c} (Поле 2 - Горе)</span>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {c === courtNumber && isFullCourt && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          onMovePlayerToCourt?.(
+                            player.id,
+                            c,
+                            half === "A" ? "B" : "A"
+                          )
+                        }
+                        className="cursor-pointer gap-2 hover:bg-zinc-800 hover:text-white"
+                      >
+                        <ArrowRightLeft size={12} className="text-zinc-400" />
+                        <span>
+                          Смени в{" "}
+                          {half === "A" ? "Поле 2 (Горе)" : "Поле 1 (Долу)"}
+                        </span>
+                      </DropdownMenuItem>
+                    )}
+                  </React.Fragment>
+                ))}
+              </DropdownMenuGroup>
+              {onMovePlayerToBench && (
+                <>
+                  <DropdownMenuSeparator className="bg-zinc-800" />
+                  <DropdownMenuItem
+                    onClick={() => onMovePlayerToBench(player.id)}
+                    className="cursor-pointer gap-2 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
+                  >
+                    <UserMinus size={12} />
+                    <span>Премести на пейката ⏸️</span>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+    );
   };
 
   const focusedSlot =
@@ -213,29 +473,15 @@ export function MultiCourtGrid({
               </div>
 
               {/* Assigned Players Footer */}
-              {assignedCount > 0 && (
-                <div className="mt-2 flex flex-col gap-1 rounded-xl border border-zinc-800/70 bg-zinc-900/60 p-2 text-xs">
-                  {slot.halfB && (
-                    <div className="flex items-center justify-between gap-2 text-blue-300">
-                      <span className="shrink-0 text-[10px] font-black tracking-wider text-blue-400 uppercase">
-                        Поле 2 (Горе):
-                      </span>
-                      <span className="truncate font-semibold">
-                        {slot.halfB.displayName ||
-                          `${slot.halfB.firstName || ""} ${slot.halfB.lastName || ""}`.trim()}
-                      </span>
-                    </div>
-                  )}
-                  {slot.halfA && (
-                    <div className="flex items-center justify-between gap-2 text-emerald-300">
-                      <span className="shrink-0 text-[10px] font-black tracking-wider text-emerald-400 uppercase">
-                        Поле 1 (Долу):
-                      </span>
-                      <span className="truncate font-semibold">
-                        {slot.halfA.displayName ||
-                          `${slot.halfA.firstName || ""} ${slot.halfA.lastName || ""}`.trim()}
-                      </span>
-                    </div>
+              {(assignedCount > 0 || editable) && (
+                <div className="mt-2 flex flex-col gap-1.5 rounded-xl border border-zinc-800/70 bg-zinc-900/60 p-2 text-xs">
+                  {slot.isFullCourt ? (
+                    <>
+                      {renderPlayerRow(slot.halfB, "B", slot.courtNumber, true)}
+                      {renderPlayerRow(slot.halfA, "A", slot.courtNumber, true)}
+                    </>
+                  ) : (
+                    renderPlayerRow(slot.halfA, "A", slot.courtNumber, false)
                   )}
                 </div>
               )}

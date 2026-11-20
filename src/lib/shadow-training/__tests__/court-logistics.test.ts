@@ -4,7 +4,10 @@ import { ShadowPlayer } from "@/hooks/shadow-trainer/types";
 
 import {
   calculateCourtAssignments,
+  movePlayerToBench,
+  movePlayerToCourtSlot,
   splitPlayersIntoWaves,
+  swapPlayers,
 } from "../court-logistics";
 
 describe("calculateCourtAssignments logistics", () => {
@@ -140,5 +143,57 @@ describe("splitPlayersIntoWaves wave calculation", () => {
     const waves = splitPlayersIntoWaves(players.slice(0, 6), 6);
     expect(waves).toHaveLength(1);
     expect(waves[0]).toHaveLength(6);
+  });
+});
+
+describe("interactive court drag/drop overrides", () => {
+  const players: ShadowPlayer[] = [
+    { id: "p1", displayName: "Играч 1" }, // Court 1A
+    { id: "p2", displayName: "Играч 2" }, // Court 1B
+    { id: "p3", displayName: "Играч 3" }, // Court 2A
+    { id: "p4", displayName: "Играч 4" }, // Court 2B
+    { id: "p5", displayName: "Играч 5" }, // Bench (capacity 4 for 2 courts)
+    { id: "p6", displayName: "Играч 6" }, // Bench
+  ];
+
+  it("swaps two players accurately", () => {
+    const swapped = swapPlayers(players, "p1", "p4");
+    expect(swapped[0].id).toBe("p4");
+    expect(swapped[3].id).toBe("p1");
+    expect(swapped[1].id).toBe("p2");
+  });
+
+  it("moves player to a specific court slot (e.g. from Court 1A to Court 2B, swapping with p4)", () => {
+    const moved = movePlayerToCourtSlot(
+      players,
+      "p1",
+      2,
+      "B",
+      "two_per_court",
+      2
+    );
+    // Court 2B target index is 3 (occupied by p4) -> swap p1 and p4
+    expect(moved[3].id).toBe("p1");
+    expect(moved[0].id).toBe("p4");
+  });
+
+  it("moves player from court to bench (swapping with first player on bench)", () => {
+    // 2 courts = capacity 4. p1 is at index 0. Bench starts at index 4 (p5)
+    const benched = movePlayerToBench(players, "p1", 2, "two_per_court");
+    expect(benched[0].id).toBe("p5"); // p5 took p1's slot on court
+    expect(benched[4].id).toBe("p1"); // p1 is now first on bench
+  });
+
+  it("does nothing if player is already on bench or not found", () => {
+    const notChanged = movePlayerToBench(players, "p5", 2, "two_per_court");
+    expect(notChanged).toBe(players);
+
+    const notFound = movePlayerToBench(
+      players,
+      "non-existent",
+      2,
+      "two_per_court"
+    );
+    expect(notFound).toBe(players);
   });
 });

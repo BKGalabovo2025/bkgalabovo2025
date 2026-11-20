@@ -1,20 +1,26 @@
 "use client";
 
 import {
+  ArrowRightLeft,
+  BookmarkPlus,
   Calendar,
   Check,
   ChevronDown,
   ChevronUp,
+  GripVertical,
   LayoutGrid,
   Link2,
   Mic,
   Play,
+  RefreshCw,
   RotateCcw,
   Search,
   Settings2,
   Sliders,
+  Sparkles,
   Star,
   Target,
+  Trash2,
   UserPlus,
   Users,
   Volume2,
@@ -33,14 +39,41 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  CoachPreset,
+  DEFAULT_COACH_PRESETS,
+  deleteCustomCoachPreset,
+  findPresetById,
+  loadCustomCoachPresets,
+  saveCustomCoachPreset,
+} from "@/hooks/shadow-trainer/coachPresets";
 import { ShadowPlayer, ShadowSettings } from "@/hooks/useShadowTrainer";
 import { getScheduleEventByIdAction } from "@/lib/actions/events";
 import { ZoneId } from "@/lib/shadow-training/audio-map";
 import {
   calculateCourtAssignments,
+  movePlayerToBench,
+  movePlayerToCourtSlot,
   splitPlayersIntoWaves,
+  swapPlayers,
 } from "@/lib/shadow-training/court-logistics";
 import { shadowLogger } from "@/lib/shadow-training/shadow-logger";
 import { cn, resolveMemberAgeGroup } from "@/lib/utils";
@@ -117,13 +150,20 @@ export function ShadowSetupForm({
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isModifiersOpen, setIsModifiersOpen] = useState(true);
   const [isRosterExpanded, setIsRosterExpanded] = useState(true);
+  const [customPresets, setCustomPresets] = useState<CoachPreset[]>([]);
+  const [isSavePresetOpen, setIsSavePresetOpen] = useState(false);
+  const [newPresetName, setNewPresetName] = useState("");
+  const [newPresetDescription, setNewPresetDescription] = useState("");
   const autoSelectedMemberRef = useRef<string | null>(null);
   const loadedScheduleRef = useRef<string | null>(null);
 
-  // Sync initial URL query params (?section=..., ?card=..., ?modal=..., ?court=..., ?modifiers=...)
+  // Sync initial URL query params (?section=..., ?card=..., ?modal=..., ?court=..., ?modifiers=..., ?preset=...)
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
+      const loadedCustom = loadCustomCoachPresets();
+      setCustomPresets(loadedCustom);
+
       const params = new URLSearchParams(window.location.search);
       const sec = params.get("section") as SetupSectionId | null;
       if (
@@ -131,6 +171,28 @@ export function ShadowSetupForm({
         ["all", "params", "logistics", "court", "players"].includes(sec)
       ) {
         setActiveSection(sec);
+      }
+
+      const presetParam = params.get("preset");
+      if (presetParam) {
+        const found = findPresetById(presetParam, loadedCustom);
+        if (found) {
+          setSettings((prev) => ({
+            ...prev,
+            preset: found.id,
+            mode: found.mode,
+            drillMode: found.drillMode,
+            cornersMode: found.cornersMode,
+            drillPattern: found.drillPattern,
+            ageGroup: found.ageGroup,
+            sets: found.sets,
+            workSec: found.workSec,
+            restSec: found.restSec,
+            paceSec: found.paceSec,
+            deceptionEnabled: found.deceptionEnabled ?? prev.deceptionEnabled,
+            leftHanded: found.leftHanded ?? prev.leftHanded,
+          }));
+        }
       }
 
       const modal = params.get("modal");
@@ -167,7 +229,7 @@ export function ShadowSetupForm({
     } catch {
       // Ignore URL errors
     }
-  }, []);
+  }, [setSettings]);
 
   const handleSectionChange = useCallback((sec: SetupSectionId) => {
     setActiveSection(sec);
@@ -199,6 +261,87 @@ export function ShadowSetupForm({
       });
       return next;
     });
+  }, []);
+
+  const handleApplyPreset = useCallback(
+    (preset: CoachPreset) => {
+      setSettings((prev) => ({
+        ...prev,
+        preset: preset.id,
+        mode: preset.mode,
+        drillMode: preset.drillMode,
+        cornersMode: preset.cornersMode,
+        drillPattern: preset.drillPattern,
+        ageGroup: preset.ageGroup,
+        sets: preset.sets,
+        workSec: preset.workSec,
+        restSec: preset.restSec,
+        paceSec: preset.paceSec,
+        deceptionEnabled: preset.deceptionEnabled ?? prev.deceptionEnabled,
+        leftHanded: preset.leftHanded ?? prev.leftHanded,
+        voiceSpeed: preset.voiceSpeed ?? prev.voiceSpeed,
+      }));
+      updateUrlParams((params) => {
+        params.set("preset", preset.id);
+      });
+      toast.success(`Шаблонът „${preset.name}“ е приложен!`);
+    },
+    [setSettings]
+  );
+
+  const handleSaveCustomPreset = useCallback(() => {
+    if (!newPresetName.trim()) {
+      toast.error("Моля, въведете име на новия шаблон.");
+      return;
+    }
+
+    const slug =
+      newPresetName
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9а-яё]+/gi, "-")
+        .replace(/^-+|-+$/g, "") || `preset-${Date.now()}`;
+
+    const saved = saveCustomCoachPreset({
+      id: slug,
+      name: newPresetName.trim(),
+      description: newPresetDescription.trim() || undefined,
+      mode: settings.mode,
+      drillMode: settings.drillMode,
+      cornersMode: settings.cornersMode,
+      drillPattern: settings.drillPattern,
+      ageGroup: settings.ageGroup,
+      sets: settings.sets,
+      workSec: settings.workSec,
+      restSec: settings.restSec,
+      paceSec: settings.paceSec,
+      deceptionEnabled: settings.deceptionEnabled,
+      leftHanded: settings.leftHanded,
+      voiceSpeed: settings.voiceSpeed,
+    });
+
+    const updated = loadCustomCoachPresets();
+    setCustomPresets(updated);
+    setSettings((prev) => ({ ...prev, preset: saved.id }));
+    updateUrlParams((params) => {
+      params.set("preset", saved.id);
+    });
+    setIsSavePresetOpen(false);
+    setNewPresetName("");
+    setNewPresetDescription("");
+    toast.success(`Шаблонът „${saved.name}“ беше успешно запазен!`);
+  }, [newPresetName, newPresetDescription, settings, setSettings]);
+
+  const handleDeleteCustomPreset = useCallback((presetId: string) => {
+    deleteCustomCoachPreset(presetId);
+    const updated = loadCustomCoachPresets();
+    setCustomPresets(updated);
+    updateUrlParams((params) => {
+      if (params.get("preset") === presetId) {
+        params.delete("preset");
+      }
+    });
+    toast.success("Шаблонът беше изтрит.");
   }, []);
 
   const handleFocusCourtChange = useCallback((courtNumber: number | null) => {
@@ -432,6 +575,70 @@ export function ShadowSetupForm({
     settings.courtAllocationStrategy,
   ]);
 
+  const isWakeLockSupported = useMemo(() => {
+    return typeof navigator !== "undefined" && "wakeLock" in navigator;
+  }, []);
+
+  const handleSwapPlayers = useCallback(
+    (pAId: string, pBId: string) => {
+      setSettings((prev) => ({
+        ...prev,
+        activePlayers: swapPlayers(prev.activePlayers, pAId, pBId),
+      }));
+      toast.success("Състезателите бяха разменени по кортовете!");
+    },
+    [setSettings]
+  );
+
+  const handleMovePlayerToCourt = useCallback(
+    (pId: string, courtNumber: number, half: "A" | "B") => {
+      setSettings((prev) => ({
+        ...prev,
+        activePlayers: movePlayerToCourtSlot(
+          prev.activePlayers,
+          pId,
+          courtNumber,
+          half,
+          prev.courtAllocationStrategy,
+          prev.courtsAvailable
+        ),
+      }));
+      toast.success(
+        `Състезателят беше преместен на Корт ${courtNumber} (${half === "A" ? "Поле 1" : "Поле 2"})!`
+      );
+    },
+    [setSettings]
+  );
+
+  const handleMovePlayerToBench = useCallback(
+    (pId: string) => {
+      setSettings((prev) => ({
+        ...prev,
+        activePlayers: movePlayerToBench(
+          prev.activePlayers,
+          pId,
+          prev.courtsAvailable,
+          prev.courtAllocationStrategy
+        ),
+      }));
+      toast.info("Състезателят беше преместен на пейката.");
+    },
+    [setSettings]
+  );
+
+  const handleResetCourtAllocation = useCallback(() => {
+    setSettings((prev) => {
+      const sorted = [...prev.activePlayers].sort((a, b) =>
+        (a.displayName || "").localeCompare(b.displayName || "", "bg")
+      );
+      return {
+        ...prev,
+        activePlayers: sorted,
+      };
+    });
+    toast.success("Разпределението по кортове беше възстановено автоматично!");
+  }, [setSettings]);
+
   const handleSoundCheck = () => {
     try {
       const audio = new Audio("/shadow/common/podgotvi_se.mp3");
@@ -662,6 +869,28 @@ export function ShadowSetupForm({
                   {settings.courtsAvailable === 1 ? "корт" : "корта"} •{" "}
                   {settings.activePlayers.length} играчи
                 </p>
+                {/* ─── ИНДИКАТОР ЗА СЪСТОЯНИЕТО НА ЗАЛАТА И АУДИО ГОТОВНОСТ ─── */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Аудио кеширано (32/32 MP3)
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:text-blue-300">
+                    <span className="size-1.5 rounded-full bg-blue-500" />
+                    {isWakeLockSupported
+                      ? "Екранът няма да заспива (WakeLock активен)"
+                      : "WakeLock (стандартен таймер)"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleSoundCheck}
+                    className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-blue-600 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-blue-400"
+                    title="Тествай озвучаването в залата"
+                  >
+                    <Volume2 size={11} />
+                    Тест звук
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -782,7 +1011,100 @@ export function ShadowSetupForm({
                 )}
               </div>
             </div>
-            <CardContent className="p-4">
+            <CardContent className="space-y-4 p-4">
+              {/* ── ТРЕНЬОРСКИ ШАБЛОНИ (PRESETS: BWF + СПЕЦИАЛИЗИРАНИ + CUSTOM) ── */}
+              <div className="rounded-xl border border-zinc-200/90 bg-zinc-50/80 p-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles size={15} className="shrink-0 text-amber-500" />
+                    <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                      Треньорски шаблони (Presets)
+                    </span>
+                    <span className="rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-black text-amber-700 dark:text-amber-300">
+                      BWF &amp; Персонализирани
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsSavePresetOpen(true)}
+                      className="h-7 rounded-lg border-blue-500/30 bg-blue-500/10 px-2 text-[11px] font-bold text-blue-700 hover:bg-blue-500/20 dark:text-blue-300"
+                    >
+                      <BookmarkPlus size={13} className="mr-1" />
+                      Запази като нов шаблон
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Селектор за шаблони */}
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <div className="relative min-w-50 flex-1">
+                    <select
+                      aria-label="Избор на треньорски шаблон"
+                      value={settings.preset || ""}
+                      onChange={(e) => {
+                        const pid = e.target.value;
+                        const p = findPresetById(pid, customPresets);
+                        if (p) handleApplyPreset(p);
+                      }}
+                      className="h-8 w-full appearance-none rounded-lg border border-zinc-200 bg-white px-2.5 pr-8 text-xs font-bold text-zinc-800 shadow-2xs dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+                    >
+                      <option value="" disabled>
+                        -- Изберете или приложете шаблон --
+                      </option>
+                      {customPresets.length > 0 && (
+                        <optgroup label="⭐ Мои треньорски шаблони">
+                          {customPresets.map((cp) => (
+                            <option key={`cp-${cp.id}`} value={cp.id}>
+                              ★ {cp.name} ({cp.sets}с • {cp.paceSec}s)
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="🏸 Специализирани клубни шаблони">
+                        {DEFAULT_COACH_PRESETS.filter(
+                          (p) => p.category === "specialized"
+                        ).map((sp) => (
+                          <option key={`sp-${sp.id}`} value={sp.id}>
+                            {sp.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="🏆 BWF Международни категории">
+                        {DEFAULT_COACH_PRESETS.filter(
+                          (p) => p.category === "bwf"
+                        ).map((bp) => (
+                          <option key={`bp-${bp.id}`} value={bp.id}>
+                            {bp.name} ({bp.sets}с • {bp.paceSec}s)
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                    <ChevronDown
+                      size={14}
+                      className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-zinc-400"
+                    />
+                  </div>
+
+                  {customPresets.some((cp) => cp.id === settings.preset) && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteCustomPreset(settings.preset)}
+                      className="h-8 px-2 text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                      title="Изтрий този персонализиран шаблон"
+                    >
+                      <Trash2 size={13} className="mr-1" />
+                      Изтрий
+                    </Button>
+                  )}
+                </div>
+              </div>
+
               {/* 5-те Международни Бадминтон Категории - компактни за 100% лаптоп екран */}
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
                 {[
@@ -2148,6 +2470,18 @@ export function ShadowSetupForm({
                       {courtLogistics.restingPlayers.length} почиващи
                     </span>
                   )}
+                  {settings.activePlayers.length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetCourtAllocation}
+                      className="h-7 rounded-lg border-zinc-200 bg-white px-2 text-[11px] font-bold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      title="Възстанови автоматичното разпределение"
+                    >
+                      <RefreshCw size={11} className="mr-1" /> Възстанови
+                    </Button>
+                  )}
                   {renderCardLinkButton(
                     "allocation",
                     "Разпределение по кортове в залата"
@@ -2162,25 +2496,129 @@ export function ShadowSetupForm({
                   focusedCourtNumber={focusedCourt}
                   onToggleFocus={handleFocusCourtChange}
                   openFocusInModal
+                  editable
+                  onSwapPlayers={handleSwapPlayers}
+                  onMovePlayerToCourt={handleMovePlayerToCourt}
+                  onMovePlayerToBench={handleMovePlayerToBench}
                 />
 
-                {/* Почиващи състезатели на пейката */}
+                {/* Почиващи състезатели на пейката (Интерактивна зона за преместване) */}
                 {courtLogistics.restingPlayers.length > 0 && (
-                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
-                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300">
-                      <span>
-                        ⏸️ Чакащи състезатели (влизат на корта във втората част
-                        на всяка серия):
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      try {
+                        const json = e.dataTransfer.getData("application/json");
+                        const parsed = json ? JSON.parse(json) : null;
+                        const pId =
+                          parsed?.playerId ||
+                          e.dataTransfer.getData("text/plain");
+                        if (pId) handleMovePlayerToBench(pId);
+                      } catch {
+                        const plain = e.dataTransfer.getData("text/plain");
+                        if (plain) handleMovePlayerToBench(plain);
+                      }
+                    }}
+                    className="rounded-xl border border-dashed border-amber-500/30 bg-amber-500/5 p-3 transition-colors hover:border-amber-500/50"
+                  >
+                    <div className="mb-2 flex items-center justify-between text-xs font-bold text-amber-700 dark:text-amber-300">
+                      <span className="flex items-center gap-1.5">
+                        <span>
+                          ⏸️ Чакащи състезатели на пейката (влизат във 2-ра част
+                          на серията):
+                        </span>
+                      </span>
+                      <span className="text-[10px] font-normal text-amber-600/80 dark:text-amber-400/80">
+                        (Плъзнете играч тук за почивка или към корт за размяна)
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {courtLogistics.restingPlayers.map((p) => (
-                        <span
+                        <div
                           key={p.id}
-                          className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-200"
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.setData(
+                              "application/json",
+                              JSON.stringify({ playerId: p.id })
+                            );
+                            e.dataTransfer.setData("text/plain", p.id);
+                          }}
+                          className="group/resting flex cursor-grab items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 py-1 pr-1.5 pl-2 text-xs font-semibold text-amber-800 shadow-2xs transition-all hover:border-amber-500/60 hover:bg-amber-500/15 active:cursor-grabbing dark:text-amber-200"
                         >
-                          {p.displayName}
-                        </span>
+                          <GripVertical
+                            size={12}
+                            className="text-amber-600/70 transition-colors group-hover/resting:text-amber-400"
+                          />
+                          <span className="truncate max-w-32">
+                            {p.displayName}
+                          </span>
+
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="flex size-5 items-center justify-center rounded-md text-amber-700/80 hover:bg-amber-500/20 hover:text-amber-900 dark:text-amber-300 dark:hover:text-white"
+                                title="Премести на корт"
+                                aria-label="Премести на корт"
+                              >
+                                <ArrowRightLeft size={11} />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-48 border-zinc-800 bg-zinc-950 text-xs text-zinc-200"
+                            >
+                              <DropdownMenuLabel className="text-[11px] text-zinc-400">
+                                Изпрати на корт:
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator className="bg-zinc-800" />
+                              {courtLogistics.slots.map((s) => (
+                                <React.Fragment key={s.courtNumber}>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleMovePlayerToCourt(
+                                        p.id,
+                                        s.courtNumber,
+                                        "A"
+                                      )
+                                    }
+                                    className="cursor-pointer gap-2 hover:bg-zinc-800 hover:text-white"
+                                  >
+                                    <ArrowRightLeft
+                                      size={12}
+                                      className="text-emerald-400"
+                                    />
+                                    <span>Корт {s.courtNumber} (Поле 1)</span>
+                                  </DropdownMenuItem>
+                                  {s.isFullCourt && (
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleMovePlayerToCourt(
+                                          p.id,
+                                          s.courtNumber,
+                                          "B"
+                                        )
+                                      }
+                                      className="cursor-pointer gap-2 hover:bg-zinc-800 hover:text-white"
+                                    >
+                                      <ArrowRightLeft
+                                        size={12}
+                                        className="text-blue-400"
+                                      />
+                                      <span>Корт {s.courtNumber} (Поле 2)</span>
+                                    </DropdownMenuItem>
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -2209,6 +2647,71 @@ export function ShadowSetupForm({
           onOpenChange={handleAddMemberOpenChange}
           onMemberAdded={handleMemberAdded}
         />
+
+        {/* ── МОДАЛ ЗА ЗАПАЗВАНЕ НА НОВ ТРЕНЬОРСКИ ШАБЛОН ── */}
+        <Dialog open={isSavePresetOpen} onOpenChange={setIsSavePresetOpen}>
+          <DialogContent className="max-w-md rounded-2xl p-5">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base font-black">
+                <BookmarkPlus className="size-5 text-blue-600" />
+                Запазване на треньорски шаблон
+              </DialogTitle>
+              <DialogDescription className="text-xs text-zinc-500">
+                Текущите параметри ({settings.sets} серии, {settings.workSec}s
+                работа / {settings.restSec}s почивка, темпо {settings.paceSec}s,{" "}
+                {settings.drillMode}) ще се запазят като готов шаблон с директен
+                URL линк.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 py-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="preset-name" className="text-xs font-bold">
+                  Име на шаблона *
+                </Label>
+                <Input
+                  id="preset-name"
+                  placeholder="Напр. Специфична за двойки – предна и средна зона"
+                  value={newPresetName}
+                  onChange={(e) => setNewPresetName(e.target.value)}
+                  className="h-9 text-xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="preset-desc" className="text-xs font-bold">
+                  Кратко описание (по избор)
+                </Label>
+                <Input
+                  id="preset-desc"
+                  placeholder="Напр. Защита и мрежа с бърз ритъм..."
+                  value={newPresetDescription}
+                  onChange={(e) => setNewPresetDescription(e.target.value)}
+                  className="h-9 text-xs"
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSavePresetOpen(false)}
+                className="text-xs"
+              >
+                Отказ
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSaveCustomPreset}
+                className="bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
+              >
+                Запази шаблона
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
