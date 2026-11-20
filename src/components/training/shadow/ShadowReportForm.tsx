@@ -4,6 +4,7 @@ import {
   Award,
   CheckCircle2,
   Clock,
+  FileText,
   Layers,
   Minus,
   Plus,
@@ -24,6 +25,9 @@ import { useAuth } from "@/context/auth-context";
 import { ShadowPlayer, ShadowSettings } from "@/hooks/useShadowTrainer";
 import { recordShadowAgilityAssessmentAction } from "@/lib/actions/trainings";
 
+import { CourtHeatmapPreview } from "./CourtHeatmapPreview";
+import { ShadowExportProtocolDialog } from "./ShadowExportProtocolDialog";
+
 interface ShadowReportFormProps {
   rpeScore: number;
   setRpeScore: (score: number) => void;
@@ -39,6 +43,7 @@ interface ShadowReportFormProps {
   actualElapsedMs?: number;
   completedSets?: number;
   agilityActionsDone?: number;
+  zoneCounts?: Record<string, number>;
 }
 
 function formatDuration(ms: number): string {
@@ -65,6 +70,7 @@ export function ShadowReportForm({
   actualElapsedMs = 0,
   completedSets = 0,
   agilityActionsDone = 0,
+  zoneCounts = {},
 }: ShadowReportFormProps) {
   const { idToken, user } = useAuth();
   const [customPlayerRpe, setCustomPlayerRpe] = useState<
@@ -76,6 +82,7 @@ export function ShadowReportForm({
   const [recordingMemberId, setRecordingMemberId] = useState<string | null>(
     null
   );
+  const [showProtocolDialog, setShowProtocolDialog] = useState(false);
 
   const effectiveIndividualRpe = useMemo(() => {
     const map: Record<string, number> = {};
@@ -260,6 +267,14 @@ export function ShadowReportForm({
             </div>
           )}
 
+          {/* Interactive Heatmap Preview */}
+          <div className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <CourtHeatmapPreview
+              heatmap={zoneCounts}
+              leftHanded={settings?.leftHanded}
+            />
+          </div>
+
           <div className="mt-4 w-full space-y-6 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 sm:space-y-8 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2">
@@ -435,31 +450,92 @@ export function ShadowReportForm({
             </div>
           </div>
 
-          <div className="mt-8 flex w-full flex-col-reverse flex-wrap gap-3 sm:flex-row">
-            {onDiscard && (
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                onClick={onDiscard}
-                className="h-auto min-h-11 w-full rounded-xl border-zinc-300 bg-zinc-100 px-4 py-3 text-center text-xs font-bold whitespace-normal text-zinc-700 hover:border-zinc-400 hover:bg-zinc-200 hover:text-zinc-900 sm:w-auto sm:flex-1 sm:text-sm dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-white"
-              >
-                <XCircle className="mr-2 size-4 shrink-0 text-zinc-500 sm:size-5 dark:text-zinc-400" />
-                <span>НЕ ЗАПИСВАЙ / ПРОПУСНИ</span>
-              </Button>
-            )}
+          {/* Action Toolbar */}
+          <div className="flex w-full flex-col gap-3 pt-2">
             <Button
               type="button"
+              variant="outline"
               size="lg"
-              onClick={() => onSave(rpeScore, rpeNotes, effectiveIndividualRpe)}
-              className={`h-auto min-h-11 w-full rounded-xl bg-green-600 px-5 py-3 text-center text-xs font-black whitespace-normal text-white hover:bg-green-700 sm:w-auto sm:text-sm ${onDiscard ? "sm:flex-[1.5]" : "sm:flex-1"}`}
+              onClick={() => setShowProtocolDialog(true)}
+              className="h-11 w-full rounded-xl border-blue-300 bg-blue-50/70 text-xs font-bold text-blue-900 transition-colors hover:bg-blue-100 sm:text-sm dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200 dark:hover:bg-blue-900/60"
             >
-              <Save className="mr-2 size-4 shrink-0 sm:size-5" />
-              <span>ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ</span>
+              <FileText className="mr-2 size-4 text-blue-600 dark:text-blue-400" />
+              <span>ОФИЦИАЛЕН КЛУБЕН ПРОТОКОЛ (ПЕЧАТ &amp; PDF)</span>
             </Button>
+
+            <div className="flex w-full flex-col-reverse flex-wrap gap-3 sm:flex-row">
+              {onDiscard && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  onClick={onDiscard}
+                  className="h-auto min-h-11 w-full rounded-xl border-zinc-300 bg-zinc-100 px-4 py-3 text-center text-xs font-bold whitespace-normal text-zinc-700 hover:border-zinc-400 hover:bg-zinc-200 hover:text-zinc-900 sm:w-auto sm:flex-1 sm:text-sm dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-white"
+                >
+                  <XCircle className="mr-2 size-4 shrink-0 text-zinc-500 sm:size-5 dark:text-zinc-400" />
+                  <span>НЕ ЗАПИСВАЙ / ПРОПУСНИ</span>
+                </Button>
+              )}
+              <Button
+                type="button"
+                size="lg"
+                onClick={() =>
+                  onSave(rpeScore, rpeNotes, effectiveIndividualRpe)
+                }
+                className={`h-auto min-h-11 w-full rounded-xl bg-green-600 px-5 py-3 text-center text-xs font-black whitespace-normal text-white hover:bg-green-700 sm:w-auto sm:text-sm ${onDiscard ? "sm:flex-[1.5]" : "sm:flex-1"}`}
+              >
+                <Save className="mr-2 size-4 shrink-0 sm:size-5" />
+                <span>ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ</span>
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
+
+      {/* Official PDF & Print Protocol Dialog */}
+      <ShadowExportProtocolDialog
+        open={showProtocolDialog}
+        onOpenChange={setShowProtocolDialog}
+        coachName={user?.displayName || user?.email || "Мира Георгиева"}
+        mode={settings?.mode}
+        preset={settings?.preset}
+        cornersMode={settings?.cornersMode}
+        ageGroup={settings?.ageGroup}
+        durationMs={actualElapsedMs}
+        completedSets={completedSets}
+        totalSets={settings?.sets}
+        workSec={settings?.workSec}
+        restSec={settings?.restSec}
+        paceSec={settings?.paceSec}
+        drillPattern={settings?.drillPattern}
+        notes={rpeNotes}
+        heatmap={zoneCounts}
+        athletes={
+          settings?.activePlayers?.map((p) => {
+            const pName =
+              p.displayName ||
+              `${p.firstName || ""} ${p.lastName || ""}`.trim() ||
+              "Състезател";
+            return {
+              id: p.id,
+              name: pName,
+              ageGroup: p.ageGroup || settings.ageGroup,
+              rpe: effectiveIndividualRpe[p.id] ?? rpeScore,
+              timeSec:
+                settings.mode === "agility_test"
+                  ? Number((actualElapsedMs / 1000).toFixed(1))
+                  : undefined,
+              actionsCount: agilityActionsDone || settings.workSec,
+            };
+          }) || []
+        }
+        agilityTestTimeSec={
+          settings?.mode === "agility_test"
+            ? Number((actualElapsedMs / 1000).toFixed(1))
+            : undefined
+        }
+        agilityActionsDone={agilityActionsDone}
+      />
     </div>
   );
 }

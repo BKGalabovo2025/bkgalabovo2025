@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Clock,
   Eye,
+  FileText,
   Flame,
   Info,
   Layers,
@@ -40,12 +41,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
-import { ZONE_NAMES, ZoneId } from "@/lib/shadow-training/audio-map";
+import { ZoneId } from "@/lib/shadow-training/audio-map";
 import { cn } from "@/lib/utils";
 import { TrainingSession } from "@/types/training.types";
 
 import { CourtVisualizer } from "../CourtVisualizer";
 import { DeleteTrainingButton } from "../DeleteTrainingButton";
+import { CourtHeatmapPreview } from "./CourtHeatmapPreview";
+import { ShadowExportProtocolDialog } from "./ShadowExportProtocolDialog";
+import { ShadowRpeTrendChart } from "./ShadowRpeTrendChart";
 
 interface ShadowHistoryClientProps {
   sessions: TrainingSession[];
@@ -113,6 +117,7 @@ export function ShadowHistoryClient({
   const [inspectSession, setInspectSession] = useState<TrainingSession | null>(
     null
   );
+  const [showInspectProtocol, setShowInspectProtocol] = useState(false);
   const [copiedCardId, setCopiedCardId] = useState<string | null>(null);
   const [highlightedCard, setHighlightedCard] = useState<string | null>(
     () => cardParam || null
@@ -593,6 +598,17 @@ export function ShadowHistoryClient({
               </div>
             </CardContent>
           </Card>
+
+          {/* RPE Fatigue & Adaptation Trend */}
+          <div id="card-rpe-trend" className="mt-4">
+            <ShadowRpeTrendChart
+              sessions={sessions}
+              athleteId={selectedPlayerId}
+              athleteName={
+                selectedPlayerId ? memberNameMap[selectedPlayerId] : undefined
+              }
+            />
+          </div>
         </div>
 
         {/* RIGHT: Списък с проведени сесии & Филтри (8 cols) */}
@@ -950,50 +966,14 @@ export function ShadowHistoryClient({
               </div>
 
               {/* Real Heatmap breakdown if present */}
-              {inspectSession.shadowDetails?.heatmap &&
-                (() => {
-                  const heatmap = inspectSession.shadowDetails.heatmap;
-                  const entries = Object.entries(heatmap).filter(
-                    ([, count]) => typeof count === "number" && count > 0
-                  );
-                  const totalHits = entries.reduce(
-                    (acc, [, count]) => acc + count,
-                    0
-                  );
-                  if (totalHits === 0) return null;
-                  return (
-                    <div className="space-y-2 rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold tracking-wider text-zinc-500 uppercase">
-                          Разпределение по зони (Heatmap)
-                        </h4>
-                        <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                          Общо: {totalHits} извиквания
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        {entries.map(([zoneKey, count]) => {
-                          const pct = Math.round((count / totalHits) * 100);
-                          const label =
-                            ZONE_NAMES[zoneKey as ZoneId] || zoneKey;
-                          return (
-                            <div
-                              key={zoneKey}
-                              className="flex items-center justify-between rounded-xl border border-zinc-200/80 bg-white px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-900"
-                            >
-                              <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                                {label}
-                              </span>
-                              <span className="font-black text-blue-600 dark:text-blue-400">
-                                {count} ({pct}%)
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })()}
+              {inspectSession.shadowDetails?.heatmap && (
+                <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <CourtHeatmapPreview
+                    heatmap={inspectSession.shadowDetails.heatmap}
+                    leftHanded={inspectSession.shadowDetails.leftHanded}
+                  />
+                </div>
+              )}
 
               {/* Players and RPE Ratings */}
               <div className="space-y-2">
@@ -1048,22 +1028,36 @@ export function ShadowHistoryClient({
           )}
 
           {/* Fixed Sticky Footer */}
-          <div className="flex shrink-0 items-center justify-between border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
-            {inspectSession?.id && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const url = `${window.location.origin}${window.location.pathname}?session=${inspectSession.id}`;
-                  void navigator.clipboard.writeText(url);
-                  toast.success("Директният URL на сесията е копиран!");
-                }}
-                className="h-8 rounded-xl text-xs font-bold"
-              >
-                <Link2 className="mr-1.5 size-3.5" /> Копирай URL на сесията
-              </Button>
-            )}
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div className="flex flex-wrap items-center gap-2">
+              {inspectSession?.id && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const url = `${window.location.origin}${window.location.pathname}?session=${inspectSession.id}`;
+                    void navigator.clipboard.writeText(url);
+                    toast.success("Директният URL на сесията е копиран!");
+                  }}
+                  className="h-8 rounded-xl text-xs font-bold"
+                >
+                  <Link2 className="mr-1.5 size-3.5" /> Копирай URL
+                </Button>
+              )}
+              {inspectSession && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowInspectProtocol(true)}
+                  className="h-8 rounded-xl border-blue-300 bg-blue-50/80 text-xs font-bold text-blue-900 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200"
+                >
+                  <FileText className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
+                  Официален Протокол (PDF)
+                </Button>
+              )}
+            </div>
             <Button
               type="button"
               variant="ghost"
@@ -1075,6 +1069,50 @@ export function ShadowHistoryClient({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Official Protocol Export Modal for Inspected Session */}
+      {inspectSession && (
+        <ShadowExportProtocolDialog
+          open={showInspectProtocol}
+          onOpenChange={setShowInspectProtocol}
+          date={inspectSession.date}
+          coachName={inspectSession.createdBy?.name || "Мира Георгиева"}
+          mode={inspectSession.shadowDetails?.mode || inspectSession.type}
+          preset={inspectSession.shadowDetails?.preset}
+          cornersMode={inspectSession.shadowDetails?.cornersMode}
+          ageGroup={inspectSession.shadowDetails?.ageGroup}
+          durationMs={inspectSession.durationMs}
+          completedSets={inspectSession.shadowDetails?.setsCompleted}
+          totalSets={inspectSession.shadowDetails?.totalSets}
+          workSec={inspectSession.shadowDetails?.workTimeSec}
+          restSec={inspectSession.shadowDetails?.restTimeSec}
+          paceSec={inspectSession.shadowDetails?.paceSec}
+          drillPattern={inspectSession.shadowDetails?.drillPattern}
+          notes={inspectSession.notes}
+          heatmap={inspectSession.shadowDetails?.heatmap}
+          athletes={(inspectSession.memberIds || []).map((id) => {
+            const detailsWithIndiv =
+              inspectSession.shadowDetails as TrainingSession["shadowDetails"] & {
+                individualRpe?: Record<string, number>;
+              };
+            const rpe =
+              detailsWithIndiv?.individualRpe?.[id] ??
+              inspectSession.shadowDetails?.rpeScores?.[id] ??
+              inspectSession.rpeScores?.[id] ??
+              5;
+            return {
+              id,
+              name: memberNameMap[id] || `Състезател #${id.slice(0, 6)}`,
+              ageGroup: inspectSession.shadowDetails?.ageGroup,
+              rpe,
+              timeSec: inspectSession.shadowDetails?.agilityTestTimeSec,
+              actionsCount: inspectSession.shadowDetails?.agilityActionsDone,
+            };
+          })}
+          agilityTestTimeSec={inspectSession.shadowDetails?.agilityTestTimeSec}
+          agilityActionsDone={inspectSession.shadowDetails?.agilityActionsDone}
+        />
+      )}
     </div>
   );
 }

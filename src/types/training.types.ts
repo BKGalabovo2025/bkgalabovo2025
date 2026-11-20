@@ -43,9 +43,13 @@ export interface TrainingSession {
     restTimeSec: number;
     paceSec?: number; // Real pace in seconds instead of 'slow'/'fast' string
     deceptionEnabled: boolean;
+    leftHanded?: boolean;
+    calloutMode?: string;
+    agilityActionsDone?: number;
     agilityTestTimeSec?: number; // If it was an agility test
     heatmap?: Record<string, number>; // zone -> count
     rpeScores?: Record<string, number>; // memberId -> 1-10
+    individualRpe?: Record<string, number>; // memberId -> 1-10
   };
 
   rpeScores?: Record<string, number>; // memberId -> 1-10

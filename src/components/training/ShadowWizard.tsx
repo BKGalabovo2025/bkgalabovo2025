@@ -313,6 +313,7 @@ export function ShadowWizard({
         actualElapsedMs={trainer.actualElapsedMs}
         completedSets={trainer.currentSet}
         agilityActionsDone={trainer.agilityActionsDone}
+        zoneCounts={trainerWithExtras.zoneCounts || {}}
       />
     );
   }
