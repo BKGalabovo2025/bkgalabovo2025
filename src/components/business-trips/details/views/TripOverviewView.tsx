@@ -158,9 +158,16 @@ export function TripOverviewView() {
                 coachName
               )}
             </p>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              {coach?.phone || "Няма телефон"}
-            </p>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                {coach?.phone || "Няма телефон"}
+              </p>
+              {trip.coachIsAthlete && (
+                <span className="inline-flex items-center rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                  Треньор & Състезател
+                </span>
+              )}
+            </div>
           </div>
         </BentoCard>
 
@@ -174,15 +181,22 @@ export function TripOverviewView() {
             </div>
           </div>
           <div className="mt-2">
-            <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              <Link
-                href={`/accounting/trips/${trip.id}/athletes`}
-                title="Към списъка със състезатели"
-                className="hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                {trip.participantsIds?.length || 0}
-              </Link>
-            </p>
+            <div className="flex items-baseline gap-1.5">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                <Link
+                  href={`/accounting/trips/${trip.id}/athletes`}
+                  title="Към списъка със състезатели"
+                  className="hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  {trip.participantsIds?.length || 0}
+                </Link>
+              </p>
+              {trip.coachIsAthlete && (
+                <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                  (+1 ръководител-състезател)
+                </span>
+              )}
+            </div>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
               {Object.keys(trip.signatures?.athletes || {}).length} подписани
             </p>

@@ -200,6 +200,43 @@ export function TripAthletesView() {
         </div>
       </div>
 
+      {trip.coachIsAthlete && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 dark:border-amber-500/30 dark:bg-amber-500/10">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-sm">
+              {trip.coachName?.charAt(0) || "Р"}
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-bold text-zinc-900 dark:text-white">
+                  {trip.coachName || "Ръководител"}
+                </p>
+                <span className="inline-flex items-center rounded-md bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                  Ръководител & Състезател
+                </span>
+              </div>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Вписана като състезател в официалната клубна делегация •
+                Единично финансово начисление (без дублиране)
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {trip.signatures?.coach ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="size-4" />
+                Подписан (Ръководител)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-xs text-zinc-400">
+                <XCircle className="size-4" />
+                Чака подпис
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {participantIds.length === 0 ? (
           <div className="col-span-full rounded-2xl border border-zinc-200 bg-white p-12 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950">

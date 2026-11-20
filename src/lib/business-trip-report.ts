@@ -458,8 +458,12 @@ export function generateDefaultReportText(
   const coachName =
     trip.coachName ||
     (coach ? `${coach.firstName} ${coach.lastName}` : "Треньор/Ръководител");
-  const coachRole =
+  const baseCoachRole =
     trip.coachRole || (coach?.isCoach ? "Треньор" : "Ръководител");
+  const coachRole =
+    trip.coachIsAthlete && !baseCoachRole.includes("състезател")
+      ? `${baseCoachRole} и състезател`
+      : baseCoachRole;
 
   const rawParticipantIds =
     trip.participantsIds && trip.participantsIds.length > 0
@@ -472,13 +476,18 @@ export function generateDefaultReportText(
           }) ?? []);
 
   const athletesMembers = rawParticipantIds
+    .filter((id) => id !== trip.coachId && id !== "coach")
     .map((id) => membersDict[id])
     .filter(Boolean) as Member[];
 
-  const athletesCount = athletesMembers.length;
-  const athletesNames = athletesMembers.map(
+  const otherAthletesNames = athletesMembers.map(
     (m) => `${m.firstName} ${m.lastName}`
   );
+  const athletesNames = trip.coachIsAthlete
+    ? [`${coachName} (${coachRole.toLowerCase()})`, ...otherAthletesNames]
+    : otherAthletesNames;
+
+  const athletesCount = athletesNames.length;
   const athletesStr =
     athletesCount > 0 ? athletesNames.join(", ") : "състезателите на клуба";
 

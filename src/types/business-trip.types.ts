@@ -117,6 +117,12 @@ export const BusinessTripSchema = z.object({
   hostClub: z.string().optional(),
   coachName: z.string().optional(),
   coachRole: z.string().optional(),
+  /**
+   * Указва дали треньорът/ръководителят (напр. Мира Георгиева) участва и като състезател в състезанието.
+   * Важно: Финансово дневните и нощувките се начисляват за 1 физическо лице (без дублиране).
+   * Името фигурира в състезателните списъци и официалните протоколи/документи.
+   */
+  coachIsAthlete: z.boolean().default(false).optional(),
   participantsIds: z.array(z.string()).default([]), // Списък с IDs на избраните състезатели
   transportType: TransportTypeEnum,
   expensesCoverage: z.string().optional(),

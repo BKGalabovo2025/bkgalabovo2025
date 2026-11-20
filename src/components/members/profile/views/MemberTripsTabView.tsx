@@ -614,8 +614,9 @@ export function MemberTripsTabView() {
             {trips.map((trip) => {
               const isCoach = trip.coachId === memberId;
               const isAthlete =
-                Array.isArray(trip.participantsIds) &&
-                trip.participantsIds.includes(memberId);
+                (Array.isArray(trip.participantsIds) &&
+                  trip.participantsIds.includes(memberId)) ||
+                (isCoach && Boolean(trip.coachIsAthlete));
               const isSigned = Boolean(
                 trip.signatures?.athletes?.[memberId] ||
                 (trip.signatures as Record<string, string> | undefined)?.[

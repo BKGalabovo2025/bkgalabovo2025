@@ -109,6 +109,7 @@ export function CreateBusinessTripDialog({
       ? {
           // Режим Редактиране — презареждаме съществуващите стойности
           ...initialData,
+          coachIsAthlete: initialData.coachIsAthlete ?? false,
           participantsIds:
             initialData.participantsIds &&
             initialData.participantsIds.length > 0
@@ -148,6 +149,7 @@ export function CreateBusinessTripDialog({
           startDate: event.startDate,
           endDate: event.endDate,
           coachId: user?.uid || "",
+          coachIsAthlete: false,
           participantsIds: participantIds,
           transportType: "club_paid",
           expensesCoverage: "food_and_sleep",
@@ -236,7 +238,10 @@ export function CreateBusinessTripDialog({
       const coachName = selectedCoach
         ? `${selectedCoach.firstName} ${selectedCoach.lastName}`
         : user?.displayName || "Неизвестен";
-      const coachRole = selectedCoach?.isCoach ? "Треньор" : "Ръководител";
+      const baseCoachRole = selectedCoach?.isCoach ? "Треньор" : "Ръководител";
+      const coachRole = values.coachIsAthlete
+        ? `${baseCoachRole} и състезател`
+        : baseCoachRole;
 
       const computedEntryFee = computeTotalEntryFee(
         Boolean(values.hasEntryFee),
@@ -717,6 +722,46 @@ export function CreateBusinessTripDialog({
                         </SelectContent>
                       </Select>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control as any}
+                  name="coachIsAthlete"
+                  render={({ field }: any) => (
+                    <FormItem className="col-span-2 flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3.5 dark:border-amber-500/30 dark:bg-amber-500/10 transition-colors">
+                      <FormControl>
+                        <Checkbox
+                          checked={Boolean(field.value)}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-semibold cursor-pointer text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                          <span>
+                            Лицето участва и като състезател в турнира
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] py-0 px-1.5 font-medium border-amber-500/40 text-amber-600 dark:text-amber-400"
+                          >
+                            Ръководител & Състезател
+                          </Badge>
+                        </FormLabel>
+                        <FormDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                          Активирайте, ако Мира Георгиева (или назначеният
+                          треньор) ще се състезава на турнира. Лицето ще
+                          фигурира в състезателния списък и официалните
+                          документи (Заповед, Решение на УС, Протокол,
+                          Присъствен лист и Доклад).{" "}
+                          <strong>
+                            Дневните и квартирните пари се начисляват точно за 1
+                            човек
+                          </strong>{" "}
+                          (без дублиране).
+                        </FormDescription>
+                      </div>
                     </FormItem>
                   )}
                 />

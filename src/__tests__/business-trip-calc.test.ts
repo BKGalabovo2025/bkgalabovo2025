@@ -940,5 +940,47 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       );
       expect(summary.calcPerDiemEUR).toBe(22); // coach + 1 athlete * 11 EUR
     });
+
+    it("prevents double per-diem and accommodation when coach participates as athlete (coachIsAthlete)", () => {
+      // Mira Georgieva as coach ("mira-georgieva") and also listed as participant
+      const trip: BusinessTrip = {
+        id: "trip-mira-1",
+        siteId: "bkgalabovo",
+        title: "Държавно първенство - жени",
+        destination: "Хасково",
+        startDate: "2026-05-15T08:00:00.000Z",
+        endDate: "2026-05-16T18:00:00.000Z",
+        coachId: "mira-georgieva",
+        coachName: "Мира Георгиева",
+        coachRole: "Треньор и състезател",
+        coachIsAthlete: true,
+        // Even if her ID is included in participantsIds alongside other athletes:
+        participantsIds: ["mira-georgieva", "ath-2", "ath-3"],
+        transportType: "club_paid",
+        expensesCoverage: "food_and_sleep",
+        financials: {
+          perDiemRateEUR: 22,
+          accommodationRateEUR: 25,
+          isCommercialActivity: false,
+        },
+        status: "approved",
+      };
+
+      const statement = calculateTripStatementTotals(trip);
+
+      // Should count exactly 3 distinct people: coach (Mira) + ath-2 + ath-3 (NOT 4 people!)
+      expect(statement.activePeopleCount).toBe(3);
+      expect(statement.personTotals).toHaveLength(3);
+
+      // Verify that "mira-georgieva" is not duplicated in personTotals (only "coach", "ath-2", "ath-3")
+      const personIds = statement.personTotals.map((p) => p.id);
+      expect(personIds).toEqual(["coach", "ath-2", "ath-3"]);
+
+      // 2 days * 22 EUR = 44 EUR per diem per person. 3 people = 132 EUR (NOT 176 EUR!)
+      expect(statement.calcPerDiemEUR).toBe(3 * 44);
+
+      // 1 night * 25 EUR = 25 EUR accommodation per person. 3 people = 75 EUR (NOT 100 EUR!)
+      expect(statement.calcAccomEUR).toBe(3 * 25);
+    });
   });
 });

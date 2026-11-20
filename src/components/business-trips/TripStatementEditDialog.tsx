@@ -217,9 +217,13 @@ export function TripStatementEditDialog({
         (dict[trip.coachId]
           ? `${dict[trip.coachId].firstName} ${dict[trip.coachId].lastName}`
           : "Треньор");
-      const coachRole =
+      const baseCoachRole =
         trip.coachRole ||
         (dict[trip.coachId]?.isCoach ? "Треньор" : "Ръководител");
+      const coachRole =
+        trip.coachIsAthlete && !baseCoachRole.includes("състезател")
+          ? `${baseCoachRole} и състезател`
+          : baseCoachRole;
 
       const coachOv = overrides["coach"] ?? {};
       const coachDays =
@@ -237,6 +241,10 @@ export function TripStatementEditDialog({
           ? coachOv.stayedOvernight
           : coachNights > 0;
 
+      const filteredParticipantIds = (trip.participantsIds || []).filter(
+        (pid) => pid !== trip.coachId && pid !== "coach"
+      );
+
       const peopleList: PersonOverride[] = [
         {
           id: "coach",
@@ -250,7 +258,7 @@ export function TripStatementEditDialog({
           perDiemRateEUR: coachOv.perDiemRateEUR ?? "",
           note: coachOv.note || "",
         },
-        ...trip.participantsIds.map((pid) => {
+        ...filteredParticipantIds.map((pid) => {
           const m = dict[pid];
           const ov = overrides[pid] ?? {};
           const pDays = ov.actualDays != null ? ov.actualDays : defDays;

@@ -267,18 +267,23 @@ export function generateDefaultProtocolText(
       ? trip.participantsIds
       : [];
 
-  const partMembers = effectiveTripParticipantIds
+  const filteredParticipantIds = effectiveTripParticipantIds.filter(
+    (id) => id !== trip.coachId && id !== "coach"
+  );
+
+  const partMembers = filteredParticipantIds
     .map((id) => membersDict[id])
     .filter(Boolean) as Member[];
 
-  const playersList =
-    partMembers
-      .filter((m) => !m.isCoach)
-      .map((m) => `${m.firstName} ${m.lastName}`)
-      .join(", ") || "представителни състезатели на клуба";
+  const otherPlayers = partMembers
+    .filter((m) => !m.isCoach)
+    .map((m) => `${m.firstName} ${m.lastName}`);
 
-  const totalPeople =
-    (coach ? 1 : 0) + partMembers.filter((m) => !m.isCoach).length;
+  const playersList = trip.coachIsAthlete
+    ? [`${coachName} (ръководител и състезател)`, ...otherPlayers].join(", ")
+    : otherPlayers.join(", ") || "представителни състезатели на клуба";
+
+  const totalPeople = (coach ? 1 : 0) + otherPlayers.length;
   const countStr =
     totalPeople > 0
       ? `${totalPeople} ${totalPeople === 1 ? "човек" : "души"}`
@@ -352,7 +357,7 @@ ${boardMembers}
 
 ВЪЗ ОСНОВА НА РЕЗУЛТАТИТЕ ОТ ГЛАСУВАНЕТО, УПРАВИТЕЛНИЯТ СЪВЕТ ПРИЕ СЛЕДНОТО РЕШЕНИЕ № ${decisionNum}:
 1. Одобрява участието на ${formatOrgName(site.shortName)} в ${trip.title} (${destCity}) в периода ${periodStr}.
-2. Утвърждава поименния състав на делегацията с ръководител ${coachName}.
+2. Утвърждава поименния състав на делегацията с ръководител ${coachName}${trip.coachIsAthlete ? " (в качеството и на състезател)" : ""}.
 3. Одобрява финансовото обезпечаване (пътни, дневни и квартирни пари) съгласно НКС и бюджета на клуба.
 4. Възлага на Председателя на УС да издаде Заповед за командировка № ${orderNum} и окомплектова счетоводното досие на състезанието.${notesText}
 

@@ -231,8 +231,12 @@ export function BusinessTripPdfTemplates({
   const coachName =
     trip.coachName ||
     (coach ? `${coach.firstName} ${coach.lastName}` : "___________________");
-  const coachRole =
+  const baseCoachRole =
     trip.coachRole || (coach?.isCoach ? "Треньор" : "Ръководител");
+  const coachRole =
+    trip.coachIsAthlete && !baseCoachRole.includes("състезател")
+      ? `${baseCoachRole} и състезател`
+      : baseCoachRole;
 
   const participantOverrides = trip.participantOverrides ?? {};
 
@@ -246,7 +250,10 @@ export function BusinessTripPdfTemplates({
             return m && !m.isCoach;
           }) ?? []);
 
+  // Филтрираме треньора от участниците, за да гарантираме, че във финансовата ведомост
+  // треньорът има точно 1 ред с единични дневни и квартирни (без дублиране).
   const partMembers = effectiveTripParticipantIds
+    .filter((id) => id !== trip.coachId && id !== "coach")
     .map((id) => membersDict[id])
     .filter(Boolean) as Member[];
 
@@ -265,6 +272,16 @@ export function BusinessTripPdfTemplates({
       ovKey: m.id as string,
     })),
   ];
+
+  // Списък на състезателите за текстовите документи (Решение, Заповед, Доклад)
+  // Ако coachIsAthlete е истина, името на треньора се добавя в списъка на състезателите
+  const plannedAthletesList = trip.coachIsAthlete
+    ? [
+        `${coachName} (${coachRole.toLowerCase()})`,
+        ...partMembers.map((m) => `${m.firstName} ${m.lastName}`),
+      ]
+    : partMembers.map((m) => `${m.firstName} ${m.lastName}`);
+  const plannedAthletesText = plannedAthletesList.join(", ") || "—";
 
   // Първоначално планиран състав (за Решение на УС и Нареждане за командировка, издадени ПРЕДИ пътуването)
   const plannedPeople = allPeopleRaw;
@@ -822,12 +839,7 @@ export function BusinessTripPdfTemplates({
               {totalPlannedPeople} {totalPlannedPeople === 1 ? "човек" : "души"}
             </strong>{" "}
             (Ръководител/Треньор: <strong>{coachName}</strong> и състезатели:{" "}
-            <em>
-              {plannedPeople
-                .filter((p) => p.role !== "Треньор" && p.role !== "Ръководител")
-                .map((p) => p.name)
-                .join(", ") || "—"}
-            </em>
+            <em>{plannedAthletesText}</em>
             ). Направена бе финансова план-сметка за пътни, дневни и нощувки
             съгласно Наредбата за командировките в страната (НКС).
           </p>
@@ -865,7 +877,8 @@ export function BusinessTripPdfTemplates({
             </p>
             <p style={{ margin: "2pt 0" }}>
               <strong>2.</strong> Утвърждава поименния състав на делегацията с
-              ръководител <strong>{coachName}</strong>.
+              ръководител <strong>{coachName}</strong>
+              {trip.coachIsAthlete ? " (в качеството и на състезател)" : ""}.
             </p>
             <p style={{ margin: "2pt 0" }}>
               <strong>3.</strong> Одобрява финансовото обезпечаване (пътни,
@@ -1169,15 +1182,7 @@ export function BusinessTripPdfTemplates({
               )
             </p>
             <p style={{ margin: "1.5pt 0" }}>
-              • Състезатели:{" "}
-              <strong>
-                {plannedPeople
-                  .filter(
-                    (p) => p.role !== "Треньор" && p.role !== "Ръководител"
-                  )
-                  .map((p) => p.name)
-                  .join(", ") || "—"}
-              </strong>
+              • Състезатели: <strong>{plannedAthletesText}</strong>
             </p>
           </div>
 
@@ -2954,9 +2959,23 @@ export function BusinessTripPdfTemplates({
           DOC 4: ПРИСЪСТВЕН ЛИСТ (ATTENDANCE)
       ══════════════════════════════════════════════════════ */}
       {(() => {
-        const athletes = allPeople.filter(
-          (p) => p.role !== "Треньор" && p.role !== "Ръководител"
+        const otherAthletes = allPeople.filter(
+          (p) =>
+            p.ovKey !== "coach" &&
+            !p.role.includes("Треньор") &&
+            !p.role.includes("Ръководител")
         );
+        const athletes = trip.coachIsAthlete
+          ? [
+              {
+                name: `${coachName} (${coachRole.toLowerCase()})`,
+                role: coachRole,
+                ovKey: "coach",
+                member: coach,
+              },
+              ...otherAthletes,
+            ]
+          : otherAthletes;
         const isTwoCols = athletes.length > 7;
 
         return (
@@ -3149,13 +3168,15 @@ export function BusinessTripPdfTemplates({
                       {
                         allPeople.filter(
                           (p) =>
-                            p.role === "Треньор" || p.role === "Ръководител"
+                            p.role.includes("Треньор") ||
+                            p.role.includes("Ръководител")
                         ).length
                       }
                     </strong>
                   </li>
                   <li style={{ margin: "1pt 0" }}>
                     Състезатели: <strong>{athletes.length}</strong>
+                    {trip.coachIsAthlete ? " (вкл. играещ ръководител)" : ""}
                   </li>
                 </ul>
               </div>

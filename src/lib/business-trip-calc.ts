@@ -222,7 +222,14 @@ export function calculateTripStatementTotals(
       : plannedNights;
 
   const overrides = trip.participantOverrides ?? {};
-  const allIds = ["coach", ...(trip.participantsIds || [])];
+  // Треньорът винаги е отделен запис с ключ "coach".
+  // Защита от дублиране: ако coachId или "coach" присъства и в participantsIds,
+  // го филтрираме, за да гарантираме, че при треньор-състезател (напр. Мира Георгиева)
+  // НЯМА двойно начисляване на дневни/нощувки за едно и също лице.
+  const filteredParticipantIds = (trip.participantsIds || []).filter(
+    (id) => id !== "coach" && id !== trip.coachId
+  );
+  const allIds = ["coach", ...filteredParticipantIds];
 
   let calcPerDiemEUR = 0;
   let calcAccomEUR = 0;
@@ -285,7 +292,10 @@ function getActivePersonDays(
 ): number[] {
   const overrides = trip.participantOverrides ?? {};
   const teamDays = trip.actualDays != null ? trip.actualDays : plannedDays;
-  const ids = ["coach", ...(trip.participantsIds || [])];
+  const filteredParticipantIds = (trip.participantsIds || []).filter(
+    (id) => id !== "coach" && id !== trip.coachId
+  );
+  const ids = ["coach", ...filteredParticipantIds];
   return ids
     .filter((id) => !overrides[id]?.excluded)
     .map((id) => overrides[id]?.actualDays ?? teamDays);
