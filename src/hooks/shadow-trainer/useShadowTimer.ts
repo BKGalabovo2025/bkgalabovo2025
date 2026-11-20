@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AUDIO_PATHS,
   playAudio as playSingleAudio,
+  playCountdownBeep,
 } from "@/lib/shadow-training/audio-map";
 import { shadowLogger } from "@/lib/shadow-training/shadow-logger";
 
@@ -146,12 +147,25 @@ export function useShadowTimer({
             shadowLogger.timer(
               `Timer finished for phase [${stateRef.current}], advancing state`
             );
+            if (
+              stateRef.current === "countdown" &&
+              !currentSettings?.visualOnly
+            ) {
+              playCountdownBeep(0);
+            }
             setTimeout(() => advanceStateRef.current(), 0);
             nextVal = 0;
           } else {
             nextVal = currentPrev - 1;
             if (stateRef.current === "countdown") {
               shadowLogger.timer(`Countdown: ${nextVal}s`);
+              if (
+                nextVal <= 3 &&
+                nextVal >= 1 &&
+                !currentSettings?.visualOnly
+              ) {
+                playCountdownBeep(nextVal);
+              }
               if (nextVal === 2 && onCountdownReadyRef.current) {
                 onCountdownReadyRef.current();
               }
@@ -162,6 +176,14 @@ export function useShadowTimer({
                 !currentSettings?.visualOnly
               ) {
                 playSingleAudio(AUDIO_PATHS.common.krai_pochivka);
+              }
+              if (
+                stateRef.current === "resting" &&
+                nextVal <= 3 &&
+                nextVal >= 1 &&
+                !currentSettings?.visualOnly
+              ) {
+                playCountdownBeep(nextVal);
               }
               if (nextVal % 5 === 0 || nextVal <= 3) {
                 shadowLogger.timer(

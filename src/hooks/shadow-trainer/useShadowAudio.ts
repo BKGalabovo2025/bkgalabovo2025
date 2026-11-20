@@ -9,6 +9,7 @@ import {
   stopAudio as stopAudioEngine,
   stopVoiceAudio,
 } from "@/lib/shadow-training/audio-map";
+import { WorkoutBeatPreset } from "@/lib/shadow-training/workout-beat-generator";
 
 import { ShadowPlayer } from "./types";
 
@@ -86,6 +87,15 @@ export function useShadowAudio(voiceSpeed?: number) {
       queueRecovery: queueRecoveryAudio,
       playSyntheticBeep: (freq = 800, dur = 0.08) =>
         shadowAudioManager.playSyntheticBeep(freq, dur),
+      playCountdownBeep: (sec: number) =>
+        shadowAudioManager.playCountdownBeep(sec),
+      playWhistle: (duration?: number) =>
+        shadowAudioManager.playWhistle(duration),
+      startWorkoutBeat: (preset?: WorkoutBeatPreset) =>
+        shadowAudioManager.startWorkoutBeat(preset),
+      stopWorkoutBeat: () => shadowAudioManager.stopWorkoutBeat(),
+      isWorkoutBeatPlaying: () => shadowAudioManager.isWorkoutBeatPlaying(),
+      setMusicVolume: (vol: number) => shadowAudioManager.setMusicVolume(vol),
       stop,
       stopAudio: stop,
       stopVoiceOnly: stopVoiceAudio,

@@ -56,6 +56,7 @@ interface MultiCourtGridProps {
     targetHalf: "A" | "B"
   ) => void;
   onMovePlayerToBench?: (playerId: string) => void;
+  highContrast?: boolean;
 }
 
 export function MultiCourtGrid({
@@ -72,6 +73,7 @@ export function MultiCourtGrid({
   onSwapPlayers,
   onMovePlayerToCourt,
   onMovePlayerToBench,
+  highContrast = false,
 }: MultiCourtGridProps) {
   const [copiedCourt, setCopiedCourt] = useState<number | null>(null);
   const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null);
@@ -359,6 +361,7 @@ export function MultiCourtGrid({
             viewMode={focusedSlot.isFullCourt ? "full" : "half"}
             dualActive={focusedSlot.isFullCourt}
             leftHanded={leftHanded}
+            highContrast={highContrast}
             allowToggleView
             className="w-full border-zinc-800/80 shadow-2xl"
           />
@@ -464,6 +467,7 @@ export function MultiCourtGrid({
                   viewMode={slot.isFullCourt ? "full" : "half"}
                   dualActive={slot.isFullCourt}
                   leftHanded={leftHanded}
+                  highContrast={highContrast}
                   className={`mx-auto w-auto border-zinc-800/60 shadow-inner ${
                     slot.isFullCourt
                       ? "aspect-710/1440 max-h-72"
@@ -530,6 +534,7 @@ export function MultiCourtGrid({
                     viewMode={focusedSlot.isFullCourt ? "full" : "half"}
                     dualActive={focusedSlot.isFullCourt}
                     leftHanded={leftHanded}
+                    highContrast={highContrast}
                     allowToggleView
                     className="w-full border-zinc-800/80 shadow-xl"
                   />

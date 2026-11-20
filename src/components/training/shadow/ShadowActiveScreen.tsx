@@ -7,6 +7,7 @@ import {
   Copy,
   Maximize2,
   Minimize2,
+  Music,
   Pause,
   Play,
   RotateCcw,
@@ -14,6 +15,7 @@ import {
   Square,
   Target,
   Timer,
+  Tv,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -87,10 +89,27 @@ export function ShadowActiveScreen({
   }, [trainer]);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isHallMode, setIsHallMode] = useState(false);
+  const isUltraContrast = isFullscreen || isHallMode;
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [hallViewMode, setHallViewMode] = useState<"hall" | "focus">(
     trainer.courtSlots && trainer.courtSlots.length > 1 ? "hall" : "focus"
   );
   const [focusedCourt, setFocusedCourt] = useState<number | null>(null);
+
+  const toggleWorkoutMusic = () => {
+    if (isMusicPlaying) {
+      trainer.stopWorkoutBeat?.();
+      setIsMusicPlaying(false);
+      toast.info("Фоновата музика е спряна.");
+    } else {
+      trainer.startWorkoutBeat?.("electronic_128");
+      setIsMusicPlaying(true);
+      toast.success(
+        "Фонова музика (128 BPM) е пусната с активен Audio Ducking!"
+      );
+    }
+  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -161,6 +180,22 @@ export function ShadowActiveScreen({
         e.preventDefault();
         shadowLogger.trainer("Coach hotkey: [F] fullscreen toggled");
         toggleFullscreen();
+      } else if (
+        e.key === "h" ||
+        e.key === "H" ||
+        e.key === "х" ||
+        e.key === "Х"
+      ) {
+        e.preventDefault();
+        setIsHallMode((prev) => {
+          const next = !prev;
+          toast.info(
+            next
+              ? "Активиран Режим Зала / Проектор (Ultra-Contrast)"
+              : "Деактивиран Режим Зала"
+          );
+          return next;
+        });
       }
     };
 
@@ -190,12 +225,24 @@ export function ShadowActiveScreen({
       className={`flex w-full flex-col duration-300 animate-in fade-in zoom-in-95 ${
         isFullscreen
           ? "fixed inset-0 z-50 overflow-y-auto bg-black p-4 sm:p-8"
-          : "space-y-4 md:space-y-6"
+          : isHallMode
+            ? "space-y-4 md:space-y-6 bg-black p-2 sm:p-4 rounded-3xl"
+            : "space-y-4 md:space-y-6"
       }`}
     >
-      <Card className="relative flex w-full flex-col overflow-hidden rounded-3xl border-none bg-zinc-950 text-white shadow-2xl">
+      <Card
+        className={`relative flex w-full flex-col overflow-hidden rounded-3xl border-none text-white shadow-2xl transition-colors ${
+          isUltraContrast ? "bg-black" : "bg-zinc-950"
+        }`}
+      >
         {/* ─── ГОЛЯМ ЕКРАН ХЕДЪР & РОТАЦИЯ НА ИГРАЧИТЕ ─── */}
-        <div className="flex shrink-0 flex-col items-center justify-between gap-4 border-b border-zinc-800 bg-zinc-900/90 p-4 sm:px-6 md:flex-row">
+        <div
+          className={`flex shrink-0 flex-col items-center justify-between gap-4 border-b p-4 sm:px-6 md:flex-row transition-colors ${
+            isUltraContrast
+              ? "border-zinc-800/80 bg-black"
+              : "border-zinc-800 bg-zinc-900/90"
+          }`}
+        >
           {/* Active players on court */}
           <div className="flex flex-wrap items-center gap-3">
             {canGoBackToSetup && onBackToSetup && (
@@ -290,6 +337,55 @@ export function ShadowActiveScreen({
               </Button>
             )}
 
+            {/* Workout Background Music & Audio Ducking */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={toggleWorkoutMusic}
+              className={`h-9 cursor-pointer rounded-xl text-xs font-bold transition-all ${
+                isMusicPlaying
+                  ? "border-purple-500/50 bg-purple-500/20 text-purple-300 shadow-sm"
+                  : "border-zinc-800 bg-zinc-900 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
+              }`}
+              title="Фонова ритмична музика (128 BPM) с автоматично приглушаване (Audio Ducking) при гласови команди"
+            >
+              <Music
+                size={14}
+                className={`mr-1.5 ${
+                  isMusicPlaying ? "animate-bounce text-purple-400" : ""
+                }`}
+              />
+              {isMusicPlaying ? "Музика: 128 BPM (Ducking)" : "Фонова музика"}
+            </Button>
+
+            {/* Ultra-High Contrast Hall Display Mode Toggle */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setIsHallMode((prev) => {
+                  const next = !prev;
+                  toast.info(
+                    next
+                      ? "Активиран Режим Зала / Проектор (Ultra-Contrast)"
+                      : "Деактивиран Режим Зала"
+                  );
+                  return next;
+                });
+              }}
+              className={`h-9 cursor-pointer rounded-xl text-xs font-bold transition-all ${
+                isHallMode
+                  ? "border-amber-400 bg-amber-500/20 text-amber-300 shadow-xs"
+                  : "border-zinc-800 bg-zinc-900 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
+              }`}
+              title="Превключи Режим Зала / Проектор с максимален контраст (H)"
+            >
+              <Tv size={14} className="mr-1.5" />
+              {isHallMode ? "Зала Активна" : "Режим Зала (TV)"}
+            </Button>
+
             {/* Fullscreen Toggle */}
             <Button
               type="button"
@@ -359,6 +455,7 @@ export function ShadowActiveScreen({
                 activeZone={trainer.activeZone}
                 visualPhase={trainer.visualPhase}
                 focusedCourtNumber={focusedCourt}
+                highContrast={isUltraContrast}
                 onToggleFocus={(cNum) => {
                   if (cNum !== null) {
                     setFocusedCourt(cNum);
@@ -410,6 +507,7 @@ export function ShadowActiveScreen({
                       viewMode={activeSlot?.isFullCourt ? "full" : "half"}
                       dualActive={activeSlot?.isFullCourt}
                       leftHanded={settings.leftHanded}
+                      highContrast={isUltraContrast}
                       allowToggleView
                       className="w-full origin-center scale-100 transition-transform duration-300 md:scale-105"
                     />
@@ -531,11 +629,17 @@ export function ShadowActiveScreen({
                 </div>
               )}
 
-              {/* Main Number Display (Big Hall Display) */}
+              {/* Main Number Display (Ultra-High Contrast Hall Display visible from 25m) */}
               {settings.mode === "agility_test" &&
               trainer.state === "working" ? (
                 <div className="space-y-2">
-                  <div className="bg-linear-to-b from-red-400 via-rose-500 to-red-600 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-9xl md:text-[10rem]">
+                  <div
+                    className={`leading-none font-black tracking-tighter tabular-nums transition-all ${
+                      isUltraContrast
+                        ? "text-[10rem] text-red-500 drop-shadow-[0_0_40px_rgba(239,68,68,0.85)] sm:text-[13rem] md:text-[16rem] lg:text-[20rem]"
+                        : "bg-linear-to-b from-red-400 via-rose-500 to-red-600 bg-clip-text text-8xl text-transparent sm:text-9xl md:text-[10rem]"
+                    }`}
+                  >
                     {trainer.agilityActionsDone}
                   </div>
                   <div className="flex flex-wrap items-center justify-center gap-3 text-zinc-400 md:justify-start">
@@ -550,7 +654,17 @@ export function ShadowActiveScreen({
                   </div>
                 </div>
               ) : (
-                <div className="bg-linear-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-8xl leading-none font-black tracking-tighter text-transparent tabular-nums sm:text-9xl md:text-[10rem]">
+                <div
+                  className={`leading-none font-black tracking-tighter tabular-nums transition-all ${
+                    isUltraContrast
+                      ? trainer.state === "working"
+                        ? "text-[10rem] text-red-500 drop-shadow-[0_0_45px_rgba(239,68,68,0.9)] sm:text-[13rem] md:text-[16rem] lg:text-[20rem]"
+                        : trainer.state === "resting"
+                          ? "text-[10rem] text-blue-400 drop-shadow-[0_0_45px_rgba(59,130,246,0.9)] sm:text-[13rem] md:text-[16rem] lg:text-[20rem]"
+                          : "text-[10rem] text-amber-300 drop-shadow-[0_0_35px_rgba(250,204,21,0.8)] sm:text-[13rem] md:text-[16rem] lg:text-[20rem]"
+                      : "bg-linear-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-8xl text-transparent sm:text-9xl md:text-[10rem]"
+                  }`}
+                >
                   {trainer.timeRemaining}
                 </div>
               )}
@@ -619,6 +733,13 @@ export function ShadowActiveScreen({
                   Space
                 </kbd>{" "}
                 Пауза / Продължи
+              </span>
+              <span>•</span>
+              <span>
+                <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
+                  H
+                </kbd>{" "}
+                Режим Зала (TV)
               </span>
               <span>•</span>
               <span>

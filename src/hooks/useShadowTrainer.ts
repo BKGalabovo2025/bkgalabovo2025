@@ -949,6 +949,10 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
         setActiveZone(null);
         cleanupActions();
 
+        if (!currentSettings.visualOnly) {
+          audio.playWhistle();
+        }
+
         const capacity = getCapacity(currentSettings);
         const waves = splitPlayersIntoWaves(
           currentSettings.activePlayers,
@@ -1312,5 +1316,9 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     stopTraining,
     resetTraining,
     skipCountdown,
+    startWorkoutBeat: audio.startWorkoutBeat,
+    stopWorkoutBeat: audio.stopWorkoutBeat,
+    isWorkoutBeatPlaying: audio.isWorkoutBeatPlaying,
+    setMusicVolume: audio.setMusicVolume,
   };
 }

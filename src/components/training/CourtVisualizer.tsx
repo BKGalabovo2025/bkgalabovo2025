@@ -28,6 +28,7 @@ export interface CourtVisualizerProps {
   playerTop?: CourtPlayerInfo | string | null;
   dualActive?: boolean;
   leftHanded?: boolean;
+  highContrast?: boolean;
 }
 
 const ZONE_COORDINATES: Record<
@@ -102,12 +103,14 @@ export function CourtVisualizer({
   playerTop,
   dualActive = false,
   leftHanded = false,
+  highContrast = false,
 }: CourtVisualizerProps) {
   const rawId = React.useId().replace(/:/g, "");
   const arrowHeadId = `courtArrowHead-${rawId}`;
   const movementVectorId = `courtMovementVector-${rawId}`;
   const movementVectorTopId = `courtMovementVectorTop-${rawId}`;
   const pulseShotGlowId = `pulseShotGlow-${rawId}`;
+  const neonGlowId = `neonGlow-${rawId}`;
 
   const [internalViewMode, setInternalViewMode] = React.useState<
     "half" | "full"
@@ -308,6 +311,15 @@ export function CourtVisualizer({
             <stop offset="0%" stopColor="#EF4444" stopOpacity="0.8" />
             <stop offset="100%" stopColor="#EF4444" stopOpacity="0" />
           </radialGradient>
+          <filter id={neonGlowId} x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="6" result="blur1" />
+            <feGaussianBlur stdDeviation="14" result="blur2" />
+            <feMerge>
+              <feMergeNode in="blur2" />
+              <feMergeNode in="blur1" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
         {/* ФОН НА ЗАЛАТА (Околно пространство на корта / run-off area) */}
@@ -335,6 +347,8 @@ export function CourtVisualizer({
           labelX={175}
           labelY={769}
           labelAlign="middle"
+          highContrast={highContrast}
+          neonGlowId={neonGlowId}
         />
         <Zone
           x={305}
@@ -347,6 +361,8 @@ export function CourtVisualizer({
           labelX={435}
           labelY={769}
           labelAlign="middle"
+          highContrast={highContrast}
+          neonGlowId={neonGlowId}
         />
         <Zone
           x={0}
@@ -359,6 +375,8 @@ export function CourtVisualizer({
           labelX={175}
           labelY={986}
           labelAlign="middle"
+          highContrast={highContrast}
+          neonGlowId={neonGlowId}
         />
         <Zone
           x={305}
@@ -371,6 +389,8 @@ export function CourtVisualizer({
           labelX={435}
           labelY={986}
           labelAlign="middle"
+          highContrast={highContrast}
+          neonGlowId={neonGlowId}
         />
         <Zone
           x={0}
@@ -383,6 +403,8 @@ export function CourtVisualizer({
           labelX={175}
           labelY={1308}
           labelAlign="middle"
+          highContrast={highContrast}
+          neonGlowId={neonGlowId}
         />
         <Zone
           x={305}
@@ -395,6 +417,8 @@ export function CourtVisualizer({
           labelX={435}
           labelY={1308}
           labelAlign="middle"
+          highContrast={highContrast}
+          neonGlowId={neonGlowId}
         />
 
         {/* ---------------- ЗОНИ (Горна Половина - Поле 2 / Играч Б) ---------------- */}
@@ -411,6 +435,8 @@ export function CourtVisualizer({
               labelX={175}
               labelY={571}
               labelAlign="middle"
+              highContrast={highContrast}
+              neonGlowId={neonGlowId}
             />
             <Zone
               x={305}
@@ -423,6 +449,8 @@ export function CourtVisualizer({
               labelX={435}
               labelY={571}
               labelAlign="middle"
+              highContrast={highContrast}
+              neonGlowId={neonGlowId}
             />
             <Zone
               x={0}
@@ -435,6 +463,8 @@ export function CourtVisualizer({
               labelX={175}
               labelY={354}
               labelAlign="middle"
+              highContrast={highContrast}
+              neonGlowId={neonGlowId}
             />
             <Zone
               x={305}
@@ -447,6 +477,8 @@ export function CourtVisualizer({
               labelX={435}
               labelY={354}
               labelAlign="middle"
+              highContrast={highContrast}
+              neonGlowId={neonGlowId}
             />
             <Zone
               x={0}
@@ -459,6 +491,8 @@ export function CourtVisualizer({
               labelX={175}
               labelY={38}
               labelAlign="middle"
+              highContrast={highContrast}
+              neonGlowId={neonGlowId}
             />
             <Zone
               x={305}
@@ -471,6 +505,8 @@ export function CourtVisualizer({
               labelX={435}
               labelY={38}
               labelAlign="middle"
+              highContrast={highContrast}
+              neonGlowId={neonGlowId}
             />
           </>
         )}
@@ -831,7 +867,7 @@ export function CourtVisualizer({
   );
 }
 
-// ---------------- ПОМОЩЕН КОМПОНЕНТ ЗА ЗОНА ----------------
+// ---------------- ПОМОЩЕН СТАТИЧЕН КОМПОНЕНТ ЗА ЗОНА ----------------
 interface ZoneProps {
   x: number;
   y: number;
@@ -843,6 +879,8 @@ interface ZoneProps {
   labelX: number;
   labelY: number;
   labelAlign: "start" | "middle" | "end";
+  highContrast?: boolean;
+  neonGlowId?: string;
 }
 
 function Zone({
@@ -856,10 +894,19 @@ function Zone({
   labelX,
   labelY,
   labelAlign,
+  highContrast,
+  neonGlowId,
 }: ZoneProps) {
   let rectClasses = "fill-transparent stroke-transparent";
+  let filterAttr: string | undefined = undefined;
+
   if (active) {
-    rectClasses = "fill-red-500/30 stroke-red-500 stroke-[4px]";
+    if (highContrast) {
+      rectClasses = "fill-red-500/50 stroke-red-400 stroke-[5px]";
+      filterAttr = neonGlowId ? `url(#${neonGlowId})` : undefined;
+    } else {
+      rectClasses = "fill-red-500/30 stroke-red-500 stroke-[4px]";
+    }
   } else if (inPreview) {
     rectClasses =
       "fill-blue-500/10 stroke-blue-500/40 stroke-[2px] stroke-dashed";
@@ -867,7 +914,7 @@ function Zone({
 
   let textFill = "rgba(255,255,255,0.45)";
   if (active) {
-    textFill = "#EF4444";
+    textFill = highContrast ? "#FFFFFF" : "#EF4444";
   } else if (inPreview) {
     textFill = "rgba(147, 197, 253, 0.9)";
   }
@@ -879,15 +926,19 @@ function Zone({
         y={y}
         width={w}
         height={h}
+        filter={filterAttr}
         className={cn("transition-all duration-300", rectClasses)}
       />
       <text
         x={labelX}
         y={labelY}
         fill={textFill}
-        fontSize="16"
+        fontSize={highContrast && active ? "18" : "16"}
         fontWeight={active ? "900" : "800"}
         textAnchor={labelAlign}
+        filter={
+          highContrast && active ? "drop-shadow(0 0 8px #ef4444)" : undefined
+        }
         className="pointer-events-none tracking-wider uppercase transition-colors duration-300 select-none font-sans"
       >
         {label}

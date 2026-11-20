@@ -2,6 +2,10 @@
 // Defines the available audio files and helper functions for Shadow Training
 
 import { shadowLogger } from "./shadow-logger";
+import {
+  WorkoutBeatGenerator,
+  WorkoutBeatPreset,
+} from "./workout-beat-generator";
 
 export const AUDIO_PATHS = {
   common: {
@@ -114,6 +118,10 @@ class AudioManager {
   private voiceAudio: HTMLAudioElement | null = null;
   private overlayAudio: HTMLAudioElement | null = null;
   private audioCtx: AudioContext | null = null;
+  private musicGainNode: GainNode | null = null;
+  private targetMusicVolume = 0.7;
+  private isDucked = false;
+  private beatGenerator: WorkoutBeatGenerator | null = null;
 
   // Sequence state
   private audioSequence: string[] = [];
@@ -139,7 +147,7 @@ class AudioManager {
     }
   }
 
-  private getAudioContext(): AudioContext | null {
+  public getAudioContext(): AudioContext | null {
     if (typeof window === "undefined") return null;
     if (!this.audioCtx) {
       const AudioCtxClass =
@@ -156,6 +164,110 @@ class AudioManager {
       this.audioCtx.resume().catch(() => {});
     }
     return this.audioCtx;
+  }
+
+  public getMusicGainNode(): GainNode | null {
+    const ctx = this.getAudioContext();
+    if (!ctx) return null;
+    if (!this.musicGainNode) {
+      try {
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(this.targetMusicVolume, ctx.currentTime);
+        gain.connect(ctx.destination);
+        this.musicGainNode = gain;
+      } catch {
+        // ignore
+      }
+    }
+    return this.musicGainNode;
+  }
+
+  /**
+   * Ducks background music smoothly when coach voice speaks.
+   * Dips music down to 20% volume within 60ms.
+   */
+  public duckBackgroundMusic() {
+    const ctx = this.getAudioContext();
+    const gain = this.getMusicGainNode();
+    if (!ctx || !gain) return;
+
+    this.isDucked = true;
+    try {
+      const now = ctx.currentTime;
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(0.2, now + 0.06);
+      shadowLogger.audio(
+        "Audio Ducking: Music dipped to 20% for voice command"
+      );
+    } catch {
+      // ignore
+    }
+  }
+
+  /**
+   * Restores background music smoothly back to normal volume after voice command ends.
+   * Ramps up back to targetVolume within 250ms.
+   */
+  public restoreBackgroundMusic() {
+    const ctx = this.getAudioContext();
+    const gain = this.getMusicGainNode();
+    if (!ctx || !gain) return;
+
+    this.isDucked = false;
+    try {
+      const now = ctx.currentTime;
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(this.targetMusicVolume, now + 0.25);
+      shadowLogger.audio("Audio Ducking: Music restored to full target volume");
+    } catch {
+      // ignore
+    }
+  }
+
+  public getBeatGenerator(): WorkoutBeatGenerator {
+    if (!this.beatGenerator) {
+      const ctx = this.getAudioContext();
+      const musicGain = this.getMusicGainNode();
+      this.beatGenerator = new WorkoutBeatGenerator(
+        ctx || undefined,
+        musicGain || undefined
+      );
+    }
+    return this.beatGenerator;
+  }
+
+  public startWorkoutBeat(preset?: WorkoutBeatPreset) {
+    const gen = this.getBeatGenerator();
+    const ctx = this.getAudioContext();
+    const gain = this.getMusicGainNode();
+    if (ctx && gain) {
+      gen.setContext(ctx, gain);
+    }
+    gen.start(preset);
+  }
+
+  public stopWorkoutBeat() {
+    if (this.beatGenerator) {
+      this.beatGenerator.stop();
+    }
+  }
+
+  public isWorkoutBeatPlaying(): boolean {
+    return this.beatGenerator?.getIsPlaying() ?? false;
+  }
+
+  public setMusicVolume(vol: number) {
+    this.targetMusicVolume = Math.max(0, Math.min(1, vol));
+    const ctx = this.getAudioContext();
+    const gain = this.getMusicGainNode();
+    if (!ctx || !gain || this.isDucked) return;
+    try {
+      gain.gain.setValueAtTime(this.targetMusicVolume, ctx.currentTime);
+    } catch {
+      // ignore
+    }
   }
 
   /**
@@ -270,6 +382,7 @@ class AudioManager {
     this.currentPlayId++;
     this.pendingCenterPaths = [];
     if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.restoreBackgroundMusic();
 
     if (this.voiceAudio) {
       this.voiceAudio.onended = null;
@@ -287,6 +400,8 @@ class AudioManager {
     this.currentPlayId++;
     this.pendingCenterPaths = [];
     if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.restoreBackgroundMusic();
+    this.stopWorkoutBeat();
 
     if (this.voiceAudio) {
       this.voiceAudio.onended = null;
@@ -345,6 +460,7 @@ class AudioManager {
       }
       return;
     }
+    this.duckBackgroundMusic();
     this.isPlayingSequence = true;
     this.isPlayingCenter = false;
     this.audioSequence = paths;
@@ -431,7 +547,10 @@ class AudioManager {
         ) {
           const cb = this.sequenceCompleteCallback;
           this.sequenceCompleteCallback = null;
+          this.restoreBackgroundMusic();
           cb();
+        } else {
+          this.restoreBackgroundMusic();
         }
       }
     };
@@ -477,7 +596,10 @@ class AudioManager {
     this.currentPlayId++;
     if (this.timeoutId) clearTimeout(this.timeoutId);
 
-    this.voiceAudio.onended = null;
+    this.voiceAudio.onended = () => {
+      this.restoreBackgroundMusic();
+    };
+    this.duckBackgroundMusic();
     this.setVoiceSource(path);
     shadowLogger.audio(`Single voice command: ${path}`, {
       playbackRate: this.voiceAudio.playbackRate,
@@ -538,6 +660,59 @@ class AudioManager {
 
       osc.start();
       osc.stop(ctx.currentTime + duration);
+    } catch {
+      // ignore
+    }
+  }
+
+  /**
+   * Plays a Beep-Test style countdown beep:
+   * 3, 2, 1 -> 650Hz pitch (0.12s)
+   * 0 (Start) -> 1200Hz pitch (0.40s)
+   */
+  public playCountdownBeep(secondsRemaining: number) {
+    if (secondsRemaining <= 0) {
+      // Start of set (high-pitched start blast)
+      this.playSyntheticBeep(1200, 0.4, "triangle");
+    } else if (secondsRemaining <= 3) {
+      // 3-2-1 preparation beep
+      this.playSyntheticBeep(650, 0.12, "sine");
+    }
+  }
+
+  /**
+   * Synthesizes a loud, crisp referee whistle or end-of-set gong
+   * using dual frequency oscillators (2850Hz + 3120Hz).
+   */
+  public playWhistle(duration = 0.35) {
+    try {
+      const ctx = this.getAudioContext();
+      if (!ctx) return;
+      shadowLogger.audio(`Referee Whistle sound played (${duration}s)`);
+
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(2850, now);
+
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(3120, now);
+
+      gainNode.gain.setValueAtTime(0.0, now);
+      gainNode.gain.linearRampToValueAtTime(0.45, now + 0.04);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+      osc1.connect(gainNode);
+      osc2.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + duration);
+      osc2.stop(now + duration);
     } catch {
       // ignore
     }
@@ -612,6 +787,14 @@ export function isAudioSequencePlaying(): boolean {
 
 export function isCenterAudioPlaying(): boolean {
   return shadowAudioManager.isCenterPlaying();
+}
+
+export function playCountdownBeep(secondsRemaining: number) {
+  shadowAudioManager.playCountdownBeep(secondsRemaining);
+}
+
+export function playWhistle(duration?: number) {
+  shadowAudioManager.playWhistle(duration);
 }
 
 export function setPlaybackPace(

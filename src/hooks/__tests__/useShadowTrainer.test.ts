@@ -21,6 +21,8 @@ vi.mock("@/lib/shadow-training/audio-map", async () => {
       playSequence: vi.fn(),
       stopAll: vi.fn(),
       playSyntheticBeep: vi.fn(),
+      playCountdownBeep: vi.fn(),
+      playWhistle: vi.fn(),
     },
   };
 });
