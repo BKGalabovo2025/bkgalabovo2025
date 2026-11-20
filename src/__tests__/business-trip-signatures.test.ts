@@ -153,4 +153,91 @@ describe("Business Trip Signatures & Athlete Individual Signing", () => {
     expect(existingSignatures["ivan"]).toBe("data:image/png;base64,ivanSig");
     expect(existingSignatures["petar"]).toBeUndefined();
   });
+
+  it("should resolve Mira Georgieva's signature across all roles (Chairman, Coach, Athlete)", () => {
+    const miraSig = "data:image/png;base64,miraOfficialBase64Sig";
+    const mockMembersDict: Record<
+      string,
+      { id: string; firstName: string; lastName: string; signature?: string }
+    > = {
+      "2kNiT9VeLWOnK8kpnSsR": {
+        id: "2kNiT9VeLWOnK8kpnSsR",
+        firstName: "Мира",
+        lastName: "Георгиева",
+        signature: miraSig,
+      },
+      athlete_1: {
+        id: "athlete_1",
+        firstName: "Петър",
+        lastName: "Стоянов",
+        signature: "data:image/png;base64,petarSig",
+      },
+    };
+
+    const trip = {
+      coachName: "Мира Георгиева",
+      coachIsAthlete: true,
+      signatures: {
+        chairman: miraSig,
+        coach: undefined, // omitted, should resolve via fallback
+        athletes: {
+          athlete_1: "data:image/png;base64,petarSig",
+        },
+      },
+    };
+
+    // Master resolution logic matching BusinessTripPdfTemplates.tsx
+    const miraMember = Object.values(mockMembersDict).find(
+      (m) =>
+        (m.firstName?.trim() === "Мира" &&
+          m.lastName?.trim() === "Георгиева") ||
+        m.id === "2kNiT9VeLWOnK8kpnSsR"
+    );
+    const resolvedMiraSig =
+      miraMember?.signature ||
+      trip.signatures?.chairman ||
+      trip.signatures?.coach;
+
+    const isCoachMira = (trip.coachName || "").toLowerCase().includes("мира");
+    const effectiveChairmanSig =
+      trip.signatures?.chairman ||
+      (isCoachMira ? trip.signatures?.coach : undefined);
+    const effectiveCoachSig =
+      trip.signatures?.coach ||
+      (isCoachMira ? resolvedMiraSig || trip.signatures?.chairman : undefined);
+
+    expect(effectiveChairmanSig).toBe(miraSig);
+    expect(effectiveCoachSig).toBe(miraSig);
+
+    // Test statement person row resolution
+    const resolvePersonSig = (p: { name: string; ovKey: string }) => {
+      const isPersonMira =
+        (p.name || "").toLowerCase().includes("мира") ||
+        p.ovKey === "2kNiT9VeLWOnK8kpnSsR" ||
+        (miraMember && p.ovKey === miraMember.id);
+
+      return p.ovKey === "coach"
+        ? effectiveCoachSig
+        : (trip.signatures?.athletes as Record<string, string>)?.[p.ovKey] ||
+            (isPersonMira
+              ? resolvedMiraSig || effectiveCoachSig || effectiveChairmanSig
+              : undefined);
+    };
+
+    // Coach row
+    expect(resolvePersonSig({ name: "Мира Георгиева", ovKey: "coach" })).toBe(
+      miraSig
+    );
+    // Athlete row when Mira is listed as athlete
+    expect(
+      resolvePersonSig({
+        name: "Мира Георгиева",
+        ovKey: "2kNiT9VeLWOnK8kpnSsR",
+      })
+    ).toBe(miraSig);
+    // Other athlete row
+    expect(
+      resolvePersonSig({ name: "Петър Стоянов", ovKey: "athlete_1" })
+    ).toBe("data:image/png;base64,petarSig");
+  });
 });

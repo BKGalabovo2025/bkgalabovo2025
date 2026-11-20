@@ -58,6 +58,7 @@ const InternalRulesPage = () => {
   const fullName = formatFullName(member);
   const existingSignatureUrl =
     signatureUrl ||
+    member.signature ||
     member.internalRulesSignatureUrl ||
     member.internalRulesUrl ||
     null;

@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useChairpersonSignature } from "@/hooks/useChairpersonSignature";
 import { generatePdfFromElement } from "@/lib/html-to-pdf";
 
 import {
@@ -31,6 +32,9 @@ export function ShadowExportProtocolDialog({
 }: ShadowExportProtocolDialogProps) {
   const protocolRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const chairperson = useChairpersonSignature();
+  const effectiveSignatureUrl =
+    protocolProps.signatureUrl || chairperson.signatureUrl;
 
   const handleDownloadPdf = async () => {
     const el = protocolRef.current;
@@ -107,7 +111,11 @@ export function ShadowExportProtocolDialog({
 
         {/* Scrollable Printable Document Container */}
         <div className="my-2 flex justify-center overflow-x-auto rounded-xl bg-zinc-100 p-3 dark:bg-zinc-900">
-          <ShadowOfficialProtocol ref={protocolRef} {...protocolProps} />
+          <ShadowOfficialProtocol
+            ref={protocolRef}
+            {...protocolProps}
+            signatureUrl={effectiveSignatureUrl}
+          />
         </div>
       </DialogContent>
     </Dialog>

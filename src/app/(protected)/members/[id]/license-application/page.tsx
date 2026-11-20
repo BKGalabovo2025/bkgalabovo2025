@@ -72,6 +72,7 @@ const LicenseApplicationPage = () => {
   const fullName = formatFullName(member);
   const existingSignatureUrl =
     signatureUrl ||
+    member.signature ||
     member.licenseApplicationSignatureUrl ||
     member.licenseApplicationUrl ||
     null;

@@ -35,6 +35,7 @@ export interface ShadowOfficialProtocolProps {
   agilityTestTimeSec?: number;
   agilityActionsDone?: number;
   signatureUrl?: string | null;
+  coachSignatureUrl?: string | null;
 }
 
 function getRpeLabel(score?: number): string {
@@ -96,6 +97,12 @@ export const ShadowOfficialProtocol = React.forwardRef<
     (sum, val) => sum + (typeof val === "number" ? val : 0),
     0
   );
+
+  const isCoachMira =
+    (coachName || "").toLowerCase().includes("мира") ||
+    (coachName || "").toLowerCase().includes("георгиева");
+  const effectiveCoachSig =
+    props.coachSignatureUrl || (isCoachMira ? signatureUrl : null);
 
   return (
     <div
@@ -348,10 +355,24 @@ export const ShadowOfficialProtocol = React.forwardRef<
         <div className="flex items-end justify-between text-[9.5pt]">
           <div className="space-y-1">
             <p className="font-bold text-slate-900">Водещ треньор:</p>
-            <p className="text-slate-800">
-              ...................................................
-            </p>
-            <p className="font-bold text-slate-950">/ {coachName} /</p>
+            {effectiveCoachSig ? (
+              <div className="flex flex-col items-start">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={effectiveCoachSig}
+                  alt="Подпис на треньора"
+                  className="h-10 w-auto object-contain"
+                />
+                <p className="font-bold text-slate-950">/ {coachName} /</p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-slate-800">
+                  ...................................................
+                </p>
+                <p className="font-bold text-slate-950">/ {coachName} /</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-1 text-right">

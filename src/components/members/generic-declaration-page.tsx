@@ -81,6 +81,7 @@ export const GenericDeclarationPage = ({
 
   const existingSignatureUrl =
     signatureUrl ||
+    member.signature ||
     ((member as Record<string, unknown>)[`${prefix}SignatureUrl`] as
       string | null) ||
     ((member as Record<string, unknown>)[`${prefix}Url`] as string | null) ||

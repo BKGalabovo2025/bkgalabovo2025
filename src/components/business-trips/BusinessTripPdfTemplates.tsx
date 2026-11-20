@@ -578,6 +578,40 @@ export function BusinessTripPdfTemplates({
     "гр. Гълъбово, в седалището на сдружението";
   const meetingTime = trip.usMeetingTime?.trim() || "18:00 ч.";
 
+  // Master signature resolution for Mira Georgieva and general roles:
+  const miraMember = Object.values(membersDict).find(
+    (m) =>
+      (m.firstName?.trim() === "Мира" && m.lastName?.trim() === "Георгиева") ||
+      m.id === "2kNiT9VeLWOnK8kpnSsR"
+  );
+  const miraSig =
+    miraMember?.signature ||
+    trip.signatures?.chairman ||
+    trip.signatures?.coach ||
+    trip.signatures?.athletes?.["2kNiT9VeLWOnK8kpnSsR"];
+
+  const isCoachMira =
+    coachName.toLowerCase().includes("мира") ||
+    (coach &&
+      coach.firstName?.trim() === "Мира" &&
+      coach.lastName?.trim() === "Георгиева") ||
+    !trip.coachName;
+
+  const isChairmanMira =
+    mol.toLowerCase().includes("георгиева") ||
+    mol.toLowerCase().includes("мира") ||
+    chair.toLowerCase().includes("георгиева") ||
+    chair.toLowerCase().includes("мира");
+
+  const effectiveChairmanSig =
+    trip.signatures?.chairman ||
+    (isChairmanMira ? miraSig : undefined) ||
+    (isCoachMira ? trip.signatures?.coach : undefined);
+
+  const effectiveCoachSig =
+    trip.signatures?.coach ||
+    (isCoachMira ? miraSig || trip.signatures?.chairman : undefined);
+
   const renderDecisionTransportText = () => {
     if (hasFuel) {
       return (
@@ -941,9 +975,9 @@ export function BusinessTripPdfTemplates({
                 height: "36pt",
               }}
             >
-              {trip.signatures?.chairman ? (
+              {effectiveChairmanSig ? (
                 <img
-                  src={trip.signatures.chairman}
+                  src={effectiveChairmanSig}
                   alt="signature"
                   style={{ height: "32pt", objectFit: "contain" }}
                 />
@@ -1335,9 +1369,9 @@ export function BusinessTripPdfTemplates({
                 height: "34pt",
               }}
             >
-              {trip.signatures?.chairman ? (
+              {effectiveChairmanSig ? (
                 <img
-                  src={trip.signatures.chairman}
+                  src={effectiveChairmanSig}
                   alt="signature"
                   style={{ height: "32pt", objectFit: "contain" }}
                 />
@@ -1678,9 +1712,9 @@ export function BusinessTripPdfTemplates({
                   height: "36pt",
                 }}
               >
-                {trip.signatures?.coach ? (
+                {effectiveCoachSig ? (
                   <img
-                    src={trip.signatures.coach}
+                    src={effectiveCoachSig}
                     alt="signature"
                     style={{ height: "34pt", objectFit: "contain" }}
                   />
@@ -1724,9 +1758,9 @@ export function BusinessTripPdfTemplates({
                   height: "36pt",
                 }}
               >
-                {trip.signatures?.chairman ? (
+                {effectiveChairmanSig ? (
                   <img
-                    src={trip.signatures.chairman}
+                    src={effectiveChairmanSig}
                     alt="signature"
                     style={{ height: "34pt", objectFit: "contain" }}
                   />
@@ -1879,13 +1913,21 @@ export function BusinessTripPdfTemplates({
             }
           }
 
+          const isPersonMira =
+            (p.name || "").toLowerCase().includes("мира") ||
+            p.ovKey === "2kNiT9VeLWOnK8kpnSsR" ||
+            (miraMember && p.ovKey === miraMember.id);
+
           const personSig =
             p.ovKey === "coach"
-              ? trip.signatures?.coach
+              ? effectiveCoachSig
               : trip.signatures?.athletes?.[p.ovKey] ||
                 (trip.signatures as Record<string, string> | undefined)?.[
                   p.ovKey
-                ];
+                ] ||
+                (isPersonMira
+                  ? miraSig || effectiveCoachSig || effectiveChairmanSig
+                  : undefined);
 
           return (
             <tr key={`${p.name}_${globalIndex}`}>
@@ -2194,9 +2236,9 @@ export function BusinessTripPdfTemplates({
                       height: "26pt",
                     }}
                   >
-                    {trip.signatures?.coach ? (
+                    {effectiveCoachSig ? (
                       <img
-                        src={trip.signatures.coach}
+                        src={effectiveCoachSig}
                         alt="signature"
                         style={{ height: "24pt", objectFit: "contain" }}
                       />
@@ -2248,9 +2290,9 @@ export function BusinessTripPdfTemplates({
                       height: "26pt",
                     }}
                   >
-                    {trip.signatures?.chairman ? (
+                    {effectiveChairmanSig ? (
                       <img
-                        src={trip.signatures.chairman}
+                        src={effectiveChairmanSig}
                         alt="signature"
                         style={{ height: "24pt", objectFit: "contain" }}
                       />
@@ -2609,12 +2651,15 @@ export function BusinessTripPdfTemplates({
               <p style={{ margin: "2pt 0 4pt 0", color: "#000" }}>
                 Председател:
               </p>
-              {trip.signatures?.chairman ? (
-                <img
-                  src={trip.signatures.chairman}
-                  alt="signature"
-                  style={{ height: "35pt", objectFit: "contain" }}
-                />
+              {effectiveChairmanSig ? (
+                <div>
+                  <img
+                    src={effectiveChairmanSig}
+                    alt="signature"
+                    style={{ height: "35pt", objectFit: "contain" }}
+                  />
+                  <p style={{ margin: 0, fontSize: "8pt" }}>/ {mol} /</p>
+                </div>
               ) : (
                 <p style={{ margin: 0 }}>/ {mol} /</p>
               )}
@@ -2935,9 +2980,9 @@ export function BusinessTripPdfTemplates({
                   height: "36pt",
                 }}
               >
-                {trip.signatures?.coach ? (
+                {effectiveCoachSig ? (
                   <img
-                    src={trip.signatures.coach}
+                    src={effectiveCoachSig}
                     alt="signature"
                     style={{ height: "32pt", objectFit: "contain" }}
                   />
@@ -3206,9 +3251,9 @@ export function BusinessTripPdfTemplates({
                   </p>
                   <div style={{ display: "flex", alignItems: "flex-end" }}>
                     <span style={{ marginRight: "8pt" }}>Подпис:</span>
-                    {trip.signatures?.coach ? (
+                    {effectiveCoachSig ? (
                       <img
-                        src={trip.signatures.coach}
+                        src={effectiveCoachSig}
                         alt="signature"
                         style={{ height: "28pt", objectFit: "contain" }}
                       />
@@ -3493,9 +3538,9 @@ export function BusinessTripPdfTemplates({
                 }}
               >
                 <span style={{ marginRight: "6pt" }}>Подпис:</span>
-                {trip.signatures?.coach ? (
+                {effectiveCoachSig ? (
                   <img
-                    src={trip.signatures.coach}
+                    src={effectiveCoachSig}
                     alt="signature"
                     style={{ height: "26pt", objectFit: "contain" }}
                   />

@@ -26,20 +26,47 @@ export async function getChairpersonSignatureAction(): Promise<
       .doc("chairperson")
       .get();
 
-    if (!snap.exists) {
-      return {
-        success: true,
-        data: { signatureUrl: null, updatedAt: null },
-      };
+    const data = snap.exists ? snap.data() || {} : {};
+    let sigUrl = (data.signatureUrl as string) || null;
+    let updatedAt = (data.updatedAt as string) || null;
+    let updatedBy = (data.updatedBy as string) || null;
+
+    // Fallback: If not in club_settings, load from Mira Georgieva's profile in members
+    if (!sigUrl) {
+      const miraSnap = await adminDb
+        .collection("members")
+        .where("firstName", "==", "Мира")
+        .where("lastName", "==", "Георгиева")
+        .limit(1)
+        .get();
+
+      if (!miraSnap.empty) {
+        const mData = miraSnap.docs[0].data();
+        if (mData.signature && typeof mData.signature === "string") {
+          sigUrl = mData.signature;
+          updatedAt =
+            (mData.signatureUpdatedAt as string) || new Date().toISOString();
+          updatedBy = "mira_georgieva_profile";
+
+          // Auto-sync into club_settings/chairperson
+          await adminDb.collection("club_settings").doc("chairperson").set(
+            {
+              signatureUrl: sigUrl,
+              updatedAt,
+              updatedBy,
+            },
+            { merge: true }
+          );
+        }
+      }
     }
 
-    const data = snap.data() || {};
     return {
       success: true,
       data: {
-        signatureUrl: (data.signatureUrl as string) || null,
-        updatedAt: (data.updatedAt as string) || null,
-        updatedBy: (data.updatedBy as string) || null,
+        signatureUrl: sigUrl,
+        updatedAt,
+        updatedBy,
       },
     };
   } catch (error) {
@@ -75,8 +102,32 @@ export async function saveChairpersonSignatureAction(input: {
       { merge: true }
     );
 
+    // Also mirror to Mira Georgieva's member profile
+    try {
+      const miraSnap = await adminDb
+        .collection("members")
+        .where("firstName", "==", "Мира")
+        .where("lastName", "==", "Георгиева")
+        .limit(1)
+        .get();
+
+      if (!miraSnap.empty) {
+        await miraSnap.docs[0].ref.update({
+          signature: input.signatureBase64,
+          signatureUpdatedAt: updatedAt,
+          updatedAt,
+        });
+      }
+    } catch (miraErr) {
+      console.warn(
+        "Could not mirror chairperson signature to Mira member profile:",
+        miraErr
+      );
+    }
+
     revalidatePath("/members");
     revalidatePath("/documents");
+    revalidatePath("/accounting/trips");
 
     return {
       success: true,

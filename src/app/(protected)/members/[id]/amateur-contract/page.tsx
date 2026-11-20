@@ -62,6 +62,7 @@ const AmateurContractPage = () => {
   const fullName = formatFullName(member);
   const existingSignatureUrl =
     signatureUrl ||
+    member.signature ||
     member.amateurContractSignatureUrl ||
     member.amateurContractUrl ||
     null;

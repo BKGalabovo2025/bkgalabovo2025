@@ -328,8 +328,19 @@ async function propagateAthleteSignatureInternal(
   const now = new Date().toISOString();
 
   // 1. Update member profile with the stored signature
+  let isMiraGeorgieva = false;
   try {
     const memberRef = adminDb.collection("members").doc(memberId);
+    const mSnap = await memberRef.get();
+    if (mSnap.exists) {
+      const mData = mSnap.data();
+      const fn = (mData?.firstName || "").trim().toLowerCase();
+      const ln = (mData?.lastName || "").trim().toLowerCase();
+      if (fn === "мира" && ln === "георгиева") {
+        isMiraGeorgieva = true;
+      }
+    }
+
     await memberRef.set(
       {
         signature: signatureBase64,
@@ -338,11 +349,23 @@ async function propagateAthleteSignatureInternal(
       },
       { merge: true }
     );
+
+    // If member is Mira Georgieva, sync to club_settings/chairperson
+    if (isMiraGeorgieva) {
+      await adminDb.collection("club_settings").doc("chairperson").set(
+        {
+          signatureUrl: signatureBase64,
+          updatedAt: now,
+          updatedBy: "mira_georgieva_profile_sync",
+        },
+        { merge: true }
+      );
+    }
   } catch (err) {
     console.warn(`Failed to update member ${memberId} profile signature:`, err);
   }
 
-  // 2. Query all business trips and filter by participant
+  // 2. Query all business trips and filter by participant or coach/chairman roles
   let updatedTripsCount = 0;
   try {
     const tripsSnap = await adminDb.collection("business_trips").get();
@@ -376,18 +399,37 @@ async function propagateAthleteSignatureInternal(
           (id) =>
             String(id).trim().toLowerCase() === memberId.trim().toLowerCase()
         );
-        if (!isParticipant) continue;
 
-        const existingSig =
-          data.signatures?.athletes?.[memberId] ||
-          (data.signatures as Record<string, string> | undefined)?.[memberId];
+        const tripUpdates: Record<string, unknown> = {};
 
-        // Only update if not already signed, unless overwrite is explicitly requested
-        if (!existingSig || overwriteExisting) {
-          batch.update(doc.ref, {
-            [`signatures.athletes.${memberId}`]: signatureBase64,
-            updatedAt: now,
-          });
+        // If member is Mira Georgieva, she signs as Chairman and as Coach across trips
+        if (isMiraGeorgieva) {
+          if (!data.signatures?.chairman || overwriteExisting) {
+            tripUpdates["signatures.chairman"] = signatureBase64;
+          }
+          const coachLower = (data.coachName || "").toLowerCase();
+          if (
+            (coachLower.includes("мира") || !data.coachName) &&
+            (!data.signatures?.coach || overwriteExisting)
+          ) {
+            tripUpdates["signatures.coach"] = signatureBase64;
+          }
+        }
+
+        // If participant or coachIsAthlete:
+        if (isParticipant || (isMiraGeorgieva && data.coachIsAthlete)) {
+          const existingSig =
+            data.signatures?.athletes?.[memberId] ||
+            (data.signatures as Record<string, string> | undefined)?.[memberId];
+
+          if (!existingSig || overwriteExisting) {
+            tripUpdates[`signatures.athletes.${memberId}`] = signatureBase64;
+          }
+        }
+
+        if (Object.keys(tripUpdates).length > 0) {
+          tripUpdates["updatedAt"] = now;
+          batch.update(doc.ref, tripUpdates);
           opCount++;
           updatedTripsCount++;
 

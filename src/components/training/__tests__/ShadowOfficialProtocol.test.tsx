@@ -86,4 +86,23 @@ describe("ShadowOfficialProtocol", () => {
     expect(screen.getByText("18.4s")).toBeInTheDocument();
     expect(screen.getByText(/Контролен тест/i)).toBeInTheDocument();
   });
+
+  it("renders electronic signatures for both Chairperson and Coach Mira Georgieva", () => {
+    const mockSig = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==";
+    render(
+      <ShadowOfficialProtocol
+        date="2026-11-20T10:00:00.000Z"
+        coachName="Мира Георгиева"
+        mode="standard"
+        signatureUrl={mockSig}
+        athletes={[{ id: "m1", name: "Тестов Състезател" }]}
+      />
+    );
+
+    const sigImages = screen.getAllByRole("img", { name: /подпис/i });
+    expect(sigImages.length).toBeGreaterThanOrEqual(2);
+    sigImages.forEach((img) => {
+      expect(img).toHaveAttribute("src", mockSig);
+    });
+  });
 });

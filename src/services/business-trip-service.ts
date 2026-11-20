@@ -39,6 +39,35 @@ export const businessTripService = {
     const athleteSignatures: Record<string, string> = {
       ...(data.signatures?.athletes || {}),
     };
+
+    let chairmanSig = data.signatures?.chairman || null;
+    let coachSig = data.signatures?.coach || null;
+
+    try {
+      // 1. Auto-resolve Chairman signature from club_settings if not explicitly provided
+      if (!chairmanSig) {
+        const chairSnap = await getDoc(doc(db, "club_settings", "chairperson"));
+        if (chairSnap.exists()) {
+          const cData = chairSnap.data();
+          if (cData?.signatureUrl && typeof cData.signatureUrl === "string") {
+            chairmanSig = cData.signatureUrl;
+          }
+        }
+      }
+
+      // 2. Auto-resolve Coach signature if coach is Mira Georgieva
+      const coachLower = (data.coachName || "").toLowerCase();
+      if (
+        !coachSig &&
+        (coachLower.includes("мира") || !data.coachName) &&
+        chairmanSig
+      ) {
+        coachSig = chairmanSig;
+      }
+    } catch {
+      // Ignore background signature fetch errors
+    }
+
     if (
       Array.isArray(data.participantsIds) &&
       data.participantsIds.length > 0
@@ -73,6 +102,8 @@ export const businessTripService = {
       ...data,
       signatures: {
         ...data.signatures,
+        chairman: chairmanSig || undefined,
+        coach: coachSig || undefined,
         athletes: athleteSignatures,
       },
       // Официална дата на заповедта: ако потребителят я е определил ръчно, използваме нея; иначе вземаме сегашната
