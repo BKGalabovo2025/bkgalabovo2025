@@ -9,6 +9,7 @@ import {
   ShadowSettings,
   useShadowTrainer,
 } from "@/hooks/useShadowTrainer";
+import { syncShadowAttendanceToScheduleAction } from "@/lib/actions/events";
 import { createTrainingSessionAction } from "@/lib/actions/trainings";
 import { preloadAudioForSettings } from "@/lib/shadow-training/audio-map";
 import type { TrainingSession } from "@/types/training.types";
@@ -209,6 +210,7 @@ export function ShadowWizard({
         type: "shadow" as const,
         date: new Date().toISOString(),
         memberIds: settings.activePlayers.map((p) => p.id),
+        scheduleId: settings.scheduleId || undefined,
         durationMs: trainer.actualElapsedMs || 0,
         notes: finalNotes,
         rpeScores,
@@ -254,6 +256,27 @@ export function ShadowWizard({
       }
 
       toast.success("Тренировката е записана успешно!");
+
+      // Автоматичен синхрон на присъствията към графика, ако тренировката е стартирана от събитие
+      if (settings.scheduleId) {
+        try {
+          const syncRes = await syncShadowAttendanceToScheduleAction(
+            settings.scheduleId,
+            settings.activePlayers.map((p) => ({
+              id: p.id,
+              displayName: p.displayName,
+            })),
+            freshToken
+          );
+          if (syncRes.success) {
+            toast.success(
+              "Присъствията бяха автоматично валидирани в графика!"
+            );
+          }
+        } catch (syncErr) {
+          console.error("Schedule sync error:", syncErr);
+        }
+      }
 
       setRpeNotes("");
       setRpeScore(5);

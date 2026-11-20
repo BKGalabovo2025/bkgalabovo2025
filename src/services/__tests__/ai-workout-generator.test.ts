@@ -111,6 +111,59 @@ describe("AI Workout Generator Suite", () => {
         "Corner 3"
       );
     });
+
+    it("maps named shadow zones from real heatmap to natural Bulgarian descriptions", () => {
+      const now = new Date("2026-09-09T12:00:00.000Z");
+      const mockMember = MemberSchema.parse({
+        id: "athlete_1",
+        siteId: "bkgalabovo",
+        firstName: "Георги",
+        lastName: "Димитров",
+        name: "Георги Димитров",
+        dateOfBirth: "2008-03-20",
+        ageGroup: "U19",
+        skillLevel: "advanced",
+        injuries: [],
+        registrationDate: "2025-01-01T10:00:00.000Z",
+      });
+
+      const shadowTrainingWithNamedZones = {
+        id: "tr_shadow_bg",
+        siteId: "bkgalabovo",
+        type: "shadow",
+        date: "2026-09-08T10:00:00.000Z",
+        memberIds: ["athlete_1"],
+        durationMs: 900000,
+        shadowDetails: {
+          mode: "standard",
+          cornersMode: "6-corners",
+          paceSec: 2.1,
+          setsCompleted: 4,
+          totalSets: 4,
+          heatmap: {
+            frontForehand: 25,
+            backBackhand: 4,
+            midForehand: 18,
+            frontBackhand: 8,
+          },
+        },
+      };
+
+      const context = buildAthleteContext({
+        member: mockMember,
+        trainingsLast14Days: [
+          shadowTrainingWithNamedZones as unknown as TrainingSession,
+        ],
+        now,
+      });
+
+      expect(context.conditioning.shadowFootwork?.weakestCorners).toContain(
+        "Слабост при придвижване към заден бекхенд ъгъл"
+      );
+      expect(context.conditioning.shadowFootwork?.weakestCorners).toContain(
+        "Слабост при придвижване към преден бекхенд ъгъл"
+      );
+    });
   });
 
   describe("3. PDF Template Renderer", () => {

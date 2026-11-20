@@ -222,6 +222,27 @@ export function calculateAge(dateOfBirth?: string | null): number {
   return Math.max(age, 5);
 }
 
+const SHADOW_CORNER_BG_MAP: Record<string, string> = {
+  frontForehand: "Слабост при придвижване към преден форхенд ъгъл",
+  frontBackhand: "Слабост при придвижване към преден бекхенд ъгъл",
+  midForehand: "Слабост при придвижване към среден форхенд ъгъл",
+  midBackhand: "Слабост при придвижване към среден бекхенд ъгъл",
+  backForehand: "Слабост при придвижване към заден форхенд ъгъл",
+  backBackhand: "Слабост при придвижване към заден бекхенд ъгъл",
+  overhead: "Слабост при придвижване към задна линия (оувърхед)",
+};
+
+function normalizeCornerLabel(key: string): string {
+  const cleanKey = key.replace(/^Corner\s*/i, "").trim();
+  if (SHADOW_CORNER_BG_MAP[cleanKey]) {
+    return SHADOW_CORNER_BG_MAP[cleanKey];
+  }
+  if (SHADOW_CORNER_BG_MAP[key]) {
+    return SHADOW_CORNER_BG_MAP[key];
+  }
+  return key.startsWith("Corner") ? key : `Corner ${key}`;
+}
+
 function computeShadowStats(shadowSessions: TrainingSession[]) {
   if (shadowSessions.length === 0) return null;
 
@@ -245,9 +266,7 @@ function computeShadowStats(shadowSessions: TrainingSession[]) {
       } else if (typeof heatmap === "object" && heatmap !== null) {
         Object.entries(heatmap as Record<string, number>).forEach(
           ([key, count]) => {
-            const cornerLabel = key.startsWith("Corner")
-              ? key
-              : `Corner ${key}`;
+            const cornerLabel = normalizeCornerLabel(key);
             cornerFrequency[cornerLabel] =
               (cornerFrequency[cornerLabel] || 0) + (Number(count) || 0);
           }

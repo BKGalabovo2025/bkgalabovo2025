@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Loader2, Search, Sparkles } from "lucide-react";
+import { Check, Loader2, Search, Sparkles, Zap } from "lucide-react";
+import Link from "next/link";
 import React, { useEffect, useId, useMemo, useState } from "react";
 
 import { WorkoutDayPreviewModal } from "@/components/schedule/WorkoutDayPreviewModal";
@@ -376,7 +377,26 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
                 </span>{" "}
                 присъстващи
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {event && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="h-8.5 sm:h-9 rounded-xl border-blue-400 bg-blue-50/60 text-xs font-bold text-blue-700 shadow-2xs hover:bg-blue-100 hover:text-blue-800 dark:border-blue-700 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                  >
+                    <Link
+                      href={`/training/shadow?scheduleId=${encodeURIComponent(event.id)}`}
+                      title="Стартирай Shadow Training със заредените присъстващи състезатели"
+                    >
+                      <Zap
+                        size={13}
+                        className="mr-1.5 fill-current text-blue-600 dark:text-blue-400"
+                      />
+                      Стартирай Shadow
+                    </Link>
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"

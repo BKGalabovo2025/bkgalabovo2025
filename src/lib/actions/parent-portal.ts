@@ -3273,11 +3273,58 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
 
               let reactionSum = 0;
               let reactionCount = 0;
+              let totalDurationMs = 0;
+              const paceHistory: Array<{ date: string; paceSec: number }> = [];
+
               for (const s of shadowDocs) {
+                if (typeof s.durationMs === "number") {
+                  totalDurationMs += s.durationMs;
+                }
                 if (typeof s.shadowDetails?.paceSec === "number") {
                   reactionSum += s.shadowDetails.paceSec;
                   reactionCount++;
+                  paceHistory.push({
+                    date: s.date ? String(s.date).slice(0, 10) : "",
+                    paceSec: s.shadowDetails.paceSec,
+                  });
                 }
+              }
+
+              const chronologicalPaceHistory = paceHistory.reverse().slice(-8);
+              const totalShadowMinutes = Math.round(totalDurationMs / 60000);
+
+              let perseveranceBadge: ParentShadowAndQuizzesData["perseveranceBadge"] =
+                null;
+              if (totalShadowMinutes >= 120) {
+                perseveranceBadge = {
+                  title: "Елитен Footwork Атлет",
+                  level: "gold",
+                  icon: "🏆",
+                };
+              } else if (totalShadowMinutes >= 60) {
+                perseveranceBadge = {
+                  title: "Златно Постоянство",
+                  level: "gold",
+                  icon: "🥇",
+                };
+              } else if (totalShadowMinutes >= 30) {
+                perseveranceBadge = {
+                  title: "Сребърно Постоянство",
+                  level: "silver",
+                  icon: "🥈",
+                };
+              } else if (totalShadowMinutes >= 10) {
+                perseveranceBadge = {
+                  title: "Бронзов Старт",
+                  level: "bronze",
+                  icon: "🥉",
+                };
+              } else if (shadowDocs.length > 0) {
+                perseveranceBadge = {
+                  title: "Активен Footwork Играч",
+                  level: "starter",
+                  icon: "⚡",
+                };
               }
 
               const quizDocs = quizSnap.docs
@@ -3292,6 +3339,9 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
 
               shadowAndQuizzes = {
                 shadowSessionsCount: shadowDocs.length,
+                totalShadowMinutes,
+                perseveranceBadge,
+                paceHistory: chronologicalPaceHistory,
                 lastShadowDate: shadowDocs[0]?.date || null,
                 averageReactionSec:
                   reactionCount > 0

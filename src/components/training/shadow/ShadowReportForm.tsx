@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Award,
   CheckCircle2,
   Clock,
   Layers,
@@ -13,12 +14,15 @@ import {
   Zap,
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ShadowSettings } from "@/hooks/useShadowTrainer";
+import { useAuth } from "@/context/auth-context";
+import { ShadowPlayer, ShadowSettings } from "@/hooks/useShadowTrainer";
+import { recordShadowAgilityAssessmentAction } from "@/lib/actions/trainings";
 
 interface ShadowReportFormProps {
   rpeScore: number;
@@ -62,9 +66,16 @@ export function ShadowReportForm({
   completedSets = 0,
   agilityActionsDone = 0,
 }: ShadowReportFormProps) {
+  const { idToken, user } = useAuth();
   const [customPlayerRpe, setCustomPlayerRpe] = useState<
     Record<string, number>
   >({});
+  const [recordedAssessments, setRecordedAssessments] = useState<
+    Record<string, boolean>
+  >({});
+  const [recordingMemberId, setRecordingMemberId] = useState<string | null>(
+    null
+  );
 
   const effectiveIndividualRpe = useMemo(() => {
     const map: Record<string, number> = {};
@@ -80,6 +91,44 @@ export function ShadowReportForm({
       const next = Math.min(10, Math.max(1, current + delta));
       return { ...prev, [playerId]: next };
     });
+  };
+
+  const handleRecordOfficialAssessment = async (player: ShadowPlayer) => {
+    const pName =
+      player.displayName ||
+      `${player.firstName || ""} ${player.lastName || ""}`.trim() ||
+      "Състезател";
+    const elapsedSeconds = Number((actualElapsedMs / 1000).toFixed(1));
+    const actionsCount = agilityActionsDone || settings?.workSec || 20;
+
+    setRecordingMemberId(player.id);
+    try {
+      const res = await recordShadowAgilityAssessmentAction(
+        idToken || undefined,
+        {
+          memberId: player.id,
+          memberName: pName,
+          ageGroup: player.ageGroup || settings?.ageGroup || "U17",
+          timeSec: elapsedSeconds,
+          actionsCount,
+          recordedBy: user?.displayName || user?.email || "Треньор",
+        }
+      );
+
+      if (res.success) {
+        setRecordedAssessments((prev) => ({ ...prev, [player.id]: true }));
+        toast.success(
+          `Нормативът за ${pName} (${elapsedSeconds}s) е записан официално в досието!`
+        );
+      } else {
+        toast.error(res.message || "Грешка при запис на норматива в досието.");
+      }
+    } catch (err) {
+      console.error("Failed to record official assessment:", err);
+      toast.error("Възникна системна грешка при записване на теста.");
+    } finally {
+      setRecordingMemberId(null);
+    }
   };
 
   const rpeColors = [
@@ -307,6 +356,67 @@ export function ShadowReportForm({
                 </div>
               </div>
             )}
+
+            {/* Agility Test Official Assessment Record */}
+            {settings?.mode === "agility_test" &&
+              settings.activePlayers.length > 0 && (
+                <div className="space-y-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 dark:border-amber-500/20 dark:bg-amber-950/20">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-sm font-bold text-amber-900 dark:text-amber-200">
+                      <Award size={18} className="text-amber-500" />
+                      Официален норматив за бързина (Agility PB)
+                    </span>
+                    <span className="text-[11px] font-semibold text-amber-700/80 dark:text-amber-400/80">
+                      {agilityActionsDone || settings.workSec || 20} движения •{" "}
+                      {(actualElapsedMs / 1000).toFixed(1)}s
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                    Запишете постигнатия резултат като официален контролен тест
+                    в профила на състезателя (модул „Тестове &amp; Нормативи“).
+                  </p>
+                  <div className="space-y-2 pt-1">
+                    {settings.activePlayers.map((player) => {
+                      const isRecorded = recordedAssessments[player.id];
+                      const isBusy = recordingMemberId === player.id;
+                      const pName =
+                        player.displayName ||
+                        `${player.firstName || ""} ${player.lastName || ""}`.trim() ||
+                        "Състезател";
+
+                      return (
+                        <div
+                          key={`assess-${player.id}`}
+                          className="flex items-center justify-between gap-2 rounded-xl border border-amber-500/20 bg-white/80 p-2.5 backdrop-blur-xs dark:border-amber-500/20 dark:bg-zinc-950/60"
+                        >
+                          <span className="min-w-0 flex-1 truncate text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                            {pName}
+                          </span>
+                          {isRecorded ? (
+                            <span className="inline-flex items-center gap-1 rounded-lg bg-green-500/10 px-2.5 py-1 text-xs font-bold text-green-600 dark:text-green-400">
+                              <CheckCircle2 size={13} /> Записан тест
+                            </span>
+                          ) : (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={isBusy}
+                              onClick={() =>
+                                handleRecordOfficialAssessment(player)
+                              }
+                              className="h-8 rounded-lg border-amber-500/40 bg-amber-500/10 px-2.5 text-xs font-bold text-amber-900 hover:bg-amber-500/20 dark:text-amber-200"
+                            >
+                              <Award className="mr-1 size-3.5" />
+                              {isBusy ? "Записване..." : "Запиши в досието"}
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
             <div className="space-y-3">
               <Label

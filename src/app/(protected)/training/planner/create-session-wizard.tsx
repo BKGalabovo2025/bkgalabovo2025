@@ -14,7 +14,9 @@ import {
   Search,
   Trash2,
   Users,
+  Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -724,35 +726,60 @@ const SessionBlockItemCard = ({
         </div>
       )}
 
-      <div className="mt-2 flex items-center gap-1 rounded bg-zinc-900/5 px-2 py-1 dark:bg-zinc-800/60">
-        <Input
-          type="number"
-          className="h-7 w-16 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-          value={item.durationMinutes}
-          onChange={(e) =>
-            onUpdateDuration(phase, item.id, parseInt(e.target.value) || 0)
-          }
-        />
-        <span className="text-xs text-zinc-500">мин</span>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5 rounded bg-zinc-900/5 px-2 py-1 dark:bg-zinc-800/60">
+        <div className="flex items-center gap-1">
+          <Input
+            type="number"
+            className="h-7 w-16 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            value={item.durationMinutes}
+            onChange={(e) =>
+              onUpdateDuration(phase, item.id, parseInt(e.target.value) || 0)
+            }
+          />
+          <span className="text-xs text-zinc-500">мин</span>
 
-        {item.type === "exercise" && (
-          <Select
-            value={item.targetGroupId || "none"}
-            onValueChange={(v) => onUpdateTargetGroup(phase, item.id, v)}
-          >
-            <SelectTrigger className="ml-2 h-7 w-30 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-              <SelectValue placeholder="За всички" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">За всички групи</SelectItem>
-              {groups.map((g) => (
-                <SelectItem key={g.id} value={g.id}>
-                  {g.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+          {item.type === "exercise" && (
+            <Select
+              value={item.targetGroupId || "none"}
+              onValueChange={(v) => onUpdateTargetGroup(phase, item.id, v)}
+            >
+              <SelectTrigger className="ml-2 h-7 w-30 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
+                <SelectValue placeholder="За всички" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">За всички групи</SelectItem>
+                {groups.map((g) => (
+                  <SelectItem key={g.id} value={g.id}>
+                    {g.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        {item.type === "exercise" &&
+          (item.exercise?.name?.toLowerCase().includes("shadow") ||
+            item.exercise?.name?.toLowerCase().includes("сянка")) && (
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="h-7 rounded-lg border-blue-400 bg-blue-50/70 px-2 text-[10px] font-bold text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-700 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/50"
+            >
+              <Link
+                href="/training/shadow?corners=6-corners&sets=3&work=45&rest=30&pace=2.5&drillMode=all"
+                target="_blank"
+                title="Отвори Shadow Training в нов прозорец за стартиране в залата"
+              >
+                <Zap
+                  size={11}
+                  className="mr-1 fill-current text-blue-600 dark:text-blue-400"
+                />
+                Пусни Shadow
+              </Link>
+            </Button>
+          )}
       </div>
     </div>
   );
@@ -1949,6 +1976,7 @@ interface SessionStep2ToolbarProps {
   onExpandPhase: (phase: StationPhaseType) => void;
   onSetAllPhasesExpanded: (expanded: boolean) => void;
   onInjectHydration: () => void;
+  onInjectShadowFootwork: () => void;
   onToggleRainyDay: () => void;
   isRainyDay: boolean;
 }
@@ -1960,6 +1988,7 @@ function SessionStep2Toolbar({
   onExpandPhase,
   onSetAllPhasesExpanded,
   onInjectHydration,
+  onInjectShadowFootwork,
   onToggleRainyDay,
   isRainyDay,
 }: SessionStep2ToolbarProps) {
@@ -2061,6 +2090,15 @@ function SessionStep2Toolbar({
             Свий всички
           </Button>
           <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 border-indigo-200 bg-indigo-50 text-[10px] font-bold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900/40 dark:bg-indigo-950/40 dark:text-indigo-300"
+            onClick={onInjectShadowFootwork}
+            title="Добави Shadow Footwork блок: 6 ъгъла (3 серии по 45s) с директен линк за пускане"
+          >
+            ⚡ + Shadow Footwork
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -2269,6 +2307,37 @@ export default function CreateSessionWizard({
 
   const injectHydrationBreaks = () => {
     setBlocks((prev) => applyHydrationBreaks(prev));
+  };
+
+  const injectShadowFootwork = () => {
+    const nowIso = new Date().toISOString();
+    const shadowEx: Exercise = {
+      id: `shadow-footwork-${uuidv4().substring(0, 8)}`,
+      siteId: "bkgalabovo",
+      name: "Shadow Footwork: 6 ъгъла (3 серии × 45s)",
+      category: "technique",
+      ageGroups: ["all"],
+      durationMinutes: 6,
+      defaultSets: 3,
+      defaultWorkSec: 45,
+      defaultRestSec: 30,
+      description:
+        "Интензивен бадминтон Shadow спринт по 6-те ъгъла на корта с аудио команди, сплит-степ реакция и връщане в базата.",
+      equipment: [],
+      location: ["court"],
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    setBlocks((prev) =>
+      appendExerciseToBlocks(
+        prev,
+        "main",
+        shadowEx,
+        groups.length === 1 ? groups[0].id : undefined
+      )
+    );
+    toast.success("Shadow Footwork блокът беше добавен в Основната част!");
   };
 
   const toggleRainyDay = () => {
@@ -2707,6 +2776,7 @@ export default function CreateSessionWizard({
                         }
                         onSetAllPhasesExpanded={setAllPhasesExpanded}
                         onInjectHydration={injectHydrationBreaks}
+                        onInjectShadowFootwork={injectShadowFootwork}
                         onToggleRainyDay={toggleRainyDay}
                         isRainyDay={isRainyDay}
                       />

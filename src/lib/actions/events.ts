@@ -292,3 +292,110 @@ export async function deleteEventAction(idToken: string, eventId: string) {
     return { success: false, message: "Грешка при изтриване на събитие." };
   }
 }
+
+/**
+ * Извлича детайлите на събитие от графика за Shadow синхронизация.
+ */
+export async function getScheduleEventByIdAction(
+  eventId: string,
+  idToken?: string
+) {
+  try {
+    await ensureAdmin(idToken);
+    const db = getAdminDb();
+    const docSnap = await db.collection("events").doc(eventId).get();
+    if (!docSnap.exists) {
+      return {
+        success: false,
+        message: "Събитието не е открито в графика.",
+        event: null,
+      };
+    }
+    const data = docSnap.data() || {};
+    return {
+      success: true,
+      event: {
+        id: docSnap.id,
+        title: (data.title as string) || "Тренировка",
+        startDate: (data.startDate as string) || "",
+        endDate: (data.endDate as string) || "",
+        type: (data.type as string) || "training",
+        attendees: Array.isArray(data.attendees)
+          ? (data.attendees as Attendee[])
+          : [],
+        attendeeMemberIds: Array.isArray(data.attendeeMemberIds)
+          ? (data.attendeeMemberIds as string[])
+          : [],
+      },
+    };
+  } catch (err) {
+    console.error("getScheduleEventByIdAction Error:", err);
+    return {
+      success: false,
+      message: "Грешка при извличане на събитие от графика.",
+      event: null,
+    };
+  }
+}
+
+/**
+ * Валидира присъствията от завършена Shadow тренировка обратно в клубния график.
+ */
+export async function syncShadowAttendanceToScheduleAction(
+  eventId: string,
+  presentPlayers: Array<{ id: string; displayName?: string }>,
+  idToken?: string
+) {
+  try {
+    await ensureAdmin(idToken);
+    const db = getAdminDb();
+    const eventRef = db.collection("events").doc(eventId);
+    const snap = await eventRef.get();
+    if (!snap.exists) {
+      return { success: false, message: "Събитието от графика не е открито." };
+    }
+    const data = snap.data() || {};
+    const existingAttendees: Attendee[] = Array.isArray(data.attendees)
+      ? [...(data.attendees as Attendee[])]
+      : [];
+
+    const memberIdsSet = new Set<string>(
+      Array.isArray(data.attendeeMemberIds)
+        ? (data.attendeeMemberIds as string[])
+        : []
+    );
+
+    presentPlayers.forEach((p) => {
+      memberIdsSet.add(p.id);
+      const existing = existingAttendees.find((a) => a.memberId === p.id);
+      if (existing) {
+        existing.attended = true;
+      } else {
+        existingAttendees.push({
+          memberId: p.id,
+          name: p.displayName || "Състезател",
+          attended: true,
+        });
+      }
+    });
+
+    await eventRef.update({
+      attendees: existingAttendees,
+      attendeeMemberIds: Array.from(memberIdsSet),
+      updatedAt: new Date().toISOString(),
+    });
+
+    invalidateClubScheduleCaches();
+    return {
+      success: true,
+      message:
+        "Присъствията от Shadow тренировката бяха автоматично валидирани в клубния дневник на графика.",
+    };
+  } catch (err) {
+    console.error("syncShadowAttendanceToScheduleAction Error:", err);
+    return {
+      success: false,
+      message: "Грешка при синхронизация на присъствията към графика.",
+    };
+  }
+}

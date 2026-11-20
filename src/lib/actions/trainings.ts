@@ -5,6 +5,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { getSiteConfig } from "@/config/sites";
 import {
   ensureAdmin,
   ensureAdminFromSession,
@@ -787,6 +788,72 @@ export async function updateWorkoutProgramProgressAction(
         error instanceof Error
           ? error.message
           : "Грешка при обновяване на прогреса.",
+    };
+  }
+}
+
+/**
+ * Записва резултат от Shadow Agility Test като официален контролен тест в досието на състезателя.
+ */
+export async function recordShadowAgilityAssessmentAction(
+  idToken: string | undefined,
+  params: {
+    memberId: string;
+    memberName: string;
+    timeSec: number;
+    actionsCount?: number;
+    date?: string;
+    notes?: string;
+    ageGroup?: string;
+    recordedBy?: string;
+  }
+) {
+  try {
+    const user = await ensureAdmin(idToken || "");
+    const db = getAdminDb();
+    const siteConfig = getSiteConfig();
+
+    const score = Math.round(params.timeSec * 10) / 10;
+    const docData = {
+      siteId: siteConfig.id,
+      memberId: params.memberId,
+      memberName: params.memberName,
+      date: params.date || new Date().toISOString(),
+      testId: "u17_shadow_1min",
+      testName: "Shadow Agility Норматив (20 движения)",
+      ageGroupAtTest: params.ageGroup || "U17",
+      score,
+      scoreDisplay: `${score.toFixed(1)} сек`,
+      notes:
+        params.notes ||
+        `Shadow Agility тест: ${params.actionsCount || 20} движения за ${score.toFixed(1)} сек.`,
+      coachAnalysis:
+        score <= 17.5
+          ? "Елитно състезателно време за реакция и придвижване по корта."
+          : score <= 20.0
+            ? "Много добър резултат. Стабилно поддържане на темпото."
+            : "Препоръчва се работа върху експлозивността на първата крачка и сплит-степа.",
+      recordedBy: {
+        userId: user.uid,
+        userName: params.recordedBy || user.email || "Треньор",
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const docRef = await db.collection("member_assessments").add(docData);
+    revalidatePath("/training/assessments");
+    revalidatePath(`/members/${params.memberId}`);
+    return {
+      success: true,
+      id: docRef.id,
+      message: `Тестът на ${params.memberName} (${score}s) е записан като официален контролен тест!`,
+    };
+  } catch (err: unknown) {
+    console.error("recordShadowAgilityAssessmentAction Error:", err);
+    return {
+      success: false,
+      message: "Грешка при запис на контролен тест в досието.",
     };
   }
 }

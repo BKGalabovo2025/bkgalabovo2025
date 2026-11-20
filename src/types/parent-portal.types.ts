@@ -323,6 +323,16 @@ export interface ParentShadowAndQuizzesData {
   shadowSessionsCount: number;
   lastShadowDate?: string | null;
   averageReactionSec?: number | null;
+  totalShadowMinutes?: number;
+  perseveranceBadge?: {
+    title: string;
+    level: "gold" | "silver" | "bronze" | "starter";
+    icon: string;
+  } | null;
+  paceHistory?: Array<{
+    date: string;
+    paceSec: number;
+  }>;
   quizzesCompletedCount: number;
   recentQuizzes: Array<{
     id: string;

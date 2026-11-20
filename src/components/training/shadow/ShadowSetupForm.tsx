@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Calendar,
   Check,
   ChevronDown,
   ChevronUp,
@@ -35,6 +36,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShadowPlayer, ShadowSettings } from "@/hooks/useShadowTrainer";
+import { getScheduleEventByIdAction } from "@/lib/actions/events";
 import { ZoneId } from "@/lib/shadow-training/audio-map";
 import {
   calculateCourtAssignments,
@@ -113,12 +115,10 @@ export function ShadowSetupForm({
   const [membersList, setMembersList] =
     useState<ShadowPlayer[]>(initialMembers);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
-  const [courtPreviewMode, setCourtPreviewMode] = useState<"half" | "full">(
-    "half"
-  );
   const [isModifiersOpen, setIsModifiersOpen] = useState(true);
   const [isRosterExpanded, setIsRosterExpanded] = useState(true);
   const autoSelectedMemberRef = useRef<string | null>(null);
+  const loadedScheduleRef = useRef<string | null>(null);
 
   // Sync initial URL query params (?section=..., ?card=..., ?modal=..., ?court=..., ?modifiers=...)
   useEffect(() => {
@@ -277,6 +277,81 @@ export function ShadowSetupForm({
       });
     }
   }, [membersList, preselectedMemberId, setSettings]);
+
+  // Auto-load session & attendees from URL ?scheduleId=...
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let schedId: string | null = null;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      schedId = params.get("scheduleId");
+    } catch {
+      // ignore
+    }
+    if (!schedId || loadedScheduleRef.current === schedId) return;
+
+    loadedScheduleRef.current = schedId;
+    getScheduleEventByIdAction(schedId).then((res) => {
+      if (res.success && res.event) {
+        const ev = res.event;
+        const attendedMembers: ShadowPlayer[] = [];
+        const presentAttendees = (ev.attendees || []).filter(
+          (a: { attended?: boolean }) => a.attended
+        );
+
+        presentAttendees.forEach((att: { memberId: string; name?: string }) => {
+          const found = membersList.find((m) => m.id === att.memberId);
+          if (found) {
+            attendedMembers.push({
+              id: found.id,
+              displayName:
+                found.displayName ||
+                `${found.firstName || ""} ${found.lastName || ""}`.trim() ||
+                att.name ||
+                "Състезател",
+              ageGroup: found.ageGroup || resolveMemberAgeGroup(found),
+            });
+          } else {
+            attendedMembers.push({
+              id: att.memberId,
+              displayName: att.name || "Състезател",
+            });
+          }
+        });
+
+        // Detect age group from event title if available
+        let detectedAgeGroup = settings.ageGroup;
+        const titleLower = ev.title.toLowerCase();
+        if (titleLower.includes("u11") || titleLower.includes("9-11"))
+          detectedAgeGroup = "U9-U11";
+        else if (titleLower.includes("u13") || titleLower.includes("11-13"))
+          detectedAgeGroup = "U11-U13";
+        else if (titleLower.includes("u15") || titleLower.includes("13-15"))
+          detectedAgeGroup = "U13-U15";
+        else if (titleLower.includes("u17") || titleLower.includes("15-17"))
+          detectedAgeGroup = "U15-U17";
+        else if (
+          titleLower.includes("мъже") ||
+          titleLower.includes("жени") ||
+          titleLower.includes("17+")
+        )
+          detectedAgeGroup = "U17+";
+
+        setSettings((prev) => ({
+          ...prev,
+          scheduleId: ev.id,
+          scheduleEventTitle: ev.title,
+          ageGroup: detectedAgeGroup,
+          activePlayers:
+            attendedMembers.length > 0 ? attendedMembers : prev.activePlayers,
+        }));
+
+        toast.success(
+          `Заредени ${attendedMembers.length} присъстващи състезатели от „${ev.title}“!`
+        );
+      }
+    });
+  }, [membersList, setSettings, settings.ageGroup]);
 
   // Calculate preview zones for live court visualization in the configurator
   const previewZones = useMemo<ZoneId[]>(() => {
@@ -639,6 +714,48 @@ export function ShadowSetupForm({
             })}
           </div>
         </div>
+
+        {/* ─── БАНЕР ЗА СВЪРЗАНА ТРЕНИРОВКА ОТ ГРАФИКА ─── */}
+        {settings.scheduleId && (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-3 shadow-2xs dark:border-blue-900/50 dark:bg-blue-950/30">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-2xs">
+                <Calendar size={16} />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-xs font-bold text-blue-900 dark:text-blue-100">
+                    Свързана тренировка от графика:{" "}
+                    {settings.scheduleEventTitle || "Тренировка"}
+                  </span>
+                  <span className="shrink-0 rounded-md bg-blue-200/70 px-1.5 py-0.5 text-[10px] font-black text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    Авто-синхрон
+                  </span>
+                </div>
+                <p className="truncate text-[11px] text-blue-700/80 dark:text-blue-300/80">
+                  Присъствията от тази Shadow сесия ще се валидират автоматично
+                  в клубния дневник на графика.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSettings((prev) => ({
+                  ...prev,
+                  scheduleId: undefined,
+                  scheduleEventTitle: undefined,
+                }));
+                toast.info("Връзката с графика беше премахната.");
+              }}
+              className="flex size-7 shrink-0 items-center justify-center rounded-lg text-blue-400 hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-blue-900/50"
+              title="Премахни връзката с графика"
+              aria-label="Премахни връзката с графика"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
         {/* ─── 1. КАТЕГОРИЯ & ПАРАМЕТРИ (BENTO CARD: card-params) ─── */}
         {showParams && (
@@ -1690,49 +1807,24 @@ export function ShadowSetupForm({
                       </div>
                     </div>
 
-                    {/* Компактен Жив Преглед на Корта */}
+                    {/* Компактен Жив Преглед на Корта (фиксиран 1/2 корт за пестене на вертикална площ) */}
                     <div className="mt-auto flex flex-col items-center rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
                       <div className="mb-2 flex w-full items-center justify-between gap-2">
                         <span className="text-[11px] font-bold tracking-wider text-zinc-600 uppercase dark:text-zinc-300">
-                          Преглед на зоните
+                          Преглед на зоните (1/2 Корт)
                         </span>
-                        <div className="flex gap-1 rounded-lg bg-zinc-200/70 p-0.5 dark:bg-zinc-800">
-                          <button
-                            type="button"
-                            onClick={() => setCourtPreviewMode("half")}
-                            className={`rounded-md px-2 py-0.5 text-[10px] font-bold transition-all ${
-                              courtPreviewMode === "half"
-                                ? "bg-white text-blue-600 shadow-2xs dark:bg-zinc-900 dark:text-white"
-                                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
-                            }`}
-                          >
-                            1/2 Корт
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setCourtPreviewMode("full")}
-                            className={`rounded-md px-2 py-0.5 text-[10px] font-bold transition-all ${
-                              courtPreviewMode === "full"
-                                ? "bg-white text-blue-600 shadow-2xs dark:bg-zinc-900 dark:text-white"
-                                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
-                            }`}
-                          >
-                            Цял корт
-                          </button>
-                        </div>
+                        <span className="rounded-md bg-blue-100 px-1.5 py-0.5 text-[10px] font-black text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                          {settings.cornersMode}
+                        </span>
                       </div>
 
                       <div className="flex w-full items-center justify-center">
                         <CourtVisualizer
                           previewZones={previewZones}
-                          viewMode={courtPreviewMode}
+                          viewMode="half"
                           leftHanded={settings.leftHanded}
                           allowToggleView={false}
-                          className={
-                            courtPreviewMode === "full"
-                              ? "max-h-56 w-auto"
-                              : "w-full max-w-52"
-                          }
+                          className="w-full max-w-52"
                         />
                       </div>
                     </div>

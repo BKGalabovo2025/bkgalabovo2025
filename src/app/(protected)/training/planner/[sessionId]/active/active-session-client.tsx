@@ -13,7 +13,9 @@ import {
   Square,
   Target,
   Timer,
+  Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -710,13 +712,37 @@ export default function ActiveSessionClient({ sessionId }: Props) {
                                           : `${item.durationMinutes} мин`}
                                       </div>
                                     </div>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => startItem(item)}
-                                      className="bg-indigo-600 hover:bg-indigo-500"
-                                    >
-                                      <Play className="size-4" />
-                                    </Button>
+                                    <div className="flex items-center gap-1.5">
+                                      {item.type === "exercise" &&
+                                        (item.exercise?.name
+                                          ?.toLowerCase()
+                                          .includes("shadow") ||
+                                          item.exercise?.name
+                                            ?.toLowerCase()
+                                            .includes("сянка")) && (
+                                          <Button
+                                            size="sm"
+                                            asChild
+                                            className="bg-blue-600 px-2 text-xs font-bold text-white shadow-xs hover:bg-blue-500"
+                                          >
+                                            <Link
+                                              href="/training/shadow?corners=6-corners&sets=3&work=45&rest=30&pace=2.5&drillMode=all"
+                                              target="_blank"
+                                              title="Отвори Shadow Training в залата"
+                                            >
+                                              <Zap className="mr-1 size-3.5 fill-current" />
+                                              Shadow
+                                            </Link>
+                                          </Button>
+                                        )}
+                                      <Button
+                                        size="sm"
+                                        onClick={() => startItem(item)}
+                                        className="bg-indigo-600 hover:bg-indigo-500"
+                                      >
+                                        <Play className="size-4" />
+                                      </Button>
+                                    </div>
                                   </div>
                                 ))}
                               </div>

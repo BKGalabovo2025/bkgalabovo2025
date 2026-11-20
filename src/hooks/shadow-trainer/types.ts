@@ -54,6 +54,8 @@ export interface ShadowSettings {
   courtAllocationStrategy?: CourtAllocationStrategy;
   leftHanded?: boolean;
   voiceSpeed?: number;
+  scheduleId?: string;
+  scheduleEventTitle?: string;
 }
 
 export interface WakeLockSentinel {

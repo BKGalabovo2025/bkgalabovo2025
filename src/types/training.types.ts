@@ -28,6 +28,7 @@ export interface TrainingSession {
   memberIds: string[];
   durationMs: number;
   notes?: string;
+  scheduleId?: string;
 
   // Specific to Shadow Training
   shadowDetails?: {
