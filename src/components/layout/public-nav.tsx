@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Star, Users, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -167,117 +166,108 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
       </div>
 
       {/* Mobile Dropdown */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-blue-900/30 bg-white/95 px-4 backdrop-blur-xl sm:px-6 lg:hidden dark:bg-black/95"
-          >
-            <div className="flex flex-col gap-4 py-4 text-xs font-bold tracking-widest text-zinc-300 uppercase sm:gap-6 sm:py-6 sm:text-sm">
+      {mobileMenuOpen && (
+        <div className="overflow-hidden border-t border-blue-900/30 bg-white/95 px-4 backdrop-blur-xl sm:px-6 lg:hidden dark:bg-black/95 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex flex-col gap-4 py-4 text-xs font-bold tracking-widest text-zinc-300 uppercase sm:gap-6 sm:py-6 sm:text-sm">
+            <Link
+              prefetch={false}
+              href="/club#about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-blue-400"
+            >
+              За Клуба
+            </Link>
+            <Link
+              prefetch={false}
+              href="/club#activities"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-blue-400"
+            >
+              Дейности
+            </Link>
+            <Link
+              prefetch={false}
+              href="/club/catalog"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={isActive("/club/catalog") ? "page" : undefined}
+              className={`hover:text-blue-400 ${
+                isActive("/club/catalog") ? "text-blue-400" : ""
+              }`}
+            >
+              Услуги
+            </Link>
+            <Link
+              prefetch={false}
+              href="/club/schedule"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={isActive("/club/schedule") ? "page" : undefined}
+              className={`hover:text-blue-400 ${
+                isActive("/club/schedule") ? "text-blue-400" : ""
+              }`}
+            >
+              График
+            </Link>
+            <Link
+              prefetch={false}
+              href="/club/team"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={isActive("/club/team") ? "page" : undefined}
+              className={`hover:text-blue-400 ${
+                isActive("/club/team") ? "text-blue-400" : ""
+              }`}
+            >
+              Отбор
+            </Link>
+            <Link
+              prefetch={false}
+              href="/club#contacts"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-blue-400"
+            >
+              Контакти
+            </Link>
+            <Link
+              prefetch={false}
+              href="/club/reviews"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={isActive("/club/reviews") ? "page" : undefined}
+              className={`flex items-center gap-1.5 hover:text-amber-300 ${
+                isActive("/club/reviews") ? "text-amber-300" : "text-amber-400"
+              }`}
+            >
+              <Star size={14} className="fill-amber-400 text-amber-400" />
+              <span>Отзиви</span>
+            </Link>
+            <Link
+              prefetch={false}
+              href="/club/parents/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-950/40 px-3.5 py-2.5 font-bold text-blue-300 hover:bg-blue-900/60 hover:text-white"
+            >
+              <Users size={16} />
+              <span>Родителски портал</span>
+            </Link>
+            <div className="flex items-center justify-between border-t border-blue-900/30 pt-4">
               <Link
                 prefetch={false}
-                href="/club#about"
+                href="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-blue-400"
+                className="text-zinc-400 hover:text-white"
               >
-                За Клуба
+                Портал
               </Link>
               <Link
                 prefetch={false}
-                href="/club#activities"
+                href="/recovery-zone"
                 onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-blue-400"
+                className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20"
               >
-                Дейности
+                Recovery Zone
               </Link>
-              <Link
-                prefetch={false}
-                href="/club/catalog"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-current={isActive("/club/catalog") ? "page" : undefined}
-                className={`hover:text-blue-400 ${
-                  isActive("/club/catalog") ? "text-blue-400" : ""
-                }`}
-              >
-                Услуги
-              </Link>
-              <Link
-                prefetch={false}
-                href="/club/schedule"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-current={isActive("/club/schedule") ? "page" : undefined}
-                className={`hover:text-blue-400 ${
-                  isActive("/club/schedule") ? "text-blue-400" : ""
-                }`}
-              >
-                График
-              </Link>
-              <Link
-                prefetch={false}
-                href="/club/team"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-current={isActive("/club/team") ? "page" : undefined}
-                className={`hover:text-blue-400 ${
-                  isActive("/club/team") ? "text-blue-400" : ""
-                }`}
-              >
-                Отбор
-              </Link>
-              <Link
-                prefetch={false}
-                href="/club#contacts"
-                onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-blue-400"
-              >
-                Контакти
-              </Link>
-              <Link
-                prefetch={false}
-                href="/club/reviews"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-current={isActive("/club/reviews") ? "page" : undefined}
-                className={`flex items-center gap-1.5 hover:text-amber-300 ${
-                  isActive("/club/reviews")
-                    ? "text-amber-300"
-                    : "text-amber-400"
-                }`}
-              >
-                <Star size={14} className="fill-amber-400 text-amber-400" />
-                <span>Отзиви</span>
-              </Link>
-              <Link
-                prefetch={false}
-                href="/club/parents/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-950/40 px-3.5 py-2.5 font-bold text-blue-300 hover:bg-blue-900/60 hover:text-white"
-              >
-                <Users size={16} />
-                <span>Родителски портал</span>
-              </Link>
-              <div className="flex items-center justify-between border-t border-blue-900/30 pt-4">
-                <Link
-                  prefetch={false}
-                  href="/"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-zinc-400 hover:text-white"
-                >
-                  Портал
-                </Link>
-                <Link
-                  prefetch={false}
-                  href="/recovery-zone"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20"
-                >
-                  Recovery Zone
-                </Link>
-              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

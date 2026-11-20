@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
+import { preload } from "react-dom";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
@@ -121,6 +122,8 @@ const getCachedSite = unstable_cache(
 );
 
 export default async function RecoveryCatalogPage() {
+  preload("/zones/arm.webp", { as: "image", fetchPriority: "high" });
+
   const [recoveryServices, site] = await Promise.all([
     getCachedSessions(),
     getCachedSite(),

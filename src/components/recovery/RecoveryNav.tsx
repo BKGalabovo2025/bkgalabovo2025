@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { CalendarCheck, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -41,6 +40,7 @@ export function RecoveryNav({ onBookClick, site }: RecoveryNavProps) {
               height={28}
               className="size-full object-contain"
               priority
+              unoptimized
             />
           </div>
           <div className="flex flex-col leading-none">
@@ -178,129 +178,122 @@ export function RecoveryNav({ onBookClick, site }: RecoveryNavProps) {
       </div>
 
       {/* Mobile Dropdown */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-emerald-900/30 bg-white/95 px-4 backdrop-blur-xl sm:px-6 lg:hidden dark:bg-black/95"
-          >
-            <div className="flex flex-col gap-4 py-5 text-xs font-bold tracking-widest text-zinc-300 uppercase sm:gap-5 sm:text-sm">
+      {mobileMenuOpen && (
+        <div className="overflow-hidden border-t border-emerald-900/30 bg-white/95 px-4 backdrop-blur-xl sm:px-6 lg:hidden dark:bg-black/95 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex flex-col gap-4 py-5 text-xs font-bold tracking-widest text-zinc-300 uppercase sm:gap-5 sm:text-sm">
+            <Link
+              prefetch={false}
+              href="/recovery-zone#about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-emerald-400"
+            >
+              За Зоната
+            </Link>
+            <Link
+              prefetch={false}
+              href="/recovery-zone#attachments"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-emerald-400"
+            >
+              Приставки
+            </Link>
+            <Link
+              prefetch={false}
+              href="/recovery-zone/catalog"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={
+                isActive("/recovery-zone/catalog") ? "page" : undefined
+              }
+              className={`hover:text-emerald-400 ${
+                isActive("/recovery-zone/catalog") ? "text-emerald-400" : ""
+              }`}
+            >
+              Услуги
+            </Link>
+            <Link
+              prefetch={false}
+              href="/recovery-zone#working-hours"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-emerald-400"
+            >
+              Работно време
+            </Link>
+            <Link
+              prefetch={false}
+              href="/recovery-zone#info"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-emerald-400"
+            >
+              Информация
+            </Link>
+            <Link
+              prefetch={false}
+              href="/recovery-zone/team"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={
+                isActive("/recovery-zone/team") ? "page" : undefined
+              }
+              className={`hover:text-emerald-400 ${
+                isActive("/recovery-zone/team") ? "text-emerald-400" : ""
+              }`}
+            >
+              Екип
+            </Link>
+            <Link
+              prefetch={false}
+              href="/recovery-zone/reviews"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={
+                isActive("/recovery-zone/reviews") ? "page" : undefined
+              }
+              className={`hover:text-emerald-400 ${
+                isActive("/recovery-zone/reviews") ? "text-emerald-400" : ""
+              }`}
+            >
+              Отзиви
+            </Link>
+            <Link
+              prefetch={false}
+              href="/recovery-zone#contacts"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-emerald-400"
+            >
+              Контакти
+            </Link>
+            {onBookClick && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onBookClick();
+                }}
+                className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-zinc-950 transition-colors hover:bg-emerald-400"
+              >
+                <CalendarCheck size={16} />
+                <span>Запази час</span>
+              </button>
+            )}
+            <div className="flex items-center justify-between border-t border-emerald-900/30 pt-4">
               <Link
                 prefetch={false}
-                href="/recovery-zone#about"
+                href="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-emerald-400"
+                className="text-zinc-400 hover:text-white"
               >
-                За Зоната
+                Портал
               </Link>
               <Link
                 prefetch={false}
-                href="/recovery-zone#attachments"
+                href="/club"
                 onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-emerald-400"
+                className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300 hover:bg-blue-500/20"
               >
-                Приставки
+                БК Гълъбово
               </Link>
-              <Link
-                prefetch={false}
-                href="/recovery-zone/catalog"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-current={
-                  isActive("/recovery-zone/catalog") ? "page" : undefined
-                }
-                className={`hover:text-emerald-400 ${
-                  isActive("/recovery-zone/catalog") ? "text-emerald-400" : ""
-                }`}
-              >
-                Услуги
-              </Link>
-              <Link
-                prefetch={false}
-                href="/recovery-zone#working-hours"
-                onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-emerald-400"
-              >
-                Работно време
-              </Link>
-              <Link
-                prefetch={false}
-                href="/recovery-zone#info"
-                onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-emerald-400"
-              >
-                Информация
-              </Link>
-              <Link
-                prefetch={false}
-                href="/recovery-zone/team"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-current={
-                  isActive("/recovery-zone/team") ? "page" : undefined
-                }
-                className={`hover:text-emerald-400 ${
-                  isActive("/recovery-zone/team") ? "text-emerald-400" : ""
-                }`}
-              >
-                Екип
-              </Link>
-              <Link
-                prefetch={false}
-                href="/recovery-zone/reviews"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-current={
-                  isActive("/recovery-zone/reviews") ? "page" : undefined
-                }
-                className={`hover:text-emerald-400 ${
-                  isActive("/recovery-zone/reviews") ? "text-emerald-400" : ""
-                }`}
-              >
-                Отзиви
-              </Link>
-              <Link
-                prefetch={false}
-                href="/recovery-zone#contacts"
-                onClick={() => setMobileMenuOpen(false)}
-                className="hover:text-emerald-400"
-              >
-                Контакти
-              </Link>
-              {onBookClick && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onBookClick();
-                  }}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-zinc-950 transition-colors hover:bg-emerald-400"
-                >
-                  <CalendarCheck size={16} />
-                  <span>Запази час</span>
-                </button>
-              )}
-              <div className="flex items-center justify-between border-t border-emerald-900/30 pt-4">
-                <Link
-                  prefetch={false}
-                  href="/"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-zinc-400 hover:text-white"
-                >
-                  Портал
-                </Link>
-                <Link
-                  prefetch={false}
-                  href="/club"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300 hover:bg-blue-500/20"
-                >
-                  БК Гълъбово
-                </Link>
-              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

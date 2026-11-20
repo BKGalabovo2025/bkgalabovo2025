@@ -48,14 +48,15 @@ export function RecoveryCatalogClient({
           </nav>
 
           <div className="mb-10">
-            <h1 className="mb-3 text-4xl font-light tracking-tight">
+            <h1 className="mb-3 text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white uppercase">
               Recovery Zone{" "}
-              <span className="text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
+              <span className="text-emerald-400 drop-shadow-[0_0_16px_rgba(52,211,153,0.5)]">
                 Каталог
               </span>
             </h1>
-            <p className="text-zinc-400">
-              Разгледайте пълния списък с нашите възстановителни процедури.
+            <p className="max-w-2xl text-sm sm:text-base text-zinc-300">
+              Разгледайте пълния списък с нашите професионални възстановителни
+              процедури, компресионни сесии и възстановяване.
             </p>
           </div>
 

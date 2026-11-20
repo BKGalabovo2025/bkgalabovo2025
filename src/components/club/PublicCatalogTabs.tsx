@@ -40,7 +40,6 @@ import {
   CatalogSectionId,
 } from "@/components/catalogs/catalog-sections";
 import { ProductStockBadge } from "@/components/catalogs/views/ShopCatalogView";
-import { Badge } from "@/components/ui/badge";
 
 const CatalogInquiryDialog = dynamic(
   () =>
@@ -57,15 +56,16 @@ const RecoveryInquiryDialog = dynamic(
     ),
   { ssr: false }
 );
+
+const CatalogDetailModal = dynamic(
+  () =>
+    import("@/components/club/CatalogDetailModal").then(
+      (m) => m.CatalogDetailModal
+    ),
+  { ssr: false }
+);
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/currency";
 import { cn, sanitizeImageUrl } from "@/lib/utils";
@@ -96,6 +96,9 @@ const cleanUrl = (src: string) => {
   if (!sanitized) return "";
   if (sanitized.includes("/планове/") && sanitized.endsWith(".png")) {
     return sanitized.replace(/\.png$/, ".webp");
+  }
+  if (sanitized.endsWith("/arm.png") || sanitized === "/zones/arm.png") {
+    return "/zones/arm.webp";
   }
   return sanitized;
 };
@@ -176,6 +179,62 @@ export default function PublicCatalogTabs({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
+  const [renderedCount, setRenderedCount] = useState(6);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let idleId: number | undefined;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+
+    if ("requestIdleCallback" in window) {
+      idleId = (
+        window as unknown as {
+          requestIdleCallback: (
+            cb: () => void,
+            opts: { timeout: number }
+          ) => number;
+        }
+      ).requestIdleCallback(
+        () => {
+          setRenderedCount(200);
+        },
+        { timeout: 3000 }
+      );
+    } else {
+      timerId = setTimeout(() => {
+        setRenderedCount(200);
+      }, 2000);
+    }
+
+    const onScrollOrInteract = () => {
+      setRenderedCount(200);
+      window.removeEventListener("scroll", onScrollOrInteract);
+      window.removeEventListener("touchstart", onScrollOrInteract);
+    };
+
+    window.addEventListener("scroll", onScrollOrInteract, { passive: true });
+    window.addEventListener("touchstart", onScrollOrInteract, {
+      passive: true,
+    });
+
+    return () => {
+      if (idleId && "cancelIdleCallback" in window) {
+        (
+          window as unknown as { cancelIdleCallback: (id: number) => void }
+        ).cancelIdleCallback(idleId);
+      }
+      if (timerId) clearTimeout(timerId);
+      window.removeEventListener("scroll", onScrollOrInteract);
+      window.removeEventListener("touchstart", onScrollOrInteract);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery || selectedCategory !== "all") {
+      setRenderedCount(200);
+    }
+  }, [searchQuery, selectedCategory]);
 
   const allItemsWithTab = useMemo(() => {
     const entries: Array<{ item: any; tab: CatalogSectionId }> = [];
@@ -424,6 +483,20 @@ export default function PublicCatalogTabs({
     return CATALOG_SECTIONS.filter((s) => normalizedAllowed.includes(s.id));
   }, [allowedTabs]);
 
+  const activeModalItem = useMemo(() => {
+    if (!openModalItemId) return null;
+    return (
+      allItemsWithTab.find((e) => e.item.id === openModalItemId)?.item || null
+    );
+  }, [allItemsWithTab, openModalItemId]);
+
+  const activeInquiryItem = useMemo(() => {
+    if (!openInquiryItemId) return null;
+    return (
+      allItemsWithTab.find((e) => e.item.id === openInquiryItemId)?.item || null
+    );
+  }, [allItemsWithTab, openInquiryItemId]);
+
   return (
     <div className="space-y-5">
       <Suspense fallback={null}>
@@ -544,43 +617,26 @@ export default function PublicCatalogTabs({
       {/* Catalog Grid View */}
       {filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredItems.map((item, itemIdx) => (
+          {filteredItems.slice(0, renderedCount).map((item, itemIdx) => (
             <PublicCatalogCard
               key={item.id}
               item={item}
               index={itemIdx}
               tab={activeTab}
               isSelected={selectedItemId === item.id}
-              isModalOpen={openModalItemId === item.id}
-              onModalOpenChange={(open) => {
-                if (open) {
-                  setOpenModalItemId(item.id);
-                  setOpenInquiryItemId(null);
-                  replaceUrlParams({ item: item.id, inquire: null });
-                } else {
-                  setOpenModalItemId(null);
-                  replaceUrlParams({ item: null });
-                }
+              onOpenModal={() => {
+                setOpenModalItemId(item.id);
+                setOpenInquiryItemId(null);
+                replaceUrlParams({ item: item.id, inquire: null });
               }}
-              isInquiryOpen={openInquiryItemId === item.id}
-              onInquiryOpenChange={(open) => {
-                if (open) {
-                  setOpenInquiryItemId(item.id);
-                  setOpenModalItemId(null);
-                  replaceUrlParams({ inquire: item.id, item: null });
-                } else {
-                  setOpenInquiryItemId(null);
-                  replaceUrlParams({ inquire: null });
-                }
+              onOpenInquiry={() => {
+                setOpenInquiryItemId(item.id);
+                setOpenModalItemId(null);
+                replaceUrlParams({ inquire: item.id, item: null });
               }}
               isCopied={copiedItemId === item.id}
               onCopyLink={() => handleCopyLink(item)}
               onRecoveryInquiry={onRecoveryInquiry}
-              phone={phone}
-              contraindications={contraindications}
-              procedures={actualRecovery}
-              schedule={schedule}
-              eventLocation={eventLocation}
             />
           ))}
         </div>
@@ -595,6 +651,73 @@ export default function PublicCatalogTabs({
           </p>
         </div>
       )}
+
+      {/* Dynamic Item Detail Modal */}
+      {openModalItemId && activeModalItem && (
+        <CatalogDetailModal
+          item={activeModalItem}
+          tab={activeTab}
+          isOpen={!!openModalItemId}
+          onClose={() => {
+            setOpenModalItemId(null);
+            replaceUrlParams({ item: null });
+          }}
+          onInquiry={(item) => {
+            setOpenModalItemId(null);
+            setOpenInquiryItemId(item.id);
+            replaceUrlParams({ inquire: item.id, item: null });
+          }}
+          isCopied={copiedItemId === activeModalItem.id}
+          onCopyLink={() => handleCopyLink(activeModalItem)}
+          onRecoveryInquiry={onRecoveryInquiry}
+        />
+      )}
+
+      {/* Dynamic Inquiry Dialog */}
+      {openInquiryItemId &&
+        activeInquiryItem &&
+        (activeTab === "recovery" ? (
+          <RecoveryInquiryDialog
+            isOpen={!!openInquiryItemId}
+            onClose={() => {
+              setOpenInquiryItemId(null);
+              replaceUrlParams({ inquire: null });
+            }}
+            phone={phone}
+            contraindications={contraindications}
+            procedures={actualRecovery}
+            schedule={schedule}
+            eventLocation={eventLocation}
+            procedure={{
+              title: activeInquiryItem.name || "Възстановителна процедура",
+              category:
+                activeInquiryItem.sessionType || activeInquiryItem.category,
+              duration: String(
+                activeInquiryItem.durationMinutes ||
+                  activeInquiryItem.duration ||
+                  ""
+              ),
+              price:
+                typeof activeInquiryItem.price === "number"
+                  ? formatPrice(activeInquiryItem.price)
+                  : "",
+              preferredZone: Array.isArray(activeInquiryItem.zones)
+                ? activeInquiryItem.zones[0]
+                : activeInquiryItem.zones || undefined,
+            }}
+          />
+        ) : (
+          <CatalogInquiryDialog
+            isOpen={!!openInquiryItemId}
+            onClose={() => {
+              setOpenInquiryItemId(null);
+              replaceUrlParams({ inquire: null });
+            }}
+            item={activeInquiryItem}
+            tab={activeTab}
+            lang="bg"
+          />
+        ))}
     </div>
   );
 }
@@ -602,40 +725,26 @@ export default function PublicCatalogTabs({
 // ---------------------------------------------------------------------------
 // Golden Hybrid Public Catalog Card
 // ---------------------------------------------------------------------------
-function PublicCatalogCard({
+const PublicCatalogCard = React.memo(function PublicCatalogCard({
   item,
   index = 0,
   tab,
   isSelected,
-  isModalOpen,
-  onModalOpenChange,
-  isInquiryOpen,
-  onInquiryOpenChange,
+  onOpenModal,
+  onOpenInquiry,
   isCopied,
   onCopyLink,
   onRecoveryInquiry,
-  phone,
-  contraindications,
-  procedures,
-  schedule,
-  eventLocation,
 }: {
   item: any;
   index?: number;
   tab: CatalogSectionId;
   isSelected?: boolean;
-  isModalOpen: boolean;
-  onModalOpenChange: (open: boolean) => void;
-  isInquiryOpen: boolean;
-  onInquiryOpenChange: (open: boolean) => void;
+  onOpenModal: () => void;
+  onOpenInquiry: () => void;
   isCopied?: boolean;
   onCopyLink: () => void;
   onRecoveryInquiry?: (item: any) => void;
-  phone?: string;
-  contraindications?: string[];
-  procedures?: Record<string, unknown>[];
-  schedule?: string | SiteSchedule | null;
-  eventLocation?: string;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -661,7 +770,7 @@ function PublicCatalogCard({
         item.zones?.includes("КРАКА");
 
       if (hasPelvis) return ["/zones/pelvis.webp"];
-      if (hasArms) return ["/zones/arm.png"];
+      if (hasArms) return ["/zones/arm.webp"];
       if (hasLegs) return ["/zones/legs.webp"];
     }
     return [];
@@ -796,6 +905,14 @@ function PublicCatalogCard({
   return (
     <BentoCard
       id={`item-${item.id}`}
+      style={
+        index > 3
+          ? ({
+              contentVisibility: "auto",
+              containIntrinsicSize: "0 380px",
+            } as React.CSSProperties)
+          : undefined
+      }
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         setIsHovered(false);
@@ -821,11 +938,13 @@ function PublicCatalogCard({
             fetchPriority={
               index === 0 && activeImageIndex === 0 ? "high" : undefined
             }
-            decoding={index === 0 ? "sync" : "async"}
+            decoding={index === 0 && activeImageIndex === 0 ? "sync" : "async"}
+            loading={index === 0 && activeImageIndex === 0 ? "eager" : "lazy"}
             fill
             unoptimized={
-              images[activeImageIndex].endsWith(".webp") ||
               images[activeImageIndex].includes("/планове/") ||
+              images[activeImageIndex].startsWith("/zones/") ||
+              images[activeImageIndex].endsWith(".webp") ||
               images[activeImageIndex].startsWith("/api/") ||
               images[activeImageIndex].includes("/api/upload") ||
               images[activeImageIndex].startsWith("data:")
@@ -1096,7 +1215,7 @@ function PublicCatalogCard({
                 if (tab === "recovery" && onRecoveryInquiry) {
                   onRecoveryInquiry(item);
                 } else {
-                  onInquiryOpenChange(true);
+                  onOpenInquiry();
                 }
               }}
               className={cn(
@@ -1118,7 +1237,7 @@ function PublicCatalogCard({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => onModalOpenChange(true)}
+              onClick={onOpenModal}
               className="h-8.5 rounded-xl border-zinc-700 bg-zinc-800/80 text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-700 hover:text-white flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Eye size={13} />
@@ -1127,213 +1246,7 @@ function PublicCatalogCard({
           </div>
         </div>
       </div>
-
-      {/* Detailed Modal Dialog */}
-      {isModalOpen && (
-        <Dialog open={isModalOpen} onOpenChange={onModalOpenChange}>
-          <DialogContent className="public-portal-shell flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-xl md:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-4 [&>button:last-child]:z-20 [&>button:last-child]:flex [&>button:last-child]:size-8 [&>button:last-child]:items-center [&>button:last-child]:justify-center [&>button:last-child]:rounded-full [&>button:last-child]:border [&>button:last-child]:border-white/15 [&>button:last-child]:bg-black/70 [&>button:last-child]:text-zinc-200 [&>button:last-child]:backdrop-blur-md [&>button:last-child]:hover:bg-black/90 [&>button:last-child]:hover:text-white">
-            <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain min-h-0">
-              {images.length > 0 ? (
-                <div className="relative h-52 sm:h-64 w-full overflow-hidden bg-zinc-900">
-                  {images.map((imgUrl: string, idx: number) => (
-                    <Image
-                      key={`${imgUrl}-${idx}`}
-                      src={imgUrl}
-                      alt={item.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 672px"
-                      unoptimized={
-                        imgUrl.startsWith("/api/") ||
-                        imgUrl.includes("/api/upload") ||
-                        imgUrl.startsWith("data:")
-                      }
-                      className={cn(
-                        "object-cover transition-opacity duration-500",
-                        idx === activeImageIndex ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                  ))}
-                  <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/30 to-transparent" />
-                </div>
-              ) : null}
-
-              <div
-                className={cn(
-                  "p-4 sm:p-5",
-                  images.length > 0 && "-mt-10 relative"
-                )}
-              >
-                <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/90 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
-                  <DialogHeader>
-                    <DialogTitle className="mb-2 text-xl sm:text-2xl leading-tight font-bold text-white">
-                      {item.name}
-                    </DialogTitle>
-                    <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                      <div
-                        className={cn(
-                          "text-xl font-bold tracking-tight",
-                          isRecovery ? "text-emerald-400" : "text-blue-400"
-                        )}
-                      >
-                        {hasValidPrice ? (
-                          <>
-                            <span>{formatPrice(item.price)}</span>
-                            <span className="text-xs font-normal text-zinc-400 ml-1">
-                              {getPriceSuffix()}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-base font-semibold text-zinc-300 italic">
-                            Цена при запитване
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={onCopyLink}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800/80 px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:bg-zinc-700 hover:text-white cursor-pointer"
-                        >
-                          {isCopied ? (
-                            <>
-                              <Check size={14} className="text-emerald-400" />
-                              <span>Копирано</span>
-                            </>
-                          ) : (
-                            <>
-                              <Link2 size={14} />
-                              <span>Копирай линк</span>
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (tab === "recovery" && onRecoveryInquiry) {
-                              onModalOpenChange(false);
-                              onRecoveryInquiry(item);
-                            } else {
-                              onInquiryOpenChange(true);
-                            }
-                          }}
-                          className={cn(
-                            "inline-flex items-center justify-center gap-2 rounded-xl px-6 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-lg transition-colors cursor-pointer",
-                            isRecovery
-                              ? "bg-emerald-700 shadow-emerald-700/20 hover:bg-emerald-600"
-                              : "bg-blue-600 shadow-blue-600/20 hover:bg-blue-500"
-                          )}
-                        >
-                          <MessageSquare size={16} />
-                          <span>{getPrimaryActionLabel()}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </DialogHeader>
-                </div>
-
-                <div className="space-y-5">
-                  {/* Parameters & Badges */}
-                  <div className="flex flex-wrap gap-2">
-                    <Badge
-                      variant="outline"
-                      className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                    >
-                      Категория: {typeBadge.label}
-                    </Badge>
-
-                    {(item.durationMinutes || item.duration) && (
-                      <Badge
-                        variant="outline"
-                        className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                      >
-                        Продължителност: {item.durationMinutes || item.duration}{" "}
-                        мин.
-                      </Badge>
-                    )}
-
-                    {item.athleteCount && (
-                      <Badge
-                        variant="outline"
-                        className="border-zinc-700 bg-zinc-900 px-3 py-1 text-xs text-zinc-300"
-                      >
-                        Капацитет: {item.athleteCount}{" "}
-                        {Number(item.athleteCount) === 1
-                          ? "спортист"
-                          : "спортисти"}
-                      </Badge>
-                    )}
-
-                    {item.zones && (
-                      <Badge
-                        variant="outline"
-                        className="border-cyan-800 bg-cyan-950/60 px-3 py-1 text-xs text-cyan-300"
-                      >
-                        Зони:{" "}
-                        {Array.from(
-                          new Set(
-                            (Array.isArray(item.zones)
-                              ? item.zones
-                              : [item.zones]
-                            )
-                              .map((z: unknown) => String(z ?? "").trim())
-                              .filter(Boolean)
-                          )
-                        ).join(", ")}
-                      </Badge>
-                    )}
-
-                    {tab === "shop" && typeof item.stock === "number" && (
-                      <ProductStockBadge
-                        stock={item.stock}
-                        threshold={item.restockThreshold}
-                      />
-                    )}
-                  </div>
-
-                  <DialogDescription className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
-                    {item.description ||
-                      "Няма допълнително описание за този артикул."}
-                  </DialogDescription>
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Public Inquiry Dialog */}
-      {isInquiryOpen &&
-        (tab === "recovery" ? (
-          <RecoveryInquiryDialog
-            isOpen={isInquiryOpen}
-            onClose={() => onInquiryOpenChange(false)}
-            phone={phone}
-            contraindications={contraindications}
-            procedures={procedures}
-            schedule={schedule}
-            eventLocation={eventLocation}
-            procedure={{
-              title: item.name || "Възстановителна процедура",
-              category: item.sessionType || item.category,
-              duration: String(item.durationMinutes || item.duration || ""),
-              price:
-                typeof item.price === "number" ? formatPrice(item.price) : "",
-              preferredZone: Array.isArray(item.zones)
-                ? item.zones[0]
-                : item.zones || undefined,
-            }}
-          />
-        ) : (
-          <CatalogInquiryDialog
-            isOpen={isInquiryOpen}
-            onClose={() => onInquiryOpenChange(false)}
-            item={item}
-            tab={tab}
-            lang="bg"
-          />
-        ))}
     </BentoCard>
   );
-}
+});
+PublicCatalogCard.displayName = "PublicCatalogCard";

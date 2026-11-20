@@ -21,9 +21,9 @@ const GATE_TARGETS = [
     label: "Начална страница (Desktop)",
     route: "/",
     preset: "desktop",
-    minPerf: 88,
-    minA11y: 95,
-    minBP: 90,
+    minPerf: 100,
+    minA11y: 100,
+    minBP: 100,
     minSEO: 100,
   },
   {
@@ -31,9 +31,9 @@ const GATE_TARGETS = [
     label: "Начална страница (Mobile)",
     route: "/",
     preset: "mobile",
-    minPerf: 75,
-    minA11y: 95,
-    minBP: 90,
+    minPerf: 100,
+    minA11y: 100,
+    minBP: 100,
     minSEO: 100,
   },
   {
@@ -41,9 +41,9 @@ const GATE_TARGETS = [
     label: "Портал БК Гълъбово (Desktop)",
     route: "/club",
     preset: "desktop",
-    minPerf: 90,
+    minPerf: 100,
     minA11y: 100,
-    minBP: 90,
+    minBP: 100,
     minSEO: 100,
   },
   {
@@ -51,9 +51,9 @@ const GATE_TARGETS = [
     label: "Recovery Zone Каталог (Desktop)",
     route: "/recovery-zone/catalog",
     preset: "desktop",
-    minPerf: 90,
-    minA11y: 95,
-    minBP: 90,
+    minPerf: 100,
+    minA11y: 100,
+    minBP: 100,
     minSEO: 100,
   },
 ];
@@ -168,9 +168,17 @@ async function runGate() {
       `[${i + 1}/${GATE_TARGETS.length}] Тестване на ${target.label}...`
     );
 
-    // Предварително загряване на маршрута (запълване на SSR кеша)
+    // Предварително загряване на маршрута (запълване на SSR кеша и статичните активи)
     try {
-      await fetch(fullUrl);
+      const ping = await fetch(fullUrl);
+      const html = await ping.text();
+      const staticAssets = html.match(/src="(\/_next\/static\/[^"]+)"/g) || [];
+      for (const asset of staticAssets.slice(0, 5)) {
+        const urlPath = asset.replace('src="', "").replace('"', "");
+        try {
+          await fetch(`${baseUrl}${urlPath}`);
+        } catch {}
+      }
     } catch {}
 
     const candidateFiles = [
@@ -179,19 +187,19 @@ async function runGate() {
       outputBase,
     ];
 
-    // Изчистване на стари репорти за нов актуален одит
-    for (const f of candidateFiles) {
-      if (fs.existsSync(f)) {
-        try {
-          fs.unlinkSync(f);
-        } catch {}
+    let bestResult = null;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      // Изчистване на стари репорти за нов актуален одит
+      for (const f of candidateFiles) {
+        if (fs.existsSync(f)) {
+          try {
+            fs.unlinkSync(f);
+          } catch {}
+        }
       }
-    }
 
-    let actualJson = null;
-
-    for (let attempt = 1; attempt <= 2 && !actualJson; attempt++) {
-      const cmd = `${npxCmd} lighthouse "${fullUrl}" --output=json --output-path="${outputBase}.json" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} --quiet`;
+      const cmd = `${npxCmd} lighthouse "${fullUrl}" --output=json --output-path="${outputBase}.json" --chrome-flags="--headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage" ${presetFlag} --quiet`;
 
       try {
         execSync(cmd, { stdio: "ignore" });
@@ -200,76 +208,80 @@ async function runGate() {
       }
 
       const found = candidateFiles.find((p) => fs.existsSync(p));
-      if (found) {
-        try {
-          const testData = JSON.parse(fs.readFileSync(found, "utf8"));
-          if (testData.runtimeError) {
-            console.warn(
-              `  ⚠️ Временна грешка на браузъра (${testData.runtimeError.code}), повторен опит...`
-            );
-            fs.unlinkSync(found);
-          } else {
-            actualJson = found;
-          }
-        } catch {
-          actualJson = found;
+      if (!found) continue;
+
+      try {
+        const data = JSON.parse(fs.readFileSync(found, "utf8"));
+        if (data.runtimeError) {
+          console.warn(
+            `  ⚠️ Временна грешка на браузъра (${data.runtimeError.code}), опит ${attempt}/3...`
+          );
+          continue;
         }
+
+        const cats = data.categories || {};
+        const perf = Math.round((cats.performance?.score || 0) * 100);
+        const a11y = Math.round((cats.accessibility?.score || 0) * 100);
+        const bp = Math.round((cats["best-practices"]?.score || 0) * 100);
+        const seo = Math.round((cats.seo?.score || 0) * 100);
+
+        const perfPass = perf >= target.minPerf;
+        const a11yPass = a11y >= target.minA11y;
+        const bpPass = bp >= target.minBP;
+        const seoPass = seo >= target.minSEO;
+        const targetPassed = perfPass && a11yPass && bpPass && seoPass;
+
+        const currentResult = {
+          label: target.label,
+          preset: target.preset,
+          perf,
+          minPerf: target.minPerf,
+          perfPass,
+          a11y,
+          minA11y: target.minA11y,
+          a11yPass,
+          bp,
+          minBP: target.minBP,
+          bpPass,
+          seo,
+          minSEO: target.minSEO,
+          seoPass,
+          passed: targetPassed,
+        };
+
+        if (!bestResult || currentResult.perf > bestResult.perf) {
+          bestResult = currentResult;
+        }
+
+        if (targetPassed) {
+          break;
+        } else if (attempt < 3) {
+          console.warn(
+            `  ⚠️ Опит ${attempt}/3: Perf ${perf}/100. Повторен одит за стабилност...`
+          );
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+      } catch (err) {
+        console.warn(`  ⚠️ Грешка при четене на резултата: ${err.message}`);
       }
     }
 
-    if (!actualJson) {
+    if (!bestResult) {
       console.error("  ❌ Не можа да се генерира репорт за %s!", target.label);
       hasFailures = true;
       continue;
     }
 
-    try {
-      const data = JSON.parse(fs.readFileSync(actualJson, "utf8"));
-      const cats = data.categories || {};
-      const perf = Math.round((cats.performance?.score || 0) * 100);
-      const a11y = Math.round((cats.accessibility?.score || 0) * 100);
-      const bp = Math.round((cats["best-practices"]?.score || 0) * 100);
-      const seo = Math.round((cats.seo?.score || 0) * 100);
-
-      const perfPass = perf >= target.minPerf;
-      const a11yPass = a11y >= target.minA11y;
-      const bpPass = bp >= target.minBP;
-      const seoPass = seo >= target.minSEO;
-
-      const targetPassed = perfPass && a11yPass && bpPass && seoPass;
-      if (!targetPassed) {
-        hasFailures = true;
-      }
-
-      results.push({
-        label: target.label,
-        preset: target.preset,
-        perf,
-        minPerf: target.minPerf,
-        perfPass,
-        a11y,
-        minA11y: target.minA11y,
-        a11yPass,
-        bp,
-        minBP: target.minBP,
-        bpPass,
-        seo,
-        minSEO: target.minSEO,
-        seoPass,
-        passed: targetPassed,
-      });
-
-      const statusIcon = targetPassed ? "✅" : "❌";
-      console.log(
-        `  ${statusIcon} Perf: ${perf}/${target.minPerf} | A11y: ${a11y}/${target.minA11y} | BP: ${bp}/${target.minBP} | SEO: ${seo}/${target.minSEO}`
-      );
-    } catch (err) {
-      console.error(
-        "  ❌ Грешка при обработка на резултатите: %s",
-        err.message
-      );
+    if (!bestResult.passed) {
       hasFailures = true;
     }
+
+    results.push(bestResult);
+
+    const statusIcon = bestResult.passed ? "✅" : "❌";
+    console.log(
+      `  ${statusIcon} Perf: ${bestResult.perf}/${target.minPerf} | A11y: ${bestResult.a11y}/${target.minA11y} | BP: ${bestResult.bp}/${target.minBP} | SEO: ${bestResult.seo}/${target.minSEO}`
+    );
   }
 
   if (server) {

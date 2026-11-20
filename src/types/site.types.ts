@@ -161,7 +161,7 @@ export const DEFAULT_RECOVERY_ATTACHMENTS: RecoveryAttachment[] = [
     name: "РЪЦЕ",
     subtitle: "Приставки за ръце",
     desc: "Обхващат зоните от китките до раменете. Изключително полезни за бадминтонисти, тенисисти, плувци и фитнес трениращи, при които ръцете са подложени на постоянен стрес, както и за хора, работещи пред компютър.",
-    image: "/zones/arm.png",
+    image: "/zones/arm.webp",
     zone: "Ръце",
     buttonText: "Запиши час за ръце",
   },
@@ -185,6 +185,12 @@ export function resolveAttachmentImage(
     return "/zones/legs.webp";
   if (path === "/pelvis.webp" || path.endsWith("/pelvis.webp"))
     return "/zones/pelvis.webp";
-  if (path === "/arm.png" || path.endsWith("/arm.png")) return "/zones/arm.png";
+  if (
+    path === "/arm.png" ||
+    path.endsWith("/arm.png") ||
+    path === "/arm.webp" ||
+    path.endsWith("/arm.webp")
+  )
+    return "/zones/arm.webp";
   return path;
 }
