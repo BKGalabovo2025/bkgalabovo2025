@@ -54,9 +54,15 @@ export const fetchAllMembers = async (siteId?: string): Promise<Member[]> => {
 export const createMemberDocument = async (
   data: Record<string, unknown>
 ): Promise<string> => {
+  const cleanData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (v !== undefined) {
+      cleanData[k] = v;
+    }
+  }
   const docRef = await addDoc(
     getMembersCollection() as CollectionReference<unknown>,
-    data
+    cleanData
   );
   return docRef.id;
 };
@@ -68,8 +74,14 @@ export const updateMemberDocument = async (
   id: string,
   data: Record<string, unknown>
 ): Promise<void> => {
+  const cleanData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (v !== undefined) {
+      cleanData[k] = v;
+    }
+  }
   const memberRef = doc(getMembersCollection(), id);
-  await updateDoc(memberRef, data);
+  await updateDoc(memberRef, cleanData);
 };
 
 /**

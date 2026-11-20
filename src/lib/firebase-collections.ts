@@ -40,7 +40,13 @@ function createConverter<T>(
     toFirestore: (item: any) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, ...data } = item;
-      return { ...data, siteId: getSiteConfig().id };
+      const cleanData: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(data)) {
+        if (v !== undefined) {
+          cleanData[k] = v;
+        }
+      }
+      return { ...cleanData, siteId: getSiteConfig().id };
     },
     fromFirestore: (snapshot, options) => {
       const data = snapshot.data(options) || {};
@@ -105,8 +111,14 @@ const sessionConverter: FirestoreDataConverter<RecoverySession> = {
   toFirestore: (session) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, ...data } = session;
+    const cleanData: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(data)) {
+      if (v !== undefined) {
+        cleanData[k] = v;
+      }
+    }
     return {
-      ...data,
+      ...cleanData,
       durationMinutes: session.durationMinutes || session.duration || 30,
       siteId: "recoveryzone",
     };

@@ -155,6 +155,31 @@ describe("member-service", () => {
       );
       expect(newId).toBe("123");
     });
+
+    it("should never pass undefined fields (such as middleName) to addDoc", async () => {
+      const memberData: Omit<
+        Member,
+        "id" | "name" | "registrationDate" | "updatedAt"
+      > = {
+        firstName: "Integration",
+        lastName: "Test",
+        status: "active",
+        gender: "male",
+        siteId: "bkgalabovo",
+      };
+
+      await addMember(memberData);
+
+      const calls = vi.mocked(addDoc).mock.calls;
+      const calledWithData = calls[calls.length - 1][1] as Record<
+        string,
+        unknown
+      >;
+      expect("middleName" in calledWithData).toBe(false);
+      for (const [, val] of Object.entries(calledWithData)) {
+        expect(val).not.toBeUndefined();
+      }
+    });
   });
 
   describe("updateMember", () => {

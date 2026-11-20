@@ -84,11 +84,10 @@ export const addMember = async (
     .filter(Boolean)
     .join(" ");
 
-  const dataToAdd = {
+  const dataToAdd: Record<string, unknown> = {
     ...memberData,
     firstName: cleanFirstName,
     lastName: cleanLastName,
-    middleName: cleanMiddleName || undefined,
     name,
     ageGroup,
     dateOfBirth: memberData.dateOfBirth
@@ -100,6 +99,19 @@ export const addMember = async (
     updatedAt: serverTimestamp(),
     siteId: getSiteConfig().id,
   };
+
+  if (cleanMiddleName) {
+    dataToAdd.middleName = cleanMiddleName;
+  } else {
+    delete dataToAdd.middleName;
+  }
+
+  // Strip all undefined properties to prevent Firestore "Unsupported field value: undefined" errors
+  for (const key of Object.keys(dataToAdd)) {
+    if (dataToAdd[key] === undefined) {
+      delete dataToAdd[key];
+    }
+  }
 
   const newId = await createMemberDocument(dataToAdd);
 
