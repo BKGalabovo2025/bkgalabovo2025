@@ -3,98 +3,52 @@ export const dynamic = "force-dynamic";
 import { AlertCircle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import React from "react";
+import React, { cache } from "react";
 
 import { TripDetailsLayoutClient } from "@/components/business-trips/details/TripDetailsLayoutClient";
 import { Button } from "@/components/ui/button";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
-import { businessTripService } from "@/services/business-trip-service";
-import { getAllMembers } from "@/services/member-service";
 import { getAllMembersServer } from "@/services/member-service.server";
 import { docToScheduleEvent } from "@/services/schedule-service";
 import { ScheduleEvent } from "@/types";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { Member } from "@/types/member.types";
 
-async function getInitialTripData(id: string) {
+const getInitialTripData = cache(async (id: string) => {
   try {
-    let trip: BusinessTrip | null = null;
+    const db = getAdminDb();
+    const tripDoc = await db.collection("business_trips").doc(id).get();
+    if (!tripDoc.exists) return null;
 
-    // 1. Primary: Try via Admin DB
-    try {
-      const db = getAdminDb();
-      const tripDoc = await db.collection("business_trips").doc(id).get();
-      if (tripDoc.exists) {
-        trip = serializeFirestoreData({
-          id: tripDoc.id,
-          ...tripDoc.data(),
-        }) as BusinessTrip;
-      }
-    } catch (adminErr) {
-      console.warn(
-        "getAdminDb in trip layout failed, attempting client service fallback:",
-        adminErr
-      );
-    }
-
-    // 2. Resilient fallback: Try via businessTripService (client SDK)
-    if (!trip) {
-      try {
-        trip = await businessTripService.getTripById(id);
-      } catch (serviceErr) {
-        console.warn("businessTripService fallback also failed:", serviceErr);
-      }
-    }
-
-    if (!trip) return null;
+    const trip = serializeFirestoreData({
+      id: tripDoc.id,
+      ...tripDoc.data(),
+    }) as BusinessTrip;
 
     let event: ScheduleEvent | null = null;
     let expenses: TripExpense[] = [];
     const membersDict: Record<string, Member> = {};
 
     try {
-      // Expenses
-      try {
-        const db = getAdminDb();
-        const snap = await db
-          .collection("trip_expenses")
-          .where("tripId", "==", id)
-          .get();
-        expenses = snap.docs.map((d) =>
-          serializeFirestoreData({ id: d.id, ...d.data() })
-        ) as TripExpense[];
-      } catch {
-        expenses = await businessTripService.getExpensesByTrip(id, trip.siteId);
-      }
+      const [expSnap, members, eventDoc] = await Promise.all([
+        db.collection("trip_expenses").where("tripId", "==", id).get(),
+        getAllMembersServer(),
+        trip.eventId
+          ? db.collection("schedule_events").doc(trip.eventId).get()
+          : Promise.resolve(null),
+      ]);
 
-      // Members
-      try {
-        const members = await getAllMembersServer();
-        members.forEach((m) => {
-          if (m.id) membersDict[m.id] = m;
-        });
-      } catch {
-        const members = await getAllMembers(false, trip.siteId || "bkgalabovo");
-        members.forEach((m) => {
-          if (m.id) membersDict[m.id] = m;
-        });
-      }
+      expenses = expSnap.docs.map((d) =>
+        serializeFirestoreData({ id: d.id, ...d.data() })
+      ) as TripExpense[];
 
-      // Optional Schedule Event
-      if (trip.eventId) {
-        try {
-          const db = getAdminDb();
-          const eDoc = await db
-            .collection("schedule_events")
-            .doc(trip.eventId)
-            .get();
-          if (eDoc.exists) {
-            event = docToScheduleEvent(eDoc as never);
-          }
-        } catch {
-          // ignore optional event
-        }
+      members.forEach((m) => {
+        if (m.id) membersDict[m.id] = m;
+      });
+
+      if (eventDoc?.exists) {
+        event = docToScheduleEvent(eventDoc as never);
       }
     } catch (secErr) {
       console.warn("Secondary data load in trip layout:", secErr);
@@ -105,7 +59,7 @@ async function getInitialTripData(id: string) {
     console.error("Грешка при зареждане на командировка:", err);
     return null;
   }
-}
+});
 
 export async function generateMetadata({
   params,

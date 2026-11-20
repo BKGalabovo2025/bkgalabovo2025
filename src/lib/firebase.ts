@@ -101,9 +101,13 @@ if (isTestEnv) {
   db = {} as unknown as Firestore;
 } else if (globalObj._firebaseDb) {
   db = globalObj._firebaseDb;
+} else if (typeof window === "undefined") {
+  // Server (Node.js SSR): IndexedDB/LocalStorage persistence is browser-only
+  db = getFirestore(app);
+  globalObj._firebaseDb = db;
 } else {
   try {
-    // Try to initialize with offline persistence
+    // Try to initialize with offline persistence in browser
     db = initializeFirestore(app, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager(),
