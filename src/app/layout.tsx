@@ -2,16 +2,9 @@ import "./globals.css";
 
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
-import dynamic from "next/dynamic";
 import { Inter } from "next/font/google";
 
-const Toaster = dynamic(() => import("sonner").then((mod) => mod.Toaster));
-
-const OfflineStatusIndicator = dynamic(() =>
-  import("@/components/shared/OfflineStatusIndicator").then(
-    (mod) => mod.OfflineStatusIndicator
-  )
-);
+import { ClientGlobalOverlays } from "@/components/shared/ClientGlobalOverlays";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -107,8 +100,7 @@ export default function RootLayout({
           <LanguageProvider>
             <AuthProvider>
               {children}
-              <OfflineStatusIndicator />
-              <Toaster richColors closeButton position="top-right" />
+              <ClientGlobalOverlays />
             </AuthProvider>
           </LanguageProvider>
           {process.env.NODE_ENV === "production" && process.env.VERCEL && (
