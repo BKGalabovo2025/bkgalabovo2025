@@ -36,6 +36,13 @@ function parseDate(val) {
   return isNaN(d.getTime()) ? new Date(0) : d;
 }
 
+function isQuotaError(err) {
+  return (
+    err?.code === 8 ||
+    /RESOURCE_EXHAUSTED|Quota exceeded/i.test(String(err?.message || err))
+  );
+}
+
 function formatDateTimeSofia() {
   return new Date().toLocaleString("bg-BG", { timeZone: "Europe/Sofia" });
 }
@@ -75,19 +82,50 @@ async function main() {
   const thirtyDaysAgoIso = thirtyDaysAgo.toISOString();
 
   // Икономично четене: само 3 заявки общо (вместо по 2 заявки на всеки неактивен член)
-  const [membersSnap, recentSalesSnap, recentEventsSnap] = await Promise.all([
-    primaryDb.collection("members").get(),
-    primaryDb
-      .collection("sales")
-      .where("saleDate", ">=", thirtyDaysAgoIso)
-      .get()
-      .catch(() => ({ docs: [] })),
-    primaryDb
-      .collection("events")
-      .where("startDate", ">=", thirtyDaysAgoIso)
-      .get()
-      .catch(() => ({ docs: [] })),
-  ]);
+  const loadData = async (db) => {
+    const members = await db.collection("members").get();
+    const [sales, events] = await Promise.all([
+      db
+        .collection("sales")
+        .where("saleDate", ">=", thirtyDaysAgoIso)
+        .get()
+        .catch((err) => {
+          if (isQuotaError(err)) throw err;
+          return { docs: [] };
+        }),
+      db
+        .collection("events")
+        .where("startDate", ">=", thirtyDaysAgoIso)
+        .get()
+        .catch((err) => {
+          if (isQuotaError(err)) throw err;
+          return { docs: [] };
+        }),
+    ]);
+    return [members, sales, events];
+  };
+
+  let membersSnap, recentSalesSnap, recentEventsSnap;
+  let readFromBackup = false;
+  try {
+    [membersSnap, recentSalesSnap, recentEventsSnap] =
+      await loadData(primaryDb);
+  } catch (err) {
+    if (!isQuotaError(err)) throw err;
+    if (!backupDb) {
+      console.warn(
+        "⚠️ Квотата на основната Firestore е изчерпана и няма резервна база. Проверката се пропуска до възстановяване на квотата (дневно рестартиране)."
+      );
+      console.log("::warning::Firestore quota exceeded - member status check skipped");
+      return;
+    }
+    console.warn(
+      "⚠️ Квотата на основната Firestore е изчерпана. Четене от резервната база..."
+    );
+    [membersSnap, recentSalesSnap, recentEventsSnap] =
+      await loadData(backupDb);
+    readFromBackup = true;
+  }
 
   const recentActivityByMember = new Map();
   const bumpActivity = (memberId, dateVal) => {
@@ -177,7 +215,20 @@ async function main() {
       }
     }
 
-    await primaryBatch.commit();
+    if (readFromBackup) {
+      // Основната база е на квота - актуализираме само резервната;
+      // sync-backup ще синхронизира основната след възстановяване на квотата.
+      console.warn(
+        "⚠️ Основната база е на изчерпана квота - записът в нея се пропуска."
+      );
+    } else {
+      await primaryBatch.commit().catch((err) => {
+        if (!isQuotaError(err)) throw err;
+        console.warn(
+          "⚠️ Квотата на основната база се изчерпа при запис - обновява се само резервната."
+        );
+      });
+    }
     if (backupBatch) {
       await backupBatch.commit().catch((err) => {
         console.warn("⚠️ Backup DB status update warning:", err.message);
