@@ -60,15 +60,102 @@ export async function createMemberAction(
     }
 
     const data = validatedFields.data;
-    const name = [data.firstName, data.middleName, data.lastName]
+    const cleanFirstName = data.firstName.trim();
+    const cleanLastName = data.lastName.trim();
+    const cleanMiddleName = data.middleName ? data.middleName.trim() : "";
+    const cleanPhone = data.phone
+      ? data.phone.trim().replace(/[\s-]/g, "")
+      : "";
+    const name = [cleanFirstName, cleanMiddleName, cleanLastName]
       .filter(Boolean)
       .join(" ");
+
+    // Anti-duplicate protection: check for existing members with identical names in the club
+    const existingSnap = await adminDb
+      .collection("members")
+      .where("firstName", "==", cleanFirstName)
+      .where("lastName", "==", cleanLastName)
+      .get();
+
+    if (!existingSnap.empty) {
+      const nowMs = Date.now();
+      const currentSiteId = (data.siteId as string) || "bkgalabovo";
+
+      for (const doc of existingSnap.docs) {
+        const existingData = doc.data();
+        const existingSiteId = existingData.siteId || "bkgalabovo";
+
+        // 1. Rapid double-click / network retry idempotency lock (within 60s)
+        const updatedAtDate = existingData.updatedAt?.toDate
+          ? existingData.updatedAt.toDate()
+          : null;
+        const regDate = existingData.registrationDate?.toDate
+          ? existingData.registrationDate.toDate()
+          : null;
+        const recentDate = updatedAtDate || regDate;
+        if (recentDate && Math.abs(nowMs - recentDate.getTime()) < 60000) {
+          return {
+            success: true,
+            message: `Членът ${name} бе създаден успешно.`,
+            data: { id: doc.id },
+          };
+        }
+
+        // 2. Exact phone number match
+        const existingPhone = existingData.phone
+          ? String(existingData.phone).trim().replace(/[\s-]/g, "")
+          : "";
+        if (cleanPhone && existingPhone && cleanPhone === existingPhone) {
+          return {
+            success: false,
+            message: `Вече съществува регистриран член "${name}" с телефон ${data.phone}. Моля, изберете съществуващия профил.`,
+          };
+        }
+
+        // 3. Same site & matching middle name / no middle name -> prevent accidental re-creation
+        const existingMiddle = existingData.middleName
+          ? String(existingData.middleName).trim()
+          : "";
+        const sameMiddle =
+          (!cleanMiddleName && !existingMiddle) ||
+          cleanMiddleName.toLowerCase() === existingMiddle.toLowerCase();
+        const sameSite = existingSiteId === currentSiteId;
+
+        if (sameMiddle && sameSite) {
+          const birthA = data.dateOfBirth
+            ? String(data.dateOfBirth).slice(0, 10)
+            : "";
+          const birthB = existingData.dateOfBirth?.toDate
+            ? existingData.dateOfBirth.toDate().toISOString().slice(0, 10)
+            : existingData.dateOfBirth
+              ? String(existingData.dateOfBirth).slice(0, 10)
+              : "";
+
+          if (birthA && birthB && birthA === birthB) {
+            return {
+              success: false,
+              message: `Вече съществува регистриран член "${name}" със същата рождена дата (${birthA}). Моля, използвайте съществуващия профил.`,
+            };
+          }
+
+          if (!cleanMiddleName && !existingMiddle) {
+            return {
+              success: false,
+              message: `Вече съществува член с име "${name}". Ако става въпрос за друго лице, моля попълнете и бащино име, за да се разграничат.`,
+            };
+          }
+        }
+      }
+    }
 
     const docRef = await adminDb.collection("members").add({
       hasSignedDeclaration: false,
       hasMedicalCertificate: false,
       isLicensed: false,
       ...data,
+      firstName: cleanFirstName,
+      lastName: cleanLastName,
+      middleName: cleanMiddleName || undefined,
       status: "active",
       name,
       registrationDate: data.registrationDate

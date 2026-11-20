@@ -73,16 +73,22 @@ export const addMember = async (
   }
 ): Promise<string> => {
   const ageGroup = calculateAgeGroup(memberData.dateOfBirth);
-  const name = [
-    memberData.firstName,
-    memberData.middleName,
-    memberData.lastName,
-  ]
+  const cleanFirstName = memberData.firstName
+    ? memberData.firstName.trim()
+    : "";
+  const cleanLastName = memberData.lastName ? memberData.lastName.trim() : "";
+  const cleanMiddleName = memberData.middleName
+    ? memberData.middleName.trim()
+    : "";
+  const name = [cleanFirstName, cleanMiddleName, cleanLastName]
     .filter(Boolean)
     .join(" ");
 
   const dataToAdd = {
     ...memberData,
+    firstName: cleanFirstName,
+    lastName: cleanLastName,
+    middleName: cleanMiddleName || undefined,
     name,
     ageGroup,
     dateOfBirth: memberData.dateOfBirth

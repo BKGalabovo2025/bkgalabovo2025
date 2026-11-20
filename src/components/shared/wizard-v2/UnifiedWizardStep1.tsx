@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Loader2, PlusCircle, Search, User } from "lucide-react";
+import { useRef } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -68,14 +69,19 @@ export const UnifiedWizardStep1 = () => {
 
   const { idToken } = useAuth();
   const { activeBranch } = useAppStore();
+  const isSubmittingRef = useRef(false);
 
   const handleRegisterGuest = async () => {
+    if (isSubmittingRef.current || isSavingNewGuest) return;
+
     if (!newGuestFirstName || !newGuestLastName || !newGuestPhone) {
       toast.error("Непълни данни", {
         description: "Моля, попълнете Име, Фамилия и Телефон на госта.",
       });
       return;
     }
+
+    isSubmittingRef.current = true;
     setIsSavingNewGuest(true);
     try {
       const result = await createMemberAction(idToken!, {
@@ -131,6 +137,7 @@ export const UnifiedWizardStep1 = () => {
       toast.error("Системна грешка при регистрация.");
     } finally {
       setIsSavingNewGuest(false);
+      isSubmittingRef.current = false;
     }
   };
 

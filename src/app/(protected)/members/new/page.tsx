@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -25,8 +25,10 @@ function NewMemberContent() {
   const { idToken } = useAuth();
   const [createdMember, setCreatedMember] = useState<Member | null>(null);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   const handleSave = async (data: MemberFormValues) => {
+    if (isSubmittingRef.current) return;
     if (!idToken) {
       toast.error("Грешка при оторизация", {
         description: "Моля, влезте отново в профила си.",
@@ -34,6 +36,7 @@ function NewMemberContent() {
       return;
     }
 
+    isSubmittingRef.current = true;
     try {
       const result = await createMemberAction(idToken, data);
 
@@ -61,6 +64,8 @@ function NewMemberContent() {
       toast.error("Грешка", {
         description: "Неуспешно свързване със сървъра.",
       });
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 

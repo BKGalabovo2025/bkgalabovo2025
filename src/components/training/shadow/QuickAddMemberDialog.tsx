@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Loader2, Sparkles, UserPlus } from "lucide-react";
-import React, { useId, useMemo, useState } from "react";
+import React, { useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ export function QuickAddMemberDialog({
     "club"
   );
   const [isSaving, setIsSaving] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   // Dynamically calculated age group badge
   const previewAgeGroup = useMemo(() => {
@@ -52,11 +53,14 @@ export function QuickAddMemberDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isSubmittingRef.current || isSaving) return;
+
     if (!firstName.trim() || !lastName.trim()) {
       toast.error("Моля, попълнете име и фамилия на състезателя.");
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSaving(true);
     const isClub = membershipType === "club";
 
@@ -125,6 +129,7 @@ export function QuickAddMemberDialog({
       toast.error("Възникна грешка при запазване в базата данни.");
     } finally {
       setIsSaving(false);
+      isSubmittingRef.current = false;
     }
   };
 
