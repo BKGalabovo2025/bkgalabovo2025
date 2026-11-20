@@ -203,7 +203,17 @@ async function runGate() {
         }
       }
 
-      const cmd = `${npxCmd} lighthouse "${fullUrl}" --output=json --output-path="${outputBase}.json" --chrome-flags="--headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage" ${presetFlag} --quiet`;
+      const localLhCli = path.join(
+        process.cwd(),
+        "node_modules",
+        "lighthouse",
+        "cli",
+        "index.js"
+      );
+      const lhRunner = fs.existsSync(localLhCli)
+        ? `node "${localLhCli}"`
+        : `${npxCmd} lighthouse`;
+      const cmd = `${lhRunner} "${fullUrl}" --output=json --output-path="${outputBase}.json" --chrome-flags="--headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage" ${presetFlag} --quiet`;
 
       try {
         execSync(cmd, { stdio: "ignore" });
@@ -263,7 +273,7 @@ async function runGate() {
           console.warn(
             `  ⚠️ Опит ${attempt}/${MAX_ATTEMPTS}: Perf ${perf}/100. Повторен одит за стабилност...`
           );
-          await new Promise((r) => setTimeout(r, 1000));
+          await new Promise((r) => setTimeout(r, 2500));
         }
       } catch (err) {
         console.warn(`  ⚠️ Грешка при четене на резултата: ${err.message}`);
