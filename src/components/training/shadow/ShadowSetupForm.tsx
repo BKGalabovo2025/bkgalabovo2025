@@ -24,6 +24,8 @@ import {
   UserPlus,
   Users,
   Volume2,
+  Wifi,
+  WifiOff,
   X,
   Zap,
 } from "lucide-react";
@@ -76,6 +78,11 @@ import {
   swapPlayers,
 } from "@/lib/shadow-training/court-logistics";
 import { shadowLogger } from "@/lib/shadow-training/shadow-logger";
+import {
+  cacheAllShadowAudio,
+  checkShadowOfflineStatus,
+  ShadowOfflineStatus,
+} from "@/lib/shadow-training/shadow-offline-cache";
 import { cn, resolveMemberAgeGroup } from "@/lib/utils";
 
 import { CourtVisualizer } from "../CourtVisualizer";
@@ -156,6 +163,67 @@ export function ShadowSetupForm({
   const [newPresetDescription, setNewPresetDescription] = useState("");
   const autoSelectedMemberRef = useRef<string | null>(null);
   const loadedScheduleRef = useRef<string | null>(null);
+
+  // ─── ОФЛАЙН КЕШ & СЪСТОЯНИЕ НА ЗАЛАТА ───
+  const [offlineStatus, setOfflineStatus] = useState<ShadowOfflineStatus>({
+    isFullyCached: false,
+    cachedCount: 0,
+    totalCount: 32,
+    isOnline: true,
+    cacheSupported: true,
+  });
+  const [isCachingAudio, setIsCachingAudio] = useState(false);
+  const [cachingProgress, setCachingProgress] = useState<number>(0);
+  const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
+
+  useEffect(() => {
+    checkShadowOfflineStatus().then(setOfflineStatus);
+
+    const handleOnline = () => {
+      setOfflineStatus((prev) => ({ ...prev, isOnline: true }));
+      toast.success("Интернет връзката е възстановена!");
+    };
+    const handleOffline = () => {
+      setOfflineStatus((prev) => ({ ...prev, isOnline: false }));
+      toast.warning("Офлайн режим: Аудиото и модулът работят автономно.");
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      }
+    };
+  }, []);
+
+  const handlePreloadAllAudio = async () => {
+    setIsCachingAudio(true);
+    setCachingProgress(0);
+    try {
+      const res = await cacheAllShadowAudio((loaded, total) => {
+        setCachingProgress(Math.round((loaded / total) * 100));
+      });
+      const updated = await checkShadowOfflineStatus();
+      setOfflineStatus(updated);
+      if (res.success || updated.cachedCount >= 32) {
+        toast.success(
+          "Всички 32 аудио файла са кеширани локално за работа без интернет в залата!"
+        );
+      } else {
+        toast.info(
+          `Кеширани са ${updated.cachedCount} от ${updated.totalCount} аудио файла.`
+        );
+      }
+    } catch {
+      toast.error("Възникна грешка при кеширане на звуковите файлове.");
+    } finally {
+      setIsCachingAudio(false);
+    }
+  };
 
   // Sync initial URL query params (?section=..., ?card=..., ?modal=..., ?court=..., ?modifiers=..., ?preset=...)
   useEffect(() => {
@@ -871,16 +939,31 @@ export function ShadowSetupForm({
                 </p>
                 {/* ─── ИНДИКАТОР ЗА СЪСТОЯНИЕТО НА ЗАЛАТА И АУДИО ГОТОВНОСТ ─── */}
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                  <button
+                    type="button"
+                    onClick={() => setIsOfflineModalOpen(true)}
+                    className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 transition-colors hover:bg-emerald-500/20 dark:text-emerald-300"
+                    title="Кликнете за преглед на офлайн статуса и кеширане на всички 32 MP3 звуци"
+                  >
                     <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Аудио кеширано (32/32 MP3)
-                  </span>
+                    {offlineStatus.isFullyCached
+                      ? "Аудио кеширано (32/32 MP3) • Офлайн готовност"
+                      : offlineStatus.cachedCount > 0
+                        ? `Аудио кеширано (${offlineStatus.cachedCount}/32 MP3)`
+                        : "Кеширай аудио за зала (32 MP3)"}
+                  </button>
                   <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:text-blue-300">
                     <span className="size-1.5 rounded-full bg-blue-500" />
                     {isWakeLockSupported
                       ? "Екранът няма да заспива (WakeLock активен)"
                       : "WakeLock (стандартен таймер)"}
                   </span>
+                  {!offlineStatus.isOnline && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                      <WifiOff size={10} />
+                      Офлайн режим (Залата работи)
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={handleSoundCheck}
@@ -2708,6 +2791,117 @@ export function ShadowSetupForm({
                 className="bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
               >
                 Запази шаблона
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ─── МОДАЛ: ОФЛАЙН ГОТОВНОСТ & АУДИО КЕШ В ЗАЛАТА ─── */}
+        <Dialog open={isOfflineModalOpen} onOpenChange={setIsOfflineModalOpen}>
+          <DialogContent className="max-w-md border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+            <DialogHeader>
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-9 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                  <Wifi size={18} />
+                </span>
+                <div>
+                  <DialogTitle className="text-base font-black text-zinc-900 dark:text-white">
+                    Офлайн готовност за спортни зали
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Гарантирана работа дори при липса на Wi-Fi или слаб мобилен
+                    обхват в залата.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-3 pt-2 text-xs">
+              <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                  Интернет връзка в залата:
+                </span>
+                <span
+                  className={`inline-flex items-center gap-1 font-bold ${
+                    offlineStatus.isOnline
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-amber-600 dark:text-amber-400"
+                  }`}
+                >
+                  {offlineStatus.isOnline ? (
+                    <>
+                      <Wifi size={13} /> Онлайн (Свързан)
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff size={13} /> Офлайн (Без връзка)
+                    </>
+                  )}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                  Кеширани MP3 команди:
+                </span>
+                <span className="font-bold text-zinc-900 dark:text-white">
+                  {offlineStatus.cachedCount} / {offlineStatus.totalCount} файла
+                </span>
+              </div>
+
+              {isCachingAudio && (
+                <div className="space-y-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-blue-700 dark:text-blue-300">
+                    <span>Изтегляне и запис в офлайн кеша...</span>
+                    <span>{cachingProgress}%</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-blue-200 dark:bg-blue-950">
+                    <div
+                      className={cn(
+                        "h-full bg-blue-600 transition-all duration-300",
+                        cachingProgress >= 100
+                          ? "w-full"
+                          : cachingProgress >= 75
+                            ? "w-3/4"
+                            : cachingProgress >= 50
+                              ? "w-1/2"
+                              : cachingProgress >= 25
+                                ? "w-1/4"
+                                : "w-2"
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                Когато всички 32 MP3 команди (зони, удари, почивки, сигнали) са
+                кеширани, софтуерът може да се стартира и използва в спортна
+                зала без нужда от интернет.
+              </p>
+            </div>
+
+            <DialogFooter className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsOfflineModalOpen(false)}
+                className="h-9 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
+              >
+                Затвори
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                disabled={isCachingAudio}
+                onClick={handlePreloadAllAudio}
+                className="h-9 rounded-xl bg-emerald-600 px-3 text-xs font-black text-white hover:bg-emerald-700"
+              >
+                <Zap size={14} className="mr-1.5" />
+                {isCachingAudio
+                  ? "Кеширане..."
+                  : "Кеширай всички 32 звука сега"}
               </Button>
             </DialogFooter>
           </DialogContent>

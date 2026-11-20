@@ -31,6 +31,18 @@ const withPWA = withPWAInit({
     ],
     runtimeCaching: [
       {
+        // Пълно кеширане на всички 32 звукови файла за Shadow Training за работа в зала без интернет
+        urlPattern: /^\/shadow\/.*\.(?:mp3|wav|ogg)$/i,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "shadow-audio-cache",
+          expiration: {
+            maxEntries: 60,
+            maxAgeSeconds: 90 * 24 * 60 * 60, // 90 дни офлайн наличност
+          },
+        },
+      },
+      {
         // Не кешираме Firebase Storage (често се качват големи снимки от галерии)
         // Пазим максимум 15 скорошни снимки до 7 дни.
         urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,

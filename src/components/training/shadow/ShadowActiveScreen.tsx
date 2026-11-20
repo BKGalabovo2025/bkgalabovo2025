@@ -10,6 +10,7 @@ import {
   Music,
   Pause,
   Play,
+  Radio,
   RotateCcw,
   Sparkles,
   Square,
@@ -23,6 +24,13 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ShadowPlayer,
   ShadowSettings,
@@ -96,6 +104,7 @@ export function ShadowActiveScreen({
     trainer.courtSlots && trainer.courtSlots.length > 1 ? "hall" : "focus"
   );
   const [focusedCourt, setFocusedCourt] = useState<number | null>(null);
+  const [isPresenterHelpOpen, setIsPresenterHelpOpen] = useState(false);
 
   const toggleWorkoutMusic = () => {
     if (isMusicPlaying) {
@@ -145,7 +154,7 @@ export function ShadowActiveScreen({
     }
   };
 
-  // Keyboard hotkeys for coaches during live training (stable via trainerRef)
+  // Keyboard hotkeys for coaches during live training (supporting standard Bluetooth clickers / presenters)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName))
@@ -153,25 +162,93 @@ export function ShadowActiveScreen({
 
       const currentTrainer = trainerRef.current;
 
-      if (e.code === "Space") {
+      // 1. Next / Advance (Bluetooth Clicker Next, PageDown, ArrowRight, ArrowDown, Space)
+      if (
+        e.code === "PageDown" ||
+        e.code === "ArrowRight" ||
+        e.code === "ArrowDown" ||
+        e.code === "Space"
+      ) {
         e.preventDefault();
-        shadowLogger.trainer("Coach hotkey: [Space] pressed");
-        if (currentTrainer.state === "working") {
+        shadowLogger.trainer(
+          `Coach remote clicker: [${e.code}] Next/Advance action`
+        );
+        if (currentTrainer.state === "countdown") {
+          currentTrainer.skipCountdown();
+          toast.info("10s отброяване беше прескочено!");
+        } else if (currentTrainer.state === "resting") {
+          currentTrainer.skipRest?.();
+          toast.info("Почивката беше прескочена — старт на следващата серия!");
+        } else if (currentTrainer.state === "working") {
           currentTrainer.pauseTraining();
+          toast.info("Тренировката е поставена на пауза.");
         } else if (currentTrainer.state === "paused") {
           currentTrainer.resumeTraining();
+          toast.info("Тренировката е възобновена!");
         } else if (currentTrainer.state === "idle") {
           currentTrainer.startTraining();
+          toast.info("Тренировката е стартирана!");
         }
-      } else if (e.code === "Escape") {
+      }
+      // 2. Previous / Pause (Bluetooth Clicker Prev, PageUp, ArrowLeft, ArrowUp)
+      else if (
+        e.code === "PageUp" ||
+        e.code === "ArrowLeft" ||
+        e.code === "ArrowUp"
+      ) {
+        e.preventDefault();
+        shadowLogger.trainer(
+          `Coach remote clicker: [${e.code}] Prev/Pause action`
+        );
+        if (
+          currentTrainer.state === "working" ||
+          currentTrainer.state === "resting" ||
+          currentTrainer.state === "countdown"
+        ) {
+          currentTrainer.pauseTraining();
+          toast.info("Тренировката е поставена на пауза.");
+        }
+      }
+      // 3. Blackout / Blank screen (Bluetooth Presenter "B" or "." / Period key)
+      else if (
+        e.key === "b" ||
+        e.key === "B" ||
+        e.key === "." ||
+        e.code === "Period"
+      ) {
+        e.preventDefault();
+        shadowLogger.trainer("Coach remote clicker: Blackout / Hall toggle");
+        setIsHallMode((prev) => {
+          const next = !prev;
+          toast.info(
+            next
+              ? "Активиран Режим Зала / Проектор (Ultra-Contrast)"
+              : "Деактивиран Режим Зала"
+          );
+          return next;
+        });
+      }
+      // 4. Play / Presentation mode (F5)
+      else if (e.key === "F5") {
+        e.preventDefault();
+        shadowLogger.trainer(
+          "Coach remote clicker: [F5] Presentation mode toggled"
+        );
+        toggleFullscreen();
+      }
+      // 5. Escape (Exit fullscreen or pause training)
+      else if (e.code === "Escape") {
         if (typeof document !== "undefined" && document.fullscreenElement) {
           // Let browser exit fullscreen without stopping training
           return;
         }
         e.preventDefault();
         shadowLogger.trainer("Coach hotkey: [Esc] pressed");
-        currentTrainer.stopTraining();
-      } else if (
+        currentTrainer.pauseTraining();
+        toast.warning("Тренировката е паузирана.");
+      }
+      // 6. Keyboard shortcuts 'F' and 'H'
+      else if (
         e.key === "f" ||
         e.key === "F" ||
         e.key === "ф" ||
@@ -404,6 +481,19 @@ export function ShadowActiveScreen({
                   <Maximize2 size={14} className="mr-1.5" /> Цял екран (TV)
                 </>
               )}
+            </Button>
+
+            {/* Bluetooth Clicker / Remote Guide */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPresenterHelpOpen(true)}
+              className="h-9 cursor-pointer rounded-xl border-zinc-800 bg-zinc-900 text-xs font-bold text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
+              title="Управление с безжично дистанционно / Bluetooth Презентер"
+            >
+              <Radio size={14} className="mr-1.5 text-blue-400" />
+              <span className="hidden sm:inline">Кликер</span>
             </Button>
           </div>
         </div>
@@ -726,39 +816,136 @@ export function ShadowActiveScreen({
               )}
             </div>
 
-            {/* Keyboard Shortcuts Hint Bar */}
+            {/* Keyboard & Remote Clicker Shortcuts Hint Bar */}
             <div className="hidden flex-wrap items-center justify-center gap-3 pt-2 text-[11px] font-semibold text-zinc-500 sm:flex md:justify-start">
               <span>
                 <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
-                  Space
+                  Space / ⏩
                 </kbd>{" "}
-                Пауза / Продължи
+                Пауза / Продължи / Пропусни
               </span>
               <span>•</span>
               <span>
                 <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
-                  H
+                  H / B
                 </kbd>{" "}
                 Режим Зала (TV)
               </span>
               <span>•</span>
               <span>
                 <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
-                  F
+                  F / F5
                 </kbd>{" "}
                 Цял екран
               </span>
               <span>•</span>
-              <span>
-                <kbd className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
-                  Esc
-                </kbd>{" "}
-                Край
-              </span>
+              <button
+                type="button"
+                onClick={() => setIsPresenterHelpOpen(true)}
+                className="inline-flex items-center gap-1 text-blue-400 hover:underline"
+              >
+                <Radio size={12} />
+                Дистанционно / Кликер (Помощ)
+              </button>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* ─── ДИАЛОГ: БЕЗЖИЧНО ДИСТАНЦИОННО / BLUETOOTH ПРЕЗЕНТЕР ─── */}
+      <Dialog open={isPresenterHelpOpen} onOpenChange={setIsPresenterHelpOpen}>
+        <DialogContent className="max-w-md border-zinc-800 bg-zinc-950 p-6 text-white shadow-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <span className="flex size-9 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <Radio size={18} />
+              </span>
+              <div>
+                <DialogTitle className="text-base font-black text-white">
+                  Безжично управление с презентер
+                </DialogTitle>
+                <DialogDescription className="text-xs text-zinc-400">
+                  Управлявайте тренировката от корта с всеки Bluetooth кликер
+                  (Logitech, Baseus и др.)
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-3 pt-2 text-xs">
+            <div className="flex items-start gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-3">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 font-black text-emerald-400 text-xs border border-emerald-500/30">
+                ⏩
+              </span>
+              <div>
+                <p className="font-bold text-zinc-200">
+                  Бутон „Напред“ (PageDown / ➡️ / Space)
+                </p>
+                <p className="text-zinc-400 text-[11px] leading-relaxed">
+                  Старт на сесията • Прескачане на 10s отброяване • Прескачане
+                  на почивката • Възобновяване / Пауза.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-3">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 font-black text-amber-400 text-xs border border-amber-500/30">
+                ⏪
+              </span>
+              <div>
+                <p className="font-bold text-zinc-200">
+                  Бутон „Назад“ (PageUp / ⬅️)
+                </p>
+                <p className="text-zinc-400 text-[11px] leading-relaxed">
+                  Моментална пауза на тренировката за даване на наставления на
+                  децата.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-3">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/20 font-black text-purple-400 text-xs border border-purple-500/30">
+                ⬛
+              </span>
+              <div>
+                <p className="font-bold text-zinc-200">
+                  Бутон „Blackout / Черен екран“ (Клавиш B / .)
+                </p>
+                <p className="text-zinc-400 text-[11px] leading-relaxed">
+                  Превключва Режим „Зала / Проектор“ с максимален контраст за
+                  виждане от 25 метра.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-3">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 font-black text-blue-400 text-xs border border-blue-500/30">
+                🖥️
+              </span>
+              <div>
+                <p className="font-bold text-zinc-200">
+                  Бутон „Презентация“ (F5 или F)
+                </p>
+                <p className="text-zinc-400 text-[11px] leading-relaxed">
+                  Разгъва или свива прозореца на цял екран за проектора в
+                  залата.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 text-right">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setIsPresenterHelpOpen(false)}
+              className="h-8 rounded-lg bg-zinc-800 px-3 text-xs font-bold text-white hover:bg-zinc-700"
+            >
+              Разбрах
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

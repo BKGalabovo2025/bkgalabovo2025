@@ -576,5 +576,39 @@ describe("useShadowTrainer Comprehensive Variations", () => {
       const isSecondFront = secondZone!.startsWith("front");
       expect(wasFirstFront).not.toBe(isSecondFront);
     });
+
+    it("allows coach to skip countdown and rest period directly via remote controls", () => {
+      const settings = createSettings({
+        sets: 2,
+        workSec: 10,
+        restSec: 20,
+        activePlayers: [{ id: "1", displayName: "Иван Петров" }],
+      });
+      const { result } = renderHook(() => useShadowTrainer(settings));
+
+      // Start training -> enters countdown
+      act(() => {
+        result.current.startTraining();
+      });
+      expect(result.current.state).toBe("countdown");
+
+      // Coach presses Next on remote to skip 10s countdown immediately
+      act(() => {
+        result.current.skipCountdown();
+      });
+      expect(result.current.state).toBe("working");
+
+      // Complete Set 1 workSec (10s) -> enters resting
+      advanceSeconds(10);
+      expect(result.current.state).toBe("resting");
+
+      // Coach presses Next on remote to skip 20s rest interval immediately
+      act(() => {
+        result.current.skipRest();
+      });
+      // Should advance directly into countdown of next set
+      expect(result.current.state).toBe("countdown");
+      expect(result.current.currentSet).toBe(2);
+    });
   });
 });

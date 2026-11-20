@@ -1285,6 +1285,14 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     }
   }, [advanceState, audio]);
 
+  const skipRest = useCallback(() => {
+    if (stateRef.current === "resting") {
+      shadowLogger.trainer("⏩ Rest period skipped by Coach remote/clicker");
+      audio.stopAudio();
+      advanceState();
+    }
+  }, [advanceState, audio]);
+
   const courtSlots = useMemo(() => {
     if (!settings) return [];
     return calculateCourtAssignments(
@@ -1316,6 +1324,7 @@ export function useShadowTrainer(settings: ShadowSettings | null) {
     stopTraining,
     resetTraining,
     skipCountdown,
+    skipRest,
     startWorkoutBeat: audio.startWorkoutBeat,
     stopWorkoutBeat: audio.stopWorkoutBeat,
     isWorkoutBeatPlaying: audio.isWorkoutBeatPlaying,
