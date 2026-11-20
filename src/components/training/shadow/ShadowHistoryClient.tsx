@@ -54,14 +54,6 @@ interface ShadowHistoryClientProps {
 }
 
 function getModeBadge(mode?: string) {
-  if (mode === "ghost_match") {
-    return {
-      label: "Мач на сенки",
-      badgeColor:
-        "bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300",
-      icon: Zap,
-    };
-  }
   if (mode === "agility_test") {
     return {
       label: "Тест за бързина",
@@ -71,7 +63,7 @@ function getModeBadge(mode?: string) {
     };
   }
   return {
-    label: "Стандартна тренировка",
+    label: "Интервална тренировка",
     badgeColor:
       "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300",
     icon: Clock,
@@ -258,7 +250,7 @@ export function ShadowHistoryClient({
       if (selectedMode !== "all") {
         const mode = s.shadowDetails?.mode || "standard";
         if (selectedMode === "standard") {
-          if (mode !== "standard" && mode !== "ghost_match") return false;
+          if (mode === "agility_test") return false;
         } else if (mode !== selectedMode) {
           return false;
         }

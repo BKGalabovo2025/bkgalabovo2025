@@ -152,11 +152,9 @@ export function MemberTrainingsHistory({ memberId }: Props) {
                 <CardContent className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center">
                   <div>
                     <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {session.shadowDetails?.mode === "ghost_match"
-                        ? "Ghost Match"
-                        : session.shadowDetails?.mode === "agility_test"
-                          ? "Скоростен Тест"
-                          : "Shadow Training"}
+                      {session.shadowDetails?.mode === "agility_test"
+                        ? "Тест за бързина (Agility)"
+                        : "Shadow Training"}
                     </div>
                     <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                       {format(new Date(session.date), "dd MMMM yyyy, HH:mm", {

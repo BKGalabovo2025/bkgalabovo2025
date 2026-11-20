@@ -17,6 +17,7 @@ import {
   UserPlus,
   Users,
   Volume2,
+  X,
   Zap,
 } from "lucide-react";
 import React, {
@@ -116,6 +117,7 @@ export function ShadowSetupForm({
     "half"
   );
   const [isModifiersOpen, setIsModifiersOpen] = useState(true);
+  const [isRosterExpanded, setIsRosterExpanded] = useState(true);
   const autoSelectedMemberRef = useRef<string | null>(null);
 
   // Sync initial URL query params (?section=..., ?card=..., ?modal=..., ?court=..., ?modifiers=...)
@@ -485,6 +487,52 @@ export function ShadowSetupForm({
       });
       return { ...prev, activePlayers: newSelected };
     });
+  };
+
+  const handleSelectCurrentCategory = () => {
+    const targetAg = (settings.ageGroup || "").toLowerCase();
+    setSettings((prev) => {
+      const newSelected = [...prev.activePlayers];
+      membersList.forEach((m) => {
+        const ag = (m.ageGroup || resolveMemberAgeGroup(m) || "").toLowerCase();
+        let isMatch = false;
+        if (targetAg === "u9-u11")
+          isMatch = ag.includes("u9") || ag.includes("u11");
+        else if (targetAg === "u11-u13")
+          isMatch = ag.includes("u11") || ag.includes("u13");
+        else if (targetAg === "u13-u15")
+          isMatch = ag.includes("u13") || ag.includes("u15");
+        else if (targetAg === "u15-u17")
+          isMatch = ag.includes("u15") || ag.includes("u17");
+        else if (targetAg === "u17+")
+          isMatch =
+            ag.includes("u17") ||
+            ag.includes("u19") ||
+            ag.includes("17+") ||
+            ag.includes("мъже") ||
+            ag.includes("жени") ||
+            ag.includes("adult");
+
+        if (isMatch && !newSelected.some((x) => x.id === m.id)) {
+          newSelected.push({
+            id: m.id,
+            displayName:
+              m.displayName ||
+              `${m.firstName || ""} ${m.lastName || ""}`.trim() ||
+              "Играч",
+            ageGroup: m.ageGroup || resolveMemberAgeGroup(m),
+          });
+        }
+      });
+      return { ...prev, activePlayers: newSelected };
+    });
+  };
+
+  const handleRemoveSinglePlayer = (playerId: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      activePlayers: prev.activePlayers.filter((p) => p.id !== playerId),
+    }));
   };
 
   const handleClearSelected = () => {
@@ -1737,10 +1785,34 @@ export function ShadowSetupForm({
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={handleSelectCurrentCategory}
+                    className="h-8 rounded-xl bg-blue-50/60 text-xs font-bold text-blue-700 hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300"
+                    title={`Маркирай всички състезатели за категория ${settings.ageGroup}`}
+                  >
+                    Маркирай {settings.ageGroup}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleSelectAllFiltered}
                     className="h-8 rounded-xl text-xs"
                   >
                     Маркирай показаните ({filteredPlayers.length})
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsRosterExpanded((prev) => !prev)}
+                    className="h-8 rounded-xl text-xs"
+                  >
+                    {isRosterExpanded
+                      ? "Скрий каталога"
+                      : `Покажи каталога (${membersList.length})`}
+                    {isRosterExpanded ? (
+                      <ChevronUp size={13} className="ml-1" />
+                    ) : (
+                      <ChevronDown size={13} className="ml-1" />
+                    )}
                   </Button>
                   {settings.activePlayers.length > 0 && (
                     <Button
@@ -1757,137 +1829,195 @@ export function ShadowSetupForm({
               </div>
 
               <CardContent className="space-y-3.5 p-4">
-                {/* Search & Category Tabs */}
-                <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="relative w-full sm:max-w-xs">
-                    <Label htmlFor="shadow-player-search" className="sr-only">
-                      Търсене на играч по име
-                    </Label>
-                    <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
-                    <Input
-                      id="shadow-player-search"
-                      aria-label="Търсене на играч по име"
-                      value={playerSearchQuery}
-                      onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                      placeholder="Търсене на играч по име..."
-                      className="h-9 rounded-xl pl-9 text-xs"
-                    />
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1">
-                    {[
-                      { id: "all", label: "Всички" },
-                      { id: "u11", label: "9-11 г." },
-                      { id: "u13", label: "11-13 г." },
-                      { id: "u15", label: "13-15 г." },
-                      { id: "u17", label: "15-17 г." },
-                      { id: "adults", label: "17+ / Мъже / Жени" },
-                    ].map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() =>
-                          setPlayerFilterCategory(
-                            cat.id as
-                              "all" | "u11" | "u13" | "u15" | "u17" | "adults"
-                          )
-                        }
-                        className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
-                          playerFilterCategory === cat.id
-                            ? "bg-zinc-900 text-white shadow-2xs dark:bg-white dark:text-zinc-900"
-                            : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
-                        }`}
+                {/* Хоризонтални чипове за избраните играчи с бързо премахване */}
+                {settings.activePlayers.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-blue-200/70 bg-blue-50/60 p-2.5 dark:border-blue-900/50 dark:bg-blue-950/20">
+                    <span className="text-[11px] font-black tracking-wider uppercase text-blue-800 dark:text-blue-300">
+                      Избрани ({settings.activePlayers.length}):
+                    </span>
+                    {settings.activePlayers.map((player) => (
+                      <span
+                        key={player.id}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200/90 bg-white px-2 py-0.5 text-xs font-medium text-zinc-900 shadow-2xs dark:border-blue-800/60 dark:bg-zinc-900 dark:text-zinc-100"
                       >
-                        {cat.label}
-                      </button>
+                        <span className="max-w-[130px] truncate">
+                          {player.displayName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSinglePlayer(player.id)}
+                          className="rounded-full p-0.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-red-600 dark:hover:bg-zinc-800"
+                          title={`Премахни ${player.displayName}`}
+                          aria-label={`Премахни ${player.displayName}`}
+                        >
+                          <X size={11} />
+                        </button>
+                      </span>
                     ))}
                   </div>
-                </div>
+                )}
 
-                {/* Players Grid */}
-                {filteredPlayers.length === 0 ? (
-                  <p className="p-6 text-center text-xs text-zinc-500">
-                    Няма намерени играчи за избрания критерий.
-                  </p>
-                ) : (
-                  <div className="max-h-64 overflow-y-auto pr-1">
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                      {filteredPlayers.map((m) => {
-                        const isChecked = settings.activePlayers.some(
-                          (p) => p.id === m.id
-                        );
-                        return (
-                          <label
-                            key={m.id}
-                            className={`flex cursor-pointer items-center gap-2.5 rounded-xl border p-2.5 transition-all ${
-                              isChecked
-                                ? "border-blue-600 bg-blue-50/70 shadow-2xs dark:border-blue-500 dark:bg-blue-950/40"
-                                : "border-zinc-200/80 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
+                {/* Сгъваем каталог със състезатели */}
+                {isRosterExpanded ? (
+                  <>
+                    {/* Search & Category Tabs */}
+                    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="relative w-full sm:max-w-xs">
+                        <Label
+                          htmlFor="shadow-player-search"
+                          className="sr-only"
+                        >
+                          Търсене на играч по име
+                        </Label>
+                        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
+                        <Input
+                          id="shadow-player-search"
+                          aria-label="Търсене на играч по име"
+                          value={playerSearchQuery}
+                          onChange={(e) => setPlayerSearchQuery(e.target.value)}
+                          placeholder="Търсене на играч по име..."
+                          className="h-9 rounded-xl pl-9 text-xs"
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-1">
+                        {[
+                          { id: "all", label: "Всички" },
+                          { id: "u11", label: "9-11 г." },
+                          { id: "u13", label: "11-13 г." },
+                          { id: "u15", label: "13-15 г." },
+                          { id: "u17", label: "15-17 г." },
+                          { id: "adults", label: "17+ / Мъже / Жени" },
+                        ].map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() =>
+                              setPlayerFilterCategory(
+                                cat.id as
+                                  | "all"
+                                  | "u11"
+                                  | "u13"
+                                  | "u15"
+                                  | "u17"
+                                  | "adults"
+                              )
+                            }
+                            className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                              playerFilterCategory === cat.id
+                                ? "bg-zinc-900 text-white shadow-2xs dark:bg-white dark:text-zinc-900"
+                                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
                             }`}
                           >
-                            <Checkbox
-                              checked={isChecked}
-                              onCheckedChange={(checked) => {
-                                const pName =
-                                  m.displayName ||
-                                  `${m.firstName || ""} ${m.lastName || ""}`.trim();
-                                if (!checked) {
-                                  shadowLogger.setup(
-                                    `Player removed from drill: ${pName}`
-                                  );
-                                  setSettings((prev) => ({
-                                    ...prev,
-                                    activePlayers: prev.activePlayers.filter(
-                                      (p) => p.id !== m.id
-                                    ),
-                                  }));
-                                } else {
-                                  shadowLogger.setup(
-                                    `Player added to drill: ${pName}`
-                                  );
-                                  setSettings((prev) => ({
-                                    ...prev,
-                                    activePlayers: [
-                                      ...prev.activePlayers,
-                                      {
-                                        id: m.id,
-                                        displayName: pName,
-                                        ageGroup:
-                                          m.ageGroup ||
-                                          resolveMemberAgeGroup(m),
-                                      },
-                                    ],
-                                  }));
-                                }
-                              }}
-                            />
-                            <div className="min-w-0 flex-1">
-                              <span
-                                className={`block truncate text-xs font-bold leading-snug ${
+                            {cat.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Players Grid */}
+                    {filteredPlayers.length === 0 ? (
+                      <p className="p-6 text-center text-xs text-zinc-500">
+                        Няма намерени играчи за избрания критерий.
+                      </p>
+                    ) : (
+                      <div className="max-h-64 overflow-y-auto pr-1">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                          {filteredPlayers.map((m) => {
+                            const isChecked = settings.activePlayers.some(
+                              (p) => p.id === m.id
+                            );
+                            return (
+                              <label
+                                key={m.id}
+                                className={`flex cursor-pointer items-center gap-2.5 rounded-xl border p-2.5 transition-all ${
                                   isChecked
-                                    ? "text-blue-700 dark:text-blue-300"
-                                    : "text-zinc-800 dark:text-zinc-200"
+                                    ? "border-blue-600 bg-blue-50/70 shadow-2xs dark:border-blue-500 dark:bg-blue-950/40"
+                                    : "border-zinc-200/80 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
                                 }`}
                               >
-                                {m.displayName ||
-                                  `${m.firstName} ${m.lastName}`}
-                              </span>
-                              {(() => {
-                                const ag =
-                                  m.ageGroup || resolveMemberAgeGroup(m);
-                                if (!ag) return null;
-                                return (
-                                  <span className="mt-0.5 inline-block rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                                    {ag}
+                                <Checkbox
+                                  checked={isChecked}
+                                  onCheckedChange={(checked) => {
+                                    const pName =
+                                      m.displayName ||
+                                      `${m.firstName || ""} ${m.lastName || ""}`.trim();
+                                    if (!checked) {
+                                      shadowLogger.setup(
+                                        `Player removed from drill: ${pName}`
+                                      );
+                                      setSettings((prev) => ({
+                                        ...prev,
+                                        activePlayers:
+                                          prev.activePlayers.filter(
+                                            (p) => p.id !== m.id
+                                          ),
+                                      }));
+                                    } else {
+                                      shadowLogger.setup(
+                                        `Player added to drill: ${pName}`
+                                      );
+                                      setSettings((prev) => ({
+                                        ...prev,
+                                        activePlayers: [
+                                          ...prev.activePlayers,
+                                          {
+                                            id: m.id,
+                                            displayName: pName,
+                                            ageGroup:
+                                              m.ageGroup ||
+                                              resolveMemberAgeGroup(m),
+                                          },
+                                        ],
+                                      }));
+                                    }
+                                  }}
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <span
+                                    className={`block truncate text-xs font-bold leading-snug ${
+                                      isChecked
+                                        ? "text-blue-700 dark:text-blue-300"
+                                        : "text-zinc-800 dark:text-zinc-200"
+                                    }`}
+                                  >
+                                    {m.displayName ||
+                                      `${m.firstName} ${m.lastName}`}
                                   </span>
-                                );
-                              })()}
-                            </div>
-                          </label>
-                        );
-                      })}
+                                  {(() => {
+                                    const ag =
+                                      m.ageGroup || resolveMemberAgeGroup(m);
+                                    if (!ag) return null;
+                                    return (
+                                      <span className="mt-0.5 inline-block rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                        {ag}
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  settings.activePlayers.length === 0 && (
+                    <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-200 p-6 text-center dark:border-zinc-800">
+                      <p className="text-xs text-zinc-500">
+                        Каталогът със състезатели е свит.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsRosterExpanded(true)}
+                        className="h-8 rounded-xl text-xs"
+                      >
+                        Покажи картотеката ({membersList.length})
+                      </Button>
                     </div>
-                  </div>
+                  )
                 )}
               </CardContent>
             </Card>

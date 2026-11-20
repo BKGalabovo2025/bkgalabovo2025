@@ -244,6 +244,15 @@ class AudioManager {
       this.setVoiceSpeed(voiceSpeed);
       return;
     }
+    // Auto-adjust playback rate if pace is fast (< 1.5s) to prevent audio overlapping
+    if (paceSec < 1.5 && paceSec > 0) {
+      const calculatedRate = Math.min(
+        1.4,
+        Math.max(1.15, Math.round((1.6 / paceSec) * 100) / 100)
+      );
+      this.setVoiceSpeed(calculatedRate);
+      return;
+    }
     if (!this.voiceAudio) return;
     try {
       this.voiceAudio.playbackRate = this.currentVoiceSpeed;

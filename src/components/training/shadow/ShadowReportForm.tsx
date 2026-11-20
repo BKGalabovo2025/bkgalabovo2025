@@ -46,9 +46,8 @@ function formatDuration(ms: number): string {
 }
 
 function getModeLabel(mode: string): string {
-  if (mode === "ghost_match") return "Мач на сенки";
-  if (mode === "agility_test") return "Тест за бързина";
-  return "Стандартен";
+  if (mode === "agility_test") return "Тест за бързина (Спринт)";
+  return "Интервална тренировка";
 }
 
 export function ShadowReportForm({

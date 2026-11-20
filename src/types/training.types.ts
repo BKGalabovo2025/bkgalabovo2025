@@ -1,10 +1,9 @@
 type TrainingType = "shadow" | "physical" | "court";
-type ShadowMode = "standard" | "ghost_match" | "agility_test";
+type ShadowMode = "standard" | "agility_test";
 type ShadowPreset =
   | "warmup"
   | "smash_net"
   | "defense_drives"
-  | "ghost_match"
   | "agility_sprint"
   | "kids_footwork"
   | "beginner"

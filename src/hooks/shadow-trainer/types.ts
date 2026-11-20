@@ -22,7 +22,7 @@ export interface CourtSlot {
 }
 
 export interface ShadowSettings {
-  mode: "standard" | "ghost_match" | "agility_test";
+  mode: "standard" | "agility_test";
   preset: string;
   drillMode:
     | "all"
