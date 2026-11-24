@@ -3,8 +3,9 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
+import LoginPage from "@/app/login/page";
 import { AppSidebar } from "@/components/layout/sidebar";
 
 const ParentNotificationsBell = dynamic(
@@ -147,6 +148,25 @@ export default function ProtectedLayoutClient({
       }
     }
   }, [user, router, activeBranch, pathname]);
+
+  const [hasClientSession, setHasClientSession] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (
+        localStorage.getItem("firebase:hasAuth") === "1" ||
+        document.cookie.split(";").some((c) => c.trim().startsWith("session="))
+      ) {
+        setHasClientSession(true);
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  if (!user && !hasClientSession) {
+    return <LoginPage />;
+  }
 
   return (
     <SidebarProvider open={isSidebarOpen} onOpenChange={setSidebarOpen}>
