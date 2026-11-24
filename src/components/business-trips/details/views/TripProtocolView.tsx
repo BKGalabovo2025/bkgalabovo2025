@@ -21,6 +21,7 @@ export function TripProtocolView() {
     event,
     expenses,
     membersDict,
+    setTrip,
     refreshData,
     activeDialog,
     openDialog,
@@ -219,7 +220,8 @@ export function TripProtocolView() {
           }}
           trip={trip}
           membersDict={membersDict}
-          onSuccess={() => {
+          onSuccess={(updatedTrip) => {
+            setTrip(updatedTrip);
             closeDialog();
             refreshData();
           }}

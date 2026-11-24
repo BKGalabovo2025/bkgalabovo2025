@@ -2048,7 +2048,13 @@ export function BusinessTripManagerDialog({
           }}
           trip={selectedTripForProtocol}
           membersDict={membersDict}
-          onSuccess={() => {
+          onSuccess={(updatedTrip) => {
+            setBusinessTrips((prev) =>
+              prev.map((t) => (t.id === updatedTrip.id ? updatedTrip : t))
+            );
+            setSelectedTripForPdf((prev) =>
+              prev?.id === updatedTrip.id ? updatedTrip : prev
+            );
             setSelectedTripForProtocol(null);
             loadData();
           }}
